@@ -1,0 +1,44 @@
+\documentclass[a4paper]{article}
+\usepackage{geometry}
+\geometry{paper=a4paper}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenx}
+\usepackage{palatino}
+\usepackage[czech,english]{babel}
+
+\title{Definition of application for measuring}
+\author{Petr Holub, Martin Šrom, Ondřej Bouda}
+\date{2012}
+
+\begin{document}
+
+\maketitle
+
+\section{The application:}
+\begin{itemize}
+\item shall be written in \textsc{JAVA} programming language;
+\item shall run in 1, 10, 100, 1.000 instances on single computer;
+\item shall run on multiple computers (each with already specified number of instances);
+\item single instance shall be able to send and receive messages from all other instances (even from other computer);
+\item optionally shall use encryption by \textsc{X.509} certificates;
+\item shall log:
+  \begin{itemize}
+  \item Memory usage for each instance/computer;
+  \item CPU load for each instance/computer.
+  \end{itemize}
+\end{itemize}
+
+\section{Application shall BE implemented and tested in:}
+\begin{itemize}
+\item{JXTA}
+\item{JADE}
+\item{Mule}
+\item{Pastry}
+\item{P2PS}
+\end{itemize}
+
+\section{Application will NOT BE implemented in:}
+\begin{itemize}
+\item{GEMBUS} (not available)
+\end{itemize}
+\end{document}
