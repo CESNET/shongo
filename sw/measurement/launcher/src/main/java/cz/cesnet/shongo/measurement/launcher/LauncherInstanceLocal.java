@@ -15,7 +15,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
 
     @Override
     public boolean run(String command) {
-        System.out.println("[LOCAL:" + getId() + "] Run {" + command + "}");
+        System.out.println("[LOCAL:" + getId() + "] Run [" + command + "]");
 
         // Run process
         try {
@@ -40,7 +40,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
 
     @Override
     public void perform(String command) {
-        System.out.println("[LOCAL:" + getId() + "] Perform {" + command + "}");
+        System.out.println("[LOCAL:" + getId() + "] Perform [" + command + "]");
         OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
         try {
             outputStreamWriter.write(command + "\n");

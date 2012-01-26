@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launcher>
-    <variable name="host" default-value="127.0.0.1:9000" />
+    <variable name="host" default-value="127.0.0.1" />
     <variable name="count" value="2" />
 
     <instance id="jvm1" type="local">

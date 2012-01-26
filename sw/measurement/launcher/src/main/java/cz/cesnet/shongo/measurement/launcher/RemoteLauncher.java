@@ -53,12 +53,12 @@ public class RemoteLauncher {
             if ( command.equals("run") ) {
                 String id = list.get(1);
                 String execute = list.get(2);
-                System.out.println("[REMOTE] Received for {" + id + "} command run {" + execute + "}");
+                System.out.println("[REMOTE] Received for [" + id + "] command run [" + execute + "]");
                 launcherInstance = new LauncherInstanceLocal(id);
                 launcherInstance.run(execute);
             } else if ( command.equals("perform") ) {
                 String perform = list.get(1);
-                System.out.println("[REMOTE] Received for {" + launcherInstance.getId() + "} command perform {" + perform + "}");
+                System.out.println("[REMOTE] Received for [" + launcherInstance.getId() + "] command perform [" + perform + "]");
                 launcherInstance.perform(perform);
             }
         }

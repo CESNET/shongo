@@ -7,6 +7,7 @@ import java.util.Map;
 
 public class LauncherApplication {
     
+    public static final int REMOTE_PORT = 9000;
     public static final String RUN_JXTA = "./jxta";
     public static final String RUN_JADE = "./jade";
 
@@ -97,7 +98,7 @@ public class LauncherApplication {
 
         // Create remote
         if ( commandLine.hasOption("remote") ) {
-            int port = 9000;
+            int port = REMOTE_PORT;
             if ( commandLine.getOptionValue("remote") != null )
                 port = Integer.parseInt(commandLine.getOptionValue("remote"));
             RemoteLauncher.launchRemote(port);

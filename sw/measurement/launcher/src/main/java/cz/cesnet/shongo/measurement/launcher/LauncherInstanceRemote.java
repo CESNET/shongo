@@ -21,13 +21,10 @@ public class LauncherInstanceRemote extends LauncherInstance {
     @Override
     public boolean run(String command) {
         String[] url = host.split(":");
-        if ( url.length < 2 ) {
-            System.out.println("[REMOTE:" + getId() + "] Bad formatted url for remote '" + host + "'!" + url.length);
-            System.out.println("[REMOTE:" + getId() + "] Url should be in format 'hostname:port'.");
-            return false;
-        }
         String host = url[0];
-        int port = Integer.parseInt(url[1]);
+        int port = LauncherApplication.REMOTE_PORT;
+        if ( url.length >= 2 )
+            port = Integer.parseInt(url[1]);
 
         try {
             socket = new Socket(host, port);
@@ -39,7 +36,7 @@ public class LauncherInstanceRemote extends LauncherInstance {
         if ( socket == null || output == null || input == null )
             return false;
 
-        System.out.println("[REMOTE:" + getId() + "] Run {" + command + "}");
+        System.out.println("[REMOTE:" + getId() + "] Run [" + command + "]");
         output.printf("run %s \"%s\"\n", getId(), command);
 
         return true;
@@ -47,7 +44,7 @@ public class LauncherInstanceRemote extends LauncherInstance {
 
     @Override
     public void perform(String command) {
-        System.out.println("[REMOTE:" + getId() + "] Perform {" + command + "}");
+        System.out.println("[REMOTE:" + getId() + "] Perform [" + command + "]");
         output.printf("perform \"%s\"\n", command);
     }
 
