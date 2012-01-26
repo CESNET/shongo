@@ -46,34 +46,5 @@
             <version>3.1.5.GA</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <promoteTransitiveDependencies>true</promoteTransitiveDependencies>
-                    <filters>
-                        <filter>
-                            <artifact>bouncycastle:bcprov-jdk15</artifact>
-                            <excludes>
-                                <exclude>META-INF/BCKEY.SF</exclude>
-                                <exclude>META-INF/BCKEY.DSA</exclude>
-                            </excludes>
-                        </filter>
-                    </filters>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     
 </project>
