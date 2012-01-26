@@ -5,10 +5,11 @@ public class AgentReceiver extends Agent {
     /**
      * Constructor
      *
-     * @param name
+     * @param id  Agent id
+     * @param name   Agent name
      */
-    public AgentReceiver(String name) {
-        super(name);
+    public AgentReceiver(String id, String name) {
+        super(id, name);
     }
 
     /**

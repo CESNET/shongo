@@ -7,10 +7,11 @@ public class AgentSender extends Agent {
     /**
      * Constructor
      *
-     * @param name
+     * @param id  Agent id
+     * @param name   Agent name
      */
-    public AgentSender(String name) {
-        super(name);
+    public AgentSender(String id, String name) {
+        super(id, name);
     }
 
     /**

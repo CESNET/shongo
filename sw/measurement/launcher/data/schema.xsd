@@ -3,12 +3,20 @@
   <xs:element name="launcher">
     <xs:complexType>
       <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="variable"/>
         <xs:element maxOccurs="unbounded" ref="instance"/>
         <xs:choice maxOccurs="unbounded">
           <xs:element ref="sleep"/>
           <xs:element ref="step"/>
         </xs:choice>
       </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="variable">
+    <xs:complexType>
+      <xs:attribute name="default-value" type="xs:NMTOKEN"/>
+      <xs:attribute name="name" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required" type="xs:NMTOKEN"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="instance">
@@ -32,7 +40,7 @@
   </xs:element>
   <xs:element name="command">
     <xs:complexType mixed="true">
-      <xs:attribute name="for" use="required" type="xs:NCName"/>
+      <xs:attribute name="for" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

@@ -14,7 +14,7 @@ public class LauncherApplication {
         Option help = new Option("h", "help", false, "Print this usage information");
         Option remote = OptionBuilder.withLongOpt("remote")
                 .withArgName("port")
-                .hasArg()
+                .hasOptionalArg()
                 .withDescription("Launch remote")
                 .create("r");
         Option launch = OptionBuilder.withLongOpt("launch")
@@ -97,7 +97,9 @@ public class LauncherApplication {
 
         // Create remote
         if ( commandLine.hasOption("remote") ) {
-            int port = Integer.parseInt(commandLine.getOptionValue("remote"));
+            int port = 9000;
+            if ( commandLine.getOptionValue("remote") != null )
+                port = Integer.parseInt(commandLine.getOptionValue("remote"));
             RemoteLauncher.launchRemote(port);
         }
 

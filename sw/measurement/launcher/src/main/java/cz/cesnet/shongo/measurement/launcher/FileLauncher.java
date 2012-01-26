@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.measurement.launcher;
 
+import com.sun.org.apache.bcel.internal.generic.LSTORE;
 import cz.cesnet.shongo.measurement.launcher.xml.*;
 
 import javax.xml.bind.JAXBContext;
@@ -33,6 +34,18 @@ public class FileLauncher {
             return;
 
         System.out.println("[LAUNCHER] Running instances....");
+
+        // Set values to variables
+        List<Variable> variableDefaults = launcher.getVariable();
+        for ( Variable variable : variableDefaults ) {
+            // Set default values if not defined
+            if ( variables.get(variable.getName()) == null )
+                variables.put(variable.getName(), variable.getDefaultValue());
+            // Set value if should be set
+            if ( variable.getValue() != null ) {
+                variables.put(variable.getName(), variable.getValue());
+            }
+        }
 
         // Run instances
         Map<String, LauncherInstance> launcherInstances = new HashMap<String, LauncherInstance>();

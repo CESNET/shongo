@@ -81,11 +81,11 @@ public class JxtaApplication {
             }
 
             if ( number == 1 ) {
-                Agent.runAgent(agentName, agentClass);
+                Agent.runAgent("", agentName, agentClass);
             } else {
                 for ( int index = 0; index < number; index++ ) {
                     String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
-                    final String[] arguments = {agentName + agentNumber, agentClass.getName()};
+                    final String[] arguments = {agentNumber, agentName + agentNumber, agentClass.getName()};
                     cz.cesnet.shongo.measurement.common.Application.runProcess(agentName + agentNumber, Agent.class, arguments);
                 }
             }

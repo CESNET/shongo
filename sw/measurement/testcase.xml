@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launcher>
+    <variable name="host" default-value="127.0.0.1:9000" />
+    <variable name="count" value="2" />
+
     <instance id="jvm1" type="local">
-        {run-platform} --agent=agent1 --type=sender
+        {run-platform} --agent=s --type=sender --count={count}
     </instance>
     <instance id="jvm2" type="remote" host="{host}">
-        {run-platform} --agent=agent2 --type=receiver
+        {run-platform} --agent=r --type=receiver --count={count}
     </instance>
 
-    <sleep duration="1000" />
+    <sleep duration="5000" />
 
     <step>
-        <command for="jvm1">send agent2 Hello</command>
+        <command for="jvm1">send r{agent-id} Hello</command>
     </step>
 
-    <sleep duration="3000" />
-
-    <step>
-        <command for="jvm1">send agent2 Hello2</command>
-        <command for="jvm2">send agent1 Hi</command>
-    </step>
-
-    <sleep duration="1000" />
+    <sleep duration="5000" />
 
     <step>
         <command>quit</command>
