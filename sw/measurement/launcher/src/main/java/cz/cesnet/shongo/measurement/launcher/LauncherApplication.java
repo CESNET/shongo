@@ -2,6 +2,9 @@ package cz.cesnet.shongo.measurement.launcher;
 
 import org.apache.commons.cli.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class LauncherApplication {
     
     public static final String RUN_JXTA = "./jxta";
@@ -29,6 +32,12 @@ public class LauncherApplication {
                 .hasArg()
                 .withDescription("Set extension for platform scripts")
                 .create("p");
+        Option define = OptionBuilder.withLongOpt("define")
+                .withArgName("name=value")
+                .withValueSeparator(';')
+                .hasArgs()
+                .withDescription("Define constant")
+                .create("D");
 
         // Create options
         Options options = new Options();
@@ -37,6 +46,7 @@ public class LauncherApplication {
         options.addOption(launch);
         options.addOption(platform);
         options.addOption(extension);
+        options.addOption(define);
 
         // Parse command line
         CommandLine commandLine = null;
@@ -91,10 +101,25 @@ public class LauncherApplication {
             RemoteLauncher.launchRemote(port);
         }
 
+        // Get variables
+        Map<String, String> variables = new HashMap<String, String>();
+        String[] defines = commandLine.getOptionValues("define");
+        if ( defines != null ) {
+            for ( String defineValue : defines ) {
+                String[] parts = defineValue.split("=");
+                if ( parts.length < 2 )
+                    continue;
+                variables.put(parts[0], parts[1]);
+                System.out.println("Define " + parts[0] + " as " + parts[1]);
+            }
+        }
+        // Predefined variables
+        variables.put("run-platform", runPlatform);
+
         // Launch file
         if ( commandLine.hasOption("launch") ) {
             String launchFile = commandLine.getOptionValue("launch");
-            FileLauncher.launchFile(launchFile, runPlatform);
+            FileLauncher.launchFile(launchFile, variables);
         }
     }
 

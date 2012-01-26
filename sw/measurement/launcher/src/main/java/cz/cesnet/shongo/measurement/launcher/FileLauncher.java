@@ -6,14 +6,20 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FileLauncher {
 
-    public static void launchFile(String file, String runPlatform) {
+    public static String replaceVariables(String command, Map<String, String> variables) {
+        Iterator it = variables.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> variable = (Map.Entry<String, String>)it.next();
+            command = command.replaceAll("\\{" + variable.getKey() + "\\}", variable.getValue());
+        }
+        return command;
+    }
+
+    public static void launchFile(String file, Map<String, String> variables) {
         // Parse file
         Launcher launcher = null;
         try {
@@ -36,9 +42,8 @@ public class FileLauncher {
             if ( instance.getType().equals("local") )
                 launcherInstance = new LauncherInstanceLocal(instance.getId());
             else if ( instance.getType().equals("remote") )
-                launcherInstance = new LauncherInstanceRemote(instance.getId(), instance.getHost());
-            String command = instance.getContent().trim();
-            command = command.replaceAll("\\{run-platform\\}", runPlatform);
+                launcherInstance = new LauncherInstanceRemote(instance.getId(), replaceVariables(instance.getHost(), variables));
+            String command = replaceVariables(instance.getContent().trim(), variables);
             if ( launcherInstance.run(command) == false ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
                 for ( LauncherInstance launchedInstance : launcherInstances.values() )
