@@ -26,6 +26,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>cz.cesnet.shongo.measurement</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.kenai.jxse</groupId>
             <artifactId>jxse</artifactId>
             <version>2.6</version>

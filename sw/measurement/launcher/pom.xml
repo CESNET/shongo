@@ -13,5 +13,13 @@
         <artifactId>parent</artifactId>
         <version>1.0</version>
     </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo.measurement</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
     
 </project>
