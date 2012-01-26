@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class FileLauncher {
 
-    public static void launchFile(String file) {
+    public static void launchFile(String file, String runPlatform) {
         // Parse file
         Launcher launcher = null;
         try {
@@ -26,6 +26,8 @@ public class FileLauncher {
         if ( launcher == null )
             return;
 
+        System.out.println("[LAUNCHER] Running instances....");
+
         // Run instances
         Map<String, LauncherInstance> launcherInstances = new HashMap<String, LauncherInstance>();
         List<Instance> instances = launcher.getInstance();
@@ -35,7 +37,14 @@ public class FileLauncher {
                 launcherInstance = new LauncherInstanceLocal(instance.getId());
             else if ( instance.getType().equals("remote") )
                 launcherInstance = new LauncherInstanceRemote(instance.getId(), instance.getHost());
-            launcherInstance.run(instance.getContent().trim());
+            String command = instance.getContent().trim();
+            command = command.replaceAll("\\{run-platform\\}", runPlatform);
+            if ( launcherInstance.run(command) == false ) {
+                System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
+                for ( LauncherInstance launchedInstance : launcherInstances.values() )
+                    launchedInstance.exit();
+                return;
+            }
             launcherInstances.put(launcherInstance.getId(), launcherInstance);
         }
 

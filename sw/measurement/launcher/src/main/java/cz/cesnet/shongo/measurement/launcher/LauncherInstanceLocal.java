@@ -14,7 +14,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
     }
 
     @Override
-    public void run(String command) {
+    public boolean run(String command) {
         System.out.println("[LOCAL:" + getId() + "] Run {" + command + "}");
 
         // Run process
@@ -22,6 +22,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
             process = Runtime.getRuntime().exec(command);
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
         
         String name = "    " + getId();
@@ -33,6 +34,8 @@ public class LauncherInstanceLocal extends LauncherInstance {
         // Print error output
         StreamConnector streamConnectorError = new StreamConnector(process.getErrorStream(), System.err, name);
         streamConnectorError.start();
+
+        return true;
     }
 
     @Override

@@ -12,7 +12,7 @@ public abstract  class LauncherInstance {
         return id;
     }
 
-    public abstract void run(String command);
+    public abstract boolean run(String command);
 
     public abstract void perform(String command);
 

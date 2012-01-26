@@ -103,7 +103,7 @@ public class Peer implements PipeMsgListener {
         logger.info(String.format("Starting Peer [%s] with ID [%s]", peerName, peerID.toString()));
         try {
             // Creation of network manager
-            networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File("." + peerName).toURI());
+            networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(".jxta/" + peerName).toURI());
 
             // Retrieving the network configurator
             NetworkConfigurator networkConfigurator = networkManager.getConfigurator();
@@ -111,7 +111,7 @@ public class Peer implements PipeMsgListener {
             networkConfigurator.setTcpEnabled(true);
             networkConfigurator.setTcpIncoming(true);
             networkConfigurator.setTcpOutgoing(true);
-            networkConfigurator.save();
+            //networkConfigurator.save();
 
             // Starting the JXTA network with disabled error stream
             PrintStream err = System.err;
