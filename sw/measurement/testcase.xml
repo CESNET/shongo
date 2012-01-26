@@ -2,7 +2,7 @@
 
 <launcher>
     <variable name="host" default-value="127.0.0.1" />
-    <variable name="count" value="2" />
+    <variable name="count" default-value="2" />
 
     <instance id="jvm1" type="local">
         {run-platform} --agent=s --type=sender --count={count}
