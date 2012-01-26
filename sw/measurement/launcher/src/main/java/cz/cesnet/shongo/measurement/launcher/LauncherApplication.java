@@ -4,8 +4,8 @@ import org.apache.commons.cli.*;
 
 public class LauncherApplication {
     
-    public static final String RUN_JXTA = "./jxta.sh";
-    public static final String RUN_JADE = "./jade.sh";
+    public static final String RUN_JXTA = "./jxta";
+    public static final String RUN_JADE = "./jade";
 
     public static void main(String[] args) throws Exception {
         Option help = new Option("h", "help", false, "Print this usage information");
@@ -20,9 +20,14 @@ public class LauncherApplication {
                 .withDescription("Launch from file that contains commands")
                 .create("l");
         Option platform = OptionBuilder.withLongOpt("platform")
-                .withArgName("[jxta|jade]")
+                .withArgName("jxta|jade")
                 .hasArg()
                 .withDescription("Set launching platform")
+                .create("p");
+        Option extension = OptionBuilder.withLongOpt("extension")
+                .withArgName("sh|bat")
+                .hasArg()
+                .withDescription("Set extension for platform scripts")
                 .create("p");
 
         // Create options
@@ -31,6 +36,7 @@ public class LauncherApplication {
         options.addOption(remote);
         options.addOption(launch);
         options.addOption(platform);
+        options.addOption(extension);
 
         // Parse command line
         CommandLine commandLine = null;
@@ -41,7 +47,8 @@ public class LauncherApplication {
             System.out.println("Error: " + e.getMessage());
             return;
         }
-        
+
+        // Get script name for running platfrom
         String runPlatform = RUN_JXTA;
         if ( commandLine.hasOption("platform") ) {
             String platformValue = commandLine.getOptionValue("platform");
@@ -50,9 +57,25 @@ public class LauncherApplication {
             else if ( platformValue.equals("jade") )
                 runPlatform = RUN_JADE;
             else {
-                System.out.printf("Unknown platform '%s'!");
+                System.out.printf("Unknown platform '%s'!", platformValue);
                 System.exit(-1);
             }
+        }
+
+        // Append extension to script name
+        if ( commandLine.hasOption("extension") ) {
+            String extensionValue = commandLine.getOptionValue("extension");
+            if ( extensionValue.equals("sh") )
+                runPlatform = runPlatform + ".sh";
+            else if ( extensionValue.equals("bat") )
+                runPlatform = runPlatform + ".bat";
+            else {
+                System.out.printf("Unknown extension '%s'!", extensionValue);
+                System.exit(-1);
+            }
+        } else {
+            // Default extension is .sh
+            runPlatform = runPlatform + ".sh";
         }
 
         // Print help

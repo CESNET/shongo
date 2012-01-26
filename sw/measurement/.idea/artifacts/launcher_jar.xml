@@ -2,7 +2,7 @@
   <artifact build-on-make="true" name="launcher:jar">
     <output-path>$PROJECT_DIR$/launcher/target/</output-path>
     <root id="root">
-      <element id="archive" name="launcher.jar">
+      <element id="archive" name="launcher-1.0.jar">
         <element id="directory" name="META-INF">
           <element id="file-copy" path="$PROJECT_DIR$/launcher/src/main/java/META-INF/MANIFEST.MF" />
         </element>

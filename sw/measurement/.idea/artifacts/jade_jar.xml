@@ -2,7 +2,7 @@
   <artifact build-on-make="true" name="jade:jar">
     <output-path>$PROJECT_DIR$/jade/target/</output-path>
     <root id="root">
-      <element id="archive" name="jade.jar">
+      <element id="archive" name="jade-1.0.jar">
         <element id="directory" name="META-INF">
           <element id="file-copy" path="$PROJECT_DIR$/jade/src/main/java/META-INF/MANIFEST.MF" />
         </element>
