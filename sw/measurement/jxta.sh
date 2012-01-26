@@ -1,1 +1,1 @@
-java -cp jxta/target/jxta.jar cz.cesnet.shongo.measurement.jxta.Application $@
+java -cp jxta/target/jxta.jar cz.cesnet.shongo.measurement.jxta.JxtaApplication $@

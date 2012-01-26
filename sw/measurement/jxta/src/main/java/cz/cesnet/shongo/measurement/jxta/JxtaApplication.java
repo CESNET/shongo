@@ -1,35 +1,34 @@
-package cz.cesnet.shongo.measurement.jade;
+package cz.cesnet.shongo.measurement.jxta;
+
 import cz.cesnet.shongo.measurement.common.StreamConnector;
 import org.apache.commons.cli.*;
 
 import java.io.IOException;
 
 /**
- * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * JXTA application
+ *
+ * @author Martin Srom
  */
-public class Application {
+public class JxtaApplication {
+
     public static void main(String[] args) {
         Option help = new Option("h", "help", false, "Print this usage information");
         Option agent = OptionBuilder.withLongOpt("agent")
-                .withArgName("name")
-                .hasArg()
-                .withDescription("Run agent")
-                .create("a");
+            .withArgName("name")
+            .hasArg()
+            .withDescription("Run agent")
+            .create("a");
         Option agentCount = OptionBuilder.withLongOpt("count")
-                .withArgName("count")
-                .hasArg()
-                .withDescription("Number of agents")
-                .create("c");
+            .withArgName("count")
+            .hasArg()
+            .withDescription("Number of agents")
+            .create("c");
         Option agentType = OptionBuilder.withLongOpt("type")
-                .withArgName("type")
-                .hasArg()
-                .withDescription("Type of agents")
-                .create("t");
-        Option domainOption = OptionBuilder.withLongOpt("domain")
-                .withArgName("domain")
-                .hasArg()
-                .withDescription("Domain to connect to")
-                .create("d");
+            .withArgName("type")
+            .hasArg()
+            .withDescription("Type of agents")
+            .create("t");
 
         // Create options
         Options options = new Options();
@@ -37,7 +36,6 @@ public class Application {
         options.addOption(agent);
         options.addOption(agentCount);
         options.addOption(agentType);
-        options.addOption(domainOption);
 
         // Parse command line
         CommandLine commandLine = null;
@@ -52,20 +50,8 @@ public class Application {
         // Print help
         if ( commandLine.hasOption("help") || commandLine.getOptions().length == 0 ) {
             HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("jade", options);
+            formatter.printHelp("jxta", options);
             System.exit(0);
-        }
-        
-        if (commandLine.hasOption("domain")) {
-            // create a container connecting to a domain
-
-        }
-        else {
-            // create a new domain
-            int port = 1099;
-            Profile mainProfile = new ProfileImpl(null, port, null);
-            AgentContainer main = jade.core.Runtime.instance().createMainContainer(mainProf);
-
         }
 
         // Create agent

@@ -1,1 +1,1 @@
-java -cp jade/target/jade.jar cz.cesnet.shongo.measurement.jade.Application $@
+java -cp jade/target/jade.jar cz.cesnet.shongo.measurement.jade.JadeApplication $@
