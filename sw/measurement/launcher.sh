@@ -1,1 +1,1 @@
-java -cp launcher/target/launcher.jar cz.cesnet.shongo.measurement.launcher.Launcher $@
+java -cp launcher/target/launcher.jar cz.cesnet.shongo.measurement.launcher.LauncherApplication $@

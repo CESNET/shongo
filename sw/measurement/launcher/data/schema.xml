@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launcher>
+    <instance id="first" type="local">
+        ./jxta.sh --agent=sender --type=sender
+    </instance>
+    <instance id="second" type="local" host="192.168.1.6">
+        ./jxta.sh --agent=receiver --type=receiver
+    </instance>
+
+    <sleep duration="1000" />
+
+    <step>
+        <command for="first">send receiver Hello</command>
+    </step>
+
+    <sleep duration="3000" />
+
+    <step>
+        <command for="first">send receiver Hello</command>
+        <command for="second">send sender Hello</command>
+    </step>
+
+    <sleep duration="1000" />
+
+    <step>
+        <command>quit</command>
+    </step>
+
+</launcher>

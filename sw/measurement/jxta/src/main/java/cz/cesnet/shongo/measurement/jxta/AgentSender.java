@@ -43,7 +43,11 @@ public class AgentSender extends Agent {
      */
     @Override
     protected void onReceiveMessage(String senderName, String text) {
-        double duration = (double)(System.nanoTime() - timerMap.get(text)) / 1000000.0;
-        logger.info(String.format("Received message from %s: %s (in %f ms)", senderName, text, duration));
+        String durationFormatted = "";
+        if ( timerMap.containsKey(text) ) {
+            double duration = (double)(System.nanoTime() - timerMap.get(text)) / 1000000.0;
+            durationFormatted = String.format(" (in %f ms)", duration);
+        }
+        logger.info(String.format("Received message from %s: %s%s", senderName, text, durationFormatted));
     }
 }

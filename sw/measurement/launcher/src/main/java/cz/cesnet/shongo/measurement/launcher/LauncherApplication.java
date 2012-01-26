@@ -2,7 +2,7 @@ package cz.cesnet.shongo.measurement.launcher;
 
 import org.apache.commons.cli.*;
 
-public class Launcher {
+public class LauncherApplication {
 
     public static void main(String[] args) throws Exception {
         Option help = new Option("h", "help", false, "Print this usage information");
@@ -44,8 +44,9 @@ public class Launcher {
         }
 
         if ( commandLine.hasOption("launch") ) {
-            String launchFile = commandLine.getOptionValue("file");
-            throw new Exception("TODO: Implement launching from file");
+            String launchFile = commandLine.getOptionValue("launch");
+            FileLauncher.launchFile(launchFile);
         }
     }
+
 }

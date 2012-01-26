@@ -41,6 +41,8 @@ public class Agent extends Peer {
         while ( true ) {
             try {
                 command = input.readLine();
+                if ( command == null )
+                    break;
             } catch (IOException e) {
                 e.printStackTrace();
             }
