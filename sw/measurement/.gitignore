@@ -2,6 +2,7 @@
 .idea/libraries
 .jxta
 common/target
+fuse/target
 jxta/target
 jade/target
 launcher/target

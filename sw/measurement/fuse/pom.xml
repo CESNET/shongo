@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cz.cesnet.shongo.measurement</groupId>
-    <artifactId>common</artifactId>
+    <artifactId>fuse</artifactId>
     <version>1.0</version>
-    <name>Measurement Common</name>
+    <name>Measurement Fuse</name>
     <parent>
         <groupId>cz.cesnet.shongo.measurement</groupId>
         <artifactId>parent</artifactId>
@@ -16,10 +16,21 @@
 
     <dependencies>
         <dependency>
+            <groupId>cz.cesnet.shongo.measurement</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-core</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+        <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.13</version>
+            <version>1.2.16</version>
         </dependency>
     </dependencies>
 
+    
 </project>
