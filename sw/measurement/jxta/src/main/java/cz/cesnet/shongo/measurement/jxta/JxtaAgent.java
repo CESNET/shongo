@@ -15,9 +15,6 @@ import java.util.List;
  */
 public class JxtaAgent extends Agent {
 
-    /** Logger */
-    static protected Logger logger = Logger.getLogger(Peer.class);
-
     /**
      * JXTA peer
      */
@@ -26,29 +23,42 @@ public class JxtaAgent extends Agent {
     /**
      * Constructor
      *
-     * @param id  JxtaAgent id
-     * @param name  JxtaAgent name
+     * @param id   Agent id
+     * @param name Agent name
      */
     public JxtaAgent(String id, String name) {
         super(id, name);
         this.peer = new Peer(name, this);
     }
 
+    /**
+     * Implementation of Fuse agent startup
+     *
+     * @return result
+     */
     @Override
-    public void start() {
-        peer.start();
+    protected boolean startImpl() {
+        return peer.start();
     }
 
+    /**
+     * Implementation of Fuse agent finalization
+     */
     @Override
-    public void stop() {
+    protected void stopImpl() {
         peer.stop();
-        System.out.println("Exited");
+        System.out.println("Stopped Peer");
         System.exit(0);
     }
 
+    /**
+     * Implementation of Fuse agent send message
+     *
+     * @param receiverName
+     * @param message
+     */
     @Override
-    public void onSendMessage(String receiverName, String message) {
-        super.onSendMessage(receiverName, message);
+    protected void sendMessageImpl(String receiverName, String message) {
         if ( receiverName.equals("*") )
             peer.sendBroadcastMessage(message);
         else

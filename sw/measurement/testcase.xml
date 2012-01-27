@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launcher>
-    <variable name="host" default-value="127.0.0.1" />
-    <variable name="count" default-value="2" />
+    <!-- Default Agent and Host Setup -->
+    <variable name="host-remote" default-value="127.0.0.1" />
+    <variable name="host-activemq" default-value="127.0.0.1:61616" />
+    <variable name="agent-count" default-value="2" />
 
+    <!-- Run Script Variables -->
+    <variable name="run" default-value="./{platform}.{extension}" />
+    <variable name="run-param">
+        <platform type="fuse" value=" --activemq={host-activemq}"/>
+    </variable>
+
+    <!-- Setup Launcher Instances -->
     <instance id="jvm1" type="local">
-        {run-platform} --agent=s --type=sender --count={count}
+        {run} --agent=s --type=sender --count={agent-count}{run-param}
     </instance>
-    <instance id="jvm2" type="remote" host="{host}">
-        {run-platform} --agent=r --type=receiver --count={count}
+    <instance id="jvm2" type="remote" host="{host-remote}">
+        {run} --agent=r --type=receiver --count={agent-count}{run-param}
     </instance>
 
+    <!-- Instrutions -->
     <sleep duration="5000" />
-
     <step>
         <command for="jvm1">send r{agent-id} Hello</command>
     </step>
-
     <sleep duration="5000" />
-
     <step>
         <command>quit</command>
     </step>

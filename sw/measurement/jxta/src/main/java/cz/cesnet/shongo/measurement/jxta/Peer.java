@@ -104,7 +104,7 @@ public class Peer implements PipeMsgListener {
      *
      * @return void
      */
-    public void start() {
+    public boolean start() {
         try {
             // Creation of network manager
             networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(".jxta/" + peerName).toURI());
@@ -129,6 +129,8 @@ public class Peer implements PipeMsgListener {
 
             // Perform on start event
             onStart();
+
+            return true;
         } catch ( IOException exception ) {
             // Raised when access to local file and directories caused an error
             logger.error(exception.toString());
@@ -136,6 +138,7 @@ public class Peer implements PipeMsgListener {
             // Raised when the net peer group could not be created
             logger.error(exception.toString());
         }
+        return false;
     }
 
     /**

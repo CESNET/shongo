@@ -8,8 +8,6 @@ import java.util.Map;
 public class LauncherApplication {
     
     public static final int REMOTE_PORT = 9000;
-    public static final String RUN_JXTA = "./jxta";
-    public static final String RUN_JADE = "./jade";
 
     public static void main(String[] args) throws Exception {
         Option help = new Option("h", "help", false, "Print this usage information");
@@ -59,41 +57,24 @@ public class LauncherApplication {
             return;
         }
 
-        // Get script name for running platfrom
-        String runPlatform = RUN_JXTA;
-        if ( commandLine.hasOption("platform") ) {
-            String platformValue = commandLine.getOptionValue("platform");
-            if ( platformValue.equals("jxta") )
-                runPlatform = RUN_JXTA;
-            else if ( platformValue.equals("jade") )
-                runPlatform = RUN_JADE;
-            else {
-                System.out.printf("Unknown platform '%s'!", platformValue);
-                System.exit(-1);
-            }
-        }
-
-        // Append extension to script name
-        if ( commandLine.hasOption("extension") ) {
-            String extensionValue = commandLine.getOptionValue("extension");
-            if ( extensionValue.equals("sh") )
-                runPlatform = runPlatform + ".sh";
-            else if ( extensionValue.equals("bat") )
-                runPlatform = runPlatform + ".bat";
-            else {
-                System.out.printf("Unknown extension '%s'!", extensionValue);
-                System.exit(-1);
-            }
-        } else {
-            // Default extension is .sh
-            runPlatform = runPlatform + ".sh";
-        }
-
         // Print help
-        if ( commandLine.hasOption("help") || commandLine.getOptions().length == 0 ) {
+        if ( commandLine.hasOption("help") || commandLine.getOptions().length == 0
+                || (commandLine.getOptions().length == 1 && commandLine.hasOption("extension") ) )  {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("launcher", options);
             System.exit(0);
+        }
+
+        // Get script name for running platfrom
+        String platformType = "jxta";
+        if ( commandLine.hasOption("platform") ) {
+            platformType = commandLine.getOptionValue("platform");
+        }
+
+        // Append extension to script name
+        String extensionValue = "sh";
+        if ( commandLine.hasOption("extension") ) {
+            extensionValue = commandLine.getOptionValue("extension");
         }
 
         // Create remote
@@ -106,6 +87,8 @@ public class LauncherApplication {
 
         // Get variables
         Map<String, String> variables = new HashMap<String, String>();
+        variables.put("platform", platformType);
+        variables.put("extension", extensionValue);
         String[] defines = commandLine.getOptionValues("define");
         if ( defines != null ) {
             for ( String defineValue : defines ) {
@@ -116,8 +99,6 @@ public class LauncherApplication {
                 System.out.println("Define " + parts[0] + " as " + parts[1]);
             }
         }
-        // Predefined variables
-        variables.put("run-platform", runPlatform);
 
         // Launch file
         if ( commandLine.hasOption("launch") ) {

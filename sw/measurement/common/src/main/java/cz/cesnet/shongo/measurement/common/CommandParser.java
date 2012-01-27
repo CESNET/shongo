@@ -3,18 +3,20 @@ package cz.cesnet.shongo.measurement.common;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommandParser {
-
+public class CommandParser
+{
     private String command;
     
     private int position;
 
-    CommandParser(String command) {
+    CommandParser(String command)
+    {
         this.command = command;
         this.position = 0;
     }
 
-    public String readToken() {
+    public String readToken()
+    {
         StringBuilder builder = new StringBuilder();
 
         boolean parsingString = false;
@@ -51,7 +53,8 @@ public class CommandParser {
             return null;
     }
 
-    public static List<String> parse(String command) {
+    public static List<String> parse(String command)
+    {
         CommandParser parser = new CommandParser(command);
         List<String> list = new ArrayList<String>();
         String token = null;
