@@ -45,6 +45,7 @@ public class Agent extends Peer {
         start();
         onRun();
         stop();
+        System.out.println("Exited");
         System.exit(0);
     }
 

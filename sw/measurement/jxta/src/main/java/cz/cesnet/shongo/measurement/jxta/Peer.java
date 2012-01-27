@@ -3,6 +3,9 @@ package cz.cesnet.shongo.measurement.jxta;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.List;
 
 import net.jxta.document.AdvertisementFactory;
 import net.jxta.endpoint.Message;
@@ -32,7 +35,8 @@ public class Peer implements PipeMsgListener {
     private PeerID peerID;
     private PeerGroup peerGroup;
     private NetworkManager networkManager;
-    private Thread serverThread;
+    private ServerThread serverThread;
+    private InputPipe broadCastPipe;
 
     /**
      * Constructor
@@ -100,24 +104,27 @@ public class Peer implements PipeMsgListener {
      * @return void
      */
     public void start() {
-        logger.info(String.format("Starting Peer [%s] with ID [%s]", peerName, peerID.toString()));
         try {
             // Creation of network manager
             networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(".jxta/" + peerName).toURI());
+            // Automtic stop network on shutdown
+            networkManager.registerShutdownHook();
 
             // Retrieving the network configurator
             NetworkConfigurator networkConfigurator = networkManager.getConfigurator();
             networkConfigurator.setPeerID(peerID);
+            networkConfigurator.setUseMulticast(true);
             networkConfigurator.setTcpEnabled(true);
             networkConfigurator.setTcpIncoming(true);
             networkConfigurator.setTcpOutgoing(true);
-            //networkConfigurator.save();
 
             // Starting the JXTA network with disabled error stream
             PrintStream err = System.err;
             System.setErr(new java.io.PrintStream(new java.io.OutputStream() { public void write(int b){} }));
             peerGroup = networkManager.startNetwork();
             System.setErr(err);
+
+            logger.info(String.format("Started Peer [%s] with ID [%s]", peerName, peerID.toString()));
 
             // Perform on start event
             onStart();
@@ -131,65 +138,65 @@ public class Peer implements PipeMsgListener {
     }
 
     /**
-     * Connection wrapper. Once started, it sends ITERATIONS messages and
-     * receives a response from the initiator for each message.
+     * Server thread class
      */
-    private static class ConnectionHandler implements Runnable {
+    private static class ServerThread extends Thread {
+        private Peer peer;
+        private boolean stopFlag;
 
-        private final JxtaBiDiPipe pipe;
-
-        /**
-         * Constructor for the ConnectionHandler object
-         *
-         * @param pipe message pipe
-         */
-        ConnectionHandler(JxtaBiDiPipe pipe) {
-            this.pipe = pipe;
+        public ServerThread(Peer peer) {
+            this.peer = peer;
+            this.stopFlag = false;
         }
 
-        /** {@inheritDoc} */
+        public void setStopFlag() {
+            this.stopFlag = true;
+        }
+
+        @Override
         public void run() {
+            List<JxtaBiDiPipe> pipes = new ArrayList<JxtaBiDiPipe>();
             try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {}
+                JxtaServerPipe serverPipe = new JxtaServerPipe(peer.peerGroup, getAdvertisementUnicastMessage(peer.peerName));
+                serverPipe.setPipeTimeout(50);
+                while ( stopFlag == false ) {
+                    try{
+                        JxtaBiDiPipe pipe = serverPipe.accept();
+                        if ( pipe != null ) {
+                            pipe.setMessageListener(peer);
+                            pipes.add(pipe);
+                        }
+                    } catch ( SocketTimeoutException e ) {}
+                }
+            } catch ( java.net.SocketException exception ) {
+                if ( exception.getMessage() != "interrupted" )
+                    exception.printStackTrace();
+            } catch ( IOException exception ) {
+                exception.printStackTrace();
+            }
+
+            try {
+                for ( JxtaBiDiPipe pipe : pipes )
+                    pipe.close();
+            } catch (IOException e) {
+                System.out.println("closing pipe exception");
+                e.printStackTrace();
+            }
         }
     }
 
+    /**
+     * On start
+     */
     protected void onStart() {
         // Start server pipe in thread
         final Peer thisPeer = this;
-        serverThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JxtaServerPipe serverPipe = new JxtaServerPipe(peerGroup, getAdvertisementUnicastMessage(peerName));
-                    serverPipe.setPipeTimeout(0);
-                    while ( true ) {
-                        JxtaBiDiPipe pipe = serverPipe.accept();
-                        if ( pipe != null ) {
-                            pipe.setMessageListener(thisPeer);
-
-                            Thread thread = new Thread(new ConnectionHandler(pipe));
-                            thread.start();
-                        } else {
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException e) {}
-                        }
-                    }
-                } catch ( java.net.SocketException exception ) {
-                    if ( exception.getMessage() != "interrupted" )
-                        exception.printStackTrace();
-                } catch ( IOException exception ) {
-                    exception.printStackTrace();
-                }
-            }
-        });
+        serverThread = new ServerThread(this);
         serverThread.start();
 
         // Setup broadcast pipe
         try {
-            peerGroup.getPipeService().createInputPipe(getAdvertisementBroadcastMessage(), this);
+            broadCastPipe = peerGroup.getPipeService().createInputPipe(getAdvertisementBroadcastMessage(), this);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -203,11 +210,12 @@ public class Peer implements PipeMsgListener {
     public void stop() {
         // Stop server thread
         if ( serverThread != null ) {
-            serverThread.interrupt();
+            serverThread.setStopFlag();
+            try {
+                serverThread.join();
+            } catch (InterruptedException e) {}
         }
-
-        // Stopping the network
-        networkManager.stopNetwork();
+        broadCastPipe.close();
     }
 
     /**
@@ -232,7 +240,12 @@ public class Peer implements PipeMsgListener {
             if ( pipe.sendMessage(message) )
                 return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            if ( e instanceof java.net.SocketTimeoutException ) {
+                // OK do nothing
+            } else {
+                // Print unknown error
+                e.printStackTrace();
+            }
         }
 
         logger.info(String.format("Message could not be delivered to %s: %s", receiverName, text));

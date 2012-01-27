@@ -59,8 +59,13 @@ public class FileLauncher {
             String command = replaceVariables(instance.getContent().trim(), variables);
             if ( launcherInstance.run(command) == false ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
-                for ( LauncherInstance launchedInstance : launcherInstances.values() )
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {}
+                for ( LauncherInstance launchedInstance : launcherInstances.values() ) {
+                    launchedInstance.perform("quit");
                     launchedInstance.exit();
+                }
                 return;
             }
             launcherInstances.put(launcherInstance.getId(), launcherInstance);

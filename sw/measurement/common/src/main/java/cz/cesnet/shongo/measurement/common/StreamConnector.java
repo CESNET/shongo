@@ -133,6 +133,9 @@ public class StreamConnector extends Thread {
     public void start() {
         if ( isAlive() )
             return;
-        super.start();
+        try{
+            super.start();
+        } catch ( IllegalThreadStateException e) {
+        }
     }
 }
