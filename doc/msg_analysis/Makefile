@@ -13,5 +13,5 @@ default: analysis.pdf
 #
 
 clean:
-	rm -f *.aux *.log *.out *.nav *.snm *.toc \
-		$(F).pdf 
+	rm -f *.aux *.log *.out *.nav *.snm *.toc *~ \
+		analysis.pdf 
