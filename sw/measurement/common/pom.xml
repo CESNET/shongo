@@ -10,7 +10,7 @@
     <name>Measurement Common</name>
     <parent>
         <groupId>cz.cesnet.shongo.measurement</groupId>
-        <artifactId>parent</artifactId>
+        <artifactId>app</artifactId>
         <version>1.0</version>
     </parent>
 
