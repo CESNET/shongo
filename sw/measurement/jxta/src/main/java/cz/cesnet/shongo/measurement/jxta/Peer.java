@@ -28,9 +28,7 @@ public class Peer implements PipeMsgListener {
     /** Logger */
     static protected Logger logger = Logger.getLogger(Peer.class);
 
-    /**
-     * Attributes
-     */
+    /** Attributes */
     private String peerName;
     private PeerID peerID;
     private PeerGroup peerGroup;
@@ -38,16 +36,19 @@ public class Peer implements PipeMsgListener {
     private ServerThread serverThread;
     private InputPipe broadCastPipe;
 
+    /** JXTA agent */
+    private JxtaAgent agent;
+
     /**
      * Constructor
      *
      * @param peerName
      */
-    public Peer(String peerName) {
+    public Peer(String peerName, JxtaAgent agent) {
         this.peerName = peerName;
         this.peerID = IDFactory.newPeerID(PeerGroupID.defaultNetPeerGroupID, peerName.getBytes());
+        this.agent = agent;
     }
-
 
     /**
      * Get peer id
@@ -103,7 +104,7 @@ public class Peer implements PipeMsgListener {
      *
      * @return void
      */
-    public void start() {
+    public boolean start() {
         try {
             // Creation of network manager
             networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(".jxta/" + peerName).toURI());
@@ -128,6 +129,8 @@ public class Peer implements PipeMsgListener {
 
             // Perform on start event
             onStart();
+
+            return true;
         } catch ( IOException exception ) {
             // Raised when access to local file and directories caused an error
             logger.error(exception.toString());
@@ -135,6 +138,7 @@ public class Peer implements PipeMsgListener {
             // Raised when the net peer group could not be created
             logger.error(exception.toString());
         }
+        return false;
     }
 
     /**
@@ -226,8 +230,6 @@ public class Peer implements PipeMsgListener {
      * @return result
      */
     public boolean sendMessage(String receiverName, String text) {
-        onSendMessage(receiverName, text);
-
         try {
             JxtaBiDiPipe pipe = new JxtaBiDiPipe();
             pipe.setReliable(true);
@@ -254,16 +256,6 @@ public class Peer implements PipeMsgListener {
     }
 
     /**
-     * On send message event
-     *
-     * @param receiverName
-     * @param text
-     */
-    protected void onSendMessage(String receiverName, String text) {
-        logger.info(String.format("Sending message to %s: %s", receiverName, text));
-    }
-
-    /**
      * Send message to all peers
      *
      * @param text
@@ -271,8 +263,6 @@ public class Peer implements PipeMsgListener {
     public void sendBroadcastMessage(String text) {
         PipeService pipeService = getPeerGroup().getPipeService();
         try {
-            logger.info(String.format("Sending message to all: %s", text));
-
             Message message = new Message();
             message.addMessageElement("default", new StringMessageElement("From", peerName, null));
             message.addMessageElement("default", new StringMessageElement("Text", text, null));
@@ -291,17 +281,7 @@ public class Peer implements PipeMsgListener {
         Message message = pipeMsgEvent.getMessage();
         String senderName = message.getMessageElement("default", "From").toString();
         String text = message.getMessageElement("default", "Text").toString();
-        onReceiveMessage(senderName, text);
-    }
-
-    /**
-     * On receive message event
-     *
-     * @param senderName
-     * @param text
-     */
-    protected void onReceiveMessage(String senderName, String text) {
-        logger.info(String.format("Received message from %s: %s", senderName, text));
+        agent.onReceiveMessage(senderName, text);
     }
 
     /**

@@ -9,8 +9,8 @@ import java.util.List;
  *
  * @author Martin Srom
  */
-public class StreamConnector extends Thread {
-
+public class StreamConnector extends Thread
+{
     /**
      * Input stream to read from
      */
@@ -32,7 +32,8 @@ public class StreamConnector extends Thread {
      *
      * @param inputStream the InputStream to read from.
      */
-    public StreamConnector(InputStream inputStream) {
+    public StreamConnector(InputStream inputStream)
+    {
         this.inputStream = inputStream;
     }
 
@@ -43,7 +44,8 @@ public class StreamConnector extends Thread {
      * @param inputStream the InputStream to read from.
      * @param outputStream the OutputStream to write to.
      */
-    public StreamConnector(InputStream inputStream, OutputStream outputStream) {
+    public StreamConnector(InputStream inputStream, OutputStream outputStream)
+    {
         this.inputStream = inputStream;
         this.outputStreamList.add(outputStream);
     }
@@ -55,7 +57,8 @@ public class StreamConnector extends Thread {
      * @param inputStream the InputStream to read from.
      * @param outputStream the OutputStream to write to.
      */
-    public StreamConnector(InputStream inputStream, OutputStream outputStream, String name) {
+    public StreamConnector(InputStream inputStream, OutputStream outputStream, String name)
+    {
         this.inputStream = inputStream;
         this.outputStreamList.add(outputStream);
         this.name = name;
@@ -66,14 +69,16 @@ public class StreamConnector extends Thread {
      *
      * @param outputStream
      */
-    public void addOutput(OutputStream outputStream) {
+    public void addOutput(OutputStream outputStream)
+    {
         outputStreamList.add(outputStream);
     }
 
     /**
      * Connect the InputStream and OutputStream objects specified in the constructor.
      */
-    public void run() {
+    public void run()
+    {
         assert(inputStream != null);
 
         InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -113,7 +118,8 @@ public class StreamConnector extends Thread {
      * @param bufferCount
      * @throws IOException
      */
-    private void printOutput(byte[] buffer, int bufferPosition, int bufferCount) throws IOException {
+    private void printOutput(byte[] buffer, int bufferPosition, int bufferCount) throws IOException
+    {
         for ( OutputStream outputStream : outputStreamList ) {
             PrintStream printStream = null;
             if ( outputStream instanceof PrintStream )
@@ -130,7 +136,8 @@ public class StreamConnector extends Thread {
      * Start thread
      */
     @Override
-    public void start() {
+    public void start()
+    {
         if ( isAlive() )
             return;
         try{

@@ -14,9 +14,18 @@
   </xs:element>
   <xs:element name="variable">
     <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="platform"/>
+      </xs:sequence>
       <xs:attribute name="default-value" type="xs:NMTOKEN"/>
       <xs:attribute name="name" use="required" type="xs:NCName"/>
-      <xs:attribute name="value" use="required" type="xs:NMTOKEN"/>
+      <xs:attribute name="value" type="xs:NMTOKEN"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="platform">
+    <xs:complexType>
+      <xs:attribute name="type" use="required" type="xs:NCName"/>
+      <xs:attribute name="value" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="instance">

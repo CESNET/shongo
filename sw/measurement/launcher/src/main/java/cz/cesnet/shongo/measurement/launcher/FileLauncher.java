@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.measurement.launcher;
 
-import com.sun.org.apache.bcel.internal.generic.LSTORE;
 import cz.cesnet.shongo.measurement.launcher.xml.*;
 
 import javax.xml.bind.JAXBContext;
@@ -39,11 +38,29 @@ public class FileLauncher {
         List<Variable> variableDefaults = launcher.getVariable();
         for ( Variable variable : variableDefaults ) {
             // Set default values if not defined
-            if ( variables.get(variable.getName()) == null )
-                variables.put(variable.getName(), variable.getDefaultValue());
+            if ( variables.get(variable.getName()) == null ) {
+                String defaultValue = variable.getDefaultValue();
+                if ( defaultValue == null )
+                    defaultValue = "";
+                else
+                    defaultValue = replaceVariables(defaultValue, variables);
+                variables.put(variable.getName(), defaultValue);
+            }
             // Set value if should be set
             if ( variable.getValue() != null ) {
-                variables.put(variable.getName(), variable.getValue());
+                String value = variable.getValue();
+                value = replaceVariables(value, variables);
+                variables.put(variable.getName(), value);
+            }
+            // Set value by platform
+            String platformType = variables.get("platform");
+            List<Platform> platforms = variable.getPlatform();
+            for ( Platform platform : platforms ) {
+                if ( platform.getType().equals(platformType) ) {
+                    String value = platform.getValue();
+                    value = replaceVariables(value, variables);
+                    variables.put(variable.getName(), value);
+                }
             }
         }
 

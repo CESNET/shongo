@@ -18,6 +18,10 @@ cd jade
 mvn package
 cd ..
 
+cd fuse
+mvn package
+cd ..
+
 cd launcher
 mvn package
 cd ..

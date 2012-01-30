@@ -18,6 +18,10 @@ cd jade
 mvn clean
 cd ..
 
+cd fuse
+mvn clean
+cd ..
+
 cd launcher
 mvn clean
 cd ..
