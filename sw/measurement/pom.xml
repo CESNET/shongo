@@ -5,10 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cz.cesnet.shongo.measurement</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>app</artifactId>
     <packaging>pom</packaging>
     <version>1.0</version>
-    <name>Measurement Parent</name>
+    <name>Measurement Application</name>
+    
+    <modules>
+        <module>common</module>
+        <module>fuse</module>
+        <module>jade</module>
+        <module>jxta</module>
+        <module>launcher</module>
+    </modules>
 
     <dependencies>
         <dependency>
