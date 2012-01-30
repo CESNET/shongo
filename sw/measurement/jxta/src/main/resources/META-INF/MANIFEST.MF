@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
-Class-Path: lib/org.apache.felix.shell-1.4.1.jar lib/jxse-2.6.jar org.apache.f
- elix.framework-2.0.1.jar lib/org.apache.felix.shell.tui-1.4.1.jar lib/commons
- -cli-1.1.jar org.apache.felix.main-2.0.1.jar lib/org.apache.felix.bundler
- epository-1.4.2.jar lib/netty-3.1.5.GA.jar lib/log4j-1.2.13.jar bcprov-jdk15-
+Class-Path: org.apache.felix.shell-1.4.1.jar jxse-2.6.jar org.apache.f
+ elix.framework-2.0.1.jar org.apache.felix.shell.tui-1.4.1.jar commons
+ -cli-1.1.jar org.apache.felix.main-2.0.1.jar org.apache.felix.bundler
+ epository-1.4.2.jar netty-3.1.5.GA.jar log4j-1.2.16.jar bcprov-jdk15-
  140.jar
 Main-Class: cz.cesnet.shongo.measurement.jxta.JxtaApplication
 

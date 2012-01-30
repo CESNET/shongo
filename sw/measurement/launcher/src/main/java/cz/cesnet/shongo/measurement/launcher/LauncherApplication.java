@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.measurement.launcher;
 
 import org.apache.commons.cli.*;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,7 +29,7 @@ public class LauncherApplication {
                 .withArgName("sh|bat")
                 .hasArg()
                 .withDescription("Set extension for platform scripts")
-                .create("p");
+                .create("e");
         Option define = OptionBuilder.withLongOpt("define")
                 .withArgName("name=value")
                 .withValueSeparator(';')

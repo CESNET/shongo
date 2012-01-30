@@ -7,14 +7,12 @@
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>
-        <option value="$PROJECT_DIR$/app/pom.xml" />
         <option value="$PROJECT_DIR$/jxta/pom.xml" />
-        <option value="$PROJECT_DIR$/platform/pom.xml" />
         <option value="$PROJECT_DIR$/common/pom.xml" />
         <option value="$PROJECT_DIR$/jade/pom.xml" />
-        <option value="$PROJECT_DIR$/parent/pom.xml" />
         <option value="$PROJECT_DIR$/launcher/pom.xml" />
         <option value="$PROJECT_DIR$/fuse/pom.xml" />
+        <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
   </component>

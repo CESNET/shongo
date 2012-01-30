@@ -6,4 +6,6 @@ fuse/target
 jxta/target
 jade/target
 launcher/target
-parent/target
+target
+APDescription.txt
+MTPs-Main-Container.txt
