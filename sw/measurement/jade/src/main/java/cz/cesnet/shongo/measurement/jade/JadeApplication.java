@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.measurement.jade;
 
+import cz.cesnet.shongo.measurement.common.Agent;
 import cz.cesnet.shongo.measurement.common.Application;
 import cz.cesnet.shongo.measurement.common.StreamConnector;
 import jade.core.Profile;
@@ -24,6 +25,8 @@ public class JadeApplication extends Application {
 
     public JadeApplication() throws StaleProxyException {
         super("jade");
+        
+        new JadeAgent("", "");
 
         // FIXME: domain / common container
         // create a container connecting to a domain
