@@ -90,12 +90,7 @@ public class StreamConnector extends Thread {
                     char currentChar = (char)buffer[bufferPosition + index];
                     if ( currentChar == '\n' || currentChar == '\r' ) {
                         int count = bufferPosition + index - bufferPositionWritten + 1;
-                        if ( count > 1 ) {
-
-
-                            printOutput(buffer, bufferPositionWritten, count - 1);
-
-                        }
+                        printOutput(buffer, bufferPositionWritten, count - 1);
                         bufferPositionWritten += count;
                     }
                 }
@@ -138,6 +133,9 @@ public class StreamConnector extends Thread {
     public void start() {
         if ( isAlive() )
             return;
-        super.start();
+        try{
+            super.start();
+        } catch ( IllegalThreadStateException e) {
+        }
     }
 }

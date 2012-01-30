@@ -14,12 +14,28 @@ import java.util.List;
 public class Agent extends Peer {
 
     /**
+     * Agent index
+     */
+    private String id;
+
+    /**
      * Constructor
      *
-     * @param name
+     * @param id  Agent id
+     * @param name  Agent name
      */
-    public Agent(String name) {
+    public Agent(String id, String name) {
         super(name);
+        this.id = id;
+    }
+
+    /**
+     * Get agent index
+     *
+     * @return index
+     */
+    public String getId() {
+        return id;
     }
 
     /**
@@ -29,6 +45,7 @@ public class Agent extends Peer {
         start();
         onRun();
         stop();
+        System.out.println("Exited");
         System.exit(0);
     }
 
@@ -41,6 +58,8 @@ public class Agent extends Peer {
         while ( true ) {
             try {
                 command = input.readLine();
+                if ( command == null )
+                    break;
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -63,6 +82,7 @@ public class Agent extends Peer {
     private boolean processCommand(String command, List<String> arguments) {
         if ( command.equals("send") && arguments.size() >= 2 ) {
             String agent = arguments.get(0);
+            agent = agent.replaceAll("\\{agent-id\\}", getId());
             String message = arguments.get(1);
             if ( agent.equals("*") )
                 sendBroadcastMessage(message);
@@ -81,15 +101,16 @@ public class Agent extends Peer {
     /**
      * Run agent
      *
+     * @param agentId
      * @param agentName
      * @param agentClass
      */
-    public static void runAgent(String agentName, Class agentClass) {
+    public static void runAgent(String agentId, String agentName, Class agentClass) {
         System.out.println("Running agent '" + agentName +  "' as '" + agentClass.getSimpleName() + "'...");
         Agent agent = null;
         try {
-            Class[] types = {String.class};
-            agent = (Agent)agentClass.getDeclaredConstructor(types).newInstance(agentName);
+            Class[] types = {String.class, String.class};
+            agent = (Agent)agentClass.getDeclaredConstructor(types).newInstance(agentId, agentName);
         } catch (InvocationTargetException e) {
         } catch (NoSuchMethodException e) {
         } catch (InstantiationException e) {
@@ -106,9 +127,10 @@ public class Agent extends Peer {
      */
     public static void main(String[] args) {
         try {
-            String agentName = args[0];
-            Class agentClass = Class.forName(args[1]);
-            runAgent(agentName, agentClass);
+            String agentId = args[0];
+            String agentName = args[1];
+            Class agentClass = Class.forName(args[2]);
+            runAgent(agentId, agentName, agentClass);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

@@ -1,5 +1,8 @@
 .idea/workspace.xml
 .idea/libraries
+.jxta
 common/target
 jxta/target
 jade/target
+launcher/target
+parent/target

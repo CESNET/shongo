@@ -2,9 +2,9 @@
   <artifact build-on-make="true" name="jxta:jar">
     <output-path>$PROJECT_DIR$/jxta/target</output-path>
     <root id="root">
-      <element id="archive" name="jxta.jar">
+      <element id="archive" name="jxta-1.0.jar">
         <element id="directory" name="META-INF">
-          <element id="file-copy" path="$PROJECT_DIR$/jxta/src/main/java/META-INF/MANIFEST.MF" />
+          <element id="file-copy" path="$PROJECT_DIR$/jxta/src/main/resources/META-INF/MANIFEST.MF" />
         </element>
         <element id="module-output" name="jxta" />
         <element id="module-output" name="common" />

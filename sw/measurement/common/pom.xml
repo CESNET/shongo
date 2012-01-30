@@ -7,6 +7,11 @@
     <groupId>cz.cesnet.shongo.measurement</groupId>
     <artifactId>common</artifactId>
     <version>1.0</version>
+    <name>Measurement Common</name>
+    <parent>
+        <groupId>cz.cesnet.shongo.measurement</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0</version>
+    </parent>
 
-    
 </project>

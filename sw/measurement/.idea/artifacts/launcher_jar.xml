@@ -1,0 +1,15 @@
+<component name="ArtifactManager">
+  <artifact build-on-make="true" name="launcher:jar">
+    <output-path>$PROJECT_DIR$/launcher/target/</output-path>
+    <root id="root">
+      <element id="archive" name="launcher-1.0.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/launcher/src/main/java/META-INF/MANIFEST.MF" />
+        </element>
+        <element id="module-output" name="launcher" />
+        <element id="module-output" name="common" />
+      </element>
+      <element id="library" level="project" name="Maven: commons-cli:commons-cli:1.1" />
+    </root>
+  </artifact>
+</component>
