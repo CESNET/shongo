@@ -32,7 +32,7 @@ public class JadeApplication extends Application {
 
         // create a new domain
         int port = 1099; // the default Jade port
-        Profile mainProfile = new ProfileImpl(null, port, null);
+        Profile mainProfile = new ProfileImpl("127.0.0.1", port, null);
         AgentContainer main = jade.core.Runtime.instance().createMainContainer(mainProfile);
 
         // TODO
