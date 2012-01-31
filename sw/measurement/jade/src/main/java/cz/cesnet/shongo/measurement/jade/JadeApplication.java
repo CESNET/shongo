@@ -10,6 +10,10 @@ import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
@@ -18,32 +22,59 @@ import java.io.IOException;
  */
 public class JadeApplication extends Application {
 
-    public static void main(String[] args) throws StaleProxyException {
+    /**
+     * Use GUI for the platform?
+     */
+    private boolean useGui = false;
+    
+    
+    public static void main(String[] args) {
         Application.runApplication(args, new JadeApplication());
     }
 
-    public JadeApplication() throws StaleProxyException {
-        super("jade");
-        
-        new JadeAgent("", "");
 
+    @Override
+    protected void onInitOptions(Options options) {
+        Option gui = OptionBuilder.withLongOpt("gui")
+                .withDescription("Start GUI at the main container")
+                .create("g");
+        options.addOption(gui);
+    }
+
+    @Override
+    protected String[] onProcessCommandLine(CommandLine commandLine) {
+        useGui = commandLine.hasOption("gui");
+
+
+        return new String[0];
+    }
+
+    @Override
+    protected void onRun() {
         // FIXME: domain / common container
         // create a container connecting to a domain
 
         // create a new domain
+        String host = "127.0.0.1"; // host name to listen at
         int port = 1099; // the default Jade port
-        Profile mainProfile = new ProfileImpl("127.0.0.1", port, null);
+        Profile mainProfile = new ProfileImpl(host, port, null);
         AgentContainer main = jade.core.Runtime.instance().createMainContainer(mainProfile);
 
-        // TODO
-//        // domain GUI
-//        if (commandLine.hasOption("gui")) {
-            AgentController rma = main.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
-            rma.start();
-//        }
+        if (useGui) {
+            try {
+                AgentController rma = main.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
+                rma.start();
+            } catch (StaleProxyException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+        }
 
         // upon exit, shut down the Jade threads (otherwise, the program would hang waiting for other threads)
         jade.core.Runtime.instance().setCloseVM(true);
+    }
+
+    public JadeApplication() {
+        super("jade");
     }
 
     @Override

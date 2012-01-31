@@ -77,6 +77,14 @@ public abstract class Application
     }
 
     /**
+     * This event is called right after processing the command line. Thus, custom application
+     * initialization dependent on arguments may be implemented by overriding this method.
+     */
+    protected void onRun()
+    {
+    }
+
+    /**
      * Parse application parameters and run it.
      *
      * @param args
@@ -130,6 +138,7 @@ public abstract class Application
 
         // Process command line by application
         String [] applicationArguments = application.onProcessCommandLine(commandLine);
+        application.onRun();
 
         // Create agent
         if ( commandLine.hasOption("agent") ) {
