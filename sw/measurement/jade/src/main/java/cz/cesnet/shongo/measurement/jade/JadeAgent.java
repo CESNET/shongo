@@ -11,6 +11,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 import jade.wrapper.gateway.JadeGateway;
+import org.apache.log4j.Logger;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
@@ -25,11 +26,14 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
      * We use composition, as jade agents should inherit after jade.core.Agent.
      */
     private class JadeAgentImpl extends jade.core.Agent {
+
+        protected Logger logger = Logger.getLogger(JadeAgentImpl.class);
+
         Thread listeningThread;
 
         @Override
         protected void setup() {
-            System.err.println("Started agent " + getName());
+            logger.info("Started agent " + getName());
 
             // add behaviour for listening to messages
             CyclicBehaviour listeningBehaviour = new CyclicBehaviour() {
@@ -98,7 +102,6 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
     @Override
     protected void stopImpl() {
         agent.doDelete();
-        System.out.println("Stopped JadeAgent");
         System.exit(0);
     }
 
