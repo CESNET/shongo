@@ -150,7 +150,7 @@ public class JadeApplication extends Application {
             throw new IllegalStateException("unknown JadeApplication mode");
         }
 
-        if (useGui) {
+        if (useGui && mode == Mode.Platform) {
             try {
                 AgentController rma = container.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
                 rma.start();

@@ -172,6 +172,7 @@ public abstract class Application
                     numberFormat.append("0");
             }
 
+            // TODO: differentiate running multiple agents within the application and as standalone processes
             if ( number == 1 ) {
                 Agent.runAgent("", agentName, type, agentClass, applicationArguments);
             } else {

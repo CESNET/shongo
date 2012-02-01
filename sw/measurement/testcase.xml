@@ -9,6 +9,7 @@
     <!-- Run Script Variables -->
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="jade" value=" --gui"/>
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
@@ -17,11 +18,11 @@
         {run} --agent=s --type=sender --count={agent-count}
     </instance>
     <instance id="jvm2" type="remote" host="{host-remote}">
-        {run} --agent=r --type=receiver --count={agent-count}
+        {run} --agent=r --type=receiver --count={agent-count} --join
     </instance>
 
     <!-- Instrutions -->
-    <sleep duration="5000" />
+    <sleep duration="20000" />
     <step>
         <command for="jvm1">send r{agent-id} Hello</command>
     </step>

@@ -61,7 +61,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
                         return;
                     }
 
-                    onReceiveMessage(msg.getSender().toString(), msg.getContent());
+                    onReceiveMessage(msg.getSender().getLocalName(), msg.getContent()); // FIXME: just local names so far
                 }
             };
 
