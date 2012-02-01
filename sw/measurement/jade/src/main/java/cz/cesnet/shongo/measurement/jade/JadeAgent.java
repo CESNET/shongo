@@ -1,16 +1,16 @@
 package cz.cesnet.shongo.measurement.jade;
 
 import jade.core.AID;
+import jade.core.Profile;
+import jade.core.ProfileImpl;
 import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
-import jade.wrapper.gateway.JadeGateway;
 import org.apache.log4j.Logger;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -18,8 +18,24 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
-    
+
     private JadeAgentImpl agent;
+
+    /**
+     * Container in which this agent is retained.
+     */
+    private ContainerController container;
+
+    /**
+     * Whether to kill the container when the agent is stopped.
+     */
+    private boolean killContainerOnStop;
+
+    /**
+     * Controller of the agent.
+     */
+    private AgentController controller;
+
 
     /**
      * The concrete Jade agent class implementing all the stuff.
@@ -65,8 +81,8 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
             listeningThread.interrupt();
         }
     }
-    
-    
+
+
     public JadeAgent(String id, String name) {
         super(id, name);
         agent = new JadeAgentImpl();
@@ -75,23 +91,24 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
     @Override
     protected boolean startImpl() {
+        container = JadeApplication.getDefaultContainer();
+        if (container == null) {
+            // no JadeApplication has been run - start our own container
+            Profile profile = new ProfileImpl(false);
+            // FIXME: where to connect taken from parameter
+//            profile.setParameter(Profile.MAIN_HOST, joinHost);
+//            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
+            container = jade.core.Runtime.instance().createAgentContainer(profile);
+            killContainerOnStop = true;
+        }
+        else {
+            killContainerOnStop = false;
+        }
+
         try {
-            JadeGateway.execute(new OneShotBehaviour() {
-                @Override
-                public void action() {
-                    AgentContainer containerController = myAgent.getContainerController();
-                    try {
-                        AgentController agentController = containerController.acceptNewAgent(getName(), agent);
-                        agentController.start();
-                    } catch (StaleProxyException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+            controller = container.acceptNewAgent(getName(), agent);
+            controller.start();
         } catch (ControllerException e) {
-            e.printStackTrace();
-            return false;
-        } catch (InterruptedException e) {
             e.printStackTrace();
             return false;
         }
@@ -101,16 +118,22 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
     @Override
     protected void stopImpl() {
-        agent.doDelete();
+        try {
+            controller.kill();
+            if (killContainerOnStop) {
+                container.kill();
+            }
+        } catch (StaleProxyException e) {
+            e.printStackTrace();
+        }
         System.exit(0);
     }
 
     @Override
     protected void sendMessageImpl(String receiverName, String message) {
         if (receiverName.equals("*")) {
-            throw new NotImplementedException();
-        }
-        else {
+            throw new NotImplementedException(); // TODO
+        } else {
             ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
             AID receiver = new AID(receiverName, AID.ISLOCALNAME); // FIXME: just local names so far
             msg.addReceiver(receiver);

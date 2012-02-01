@@ -9,7 +9,6 @@
     <!-- Run Script Variables -->
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
-        <platform type="jade" value=" --gui"/>
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
