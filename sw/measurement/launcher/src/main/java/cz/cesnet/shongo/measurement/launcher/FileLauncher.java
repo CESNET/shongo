@@ -73,8 +73,12 @@ public class FileLauncher {
                 launcherInstance = new LauncherInstanceLocal(instance.getId());
             else if ( instance.getType().equals("remote") )
                 launcherInstance = new LauncherInstanceRemote(instance.getId(), replaceVariables(instance.getHost(), variables));
+            else
+                throw new IllegalArgumentException("Unknown instance type: " + instance.getType());
+
             String command = replaceVariables(instance.getContent().trim(), variables);
-            if ( launcherInstance.run(command) == false ) {
+
+            if (!launcherInstance.run(command)) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
                 try {
                     Thread.sleep(5000);
@@ -86,6 +90,9 @@ public class FileLauncher {
                 return;
             }
             launcherInstances.put(launcherInstance.getId(), launcherInstance);
+            try {
+                Thread.sleep(5000); // NOTE: ideally, the next instance should be launched only after this instance is ready
+            } catch (InterruptedException e) {}
         }
 
         // Perform commands
