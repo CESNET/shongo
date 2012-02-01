@@ -4,6 +4,8 @@ import org.apache.commons.cli.*;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Common implementation of measuring application.
@@ -85,6 +87,13 @@ public abstract class Application
     }
 
     /**
+     * This event is called right before exiting the application, after all child processes have exited.
+     */
+    protected void onExit()
+    {
+    }
+
+    /**
      * Parse application parameters and run it.
      *
      * @param args
@@ -139,6 +148,8 @@ public abstract class Application
         // Process command line by application
         String [] applicationArguments = application.onProcessCommandLine(commandLine);
         application.onRun();
+        
+        List<Process> processesToWaitFor = new LinkedList<Process>();
 
         // Create agent
         if ( commandLine.hasOption("agent") ) {
@@ -168,10 +179,21 @@ public abstract class Application
                     String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
                     String[] arguments = {agentNumber, agentName + agentNumber, type, agentClass.getName()};
                     arguments = mergeArrays(arguments, applicationArguments);
-                    cz.cesnet.shongo.measurement.common.Application.runProcess(agentName + agentNumber, Agent.class, arguments);
+                    Process agentProcess = runProcess(agentName + agentNumber, Agent.class, arguments);
+                    processesToWaitFor.add(agentProcess);
                 }
             }
         }
+        
+        for (Process p : processesToWaitFor) {
+            try {
+                p.waitFor();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        application.onExit();
     }
 
     /**
@@ -213,7 +235,7 @@ public abstract class Application
      * @param name      Process name
      * @param mainClass Process main class
      * @param arguments Process arguments
-     * @return void
+     * @return Process the process created
      */
     public static Process runProcess(final String name, final Class mainClass, final String[] arguments)
     {

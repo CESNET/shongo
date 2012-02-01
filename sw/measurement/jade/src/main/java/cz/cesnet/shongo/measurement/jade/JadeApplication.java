@@ -166,6 +166,7 @@ public class JadeApplication extends Application {
     /**
      * A stub to be used when the issue of exiting the application is solved.
      */
+    @Override
     protected void onExit() {
         try {
             container.kill();
