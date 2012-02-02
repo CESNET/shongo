@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/jade/jade.iml" filepath="$PROJECT_DIR$/jade/jade.iml" />
       <module fileurl="file://$PROJECT_DIR$/jxta/jxta.iml" filepath="$PROJECT_DIR$/jxta/jxta.iml" />
       <module fileurl="file://$PROJECT_DIR$/launcher/launcher.iml" filepath="$PROJECT_DIR$/launcher/launcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mule/mule.iml" filepath="$PROJECT_DIR$/mule/mule.iml" />
     </modules>
   </component>
 </project>

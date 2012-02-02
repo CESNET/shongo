@@ -16,6 +16,7 @@
         <module>jade</module>
         <module>jxta</module>
         <module>launcher</module>
+        <module>mule</module>
     </modules>
 
     <dependencies>
