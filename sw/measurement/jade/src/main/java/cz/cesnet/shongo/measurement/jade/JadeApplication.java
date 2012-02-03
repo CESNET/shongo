@@ -129,7 +129,7 @@ public class JadeApplication extends Application {
     }
 
     @Override
-    protected void onRun() {
+    protected boolean onRun() {
         if (mode == Mode.Platform) {
             Profile profile = new ProfileImpl(platformHost, platformPort, null);
             container = jade.core.Runtime.instance().createMainContainer(profile);
@@ -158,6 +158,8 @@ public class JadeApplication extends Application {
         
         // upon exit, shut down the Jade threads (otherwise, the program would hang waiting for other threads)
         jade.core.Runtime.instance().setCloseVM(true);
+
+        return true;
     }
 
     /**

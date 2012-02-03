@@ -18,7 +18,7 @@ public class MuleServer {
     {
         String activeMqUrl = "tcp://localhost:61616";
 
-        ActiveMq.createActiveMqServer(activeMqUrl);
+        ActiveMq.createServer(activeMqUrl);
 
         System.getProperties().put("jms.url", activeMqUrl);
         System.getProperties().put("jms.queue", "Queue");

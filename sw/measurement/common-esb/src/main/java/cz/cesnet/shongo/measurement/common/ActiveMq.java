@@ -13,7 +13,7 @@ import javax.jms.*;
 public class ActiveMq {
 
     /** Default ActiveMQ broker url */
-    public static final String BROKER_DEFAULT_URL = "tcp://localhost:61616";
+    public static final String BROKER_DEFAULT_URL = "localhost:61616";
 
     /**
      * Create ActiveMQ server
@@ -22,7 +22,7 @@ public class ActiveMq {
      */
     public static BrokerService createActiveMqServer()
     {
-        return  createActiveMqServer(BROKER_DEFAULT_URL);
+        return  createServer(BROKER_DEFAULT_URL);
     }
 
     /**
@@ -31,11 +31,11 @@ public class ActiveMq {
      * @param brokerUrl Broker URL
      * @return server
      */
-    public static BrokerService createActiveMqServer(String brokerUrl)
+    public static BrokerService createServer(String brokerUrl)
     {
         try {
             BrokerService broker = new BrokerService();
-            broker.addConnector(brokerUrl);
+            broker.addConnector("tcp://" + brokerUrl);
             broker.setBrokerName("Broker1");
             broker.setUseJmx(false);
             broker.start();
@@ -86,7 +86,7 @@ public class ActiveMq {
 
         public boolean connect(String brokerUrl)
         {
-            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
+            ActiveMQConnectionFactory connectionFactory = new ActiveMQConnectionFactory("tcp://" + brokerUrl);
             try {
                 connection = connectionFactory.createConnection();
                 connection.start();

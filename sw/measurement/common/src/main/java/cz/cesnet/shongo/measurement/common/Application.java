@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.measurement.common;
 
 import org.apache.commons.cli.*;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -19,6 +20,9 @@ import java.util.List;
  */
 public abstract class Application
 {
+    /** Logger */
+    static protected Logger logger = Logger.getLogger(Agent.class);
+
     /**
      * Application name
      */
@@ -81,9 +85,12 @@ public abstract class Application
     /**
      * This event is called right after processing the command line. Thus, custom application
      * initialization dependent on arguments may be implemented by overriding this method.
+     *
+     * @return boolean if run was successful
      */
-    protected void onRun()
+    protected boolean onRun()
     {
+        return true;
     }
 
     /**
@@ -152,7 +159,10 @@ public abstract class Application
 
         // Process command line by application
         String [] applicationArguments = application.onProcessCommandLine(commandLine);
-        application.onRun();
+        if ( application.onRun() == false ) {
+            System.out.println("Failed to run application!");
+            return;
+        }
         
         List<Process> processesToWaitFor = new LinkedList<Process>();
 

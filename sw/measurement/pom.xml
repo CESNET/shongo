@@ -12,12 +12,12 @@
     
     <modules>
         <module>common</module>
+        <module>common-esb</module>
         <module>fuse</module>
         <module>jade</module>
         <module>jxta</module>
         <module>mule</module>
         <module>launcher</module>
-        <module>untitled</module>
     </modules>
 
     <dependencies>

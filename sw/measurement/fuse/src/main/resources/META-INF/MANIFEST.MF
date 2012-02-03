@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Class-Path: common-esb-1.0.jar common-1.0.jar log4j-1.2.14.jar commons
+ -cli-1.1.jar activemq-core-5.5.0.jar slf4j-api-1.5.11.jar geronimo-jm
+ s_1.1_spec-1.1.1.jar activeio-core-3.1.2.jar geronimo-j2ee-management
+ _1.1_spec-1.0.1.jar commons-logging-1.1.jar logkit-1.0.1.jar avalon-f
+ ramework-4.1.3.jar servlet-api-2.3.jar kahadb-5.5.0.jar activemq-prot
+ obuf-1.1.jar org.osgi.core-4.1.0.jar spring-context-3.0.3.RELEASE.jar
+  spring-aop-3.0.3.RELEASE.jar aopalliance-1.0.jar spring-asm-3.0.3.RE
+ LEASE.jar spring-beans-3.0.3.RELEASE.jar spring-core-3.0.3.RELEASE.ja
+ r spring-expression-3.0.3.RELEASE.jar commons-net-2.0.jar jasypt-1.7.
+ jar slf4j-log4j12-1.5.11.jar
+Main-Class: cz.cesnet.shongo.measurement.fuse.FuseApplication
+
