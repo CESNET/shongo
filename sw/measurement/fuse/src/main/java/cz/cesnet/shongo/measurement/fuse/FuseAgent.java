@@ -59,7 +59,7 @@ public class FuseAgent extends Agent implements MessageListener
         } catch (JMSException e) {
             e.printStackTrace();
         }
-        logger.info("Started FUSE agent [" + getName() + "] at [" + activeMqAdress +"]");
+        logger.info("Started FUSE agent [" + getName() + "] at ActiveMQ [" + activeMqAdress +"]");
         return true;
     }
 

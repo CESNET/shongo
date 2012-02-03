@@ -22,7 +22,15 @@
     </instance>
 
     <!-- Instrutions -->
-    <sleep duration="20000" />
+    <sleep duration="10000" />
+    <step>
+        <command for="jvm1">send r{agent-id} Hello</command>
+    </step>
+    <sleep duration="1000" />
+    <step>
+        <command for="jvm1">send r{agent-id} Hello</command>
+    </step>
+    <sleep duration="1000" />
     <step>
         <command for="jvm1">send r{agent-id} Hello</command>
     </step>

@@ -22,15 +22,9 @@ public class AgentService implements Callable {
         MuleMessage message = muleEventContext.getMessage();
         String from = message.getInboundProperty("from");
         String text = message.getPayloadAsString();
-        System.out.println("Agent: Received message [" + text + "] from [" + from + "]!");
 
-        message = new DefaultMuleMessage("Answer to [" + text + "]", muleEventContext.getMuleContext());
-        message.setPayload("Answer to [" + text + "]");
-        message.setOutboundProperty("from", "Agent");
-        message.setOutboundProperty("to", from);
-
-        System.out.println("Agent: Send answer message [" + message.getPayloadAsString() + "] to [" + message.getOutboundProperty("to") + "]");
-        muleEventContext.dispatchEvent(message, "jms-output");
+        MuleAgent agent = (MuleAgent)muleEventContext.getMuleContext().getRegistry().lookupObject("agent");
+        agent.onReceiveMessage(from, text);
         
         return null;
     }

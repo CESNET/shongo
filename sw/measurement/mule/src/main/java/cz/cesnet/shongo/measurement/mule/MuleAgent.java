@@ -1,14 +1,26 @@
 package cz.cesnet.shongo.measurement.mule;
 
 import cz.cesnet.shongo.measurement.common.Agent;
-import org.apache.activemq.ActiveMQConnectionFactory;
+import org.mule.DefaultMuleMessage;
+import org.mule.api.MuleContext;
+import org.mule.api.MuleException;
+import org.mule.api.MuleMessage;
+import org.mule.api.context.MuleContextBuilder;
+import org.mule.api.context.MuleContextFactory;
+import org.mule.config.DefaultMuleConfiguration;
+import org.mule.config.spring.SpringXmlConfigurationBuilder;
+import org.mule.context.DefaultMuleContextBuilder;
+import org.mule.context.DefaultMuleContextFactory;
 
 import javax.jms.*;
 
-public class MuleAgent extends Agent implements MessageListener
+public class MuleAgent extends Agent
 {
-    /** ActiveMQ address */
-    private String activeMqAdress;
+    /** ActiveMQ url */
+    private String activeMqUrl;
+
+    /** Mule context */
+    private MuleContext muleContext;
 
     /**
      * Create Fuse agent
@@ -29,7 +41,34 @@ public class MuleAgent extends Agent implements MessageListener
     @Override
     protected boolean startImpl()
     {
-        logger.info("Started MULE agent [" + getName() + "] at [" + activeMqAdress +"]");
+        try {
+            System.getProperties().put("jms.url", "tcp://" + activeMqUrl);
+            System.getProperties().put("jms.queue", getName());
+
+            // Mule default configuration
+            DefaultMuleConfiguration muleConfig = new DefaultMuleConfiguration();
+            muleConfig.setId("ShongoMeasurementMuleServer:" + getName());
+
+            // Configuration builder
+            SpringXmlConfigurationBuilder configBuilder = new SpringXmlConfigurationBuilder("mule-config.xml");
+
+            // Context builder
+            MuleContextBuilder contextBuilder = new DefaultMuleContextBuilder();
+            contextBuilder.setMuleConfiguration(muleConfig);
+
+            // Create context
+            MuleContextFactory contextFactory = new DefaultMuleContextFactory();
+            muleContext = contextFactory.createMuleContext(configBuilder, contextBuilder);
+
+            muleContext.getRegistry().registerObject("agent", this);
+
+            // Start mule
+            muleContext.start();
+            logger.info("Started MULE agent [" + getName() + "] at ActiveMQ [" + activeMqUrl +"]");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
@@ -39,18 +78,32 @@ public class MuleAgent extends Agent implements MessageListener
     @Override
     protected void stopImpl()
     {
-        logger.info("Stopping MULE agent [" + getName() + "]");
+        try {
+            logger.info("Stopping MULE agent [" + getName() + "]");
+            muleContext.stop();
+            muleContext.dispose();
+        } catch (MuleException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Implementation of Fuse agent send message
      *
      * @param receiverName
-     * @param message
+     * @param messageText
      */
     @Override
-    protected void sendMessageImpl(String receiverName, String message)
+    protected void sendMessageImpl(String receiverName, String messageText)
     {
+        try {
+            MuleMessage message = new DefaultMuleMessage(messageText, muleContext);
+            message.setOutboundProperty("from", getName());
+            message.setOutboundProperty("to", receiverName);
+            muleContext.getClient().dispatch("jms-output", message);
+        } catch (MuleException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -61,25 +114,6 @@ public class MuleAgent extends Agent implements MessageListener
     @Override
     protected void onProcessArguments(String[] arguments)
     {
-        activeMqAdress = arguments[0];
-    }
-
-    /**
-     * Through this method onReceiveMessage is invoked  for generic agent
-     *
-     * @param message
-     */
-    @Override
-    public void onMessage(Message message)
-    {
-        try {
-            // Invoke receive message event
-            this.onReceiveMessage(
-                    message.getStringProperty("from"),
-                    message.getStringProperty("text")
-            );
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
+        activeMqUrl = arguments[0];
     }
 }
