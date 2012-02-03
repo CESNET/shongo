@@ -12,11 +12,6 @@ import org.mule.api.lifecycle.Callable;
  */
 public class AgentService implements Callable {
 
-    public AgentService()
-    {
-        System.out.println("AgentService initializing!");
-    }
-
     @Override
     public Object onCall(MuleEventContext muleEventContext) throws Exception {
         MuleMessage message = muleEventContext.getMessage();

@@ -23,6 +23,9 @@ public abstract class Application
     /** Logger */
     static protected Logger logger = Logger.getLogger(Agent.class);
 
+    /** Inited message */
+    static public final String MESSAGE_STARTED = "[APPLICATION:STARTED]";
+
     /**
      * Application name
      */
@@ -187,6 +190,10 @@ public abstract class Application
                     numberFormat.append("0");
             }
 
+            // Prepare waiter that will wait until all agents are started
+            StreamMessageWaiter agentInitedWaiter = new StreamMessageWaiter(Agent.MESSAGE_STARTED, number);
+            agentInitedWaiter.start();
+
             // TODO: differentiate running multiple agents within the application and as standalone processes
             if ( number == 1 ) {
                 Agent.runAgent("", agentName, type, agentClass, applicationArguments);
@@ -199,6 +206,16 @@ public abstract class Application
                     processesToWaitFor.add(agentProcess);
                 }
             }
+
+            // Wait for all agents to be started
+            try {
+                agentInitedWaiter.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Application is started
+            System.out.println(MESSAGE_STARTED);
         }
         
         for (Process p : processesToWaitFor) {

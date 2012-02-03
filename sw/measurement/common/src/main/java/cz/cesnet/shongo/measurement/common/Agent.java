@@ -22,6 +22,9 @@ public abstract class Agent
     /** Logger */
     static protected Logger logger = Logger.getLogger(Agent.class);
 
+    /** Inited message */
+    static public final String MESSAGE_STARTED = "[AGENT:STARTED]";
+
     /** Agent index */
     private String id;
 
@@ -124,6 +127,7 @@ public abstract class Agent
         // Start agent by agent implementation
         if ( startImpl() == false )
             return;
+        System.out.println(MESSAGE_STARTED);
 
         // Run generic agent
         onRun();
