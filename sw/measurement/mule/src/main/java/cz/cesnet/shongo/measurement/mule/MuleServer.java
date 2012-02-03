@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.measurement.mule;
 
+import org.mule.DefaultMuleMessage;
 import org.mule.api.*;
+import org.mule.api.MuleMessage;
+import org.mule.api.client.MuleClient;
 import org.mule.api.context.MuleContextBuilder;
 import org.mule.api.context.MuleContextFactory;
 import org.mule.api.transformer.DataType;
@@ -13,6 +16,7 @@ import org.mule.context.DefaultMuleContextBuilder;
 import org.mule.context.DefaultMuleContextFactory;
 
 import javax.activation.DataHandler;
+import javax.print.DocFlavor;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,12 +51,28 @@ public class MuleServer {
 
             // Start mule
             muleContext.start();
+            
+            String name = "MuleServer";
 
             // Send messages
             int count = 0;
             while ( true ) {
                 count++;
-                muleContext.getClient().dispatch("jms-input", "Message" + count, null);
+
+                MuleClient client = muleContext.getClient();
+
+                MuleMessage message = new DefaultMuleMessage("Message" + count, muleContext);
+                message.setOutboundProperty("from", name);
+                message.setOutboundProperty("to", "Agent");
+                client.dispatch("jms-input", message);
+                System.out.println(name + ": Send message [" + message.getPayloadAsString() + "]");
+
+                message = client.request("jms://MuleServer", 1000);
+                if ( message != null ) {
+                    String from = message.getInboundProperty("from");
+                    String text = message.getPayloadAsString();
+                    System.out.println(name + ": Received message [" + text + "] from [" + from + "]");
+                }
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {}

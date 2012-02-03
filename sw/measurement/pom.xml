@@ -15,8 +15,8 @@
         <module>fuse</module>
         <module>jade</module>
         <module>jxta</module>
-        <module>launcher</module>
         <module>mule</module>
+        <module>launcher</module>
     </modules>
 
     <dependencies>

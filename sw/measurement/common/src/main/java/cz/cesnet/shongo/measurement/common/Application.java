@@ -117,6 +117,10 @@ public abstract class Application
                 .hasArg()
                 .withDescription("Type of agents")
                 .create("t");
+        Option join = OptionBuilder.withLongOpt("join")
+                .withDescription("Do not start a new platform, join the default or the specified one")
+                .hasOptionalArg()
+                .create("j");
 
         // Create options
         Options options = new Options();
@@ -124,6 +128,7 @@ public abstract class Application
         options.addOption(agent);
         options.addOption(agentCount);
         options.addOption(agentType);
+        options.addOption(join);
 
         // Setup application custom options
         application.onInitOptions(options);

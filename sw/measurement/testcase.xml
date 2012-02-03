@@ -9,6 +9,7 @@
     <!-- Run Script Variables -->
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="mule" value=" --activemq={host-activemq}"/>
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 

@@ -97,12 +97,9 @@ public class JadeApplication extends Application {
                 .hasArg()
                 .create("p");
         options.addOption(pport);
-        
-        Option join = OptionBuilder.withLongOpt("join")
-                .withDescription("Do not start a new platform, join the specified one (host:port, 127.0.0.1:1099 by default)")
-                .hasOptionalArg()
-                .create("j");
-        options.addOption(join);
+
+        Option join = options.getOption("j");
+        join.setDescription("Do not start a new platform, join the specified one (host:port, 127.0.0.1:1099 by default)");
 
         Option gui = OptionBuilder.withLongOpt("gui")
                 .withDescription("Start GUI at the main container")

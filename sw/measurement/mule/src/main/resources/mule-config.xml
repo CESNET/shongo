@@ -24,6 +24,7 @@
     <!-- Endpoint declaration -->
 
     <jms:endpoint name="jms-input" queue="${jms.queue}" connector-ref="jms"/>
+    <jms:endpoint name="jms-output" queue="#[header:OUTBOUND:to]" connector-ref="jms"/>
 
 
     <!-- Flows -->
