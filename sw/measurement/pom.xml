@@ -17,6 +17,7 @@
         <module>jxta</module>
         <module>mule</module>
         <module>launcher</module>
+        <module>untitled</module>
     </modules>
 
     <dependencies>

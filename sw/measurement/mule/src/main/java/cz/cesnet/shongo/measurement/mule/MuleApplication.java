@@ -61,4 +61,13 @@ public class MuleApplication extends Application
     {
         return new String[]{};
     }
+
+    @Override
+    protected void onRun() {
+    }
+
+    @Override
+    protected void onExit() {
+        super.onExit();
+    }
 }

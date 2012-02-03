@@ -10,8 +10,8 @@
         <artifactId>app</artifactId>
         <version>1.0</version>
     </parent>
-    <artifactId>launcher</artifactId>
-    <name>Measurement Launcher</name>
+    <artifactId>common-esb</artifactId>
+    <name>Measurement Common ESB</name>
 
     <dependencies>
         <dependency>
@@ -19,6 +19,11 @@
             <artifactId>common</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-core</artifactId>
+            <version>5.5.0</version>
+        </dependency>
     </dependencies>
-    
+
 </project>

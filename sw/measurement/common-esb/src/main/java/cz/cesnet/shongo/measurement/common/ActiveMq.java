@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.measurement.mule;
+package cz.cesnet.shongo.measurement.common;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;

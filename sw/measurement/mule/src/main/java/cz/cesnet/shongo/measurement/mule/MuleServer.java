@@ -1,25 +1,16 @@
 package cz.cesnet.shongo.measurement.mule;
 
+import cz.cesnet.shongo.measurement.common.ActiveMq;
 import org.mule.DefaultMuleMessage;
 import org.mule.api.*;
 import org.mule.api.MuleMessage;
 import org.mule.api.client.MuleClient;
 import org.mule.api.context.MuleContextBuilder;
 import org.mule.api.context.MuleContextFactory;
-import org.mule.api.transformer.DataType;
-import org.mule.api.transformer.Transformer;
-import org.mule.api.transformer.TransformerException;
-import org.mule.api.transport.PropertyScope;
 import org.mule.config.DefaultMuleConfiguration;
 import org.mule.config.spring.SpringXmlConfigurationBuilder;
 import org.mule.context.DefaultMuleContextBuilder;
 import org.mule.context.DefaultMuleContextFactory;
-
-import javax.activation.DataHandler;
-import javax.print.DocFlavor;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class MuleServer {
 
