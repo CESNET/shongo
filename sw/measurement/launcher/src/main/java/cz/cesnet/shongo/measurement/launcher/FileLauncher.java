@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.measurement.launcher;
 
+import cz.cesnet.shongo.measurement.common.Application;
+import cz.cesnet.shongo.measurement.common.StreamMessageWaiter;
 import cz.cesnet.shongo.measurement.launcher.xml.*;
 
 import javax.xml.bind.JAXBContext;
@@ -32,8 +34,6 @@ public class FileLauncher {
         if ( launcher == null )
             return;
 
-        System.out.println("[LAUNCHER] Running instances....");
-
         // Set values to variables
         List<Variable> variableDefaults = launcher.getVariable();
         for ( Variable variable : variableDefaults ) {
@@ -64,9 +64,18 @@ public class FileLauncher {
             }
         }
 
+        // Get launcher instances
+        List<Instance> instances = launcher.getInstance();
+
+        // Wait for instances startup
+        StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
+                Application.MESSAGE_STARTUP_FAILED, instances.size());
+        appStartedWaiter.start();
+
+        System.out.println("[LAUNCHER] Running instances....");
+
         // Run instances
         Map<String, LauncherInstance> launcherInstances = new HashMap<String, LauncherInstance>();
-        List<Instance> instances = launcher.getInstance();
         for ( Instance instance : instances ) {
             LauncherInstance launcherInstance = null;
             if ( instance.getType().equals("local") )
@@ -78,7 +87,7 @@ public class FileLauncher {
 
             String command = replaceVariables(instance.getContent().trim(), variables);
 
-            if (!launcherInstance.run(command)) {
+            if ( !launcherInstance.run(command) ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
                 try {
                     Thread.sleep(5000);
@@ -94,6 +103,14 @@ public class FileLauncher {
                 Thread.sleep(5000); // NOTE: ideally, the next instance should be launched only after this instance is ready
             } catch (InterruptedException e) {}
         }
+
+        // Wait for instance to startup, and if some failed exit
+        if ( appStartedWaiter.waitForMessages() == false ) {
+            System.out.println("[LAUNCHER] Failed to run some instances!");
+            return;
+        }
+
+        System.out.println("[LAUNCHER] Instances successfully started!");
 
         // Perform commands
         List<Object> list = launcher.getSleepOrStep();

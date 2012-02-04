@@ -38,6 +38,12 @@ public class LauncherInstanceRemote extends LauncherInstance {
 
         System.out.println("[REMOTE:" + getId() + "] Run [" + command + "]");
         output.printf("run %s \"%s\"\n", getId(), command);
+        try {
+            String result = input.readLine();
+            System.out.println("[REMOTE:" + getId() + "] " + result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return true;
     }
@@ -46,6 +52,13 @@ public class LauncherInstanceRemote extends LauncherInstance {
     public void perform(String command) {
         System.out.println("[REMOTE:" + getId() + "] Perform [" + command + "]");
         output.printf("perform \"%s\"\n", command);
+        try {
+            String result = input.readLine();
+            if ( result.equals("[PERFORMED]") == false )
+                System.out.println("[REMOTE:" + getId() + "] " + result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -7,19 +7,27 @@ import java.io.PrintStream;
  *
  * @author Martin Srom
  */
-class StreamMessageWaiter extends PrintStream implements Runnable
+public class StreamMessageWaiter extends PrintStream implements Runnable
 {
     private String message;
+    private String messageFailure;
     private int number;
     private PrintStream outputStream;
     private Thread thread;
     private boolean skipNextNewLine = false;
+    private boolean result = true;
 
-    public StreamMessageWaiter(String message, int number)
+    public StreamMessageWaiter(String message, String messageFailure)
+    {
+        this(message, messageFailure, 1);
+    }
+
+    public StreamMessageWaiter(String message, String messageFailure, int number)
     {
         super(System.out);
         this.outputStream = System.out;
         this.message = message;
+        this.messageFailure = messageFailure;
         this.number = number;
         System.setOut(this);
     }
@@ -29,7 +37,13 @@ class StreamMessageWaiter extends PrintStream implements Runnable
         String string = new String(bytes, i, i1);
         if ( string.contains(message) ) {
             number--;
-            skipNextNewLine = true;
+            super.write(bytes, i, i1);
+            //skipNextNewLine = true;
+        } else if ( string.contains(messageFailure) ) {
+            number--;
+            result = false;
+            super.write(bytes, i, i1);
+            //skipNextNewLine = true;
         } else {
             if ( skipNextNewLine ) {
                 skipNextNewLine = false;
@@ -47,8 +61,13 @@ class StreamMessageWaiter extends PrintStream implements Runnable
         thread.start();
     }
 
-    public void join() throws InterruptedException {
-        thread.join();
+    public boolean waitForMessages() {
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     @Override

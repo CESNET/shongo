@@ -23,8 +23,10 @@ public abstract class Application
     /** Logger */
     static protected Logger logger = Logger.getLogger(Agent.class);
 
-    /** Inited message */
+    /** Started message */
     static public final String MESSAGE_STARTED = "[APPLICATION:STARTED]";
+    /** Startup failed message */
+    static public final String MESSAGE_STARTUP_FAILED = "[APPLICATION:STARTUP:FAILED]";
 
     /**
      * Application name
@@ -161,24 +163,25 @@ public abstract class Application
         }
 
         // Process command line by application
-        String [] applicationArguments = application.onProcessCommandLine(commandLine);
+        final String [] applicationArguments = application.onProcessCommandLine(commandLine);
         if ( application.onRun() == false ) {
             System.out.println("Failed to run application!");
             return;
         }
         
-        List<Process> processesToWaitFor = new LinkedList<Process>();
+        List<Object> objectToWaitFor = new LinkedList<Object>();
 
         // Create agent
         if ( commandLine.hasOption("agent") ) {
-            String agentName = commandLine.getOptionValue("agent");
-            Class agentClass = application.getAgentClass();
+            final String agentName = commandLine.getOptionValue("agent");
+            final Class agentClass = application.getAgentClass();
 
             // Get agent type
-            String type = "default";
+            String typeValue = "default";
             if ( commandLine.hasOption("type") ) {
-                type = commandLine.getOptionValue("type");
+                typeValue = commandLine.getOptionValue("type");
             }
+            final String type = typeValue;
 
             // Get agent number
             int number = 1;
@@ -191,36 +194,52 @@ public abstract class Application
             }
 
             // Prepare waiter that will wait until all agents are started
-            StreamMessageWaiter agentInitedWaiter = new StreamMessageWaiter(Agent.MESSAGE_STARTED, number);
-            agentInitedWaiter.start();
+            StreamMessageWaiter agentStartedWaiter = new StreamMessageWaiter(Agent.MESSAGE_STARTED,
+                    Agent.MESSAGE_STARTUP_FAILED, number);
+            agentStartedWaiter.start();
 
             // TODO: differentiate running multiple agents within the application and as standalone processes
             if ( number == 1 ) {
-                Agent.runAgent("", agentName, type, agentClass, applicationArguments);
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Agent.runAgent("", agentName, type, agentClass, applicationArguments);
+                    }
+                });
+                thread.start();
+                objectToWaitFor.add(thread);
             } else {
                 for ( int index = 0; index < number; index++ ) {
                     String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
                     String[] arguments = {agentNumber, agentName + agentNumber, type, agentClass.getName()};
                     arguments = mergeArrays(arguments, applicationArguments);
                     Process agentProcess = runProcess(agentName + agentNumber, Agent.class, arguments);
-                    processesToWaitFor.add(agentProcess);
+                    objectToWaitFor.add(agentProcess);
                 }
             }
 
             // Wait for all agents to be started
-            try {
-                agentInitedWaiter.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            if ( agentStartedWaiter.waitForMessages() == false ) {
+                // Application startup failed (some agent failed)
+                System.out.println(MESSAGE_STARTUP_FAILED);
+                application.onExit();
+                return;
             }
 
-            // Application is started
+            // Application is started (all agents are started)
             System.out.println(MESSAGE_STARTED);
         }
         
-        for (Process p : processesToWaitFor) {
+        for (Object object : objectToWaitFor) {
             try {
-                p.waitFor();
+                if ( object instanceof Process ) {
+                    Process process = (Process)object;
+                    process.waitFor();
+                }
+                else if ( object instanceof Thread ) {
+                    Thread thread = (Thread)object;
+                    thread.join();
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

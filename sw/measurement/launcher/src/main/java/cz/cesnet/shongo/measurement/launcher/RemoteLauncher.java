@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.measurement.launcher;
 
+import cz.cesnet.shongo.measurement.common.Application;
 import cz.cesnet.shongo.measurement.common.CommandParser;
+import cz.cesnet.shongo.measurement.common.StreamMessageWaiter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,6 +17,8 @@ public class RemoteLauncher {
     private static class ConnectionHandler extends Thread {
         private Socket socket;
         private LauncherInstanceLocal launcherInstance;
+        PrintWriter output;
+        BufferedReader input;
 
         public ConnectionHandler(Socket socket) {
             this.socket = socket;
@@ -22,8 +26,6 @@ public class RemoteLauncher {
 
         @Override
         public void run() {
-            PrintWriter output = null;
-            BufferedReader input = null;
             try {
                 output = new PrintWriter(socket.getOutputStream(), true);
                 input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -55,11 +57,24 @@ public class RemoteLauncher {
                 String execute = list.get(2);
                 System.out.println("[REMOTE] Received for [" + id + "] command run [" + execute + "]");
                 launcherInstance = new LauncherInstanceLocal(id);
+                StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
+                        Application.MESSAGE_STARTUP_FAILED);
+                appStartedWaiter.start();
                 launcherInstance.run(execute);
+                if ( appStartedWaiter.waitForMessages() ) {
+                    output.println(Application.MESSAGE_STARTED);
+                    output.flush();
+                }
+                else {
+                    output.println(Application.MESSAGE_STARTUP_FAILED);
+                    output.flush();
+                }
             } else if ( command.equals("perform") ) {
                 String perform = list.get(1);
                 System.out.println("[REMOTE] Received for [" + launcherInstance.getId() + "] command perform [" + perform + "]");
                 launcherInstance.perform(perform);
+                output.println("[PERFORMED]");
+                output.flush();
             }
         }
     }

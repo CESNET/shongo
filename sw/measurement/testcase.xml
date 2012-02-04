@@ -22,7 +22,6 @@
     </instance>
 
     <!-- Instrutions -->
-    <sleep duration="10000" />
     <step>
         <command for="jvm1">send r{agent-id} Hello</command>
     </step>
