@@ -7,7 +7,6 @@ import cz.cesnet.shongo.measurement.common.EsbApplication;
  */
 public class FuseApplication extends EsbApplication
 {
-
     /**
      * Create FUSE application
      */

@@ -114,6 +114,21 @@ public class ActiveMq {
             }
         }
 
+        public String receiveMessage(String queue)
+        {
+            try {
+                Destination destination = session.createQueue(queue);
+                MessageConsumer consumer = session.createConsumer(destination);
+                TextMessage message = (TextMessage)consumer.receive();
+                consumer.close();
+                return message.getText();
+            }
+            catch (JMSException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
         public void setMessageListener(String queue, MessageListener messageListener)
         {
             try {
@@ -122,6 +137,16 @@ public class ActiveMq {
                 consumer.setMessageListener(messageListener);
             }
             catch (JMSException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public void close()
+        {
+            try {
+                session.close();
+                connection.close();
+            } catch (JMSException e) {
                 e.printStackTrace();
             }
         }

@@ -1,23 +1,31 @@
 package cz.cesnet.shongo.measurement.fuse;
 
 import cz.cesnet.shongo.measurement.common.Agent;
-import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.servicemix.jbi.container.SpringJBIContainer;
+import org.apache.servicemix.jbi.framework.ComponentContextImpl;
+import org.apache.servicemix.jbi.jaxp.StringSource;
+import org.apache.xbean.spring.context.ClassPathXmlApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 
+import javax.jbi.JBIException;
+import javax.jbi.messaging.DeliveryChannel;
+import javax.jbi.messaging.InOnly;
+import javax.jbi.messaging.MessagingException;
+import javax.jbi.messaging.NormalizedMessage;
+import javax.jbi.servicedesc.ServiceEndpoint;
 import javax.jms.*;
+import javax.xml.namespace.QName;
 
 public class FuseAgent extends Agent implements MessageListener
 {
-    /** JMS Connection */
-    Connection connection;
+    /** Application Context */
+    AbstractApplicationContext context;
 
-    /** JMS Session */
-    Session session;
-
-    /** JMS Message consumer */
-    MessageConsumer consumer;
+    /** Fuse-ESB container */
+    SpringJBIContainer container;
 
     /** ActiveMQ address */
-    private String activeMqAdress;
+    private String activeMqUrl;
 
     /**
      * Create Fuse agent
@@ -38,28 +46,16 @@ public class FuseAgent extends Agent implements MessageListener
     @Override
     protected boolean startImpl()
     {
-        // Create connection
-        try {
-            ConnectionFactory factory = new ActiveMQConnectionFactory("tcp://" + activeMqAdress);
-            connection = factory.createConnection();
-            connection.start();
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        } catch (JMSException e) {
-            e.printStackTrace();
-            logger.error("Failed to start FUSE agent [" + getName() + "] at [" + activeMqAdress +"]");
-        }
-        if ( connection == null )
-            return false;
+        System.getProperties().put("jms.url", "tcp://" + activeMqUrl);
+        System.getProperties().put("jms.queue", getName());
 
-        // Create consumer
-        try {
-            Destination destination = session.createQueue(getName());
-            consumer = session.createConsumer(destination);
-            consumer.setMessageListener(this);
-        } catch (JMSException e) {
-            e.printStackTrace();
-        }
-        logger.info("Started FUSE agent [" + getName() + "] at ActiveMQ [" + activeMqAdress +"]");
+        context = new ClassPathXmlApplicationContext("servicemix.xml");
+        container = (SpringJBIContainer) context.getBean("jbi");
+
+        AgentService agentService = (AgentService)context.getBean("agentService");
+        agentService.setAgent(this);
+
+        logger.info("Started FUSE agent [" + getName() + "] at ActiveMQ [" + activeMqUrl +"]");
         return true;
     }
 
@@ -70,26 +66,10 @@ public class FuseAgent extends Agent implements MessageListener
     protected void stopImpl()
     {
         logger.info("Stopping FUSE agent [" + getName() + "]");
-        if ( consumer != null ) {
-            try {
-                consumer.close();
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
-        }
-        if ( session != null ) {
-            try {
-                session.close();
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
-        }
-        if ( connection != null ) {
-            try {
-                connection.close();
-            } catch (JMSException e) {
-                e.printStackTrace();
-            }
+        try {
+            container.shutDown();
+        } catch (JBIException e) {
+            e.printStackTrace();
         }
     }
 
@@ -97,20 +77,23 @@ public class FuseAgent extends Agent implements MessageListener
      * Implementation of Fuse agent send message
      *
      * @param receiverName
-     * @param message
+     * @param messageText
      */
     @Override
-    protected void sendMessageImpl(String receiverName, String message)
+    protected void sendMessageImpl(String receiverName, String messageText)
     {
+        ComponentContextImpl componentContext = container.getComponent("servicemix-jms").getContext();
         try {
-
-            Destination destination = session.createQueue(receiverName);
-            MessageProducer producer = session.createProducer(destination);
-            Message producerMessage = session.createMessage();
-            producerMessage.setStringProperty("from", getName());
-            producerMessage.setStringProperty("text", message);
-            producer.send(producerMessage);
-        } catch (JMSException e) {
+            ServiceEndpoint endpoint = componentContext.getEndpoint(new QName("jms-output"), "endpoint");
+            assert(endpoint != null);
+            DeliveryChannel channel = componentContext.getDeliveryChannel();
+            InOnly exchange = exchange = channel.createExchangeFactory(endpoint).createInOnlyExchange();
+            NormalizedMessage message = exchange.createMessage();
+            message.setContent(new StringSource(new AgentService.Message(getName(), receiverName, messageText).toString()));
+            exchange.setService(new QName("http://cesnet.cz/shongo/measurement", "jms-output"));
+            exchange.setMessage(message, "in");
+            channel.sendSync(exchange);
+        } catch (MessagingException e) {
             e.printStackTrace();
         }
     }
@@ -123,7 +106,7 @@ public class FuseAgent extends Agent implements MessageListener
     @Override
     protected void onProcessArguments(String[] arguments)
     {
-        activeMqAdress = arguments[0];
+        activeMqUrl = arguments[0];
     }
 
     /**
