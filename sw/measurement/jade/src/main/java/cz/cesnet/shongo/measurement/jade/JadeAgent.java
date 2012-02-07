@@ -3,8 +3,10 @@ package cz.cesnet.shongo.measurement.jade;
 import jade.core.AID;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
+import jade.core.ServiceException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
+import jade.core.messaging.TopicManagementHelper;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
@@ -35,6 +37,11 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
      * Controller of the agent.
      */
     private AgentController controller;
+
+    /**
+     * Topic used for broadcast (platform-wide) messages.
+     */
+    public AID topicAll;
 
 
     /**
@@ -83,9 +90,19 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
     }
 
 
-    public JadeAgent(String id, String name) {
+    /**
+     *
+     * @param id
+     * @param name
+     * @throws ServiceException on topic service error (needed for broadcast messaging)
+     */
+    public JadeAgent(String id, String name) throws ServiceException {
         super(id, name);
         agent = new JadeAgentImpl();
+
+        TopicManagementHelper topicHelper = (TopicManagementHelper) agent.getHelper(TopicManagementHelper.SERVICE_NAME);
+        topicAll = topicHelper.createTopic("ALL");
+        topicHelper.register(topicAll);
     }
 
 
@@ -131,15 +148,17 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
     @Override
     protected void sendMessageImpl(String receiverName, String message) {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        AID receiver;
         if (receiverName.equals("*")) {
-            throw new NotImplementedException(); // TODO
+            // NOTE: broadcast messaging implemented as a topic-based communication on topic ALL
+            receiver = topicAll;
         } else {
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-            AID receiver = new AID(receiverName, AID.ISLOCALNAME); // FIXME: just local names so far
-            msg.addReceiver(receiver);
-            msg.setContent(message);
-            agent.send(msg);
+            receiver = new AID(receiverName, AID.ISLOCALNAME); // FIXME: just local names so far
         }
+        msg.addReceiver(receiver);
+        msg.setContent(message);
+        agent.send(msg);
     }
 
 }
