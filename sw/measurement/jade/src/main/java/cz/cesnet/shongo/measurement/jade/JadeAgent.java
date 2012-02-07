@@ -40,8 +40,9 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
     /**
      * Topic used for broadcast (platform-wide) messages.
+     * The topic ID used for broadcasting, or <code>null</code> if the broadcasting is not available.
      */
-    public AID topicAll;
+    public AID topicAll = null;
 
 
     /**
@@ -96,13 +97,18 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
      * @param name
      * @throws ServiceException on topic service error (needed for broadcast messaging)
      */
-    public JadeAgent(String id, String name) throws ServiceException {
+    public JadeAgent(String id, String name) {
         super(id, name);
         agent = new JadeAgentImpl();
 
-        TopicManagementHelper topicHelper = (TopicManagementHelper) agent.getHelper(TopicManagementHelper.SERVICE_NAME);
-        topicAll = topicHelper.createTopic("ALL");
-        topicHelper.register(topicAll);
+        try {
+            TopicManagementHelper topicHelper = (TopicManagementHelper) agent.getHelper(TopicManagementHelper.SERVICE_NAME);
+            topicAll = topicHelper.createTopic("ALL");
+            topicHelper.register(topicAll);
+        }
+        catch (ServiceException e) {
+            logger.warn("The TopicManagement service is not available, broadcast messaging will not be available");
+        }
     }
 
 
@@ -148,14 +154,19 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
     @Override
     protected void sendMessageImpl(String receiverName, String message) {
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         AID receiver;
         if (receiverName.equals("*")) {
             // NOTE: broadcast messaging implemented as a topic-based communication on topic ALL
+            if (topicAll == null) {
+                logger.error("Error sending a broadcast message: broadcast messaging is not available");
+                return;
+            }
             receiver = topicAll;
         } else {
             receiver = new AID(receiverName, AID.ISLOCALNAME); // FIXME: just local names so far
         }
+
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.addReceiver(receiver);
         msg.setContent(message);
         agent.send(msg);
