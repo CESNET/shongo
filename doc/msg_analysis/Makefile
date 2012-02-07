@@ -1,11 +1,11 @@
 .SUFFIXES: .tex .pdf
 
-DEPENDS=*.tex ../../bbmri-cerit.cls 
+DEPENDS=*.tex ../../bbmri-cerit.cls
 
 default: analysis.pdf
 
 .tex.pdf:
-	#pdflatex $< && bibtex `basename $< .tex` && pdflatex $< && pdflatex $<
+#	pdflatex $< && bibtex `basename $< .tex` && pdflatex $< && pdflatex $<
 	pdflatex $< && pdflatex $<
 
 #
@@ -14,4 +14,4 @@ default: analysis.pdf
 
 clean:
 	rm -f *.aux *.log *.out *.nav *.snm *.toc *~ \
-		analysis.pdf 
+		analysis.pdf
