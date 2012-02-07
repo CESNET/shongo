@@ -61,6 +61,10 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
         thread.start();
     }
 
+    public void stop() {
+        thread.stop();
+    }
+
     public boolean waitForMessages() {
         try {
             thread.join();

@@ -89,6 +89,7 @@ public class FileLauncher {
 
             if ( !launcherInstance.run(command) ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
+                appStartedWaiter.stop();
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {}
