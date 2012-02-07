@@ -7,6 +7,7 @@ import jade.core.ServiceException;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.core.messaging.TopicManagementHelper;
+import jade.core.messaging.TopicManagementService;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
@@ -38,12 +39,6 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
      */
     private AgentController controller;
 
-    /**
-     * Topic used for broadcast (platform-wide) messages.
-     * The topic ID used for broadcasting, or <code>null</code> if the broadcasting is not available.
-     */
-    public AID topicAll = null;
-
 
     /**
      * The concrete Jade agent class implementing all the stuff.
@@ -54,6 +49,12 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
         protected Logger logger = Logger.getLogger(JadeAgentImpl.class);
 
         Thread listeningThread;
+
+        /**
+         * Topic used for broadcast (platform-wide) messages.
+         * The topic ID used for broadcasting, or <code>null</code> if the broadcasting is not available.
+         */
+        public AID topicAll = null;
 
         @Override
         protected void setup() {
@@ -80,13 +81,41 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
             // keep the listening thread to be able to interrupt it on exit
             listeningThread = tbf.getThread(listeningBehaviour);
-        }
 
+            // register the topic management service
+            try {
+                TopicManagementHelper topicHelper = (TopicManagementHelper) agent.getHelper(TopicManagementHelper.SERVICE_NAME);
+                topicAll = topicHelper.createTopic("ALL");
+                topicHelper.register(topicAll);
+            }
+            catch (ServiceException e) {
+                logger.warn("The TopicManagement service is not available, broadcast messaging will not be available");
+            }
+        }
 
         @Override
         public void doDelete() {
             super.doDelete();
             listeningThread.interrupt();
+        }
+        
+        public void sendMessage(String receiverName, String message) {
+            AID receiver;
+            if (receiverName.equals("*")) {
+                // NOTE: broadcast messaging implemented as a topic-based communication on topic ALL
+                if (topicAll == null) {
+                    logger.error("Error sending a broadcast message: broadcast messaging is not available");
+                    return;
+                }
+                receiver = topicAll;
+            } else {
+                receiver = new AID(receiverName, AID.ISLOCALNAME); // FIXME: just local names so far
+            }
+
+            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+            msg.addReceiver(receiver);
+            msg.setContent(message);
+            send(msg);
         }
     }
 
@@ -100,15 +129,6 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
     public JadeAgent(String id, String name) {
         super(id, name);
         agent = new JadeAgentImpl();
-
-        try {
-            TopicManagementHelper topicHelper = (TopicManagementHelper) agent.getHelper(TopicManagementHelper.SERVICE_NAME);
-            topicAll = topicHelper.createTopic("ALL");
-            topicHelper.register(topicAll);
-        }
-        catch (ServiceException e) {
-            logger.warn("The TopicManagement service is not available, broadcast messaging will not be available");
-        }
     }
 
 
@@ -118,6 +138,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
         if (container == null) {
             // no JadeApplication has been run - start our own container
             Profile profile = new ProfileImpl(false);
+            JadeApplication.addService(profile, TopicManagementService.class);
             // FIXME: where to connect taken from parameter
 //            profile.setParameter(Profile.MAIN_HOST, joinHost);
 //            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
@@ -154,22 +175,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
     @Override
     protected void sendMessageImpl(String receiverName, String message) {
-        AID receiver;
-        if (receiverName.equals("*")) {
-            // NOTE: broadcast messaging implemented as a topic-based communication on topic ALL
-            if (topicAll == null) {
-                logger.error("Error sending a broadcast message: broadcast messaging is not available");
-                return;
-            }
-            receiver = topicAll;
-        } else {
-            receiver = new AID(receiverName, AID.ISLOCALNAME); // FIXME: just local names so far
-        }
-
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-        msg.addReceiver(receiver);
-        msg.setContent(message);
-        agent.send(msg);
+        agent.sendMessage(receiverName, message);
     }
 
 }

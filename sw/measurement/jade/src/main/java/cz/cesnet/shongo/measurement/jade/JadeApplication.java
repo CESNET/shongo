@@ -2,7 +2,12 @@ package cz.cesnet.shongo.measurement.jade;
 
 import cz.cesnet.shongo.measurement.common.Application;
 import jade.core.Profile;
+import jade.core.ProfileException;
 import jade.core.ProfileImpl;
+import jade.core.Specifier;
+import jade.core.messaging.TopicManagementService;
+import jade.util.leap.LinkedList;
+import jade.util.leap.List;
 import jade.util.leap.Properties;
 import jade.wrapper.*;
 import jade.wrapper.gateway.JadeGateway;
@@ -128,20 +133,40 @@ public class JadeApplication extends Application {
         return new String[0];
     }
 
+    /**
+     * Adds a service specifier to a profile for starting a container.
+     * @param profile      profile to add the service specifier to
+     * @param serviceClass class providing the service
+     */
+    static void addService(Profile profile, Class serviceClass) {
+        Specifier spec = new Specifier();
+        spec.setClassName(serviceClass.getName());
+
+        try {
+            List services = profile.getSpecifiers(Profile.SERVICES);
+            services.add(spec);
+            profile.setSpecifiers(Profile.SERVICES, services);
+        } catch (ProfileException e) {
+            logger.error("Could not add the service " + serviceClass.getName() + " (could not load the profile service specifiers)", e);
+        }
+    }
+    
     @Override
     protected boolean onRun() {
         if (mode == Mode.Platform) {
             Profile profile = new ProfileImpl(platformHost, platformPort, null);
+            addService(profile, TopicManagementService.class);
             container = jade.core.Runtime.instance().createMainContainer(profile);
         }
         else if (mode == Mode.Container) {
             Profile profile = new ProfileImpl();
             profile.setParameter(Profile.MAIN_HOST, joinHost);
             profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
+            addService(profile, TopicManagementService.class);
             container = jade.core.Runtime.instance().createAgentContainer(profile);
         }
         else if (mode == Mode.Backup) {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO: add --backup switch to the application and launch the backup
         }
         else {
             throw new IllegalStateException("unknown JadeApplication mode");
