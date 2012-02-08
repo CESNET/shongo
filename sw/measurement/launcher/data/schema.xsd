@@ -8,6 +8,7 @@
         <xs:choice maxOccurs="unbounded">
           <xs:element ref="sleep"/>
           <xs:element ref="step"/>
+          <xs:element ref="cycle"/>
         </xs:choice>
       </xs:sequence>
     </xs:complexType>
@@ -33,6 +34,15 @@
       <xs:attribute name="host" type="xs:NMTOKEN"/>
       <xs:attribute name="id" use="required" type="xs:NCName"/>
       <xs:attribute name="type" use="required" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="cycle">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="sleep"/>
+        <xs:element ref="step"/>
+      </xs:choice>
+      <xs:attribute name="count" use="required" type="xs:integer"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="sleep">

@@ -15,13 +15,25 @@
         ./jxta.sh --agent=agent2 --type=receiver
     </instance>
 
-    <sleep duration="1000" />
-
-    <step>
-        <command for="jvm1">send agent2 Hello</command>
-    </step>
+    <cycle count="10">
+        <sleep duration="1000" />
+        <step>
+            <command for="jvm1">send agent2 Hello</command>
+        </step>
+    </cycle>
 
     <sleep duration="3000" />
+
+    <cycle count="10">
+        <sleep duration="1000" />
+        <step>
+            <command for="jvm1">send agent2 Hello</command>
+        </step>
+        <sleep duration="1000" />
+        <step>
+            <command for="jvm1">send agent2 Hello</command>
+        </step>
+    </cycle>
 
     <step>
         <command for="jvm1">send agent2 Hello2</command>

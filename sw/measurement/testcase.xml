@@ -22,18 +22,13 @@
     </instance>
 
     <!-- Instrutions -->
-    <step>
-        <command for="jvm1">send r{agent-id} Hello</command>
-    </step>
-    <sleep duration="1000" />
-    <step>
-        <command for="jvm1">send r{agent-id} Hello</command>
-    </step>
-    <sleep duration="1000" />
-    <step>
-        <command for="jvm1">send r{agent-id} Hello</command>
-    </step>
-    <sleep duration="5000" />
+    <cycle count="10">
+        <step>
+            <command for="jvm1">send r{agent-id} Hello</command>
+        </step>
+        <sleep duration="1000" />
+    </cycle>
+
     <step>
         <command>quit</command>
     </step>
