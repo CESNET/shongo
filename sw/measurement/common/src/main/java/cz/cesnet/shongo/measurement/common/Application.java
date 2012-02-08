@@ -221,7 +221,9 @@ public abstract class Application {
                 // run multiple agents
                 if (commandLine.hasOption("single-jvm")) {
                     // run each agent in a separate thread and connect their input to the console input
-                    connector = streamConnectorInput;
+                    connector = new StreamConnector(System.in);
+                    connector.setForwardStreamEnd(true);
+                    final StreamConnector finalConnector = connector;
                     for (int index = 0; index < number; index++) {
                         final String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
                         Thread thread = new Thread(new Runnable() {
@@ -230,7 +232,7 @@ public abstract class Application {
                                 try {
                                     PipedInputStream in = new PipedInputStream();
                                     PipedOutputStream out = new PipedOutputStream(in);
-                                    streamConnectorInput.addOutput(out);
+                                    finalConnector.addOutput(out);
                                     final String consolePrefix = agentName + agentNumber + ": ";
                                     Agent.runAgent(agentNumber, agentName + agentNumber, type, agentClass, applicationArguments, in, consolePrefix);
                                 } catch (IOException e) {

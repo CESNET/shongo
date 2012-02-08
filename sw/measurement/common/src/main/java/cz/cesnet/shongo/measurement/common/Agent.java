@@ -169,6 +169,14 @@ public abstract class Agent
     protected abstract void sendMessageImpl(String receiverName, String message);
 
     /**
+     * This method should implement listing all agents in the platform.
+     * Override this "not implemented" method for implementations where it is supported.
+     */
+    protected void listAgentsImpl() {
+        logError("Listing agents not supported on this implementation");
+    }
+
+    /**
      * Run agent.
      */
     public void run()
@@ -251,18 +259,30 @@ public abstract class Agent
     private boolean processCommand(String command, List<String> arguments)
     {
         if ( command.equals("send") && arguments.size() >= 2 ) {
-            String agent = arguments.get(0);
-            agent = agent.replaceAll("\\{agent-id\\}", getId());
+            String agentName = arguments.get(0);
+            agentName = agentName.replaceAll("\\{agent-id\\}", getId());
             String message = arguments.get(1);
-            onSendMessage(agent, message);
+            onSendMessage(agentName, message);
         }
         else if ( command.equals("quit") ) {
             System.out.println(consolePrefix + "Quiting...");
             return true;
-        } else {
+        }
+        else if ( command.equals("list") ) {
+            onListAgents();
+        }
+        else {
             System.out.printf("%sUnknown command '%s'\n", consolePrefix, command);
         }
         return false;
+    }
+
+    /**
+     * Called when the agent is requested to list contents of the platform.
+     */
+    protected void onListAgents() {
+        this.agentImplementation.onListAgents(this);
+        listAgentsImpl();
     }
 
     /**
@@ -373,6 +393,15 @@ public abstract class Agent
         protected void onReceiveMessage(Agent agent, String senderName, String message)
         {
             logger.info(agent.consolePrefix + String.format("Received message from %s: %s", senderName, message));
+        }
+
+        /**
+         * Event called when the agent is told to list all agents in the platform.
+         *
+         * @param agent
+         */
+        public void onListAgents(Agent agent) {
+            logger.info(agent.consolePrefix + "Listing agents");
         }
     }
 
