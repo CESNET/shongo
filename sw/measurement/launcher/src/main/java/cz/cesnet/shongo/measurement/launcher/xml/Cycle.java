@@ -8,11 +8,14 @@
 
 package cz.cesnet.shongo.measurement.launcher.xml;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -26,9 +29,11 @@ import javax.xml.bind.annotation.XmlType;
  * &lt;complexType>
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element ref="{}command" maxOccurs="unbounded"/>
- *       &lt;/sequence>
+ *       &lt;choice maxOccurs="unbounded">
+ *         &lt;element ref="{}sleep"/>
+ *         &lt;element ref="{}step"/>
+ *       &lt;/choice>
+ *       &lt;attribute name="count" use="required" type="{http://www.w3.org/2001/XMLSchema}integer" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -38,41 +43,71 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
-    "command"
+    "sleepOrStep"
 })
-@XmlRootElement(name = "step")
-public class Step {
+@XmlRootElement(name = "cycle")
+public class Cycle {
 
-    @XmlElement(required = true)
-    protected List<Command> command;
+    @XmlElements({
+        @XmlElement(name = "step", type = Step.class),
+        @XmlElement(name = "sleep", type = Sleep.class)
+    })
+    protected List<Object> sleepOrStep;
+    @XmlAttribute(required = true)
+    protected BigInteger count;
 
     /**
-     * Gets the value of the command property.
+     * Gets the value of the sleepOrStep property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the command property.
+     * This is why there is not a <CODE>set</CODE> method for the sleepOrStep property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getCommand().add(newItem);
+     *    getSleepOrStep().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Command }
+     * {@link Step }
+     * {@link Sleep }
      * 
      * 
      */
-    public List<Command> getCommand() {
-        if (command == null) {
-            command = new ArrayList<Command>();
+    public List<Object> getSleepOrStep() {
+        if (sleepOrStep == null) {
+            sleepOrStep = new ArrayList<Object>();
         }
-        return this.command;
+        return this.sleepOrStep;
+    }
+
+    /**
+     * Gets the value of the count property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getCount() {
+        return count;
+    }
+
+    /**
+     * Sets the value of the count property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setCount(BigInteger value) {
+        this.count = value;
     }
 
 }

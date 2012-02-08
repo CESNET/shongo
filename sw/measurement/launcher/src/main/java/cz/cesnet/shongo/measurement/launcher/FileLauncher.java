@@ -114,43 +114,57 @@ public class FileLauncher {
         System.out.println("[LAUNCHER] Instances successfully started!");
 
         // Perform commands
-        List<Object> list = launcher.getSleepOrStep();
+        List<Object> list = launcher.getSleepOrStepOrCycle();
         for ( Object item : list ) {
-            // Step
-            if ( item instanceof Step ) {
-                Step step = (Step)item;
-                // For all command in step
-                for ( Command command : step.getCommand() ) {
-                    // Command to all instances
-                    if ( command.getFor() == null || command.getFor().equals("*") ) {
-                        for ( LauncherInstance launcherInstance : launcherInstances.values() )
-                            launcherInstance.perform(command.getContent().trim());
-                    }
-                    // Command for specified instance
-                    else {
-                        LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
-                        if ( launcherInstance == null )
-                            continue;
-                        launcherInstance.perform(command.getContent().trim());
-                    }
-                }
-            }
-            // Sleep
-            else if ( item instanceof Sleep) {
-                Sleep sleep = (Sleep)item;
-                try {
-                    long duration = sleep.getDuration().longValue();
-                    System.out.println("[SLEEP:" + duration + "].");
-                    Thread.sleep(duration);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            performItem(item, launcherInstances);
         }
 
         // Exit instances
         for ( LauncherInstance launcherInstance : launcherInstances.values() )
             launcherInstance.exit();
+    }
+
+    public static void performItem(Object item, Map<String, LauncherInstance> launcherInstances)
+    {
+        if ( item instanceof Cycle ) {
+            Cycle cycle = (Cycle)item;
+            for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
+                List<Object> list = cycle.getSleepOrStep();
+                for ( Object listItem : list ) {
+                    performItem(listItem, launcherInstances);
+                }
+            }
+        }
+        // Step
+        else if ( item instanceof Step ) {
+            Step step = (Step)item;
+            // For all command in step
+            for ( Command command : step.getCommand() ) {
+                // Command to all instances
+                if ( command.getFor() == null || command.getFor().equals("*") ) {
+                    for ( LauncherInstance launcherInstance : launcherInstances.values() )
+                        launcherInstance.perform(command.getContent().trim());
+                }
+                // Command for specified instance
+                else {
+                    LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
+                    if ( launcherInstance == null )
+                        continue;
+                    launcherInstance.perform(command.getContent().trim());
+                }
+            }
+        }
+        // Sleep
+        else if ( item instanceof Sleep) {
+            Sleep sleep = (Sleep)item;
+            try {
+                long duration = sleep.getDuration().longValue();
+                System.out.println("[SLEEP:" + duration + "].");
+                Thread.sleep(duration);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }
