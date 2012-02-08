@@ -2,6 +2,7 @@ package cz.cesnet.shongo.measurement.common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -19,8 +20,12 @@ import org.apache.log4j.Logger;
  */
 public abstract class Agent
 {
-    /** Logger */
-    static protected Logger logger = Logger.getLogger(Agent.class);
+    /**
+     * Logger.
+     * Not to be used directly (because of printing agent prefix.
+     * Call one of the log*() methods from global context.
+     */
+    static private Logger logger = Logger.getLogger(Agent.class);
 
     /** Started message */
     static public final String MESSAGE_STARTED = "[AGENT:STARTED]";
@@ -32,6 +37,12 @@ public abstract class Agent
 
     /** Agent name */
     private String name;
+    
+    /** Prefix to append before any console output */
+    private String consolePrefix = "";
+
+    /** Stream to read input from */
+    private InputStream inputStream = System.in;
 
     /** Type enumeration */
     public enum Type
@@ -76,6 +87,42 @@ public abstract class Agent
     {
         return name;
     }
+
+    /**
+     * Logs an info message.
+     *
+     * @param message
+     */
+    public void logInfo(String message) {
+        logger.info(consolePrefix + message);
+    }
+
+    /**
+     * Logs a warning.
+     *
+     * @param message
+     */
+    public void logWarning(String message) {
+        logger.warn(consolePrefix + message);
+    }
+
+    public void logWarning(String message, Throwable t) {
+        logger.warn(consolePrefix + message, t);
+    }
+
+    /**
+     * Logs an error message.
+     *
+     * @param message
+     */
+    public void logError(String message) {
+        logger.error(consolePrefix + message);
+    }
+
+    public void logError(String message, Throwable t) {
+        logger.error(consolePrefix + message, t);
+    }
+
 
     /**
      * Set agent type.
@@ -128,10 +175,10 @@ public abstract class Agent
     {
         // Start agent by agent implementation
         if ( startImpl() == false ) {
-            System.out.println(MESSAGE_STARTUP_FAILED);
+            System.out.println(consolePrefix + MESSAGE_STARTUP_FAILED);
             return;
         }
-        System.out.println(MESSAGE_STARTED);
+        System.out.println(consolePrefix + MESSAGE_STARTED);
 
         // Run generic agent
         onRun();
@@ -172,7 +219,7 @@ public abstract class Agent
      */
     public void onRun()
     {
-        BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader input = new BufferedReader(new InputStreamReader(inputStream));
         String command = "";
         while ( true ) {
             try {
@@ -210,10 +257,10 @@ public abstract class Agent
             onSendMessage(agent, message);
         }
         else if ( command.equals("quit") ) {
-            System.out.println("Quiting...");
+            System.out.println(consolePrefix + "Quiting...");
             return true;
         } else {
-            System.out.printf("Unknown command '%s'\n", command);
+            System.out.printf("%sUnknown command '%s'\n", consolePrefix, command);
         }
         return false;
     }
@@ -234,9 +281,13 @@ public abstract class Agent
      *
      * @param agentId
      * @param agentName
+     * @param agentType
      * @param agentClass
+     * @param agentArguments
+     * @param inputStream       stream to read input from
+     * @param consolePrefix     the prefix to append before any output
      */
-    public static void runAgent(String agentId, String agentName, String agentType, Class agentClass, String[] agentArguments)
+    public static void runAgent(String agentId, String agentName, String agentType, Class agentClass, String[] agentArguments, InputStream inputStream, String consolePrefix)
     {
         System.out.println("Running agent '" + agentName +  "' as '" + agentType + "'...");
         Agent agent = null;
@@ -249,6 +300,13 @@ public abstract class Agent
         } catch (IllegalAccessException e) {
         }
         assert(agent != null);
+
+        if (inputStream != null) {
+            agent.inputStream = inputStream;
+        }
+        if (consolePrefix != null) {
+            agent.consolePrefix = consolePrefix;
+        }
 
         // Pass arguments
         agent.onProcessArguments(agentArguments);
@@ -278,7 +336,7 @@ public abstract class Agent
             Class agentClass = Class.forName(args[3]);
             String[] agentArguments = new String[args.length - 4];
             System.arraycopy(args, 4, agentArguments, 0, args.length - 4);
-            runAgent(agentId, agentName, agentType, agentClass, agentArguments);
+            runAgent(agentId, agentName, agentType, agentClass, agentArguments, null, null);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -302,7 +360,7 @@ public abstract class Agent
         {
             if ( receiverName.equals("*") )
                 receiverName = "all";
-            logger.info(String.format("Sending message to %s: %s", receiverName, message));
+            logger.info(agent.consolePrefix + String.format("Sending message to %s: %s", receiverName, message));
         }
 
         /**
@@ -314,7 +372,7 @@ public abstract class Agent
          */
         protected void onReceiveMessage(Agent agent, String senderName, String message)
         {
-            logger.info(String.format("Received message from %s: %s", senderName, message));
+            logger.info(agent.consolePrefix + String.format("Received message from %s: %s", senderName, message));
         }
     }
 
@@ -345,7 +403,7 @@ public abstract class Agent
                 double duration = (double)(System.nanoTime() - timerMap.get(message)) / 1000000.0;
                 durationFormatted = String.format(" (in %f ms)", duration);
             }
-            logger.info(String.format("Received message from %s: %s%s", senderName, message, durationFormatted));
+            logger.info(agent.consolePrefix + String.format("Received message from %s: %s%s", senderName, message, durationFormatted));
         }
     }
 

@@ -55,7 +55,7 @@ public class FuseAgent extends Agent implements MessageListener
         AgentService agentService = (AgentService)context.getBean("agentService");
         agentService.setAgent(this);
 
-        logger.info("Started FUSE agent [" + getName() + "] at ActiveMQ [" + activeMqUrl +"]");
+        logInfo("Started FUSE agent [" + getName() + "] at ActiveMQ [" + activeMqUrl +"]");
         return true;
     }
 
@@ -65,7 +65,7 @@ public class FuseAgent extends Agent implements MessageListener
     @Override
     protected void stopImpl()
     {
-        logger.info("Stopping FUSE agent [" + getName() + "]");
+        logInfo("Stopping FUSE agent [" + getName() + "]");
         try {
             container.shutDown();
         } catch (JBIException e) {

@@ -6,11 +6,10 @@ import jade.core.ProfileException;
 import jade.core.ProfileImpl;
 import jade.core.Specifier;
 import jade.core.messaging.TopicManagementService;
-import jade.util.leap.LinkedList;
 import jade.util.leap.List;
-import jade.util.leap.Properties;
-import jade.wrapper.*;
-import jade.wrapper.gateway.JadeGateway;
+import jade.wrapper.AgentController;
+import jade.wrapper.ContainerController;
+import jade.wrapper.StaleProxyException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
@@ -179,6 +178,10 @@ public class JadeApplication extends Application {
             } catch (StaleProxyException e) {
                 e.printStackTrace();
             }
+        }
+
+        if (defaultContainer == null) {
+            defaultContainer = container;
         }
         
         // upon exit, shut down the Jade threads (otherwise, the program would hang waiting for other threads)

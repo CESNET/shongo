@@ -76,13 +76,11 @@ public class StreamConnector extends Thread
     }
 
     /**
-     * Connect the InputStream and OutputStream objects specified in the constructor.
+     * Read the InputStream and write the data to OutputStream instances.
      */
     public void run()
     {
         assert(inputStream != null);
-
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 
         int bufferSize = 4096;
         int bufferPosition = 0;
@@ -91,7 +89,6 @@ public class StreamConnector extends Thread
         int bufferReadCount = 0;
         try {
             while ( (bufferReadCount = inputStream.read(buffer, bufferPosition, bufferSize - bufferPosition)) != -1 ) {
-                boolean print = false;
                 for ( int index = 0; index < bufferReadCount; index++ ) {
                     char currentChar = (char)buffer[bufferPosition + index];
                     if ( currentChar == '\n' || currentChar == '\r' ) {
@@ -105,6 +102,10 @@ public class StreamConnector extends Thread
                     bufferPosition = 0;
                     bufferPositionWritten = 0;
                 }
+            }
+            // forward also the end of the stream
+            for (OutputStream outputStream : outputStreamList) {
+                outputStream.close();
             }
         } catch (IOException e) {
             e.printStackTrace();

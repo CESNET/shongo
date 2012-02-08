@@ -64,7 +64,7 @@ public class MuleAgent extends Agent
 
             // Start mule
             muleContext.start();
-            logger.info("Started MULE agent [" + getName() + "] at ActiveMQ [" + activeMqUrl +"]");
+            logInfo("Started MULE agent [" + getName() + "] at ActiveMQ [" + activeMqUrl +"]");
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -79,7 +79,7 @@ public class MuleAgent extends Agent
     protected void stopImpl()
     {
         try {
-            logger.info("Stopping MULE agent [" + getName() + "]");
+            logInfo("Stopping MULE agent [" + getName() + "]");
             muleContext.stop();
             muleContext.dispose();
         } catch (MuleException e) {

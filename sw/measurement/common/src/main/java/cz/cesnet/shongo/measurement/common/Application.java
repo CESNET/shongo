@@ -4,13 +4,15 @@ import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.lang.reflect.Array;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Common implementation of measuring application.
- *
+ * <p/>
  * Every concrete application (Jxta, Jade, ...) should extend it
  * and implement getAgentClass() method. Every applicaton should
  * then call runApplication method which parses common parameters
@@ -18,14 +20,19 @@ import java.util.List;
  *
  * @author Martin Srom
  */
-public abstract class Application
-{
-    /** Logger */
+public abstract class Application {
+    /**
+     * Logger
+     */
     static protected Logger logger = Logger.getLogger(Agent.class);
 
-    /** Started message */
+    /**
+     * Started message
+     */
     static public final String MESSAGE_STARTED = "[APPLICATION:STARTED]";
-    /** Startup failed message */
+    /**
+     * Startup failed message
+     */
     static public final String MESSAGE_STARTUP_FAILED = "[APPLICATION:STARTUP:FAILED]";
 
     /**
@@ -38,8 +45,7 @@ public abstract class Application
      *
      * @param name
      */
-    public Application(String name)
-    {
+    public Application(String name) {
         this.name = name;
     }
 
@@ -48,11 +54,10 @@ public abstract class Application
      *
      * @return name
      */
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
-    
+
     /**
      * This method should implement retrived of concrete agent class
      *
@@ -67,23 +72,21 @@ public abstract class Application
      *
      * @param options
      */
-    protected void onInitOptions(Options options)
-    {
+    protected void onInitOptions(Options options) {
     }
 
     /**
      * This event is called when application is processing it's options.
      * When extending application specified custom option by onInitOptions
      * it can process them by overriding this method.
-     *
+     * <p/>
      * This method should return array of strings that will be passed to agent
      * in Agent.onProcessArguments() method.
      *
      * @param commandLine
      * @return arguments for agent
      */
-    protected String[] onProcessCommandLine(CommandLine commandLine)
-    {
+    protected String[] onProcessCommandLine(CommandLine commandLine) {
         return new String[0];
     }
 
@@ -93,16 +96,14 @@ public abstract class Application
      *
      * @return boolean if run was successful
      */
-    protected boolean onRun()
-    {
+    protected boolean onRun() {
         return true;
     }
 
     /**
      * This event is called right before exiting the application, after all child processes have exited.
      */
-    protected void onExit()
-    {
+    protected void onExit() {
     }
 
     /**
@@ -111,8 +112,7 @@ public abstract class Application
      * @param args
      * @param application
      */
-    public static void runApplication(String[] args, Application application)
-    {
+    public static void runApplication(String[] args, Application application) {
         Option help = new Option("h", "help", false, "Print this usage information");
         Option agent = OptionBuilder.withLongOpt("agent")
                 .withArgName("name")
@@ -133,6 +133,12 @@ public abstract class Application
                 .withDescription("Do not start a new platform, join the default or the specified one")
                 .hasOptionalArg()
                 .create("j");
+        Option singleJVM = OptionBuilder.withLongOpt("single-jvm")
+                .withDescription(
+                        "Start all the agents in a single virtual machine (by default, each agent runs in a separate JVM). " +
+                                "Might not be implemented on all platforms"
+                )
+                .create("s");
 
         // Create options
         Options options = new Options();
@@ -141,6 +147,7 @@ public abstract class Application
         options.addOption(agentCount);
         options.addOption(agentType);
         options.addOption(join);
+        options.addOption(singleJVM);
 
         // Setup application custom options
         application.onInitOptions(options);
@@ -150,35 +157,35 @@ public abstract class Application
         try {
             CommandLineParser parser = new PosixParser();
             commandLine = parser.parse(options, args);
-        } catch ( ParseException e ) {
+        } catch (ParseException e) {
             System.out.println("Error: " + e.getMessage());
             return;
         }
 
         // Print help
-        if ( commandLine.hasOption("help") || commandLine.getOptions().length == 0 ) {
+        if (commandLine.hasOption("help") || commandLine.getOptions().length == 0) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp(application.getName(), options);
             System.exit(0);
         }
 
         // Process command line by application
-        final String [] applicationArguments = application.onProcessCommandLine(commandLine);
-        if ( application.onRun() == false ) {
+        final String[] applicationArguments = application.onProcessCommandLine(commandLine);
+        if (application.onRun() == false) {
             System.out.println("Failed to run application!");
             return;
         }
-        
+
         List<Object> objectToWaitFor = new LinkedList<Object>();
 
         // Create agent
-        if ( commandLine.hasOption("agent") ) {
+        if (commandLine.hasOption("agent")) {
             final String agentName = commandLine.getOptionValue("agent");
             final Class agentClass = application.getAgentClass();
 
             // Get agent type
             String typeValue = "default";
-            if ( commandLine.hasOption("type") ) {
+            if (commandLine.hasOption("type")) {
                 typeValue = commandLine.getOptionValue("type");
             }
             final String type = typeValue;
@@ -186,10 +193,10 @@ public abstract class Application
             // Get agent number
             int number = 1;
             StringBuilder numberFormat = new StringBuilder();
-            if ( commandLine.hasOption("count") ) {
+            if (commandLine.hasOption("count")) {
                 number = Integer.parseInt(commandLine.getOptionValue("count"));
-                int places = (int)Math.round(Math.log10(number) + 1.0);
-                for ( int index = 0; index < places; index++ )
+                int places = (int) Math.round(Math.log10(number) + 1.0);
+                for (int index = 0; index < places; index++)
                     numberFormat.append("0");
             }
 
@@ -198,28 +205,56 @@ public abstract class Application
                     Agent.MESSAGE_STARTUP_FAILED, number);
             agentStartedWaiter.start();
 
-            // TODO: differentiate running multiple agents within the application and as standalone processes
-            if ( number == 1 ) {
+            // StreamConnector reading input for all agent threads
+            StreamConnector connector = null;
+
+            if (number == 1) {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        Agent.runAgent("", agentName, type, agentClass, applicationArguments);
+                        Agent.runAgent("", agentName, type, agentClass, applicationArguments, null, null);
                     }
                 });
                 thread.start();
                 objectToWaitFor.add(thread);
             } else {
-                for ( int index = 0; index < number; index++ ) {
-                    String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
-                    String[] arguments = {agentNumber, agentName + agentNumber, type, agentClass.getName()};
-                    arguments = mergeArrays(arguments, applicationArguments);
-                    Process agentProcess = runProcess(agentName + agentNumber, Agent.class, arguments);
-                    objectToWaitFor.add(agentProcess);
+                // run multiple agents
+                if (commandLine.hasOption("single-jvm")) {
+                    // run each agent in a separate thread and connect their input to the console input
+                    connector = streamConnectorInput;
+                    for (int index = 0; index < number; index++) {
+                        final String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    PipedInputStream in = new PipedInputStream();
+                                    PipedOutputStream out = new PipedOutputStream(in);
+                                    streamConnectorInput.addOutput(out);
+                                    final String consolePrefix = agentName + agentNumber + ": ";
+                                    Agent.runAgent(agentNumber, agentName + agentNumber, type, agentClass, applicationArguments, in, consolePrefix);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        thread.start();
+                        objectToWaitFor.add(thread);
+                    }
+                } else {
+                    // run each agent in a separate process and connect to it
+                    for (int index = 0; index < number; index++) {
+                        String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
+                        String[] arguments = {agentNumber, agentName + agentNumber, type, agentClass.getName()};
+                        arguments = mergeArrays(arguments, applicationArguments);
+                        Process agentProcess = runProcess(agentName + agentNumber, Agent.class, arguments);
+                        objectToWaitFor.add(agentProcess);
+                    }
                 }
             }
 
             // Wait for all agents to be started
-            if ( agentStartedWaiter.waitForMessages() == false ) {
+            if (agentStartedWaiter.waitForMessages() == false) {
                 // Application startup failed (some agent failed)
                 System.out.println(MESSAGE_STARTUP_FAILED);
                 application.onExit();
@@ -228,16 +263,20 @@ public abstract class Application
 
             // Application is started (all agents are started)
             System.out.println(MESSAGE_STARTED);
+
+            // if a StreamConnector should multiplex input to all agent threads, start it
+            if (connector != null) {
+                connector.run();
+            }
         }
-        
+
         for (Object object : objectToWaitFor) {
             try {
-                if ( object instanceof Process ) {
-                    Process process = (Process)object;
+                if (object instanceof Process) {
+                    Process process = (Process) object;
                     process.waitFor();
-                }
-                else if ( object instanceof Thread ) {
-                    Thread thread = (Thread)object;
+                } else if (object instanceof Thread) {
+                    Thread thread = (Thread) object;
                     thread.join();
                 }
             } catch (InterruptedException e) {
@@ -254,8 +293,7 @@ public abstract class Application
      * @param arrays
      * @return
      */
-    public static <T> T[] mergeArrays(T[]... arrays)
-    {
+    public static <T> T[] mergeArrays(T[]... arrays) {
         // Determine required size of new array
         int count = 0;
         for (T[] array : arrays) {
@@ -267,7 +305,7 @@ public abstract class Application
 
         // Merge each array into new array
         int start = 0;
-        for ( T[] array : arrays ) {
+        for (T[] array : arrays) {
             System.arraycopy(array, 0,
                     mergedArray, start, array.length);
             start += array.length;
@@ -289,8 +327,7 @@ public abstract class Application
      * @param arguments Process arguments
      * @return Process the process created
      */
-    public static Process runProcess(final String name, final Class mainClass, final String[] arguments)
-    {
+    public static Process runProcess(final String name, final Class mainClass, final String[] arguments) {
         // Run process
         Process process = null;
         try {
@@ -300,8 +337,8 @@ public abstract class Application
             command.append(classPath);
             command.append(" ");
             command.append(mainClass.getName());
-            if ( arguments != null ) {
-                for ( String argument : arguments ) {
+            if (arguments != null) {
+                for (String argument : arguments) {
                     command.append(" ");
                     command.append(argument);
                 }

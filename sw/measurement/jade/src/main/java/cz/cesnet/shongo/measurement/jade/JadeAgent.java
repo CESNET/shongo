@@ -14,8 +14,6 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
-import org.apache.log4j.Logger;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -46,8 +44,6 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
      */
     private class JadeAgentImpl extends jade.core.Agent {
 
-        protected Logger logger = Logger.getLogger(JadeAgentImpl.class);
-
         Thread listeningThread;
 
         /**
@@ -58,7 +54,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
 
         @Override
         protected void setup() {
-            logger.info("Started agent " + getName());
+            logInfo("Started agent " + getName());
 
             // add behaviour for listening to messages
             CyclicBehaviour listeningBehaviour = new CyclicBehaviour() {
@@ -89,7 +85,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
                 topicHelper.register(topicAll);
             }
             catch (ServiceException e) {
-                logger.warn("The TopicManagement service is not available, broadcast messaging will not be available");
+                logWarning("The TopicManagement service is not available, broadcast messaging will not be available");
             }
         }
 
@@ -104,7 +100,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
             if (receiverName.equals("*")) {
                 // NOTE: broadcast messaging implemented as a topic-based communication on topic ALL
                 if (topicAll == null) {
-                    logger.error("Error sending a broadcast message: broadcast messaging is not available");
+                    logError("Error sending a broadcast message: broadcast messaging is not available");
                     return;
                 }
                 receiver = topicAll;
