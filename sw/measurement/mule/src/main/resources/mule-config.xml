@@ -16,7 +16,9 @@
 
     <jms:activemq-connector name="jms" brokerURL="${jms.url}">
         <spring:property name="retryPolicyTemplate">
-            <spring:bean class="cz.cesnet.shongo.measurement.mule.ReconnectStrategy" />
+            <spring:bean class="org.mule.modules.common.retry.policies.ForeverRetryPolicyTemplate">
+                <spring:property name="sleepTime" value="5000"/>
+            </spring:bean>
         </spring:property>
     </jms:activemq-connector>
 

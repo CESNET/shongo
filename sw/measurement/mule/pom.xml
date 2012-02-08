@@ -17,6 +17,14 @@
         <mule.version>3.1.0</mule.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>lib</id>
+            <name>Project Libraries</name>
+            <url>file://${project.basedir}/lib</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>cz.cesnet.shongo.measurement</groupId>
@@ -32,6 +40,11 @@
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-module-spring-config</artifactId>
             <version>${mule.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.muleforge</groupId>
+            <artifactId>commonretrypolicies</artifactId>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.mule.transports</groupId>
