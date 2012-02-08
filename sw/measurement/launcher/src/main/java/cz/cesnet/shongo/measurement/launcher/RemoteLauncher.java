@@ -4,10 +4,7 @@ import cz.cesnet.shongo.measurement.common.Application;
 import cz.cesnet.shongo.measurement.common.CommandParser;
 import cz.cesnet.shongo.measurement.common.StreamMessageWaiter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;

@@ -28,6 +28,11 @@ public class StreamConnector extends Thread
     private String name;
 
     /**
+     * Flag if end of stream should be also forwarded
+     */
+    private boolean forwardStreamEnd = false;
+
+    /**
      * Specify the streams that this object will connect in the run()
      * method.
      *
@@ -63,6 +68,16 @@ public class StreamConnector extends Thread
         this.inputStream = inputStream;
         this.outputStreamList.add(outputStream);
         this.name = name;
+    }
+
+    /**
+     * Set flag if end of stream should be also forwarded
+     *
+     * @param forwardStreamEnd
+     */
+    public void setForwardStreamEnd(boolean forwardStreamEnd)
+    {
+        this.forwardStreamEnd = forwardStreamEnd;
     }
 
     /**
@@ -104,8 +119,10 @@ public class StreamConnector extends Thread
                 }
             }
             // forward also the end of the stream
-            for (OutputStream outputStream : outputStreamList) {
-                outputStream.close();
+            if ( forwardStreamEnd ) {
+                for (OutputStream outputStream : outputStreamList) {
+                    outputStream.close();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();

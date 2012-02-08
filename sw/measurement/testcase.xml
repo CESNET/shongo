@@ -22,7 +22,7 @@
     </instance>
 
     <!-- Instrutions -->
-    <cycle count="10">
+    <cycle count="3">
         <step>
             <command for="jvm1">send r{agent-id} Hello</command>
         </step>
