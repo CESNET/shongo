@@ -6,6 +6,8 @@ import jade.core.ProfileException;
 import jade.core.ProfileImpl;
 import jade.core.Specifier;
 import jade.core.messaging.TopicManagementService;
+import jade.core.replication.AddressNotificationService;
+import jade.core.replication.MainReplicationService;
 import jade.util.leap.List;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
@@ -44,21 +46,21 @@ public class JadeApplication extends Application {
     private final String platformHost = "127.0.0.1";
 
     /**
-     * If starting a new platform, it is listening on this port.
+     * If starting a new platform or creating a backup, it is listening on this port.
      * The default value is 1099 - the default port for Jade.
      * When launching the application, the default may be overridden by the --platform-port parameter.
      */
     private int platformPort = 1099;
 
     /**
-     * Hostname of the platform to join when in the Container mode.
-     * When launching the application, the default 127.0.0.1 may be overridden by the --join parameter.
+     * Hostname of the platform to join when in the Container mode or to backup when in the Backup mode.
+     * When launching the application, the default 127.0.0.1 may be overridden by the --join (or --backup) argument.
      */
     private String joinHost;
 
     /**
-     * Port of the platform to join when in the Container mode.
-     * When launching the application, the default 1099 may be overridden by the --join parameter.
+     * Port of the platform to join when in the Container mode or to backup when in the Backup mode.
+     * When launching the application, the default 1099 may be overridden by the --join (or --backup) argument.
      */
     private int joinPort = 1099;
 
@@ -102,6 +104,12 @@ public class JadeApplication extends Application {
                 .create("p");
         options.addOption(pport);
 
+        Option backup = OptionBuilder.withLongOpt("backup")
+                .withDescription("Start this application as a backup (on port given by the --platform-port switch) of a controller at given host:port (127.0.0.1:1099 by default)")
+                .hasOptionalArg()
+                .create("b");
+        options.addOption(backup);
+
         Option join = options.getOption("j");
         join.setDescription("Do not start a new platform, join the specified one (host:port, 127.0.0.1:1099 by default)");
 
@@ -119,9 +127,15 @@ public class JadeApplication extends Application {
             platformPort = Integer.parseInt(commandLine.getOptionValue("platform-port"));
         }
         
-        if (commandLine.hasOption("join")) {
-            mode = Mode.Container;
-            joinHost = commandLine.getOptionValue("join", "127.0.0.1");
+        if (commandLine.hasOption("join") || commandLine.hasOption("backup")) {
+            if (commandLine.hasOption("backup")) {
+                mode = Mode.Backup;
+                joinHost = commandLine.getOptionValue("backup", "127.0.0.1");
+            }
+            else {
+                mode = Mode.Container;
+                joinHost = commandLine.getOptionValue("join", "127.0.0.1");
+            }
             if (joinHost.indexOf(':') != -1) {
                 int colonPos = joinHost.indexOf(':');
                 joinPort = Integer.parseInt(joinHost.substring(0, colonPos));
@@ -155,6 +169,8 @@ public class JadeApplication extends Application {
         if (mode == Mode.Platform) {
             Profile profile = new ProfileImpl(platformHost, platformPort, null);
             addService(profile, TopicManagementService.class);
+            addService(profile, MainReplicationService.class);
+            addService(profile, AddressNotificationService.class);
             container = jade.core.Runtime.instance().createMainContainer(profile);
         }
         else if (mode == Mode.Container) {
@@ -162,10 +178,18 @@ public class JadeApplication extends Application {
             profile.setParameter(Profile.MAIN_HOST, joinHost);
             profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
             addService(profile, TopicManagementService.class);
+            addService(profile, AddressNotificationService.class);
             container = jade.core.Runtime.instance().createAgentContainer(profile);
         }
         else if (mode == Mode.Backup) {
-            throw new NotImplementedException(); // TODO: add --backup switch to the application and launch the backup
+            Profile profile = new ProfileImpl(platformHost, platformPort, null);
+            profile.setParameter(Profile.MAIN_HOST, joinHost);
+            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
+            profile.setParameter(Profile.LOCAL_SERVICE_MANAGER, Boolean.toString(true));
+            addService(profile, TopicManagementService.class);
+            addService(profile, MainReplicationService.class);
+            addService(profile, AddressNotificationService.class);
+            container = jade.core.Runtime.instance().createMainContainer(profile);
         }
         else {
             throw new IllegalStateException("unknown JadeApplication mode");
@@ -180,6 +204,7 @@ public class JadeApplication extends Application {
             }
         }
 
+        // initialize the default container for the agents within the same JVM
         if (defaultContainer == null) {
             defaultContainer = container;
         }
