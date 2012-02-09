@@ -36,6 +36,10 @@ public class LauncherApplication {
                 .hasArgs()
                 .withDescription("Define constant")
                 .create("D");
+        Option profile = OptionBuilder.withLongOpt("profile")
+                .withDescription("Profile launcher instances")
+                .hasOptionalArg()
+                .create("p");
 
         // Create options
         Options options = new Options();
@@ -45,6 +49,7 @@ public class LauncherApplication {
         options.addOption(platform);
         options.addOption(extension);
         options.addOption(define);
+        options.addOption(profile);
 
         // Parse command line
         CommandLine commandLine = null;
@@ -76,12 +81,18 @@ public class LauncherApplication {
             extensionValue = commandLine.getOptionValue("extension");
         }
 
+        // Profiling
+        boolean profileInstance = false;
+        if ( commandLine.hasOption("profile") ) {
+            profileInstance = true;
+        }
+
         // Create remote
         if ( commandLine.hasOption("remote") ) {
             int port = REMOTE_PORT;
             if ( commandLine.getOptionValue("remote") != null )
                 port = Integer.parseInt(commandLine.getOptionValue("remote"));
-            RemoteLauncher.launchRemote(port);
+            RemoteLauncher.launchRemote(port, profileInstance);
         }
 
         // Get variables
@@ -102,7 +113,7 @@ public class LauncherApplication {
         // Launch file
         if ( commandLine.hasOption("launch") ) {
             String launchFile = commandLine.getOptionValue("launch");
-            FileLauncher.launchFile(launchFile, variables);
+            FileLauncher.launchFile(launchFile, variables, profileInstance);
         }
     }
 
