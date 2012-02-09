@@ -46,7 +46,15 @@ public class FuseAgent extends Agent implements MessageListener
     @Override
     protected boolean startImpl()
     {
-        System.getProperties().put("jms.url", "tcp://" + activeMqUrl);
+        String[] urls = activeMqUrl.split(",");
+        StringBuilder failover = new StringBuilder();
+        for ( String url : urls ) {
+            if ( failover.length() > 0 )
+                failover.append(",");
+            failover.append("tcp://" + url);
+        }
+
+        System.getProperties().put("jms.url", failover.toString());
         System.getProperties().put("jms.queue", getName());
 
         context = new ClassPathXmlApplicationContext("servicemix.xml");

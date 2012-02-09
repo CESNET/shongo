@@ -4,9 +4,11 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.network.DiscoveryNetworkConnector;
 import org.apache.activemq.network.NetworkConnector;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import javax.jms.*;
+import java.io.File;
 import java.net.URI;
 
 /**
@@ -41,14 +43,17 @@ public class ActiveMq {
     public static BrokerService createServer(String brokerUrl)
     {
         String[] urls = brokerUrl.split(",");
+        String serverUrl = urls[0];
+        String dataPath = "activemq-data/" + serverUrl;
 
-        logger.info("Starting ActiveMQ Server at [" + urls[0] +"]");
+        logger.info("Starting ActiveMQ Server at [" + serverUrl +"]");
 
         try {
+            FileUtils.deleteDirectory(new File(dataPath));
 
             BrokerService broker = new BrokerService();
-            broker.addConnector("tcp://" + urls[0]);
-            broker.setDataDirectory("activemq-data/" + urls[0]);
+            broker.addConnector("tcp://" + serverUrl);
+            broker.setDataDirectory(dataPath);
             broker.setUseJmx(true);
             // Connect to other brokers
             if ( urls.length > 1 ) {
@@ -59,9 +64,8 @@ public class ActiveMq {
                     network.append("tcp://" + urls[index]);
                 }
                 logger.info("Connecting ActiveMQ Server to [" + network.toString() +"]");
-                NetworkConnector networkConnector = new DiscoveryNetworkConnector(new URI("static:(" + network.toString() + ")?useJmx=false"));
+                NetworkConnector networkConnector = new DiscoveryNetworkConnector(new URI("static:(" + network.toString() + ")"));
                 networkConnector.setDuplex(true);
-                networkConnector.setDynamicOnly(true);
                 broker.addNetworkConnector(networkConnector);
             }
 
@@ -74,7 +78,7 @@ public class ActiveMq {
             e.printStackTrace();
         }
 
-        logger.info("ActiveMQ Server failed to start at [" + urls[0] +"]");
+        logger.info("ActiveMQ Server failed to start at [" + serverUrl +"]");
 
         return null;
     }
