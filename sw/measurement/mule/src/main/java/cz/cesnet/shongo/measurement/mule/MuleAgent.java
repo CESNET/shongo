@@ -42,7 +42,15 @@ public class MuleAgent extends Agent
     protected boolean startImpl()
     {
         try {
-            System.getProperties().put("jms.url", "tcp://" + activeMqUrl);
+            String[] urls = activeMqUrl.split(",");
+            StringBuilder failover = new StringBuilder();
+            for ( String url : urls ) {
+                if ( failover.length() > 0 )
+                    failover.append(",");
+                failover.append("tcp://" + url);
+            }
+            
+            System.getProperties().put("jms.url", failover.toString());
             System.getProperties().put("jms.queue", getName());
 
             // Mule default configuration
