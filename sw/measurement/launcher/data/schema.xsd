@@ -33,6 +33,7 @@
     <xs:complexType mixed="true">
       <xs:attribute name="host" type="xs:NMTOKEN"/>
       <xs:attribute name="id" use="required" type="xs:NCName"/>
+      <xs:attribute name="require" type="xs:NCName"/>
       <xs:attribute name="type" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>

@@ -87,6 +87,21 @@ public class FileLauncher {
 
             String command = replaceVariables(instance.getContent().trim(), variables);
 
+            if ( instance.getRequire() != null ) {
+                // Wait for all required instances to startup
+                String[] require = instance.getRequire().split(",");
+                for ( String requireItem : require ) {
+                    if ( appStartedWaiter.isMessage(requireItem) )
+                        continue;
+                    System.out.println("[LAUNCHER:" + instance.getId() + "] Waiting for started event of [" + requireItem + "]");
+                    while ( appStartedWaiter.isRunning() && appStartedWaiter.isMessage(requireItem) == false  ) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {}
+                    }
+                }
+            }
+
             if ( !launcherInstance.run(command) ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
                 appStartedWaiter.stop();
@@ -100,9 +115,6 @@ public class FileLauncher {
                 return;
             }
             launcherInstances.put(launcherInstance.getId(), launcherInstance);
-            try {
-                Thread.sleep(5000); // NOTE: ideally, the next instance should be launched only after this instance is ready
-            } catch (InterruptedException e) {}
         }
 
         // Wait for instance to startup, and if some failed exit
