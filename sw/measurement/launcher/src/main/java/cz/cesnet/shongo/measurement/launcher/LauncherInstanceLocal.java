@@ -10,9 +10,9 @@ import java.lang.reflect.Field;
 
 public class LauncherInstanceLocal extends LauncherInstance {
 
-    Process process;
-    Watcher watcher;
-    boolean profile;
+    private Process process;
+    private Watcher watcher;
+    private boolean profile;
 
     LauncherInstanceLocal(String id, boolean profile) {
         super(id);
@@ -75,10 +75,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
     public void exit() {
         if ( watcher != null ) {
             watcher.stop();
-            System.out.println("[LAUNCHER:PROFILING] Result:");
-            System.out.println();
-            System.out.print(watcher.getOutput());
-            System.out.println();
+            watcher.getProfiler().printResult();
         }
 
         System.out.println("[LOCAL:" + getId() + "] Exit");
@@ -92,35 +89,35 @@ public class LauncherInstanceLocal extends LauncherInstance {
     private static class Watcher extends Thread
     {
         private int pid;
-
-        private StringBuilder builder = new StringBuilder();
+        private Profiler profiler = new Profiler();
         
         public Watcher(int pid)
         {
             this.pid = pid;
         }
 
-        public String getOutput()
-        {
-            return builder.toString();
+        public Profiler getProfiler() {
+            return profiler;
         }
 
         @Override
         public void run() {
             while ( true ) {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(200);
                 } catch (InterruptedException e) {}
 
                 try {
                     Process process = Runtime.getRuntime().exec("./profile.sh " + pid);
 
+                    StringBuilder builder = new StringBuilder();
                     BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()) );
                     String line;
                     while ((line = in.readLine()) != null) {
                         builder.append(line + "\n");
                     }
                     in.close();
+                    getProfiler().add(builder.toString());
                 } catch (IOException e) {}
 
             }

@@ -11,4 +11,4 @@ pidtree()
     echo -n $list
 }
 
-ps --pid="`pidtree $1`" -o pid,thcount,pcpu,sz,comm
+ps --pid="`pidtree $1`" -o "pid,thcount,pcpu,rss,comm"
