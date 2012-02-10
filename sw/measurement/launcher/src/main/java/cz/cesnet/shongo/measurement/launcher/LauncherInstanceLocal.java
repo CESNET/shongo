@@ -26,9 +26,6 @@ public class LauncherInstanceLocal extends LauncherInstance {
     /** Profiler that performs the profiling */
     private Profiler profiler;
 
-    /** Flag if profiling should be performed */
-    private boolean performProfiling;
-
     /** Command by which the instance was started */
     private String runCommand;
 
@@ -39,12 +36,10 @@ public class LauncherInstanceLocal extends LauncherInstance {
      * Constructor
      *
      * @param id
-     * @param performProfiling
      */
-    LauncherInstanceLocal(String id, boolean performProfiling)
+    LauncherInstanceLocal(String id)
     {
         super(id);
-        this.performProfiling = performProfiling;
     }
 
     /**
@@ -75,11 +70,8 @@ public class LauncherInstanceLocal extends LauncherInstance {
             e.printStackTrace();
         }
 
-        if ( performProfiling ) {
-            System.out.println("[LAUNCHER:PROFILING] PID [" + pid + "]");
-            profiler = new Profiler(pid);
-            profiler.start();
-        }
+        profiler = new Profiler(pid);
+        profiler.start();
 
         String name = "    " + getId();
 
@@ -130,6 +122,16 @@ public class LauncherInstanceLocal extends LauncherInstance {
             run(runCommand);
             appStartedWaiter.waitForMessages();
         }
+        // Enable profiler
+        else if ( command.equals("profiler:enable") ) {
+            System.out.println("[LOCAL:" + getId() + "] Profiler Enabled");
+            profiler.setEnabled(true);
+        }
+        // Disable profiler
+        else if ( command.equals("profiler:disable") ) {
+            System.out.println("[LOCAL:" + getId() + "] Profiler Disabled");
+            profiler.setEnabled(false);
+        }
         // Other commands pass to agents
         else {
             System.out.println("[LOCAL:" + getId() + "] Perform [" + command + "]");
@@ -168,36 +170,45 @@ public class LauncherInstanceLocal extends LauncherInstance {
     {
         private int pid;
         private ProfilerResult profilerResult = new ProfilerResult();
+        private boolean enabled = false;
         
         public Profiler(int pid)
         {
             this.pid = pid;
         }
 
-        public ProfilerResult getProfilerResult() {
+        public ProfilerResult getProfilerResult()
+        {
             return profilerResult;
         }
 
+        public void setEnabled(boolean enabled)
+        {
+            this.enabled = enabled;
+        }
+
         @Override
-        public void run() {
+        public void run()
+        {
             while ( true ) {
                 try {
                     Thread.sleep(200);
                 } catch (InterruptedException e) {}
 
-                try {
-                    Process process = Runtime.getRuntime().exec("./performProfiling.sh " + pid);
+                if ( enabled ) {
+                    try {
+                        Process process = Runtime.getRuntime().exec("./profile.sh " + pid);
 
-                    StringBuilder builder = new StringBuilder();
-                    BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()) );
-                    String line;
-                    while ((line = in.readLine()) != null) {
-                        builder.append(line + "\n");
-                    }
-                    in.close();
-                    getProfilerResult().add(builder.toString());
-                } catch (IOException e) {}
-
+                        StringBuilder builder = new StringBuilder();
+                        BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()) );
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            builder.append(line + "\n");
+                        }
+                        in.close();
+                        getProfilerResult().add(builder.toString());
+                    } catch (IOException e) {}
+                }
             }
         }
     }

@@ -92,7 +92,7 @@ public class LauncherApplication {
             int port = REMOTE_PORT;
             if ( commandLine.getOptionValue("remote") != null )
                 port = Integer.parseInt(commandLine.getOptionValue("remote"));
-            RemoteLauncher.launchRemote(port, profileInstance);
+            RemoteLauncher.launchRemote(port);
         }
 
         // Get variables
@@ -113,7 +113,7 @@ public class LauncherApplication {
         // Launch file
         if ( commandLine.hasOption("launch") ) {
             String launchFile = commandLine.getOptionValue("launch");
-            FileLauncher.launchFile(launchFile, variables, profileInstance);
+            FileLauncher.launchFile(launchFile, variables);
         }
     }
 

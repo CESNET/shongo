@@ -16,11 +16,9 @@ public class RemoteLauncher {
         private LauncherInstanceLocal launcherInstance;
         PrintWriter output;
         BufferedReader input;
-        boolean profileInstance;
 
-        public ConnectionHandler(Socket socket, boolean profileInstance) {
+        public ConnectionHandler(Socket socket) {
             this.socket = socket;
-            this.profileInstance = profileInstance;
         }
 
         @Override
@@ -55,7 +53,7 @@ public class RemoteLauncher {
                 String id = list.get(1);
                 String execute = list.get(2);
                 System.out.println("[REMOTE] Received for [" + id + "] command run [" + execute + "]");
-                launcherInstance = new LauncherInstanceLocal(id, profileInstance);
+                launcherInstance = new LauncherInstanceLocal(id);
                 StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
                         Application.MESSAGE_STARTUP_FAILED);
                 appStartedWaiter.start();
@@ -78,7 +76,7 @@ public class RemoteLauncher {
         }
     }
 
-    public static void launchRemote(int port, boolean profileInstance) {
+    public static void launchRemote(int port) {
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(port);
@@ -94,7 +92,7 @@ public class RemoteLauncher {
                 Socket clientSocket = serverSocket.accept();
                 if ( clientSocket != null ) {
                     System.out.println("[REMOTE] Accepted client connection");
-                    ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket, profileInstance);
+                    ConnectionHandler connectionHandler = new ConnectionHandler(clientSocket);
                     connectionHandler.start();
                 }
             }

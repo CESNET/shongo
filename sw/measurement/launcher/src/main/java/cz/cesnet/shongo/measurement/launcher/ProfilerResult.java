@@ -47,6 +47,8 @@ public class ProfilerResult
     }
 
     public void printResult() {
+        if ( map.isEmpty() )
+            return;
         System.out.print("[LAUNCHER:PROFILING] Result:\n\n" + toString() + "\n");
     }
 

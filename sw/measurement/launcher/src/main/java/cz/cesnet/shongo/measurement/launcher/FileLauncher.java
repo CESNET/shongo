@@ -21,7 +21,7 @@ public class FileLauncher {
         return command;
     }
 
-    public static void launchFile(String file, Map<String, String> variables, boolean profileInstance) {
+    public static void launchFile(String file, Map<String, String> variables) {
         // Parse file
         Launcher launcher = null;
         try {
@@ -79,7 +79,7 @@ public class FileLauncher {
         for ( Instance instance : instances ) {
             LauncherInstance launcherInstance = null;
             if ( instance.getType().equals("local") )
-                launcherInstance = new LauncherInstanceLocal(instance.getId(), profileInstance);
+                launcherInstance = new LauncherInstanceLocal(instance.getId());
             else if ( instance.getType().equals("remote") )
                 launcherInstance = new LauncherInstanceRemote(instance.getId(), replaceVariables(instance.getHost(), variables));
             else
