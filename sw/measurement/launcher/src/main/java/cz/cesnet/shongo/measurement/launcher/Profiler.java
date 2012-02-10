@@ -29,10 +29,10 @@ public class Profiler
     public String toString()
     {
         StringBuilder builder = new StringBuilder();
-        builder.append("   PID | Max Threads | Avg CPU | Max Memory | Command\n");
-        builder.append("-------+-------------+---------+------------+--------\n");
+        builder.append("    PID | Max Threads | Avg CPU | Max Memory | Command\n");
+        builder.append(" -------+-------------+---------+------------+--------\n");
         for ( Process process : map.values() ) {
-            builder.append(String.format("%6s", process.getPid()));
+            builder.append(String.format("%7s", process.getPid()));
             builder.append(" |");
             builder.append(String.format("%12d", process.getThreadCountMax()));
             builder.append(" |");
@@ -40,7 +40,7 @@ public class Profiler
             builder.append(" |");
             builder.append(String.format("%8d kB", process.getMemoryMax()));
             builder.append(" |");
-            builder.append(String.format("%s", process.getCmd()));
+            builder.append(String.format(" %s", process.getCmd()));
             builder.append("\n");
         }
         return builder.toString();
