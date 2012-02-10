@@ -23,14 +23,19 @@
 
     <!-- Instrutions -->
     <cycle count="3">
-        <step>
-            <command for="jvm1">send r{agent-id} Hello</command>
-        </step>
+        <command for="jvm1">send r{agent-id} Hello</command>
         <sleep duration="1000" />
     </cycle>
 
-    <step>
-        <command>quit</command>
-    </step>
+    <command for="jvm2">kill</command>
+    <sleep duration="1000" />
+    <command for="jvm2">start</command>
+
+    <cycle count="3">
+        <command for="jvm1">send r{agent-id} Hello</command>
+        <sleep duration="1000" />
+    </cycle>
+
+    <command>quit</command>
 
 </launcher>

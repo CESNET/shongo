@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Profiler
+public class ProfilerResult
 {
     private Map<String, Process> map = new HashMap<String, Process>();
 

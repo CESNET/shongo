@@ -1,5 +1,9 @@
 #!/bin/bash
 
+###########################################################
+# Get info about process and all its children recursive
+###########################################################
+
 pidtree()
 {
     local list=

@@ -17,33 +17,23 @@
 
     <cycle count="10">
         <sleep duration="1000" />
-        <step>
-            <command for="jvm1">send agent2 Hello</command>
-        </step>
+        <command for="jvm1">send agent2 Hello</command>
     </cycle>
 
     <sleep duration="3000" />
 
     <cycle count="10">
         <sleep duration="1000" />
-        <step>
-            <command for="jvm1">send agent2 Hello</command>
-        </step>
+        <command for="jvm1">send agent2 Hello</command>
         <sleep duration="1000" />
-        <step>
-            <command for="jvm1">send agent2 Hello</command>
-        </step>
+        <command for="jvm1">send agent2 Hello</command>
     </cycle>
 
-    <step>
-        <command for="jvm1">send agent2 Hello2</command>
-        <command for="jvm2">send agent1 Hi</command>
-    </step>
+    <command for="jvm1">send agent2 Hello2</command>
+    <command for="jvm2">send agent1 Hi</command>
 
     <sleep duration="1000" />
 
-    <step>
-        <command>quit</command>
-    </step>
+    <command>quit</command>
 
 </launcher>
