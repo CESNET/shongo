@@ -23,7 +23,7 @@
 
     <!-- Instrutions -->
     <cycle count="3">
-        <command for="jvm1">send r{agent-id} Hello</command>
+        <command for="jvm1">send r{agent-id} "Hello{index}"</command>
         <sleep duration="1000" />
     </cycle>
 
@@ -32,7 +32,7 @@
     <command for="jvm2">start</command>
 
     <cycle count="3">
-        <command for="jvm1">send r{agent-id} Hello</command>
+        <command for="jvm1">send r{agent-id} "Hello hello {index}"</command>
         <sleep duration="1000" />
     </cycle>
 

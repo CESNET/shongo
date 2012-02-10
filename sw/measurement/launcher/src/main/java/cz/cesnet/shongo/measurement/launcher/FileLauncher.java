@@ -128,7 +128,7 @@ public class FileLauncher {
         // Perform commands
         List<Object> list = launcher.getCommandOrSleepOrCycle();
         for ( Object item : list ) {
-            performItem(item, launcherInstances);
+            performItem(item, variables, launcherInstances);
         }
 
         // Exit instances
@@ -136,30 +136,32 @@ public class FileLauncher {
             launcherInstance.exit();
     }
 
-    public static void performItem(Object item, Map<String, LauncherInstance> launcherInstances)
+    public static void performItem(Object item, Map<String, String> variables, Map<String, LauncherInstance> launcherInstances)
     {
         if ( item instanceof Cycle ) {
             Cycle cycle = (Cycle)item;
             for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
+                variables.put("index", new Integer(index).toString());
                 List<Object> list = cycle.getCommandOrSleep();
                 for ( Object listItem : list ) {
-                    performItem(listItem, launcherInstances);
+                    performItem(listItem, variables, launcherInstances);
                 }
             }
         }
         // Step
         else if ( item instanceof Command ) {
             Command command = (Command)item;
+            String commandText = replaceVariables(command.getContent().trim(), variables);
             // Command to all instances
             if ( command.getFor() == null || command.getFor().equals("*") ) {
                 for ( LauncherInstance launcherInstance : launcherInstances.values() )
-                    launcherInstance.perform(command.getContent().trim());
+                    launcherInstance.perform(commandText);
             }
             // Command for specified instance
             else {
                 LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
                 if ( launcherInstance != null )
-                    launcherInstance.perform(command.getContent().trim());
+                    launcherInstance.perform(commandText);
             }
         }
         // Sleep
