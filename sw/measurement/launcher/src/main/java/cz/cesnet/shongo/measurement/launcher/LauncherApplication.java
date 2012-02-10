@@ -36,10 +36,6 @@ public class LauncherApplication {
                 .hasArgs()
                 .withDescription("Define constant")
                 .create("D");
-        Option profile = OptionBuilder.withLongOpt("profile")
-                .withDescription("Profile launcher instances")
-                .hasOptionalArg()
-                .create("p");
 
         // Create options
         Options options = new Options();
@@ -49,7 +45,6 @@ public class LauncherApplication {
         options.addOption(platform);
         options.addOption(extension);
         options.addOption(define);
-        options.addOption(profile);
 
         // Parse command line
         CommandLine commandLine = null;
@@ -79,12 +74,6 @@ public class LauncherApplication {
         String extensionValue = "sh";
         if ( commandLine.hasOption("extension") ) {
             extensionValue = commandLine.getOptionValue("extension");
-        }
-
-        // Profiling
-        boolean profileInstance = false;
-        if ( commandLine.hasOption("profile") ) {
-            profileInstance = true;
         }
 
         // Create remote
