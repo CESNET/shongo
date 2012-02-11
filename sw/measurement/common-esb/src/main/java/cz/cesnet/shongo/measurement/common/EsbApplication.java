@@ -3,10 +3,13 @@ package cz.cesnet.shongo.measurement.common;
 import cz.cesnet.shongo.measurement.common.ActiveMq;
 import cz.cesnet.shongo.measurement.common.Application;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.broker.jmx.BrokerView;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
+
+import javax.management.ObjectName;
 
 /**
  * FUSE application
@@ -21,6 +24,9 @@ public abstract class EsbApplication extends Application
 
     /** ActiveMQ Server instance */
     private BrokerService activeMqServer;
+
+    /** ActiveMQ Server info thread */
+    private Thread activeMqServerInfoThread;
 
     /**
      * Create FUSE application
@@ -68,11 +74,35 @@ public abstract class EsbApplication extends Application
     @Override
     protected boolean onRun() {
         if ( activeMqJoin == false ) {
-            logger.info("Starting ActiveMQ Server at [" + activeMqUrl +"]");
             activeMqServer = ActiveMq.createServer(activeMqUrl);
             if ( activeMqServer == null ) {
-                logger.info("ActiveMQ Server failed to start at [" + activeMqUrl +"]");
                 return false;
+            }
+
+            try {
+                final BrokerView view = activeMqServer.getAdminView();
+                activeMqServerInfoThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while ( true ) {
+                            try {
+                                Thread.sleep(10000);
+                            } catch (InterruptedException e) {}
+
+                            // Print queues
+                            System.out.print("[ACTIVEMQ:QUEUES]");
+                            ObjectName[] queues = view.getQueues();
+                            for ( ObjectName queue : queues ) {
+                                String name = queue.getKeyProperty("Destination");
+                                System.out.print(" " + name);
+                            }
+                            System.out.println();
+                        }
+                    }
+                });
+                activeMqServerInfoThread.start();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return super.onRun();
@@ -80,9 +110,12 @@ public abstract class EsbApplication extends Application
 
     @Override
     protected void onExit() {
+        if ( activeMqServerInfoThread != null ) {
+            activeMqServerInfoThread.stop();
+        }
         if ( activeMqServer != null ) {
             try {
-                logger.info("Stopping ActiveMQ Server at [" + activeMqUrl +"]");
+                logger.info("Stopping ActiveMQ Server at [" + activeMqUrl.split(",")[0] +"]");
                 activeMqServer.stop();
                 activeMqServer.waitUntilStopped();
             } catch (Exception e) {

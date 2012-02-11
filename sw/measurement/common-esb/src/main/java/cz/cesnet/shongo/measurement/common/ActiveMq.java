@@ -2,8 +2,14 @@ package cz.cesnet.shongo.measurement.common;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.network.DiscoveryNetworkConnector;
+import org.apache.activemq.network.NetworkConnector;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import javax.jms.*;
+import java.io.File;
+import java.net.URI;
 
 /**
  * Helper class for manipulating with ActiveMQ server and clients
@@ -11,6 +17,9 @@ import javax.jms.*;
  * @author Martin Srom
  */
 public class ActiveMq {
+
+    /** Logger */
+    static protected Logger logger = Logger.getLogger(Agent.class);
 
     /** Default ActiveMQ broker url */
     public static final String BROKER_DEFAULT_URL = "localhost:61616";
@@ -20,7 +29,7 @@ public class ActiveMq {
      *
      * @return server
      */
-    public static BrokerService createActiveMqServer()
+    public static BrokerService createServer()
     {
         return  createServer(BROKER_DEFAULT_URL);
     }
@@ -33,19 +42,44 @@ public class ActiveMq {
      */
     public static BrokerService createServer(String brokerUrl)
     {
-        try {
-            BrokerService broker = new BrokerService();
-            broker.addConnector("tcp://" + brokerUrl);
-            broker.setBrokerName("Broker1");
-            broker.setUseJmx(false);
-            broker.start();
+        String[] urls = brokerUrl.split(",");
+        String serverUrl = urls[0];
+        String dataPath = "activemq-data/" + serverUrl;
 
+        logger.info("Starting ActiveMQ Server at [" + serverUrl +"]");
+
+        try {
+            FileUtils.deleteDirectory(new File(dataPath));
+
+            BrokerService broker = new BrokerService();
+            broker.addConnector("tcp://" + serverUrl);
+            broker.setDataDirectory(dataPath);
+            broker.setUseJmx(true);
+            // Connect to other brokers
+            if ( urls.length > 1 ) {
+                StringBuilder network = new StringBuilder();
+                for ( int index = 1; index < urls.length; index++ ) {
+                    if ( network.length() > 0 )
+                        network.append(",");
+                    network.append("tcp://" + urls[index]);
+                }
+                logger.info("Connecting ActiveMQ Server to [" + network.toString() +"]");
+                NetworkConnector networkConnector = new DiscoveryNetworkConnector(new URI("static:(" + network.toString() + ")"));
+                networkConnector.setDuplex(true);
+                broker.addNetworkConnector(networkConnector);
+            }
+
+            // Start
+            broker.start();
             broker.waitUntilStarted();
 
             return broker;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        logger.info("ActiveMQ Server failed to start at [" + serverUrl +"]");
+
         return null;
     }
 
@@ -160,7 +194,7 @@ public class ActiveMq {
      */
     public static void main(String[] args)
     {
-        BrokerService server = createActiveMqServer();
+        BrokerService server = createServer();
         if ( server == null )
             return;
 

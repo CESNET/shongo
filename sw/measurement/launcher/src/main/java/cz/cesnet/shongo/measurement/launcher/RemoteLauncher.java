@@ -59,7 +59,7 @@ public class RemoteLauncher {
                 appStartedWaiter.start();
                 launcherInstance.run(execute);
                 if ( appStartedWaiter.waitForMessages() ) {
-                    output.println(Application.MESSAGE_STARTED);
+                    output.println(Application.MESSAGE_STARTED + "[" + id + "]");
                     output.flush();
                 }
                 else {

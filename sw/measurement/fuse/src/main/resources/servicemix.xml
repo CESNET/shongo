@@ -36,7 +36,7 @@
 
     <bean id="jmsFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
         <property name="brokerURL">
-            <value>${jms.url}</value>
+            <value>failover:(${jms.url})</value>
         </property>
     </bean>
 

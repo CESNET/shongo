@@ -81,6 +81,7 @@
       <element id="library" level="project" name="Maven: org.osgi:org.osgi.core:4.1.0" />
       <element id="library" level="project" name="Maven: joda-time:joda-time:1.6" />
       <element id="library" level="project" name="Maven: javax.activation:activation:1.1-osgi" />
+      <element id="library" level="project" name="Maven: org.muleforge:commonretrypolicies:3.1.0" />
     </root>
   </artifact>
 </component>

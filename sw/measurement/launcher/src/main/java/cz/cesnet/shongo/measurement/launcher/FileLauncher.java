@@ -87,6 +87,21 @@ public class FileLauncher {
 
             String command = replaceVariables(instance.getContent().trim(), variables);
 
+            if ( instance.getRequire() != null ) {
+                // Wait for all required instances to startup
+                String[] require = instance.getRequire().split(",");
+                for ( String requireItem : require ) {
+                    if ( appStartedWaiter.isMessage(requireItem) )
+                        continue;
+                    System.out.println("[LAUNCHER:" + instance.getId() + "] Waiting for started event of [" + requireItem + "]");
+                    while ( appStartedWaiter.isRunning() && appStartedWaiter.isMessage(requireItem) == false  ) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {}
+                    }
+                }
+            }
+
             if ( !launcherInstance.run(command) ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
                 appStartedWaiter.stop();
@@ -100,9 +115,6 @@ public class FileLauncher {
                 return;
             }
             launcherInstances.put(launcherInstance.getId(), launcherInstance);
-            try {
-                Thread.sleep(5000); // NOTE: ideally, the next instance should be launched only after this instance is ready
-            } catch (InterruptedException e) {}
         }
 
         // Wait for instance to startup, and if some failed exit
@@ -114,9 +126,9 @@ public class FileLauncher {
         System.out.println("[LAUNCHER] Instances successfully started!");
 
         // Perform commands
-        List<Object> list = launcher.getSleepOrStepOrCycle();
+        List<Object> list = launcher.getCommandOrSleepOrCycle();
         for ( Object item : list ) {
-            performItem(item, launcherInstances);
+            performItem(item, variables, launcherInstances);
         }
 
         // Exit instances
@@ -124,34 +136,32 @@ public class FileLauncher {
             launcherInstance.exit();
     }
 
-    public static void performItem(Object item, Map<String, LauncherInstance> launcherInstances)
+    public static void performItem(Object item, Map<String, String> variables, Map<String, LauncherInstance> launcherInstances)
     {
         if ( item instanceof Cycle ) {
             Cycle cycle = (Cycle)item;
             for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
-                List<Object> list = cycle.getSleepOrStep();
+                variables.put("index", new Integer(index).toString());
+                List<Object> list = cycle.getCommandOrSleep();
                 for ( Object listItem : list ) {
-                    performItem(listItem, launcherInstances);
+                    performItem(listItem, variables, launcherInstances);
                 }
             }
         }
         // Step
-        else if ( item instanceof Step ) {
-            Step step = (Step)item;
-            // For all command in step
-            for ( Command command : step.getCommand() ) {
-                // Command to all instances
-                if ( command.getFor() == null || command.getFor().equals("*") ) {
-                    for ( LauncherInstance launcherInstance : launcherInstances.values() )
-                        launcherInstance.perform(command.getContent().trim());
-                }
-                // Command for specified instance
-                else {
-                    LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
-                    if ( launcherInstance == null )
-                        continue;
-                    launcherInstance.perform(command.getContent().trim());
-                }
+        else if ( item instanceof Command ) {
+            Command command = (Command)item;
+            String commandText = replaceVariables(command.getContent().trim(), variables);
+            // Command to all instances
+            if ( command.getFor() == null || command.getFor().equals("*") ) {
+                for ( LauncherInstance launcherInstance : launcherInstances.values() )
+                    launcherInstance.perform(commandText);
+            }
+            // Command for specified instance
+            else {
+                LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
+                if ( launcherInstance != null )
+                    launcherInstance.perform(commandText);
             }
         }
         // Sleep

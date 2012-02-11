@@ -17,20 +17,32 @@
     <instance id="jvm1" type="local">
         {run} --agent=s --type=sender --count={agent-count}
     </instance>
-    <instance id="jvm2" type="remote" host="{host-remote}">
+    <instance id="jvm2" type="remote" host="{host-remote}" require="jvm1">
         {run} --agent=r --type=receiver --count={agent-count} --join
     </instance>
 
     <!-- Instrutions -->
     <cycle count="3">
-        <step>
-            <command for="jvm1">send r{agent-id} Hello</command>
-        </step>
+        <command for="jvm1">send r{agent-id} "Hello{index}"</command>
         <sleep duration="1000" />
     </cycle>
 
-    <step>
-        <command>quit</command>
-    </step>
+    <!-- Kill and start jvm2 -->
+    <command for="jvm2">kill</command>
+    <command for="jvm2">start</command>
+
+    <!-- Enable profiler -->
+    <command>profiler:enable</command>
+
+    <cycle count="3">
+        <command for="jvm1">send r{agent-id} "Hello hello {index}"</command>
+        <sleep duration="1000" />
+    </cycle>
+
+    <!-- Disable profiler -->
+    <command>profiler:disable</command>
+
+    <!-- Quit -->
+    <command>quit</command>
 
 </launcher>
