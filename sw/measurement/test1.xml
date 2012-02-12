@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launcher>
+    <!-- Machines -->
+    <variable name="shongo-test1" default-value="195.113.151.181" />
+    <variable name="shongo-test2" default-value="195.113.151.182" />
+    <variable name="shongo-test3" default-value="195.113.151.183" />
+    <variable name="shongo-test4" default-value="195.113.151.184" />
+
+    <!-- Default Agent and Host Setup -->
+    <variable name="host-activemq" default-value="{shongo-test1}:61616" />
+    <variable name="agent-count" default-value="2" />
+
+    <!-- Run Script Variables -->
+    <variable name="run-param">
+        <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="mule" value=" --activemq={host-activemq}"/>
+    </variable>
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
+
+    <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
+    <instance id="jvm1" type="local">
+        {run} --agent=a --type=sender --count={agent-count}
+    </instance>
+    <instance id="jvm2" type="remote" host="{shongo-test2}">
+        {run} --agent=b --type=receiver --count={agent-count} --join
+    </instance>
+    <instance id="jvm3" type="remote" host="{shongo-test3}">
+        {run} -a c -t sender -c {agent-count} -j
+    </instance>
+    <instance id="jvm4" type="remote" host="{shongo-test4}">
+        {run} -a d -t receiver -c {agent-count} -j
+    </instance><!---->
+
+    <!-- Instrutions -->
+    <cycle count="3">
+        <step>
+            <command for="jvm1">send b{agent-id} Hello</command>
+            <command for="jvm3">send d{agent-id} Hello</command>
+        </step>
+        <sleep duration="1000" />
+    </cycle>
+
+    <step>
+        <command>quit</command>
+    </step>
+
+</launcher>
