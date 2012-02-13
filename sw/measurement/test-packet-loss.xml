@@ -44,14 +44,10 @@ or similar to setup average packet loss rate.
 
     <!-- Instrutions -->
     <cycle count="1000">
-        <step>
-            <command for="jvm1">send b{agent-id} Hello</command>
-        </step>
+        <command for="jvm1">send b{agent-id} Hello</command>
         <sleep duration="1000" />
     </cycle>
 
-    <step>
-        <command>quit</command>
-    </step>
+    <command>quit</command>
 
 </launcher>
