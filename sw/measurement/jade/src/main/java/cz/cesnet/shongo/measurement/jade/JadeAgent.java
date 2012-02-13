@@ -148,11 +148,9 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
             // no JadeApplication has been run - start our own container
             Profile profile = new ProfileImpl(false);
             // FIXME: where to connect taken from parameter
-            // FIXME: add local host and port parameter as well
 //            String joinHost = "192.168.0.186";
 //            int joinPort = 1099;
-//            profile.setParameter(Profile.MAIN_HOST, joinHost);
-//            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
+//            Profile profile = new ProfileImpl(joinHost, joinPort, null, false);
             container = JadeApplication.containerFactory(JadeApplication.Mode.Container, profile);
             killContainerOnStop = true;
         }

@@ -205,15 +205,11 @@ public class JadeApplication extends Application {
             container = containerFactory(mode, profile);
         }
         else if (mode == Mode.Container) {
-            Profile profile = new ProfileImpl(listeningHost, listeningPort, null, false);
-            profile.setParameter(Profile.MAIN_HOST, joinHost);
-            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
+            Profile profile = new ProfileImpl(joinHost, joinPort, null, false);
             container = containerFactory(mode, profile);
         }
         else if (mode == Mode.Backup) {
-            Profile profile = new ProfileImpl(listeningHost, listeningPort, null);
-            profile.setParameter(Profile.MAIN_HOST, joinHost);
-            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
+            Profile profile = new ProfileImpl(joinHost, joinPort, null);
             container = containerFactory(mode, profile);
         }
         else {
