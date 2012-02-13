@@ -19,7 +19,7 @@
         <!-- NOTE: optional - to run all agents in a single JVM -->
         <platform type="jade" value=" --single-jvm --localhost={host}"/>
     </variable>
-    <variable name="run" default-value="./{platform}.{extension}{run-param}{host}" />
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
     <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
     <instance id="jvm1" type="local">
