@@ -1,14 +1,13 @@
 package cz.cesnet.shongo.measurement.launcher;
 
 import org.apache.commons.cli.*;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LauncherApplication {
     
     public static final int REMOTE_PORT = 9000;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception
+    {
         Option help = new Option("h", "help", false, "Print this usage information");
         Option remote = OptionBuilder.withLongOpt("remote")
                 .withArgName("port")
@@ -85,16 +84,16 @@ public class LauncherApplication {
         }
 
         // Get variables
-        Map<String, String> variables = new HashMap<String, String>();
-        variables.put("platform", platformType);
-        variables.put("extension", extensionValue);
+        Evaluator evaluator = new Evaluator();
+        evaluator.setVariable("platform", platformType);
+        evaluator.setVariable("extension", extensionValue);
         String[] defines = commandLine.getOptionValues("define");
         if ( defines != null ) {
             for ( String defineValue : defines ) {
                 String[] parts = defineValue.split("=");
                 if ( parts.length < 2 )
                     continue;
-                variables.put(parts[0], parts[1]);
+                evaluator.setVariable(parts[0], parts[1]);
                 System.out.println("Define " + parts[0] + " as " + parts[1]);
             }
         }
@@ -102,7 +101,7 @@ public class LauncherApplication {
         // Launch file
         if ( commandLine.hasOption("launch") ) {
             String launchFile = commandLine.getOptionValue("launch");
-            FileLauncher.launchFile(launchFile, variables);
+            FileLauncher.launchFile(launchFile, evaluator);
         }
     }
 

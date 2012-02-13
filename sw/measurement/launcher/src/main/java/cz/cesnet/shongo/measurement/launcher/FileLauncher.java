@@ -12,17 +12,8 @@ import java.util.*;
 
 public class FileLauncher {
 
-    public static String replaceVariables(String command, Map<String, String> variables) {
-        Iterator it = variables.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, String> variable = (Map.Entry<String, String>)it.next();
-            command = command.replaceAll("\\{" + variable.getKey() + "\\}", variable.getValue());
-        }
-        return command;
-    }
-
-    public static void launchFile(String file, Map<String, String> variables) {
-        // Parse file
+    public static void launchFile(String file, Evaluator evaluator) {
+        // Parse XML file
         Launcher launcher = null;
         try {
             JAXBContext ctx = JAXBContext.newInstance(new Class[]{Launcher.class});
@@ -34,32 +25,28 @@ public class FileLauncher {
         if ( launcher == null )
             return;
 
-        // Set values to variables
+        // Load variables to evaluator
         List<Variable> variableDefaults = launcher.getVariable();
         for ( Variable variable : variableDefaults ) {
             // Set default values if not defined
-            if ( variables.get(variable.getName()) == null ) {
+            if ( evaluator.hasVariable(variable.getName()) == false ) {
                 String defaultValue = variable.getDefaultValue();
                 if ( defaultValue == null )
                     defaultValue = "";
-                else
-                    defaultValue = replaceVariables(defaultValue, variables);
-                variables.put(variable.getName(), defaultValue);
+                evaluator.setVariable(variable.getName(), defaultValue);
             }
             // Set value if should be set
             if ( variable.getValue() != null ) {
                 String value = variable.getValue();
-                value = replaceVariables(value, variables);
-                variables.put(variable.getName(), value);
+                evaluator.setVariable(variable.getName(), value);
             }
             // Set value by platform
-            String platformType = variables.get("platform");
+            String platformType = evaluator.getVariable("platform");
             List<Platform> platforms = variable.getPlatform();
             for ( Platform platform : platforms ) {
                 if ( platform.getType().equals(platformType) ) {
                     String value = platform.getValue();
-                    value = replaceVariables(value, variables);
-                    variables.put(variable.getName(), value);
+                    evaluator.setVariable(variable.getName(), value);
                 }
             }
         }
@@ -77,15 +64,19 @@ public class FileLauncher {
         // Run instances
         Map<String, LauncherInstance> launcherInstances = new HashMap<String, LauncherInstance>();
         for ( Instance instance : instances ) {
+            String host = evaluator.evaluate(instance.getHost());
             LauncherInstance launcherInstance = null;
             if ( instance.getType().equals("local") )
                 launcherInstance = new LauncherInstanceLocal(instance.getId());
             else if ( instance.getType().equals("remote") )
-                launcherInstance = new LauncherInstanceRemote(instance.getId(), replaceVariables(instance.getHost(), variables));
+                launcherInstance = new LauncherInstanceRemote(instance.getId(), host);
             else
                 throw new IllegalArgumentException("Unknown instance type: " + instance.getType());
 
-            String command = replaceVariables(instance.getContent().trim(), variables);
+            Evaluator evaluatorScoped = new Evaluator(evaluator);
+            evaluatorScoped.setVariable("host", host);
+
+            String command = evaluatorScoped.evaluate(instance.getContent().trim());
 
             if ( instance.getRequire() != null ) {
                 // Wait for all required instances to startup
@@ -128,7 +119,7 @@ public class FileLauncher {
         // Perform commands
         List<Object> list = launcher.getCommandOrSleepOrCycle();
         for ( Object item : list ) {
-            performItem(item, variables, launcherInstances);
+            performItem(item, evaluator, launcherInstances);
         }
 
         // Exit instances
@@ -136,22 +127,23 @@ public class FileLauncher {
             launcherInstance.exit();
     }
 
-    public static void performItem(Object item, Map<String, String> variables, Map<String, LauncherInstance> launcherInstances)
+    public static void performItem(Object item, Evaluator evaluator, Map<String, LauncherInstance> launcherInstances)
     {
+        Evaluator evaluatorScoped = new Evaluator(evaluator);
         if ( item instanceof Cycle ) {
             Cycle cycle = (Cycle)item;
             for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
-                variables.put("index", new Integer(index).toString());
+                evaluatorScoped.setVariable("index", new Integer(index).toString());
                 List<Object> list = cycle.getCommandOrSleep();
                 for ( Object listItem : list ) {
-                    performItem(listItem, variables, launcherInstances);
+                    performItem(listItem, evaluatorScoped, launcherInstances);
                 }
             }
         }
         // Step
         else if ( item instanceof Command ) {
             Command command = (Command)item;
-            String commandText = replaceVariables(command.getContent().trim(), variables);
+            String commandText = evaluatorScoped.evaluate(command.getContent().trim());
             // Command to all instances
             if ( command.getFor() == null || command.getFor().equals("*") ) {
                 for ( LauncherInstance launcherInstance : launcherInstances.values() )

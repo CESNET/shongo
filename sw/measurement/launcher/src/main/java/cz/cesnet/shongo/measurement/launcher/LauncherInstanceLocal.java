@@ -102,7 +102,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
                 return;
             System.out.println("[LOCAL:" + getId() + "] Killing application...");
             try {
-                Process process = Runtime.getRuntime().exec("./kill.sh " + pid);
+                Process process = Runtime.getRuntime().exec("scripts/kill.sh " + pid);
                 process.waitFor();
                 started = false;
             } catch (IOException e) {
@@ -197,7 +197,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
 
                 if ( enabled ) {
                     try {
-                        Process process = Runtime.getRuntime().exec("./profile.sh " + pid);
+                        Process process = Runtime.getRuntime().exec("scripts/profile.sh " + pid);
 
                         StringBuilder builder = new StringBuilder();
                         BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()) );
