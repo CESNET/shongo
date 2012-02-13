@@ -18,6 +18,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 
+import static cz.cesnet.shongo.measurement.jade.JadeApplication.Mode.Platform;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -34,7 +36,7 @@ public class JadeApplication extends Application {
     }
 
     /** Mode of this application */
-    private Mode mode = Mode.Platform;
+    private Mode mode = Platform;
 
     /** Use GUI for the platform? */
     private boolean useGui = false;
@@ -42,16 +44,16 @@ public class JadeApplication extends Application {
     /**
      * The host the container of this application listens at.
      * The default value is 127.0.0.1 for working in a LAN.
-     * When launching the application, the default may be overridden by the --platform-host parameter.
+     * When launching the application, the default may be overridden by the --localhost parameter.
      */
-    private String listeningHost = "127.0.0.1";
+    private String localHost = "127.0.0.1";
 
     /**
      * The port the container of this application listens on.
      * The default value is 1099 - the default port for Jade.
-     * When launching the application, the default may be overridden by the --platform-port parameter.
+     * When launching the application, the default may be overridden by the --localhost parameter.
      */
-    private int listeningPort = 1099;
+    private int localPort = 1099;
 
     /**
      * Hostname of the platform to join when in the Container mode or to backup when in the Backup mode.
@@ -99,20 +101,14 @@ public class JadeApplication extends Application {
 
     @Override
     protected void onInitOptions(Options options) {
-        Option pHost = OptionBuilder.withLongOpt("platform-host")
-                .withDescription("Start the new platform on this port (" + listeningHost + " by default)")
+        Option localhostOpt = OptionBuilder.withLongOpt("localhost")
+                .withDescription("Run the container at the given host and port (" + localHost + ":" + localPort + " if not specified)")
                 .hasArg()
                 .create("l");
-        options.addOption(pHost);
-
-        Option pPort = OptionBuilder.withLongOpt("platform-port")
-                .withDescription("Start the new platform on this port (" + listeningPort + " by default)")
-                .hasArg()
-                .create("p");
-        options.addOption(pPort);
-
+        options.addOption(localhostOpt);
+        
         Option backup = OptionBuilder.withLongOpt("backup")
-                .withDescription("Start this application as a backup (on port given by the --platform-port switch) of a controller at given host:port (127.0.0.1:1099 by default)")
+                .withDescription("Start this application as a backup of a controller at given host:port (127.0.0.1:1099 by default)")
                 .hasOptionalArg()
                 .create("b");
         options.addOption(backup);
@@ -129,14 +125,16 @@ public class JadeApplication extends Application {
     @Override
     protected String[] onProcessCommandLine(CommandLine commandLine) {
         useGui = commandLine.hasOption("gui");
-
-        if (commandLine.hasOption("platform-host")) {
-            listeningHost = commandLine.getOptionValue("platform-host");
-        }
-        if (commandLine.hasOption("platform-port")) {
-            listeningPort = Integer.parseInt(commandLine.getOptionValue("platform-port"));
-        }
         
+        if (commandLine.hasOption("localhost")) {
+            localHost = commandLine.getOptionValue("localhost");
+            if (localHost.indexOf(':') != -1) {
+                int colonPos = localHost.indexOf(':');
+                localPort = Integer.parseInt(localHost.substring(colonPos+1));
+                localHost = localHost.substring(0, colonPos);
+            }
+        }
+
         if (commandLine.hasOption("join") || commandLine.hasOption("backup")) {
             if (commandLine.hasOption("backup")) {
                 mode = Mode.Backup;
@@ -148,8 +146,8 @@ public class JadeApplication extends Application {
             }
             if (joinHost.indexOf(':') != -1) {
                 int colonPos = joinHost.indexOf(':');
-                joinPort = Integer.parseInt(joinHost.substring(0, colonPos));
-                joinHost = joinHost.substring(colonPos+1);
+                joinPort = Integer.parseInt(joinHost.substring(colonPos+1));
+                joinHost = joinHost.substring(0, colonPos);
             }
         }
 
@@ -174,8 +172,12 @@ public class JadeApplication extends Application {
         }
     }
     
-    static AgentContainer containerFactory(Mode mode, Profile profile) {
-        if (mode == Mode.Platform) {
+    static AgentContainer containerFactory(Mode mode, Profile profile, String localHost, int localPort) {
+        // setup the local host and port explicitly to prevent Jade guessing it (wrongly)
+        profile.setParameter(Profile.LOCAL_HOST, localHost);
+        profile.setParameter(Profile.LOCAL_PORT, Integer.toString(localPort));
+
+        if (mode == Platform) {
             addService(profile, TopicManagementService.class);
             addService(profile, MainReplicationService.class);
             addService(profile, AddressNotificationService.class);
@@ -200,23 +202,27 @@ public class JadeApplication extends Application {
     
     @Override
     protected boolean onRun() {
-        if (mode == Mode.Platform) {
-            Profile profile = new ProfileImpl(listeningHost, listeningPort, null);
-            container = containerFactory(mode, profile);
-        }
-        else if (mode == Mode.Container) {
-            Profile profile = new ProfileImpl(joinHost, joinPort, null, false);
-            container = containerFactory(mode, profile);
-        }
-        else if (mode == Mode.Backup) {
-            Profile profile = new ProfileImpl(joinHost, joinPort, null);
-            container = containerFactory(mode, profile);
-        }
-        else {
-            throw new IllegalStateException("unknown JadeApplication mode");
+        // create the profile according to the operation mode
+        Profile profile;
+        switch (mode) {
+            case Platform:
+                profile = new ProfileImpl();
+                break;
+            case Container:
+                profile = new ProfileImpl(joinHost, joinPort, null, false);
+                break;
+            case Backup:
+                profile = new ProfileImpl(joinHost, joinPort, null);
+                break;
+            default:
+                throw new IllegalStateException("unknown JadeApplication mode");
         }
 
-        if (useGui && mode == Mode.Platform) {
+        // create the container
+        container = containerFactory(mode, profile, localHost, localPort);
+
+        // GUI
+        if (useGui && mode == Platform) {
             try {
                 AgentController rma = container.createNewAgent("rma", "jade.tools.rma.rma", new Object[0]);
                 rma.start();
@@ -225,7 +231,7 @@ public class JadeApplication extends Application {
             }
         }
 
-        // initialize the default container for the agents within the same JVM
+        // register the container as default for agents within the same JVM
         if (defaultContainer == null) {
             defaultContainer = container;
         }
