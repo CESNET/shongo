@@ -39,8 +39,8 @@ or similar to setup average packet loss rate.
     <instance id="jvm1" type="local">
         {run} --agent=a --type=sender --count={agent-count} --localhost={shongo-test3}
     </instance>
-    <instance id="jvm2" type="remote" host="{shongo-test5}">
-        {run} --agent=b --type=receiver --count={agent-count} --join --localhost={shongo-test5}
+    <instance id="jvm2" type="remote" require="jvm1" host="{shongo-test5}">
+        {run} --agent=b --type=receiver --count={agent-count} --join={shongo-test3} --localhost={shongo-test5}
     </instance>
 
     <!-- Instrutions -->

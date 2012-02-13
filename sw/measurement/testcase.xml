@@ -19,7 +19,7 @@
         {run} --agent=s --type=sender --count={agent-count} --localhost={host-remote}
     </instance>
     <instance id="jvm2" type="remote" host="{host-remote}" require="jvm1">
-        {run} --agent=r --type=receiver --count={agent-count} --join --localhost={host-remote}
+        {run} --agent=r --type=receiver --count={agent-count} --join={host-remote} --localhost={host-remote}
     </instance>
 
     <!-- Instrutions -->

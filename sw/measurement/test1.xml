@@ -23,14 +23,14 @@
     <instance id="jvm1" type="local">
         {run} --agent=a --type=sender --count={agent-count} --localhost={shongo-test1}
     </instance>
-    <instance id="jvm2" type="remote" host="{shongo-test2}">
-        {run} --agent=b --type=receiver --count={agent-count} --join --localhost={shongo-test2}
+    <instance id="jvm2" type="remote" require="jvm1" host="{shongo-test2}">
+        {run} --agent=b --type=receiver --count={agent-count} --join={shongo-test1} --localhost={shongo-test2}
     </instance>
-    <instance id="jvm3" type="remote" host="{shongo-test3}">
-        {run} -a c -t sender -c {agent-count} --join --localhost={shongo-test3}
+    <instance id="jvm3" type="remote" require="jvm1" host="{shongo-test3}">
+        {run} --agent=c --type=sender --count={agent-count} --join={shongo-test1} --localhost={shongo-test3}
     </instance>
-    <instance id="jvm4" type="remote" host="{shongo-test4}">
-        {run} -a d -t receiver -c {agent-count} --join --localhost={shongo-test4}
+    <instance id="jvm4" type="remote" require="jvm1" host="{shongo-test4}">
+        {run} --agent=d --type=receiver --count={agent-count} --join={shongo-test1} --localhost={shongo-test4}
     </instance><!---->
 
     <!-- Instrutions -->
