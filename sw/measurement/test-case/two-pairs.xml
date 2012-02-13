@@ -12,6 +12,7 @@
     <variable name="agent-count" default-value="2" />
 
     <!-- Run Script Variables -->
+    <variable name="host" default-value="{shongo-test1}"/>
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
