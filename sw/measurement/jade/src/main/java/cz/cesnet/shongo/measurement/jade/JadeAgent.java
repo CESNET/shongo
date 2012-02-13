@@ -15,7 +15,6 @@ import jade.wrapper.ControllerException;
 import jade.wrapper.StaleProxyException;
 
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -108,7 +107,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
             super.doDelete();
             listeningThread.interrupt();
         }
-        
+
         public void sendMessage(String receiverName, String message) {
             AID receiver;
             if (receiverName.equals("*")) {
@@ -148,12 +147,13 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
         if (container == null) {
             // no JadeApplication has been run - start our own container
             Profile profile = new ProfileImpl(false);
-            JadeApplication.addService(profile, TopicManagementService.class);
-            JadeApplication.addService(profile, AddressNotificationService.class);
             // FIXME: where to connect taken from parameter
+            // FIXME: add local host and port parameter as well
+//            String joinHost = "192.168.0.186";
+//            int joinPort = 1099;
 //            profile.setParameter(Profile.MAIN_HOST, joinHost);
 //            profile.setParameter(Profile.MAIN_PORT, Integer.toString(joinPort));
-            container = jade.core.Runtime.instance().createAgentContainer(profile);
+            container = JadeApplication.containerFactory(JadeApplication.Mode.Container, profile);
             killContainerOnStop = true;
         }
         else {
@@ -214,13 +214,13 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
             agent.removeBehaviour(containerRetriever);
             agent.resumeListening();
         }
-        
+
         List<ContainerID> containers = containerRetriever.getContainers();
         if (containers == null) {
             logError("Error retrieving list of containers");
             return;
         }
-        
+
         logInfo("Containers:");
         for (ContainerID cid : containers) {
             logInfo(String.format("- %s (%s:%s)", cid.getName(), cid.getAddress(), cid.getPort()));
@@ -246,13 +246,13 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
                     lock.unlock();
                     agent.removeBehaviour(agentRetriever);
                 }
-                
+
                 List<AID> agents = agentRetriever.getAgents();
                 if (agents == null) {
                     logError("Error retrieving list of agent for container " + containerID.getName());
                     continue;
                 }
-                
+
                 logInfo(String.format("  %s:", containerID.getName()));
                 for (AID agent : agents) {
                     logInfo(String.format("  - %s", agent.getLocalName()));
