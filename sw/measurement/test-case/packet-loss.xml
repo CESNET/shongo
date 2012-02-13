@@ -22,6 +22,7 @@ or similar to setup average packet loss rate.
     <variable name="host-activemq" default-value="{shongo-test3}:61616" />
 
     <!-- Run Parameters -->
+    <variable name="host" default-value="{shongo-test3}"/>
     <variable name="run-param">
         <!-- ESB agents need to know where ActiveMQ is running
              (absence of join argument in instance definition means
@@ -29,7 +30,7 @@ or similar to setup average packet loss rate.
         -->
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
-        <platform type="jade" value=" --single-jvm"/> <!-- NOTE: optional - to run all agents in a single JVM -->
+        <platform type="jade" value=" --single-jvm --localhost={host}"/> <!-- NOTE: single-jvm optional -->
     </variable>
 
     <!-- Run Command -->
@@ -37,10 +38,10 @@ or similar to setup average packet loss rate.
 
     <!-- Setup Launcher Instances -->
     <instance id="jvm1" type="local">
-        {run} --agent=a --type=sender --count={agent-count} --localhost={shongo-test3}
+        {run} --agent=a --type=sender --count={agent-count}
     </instance>
     <instance id="jvm2" type="remote" require="jvm1" host="{shongo-test5}">
-        {run} --agent=b --type=receiver --count={agent-count} --join={shongo-test3} --localhost={shongo-test5}
+        {run} --agent=b --type=receiver --count={agent-count} --join={shongo-test3}
     </instance>
 
     <!-- Instrutions -->
