@@ -15,6 +15,7 @@
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
+        <platform type="jade" value=" --platform-host={shongo-test1}"/> <!-- NOTE: needed just for the main container -->
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
@@ -26,10 +27,10 @@
         {run} --agent=b --type=receiver --count={agent-count} --join
     </instance>
     <instance id="jvm3" type="remote" host="{shongo-test3}">
-        {run} -a c -t sender -c {agent-count} -j
+        {run} -a c -t sender -c {agent-count} --join
     </instance>
     <instance id="jvm4" type="remote" host="{shongo-test4}">
-        {run} -a d -t receiver -c {agent-count} -j
+        {run} -a d -t receiver -c {agent-count} --join
     </instance><!---->
 
     <!-- Instrutions -->

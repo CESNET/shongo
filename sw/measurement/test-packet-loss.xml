@@ -29,6 +29,7 @@ or similar to setup average packet loss rate.
         -->
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
+        <platform type="jade" value=" --platform-host={shongo-test3}"/> <!-- NOTE: needed just for the main container -->
     </variable>
 
     <!-- Run Command -->
