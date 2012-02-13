@@ -39,12 +39,6 @@ public class JadeApplication extends Application {
     /** Use GUI for the platform? */
     private boolean useGui = false;
 
-    /** The default local host to use if not specified. */
-    public static final String defaultLocalHost = "127.0.0.1";
-
-    /** The default local port to use if not specified. */
-    public static final int defaultLocalPort = 1099;
-
     /**
      * The host the container of this application listens at.
      * The default value is 127.0.0.1 for working in a LAN.
@@ -181,13 +175,6 @@ public class JadeApplication extends Application {
     }
     
     static AgentContainer containerFactory(Mode mode, Profile profile) {
-//        if (profile.getParameter(Profile.LOCAL_HOST, null) == null) {
-//            profile.setParameter(Profile.LOCAL_HOST, defaultLocalHost);
-//        }
-//        if (profile.getParameter(Profile.LOCAL_PORT, null) == null) {
-//            profile.setParameter(Profile.LOCAL_PORT, Integer.toString(defaultLocalPort));
-//        }
-        
         if (mode == Mode.Platform) {
             addService(profile, TopicManagementService.class);
             addService(profile, MainReplicationService.class);
