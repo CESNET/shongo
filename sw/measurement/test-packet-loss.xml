@@ -29,7 +29,6 @@ or similar to setup average packet loss rate.
         -->
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
-        <platform type="jade" value=" --platform-host={shongo-test3}"/> <!-- NOTE: needed just for the main container -->
         <platform type="jade" value=" --single-jvm"/> <!-- NOTE: optional - to run all agents in a single JVM -->
     </variable>
 
@@ -38,10 +37,10 @@ or similar to setup average packet loss rate.
 
     <!-- Setup Launcher Instances -->
     <instance id="jvm1" type="local">
-        {run} --agent=a --type=sender --count={agent-count}
+        {run} --agent=a --type=sender --count={agent-count} --localhost={shongo-test3}
     </instance>
     <instance id="jvm2" type="remote" host="{shongo-test5}">
-        {run} --agent=b --type=receiver --count={agent-count} --join
+        {run} --agent=b --type=receiver --count={agent-count} --join --localhost={shongo-test5}
     </instance>
 
     <!-- Instrutions -->

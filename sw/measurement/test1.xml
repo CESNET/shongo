@@ -15,23 +15,22 @@
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
-        <platform type="jade" value=" --platform-host={shongo-test1}"/> <!-- NOTE: needed just for the main container -->
         <platform type="jade" value=" --single-jvm"/> <!-- NOTE: optional - to run all agents in a single JVM -->
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
     <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
     <instance id="jvm1" type="local">
-        {run} --agent=a --type=sender --count={agent-count}
+        {run} --agent=a --type=sender --count={agent-count} --localhost={shongo-test1}
     </instance>
     <instance id="jvm2" type="remote" host="{shongo-test2}">
-        {run} --agent=b --type=receiver --count={agent-count} --join
+        {run} --agent=b --type=receiver --count={agent-count} --join --localhost={shongo-test2}
     </instance>
     <instance id="jvm3" type="remote" host="{shongo-test3}">
-        {run} -a c -t sender -c {agent-count} --join
+        {run} -a c -t sender -c {agent-count} --join --localhost={shongo-test3}
     </instance>
     <instance id="jvm4" type="remote" host="{shongo-test4}">
-        {run} -a d -t receiver -c {agent-count} --join
+        {run} -a d -t receiver -c {agent-count} --join --localhost={shongo-test4}
     </instance><!---->
 
     <!-- Instrutions -->

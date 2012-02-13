@@ -10,17 +10,16 @@
     <variable name="run-param">
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
-        <platform type="jade" value=" --platform-host={host-remote}"/> <!-- NOTE: needed just for the main container -->
         <platform type="jade" value=" --single-jvm"/> <!-- NOTE: optional - to run all agents in a single JVM -->
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
     <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
     <instance id="jvm1" type="local">
-        {run} --agent=s --type=sender --count={agent-count}
+        {run} --agent=s --type=sender --count={agent-count} --localhost={host-remote}
     </instance>
     <instance id="jvm2" type="remote" host="{host-remote}" require="jvm1">
-        {run} --agent=r --type=receiver --count={agent-count} --join
+        {run} --agent=r --type=receiver --count={agent-count} --join --localhost={host-remote}
     </instance>
 
     <!-- Instrutions -->
