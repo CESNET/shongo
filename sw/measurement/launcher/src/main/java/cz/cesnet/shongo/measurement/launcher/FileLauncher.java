@@ -31,12 +31,12 @@ public class FileLauncher {
             // Set default values if not defined
             if ( evaluator.hasVariable(variable.getName()) == false ) {
                 String defaultValue = variable.getDefaultValue();
-                if ( defaultValue == null )
+                if ( defaultValue == null || defaultValue.equals("null") )
                     defaultValue = "";
                 evaluator.setVariable(variable.getName(), defaultValue);
             }
             // Set value if should be set
-            if ( variable.getValue() != null ) {
+            if ( variable.getValue() != null && variable.getValue().equals("null") == false ) {
                 String value = variable.getValue();
                 evaluator.setVariable(variable.getName(), value);
             }
@@ -74,7 +74,8 @@ public class FileLauncher {
                 throw new IllegalArgumentException("Unknown instance type: " + instance.getType());
 
             Evaluator evaluatorScoped = new Evaluator(evaluator);
-            evaluatorScoped.setVariable("host", host);
+            if ( host != null && host.equals("null") == false )
+                evaluatorScoped.setVariable("host", host);
 
             String command = evaluatorScoped.evaluate(instance.getContent().trim());
 
