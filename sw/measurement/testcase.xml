@@ -11,6 +11,7 @@
         <platform type="fuse" value=" --activemq={host-activemq}"/>
         <platform type="mule" value=" --activemq={host-activemq}"/>
         <platform type="jade" value=" --platform-host={host-remote}"/> <!-- NOTE: needed just for the main container -->
+        <platform type="jade" value=" --single-jvm"/> <!-- NOTE: optional - to run all agents in a single JVM -->
     </variable>
     <variable name="run" default-value="./{platform}.{extension}{run-param}" />
 
