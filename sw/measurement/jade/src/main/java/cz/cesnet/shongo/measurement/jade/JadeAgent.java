@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.measurement.jade;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
+import cz.cesnet.shongo.measurement.common.Address;
 import jade.core.*;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
@@ -23,6 +25,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
+    
+    /** Address the container of this agent listens at (when run in a separate JVM). */
+    private Address localAddress;
+
+    /** Address of the platform to join (when run in a separate JVM). */
+    private Address joinAddress;
 
     private JadeAgentImpl agent;
 
@@ -111,7 +119,7 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
         public void sendMessage(String receiverName, String message) {
             AID receiver;
             if (receiverName.equals("*")) {
-                // NOTE: broadcast messaging implemented as a topic-based communication on topic ALL
+                // NOTE: broadcast messaging implemented as a topic-based communication on topic "ALL"
                 if (topicAll == null) {
                     logError("Error sending a broadcast message: broadcast messaging is not available");
                     return;
@@ -133,7 +141,6 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
      *
      * @param id
      * @param name
-     * @throws ServiceException on topic service error (needed for broadcast messaging)
      */
     public JadeAgent(String id, String name) {
         super(id, name);
@@ -141,17 +148,31 @@ public class JadeAgent extends cz.cesnet.shongo.measurement.common.Agent {
     }
 
 
+    /**
+     * The Jade agent requires two arguments:
+     * - localhost address (optionally with port, defaults to <code>JadeApplication.DEFAULT_ADDRESS.getPort()</code>)
+     * - address of the main container to connect to (optionally with port, defaults to
+     *   <code>JadeApplication.DEFAULT_ADDRESS.getPort()</code>)
+     *
+     * @param arguments
+     */
+    @Override
+    protected void onProcessArguments(String[] arguments) {
+        if (arguments.length != 2) {
+            throw new IllegalArgumentException("The JadeAgent requires localhost and main container addresses");
+        }
+        
+        localAddress = new Address(arguments[0], JadeApplication.DEFAULT_ADDRESS.getPort());
+        joinAddress = new Address(arguments[1], JadeApplication.DEFAULT_ADDRESS.getPort());
+    }
+
     @Override
     protected boolean startImpl() {
         container = JadeApplication.getDefaultContainer();
         if (container == null) {
             // no JadeApplication has been run - start our own container
-            Profile profile = new ProfileImpl(false);
-            // FIXME: where to connect taken from parameter, and the local host and port parameters as well
-//            String joinHost = "192.168.0.186";
-//            int joinPort = 1099;
-//            Profile profile = new ProfileImpl(joinHost, joinPort, null, false);
-            container = JadeApplication.containerFactory(JadeApplication.Mode.Container, profile, "127.0.0.1", 0);
+            Profile profile = new ProfileImpl(joinAddress.getHost(), joinAddress.getPort(), null, false);
+            container = JadeApplication.containerFactory(JadeApplication.Mode.Container, profile, localAddress);
             killContainerOnStop = true;
         }
         else {

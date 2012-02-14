@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.measurement.jade;
 
+import cz.cesnet.shongo.measurement.common.Address;
 import cz.cesnet.shongo.measurement.common.Application;
 import jade.core.Profile;
 import jade.core.ProfileException;
@@ -38,40 +39,30 @@ public class JadeApplication extends Application {
     /** Mode of this application */
     private Mode mode = Platform;
 
+    /** The default address to use (for listening, joining...) when not explicitly specified. */
+    public static final Address DEFAULT_ADDRESS = new Address("127.0.0.1", 1099);
+
     /** Use GUI for the platform? */
     private boolean useGui = false;
 
     /**
-     * The host the container of this application listens at.
-     * The default value is 127.0.0.1 for working in a LAN.
+     * Address the container of this application listens at.
+     * The default value is 127.0.0.1:DEFAULT_PORT for working in a LAN.
      * When launching the application, the default may be overridden by the --localhost parameter.
      */
-    private String localHost = "127.0.0.1";
+    private Address localAddress = DEFAULT_ADDRESS;
 
     /**
-     * The port the container of this application listens on.
-     * The default value is 1099 - the default port for Jade.
-     * When launching the application, the default may be overridden by the --localhost parameter.
+     * Address of the platform to join when in the Container mode or to backup when in the Backup mode.
+     * When launching the application, the default DEFAULT_ADDRESS may be overridden by the --join (or --backup)
+     * argument.
      */
-    private int localPort = 1099;
+    private Address joinAddress = DEFAULT_ADDRESS;
 
-    /**
-     * Hostname of the platform to join when in the Container mode or to backup when in the Backup mode.
-     * When launching the application, the default 127.0.0.1 may be overridden by the --join (or --backup) argument.
-     */
-    private String joinHost;
-
-    /**
-     * Port of the platform to join when in the Container mode or to backup when in the Backup mode.
-     * When launching the application, the default 1099 may be overridden by the --join (or --backup) argument.
-     */
-    private int joinPort = 1099;
-
-    /**
-     * The container holding all agents of this instance.
-     */
+    /** The container holding all agents of this instance. */
     private ContainerController container;
 
+    /** The container already created in this JVM. Used when instructed to run multiple agents within a single JVM. */
     private static ContainerController defaultContainer;
 
     /**
@@ -102,7 +93,7 @@ public class JadeApplication extends Application {
     @Override
     protected void onInitOptions(Options options) {
         Option localhostOpt = OptionBuilder.withLongOpt("localhost")
-                .withDescription("Run the container at the given host and port (" + localHost + ":" + localPort + " if not specified)")
+                .withDescription("Run the container at the given host and port (" + localAddress + " if not specified)")
                 .hasArg()
                 .create("l");
         options.addOption(localhostOpt);
@@ -127,31 +118,29 @@ public class JadeApplication extends Application {
         useGui = commandLine.hasOption("gui");
         
         if (commandLine.hasOption("localhost")) {
-            localHost = commandLine.getOptionValue("localhost");
-            if (localHost.indexOf(':') != -1) {
-                int colonPos = localHost.indexOf(':');
-                localPort = Integer.parseInt(localHost.substring(colonPos+1));
-                localHost = localHost.substring(0, colonPos);
-            }
+            localAddress = new Address(commandLine.getOptionValue("localhost"), DEFAULT_ADDRESS.getPort());
         }
 
         if (commandLine.hasOption("join") || commandLine.hasOption("backup")) {
             if (commandLine.hasOption("backup")) {
                 mode = Mode.Backup;
-                joinHost = commandLine.getOptionValue("backup", "127.0.0.1");
+                if (commandLine.getOptionValue("backup") != null) {
+                    joinAddress = new Address(commandLine.getOptionValue("backup"), DEFAULT_ADDRESS.getPort());
+                }
             }
-            else {
+            else { // "join" option
                 mode = Mode.Container;
-                joinHost = commandLine.getOptionValue("join", "127.0.0.1");
-            }
-            if (joinHost.indexOf(':') != -1) {
-                int colonPos = joinHost.indexOf(':');
-                joinPort = Integer.parseInt(joinHost.substring(colonPos+1));
-                joinHost = joinHost.substring(0, colonPos);
+                if (commandLine.getOptionValue("join") != null) {
+                    joinAddress = new Address(commandLine.getOptionValue("join"), DEFAULT_ADDRESS.getPort());
+                }
             }
         }
+        
+        String[] agentArgs = new String[2];
+        agentArgs[0] = localAddress.toString();
+        agentArgs[1] = joinAddress.toString();
 
-        return new String[0];
+        return agentArgs;
     }
 
     /**
@@ -172,10 +161,10 @@ public class JadeApplication extends Application {
         }
     }
     
-    static AgentContainer containerFactory(Mode mode, Profile profile, String localHost, int localPort) {
+    static AgentContainer containerFactory(Mode mode, Profile profile, Address localAddress) {
         // setup the local host and port explicitly to prevent Jade guessing it (wrongly)
-        profile.setParameter(Profile.LOCAL_HOST, localHost);
-        profile.setParameter(Profile.LOCAL_PORT, Integer.toString(localPort));
+        profile.setParameter(Profile.LOCAL_HOST, localAddress.getHost());
+        profile.setParameter(Profile.LOCAL_PORT, Integer.toString(localAddress.getPort()));
 
         if (mode == Platform) {
             addService(profile, TopicManagementService.class);
@@ -209,17 +198,17 @@ public class JadeApplication extends Application {
                 profile = new ProfileImpl();
                 break;
             case Container:
-                profile = new ProfileImpl(joinHost, joinPort, null, false);
+                profile = new ProfileImpl(joinAddress.getHost(), joinAddress.getPort(), null, false);
                 break;
             case Backup:
-                profile = new ProfileImpl(joinHost, joinPort, null);
+                profile = new ProfileImpl(joinAddress.getHost(), joinAddress.getPort(), null);
                 break;
             default:
                 throw new IllegalStateException("unknown JadeApplication mode");
         }
 
         // create the container
-        container = containerFactory(mode, profile, localHost, localPort);
+        container = containerFactory(mode, profile, localAddress);
 
         // GUI
         if (useGui && mode == Platform) {
