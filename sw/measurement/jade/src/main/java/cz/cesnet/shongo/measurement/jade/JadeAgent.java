@@ -1,14 +1,11 @@
 package cz.cesnet.shongo.measurement.jade;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import cz.cesnet.shongo.measurement.common.Address;
 import jade.core.*;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.ThreadedBehaviourFactory;
 import jade.core.messaging.TopicManagementHelper;
-import jade.core.messaging.TopicManagementService;
-import jade.core.replication.AddressNotificationService;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
