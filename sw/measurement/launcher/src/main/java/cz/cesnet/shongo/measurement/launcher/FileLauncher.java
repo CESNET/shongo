@@ -118,7 +118,7 @@ public class FileLauncher {
         System.out.println("[LAUNCHER] Instances successfully started!");
 
         // Perform commands
-        List<Object> list = launcher.getCommandOrSleepOrCycle();
+        List<Object> list = launcher.getCommandOrEchoOrSleep();
         for ( Object item : list ) {
             performItem(item, evaluator, launcherInstances);
         }
@@ -131,11 +131,12 @@ public class FileLauncher {
     public static void performItem(Object item, Evaluator evaluator, Map<String, LauncherInstance> launcherInstances)
     {
         Evaluator evaluatorScoped = new Evaluator(evaluator);
+        // Cycle
         if ( item instanceof Cycle ) {
             Cycle cycle = (Cycle)item;
             for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
                 evaluatorScoped.setVariable("index", new Integer(index).toString());
-                List<Object> list = cycle.getCommandOrSleep();
+                List<Object> list = cycle.getCommandOrEchoOrSleep();
                 for ( Object listItem : list ) {
                     performItem(listItem, evaluatorScoped, launcherInstances);
                 }
@@ -156,6 +157,30 @@ public class FileLauncher {
                 if ( launcherInstance != null )
                     launcherInstance.perform(commandText);
             }
+        }
+        // Echo
+        else if ( item instanceof Echo) {
+            Echo echo = (Echo)item;
+
+            long durationBefore = 0;
+            long durationAfter = 0;
+            if ( echo.getSleep() != null ) {
+                durationBefore = echo.getSleep().longValue() / 2;
+                durationAfter = durationBefore;
+            }
+
+            try {
+                Thread.sleep(durationBefore);
+            } catch (InterruptedException e) {}
+
+            String value = evaluatorScoped.evaluate(echo.getValue());
+            for ( LauncherInstance launcherInstance : launcherInstances.values() ) {
+                launcherInstance.echo(value);
+            }
+
+            try {
+                Thread.sleep(durationAfter);
+            } catch (InterruptedException e) {}
         }
         // Sleep
         else if ( item instanceof Sleep) {

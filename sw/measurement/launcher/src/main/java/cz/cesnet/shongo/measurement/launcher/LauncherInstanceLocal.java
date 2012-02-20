@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.measurement.launcher;
 
 import cz.cesnet.shongo.measurement.common.Application;
+import cz.cesnet.shongo.measurement.common.CommandParser;
 import cz.cesnet.shongo.measurement.common.StreamConnector;
 import cz.cesnet.shongo.measurement.common.StreamMessageWaiter;
 
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
+import java.util.List;
 
 /**
  * Instance of launcjer that runs on same computer as the instance of this class
@@ -133,7 +135,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
             profiler.setEnabled(false);
         }
         // Other commands pass to agents
-        else {
+        else if ( started ){
             System.out.println("[LOCAL:" + getId() + "] Perform [" + command + "]");
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
             try {
@@ -143,6 +145,18 @@ public class LauncherInstanceLocal extends LauncherInstance {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Echo value in local instance
+     *
+     * @param value
+     */
+    @Override
+    public void echo(String value) {
+       System.out.println("+----------------------------------------------------------------------------+");
+       System.out.printf("| %-74s |\n", value);
+       System.out.println("+----------------------------------------------------------------------------+");
     }
 
     /**

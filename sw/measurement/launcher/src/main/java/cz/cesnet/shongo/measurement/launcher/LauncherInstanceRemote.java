@@ -50,6 +50,7 @@ public class LauncherInstanceRemote extends LauncherInstance {
 
     @Override
     public void perform(String command) {
+        command = command.replaceAll("\\\"", "\\\\\\\"");
         System.out.println("[REMOTE:" + getId() + "] Perform [" + command + "]");
         output.printf("perform \"%s\"\n", command);
         try {
@@ -59,6 +60,11 @@ public class LauncherInstanceRemote extends LauncherInstance {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void echo(String value) {
+        output.printf("echo \"%s\"\n", value);
     }
 
     @Override

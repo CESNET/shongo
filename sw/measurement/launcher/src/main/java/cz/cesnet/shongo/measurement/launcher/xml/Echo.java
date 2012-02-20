@@ -8,13 +8,13 @@
 
 package cz.cesnet.shongo.measurement.launcher.xml;
 
+import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -28,7 +28,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * &lt;complexType>
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="for" type="{http://www.w3.org/2001/XMLSchema}NCName" />
+ *       &lt;attribute name="sleep" type="{http://www.w3.org/2001/XMLSchema}integer" />
+ *       &lt;attribute name="value" use="required" type="{http://www.w3.org/2001/XMLSchema}NCName" />
  *     &lt;/restriction>
  *   &lt;/complexContent>
  * &lt;/complexType>
@@ -37,65 +38,63 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "", propOrder = {
-    "content"
-})
-@XmlRootElement(name = "command")
-public class Command {
+@XmlType(name = "")
+@XmlRootElement(name = "echo")
+public class Echo {
 
-    @XmlValue
-    protected String content;
-    @XmlAttribute(name = "for")
+    @XmlAttribute
+    protected BigInteger sleep;
+    @XmlAttribute(required = true)
     @XmlJavaTypeAdapter(CollapsedStringAdapter.class)
     @XmlSchemaType(name = "NCName")
-    protected String _for;
+    protected String value;
 
     /**
-     * Gets the value of the content property.
+     * Gets the value of the sleep property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link BigInteger }
+     *     
+     */
+    public BigInteger getSleep() {
+        return sleep;
+    }
+
+    /**
+     * Sets the value of the sleep property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link BigInteger }
+     *     
+     */
+    public void setSleep(BigInteger value) {
+        this.sleep = value;
+    }
+
+    /**
+     * Gets the value of the value property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getContent() {
-        return content;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the content property.
+     * Sets the value of the value property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setContent(String value) {
-        this.content = value;
-    }
-
-    /**
-     * Gets the value of the for property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
-     */
-    public String getFor() {
-        return _for;
-    }
-
-    /**
-     * Sets the value of the for property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
-     */
-    public void setFor(String value) {
-        this._for = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

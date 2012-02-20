@@ -25,9 +25,16 @@ public class CommandParser
 
             // String
             if ( parsingString ) {
-                if ( c == '"' )
+                if ( c == '"' ) {
                     break;
-                builder.append(c);
+                }
+                else if ( c == '\\' && command.charAt(position + 1) == '"' ) {
+                    builder.append('"');
+                    position++;
+                }
+                else {
+                    builder.append(c);
+                }
             }
             // Skip whitespaces
             else if ( c == ' ' || c == '\t' ) {

@@ -16,5 +16,7 @@ public abstract  class LauncherInstance {
 
     public abstract void perform(String command);
 
+    public abstract void echo(String value);
+
     public abstract void exit();
 }

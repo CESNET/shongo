@@ -72,6 +72,8 @@ public class RemoteLauncher {
                 launcherInstance.perform(perform);
                 output.println("[PERFORMED]");
                 output.flush();
+            } else if ( command.equals("echo") ) {
+                launcherInstance.echo(list.get(1));
             }
         }
     }
