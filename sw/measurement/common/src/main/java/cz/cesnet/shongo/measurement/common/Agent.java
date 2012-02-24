@@ -49,7 +49,7 @@ public abstract class Agent
     {
         Default,
         Receiver,
-        Sender
+        Sender,
     };
 
     /** Agent implementation */
@@ -136,14 +136,18 @@ public abstract class Agent
      */
     public void setType(Type type)
     {
-        if ( type == Type.Sender ) {
-            this.agentImplementation = new SenderAgentImplementation();
-        }
-        else if ( type == Type.Receiver ) {
-            this.agentImplementation = new ReceiverAgentImplementation();
-        }
-        else {
-            this.agentImplementation = new AgentImplementation();
+        switch (type) {
+            case Default:
+                this.agentImplementation = new AgentImplementation();
+                break;
+            case Sender:
+                this.agentImplementation = new SenderAgentImplementation();
+                break;
+            case Receiver:
+                this.agentImplementation = new ReceiverAgentImplementation();
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown agent type");
         }
     }
 
@@ -420,16 +424,18 @@ public abstract class Agent
         @Override
         protected void onSendMessage(Agent agent, String receiverName, String message)
         {
+            long time = System.nanoTime();
             super.onSendMessage(agent, receiverName, message);
-            timerMap.put(ReceiverAgentImplementation.getMessageAnswer(message), System.nanoTime());
+            timerMap.put(ReceiverAgentImplementation.getMessageAnswer(message), time);
         }
 
         @Override
         protected void onReceiveMessage(Agent agent, String senderName, String message)
         {
+            long time = System.nanoTime();
             String durationFormatted = "";
             if ( timerMap.containsKey(message) ) {
-                double duration = (double)(System.nanoTime() - timerMap.get(message)) / 1000000.0;
+                double duration = (double)(time - timerMap.get(message)) / 1000000.0;
                 durationFormatted = String.format(" (in %f ms)", duration);
             }
             logger.info(agent.consolePrefix + String.format("Received message from %s: %s%s", senderName, message, durationFormatted));
