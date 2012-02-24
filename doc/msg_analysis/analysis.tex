@@ -13,7 +13,7 @@
 \usepackage[czech,english]{babel}
 
 \usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
-\usepackage{tocbibind} 
+\usepackage{tocbibind}
 \usepackage{url}
 \usepackage{paralist}
 \usepackage{graphicx}
@@ -202,7 +202,7 @@ performance overhead, and message size overhead
 \item (currently don't have exact metric for overhead -- needs to be identified
 based on options available)
 
-\item time to recover after various node and service outages 
+\item time to recover after various node and service outages
 
 \item maximum number of messages per second on defined configuration
 
@@ -271,11 +271,32 @@ Open source, available for download. Uses The Sun Project JXTA(TM) Software Lice
 
 \section{JADE}
 
-\paragraph{Description.}
+\paragraph{Description.} An open-source middleware for agent-based programming. Originally developed by TILAB (Telecom Italia), nowadays supervised by the JADE Board (Telecom Italia, Motorola, Whitestein Technologies AG, Profactor GmbH, and France Telecom R\&D). It follows the FIPA specifications\footnote{\url{http://www.fipa.org}}. It may be run on virtually any types of devices supporting Java (the API is the same for the J2EE, J2SE and J2ME).
 
-\paragraph{Notable deployments.}
+A JADE platform is composed of several run-time \textsl{containers} launched over one or more hosts across a network. In the platform, there is a special, \textsl{main} container providing the platform services. Backup containers may be run to automatically take over the main container in case of failure. Multiple agents may run in a single container (within a single JVM). Within the platform, agents communicate directly with each other, involving the main container services just for localizing the recipient (which is cached). Agents from multiple platforms may communicate with each other, if permitted. Agent mobility within a platform is supported.
 
-\paragraph{License and availability.}
+The agents are programmed by means of implementing behaviours. Various behaviour types are offered by the framework (e.g. one-shot, simple repeating, or a behaviour defined by a finite-state automaton) and composing simpler behaviours is also possible. The library even contains complete FIPA standard agent interaction protocol implementations, such as the FIPA-Contract-Net (used for task delegation), or distributed leader election. The content of messages may be parsed and processed utilizing the ontologies and content languages concepts.
+
+The documentation is good and offers plenty of examples of various features. As the last resort, the JADE source code is available (well-structured and easy to read).
+
+There are add-ons available for download, developed by the JADE team or by third parties. The most notable ones include the Security and Trusted Agents add-ons (adding authentication and autorization capabilities), Leap (allowing deployment on mobile devices), or Java-Sniffer.
+
+
+\paragraph{Notable deployments.} Besides the companies present in the JADE Board (see the description above), some others using JADE are worth mentioning:
+\begin{compactitem}
+\item British Telecommunications use JADE as the core platform for mPower -- a system for cooperation among mobile workers and team-based job management \cite{bellifemine2008jade};
+\item Yuan Ze University, Taiwan developed MADIP -- a health-care monitoring system \cite{su2011jade} (November 2009);
+\item Rockwell Automation wrote the Java-Sniffer add-on (October 2006);
+\item Logica wrote the Trusted Agents add-on (December 2011);
+\item TeliaSonera\footnote{a dominant telephone company and mobile network operator in Sweden and Finland} implemented the CASCOM HTTP MTP add-on for usage in unreliable wireless networks, e.g. in 3G-networks (January 2008);
+\item Siemens committed some bugfixes in version 4.0 (April 2010).
+\end{compactitem}
+Telecom Italia has developed a JADE-based mediation layer NNEM to decouple Operations Support Systems from the network equipments and functionalities \cite{bellifemine2008jade}. It manages about 10,000 devices, while serving more than 100,000 devices is planned.
+
+
+\paragraph{License and availability.} Licensed under LGPL. Open source, available for download. The development is still active and is likely to go on, since JADE is considered the most popular software agent platform by its authors \cite{bellifemine2008jade}.
+
+
 
 
 \section{Mule ESB}
@@ -338,6 +359,9 @@ Open source, available for download. Uses The Sun Project JXTA(TM) Software Lice
 \chapter{Comparison of Systems}
 
 \chapter{Conclusions}
+
+\bibliographystyle{plain}
+\bibliography{analysis}
 
 
 \end{document}
