@@ -312,13 +312,17 @@ There are two editions of Mule ESB and both are build on the same codebase:
 \item \emph{Mule ESB Enterprise} is superset of Mule ESB Community with additional features and is more suitable for production deployments \footnote{Comparison of Mule ESB editions \url{http://www.mulesoft.com/mule-esb-enterprise}}.
 \end{itemize}
 
-For our analysis, we focus only on JMS transports to ActiveMQ servers.
+Mule ESB has comprehensive documentation and it contains simple tutorials, which are great starting point for ESB beginners. For Mule ESB development there is available Mule Studio which extends Eclipse IDE for Mule specific features (visual, drag-and-drop design of Mule applications).
+
+Mule ESB can be embedded into Java application and thus there isn't need to run standalone Mule container. It is important feature that we used during our evaluation.
+
+For our analysis, we have focused mainly on communication between applications based on JMS (Java Message Service), because it allows for connecting to multiple JMS servers (in our case ActiveMQ servers) which enables failover -- automatic switching to a redundant server upon the failure.
 
 \paragraph{Notable deployments.}
 Mule ESB provides many case studies\footnote{Mule ESB customers \url{http://www.mulesoft.com/customers}}, for instance:
 \begin{compactitem}
 \item GSI Commerce has built standardized service infrastructure with Mule ESB at core\footnote{GSI Commerce \url{http://www.mulesoft.com/case-study-gsi}}.
-\item Biotech company use Mule ESB alongside ActiveMQ \footnote{Biotech company \url{http://www.mulesoft.com/case-study-fiveprime-therapeutics}}
+\item Biotech company use Mule ESB alongside ActiveMQ \footnote{Biotech company \url{http://www.mulesoft.com/case-study-fiveprime-therapeutics}}.
 \end{compactitem}
 
 \paragraph{License and availability.}
@@ -326,13 +330,23 @@ Licensed under CPAL. Mule ESB Community is open source and available for downloa
 
 
 
-\section{FUSE ESB}
+\section{Fuse ESB}
 
 \paragraph{Description.}
+Fuse ESB is and open source and standards-based Enterprise Service Bus and integration platform based on Apache ServiceMix. From our point of view, Fuse ESB provides comparable features to Mule ESB, especially for JMS transport protocol.
+
+The documentation is available but when it is compared to Mule ESB documentation it is more complicated and even the simplest examples are harder to create. The Fuse ESB documentation contains many video tutorials, but if you don't use Eclipse IDE and Maven for project development it is hard to follow them.
+
+When we had implemented an application in Mule ESB, we were able to achieve the same functionality in Fuse ESB as well.
 
 \paragraph{Notable deployments.}
+\begin{compactitem}
+\item  CERN, the European Organization for Nuclear Research, is using Fuse ESB to run its operational grid\footnote{Cern Case Study \url{http://fusesource.com/collateral/103/}}.
+\item The FAA’s SWIM Program selected Fuse ESB to be a part of their Next Generation Air Transportation System\footnote{FAA Case Study \url{http://fusesource.com/collateral/70/}}.
+\end{compactitem} 
 
 \paragraph{License and availability.}
+Licensed under Apache License. Fuse ESB is open source and available for download.
 
 
 
