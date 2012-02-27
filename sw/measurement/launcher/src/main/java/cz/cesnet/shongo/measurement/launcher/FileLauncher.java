@@ -165,7 +165,8 @@ public class FileLauncher {
             long durationBefore = 0;
             long durationAfter = 0;
             if ( echo.getSleep() != null ) {
-                durationBefore = echo.getSleep().longValue() / 2;
+                String sleep = evaluatorScoped.evaluate(echo.getSleep());
+                durationBefore = Long.parseLong(sleep) / 2;
                 durationAfter = durationBefore;
             }
 
@@ -186,7 +187,7 @@ public class FileLauncher {
         else if ( item instanceof Sleep) {
             Sleep sleep = (Sleep)item;
             try {
-                long duration = sleep.getDuration().longValue();
+                long duration = Long.parseLong(evaluatorScoped.evaluate(sleep.getDuration()));
                 System.out.println("[SLEEP:" + duration + "].");
                 Thread.sleep(duration);
             } catch (InterruptedException e) {

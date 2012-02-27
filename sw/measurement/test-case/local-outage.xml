@@ -9,6 +9,7 @@
 
     <variable name="host-activemq" default-value="127.0.0.1:61616" />
     <variable name="agent-count" default-value="2" />
+    <variable name="sleep" default-value="1000" />
 
     <!-- Run Script Variables -->
     <variable name="run-param">
@@ -32,25 +33,28 @@
 
     <echo value="Initialized"/>
 
-    <echo value="Sending first message..." sleep="10000"/>
-    <command for="jvm1">send r{agent-id} "Hello{index} ahoj"</command>
+    <echo value="Sending first message..." sleep="{sleep}"/>
+    <cycle count="5">
+        <command for="jvm1">send r{agent-id} "Hello{index} ahoj"</command>
+        <sleep duration="500"/>
+    </cycle>
 
-    <echo value="Killing server1..." sleep="10000"/>
+    <echo value="Killing server1..." sleep="{sleep}"/>
     <command for="server1">kill</command>
     <command for="jvm1">send r{agent-id} "Hellow when server1 killed"</command>
 
-    <echo value="Killing server2..." sleep="10000"/>
+    <echo value="Killing server2..." sleep="{sleep}"/>
     <command for="server2">kill</command>
     <command for="jvm1">send r{agent-id} "Hello when servers killed"</command>
 
-    <echo value="Starting server1..." sleep="10000"/>
+    <echo value="Starting server1..." sleep="{sleep}"/>
     <command for="server1">start</command>
 
-    <echo value="Killing server1..." sleep="10000"/>
+    <echo value="Killing server1..." sleep="{sleep}"/>
     <command for="server1">kill</command>
     <command for="jvm1">send r{agent-id} "Hello when servers killed second"</command>
 
-    <echo value="Starting server2..." sleep="10000"/>
+    <echo value="Starting server2..." sleep="{sleep}"/>
     <command for="server2">start</command>
 
     <sleep duration="5000"/>

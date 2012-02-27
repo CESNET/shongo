@@ -15,17 +15,16 @@
     <!-- Beans -->
 
     <spring:bean id="foreverRetryPolicyTemplate" class="org.mule.modules.common.retry.policies.ForeverRetryPolicyTemplate">
-        <spring:property name="sleepTime" value="5000" />
+        <spring:property name="sleepTime" value="500" />
     </spring:bean>
 
     <spring:bean id="ThreadingPolicyTemplate" class="org.mule.modules.common.retry.policies.AdaptiveRetryPolicyTemplateWrapper">
         <spring:property name="delegate" ref="foreverRetryPolicyTemplate" />
     </spring:bean>
 
-
     <!-- Connectors -->
 
-    <jms:activemq-connector name="jms" brokerURL="failover:(${jms.url})" specification="1.1">
+    <jms:activemq-connector name="jms" brokerURL="failover:(${jms.url})" specification="1.1" persistentDelivery="true"  maxRedelivery="-1">
        <spring:property name="retryPolicyTemplate" ref="ThreadingPolicyTemplate" />
     </jms:activemq-connector>
 

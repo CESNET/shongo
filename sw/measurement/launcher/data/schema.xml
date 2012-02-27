@@ -20,7 +20,7 @@
         <command for="jvm1">send agent2 Hello</command>
     </cycle>
 
-    <sleep duration="3000" />
+    <sleep duration="{sleep}" />
 
     <cycle count="10">
         <echo value="Text"/>
@@ -31,7 +31,7 @@
         <command for="jvm1">send agent2 Hello</command>
     </cycle>
 
-    <echo value="Text" sleep="5000"/>
+    <echo value="Text" sleep="{duration}"/>
 
     <command for="jvm1">send agent2 Hello2</command>
     <command for="jvm2">send agent1 Hi</command>

@@ -50,13 +50,13 @@
   </xs:element>
   <xs:element name="echo">
     <xs:complexType>
-      <xs:attribute name="sleep" type="xs:integer"/>
+      <xs:attribute name="sleep"/>
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="sleep">
     <xs:complexType>
-      <xs:attribute name="duration" use="required" type="xs:integer"/>
+      <xs:attribute name="duration" use="required"/>
     </xs:complexType>
   </xs:element>
   <xs:element name="command">
