@@ -298,14 +298,32 @@ Telecom Italia has developed a JADE-based mediation layer NNEM to decouple Opera
 
 
 
-
 \section{Mule ESB}
 
 \paragraph{Description.}
 
+An Enterprise Service Bus (ESB) is messaging middleware that provides interoperability between various applications via wide range of standard protocols and technologies. Applications pass messages to ESB which transforms it by set of rules and deliver it to different application by routing mechanism. A message can be passed from application in concrete standard form (e.g. JMS message, HTTP request, SOA request) or directly through ESB resources as ESB message. In both cases the message is transformed into a common form from which the message can be then converted to another protocol or technology to be a suitable input for another application. 
+
+Mule ESB is a lightweight Java-based Enterprise Service Bus (ESB) and integration platform. Mule ESB enables integration of applications regardless of used technologies, including JMS, Web Services, HTTP and a lot of other technologies and provides important security and transaction management.
+
+There are two editions of Mule ESB and both are build on the same codebase:
+\begin{itemize}
+\item \emph{Mule ESB Community} is free version of Mule ESB which includes all main features.
+\item \emph{Mule ESB Enterprise} is superset of Mule ESB Community with additional features and is more suitable for production deployments \footnote{Comparison of Mule ESB editions \url{http://www.mulesoft.com/mule-esb-enterprise}}.
+\end{itemize}
+
+For our analysis, we focus only on JMS transports to ActiveMQ servers.
+
 \paragraph{Notable deployments.}
+Mule ESB provides many case studies\footnote{Mule ESB customers \url{http://www.mulesoft.com/customers}}, for instance:
+\begin{compactitem}
+\item GSI Commerce has built standardized service infrastructure with Mule ESB at core\footnote{GSI Commerce \url{http://www.mulesoft.com/case-study-gsi}}.
+\item Biotech company use Mule ESB alongside ActiveMQ \footnote{Biotech company \url{http://www.mulesoft.com/case-study-fiveprime-therapeutics}}
+\end{compactitem}
 
 \paragraph{License and availability.}
+Licensed under CPAL. Mule ESB Community is open source and available for download. Mule ESB Enterprise is available for download in 30-day trial version.
+
 
 
 \section{FUSE ESB}
