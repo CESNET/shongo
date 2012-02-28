@@ -20,30 +20,51 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
     private boolean result = true;
     private Set<String> messageIdSet = new HashSet<String>();
 
+    public StreamMessageWaiter()
+    {
+        this(null, null, 0);
+    }
+
+    public StreamMessageWaiter(String message)
+    {
+        this(message, null, 1);
+    }
+
     public StreamMessageWaiter(String message, String messageFailure)
     {
         this(message, messageFailure, 1);
+    }
+
+    public StreamMessageWaiter(String message, int number)
+    {
+        this(message, null, number);
     }
 
     public StreamMessageWaiter(String message, String messageFailure, int number)
     {
         super(System.out);
         this.outputStream = System.out;
+        System.setOut(this);
+        this.set(message, messageFailure, number);
+    }
+
+    public void set(String message, String messageFailure, int number)
+    {
         this.message = message;
         this.messageFailure = messageFailure;
         this.number = number;
-        System.setOut(this);
     }
 
     @Override
     public void write(byte[] bytes, int i, int i1) {
+
         String string = new String(bytes, i, i1);
-        if ( string.contains(message) ) {
+        if ( message != null && string.contains(message) ) {
             number--;
             processMessage(string);
             super.write(bytes, i, i1);
             //skipNextNewLine = true;
-        } else if ( string.contains(messageFailure) ) {
+        } else if ( messageFailure != null && string.contains(messageFailure) ) {
             number--;
             result = false;
             super.write(bytes, i, i1);

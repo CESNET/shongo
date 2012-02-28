@@ -20,25 +20,40 @@ import java.util.List;
  *
  * @author Martin Srom
  */
-public abstract class Application {
+public abstract class Application implements StreamConnector.Listener {
     /**
      * Logger
      */
     static protected Logger logger = Logger.getLogger(Agent.class);
 
-    /**
-     * Started message
-     */
+    /** Started message */
     static public final String MESSAGE_STARTED = "[APPLICATION:STARTED]";
-    /**
-     * Startup failed message
-     */
+    /** Startup failed message */
     static public final String MESSAGE_STARTUP_FAILED = "[APPLICATION:STARTUP:FAILED]";
+    /** Stopped message */
+    static public final String MESSAGE_STOPPED = "[APPLICATION:STOPPED]";
+    /** Agents restarted message */
+    static public final String MESSAGE_AGENTS_RESTARTED = "[APPLICATION:AGENTS:RESTARTED]";
 
     /**
      * Application name
      */
     private String name;
+
+    /**
+     * Agent count
+     */
+    private int agentCount;
+
+    /**
+     * Stream message waiter
+     */
+    StreamMessageWaiter streamMessageWaiter = new StreamMessageWaiter();
+
+    /**
+     * Input stream connector
+     */
+    StreamConnector streamConnectorInput = new StreamConnector(System.in);
 
     /**
      * Create application
@@ -47,6 +62,8 @@ public abstract class Application {
      */
     public Application(String name) {
         this.name = name;
+
+        streamConnectorInput.addListener(this);
     }
 
     /**
@@ -169,6 +186,9 @@ public abstract class Application {
             System.exit(0);
         }
 
+        // Get start time
+        long startTime = System.nanoTime();
+
         // Process command line by application
         final String[] applicationArguments = application.onProcessCommandLine(commandLine);
         if (application.onRun() == false) {
@@ -191,24 +211,24 @@ public abstract class Application {
             final String type = typeValue;
 
             // Get agent number
-            int number = 1;
+            application.agentCount = 1;
             StringBuilder numberFormat = new StringBuilder();
             if (commandLine.hasOption("count")) {
-                number = Integer.parseInt(commandLine.getOptionValue("count"));
-                int places = (int) Math.round(Math.log10(number) + 1.0);
+                application.agentCount = Integer.parseInt(commandLine.getOptionValue("count"));
+                int places = (int) Math.round(Math.log10(application.agentCount) + 1.0);
                 for (int index = 0; index < places; index++)
                     numberFormat.append("0");
             }
 
             // Prepare waiter that will wait until all agents are started
             StreamMessageWaiter agentStartedWaiter = new StreamMessageWaiter(Agent.MESSAGE_STARTED,
-                    Agent.MESSAGE_STARTUP_FAILED, number);
+                    Agent.MESSAGE_STARTUP_FAILED, application.agentCount);
             agentStartedWaiter.start();
 
             // StreamConnector reading input for all agent threads
             StreamConnector connector = null;
 
-            if (number == 1) {
+            if ( application.agentCount == 1 ) {
                 Thread thread = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -219,12 +239,12 @@ public abstract class Application {
                 objectToWaitFor.add(thread);
             } else {
                 // run multiple agents
-                if (commandLine.hasOption("single-jvm")) {
+                if ( commandLine.hasOption("single-jvm") ) {
                     // run each agent in a separate thread and connect their input to the console input
                     connector = new StreamConnector(System.in);
                     connector.setForwardStreamEnd(true);
                     final StreamConnector finalConnector = connector;
-                    for (int index = 0; index < number; index++) {
+                    for (int index = 0; index < application.agentCount; index++) {
                         final String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
                         Thread thread = new Thread(new Runnable() {
                             @Override
@@ -245,11 +265,11 @@ public abstract class Application {
                     }
                 } else {
                     // run each agent in a separate process and connect to it
-                    for (int index = 0; index < number; index++) {
+                    for (int index = 0; index < application.agentCount; index++) {
                         String agentNumber = new java.text.DecimalFormat(numberFormat.toString()).format(index + 1);
                         String[] arguments = {agentNumber, agentName + agentNumber, type, agentClass.getName()};
                         arguments = mergeArrays(arguments, applicationArguments);
-                        Process agentProcess = runProcess(agentName + agentNumber, Agent.class, arguments);
+                        Process agentProcess = application.runProcess(agentName + agentNumber, Agent.class, arguments);
                         objectToWaitFor.add(agentProcess);
                     }
                 }
@@ -264,7 +284,8 @@ public abstract class Application {
             }
 
             // Application is started (all agents are started)
-            System.out.println(MESSAGE_STARTED);
+            double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
+            System.out.printf(MESSAGE_STARTED + "[started in %.2f ms]\n", duration);
 
             // if a StreamConnector should multiplex input to all agent threads, start it
             if (connector != null) {
@@ -287,6 +308,7 @@ public abstract class Application {
         }
 
         application.onExit();
+        System.out.println(MESSAGE_STOPPED);
     }
 
     /**
@@ -316,11 +338,6 @@ public abstract class Application {
     }
 
     /**
-     * Input stream connector
-     */
-    static StreamConnector streamConnectorInput = new StreamConnector(System.in);
-
-    /**
      * Run new process from some class that has implemented main() function.
      * All output and errors from process will be printed to standard/error output.
      *
@@ -329,7 +346,7 @@ public abstract class Application {
      * @param arguments Process arguments
      * @return Process the process created
      */
-    public static Process runProcess(final String name, final Class mainClass, final String[] arguments) {
+    public Process runProcess(final String name, final Class mainClass, final String[] arguments) {
         // Run process
         Process process = null;
         try {
@@ -364,4 +381,27 @@ public abstract class Application {
         return process;
     }
 
+    /**
+     * On read buffer from input stream connector
+     *
+     * @param buffer
+     * @return boolean flag if buffer should be send to stream connector output streams
+     */
+    @Override
+    public boolean onRead(String buffer) {
+        if ( buffer.equals("restart") ) {
+            final Application application = this;
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    application.streamMessageWaiter.set(Agent.MESSAGE_RESTARTED, null, agentCount);
+                    application.streamMessageWaiter.start();
+                    application.streamMessageWaiter.waitForMessages();
+                    System.out.println(MESSAGE_AGENTS_RESTARTED);
+                }
+            });
+            thread.start();
+        }
+        return true;
+    }
 }

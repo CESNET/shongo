@@ -30,8 +30,8 @@
     </cycle>
 
     <!-- Kill and start jvm2 -->
-    <command for="jvm2">kill</command>
-    <command for="jvm2">start</command>
+    <command for="jvm2">restart:agent</command>
+    <command for="jvm1">restart:agent</command>
 
     <!-- Enable profiler -->
     <command>profiler:enable</command>

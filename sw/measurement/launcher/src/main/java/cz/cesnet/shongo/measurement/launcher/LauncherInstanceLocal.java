@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.measurement.launcher;
 
 import cz.cesnet.shongo.measurement.common.Application;
-import cz.cesnet.shongo.measurement.common.CommandParser;
 import cz.cesnet.shongo.measurement.common.StreamConnector;
 import cz.cesnet.shongo.measurement.common.StreamMessageWaiter;
 
@@ -10,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
-import java.util.List;
 
 /**
  * Instance of launcjer that runs on same computer as the instance of this class
@@ -33,6 +31,9 @@ public class LauncherInstanceLocal extends LauncherInstance {
 
     /** Flag if instance is started */
     private boolean started = false;
+
+    /** Application waiter */
+    StreamMessageWaiter appWaiter = new StreamMessageWaiter();
 
     /**
      * Constructor
@@ -92,12 +93,71 @@ public class LauncherInstanceLocal extends LauncherInstance {
     }
 
     /**
+     * Perform application start
+     */
+    private void performStart()
+    {
+        System.out.println("starting");
+        if ( started == true )
+            return;
+        System.out.println("[LOCAL:" + getId() + "] Starting application...");
+        this.appWaiter.set(Application.MESSAGE_STARTED,
+                Application.MESSAGE_STARTUP_FAILED, 1);
+        this.appWaiter.start();
+        run(runCommand);
+        this.appWaiter.waitForMessages();
+    }
+
+    /**
+     * Perform application stop
+     */
+    private void performStop()
+    {
+        if ( started == false )
+            return;
+
+        // Quit application agents
+        performInAgents("quit");
+
+        // Close process output stream
+        try {
+            process.getOutputStream().close();
+        } catch (IOException e) {}
+
+        // Wait for stopping
+        try {
+            process.waitFor();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        started = false;
+    }
+
+    /**
+     * Perform command in agents
+     *
+     * @param command
+     */
+    private void performInAgents(String command)
+    {
+        System.out.println("[LOCAL:" + getId() + "] Perform [" + command + "]");
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
+        try {
+            outputStreamWriter.write(command + "\n");
+            outputStreamWriter.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Perform command on local instance
      *
      * @param command
      */
     @Override
-    public void perform(String command) {
+    public void perform(String command)
+    {
         // Kill application
         if ( command.equals("kill") ) {
             if ( started == false )
@@ -115,14 +175,26 @@ public class LauncherInstanceLocal extends LauncherInstance {
         }
         // Start application if not running
         else if ( command.equals("start") ) {
-            if ( started == true )
+            performStart();
+        }
+        // Restart application
+        else if ( command.equals("restart") ) {
+            if ( started == false )
                 return;
-            System.out.println("[LOCAL:" + getId() + "] Starting application...");
-            StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
-                    Application.MESSAGE_STARTUP_FAILED);
-            appStartedWaiter.start();
-            run(runCommand);
-            appStartedWaiter.waitForMessages();
+            System.out.println("[LOCAL:" + getId() + "] Restarting application...");
+            performStop();
+            performStart();
+        }
+        // Restart agents in application
+        else if ( command.equals("restart:agent") ) {
+            if ( started == false )
+                return;
+            System.out.println("[LOCAL:" + getId() + "] Restarting agents...");
+
+            this.appWaiter.set(Application.MESSAGE_AGENTS_RESTARTED, null, 1);
+            this.appWaiter.start();
+            performInAgents("restart");
+            this.appWaiter.waitForMessages();
         }
         // Enable profiler
         else if ( command.equals("profiler:enable") ) {
@@ -136,14 +208,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
         }
         // Other commands pass to agents
         else if ( started ){
-            System.out.println("[LOCAL:" + getId() + "] Perform [" + command + "]");
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(process.getOutputStream());
-            try {
-                outputStreamWriter.write(command + "\n");
-                outputStreamWriter.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            performInAgents(command);
         }
     }
 

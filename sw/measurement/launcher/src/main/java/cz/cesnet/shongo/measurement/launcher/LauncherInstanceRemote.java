@@ -55,6 +55,10 @@ public class LauncherInstanceRemote extends LauncherInstance {
         output.printf("perform \"%s\"\n", command);
         try {
             String result = input.readLine();
+            if ( result == null ) {
+                System.err.println("[REMOTE:" + getId() + "] Failed to perform command!");
+                return;
+            }
             if ( result.equals("[PERFORMED]") == false )
                 System.out.println("[REMOTE:" + getId() + "] " + result);
         } catch (IOException e) {

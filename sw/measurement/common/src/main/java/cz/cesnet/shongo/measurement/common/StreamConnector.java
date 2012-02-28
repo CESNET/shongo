@@ -33,6 +33,17 @@ public class StreamConnector extends Thread
     private boolean forwardStreamEnd = false;
 
     /**
+     * Stream listener
+     */
+    public static interface Listener
+    {
+        public boolean onRead(String buffer);
+    }
+
+    /** Listeners */
+    private List<Listener> listeners = new ArrayList<Listener>();
+
+    /**
      * Specify the streams that this object will connect in the run()
      * method.
      *
@@ -91,6 +102,16 @@ public class StreamConnector extends Thread
     }
 
     /**
+     * Add listener
+     *
+     * @param listener
+     */
+    public void addListener(Listener listener)
+    {
+        listeners.add(listener);
+    }
+
+    /**
      * Read the InputStream and write the data to OutputStream instances.
      */
     public void run()
@@ -139,6 +160,14 @@ public class StreamConnector extends Thread
      */
     private void printOutput(byte[] buffer, int bufferPosition, int bufferCount) throws IOException
     {
+        if ( listeners.size() > 0 ) {
+            String text = new String(buffer, bufferPosition, bufferCount);
+            for ( Listener listener : listeners ) {
+                if ( listener.onRead(text.toString()) == false )
+                    return;
+            }    
+        }
+        
         for ( OutputStream outputStream : outputStreamList ) {
             // prepare the byte array to output atomically to prevent mixing of multiple streams together
             boolean printName = (outputStream instanceof PrintStream && name != null);
@@ -154,7 +183,7 @@ public class StreamConnector extends Thread
             }
             
             for (int j = 0; j < bufferCount; j++) {
-                outBuf[i++] = buffer[ bufferPosition + j ];
+                outBuf[i++] = buffer[bufferPosition + j];
             }
             outBuf[i++] = '\n';
             outputStream.write(outBuf);

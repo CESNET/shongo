@@ -31,6 +31,10 @@ public abstract class Agent
     static public final String MESSAGE_STARTED = "[AGENT:STARTED]";
     /** Startup failed message */
     static public final String MESSAGE_STARTUP_FAILED = "[AGENT:STARTUP:FAILED]";
+    /** Restarted message */
+    static public final String MESSAGE_RESTARTED = "[AGENT:RESTARTED]";
+    /** Stopped message */
+    static public final String MESSAGE_STOPPED = "[AGENT:STOPPED]";
 
     /** Agent index */
     private String id;
@@ -43,6 +47,9 @@ public abstract class Agent
 
     /** Stream to read input from */
     private InputStream inputStream = System.in;
+
+    /** Agent start time */
+    private long startTime;
 
     /** Type enumeration */
     public enum Type
@@ -190,13 +197,15 @@ public abstract class Agent
             System.out.println(consolePrefix + MESSAGE_STARTUP_FAILED);
             return;
         }
-        System.out.println(consolePrefix + MESSAGE_STARTED);
+        double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
+        System.out.printf(consolePrefix + MESSAGE_STARTED + "[started in %.2f ms]\n", duration);
 
         // Run generic agent
         onRun();
 
         // Stop agent by agent implementation
         stopImpl();
+        System.out.println(consolePrefix + MESSAGE_STOPPED);
     }
 
     /**
@@ -268,6 +277,13 @@ public abstract class Agent
             String message = arguments.get(1);
             onSendMessage(agentName, message);
         }
+        else if ( command.equals("restart") ) {
+            long startTime = System.nanoTime();
+            stopImpl();
+            startImpl();
+            double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
+            System.out.printf(MESSAGE_RESTARTED + "[restarted in %.2f ms]\n", duration);
+        }
         else if ( command.equals("quit") ) {
             System.out.println(consolePrefix + "Quiting...");
             return true;
@@ -331,6 +347,9 @@ public abstract class Agent
         if (consolePrefix != null) {
             agent.consolePrefix = consolePrefix;
         }
+
+        // Set start time
+        agent.startTime = System.nanoTime();
 
         // Pass arguments
         agent.onProcessArguments(agentArguments);
