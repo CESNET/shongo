@@ -21,6 +21,7 @@ import net.jxta.platform.NetworkManager;
 import net.jxta.protocol.PipeAdvertisement;
 import net.jxta.util.JxtaBiDiPipe;
 import net.jxta.util.JxtaServerPipe;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 public class Peer implements PipeMsgListener {
@@ -106,8 +107,11 @@ public class Peer implements PipeMsgListener {
      */
     public boolean start() {
         try {
+            String dataPath = ".jxta/" + peerName;
+            FileUtils.deleteDirectory(new File(dataPath));
+
             // Creation of network manager
-            networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(".jxta/" + peerName).toURI());
+            networkManager = new NetworkManager(NetworkManager.ConfigMode.EDGE, peerName, new File(dataPath).toURI());
             // Automtic stop network on shutdown
             networkManager.registerShutdownHook();
 

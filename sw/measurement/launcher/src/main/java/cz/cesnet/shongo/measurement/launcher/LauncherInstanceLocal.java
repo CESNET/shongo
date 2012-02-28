@@ -97,7 +97,6 @@ public class LauncherInstanceLocal extends LauncherInstance {
      */
     private void performStart()
     {
-        System.out.println("starting");
         if ( started == true )
             return;
         System.out.println("[LOCAL:" + getId() + "] Starting application...");

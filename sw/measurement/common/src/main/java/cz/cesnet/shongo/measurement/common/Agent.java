@@ -223,6 +223,13 @@ public abstract class Agent
     }
 
     /**
+     * Exit agent
+     */
+    protected void exit()
+    {
+    }
+
+    /**
      * On send message event is called every time the message should be sent.
      *
      * @param receiverName
@@ -374,6 +381,7 @@ public abstract class Agent
             agent.setType(Type.Default);
 
         agent.run();
+        agent.exit();
     }
 
     /**
