@@ -94,7 +94,6 @@ public class LauncherApplication {
                 if ( parts.length < 2 )
                     continue;
                 evaluator.setVariable(parts[0], parts[1]);
-                System.out.println("Define " + parts[0] + " as " + parts[1]);
             }
         }
 
