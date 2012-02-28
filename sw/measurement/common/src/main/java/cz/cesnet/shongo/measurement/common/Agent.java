@@ -48,9 +48,6 @@ public abstract class Agent
     /** Stream to read input from */
     private InputStream inputStream = System.in;
 
-    /** Agent start time */
-    private long startTime;
-
     /** Type enumeration */
     public enum Type
     {
@@ -187,25 +184,42 @@ public abstract class Agent
         logError("Listing agents not supported on this implementation");
     }
 
+    final private boolean start()
+    {
+        long startTime = System.nanoTime();
+
+        // Start agent by agent implementation
+        if ( startImpl() == false ) {
+            System.out.println(consolePrefix + MESSAGE_STARTUP_FAILED);
+            return false;
+        }
+
+        double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
+        System.out.printf(consolePrefix + MESSAGE_STARTED + "[in %.2f ms]\n", duration);
+
+        return true;
+    }
+
+    final private void stop()
+    {
+        long startTime = System.nanoTime();
+
+        // Stop agent by agent implementation
+        stopImpl();
+
+        double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
+        System.out.printf(consolePrefix + MESSAGE_STOPPED + "[in %.2f ms]\n", duration);
+
+    }
+
     /**
      * Run agent.
      */
     public void run()
     {
-        // Start agent by agent implementation
-        if ( startImpl() == false ) {
-            System.out.println(consolePrefix + MESSAGE_STARTUP_FAILED);
-            return;
-        }
-        double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
-        System.out.printf(consolePrefix + MESSAGE_STARTED + "[started in %.2f ms]\n", duration);
-
-        // Run generic agent
+        start();
         onRun();
-
-        // Stop agent by agent implementation
-        stopImpl();
-        System.out.println(consolePrefix + MESSAGE_STOPPED);
+        stop();
     }
 
     /**
@@ -279,10 +293,10 @@ public abstract class Agent
         }
         else if ( command.equals("restart") ) {
             long startTime = System.nanoTime();
-            stopImpl();
-            startImpl();
+            stop();
+            start();
             double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
-            System.out.printf(MESSAGE_RESTARTED + "[restarted in %.2f ms]\n", duration);
+            System.out.printf(MESSAGE_RESTARTED + "[in %.2f ms]\n", duration);
         }
         else if ( command.equals("quit") ) {
             System.out.println(consolePrefix + "Quiting...");
@@ -347,9 +361,6 @@ public abstract class Agent
         if (consolePrefix != null) {
             agent.consolePrefix = consolePrefix;
         }
-
-        // Set start time
-        agent.startTime = System.nanoTime();
 
         // Pass arguments
         agent.onProcessArguments(agentArguments);

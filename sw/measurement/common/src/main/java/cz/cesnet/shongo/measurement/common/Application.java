@@ -283,9 +283,9 @@ public abstract class Application implements StreamConnector.Listener {
                 return;
             }
 
-            // Application is started (all agents are started)
             double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
-            System.out.printf(MESSAGE_STARTED + "[started in %.2f ms]\n", duration);
+            // Application is started (all agents are started)
+            System.out.printf(MESSAGE_STARTED + "[in %.2f ms]\n", duration);
 
             // if a StreamConnector should multiplex input to all agent threads, start it
             if (connector != null) {
@@ -390,6 +390,7 @@ public abstract class Application implements StreamConnector.Listener {
     @Override
     public boolean onRead(String buffer) {
         if ( buffer.equals("restart") ) {
+            final long startTime = System.nanoTime();
             final Application application = this;
             Thread thread = new Thread(new Runnable() {
                 @Override
@@ -397,7 +398,10 @@ public abstract class Application implements StreamConnector.Listener {
                     application.streamMessageWaiter.set(Agent.MESSAGE_RESTARTED, null, agentCount);
                     application.streamMessageWaiter.start();
                     application.streamMessageWaiter.waitForMessages();
-                    System.out.println(MESSAGE_AGENTS_RESTARTED);
+
+                    // Agents are restarted
+                    double duration = (double)(System.nanoTime() - startTime) / 1000000.0;
+                    System.out.printf(MESSAGE_AGENTS_RESTARTED + "[in %.2f ms]\n", duration);
                 }
             });
             thread.start();
