@@ -7,9 +7,9 @@
         <xs:element maxOccurs="unbounded" ref="instance"/>
         <xs:choice maxOccurs="unbounded">
           <xs:element ref="command"/>
+          <xs:element ref="cycle"/>
           <xs:element ref="echo"/>
           <xs:element ref="sleep"/>
-          <xs:element ref="cycle"/>
         </xs:choice>
       </xs:sequence>
     </xs:complexType>
@@ -42,6 +42,7 @@
     <xs:complexType>
       <xs:choice maxOccurs="unbounded">
         <xs:element ref="command"/>
+        <xs:element ref="cycle"/>
         <xs:element ref="echo"/>
         <xs:element ref="sleep"/>
       </xs:choice>
@@ -54,14 +55,14 @@
       <xs:attribute name="value" use="required" type="xs:NCName"/>
     </xs:complexType>
   </xs:element>
-  <xs:element name="sleep">
-    <xs:complexType>
-      <xs:attribute name="duration" use="required"/>
-    </xs:complexType>
-  </xs:element>
   <xs:element name="command">
     <xs:complexType mixed="true">
       <xs:attribute name="for" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="sleep">
+    <xs:complexType>
+      <xs:attribute name="duration" use="required"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>

@@ -20,26 +20,53 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
     private boolean result = true;
     private Set<String> messageIdSet = new HashSet<String>();
 
+    /**
+     * Constructor
+     */
     public StreamMessageWaiter()
     {
         this(null, null, 0);
     }
 
+    /**
+     * Constructor
+     *
+     * @param message Message to watch
+     */
     public StreamMessageWaiter(String message)
     {
         this(message, null, 1);
     }
 
+    /**
+     * Constructor
+     *
+     * @param message Message to watch
+     * @param messageFailure Failure message to watch
+     */
     public StreamMessageWaiter(String message, String messageFailure)
     {
         this(message, messageFailure, 1);
     }
 
+    /**
+     * Constructor
+     *
+     * @param message Message to watch
+     * @param number Number of times that message should appear
+     */
     public StreamMessageWaiter(String message, int number)
     {
         this(message, null, number);
     }
 
+    /**
+     * Constructor
+     *
+     * @param message Message to watch
+     * @param messageFailure Failure message to watch
+     * @param number Number of times that message should appear
+     */
     public StreamMessageWaiter(String message, String messageFailure, int number)
     {
         super(System.out);
@@ -48,6 +75,13 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
         this.set(message, messageFailure, number);
     }
 
+    /**
+     * Setup waiter
+     *
+     * @param message Message to watch
+     * @param messageFailure Failure message to watch
+     * @param number Number of times that message should appear
+     */
     public void set(String message, String messageFailure, int number)
     {
         this.message = message;
@@ -55,6 +89,13 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
         this.number = number;
     }
 
+    /**
+     * Write bytes
+     *
+     * @param bytes
+     * @param i
+     * @param i1
+     */
     @Override
     public void write(byte[] bytes, int i, int i1) {
 
@@ -80,16 +121,28 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
         }
     }
 
-    public void start()
+    /**
+     * Start waiter watching for messages
+     */
+    public void startWatching()
     {
         thread = new Thread(this);
         thread.start();
     }
 
-    public void stop() {
+    /**
+     * Stop waiter watching for messages
+     */
+    public void stopWatching()
+    {
         thread.stop();
     }
 
+    /**
+     * Wait until all message arrives
+     *
+     * @return true if none message was failure otherwise false
+     */
     public boolean waitForMessages() {
         try {
             thread.join();
@@ -99,14 +152,30 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
         return result;
     }
 
+    /**
+     * Check if concrete message with specified id arrived
+     *
+     * @param messageId
+     * @return
+     */
     public boolean isMessage(String messageId) {
         return messageIdSet.contains(messageId);
     }
 
+    /**
+     * Check if waiting is running
+     *
+     * @return
+     */
     public boolean isRunning() {
         return number > 0;
     }
 
+    /**
+     * Process arrived message
+     *
+     * @param message
+     */
     private void processMessage(String message) {
         String messageId = null;
         int pos = -1;
@@ -119,6 +188,9 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
         messageIdSet.add(messageId);
     }
 
+    /**
+     * Run watching thread
+     */
     @Override
     public void run()
     {
@@ -127,7 +199,15 @@ public class StreamMessageWaiter extends PrintStream implements Runnable
                 Thread.sleep(100);
             } catch (InterruptedException e) {}
         }
-        System.setOut(outputStream);
         Thread.yield();
     }
+
+    /**
+     * Stop waiter watching the System.out
+     */
+    public void stopWatchingSystem()
+    {
+        System.setOut(outputStream);
+    }
+
 }

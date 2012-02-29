@@ -73,6 +73,9 @@ public class LauncherInstanceLocal extends LauncherInstance {
             e.printStackTrace();
         }
 
+        if ( profiler != null ) {
+            profiler.stop();
+        }
         profiler = new Profiler(pid);
         profiler.start();
 
@@ -102,7 +105,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
         System.out.println("[LOCAL:" + getId() + "] Starting application...");
         this.appWaiter.set(Application.MESSAGE_STARTED,
                 Application.MESSAGE_STARTUP_FAILED, 1);
-        this.appWaiter.start();
+        this.appWaiter.startWatching();
         run(runCommand);
         this.appWaiter.waitForMessages();
     }
@@ -191,7 +194,7 @@ public class LauncherInstanceLocal extends LauncherInstance {
             System.out.println("[LOCAL:" + getId() + "] Restarting agents...");
 
             this.appWaiter.set(Application.MESSAGE_AGENTS_RESTARTED, null, 1);
-            this.appWaiter.start();
+            this.appWaiter.startWatching();
             performInAgents("restart");
             this.appWaiter.waitForMessages();
         }

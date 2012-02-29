@@ -57,7 +57,7 @@ public class FileLauncher {
         // Wait for instances startup
         StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
                 Application.MESSAGE_STARTUP_FAILED, instances.size());
-        appStartedWaiter.start();
+        appStartedWaiter.startWatching();
 
         System.out.println("[LAUNCHER] Running instances....");
 
@@ -96,7 +96,7 @@ public class FileLauncher {
 
             if ( !launcherInstance.run(command) ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
-                appStartedWaiter.stop();
+                appStartedWaiter.stopWatching();
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {}
@@ -114,11 +114,12 @@ public class FileLauncher {
             System.out.println("[LAUNCHER] Failed to run some instances!");
             return;
         }
+        appStartedWaiter.stopWatchingSystem();
 
         System.out.println("[LAUNCHER] Instances successfully started!");
 
         // Perform commands
-        List<Object> list = launcher.getCommandOrEchoOrSleep();
+        List<Object> list = launcher.getCommandOrCycleOrEcho();
         for ( Object item : list ) {
             performItem(item, evaluator, launcherInstances);
         }
@@ -136,7 +137,7 @@ public class FileLauncher {
             Cycle cycle = (Cycle)item;
             for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
                 evaluatorScoped.setVariable("index", new Integer(index).toString());
-                List<Object> list = cycle.getCommandOrEchoOrSleep();
+                List<Object> list = cycle.getCommandOrCycleOrEcho();
                 for ( Object listItem : list ) {
                     performItem(listItem, evaluatorScoped, launcherInstances);
                 }

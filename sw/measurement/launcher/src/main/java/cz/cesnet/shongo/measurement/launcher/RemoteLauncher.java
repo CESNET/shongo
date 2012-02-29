@@ -56,7 +56,7 @@ public class RemoteLauncher {
                 launcherInstance = new LauncherInstanceLocal(id);
                 StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
                         Application.MESSAGE_STARTUP_FAILED);
-                appStartedWaiter.start();
+                appStartedWaiter.startWatching();
                 launcherInstance.run(execute);
                 if ( appStartedWaiter.waitForMessages() ) {
                     output.println(Application.MESSAGE_STARTED + "[" + id + "]");
@@ -66,6 +66,7 @@ public class RemoteLauncher {
                     output.println(Application.MESSAGE_STARTUP_FAILED);
                     output.flush();
                 }
+                appStartedWaiter.stopWatchingSystem();
             } else if ( command.equals("perform") ) {
                 String perform = list.get(1);
                 System.out.println("[REMOTE] Received for [" + launcherInstance.getId() + "] command perform [" + perform + "]");

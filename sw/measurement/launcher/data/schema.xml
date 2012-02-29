@@ -23,8 +23,22 @@
     <sleep duration="{sleep}" />
 
     <cycle count="10">
+        <cycle count="10">
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+            <echo value="Text"/>
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+        </cycle>
         <echo value="Text"/>
         <sleep duration="1000" />
+        <cycle count="10">
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+            <echo value="Text"/>
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+        </cycle>
         <command for="jvm1">send agent2 Hello</command>
         <sleep duration="1000" />
         <echo value="Text"/>

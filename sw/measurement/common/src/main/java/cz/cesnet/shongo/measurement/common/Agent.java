@@ -298,6 +298,15 @@ public abstract class Agent
             String message = arguments.get(1);
             onSendMessage(agentName, message);
         }
+        else if ( command.equals("send-delayed") && arguments.size() >= 3 ) {
+            try {
+                Thread.sleep(Integer.parseInt(arguments.get(0)));
+            } catch (InterruptedException e) {}
+            String agentName = arguments.get(1);
+            agentName = agentName.replaceAll("\\{agent-id\\}", getId());
+            String message = arguments.get(2);
+            onSendMessage(agentName, message);
+        }
         else if ( command.equals("restart") ) {
             long startTime = System.nanoTime();
             stop();

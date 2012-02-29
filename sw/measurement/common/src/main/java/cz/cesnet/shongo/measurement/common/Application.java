@@ -223,7 +223,7 @@ public abstract class Application implements StreamConnector.Listener {
             // Prepare waiter that will wait until all agents are started
             StreamMessageWaiter agentStartedWaiter = new StreamMessageWaiter(Agent.MESSAGE_STARTED,
                     Agent.MESSAGE_STARTUP_FAILED, application.agentCount);
-            agentStartedWaiter.start();
+            agentStartedWaiter.startWatching();
 
             // StreamConnector reading input for all agent threads
             StreamConnector connector = null;
@@ -396,7 +396,7 @@ public abstract class Application implements StreamConnector.Listener {
                 @Override
                 public void run() {
                     application.streamMessageWaiter.set(Agent.MESSAGE_RESTARTED, null, agentCount);
-                    application.streamMessageWaiter.start();
+                    application.streamMessageWaiter.startWatching();
                     application.streamMessageWaiter.waitForMessages();
 
                     // Agents are restarted
