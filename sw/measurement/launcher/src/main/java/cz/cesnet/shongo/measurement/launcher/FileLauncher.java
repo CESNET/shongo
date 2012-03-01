@@ -44,9 +44,12 @@ public class FileLauncher {
             String platformType = evaluator.getVariable("platform");
             List<Platform> platforms = variable.getPlatform();
             for ( Platform platform : platforms ) {
-                if ( platform.getType().equals(platformType) ) {
-                    String value = platform.getValue();
-                    evaluator.setVariable(variable.getName(), value);
+                String[] platformTypes = platform.getType().split(",");
+                for ( String type : platformTypes ) {
+                    if ( type.equals(platformType) ) {
+                        String value = platform.getValue();
+                        evaluator.setVariable(variable.getName(), value);
+                    }
                 }
             }
         }
