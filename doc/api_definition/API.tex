@@ -186,8 +186,8 @@ Some querying/filtering language needs to be supported to limit list to
 
 \item reservation owner(s),
 
-\item users involved (may be humans as well as service-users, such as rooms
-with equipment) involved in the room as participants.
+\item users involved (may be humans as well as resources, such as rooms with
+equipment) involved in the room as participants.
 
 \end{compactitem}
 
@@ -308,11 +308,11 @@ layout, if available through API of virtual room provider.
 
 Immediate disconnection of a user.
 
-\UseCase{Disable H.239 content from a specific user}{ops:room:user-content}
+\UseCase{Disable H.239 content from a specific user}{ops:room:disable-user-content}
 
 Disable content the user to be H.239 content provider for the given room. 
 
-\UseCase{Enable H.239 content only from a specific user}{ops:room:user-content}
+\UseCase{Enable H.239 content only from a specific user}{ops:room:specific-user-content}
 
 Enable H.239 content only from the specific user, typically by disabling
 content from all other users. Normally, users may fight who is going to be the
