@@ -8,12 +8,10 @@
 \usepackage{mathpazo}
 \usepackage{microtype}
 \renewcommand*\ttdefault{txtt}
-\usepackage{eurosym}
 
 \usepackage[czech,english]{babel}
 
 \usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
-\usepackage{tocbibind} 
 \usepackage{url}
 \usepackage{paralist}
 \usepackage{graphicx}
@@ -37,7 +35,7 @@
 \newcounter{UCcounter}
 \setcounter{UCcounter}{0}
 \newenvironment{UseCases}%
-	{\begin{list}{UC-\arabic{UCcounter}}{\@nmbrlisttrue\def\@listctr{UCcounter}}}%
+	{\begin{list}{\textbf{UC-\arabic{UCcounter}}}{\@nmbrlisttrue\def\@listctr{UCcounter}}}%
 	{\end{list}}
 \newcommand{\UClabel}[1]{\label{UC:#1}}
 \newcommand{\UCref}[1]{UC-\ref{UC:#1}}
@@ -75,6 +73,33 @@
 
 \begin{UseCases}
 
+\UseCase{Types of specifications}{rsv:specifications}
+
+Specification of a resource, being object of a reservation, may be of the
+following types:
+
+\begin{compactitem}
+
+\item a \emph{fully-qualified explicit specification (FQESpec)} -- specifies
+exactly one element; it ma refer to a specific device (e.g., H.323 endpoint,
+web browser as an endpoint for Adobe Connect), a specific server (e.g., a
+specific Adobe Connect server or H.323 MCU), a specific physical room, or a
+specific virtual room (e.g., a specific room running on specific H.323 MCU),
+
+\item a \emph{partially-qualified explicit specification (PQESpec)} --
+specifies a class/type of a resource (e.g., H.323 endpoint) and it is up to the
+scheduling to find suitable one (combination of availability and access-level
+for given user),
+
+\item a \emph{implicit specification (ISpec)} -- the user does not specify such
+a resource, but the resource is needed to implement user's request (e.g., if
+user specifies Connect and H.323 endpoints, a gateway/connector is needed to
+implement the translation; if user specifies multiple H.323 endpoints beyond
+MCU-capability of each of them, some MCU is needs to be included).  
+
+\end{compactitem}
+
+
 \UseCase{One Time reservation}{rsv:reservation:one}
 
 Common type of reservation, where a user requests certain resources for limited
@@ -84,19 +109,26 @@ time duration. Unlimited reservations are not assumed by this scenario (see
 Start time of a reservation may be any time in the future or \emph{now}, which
 is also called \emph{ad hoc} reservation.
 
-Reserved resources may be given explicitly (exactly what amount of resourceson
-which server) or implicitly.  The implicit resources are scheduled by Shongo
-scheduler based on user input, e.g., 
+Reserved resources may be given as FQESpec, PQESpec, or ISpec. FQESpec are
+either accepted or denied by the scheduler, while other types of the
+specifications are looked for their best match. PQESpec may include the
+following:
 
 \begin{compactitem}
-
-\item amount of central resources (such as H.323 MCU ports or Connect licenses)
-based on specified number of (H.323/SIP or web-browser) participants,
 
 \item user may request a general endpoint and Shongo should try to find the
 closest matching endpoint available to the user (e.g., user requests a H.323
 endpoint for a conference since she has no personal endpoint, and she is
 assigned a room-based H.323 endpoint provided the room is available),
+
+\end{compactitem}
+
+while examples of ISpec are as follows:
+
+\begin{compactitem}
+
+\item amount of central resources (such as H.323 MCU ports or Connect licenses)
+based on specified number of (H.323/SIP or web-browser) participants,
 
 \item any interconnecting elements (e.g., gateways) to interconnect the
 endpoints specified by the user; if only part of the endpoints can be
@@ -106,7 +138,29 @@ and what parts are disconnected.
 \end{compactitem}
 
 Each reservation has to be given a unique identifier that is further used for
-any references to it.
+any references to it. If the reservation is denied, reasons for denying should
+be communicated to the requester. In case that the reservation succeeds, all
+the users involved should be notified.
+
+
+Each reservation has to include:
+
+\begin{compactitem}
+
+\item unique identifier,
+
+\item timespan definition,
+
+\item requester's identifier,
+
+\item name,
+
+\item links to the resources involved, including specification of the amount of resources consumed,
+
+\item list of users involved.
+
+\end{compactitem}
+
 
 
 \UseCase{Periodic reservation}{rsv:reservation:periodic}
@@ -124,40 +178,74 @@ Shongo scheduling.
 
 Some querying/filtering language needs to be supported to limit list to
 
-\begin{UseCases}
+\begin{compactitem}
 
-\item specific room types (H.323, SIP, Connect, etc.),
+\item room types (H.323, SIP, Connect, etc.),
 
-\item specific reservation owner(s),
+\item equipment (be it class of equipment or a specific device).
 
-\item specific users (may be humans as well as service-users, such as rooms
+\item reservation owner(s),
+
+\item users involved (may be humans as well as service-users, such as rooms
 with equipment) involved in the room as participants.
 
-\end{UseCases}
+\end{compactitem}
 
 \UseCase{Modification of a reservation}{rsv:modify}
 
+Any attribute of a reservation may be requested to change. The request may be
+accepted or denied by the scheduler. In case of the denial, reasons for denial
+should be communicated to the requester. If the modification succeeds, all the
+users involved should be notified.
+
 \UseCase{Release/canceling of a reservation}{rsv:release}
+
+All the users involved should be notified.
 
 \UseCase{Migration of a reservation}{rsv:migration}
 
-\UseCase{Notify participants of a reservation}{rsv:notify-rsv}
+If the change is visible to the users (e.g., typically this would include
+change of the server/MCU the users connect to), all the users involved should
+be notified.
 
-All the (explicitly named) participants should receive an email that they are invited to participate in the room.
+\UseCase{Notification of participants}{rsv:notification}
 
-\UseCase{Notification of a user in case of reservation
-change}{rsv:notify-change}
-
-The notifications should be sent via email, but if user registers a cell phone
-number, sending an SMS might also be very comfortable option.
+In case of making, modifying, or canceling a reservation, all the users
+involved should be notified, as specified in \UCref{rsv:reservation:one},
+\UCref{rsv:reservation:periodic}, \UCref{rsv:reservation:permanent},
+\UCref{rsv:modify}, \UCref{rsv:release}, and \UCref{rsv:migration}. By default,
+the users should be notified via email, but it would be interesting to provide
+also SMS notification service.
 
 \UseCase{Reservations of rooms, public or semi-private endpoints,
 etc.}{rsv:service-users}
 
-Each reservation may include service-users (beyond human users with private
-endpoints---H.323/SIP/web), which represent entities such as rooms,
+Each reservation may include endpoint resources (beyond human users with
+private endpoints---H.323/SIP/web), which represent entities such as rooms,
 non-personal endpoints, etc., that can be scheduled in a similar way to central
 resources.
+
+This type of reservation may be either part of some infrastructure reservation
+(see \UCref{rsv:reservation:one}, \UCref{rsv:reservation:periodic},
+\UCref{rsv:reservation:permanent}) or standalone reservation (e.g., reservation
+of a meeting room with H.323 equipment to disable the room from scheduling for
+given time duration).
+
+
+\UseCase{Reservation of recording capacity}{rsv:recording}
+
+Usually part of some infrastructure reservation (see
+\UCref{rsv:reservation:one}, \UCref{rsv:reservation:periodic},
+\UCref{rsv:reservation:permanent}), but may be completely standalone in case
+that only recording server is used of the Shongo-managed infrastructure.
+
+
+\UseCase{Reservation of streaming capacity}{rsv:streaming}
+
+May part of some infrastructure reservation (see \UCref{rsv:reservation:one},
+\UCref{rsv:reservation:periodic}, \UCref{rsv:reservation:permanent}), but may
+be completely standalone in case that only streaming server is used of the
+Shongo-managed infrastructure.
 
 \end{UseCases}
 
@@ -179,7 +267,7 @@ middleware.
 
 Clients should be automatically redirected to the new server, if technology
 permits, or at least notified of the migration (email, SMS---see
-\UCref{rsv:notify-change}).
+\UCref{rsv:notification}).
 
 Some functionality will be common~\UCref{rsv:migration}.
 
@@ -277,9 +365,13 @@ least the following:
 
 \item memory load
 
-\item disk occupancy (if available)
+\item disk occupancy
 
 \end{compactitem}
+
+Obviously, this information may or may not be available for specific device.
+In case that the information is not available, the API should report this in a
+consistent way (specific exception or unique return value).
 
 
 \UseCase{Schedule server downtime}{mgmt:srv:schedule-downtime}
