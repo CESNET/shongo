@@ -277,6 +277,11 @@ Some functionality will be common~\UCref{rsv:migration}.
 
 \begin{UseCases}
 
+\UseCase{Get room information on Shongo level}{ops:room:shongo-options}
+
+This information typically includes name, owner, duration and type.
+
+
 \UseCase{List users}{ops:room:users-list}
 
 Each user should be given a unique identifier in the output list that can be
@@ -291,19 +296,60 @@ between the two sessions).
 
 Print all the statistics we can get about a user participating in the room. It
 should contain technology agnostic part (e.g., when the user joined) and
-technology specific part (e.g., H.323 statistics).
+technology specific part (i.e., H.323 statistics, H.245/SIP capabilities
+negotiation info, H.239 content information, etc.).
 
 \UseCase{Set room layout}{ops:room:layout}
 
+Shongo should be able to set up global layout of a room and user-specific
+layout, if available through API of virtual room provider.
+
 \UseCase{Disconnect a user}{ops:room:user-disconnect}
 
-\UseCase{Mute a user}{ops:room:user-mute}
+Immediate disconnection of a user.
+
+\UseCase{Disable H.239 content from a specific user}{ops:room:user-content}
+
+Disable content the user to be H.239 content provider for the given room. 
+
+\UseCase{Enable H.239 content only from a specific user}{ops:room:user-content}
+
+Enable H.239 content only from the specific user, typically by disabling
+content from all other users. Normally, users may fight who is going to be the
+content provider.
+
+\UseCase{Mute a user}{ops:room:user-mute} Mutes user on the room level.
+Optionally if user's endpoint is also controlled by Shongo, it should provide
+means to mute the endpoint (which can be easily unmuted by the user).
 
 \UseCase{Set microphone audio level for a user}{ops:room:user-miclevel}
 
+Sets the audio from the user on the room level. Optionally, if user's endpoint
+is also controlled by Shongo, it should provide means to control mic level on
+the endpoint. In this case, audio should be normalized on the endpoint before
+doing modifications on room level (if the sound is too low or too high and
+distorted, it may not be corrected on the MCU).
+
 \UseCase{Set playback audio level for a user}{ops:room:user-playlevel}
 
+This functionality is typically available only when user's endpoint is also
+controlled by Shongo.
+
 \UseCase{Disable video of a user}{ops:room:user-video-off}
+
+\UseCase{Video snapshot for a user}{ops:room:user-video-snap}
+
+If provided by the room provider (MCU, web conferencing, etc.), we should be
+able to get video snapshot of:
+
+\begin{compactitem}
+
+\item video sent by the user,
+
+\item video received by the user.
+
+\end{compactitem}
+
 
 \UseCase{Set layout specific for a user}{ops:room:user-layout}
 
@@ -321,9 +367,14 @@ If technology and access policy permits, we should be able to download and
 upload content of the room (e.g., documents, notes, polls, etc.). See
 \UCref{ops:room:settings-down-up}.
 
-\UseCase{Set technology-specific properties for a room}{ops:room:room-techspec}
+\UseCase{Get/set technology-specific properties for a
+room}{ops:room:room-techspec}
 
-\UseCase{Set technology-specific properties for a user}{ops:room:user-techspec}
+This may include specific attributes of the room (typically on room provider
+level), such as enabled codecs.
+
+\UseCase{Get/set technology-specific properties for a
+user}{ops:room:user-techspec}
 
 \end{UseCases}
 
