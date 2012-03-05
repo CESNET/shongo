@@ -1,0 +1,183 @@
+\documentclass[a4paper]{report}
+\usepackage{geometry}
+\geometry{paper=a4paper}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenx}
+\usepackage{palatino}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\renewcommand*\ttdefault{txtt}
+\usepackage{eurosym}
+
+\usepackage[czech,english]{babel}
+
+\usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
+\usepackage{tocbibind} 
+\usepackage{url}
+\usepackage{paralist}
+\usepackage{graphicx}
+\usepackage{xtab}
+\usepackage{booktabs}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage{xspace}
+
+% this is to protect verbatim
+\usepackage{cprotect}
+
+\newcommand{\APIcmd}[1]{\item \texttt{#1}}
+
+\newenvironment{APIdef}{\begin{itemize}}{\end{itemize}}
+
+%{{{
+\makeatletter
+% we need to take only part of the \usecounter definition for DCcounter - no
+% resets are wanted after end of the environment
+\newcounter{UCcounter}
+\setcounter{UCcounter}{0}
+\newenvironment{UseCases}%
+	{\begin{list}{UC-\arabic{UCcounter}}{\@nmbrlisttrue\def\@listctr{UCcounter}}}%
+	{\end{list}}
+\newcommand{\UClabel}[1]{\label{dc:#1}}
+\newcommand{\UCref}[1]{UC-\ref{dc:#1}}
+
+\newcommand{\UseCase}[2]{\item\UClabel{#2} \textbf{#1}\\}
+
+\makeatother
+%}}}
+
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{%
+\def\empty{}%
+\def\prvniparametr{#1}%
+\ifx\prvniparametr\empty%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
+\else%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
+\fi%
+} 
+
+
+\begin{document}
+
+\title{API for Shongo}
+\author{Petr Holub, Ondřej Pavelka}
+\date{2012}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Use Cases}
+
+\section{Reservations}
+
+\begin{UseCases}
+
+\UseCase{One Time Reservation}{UC:rsv:reservation:one}
+
+\UseCase{Periodic Reservation}{UC:rsv:reservation:periodic}
+
+\UseCase{Permanent Reservation}{UC:rsv:reservation:permanent}
+
+\UseCase{Modification of a Reservation}{UC:rsv:modify}
+
+\UseCase{Release of a Reservation}{UC:rsv:release}
+
+\UseCase{Migration of a Reservation}{UC:rsv:migration}
+
+\end{UseCases}
+
+
+\section{Operations}
+
+\begin{UseCases}
+
+\UseCase{Live migration in case of a server failure}{UC:ops:migration}
+
+\TODO{Relation to UC:rsv:migration}
+
+\TODO{In case of automated migration, we need to solve notification of clients.}
+
+\end{UseCases}
+
+\subsection{Room Management}
+
+\begin{UseCases}
+
+\UseCase{List users}{UC:ops:room:users-list}
+
+\UseCase{Disconnect a user}{UC:ops:room:user-disconnect}
+
+\UseCase{Mute a user}{UC:ops:room:user-mute}
+
+\UseCase{Disable video a user}{UC:ops:room:user-video-off}
+
+
+\end{UseCases}
+
+
+\section{Monitoring \& Management}
+
+
+
+\chapter{User Interface API Specification}
+
+\chapter{Connector API Specification}
+
+\section{Data Types}
+
+\begin{APIdef}
+
+\APIcmd{Date}
+
+\APIcmd{Reservation}
+
+\end{APIdef}
+
+
+\section{Reservation API}
+
+\begin{APIdef}
+
+\APIcmd{Reservation makeReservation(Date date, int licenseCount)}
+
+\end{APIdef}
+
+
+
+
+\section{User Management API}
+
+\begin{itemize}
+
+\item
+
+\end{itemize}
+
+
+\section{Monitoring API}
+
+\begin{itemize}
+
+\item 
+
+\end{itemize}
+
+
+\section{Application Specific API}
+
+\begin{itemize}
+
+\item
+
+\end{itemize}
+
+
+\chapter{Inter-Controller API Specification}
+
+
+
+\end{document}
+
