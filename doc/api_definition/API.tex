@@ -39,8 +39,8 @@
 \newenvironment{UseCases}%
 	{\begin{list}{UC-\arabic{UCcounter}}{\@nmbrlisttrue\def\@listctr{UCcounter}}}%
 	{\end{list}}
-\newcommand{\UClabel}[1]{\label{dc:#1}}
-\newcommand{\UCref}[1]{UC-\ref{dc:#1}}
+\newcommand{\UClabel}[1]{\label{UC:#1}}
+\newcommand{\UCref}[1]{UC-\ref{UC:#1}}
 
 \newcommand{\UseCase}[2]{\item\UClabel{#2} \textbf{#1}\\}
 
@@ -62,8 +62,8 @@
 \begin{document}
 
 \title{API for Shongo}
-\author{Petr Holub, Ondřej Pavelka}
-\date{2012}
+\author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
+\date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
 
 \maketitle
 
@@ -75,17 +75,89 @@
 
 \begin{UseCases}
 
-\UseCase{One Time Reservation}{UC:rsv:reservation:one}
+\UseCase{One Time reservation}{rsv:reservation:one}
 
-\UseCase{Periodic Reservation}{UC:rsv:reservation:periodic}
+Common type of reservation, where a user requests certain resources for limited
+time duration. Unlimited reservations are not assumed by this scenario (see
+\UCref{rsv:reservation:permanent}).
 
-\UseCase{Permanent Reservation}{UC:rsv:reservation:permanent}
+Start time of a reservation may be any time in the future or \emph{now}, which
+is also called \emph{ad hoc} reservation.
 
-\UseCase{Modification of a Reservation}{UC:rsv:modify}
+Reserved resources may be given explicitly (exactly what amount of resourceson
+which server) or implicitly.  The implicit resources are scheduled by Shongo
+scheduler based on user input, e.g., 
 
-\UseCase{Release of a Reservation}{UC:rsv:release}
+\begin{compactitem}
 
-\UseCase{Migration of a Reservation}{UC:rsv:migration}
+\item amount of central resources (such as H.323 MCU ports or Connect licenses)
+based on specified number of (H.323/SIP or web-browser) participants,
+
+\item user may request a general endpoint and Shongo should try to find the
+closest matching endpoint available to the user (e.g., user requests a H.323
+endpoint for a conference since she has no personal endpoint, and she is
+assigned a room-based H.323 endpoint provided the room is available),
+
+\item any interconnecting elements (e.g., gateways) to interconnect the
+endpoints specified by the user; if only part of the endpoints can be
+interconnected, the user should be notified what parts can be interconnected
+and what parts are disconnected.
+
+\end{compactitem}
+
+Each reservation has to be given a unique identifier that is further used for
+any references to it.
+
+
+\UseCase{Periodic reservation}{rsv:reservation:periodic}
+
+\UCref{rsv:reservation:one} extended with periodicity. Expressiveness of the
+periodicity language should be equivalent to cron plus explicit lists.
+
+\UseCase{Permanent reservation}{rsv:reservation:permanent}
+
+This is specific type of reservation that can be only made by an owner of the
+resource as it permanently removes the reserved capacity from the dynamic
+Shongo scheduling.
+
+\UseCase{List all the reservations}{srv:list}
+
+Some querying/filtering language needs to be supported to limit list to
+
+\begin{UseCases}
+
+\item specific room types (H.323, SIP, Connect, etc.),
+
+\item specific reservation owner(s),
+
+\item specific users (may be humans as well as service-users, such as rooms
+with equipment) involved in the room as participants.
+
+\end{UseCases}
+
+\UseCase{Modification of a reservation}{rsv:modify}
+
+\UseCase{Release/canceling of a reservation}{rsv:release}
+
+\UseCase{Migration of a reservation}{rsv:migration}
+
+\UseCase{Notify participants of a reservation}{rsv:notify-rsv}
+
+All the (explicitly named) participants should receive an email that they are invited to participate in the room.
+
+\UseCase{Notification of a user in case of reservation
+change}{rsv:notify-change}
+
+The notifications should be sent via email, but if user registers a cell phone
+number, sending an SMS might also be very comfortable option.
+
+\UseCase{Reservations of rooms, public or semi-private endpoints,
+etc.}{rsv:service-users}
+
+Each reservation may include service-users (beyond human users with private
+endpoints---H.323/SIP/web), which represent entities such as rooms,
+non-personal endpoints, etc., that can be scheduled in a similar way to central
+resources.
 
 \end{UseCases}
 
@@ -94,11 +166,22 @@
 
 \begin{UseCases}
 
-\UseCase{Live migration in case of a server failure}{UC:ops:migration}
+\UseCase{Live migration of a virtual room}{ops:migration}
 
-\TODO{Relation to UC:rsv:migration}
+This use case is intended for migration due to planned server maintenance or
+unplanned server outage.  Ideally, all the room settings and content should be
+transferred to the target room---but some content may be lost in case of
+unplanned server failure (namely content migration).
 
-\TODO{In case of automated migration, we need to solve notification of clients.}
+Being able to transfer room settings to another server in case of unplanned
+failure also requires that the settings needs to be stored in the Shongo
+middleware.
+
+Clients should be automatically redirected to the new server, if technology
+permits, or at least notified of the migration (email, SMS---see
+\UCref{rsv:notify-change}).
+
+Some functionality will be common~\UCref{rsv:migration}.
 
 \end{UseCases}
 
@@ -106,14 +189,35 @@
 
 \begin{UseCases}
 
-\UseCase{List users}{UC:ops:room:users-list}
+\UseCase{List users}{ops:room:users-list}
 
-\UseCase{Disconnect a user}{UC:ops:room:user-disconnect}
+Each user should be given a unique identifier in the output list that can be
+used for further querying. It should also provide means to identify the same
+user (e.g., if the user disconnects--reconnects, it should contain a part that
+is common and that denotes the specific user and a part that is specific for
+the session, so that if the user is connected twice (one session is in timeout
+state and the other session has just been established), we can differentiate
+between the two sessions).
 
-\UseCase{Mute a user}{UC:ops:room:user-mute}
+\UseCase{Print detailed info about a user in a room}{ops:room:user-info}
 
-\UseCase{Disable video a user}{UC:ops:room:user-video-off}
+Print all the statistics we can get about a user participating in the room. It
+should contain technology agnostic part (e.g., when the user joined) and
+technology specific part (e.g., H.323 statistics).
 
+\UseCase{Set room layout}{ops:room:layout}
+
+\UseCase{Disconnect a user}{ops:room:user-disconnect}
+
+\UseCase{Mute a user}{ops:room:user-mute}
+
+\UseCase{Set microphone audio level for a user}{ops:room:user-miclevel}
+
+\UseCase{Set playback audio level for a user}{ops:room:user-playlevel}
+
+\UseCase{Disable video of a user}{ops:room:user-video-off}
+
+\UseCase{Set layout specific for a user}{ops:room:user-layout}
 
 \end{UseCases}
 
