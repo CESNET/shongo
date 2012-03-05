@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Test Case for Round-Trip Latency with Packet Loss Testing
+
+    Test is running on two machines shongo-test3 (195.113.151.183) and
+    shongo-test5 (195.113.151.186). The sender agents are started on shongo-test3
+    and the receiver agents are started on shongo-test5. Sender agent sends message
+    to corresponding receiver agent which will reply to it by answer.
+    When sender receives answer it will print out round-trip duration.
+
+    Instructions:
+    1) Go to folder 'shongo/sw/measurement' on both machines and build project by
+       command 'mvn package'
+    2) Run remote launcher on shongo-test5 (195.113.151.186) by command './launcher.sh -r'
+    3) Run 'ipfw pipe 1 config plr 0.1 noerror' on shongo-ipwf (195.113.151.185)
+    3) Run test case on shongo-test3 (195.113.151.183) by command
+       './launcher.sh -l test-case/test-latency-loss.xml -p PLATFORM -D"count=COUNT"' where
+       PLATFORM=jxta|jade|fuse|mule and COUNT=number of agents (default 3)
+-->
+
+<launcher>
+    <!-- Machines -->
+    <variable name="shongo-test3" default-value="10.0.0.3" />
+    <variable name="shongo-test5" default-value="10.0.0.5"  />
+
+    <!-- Agent Configuration -->
+    <variable name="count" default-value="3" />
+
+    <!-- ESB Configuration -->
+    <variable name="host-activemq" default-value="{shongo-test3}:61616" />
+
+    <!-- Set default value for host variable to local instance -->
+    <variable name="host" default-value="{shongo-test3}"/>
+
+    <!-- Run Parameters -->
+    <variable name="run-param">
+        <!-- ESB agents need to know where ActiveMQ is running / should be started -->
+        <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="mule" value=" --activemq={host-activemq}"/>
+        <!-- Jade will run at {host} interface (host will be replaced by instance host parameter) -->
+        <platform type="jade" value=" --localhost={host}"/>
+    </variable>
+
+    <!-- Run Command -->
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
+
+    <!-- Setup Launcher Instances -->
+    <instance id="jvm1" type="local">
+        {run} --agent=a --type=sender --count={count}
+    </instance>
+    <instance id="jvm2" type="remote" host="{shongo-test5}" require="jvm1" >
+        {run} --agent=b --type=receiver --count={count} --join={shongo-test3}
+    </instance>
+
+    <!-- Instrutions -->
+    <cycle count="10">
+        <command for="jvm1">send b{agent-id} Hello{index}</command>
+        <sleep duration="1000" />
+    </cycle>
+
+
+    <sleep duration="200000"/>
+    <command>quit</command>
+
+</launcher>

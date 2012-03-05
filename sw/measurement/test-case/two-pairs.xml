@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launcher>
+    <!-- Machines -->
+    <variable name="shongo-test1" default-value="195.113.151.181" />
+    <variable name="shongo-test2" default-value="195.113.151.182" />
+    <variable name="shongo-test3" default-value="195.113.151.183" />
+    <variable name="shongo-test4" default-value="195.113.151.184" />
+
+    <!-- Default Agent and Host Setup -->
+    <variable name="host-activemq" default-value="{shongo-test1}:61616" />
+    <variable name="agent-count" default-value="2" />
+
+    <!-- Run Script Variables -->
+    <variable name="host" default-value="{shongo-test1}"/>
+    <variable name="run-param">
+        <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="mule" value=" --activemq={host-activemq}"/>
+        <!-- NOTE: optional - to run all agents in a single JVM -->
+        <platform type="jade" value=" --single-jvm --localhost={host}"/>
+    </variable>
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
+
+    <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
+    <instance id="jvm1" type="local">
+        {run} --agent=a --type=sender --count={agent-count}
+    </instance>
+    <instance id="jvm2" type="remote" require="jvm1" host="{shongo-test2}">
+        {run} --agent=b --type=receiver --count={agent-count} --join={shongo-test1}
+    </instance>
+    <instance id="jvm3" type="remote" require="jvm1" host="{shongo-test3}">
+        {run} --agent=c --type=sender --count={agent-count} --join={shongo-test1}
+    </instance>
+    <instance id="jvm4" type="remote" require="jvm1" host="{shongo-test4}">
+        {run} --agent=d --type=receiver --count={agent-count} --join={shongo-test1}
+    </instance>
+
+    <!-- Instrutions -->
+    <cycle count="3">
+        <command for="jvm1">send b{agent-id} Hello</command>
+        <command for="jvm3">send d{agent-id} Hello</command>
+        <sleep duration="1000" />
+    </cycle>
+
+    <command>quit</command>
+
+</launcher>

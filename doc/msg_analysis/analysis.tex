@@ -13,7 +13,7 @@
 \usepackage[czech,english]{babel}
 
 \usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
-\usepackage{tocbibind} 
+\usepackage{tocbibind}
 \usepackage{url}
 \usepackage{paralist}
 \usepackage{graphicx}
@@ -202,7 +202,7 @@ performance overhead, and message size overhead
 \item (currently don't have exact metric for overhead -- needs to be identified
 based on options available)
 
-\item time to recover after various node and service outages 
+\item time to recover after various node and service outages
 
 \item maximum number of messages per second on defined configuration
 
@@ -271,29 +271,82 @@ Open source, available for download. Uses The Sun Project JXTA(TM) Software Lice
 
 \section{JADE}
 
-\paragraph{Description.}
+\paragraph{Description.} An open-source middleware for agent-based programming. Originally developed by TILAB (Telecom Italia), nowadays supervised by the JADE Board (Telecom Italia, Motorola, Whitestein Technologies AG, Profactor GmbH, and France Telecom R\&D). It follows the FIPA specifications\footnote{\url{http://www.fipa.org}}. It may be run on virtually any types of devices supporting Java (the API is the same for the J2EE, J2SE and J2ME).
 
-\paragraph{Notable deployments.}
+A JADE platform is composed of several run-time \textsl{containers} launched over one or more hosts across a network. In the platform, there is a special, \textsl{main} container providing the platform services. Backup containers may be run to automatically take over the main container in case of failure. Multiple agents may run in a single container (within a single JVM). Within the platform, agents communicate directly with each other, involving the main container services just for localizing the recipient (which is cached). Agents from multiple platforms may communicate with each other, if permitted. Agent mobility within a platform is supported.
 
-\paragraph{License and availability.}
+The agents are programmed by means of implementing behaviours. Various behaviour types are offered by the framework (e.g. one-shot, simple repeating, or a behaviour defined by a finite-state automaton) and composing simpler behaviours is also possible. The library even contains complete FIPA standard agent interaction protocol implementations, such as the FIPA-Contract-Net (used for task delegation), or distributed leader election. The content of messages may be parsed and processed utilizing the ontologies and content languages concepts.
+
+The documentation is good and offers plenty of examples of various features. As the last resort, the JADE source code is available (well-structured and easy to read).
+
+There are add-ons available for download, developed by the JADE team or by third parties. The most notable ones include the Security and Trusted Agents add-ons (adding authentication and autorization capabilities), Leap (allowing deployment on mobile devices), or Java-Sniffer.
+
+
+\paragraph{Notable deployments.} Besides the companies present in the JADE Board (see the description above), some others using JADE are worth mentioning:
+\begin{compactitem}
+\item British Telecommunications use JADE as the core platform for mPower -- a system for cooperation among mobile workers and team-based job management \cite{bellifemine2008jade};
+\item Yuan Ze University, Taiwan developed MADIP -- a health-care monitoring system \cite{su2011jade} (November 2009);
+\item Rockwell Automation wrote the Java-Sniffer add-on (October 2006);
+\item Logica wrote the Trusted Agents add-on (December 2011);
+\item TeliaSonera\footnote{a dominant telephone company and mobile network operator in Sweden and Finland} implemented the CASCOM HTTP MTP add-on for usage in unreliable wireless networks, e.g. in 3G-networks (January 2008);
+\item Siemens committed some bugfixes in version 4.0 (April 2010).
+\end{compactitem}
+Telecom Italia has developed a JADE-based mediation layer NNEM to decouple Operations Support Systems from the network equipments and functionalities \cite{bellifemine2008jade}. It manages about 10,000 devices, while serving more than 100,000 devices is planned.
+
+
+\paragraph{License and availability.} Licensed under LGPL. Open source, available for download. The development is still active and is likely to go on, since JADE is considered the most popular software agent platform by its authors \cite{bellifemine2008jade}.
+
 
 
 \section{Mule ESB}
 
 \paragraph{Description.}
 
+An Enterprise Service Bus (ESB) is messaging middleware that provides interoperability between various applications via wide range of standard protocols and technologies. Applications pass messages to ESB which transforms it by set of rules and deliver it to different application by routing mechanism. A message can be passed from application in concrete standard form (e.g. JMS message, HTTP request, SOA request) or directly through ESB resources as ESB message. In both cases the message is transformed into a common form from which the message can be then converted to another protocol or technology to be a suitable input for another application. 
+
+Mule ESB is a lightweight Java-based Enterprise Service Bus (ESB) and integration platform. Mule ESB enables integration of applications regardless of used technologies, including JMS, Web Services, HTTP and a lot of other technologies and provides important security and transaction management.
+
+There are two editions of Mule ESB and both are build on the same codebase:
+\begin{itemize}
+\item \emph{Mule ESB Community} is free version of Mule ESB which includes all main features.
+\item \emph{Mule ESB Enterprise} is superset of Mule ESB Community with additional features and is more suitable for production deployments \footnote{Comparison of Mule ESB editions \url{http://www.mulesoft.com/mule-esb-enterprise}}.
+\end{itemize}
+
+Mule ESB has comprehensive documentation and it contains simple tutorials, which are great starting point for ESB beginners. For Mule ESB development there is available Mule Studio which extends Eclipse IDE for Mule specific features (visual, drag-and-drop design of Mule applications).
+
+Mule ESB can be embedded into Java application and thus there isn't need to run standalone Mule container. It is important feature that we used during our evaluation.
+
+For our analysis, we have focused mainly on communication between applications based on JMS (Java Message Service), because it allows for connecting to multiple JMS servers (in our case ActiveMQ servers) which enables failover -- automatic switching to a redundant server upon the failure.
+
 \paragraph{Notable deployments.}
+Mule ESB provides many case studies\footnote{Mule ESB customers \url{http://www.mulesoft.com/customers}}, for instance:
+\begin{compactitem}
+\item GSI Commerce has built standardized service infrastructure with Mule ESB at core\footnote{GSI Commerce \url{http://www.mulesoft.com/case-study-gsi}}.
+\item Biotech company use Mule ESB alongside ActiveMQ \footnote{Biotech company \url{http://www.mulesoft.com/case-study-fiveprime-therapeutics}}.
+\end{compactitem}
 
 \paragraph{License and availability.}
+Licensed under CPAL. Mule ESB Community is open source and available for download. Mule ESB Enterprise is available for download in 30-day trial version.
 
 
-\section{FUSE ESB}
+
+\section{Fuse ESB}
 
 \paragraph{Description.}
+Fuse ESB is and open source and standards-based Enterprise Service Bus and integration platform based on Apache ServiceMix. From our point of view, Fuse ESB provides comparable features to Mule ESB, especially for JMS transport protocol.
+
+The documentation is available but when it is compared to Mule ESB documentation it is more complicated and even the simplest examples are harder to create. The Fuse ESB documentation contains many video tutorials, but if you don't use Eclipse IDE and Maven for project development it is hard to follow them.
+
+When we had implemented an application in Mule ESB, we were able to achieve the same functionality in Fuse ESB as well.
 
 \paragraph{Notable deployments.}
+\begin{compactitem}
+\item  CERN, the European Organization for Nuclear Research, is using Fuse ESB to run its operational grid\footnote{Cern Case Study \url{http://fusesource.com/collateral/103/}}.
+\item The FAA’s SWIM Program selected Fuse ESB to be a part of their Next Generation Air Transportation System\footnote{FAA Case Study \url{http://fusesource.com/collateral/70/}}.
+\end{compactitem} 
 
 \paragraph{License and availability.}
+Licensed under Apache License. Fuse ESB is open source and available for download.
 
 
 
@@ -338,6 +391,9 @@ Open source, available for download. Uses The Sun Project JXTA(TM) Software Lice
 \chapter{Comparison of Systems}
 
 \chapter{Conclusions}
+
+\bibliographystyle{plain}
+\bibliography{analysis}
 
 
 \end{document}

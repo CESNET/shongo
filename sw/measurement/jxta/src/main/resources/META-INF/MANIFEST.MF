@@ -3,6 +3,6 @@ Class-Path: org.apache.felix.shell-1.4.1.jar jxse-2.6.jar org.apache.f
  elix.framework-2.0.1.jar org.apache.felix.shell.tui-1.4.1.jar commons
  -cli-1.1.jar org.apache.felix.main-2.0.1.jar org.apache.felix.bundler
  epository-1.4.2.jar netty-3.1.5.GA.jar log4j-1.2.16.jar bcprov-jdk15-
- 140.jar
+ 140.jar commons-io-1.4.jar
 Main-Class: cz.cesnet.shongo.measurement.jxta.JxtaApplication
 

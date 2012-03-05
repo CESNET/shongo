@@ -5,7 +5,9 @@ common/target
 fuse/target
 jxta/target
 jade/target
+mule/target
 launcher/target
 target
 APDescription.txt
-MTPs-Main-Container.txt
+MTPs-*.txt
+activemq-data

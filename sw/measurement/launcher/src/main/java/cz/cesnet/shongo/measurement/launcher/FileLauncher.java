@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.measurement.launcher;
 
+import cz.cesnet.shongo.measurement.common.Application;
+import cz.cesnet.shongo.measurement.common.StreamMessageWaiter;
 import cz.cesnet.shongo.measurement.launcher.xml.*;
 
 import javax.xml.bind.JAXBContext;
@@ -10,17 +12,8 @@ import java.util.*;
 
 public class FileLauncher {
 
-    public static String replaceVariables(String command, Map<String, String> variables) {
-        Iterator it = variables.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, String> variable = (Map.Entry<String, String>)it.next();
-            command = command.replaceAll("\\{" + variable.getKey() + "\\}", variable.getValue());
-        }
-        return command;
-    }
-
-    public static void launchFile(String file, Map<String, String> variables) {
-        // Parse file
+    public static void launchFile(String file, Evaluator evaluator) {
+        // Parse XML file
         Launcher launcher = null;
         try {
             JAXBContext ctx = JAXBContext.newInstance(new Class[]{Launcher.class});
@@ -32,50 +25,81 @@ public class FileLauncher {
         if ( launcher == null )
             return;
 
-        System.out.println("[LAUNCHER] Running instances....");
-
-        // Set values to variables
+        // Load variables to evaluator
         List<Variable> variableDefaults = launcher.getVariable();
         for ( Variable variable : variableDefaults ) {
             // Set default values if not defined
-            if ( variables.get(variable.getName()) == null ) {
+            if ( evaluator.hasVariable(variable.getName()) == false ) {
                 String defaultValue = variable.getDefaultValue();
-                if ( defaultValue == null )
+                if ( defaultValue == null || defaultValue.equals("null") )
                     defaultValue = "";
-                else
-                    defaultValue = replaceVariables(defaultValue, variables);
-                variables.put(variable.getName(), defaultValue);
+                evaluator.setVariable(variable.getName(), defaultValue);
             }
             // Set value if should be set
-            if ( variable.getValue() != null ) {
+            if ( variable.getValue() != null && variable.getValue().equals("null") == false ) {
                 String value = variable.getValue();
-                value = replaceVariables(value, variables);
-                variables.put(variable.getName(), value);
+                evaluator.setVariable(variable.getName(), value);
             }
             // Set value by platform
-            String platformType = variables.get("platform");
+            String platformType = evaluator.getVariable("platform");
             List<Platform> platforms = variable.getPlatform();
             for ( Platform platform : platforms ) {
-                if ( platform.getType().equals(platformType) ) {
-                    String value = platform.getValue();
-                    value = replaceVariables(value, variables);
-                    variables.put(variable.getName(), value);
+                String[] platformTypes = platform.getType().split(",");
+                for ( String type : platformTypes ) {
+                    if ( type.equals(platformType) ) {
+                        String value = platform.getValue();
+                        evaluator.setVariable(variable.getName(), value);
+                    }
                 }
             }
         }
 
+        // Get launcher instances
+        List<Instance> instances = launcher.getInstance();
+
+        // Wait for instances startup
+        StreamMessageWaiter appStartedWaiter = new StreamMessageWaiter(Application.MESSAGE_STARTED,
+                Application.MESSAGE_STARTUP_FAILED, instances.size());
+        appStartedWaiter.startWatching();
+
+        System.out.println("[LAUNCHER] Running instances....");
+
         // Run instances
         Map<String, LauncherInstance> launcherInstances = new HashMap<String, LauncherInstance>();
-        List<Instance> instances = launcher.getInstance();
         for ( Instance instance : instances ) {
+            String host = evaluator.evaluate(instance.getHost());
             LauncherInstance launcherInstance = null;
             if ( instance.getType().equals("local") )
                 launcherInstance = new LauncherInstanceLocal(instance.getId());
             else if ( instance.getType().equals("remote") )
-                launcherInstance = new LauncherInstanceRemote(instance.getId(), replaceVariables(instance.getHost(), variables));
-            String command = replaceVariables(instance.getContent().trim(), variables);
-            if ( launcherInstance.run(command) == false ) {
+                launcherInstance = new LauncherInstanceRemote(instance.getId(), host);
+            else
+                throw new IllegalArgumentException("Unknown instance type: " + instance.getType());
+
+            Evaluator evaluatorScoped = new Evaluator(evaluator);
+            if ( host != null && host.equals("null") == false )
+                evaluatorScoped.setVariable("host", host);
+
+            String command = evaluatorScoped.evaluate(instance.getContent().trim());
+
+            if ( instance.getRequire() != null ) {
+                // Wait for all required instances to startup
+                String[] require = instance.getRequire().split(",");
+                for ( String requireItem : require ) {
+                    if ( appStartedWaiter.isMessage(requireItem) )
+                        continue;
+                    System.out.println("[LAUNCHER:" + instance.getId() + "] Waiting for started event of [" + requireItem + "]");
+                    while ( appStartedWaiter.isRunning() && appStartedWaiter.isMessage(requireItem) == false  ) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {}
+                    }
+                }
+            }
+
+            if ( !launcherInstance.run(command) ) {
                 System.out.println("[LAUNCHER] Failed to run instance '" + instance.getId() + "'!");
+                appStartedWaiter.stopWatching();
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {}
@@ -88,44 +112,92 @@ public class FileLauncher {
             launcherInstances.put(launcherInstance.getId(), launcherInstance);
         }
 
+        // Wait for instance to startup, and if some failed exit
+        if ( appStartedWaiter.waitForMessages() == false ) {
+            System.out.println("[LAUNCHER] Failed to run some instances!");
+            return;
+        }
+        appStartedWaiter.stopWatchingSystem();
+
+        System.out.println("[LAUNCHER] Instances successfully started!");
+
         // Perform commands
-        List<Object> list = launcher.getSleepOrStep();
+        List<Object> list = launcher.getCommandOrCycleOrEcho();
         for ( Object item : list ) {
-            // Step
-            if ( item instanceof Step ) {
-                Step step = (Step)item;
-                // For all command in step
-                for ( Command command : step.getCommand() ) {
-                    // Command to all instances
-                    if ( command.getFor() == null || command.getFor().equals("*") ) {
-                        for ( LauncherInstance launcherInstance : launcherInstances.values() )
-                            launcherInstance.perform(command.getContent().trim());
-                    }
-                    // Command for specified instance
-                    else {
-                        LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
-                        if ( launcherInstance == null )
-                            continue;
-                        launcherInstance.perform(command.getContent().trim());
-                    }
-                }
-            }
-            // Sleep
-            else if ( item instanceof Sleep) {
-                Sleep sleep = (Sleep)item;
-                try {
-                    long duration = sleep.getDuration().longValue();
-                    System.out.println("[SLEEP:" + duration + "].");
-                    Thread.sleep(duration);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            performItem(item, evaluator, launcherInstances);
         }
 
         // Exit instances
         for ( LauncherInstance launcherInstance : launcherInstances.values() )
             launcherInstance.exit();
+    }
+
+    public static void performItem(Object item, Evaluator evaluator, Map<String, LauncherInstance> launcherInstances)
+    {
+        Evaluator evaluatorScoped = new Evaluator(evaluator);
+        // Cycle
+        if ( item instanceof Cycle ) {
+            Cycle cycle = (Cycle)item;
+            for ( int index = 0; index < cycle.getCount().intValue(); index++ ) {
+                evaluatorScoped.setVariable("index", new Integer(index).toString());
+                List<Object> list = cycle.getCommandOrCycleOrEcho();
+                for ( Object listItem : list ) {
+                    performItem(listItem, evaluatorScoped, launcherInstances);
+                }
+            }
+        }
+        // Step
+        else if ( item instanceof Command ) {
+            Command command = (Command)item;
+            String commandText = evaluatorScoped.evaluate(command.getContent().trim());
+            // Command to all instances
+            if ( command.getFor() == null || command.getFor().equals("*") ) {
+                for ( LauncherInstance launcherInstance : launcherInstances.values() )
+                    launcherInstance.perform(commandText);
+            }
+            // Command for specified instance
+            else {
+                LauncherInstance launcherInstance = launcherInstances.get(command.getFor());
+                if ( launcherInstance != null )
+                    launcherInstance.perform(commandText);
+            }
+        }
+        // Echo
+        else if ( item instanceof Echo) {
+            Echo echo = (Echo)item;
+
+            long durationBefore = 0;
+            long durationAfter = 0;
+            if ( echo.getSleep() != null ) {
+                String sleep = evaluatorScoped.evaluate(echo.getSleep());
+                durationBefore = Long.parseLong(sleep) / 2;
+                durationAfter = durationBefore;
+            }
+
+            try {
+                Thread.sleep(durationBefore);
+            } catch (InterruptedException e) {}
+
+            String value = evaluatorScoped.evaluate(echo.getValue());
+            for ( LauncherInstance launcherInstance : launcherInstances.values() ) {
+                launcherInstance.echo(value);
+            }
+
+            try {
+                Thread.sleep(durationAfter);
+            } catch (InterruptedException e) {}
+        }
+        // Sleep
+        else if ( item instanceof Sleep) {
+            Sleep sleep = (Sleep)item;
+            try {
+                long duration = Long.parseLong(evaluatorScoped.evaluate(sleep.getDuration()));
+                System.out.println("[SLEEP:" + duration + "].");
+                Thread.sleep(duration);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

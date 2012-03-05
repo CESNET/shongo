@@ -2,6 +2,7 @@ package cz.cesnet.shongo.measurement.common;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,6 +26,22 @@ public class StreamConnector extends Thread
      * Name to append
      */
     private String name;
+
+    /**
+     * Flag if end of stream should be also forwarded
+     */
+    private boolean forwardStreamEnd = false;
+
+    /**
+     * Stream listener
+     */
+    public static interface Listener
+    {
+        public boolean onRead(String buffer);
+    }
+
+    /** Listeners */
+    private List<Listener> listeners = new ArrayList<Listener>();
 
     /**
      * Specify the streams that this object will connect in the run()
@@ -65,6 +82,16 @@ public class StreamConnector extends Thread
     }
 
     /**
+     * Set flag if end of stream should be also forwarded
+     *
+     * @param forwardStreamEnd
+     */
+    public void setForwardStreamEnd(boolean forwardStreamEnd)
+    {
+        this.forwardStreamEnd = forwardStreamEnd;
+    }
+
+    /**
      * Add output stream
      *
      * @param outputStream
@@ -75,13 +102,21 @@ public class StreamConnector extends Thread
     }
 
     /**
-     * Connect the InputStream and OutputStream objects specified in the constructor.
+     * Add listener
+     *
+     * @param listener
+     */
+    public void addListener(Listener listener)
+    {
+        listeners.add(listener);
+    }
+
+    /**
+     * Read the InputStream and write the data to OutputStream instances.
      */
     public void run()
     {
         assert(inputStream != null);
-
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 
         int bufferSize = 4096;
         int bufferPosition = 0;
@@ -90,7 +125,6 @@ public class StreamConnector extends Thread
         int bufferReadCount = 0;
         try {
             while ( (bufferReadCount = inputStream.read(buffer, bufferPosition, bufferSize - bufferPosition)) != -1 ) {
-                boolean print = false;
                 for ( int index = 0; index < bufferReadCount; index++ ) {
                     char currentChar = (char)buffer[bufferPosition + index];
                     if ( currentChar == '\n' || currentChar == '\r' ) {
@@ -103,6 +137,12 @@ public class StreamConnector extends Thread
                 if ( bufferPosition == bufferPositionWritten ) {
                     bufferPosition = 0;
                     bufferPositionWritten = 0;
+                }
+            }
+            // forward also the end of the stream
+            if ( forwardStreamEnd ) {
+                for (OutputStream outputStream : outputStreamList) {
+                    outputStream.close();
                 }
             }
         } catch (IOException e) {
@@ -120,14 +160,33 @@ public class StreamConnector extends Thread
      */
     private void printOutput(byte[] buffer, int bufferPosition, int bufferCount) throws IOException
     {
+        if ( listeners.size() > 0 ) {
+            String text = new String(buffer, bufferPosition, bufferCount);
+            for ( Listener listener : listeners ) {
+                if ( listener.onRead(text.toString()) == false )
+                    return;
+            }    
+        }
+        
         for ( OutputStream outputStream : outputStreamList ) {
-            PrintStream printStream = null;
-            if ( outputStream instanceof PrintStream )
-                printStream = (PrintStream) outputStream;
-            if ( printStream != null && name != null )
-                printStream.printf("%s: ", name);
-            outputStream.write(buffer, bufferPosition, bufferCount);
-            outputStream.write('\n');
+            // prepare the byte array to output atomically to prevent mixing of multiple streams together
+            boolean printName = (outputStream instanceof PrintStream && name != null);
+            byte[] outBuf = new byte[ (printName ? name.getBytes().length + 2 : 0) + bufferCount + 1 ];
+            int i = 0;
+            if (printName) {
+                byte[] nameBytes = name.getBytes();
+                for ( ; i < nameBytes.length; i++) {
+                    outBuf[i] = nameBytes[i];
+                }
+                outBuf[i++] = ':';
+                outBuf[i++] = ' ';
+            }
+            
+            for (int j = 0; j < bufferCount; j++) {
+                outBuf[i++] = buffer[bufferPosition + j];
+            }
+            outBuf[i++] = '\n';
+            outputStream.write(outBuf);
             outputStream.flush();
         }
     }

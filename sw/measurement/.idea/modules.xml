@@ -4,10 +4,12 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app.iml" filepath="$PROJECT_DIR$/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common-esb/common-esb.iml" filepath="$PROJECT_DIR$/common-esb/common-esb.iml" />
       <module fileurl="file://$PROJECT_DIR$/fuse/fuse.iml" filepath="$PROJECT_DIR$/fuse/fuse.iml" />
       <module fileurl="file://$PROJECT_DIR$/jade/jade.iml" filepath="$PROJECT_DIR$/jade/jade.iml" />
       <module fileurl="file://$PROJECT_DIR$/jxta/jxta.iml" filepath="$PROJECT_DIR$/jxta/jxta.iml" />
       <module fileurl="file://$PROJECT_DIR$/launcher/launcher.iml" filepath="$PROJECT_DIR$/launcher/launcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/mule/mule.iml" filepath="$PROJECT_DIR$/mule/mule.iml" />
     </modules>
   </component>
 </project>

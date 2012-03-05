@@ -19,6 +19,7 @@
       <element id="library" level="project" name="Maven: org.apache.felix:org.apache.felix.shell:1.4.1" />
       <element id="library" level="project" name="Maven: org.jboss.netty:netty:3.1.5.GA" />
       <element id="library" level="project" name="Maven: log4j:log4j:1.2.16" />
+      <element id="library" level="project" name="Maven: commons-io:commons-io:1.4" />
     </root>
   </artifact>
 </component>

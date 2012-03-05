@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launcher>
+    <!-- Default Agent and Host Setup -->
+    <variable name="host1" default-value="127.0.0.1:9001" />
+    <variable name="host2" default-value="127.0.0.1:9002" />
+    <variable name="host3" default-value="127.0.0.1:9003" />
+    <variable name="host" default-value="127.0.0.1" />
+
+    <variable name="host-activemq" default-value="127.0.0.1:61616" />
+    <variable name="agent-count" default-value="2" />
+    <variable name="sleep" default-value="1000" />
+
+    <!-- Run Script Variables -->
+    <variable name="run-param">
+
+    </variable>
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
+
+    <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
+    <instance id="server1" type="remote" host="{host1}">
+        {run} --agent=server1 --activemq=127.0.0.1:65001
+    </instance>
+    <instance id="server2" type="remote" host="{host2}">
+        {run} --agent=server2 --activemq=127.0.0.1:65002,127.0.0.1:65001
+    </instance>
+    <instance id="jvm1" type="remote" host="{host3}">
+        {run} --agent=s --type=sender --count={agent-count} --activemq=127.0.0.1:65001,127.0.0.1:65002 --join
+    </instance>
+    <instance id="jvm2" type="local">
+        {run} --agent=r --type=receiver --count={agent-count} --activemq=127.0.0.1:65002,127.0.0.1:65001 --join
+    </instance>
+
+    <!-- Instructions -->
+    <cycle count="3">
+        <command for="server2">kill</command>
+
+        <echo value="Sending Normal" sleep="{sleep}"/>
+        <cycle count="5">
+            <command for="jvm1">send r{agent-id} "Hello{index} ahoj"</command>
+            <sleep duration="500"/>
+        </cycle>
+
+        <command for="server2">start</command>
+        <command for="server1">kill</command>
+
+        <echo value="Sending After Kill" sleep="{sleep}"/>
+        <cycle count="5">
+            <command for="jvm1">send r{agent-id} "Hello{index} ahoj"</command>
+            <sleep duration="500"/>
+        </cycle>
+
+        <command for="server1">start</command>
+    </cycle>
+
+    <sleep duration="5000"/>
+
+    <!-- Quit -->
+    <command>quit</command>
+
+</launcher>

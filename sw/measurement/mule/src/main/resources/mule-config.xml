@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:stdio="http://www.mulesoft.org/schema/mule/stdio"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xsi:schemaLocation="
+            http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/3.1/mule-jms.xsd
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+            http://www.mulesoft.org/schema/mule/stdio http://www.mulesoft.org/schema/mule/stdio/3.1/mule-stdio.xsd
+            http://www.mulesoft.org/schema/mule/core  http://www.mulesoft.org/schema/mule/core/3.1/mule.xsd
+            http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.1/mule-vm.xsd">
+
+    <!-- Beans -->
+
+    <spring:bean id="foreverRetryPolicyTemplate" class="org.mule.modules.common.retry.policies.ForeverRetryPolicyTemplate">
+        <spring:property name="sleepTime" value="500" />
+    </spring:bean>
+
+    <spring:bean id="ThreadingPolicyTemplate" class="org.mule.modules.common.retry.policies.AdaptiveRetryPolicyTemplateWrapper">
+        <spring:property name="delegate" ref="foreverRetryPolicyTemplate" />
+    </spring:bean>
+
+    <!-- Connectors -->
+
+    <jms:activemq-connector name="jms" brokerURL="failover:(${jms.url})" specification="1.1" persistentDelivery="true"  maxRedelivery="-1">
+       <spring:property name="retryPolicyTemplate" ref="ThreadingPolicyTemplate" />
+    </jms:activemq-connector>
+
+
+    <!-- Endpoint declaration -->
+
+    <jms:endpoint name="jms-input" queue="${jms.queue}" connector-ref="jms"/>
+    <jms:endpoint name="jms-output" queue="#[header:OUTBOUND:to]" connector-ref="jms"/>
+
+
+    <!-- Flows -->
+
+    <flow name="AgentFlow">
+        <inbound-endpoint ref="jms-input"/>
+
+        <component>
+            <singleton-object class="cz.cesnet.shongo.measurement.mule.AgentService"/>
+        </component>
+    </flow>
+
+</mule>

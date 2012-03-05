@@ -11,27 +11,49 @@
     <instance id="jvm1" type="local">
         ./jxta.sh --agent=agent1 --type=sender
     </instance>
-    <instance id="jvm2" type="remote" host="127.0.0.1:9000">
+    <instance id="jvm2" type="remote" host="127.0.0.1:9000" require="jvm1">
         ./jxta.sh --agent=agent2 --type=receiver
     </instance>
 
-    <sleep duration="1000" />
-
-    <step>
+    <cycle count="10">
+        <sleep duration="1000" />
         <command for="jvm1">send agent2 Hello</command>
-    </step>
+    </cycle>
 
-    <sleep duration="3000" />
+    <sleep duration="{sleep}" />
 
-    <step>
-        <command for="jvm1">send agent2 Hello2</command>
-        <command for="jvm2">send agent1 Hi</command>
-    </step>
+    <cycle count="10">
+        <cycle count="10">
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+            <echo value="Text"/>
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+        </cycle>
+        <echo value="Text"/>
+        <sleep duration="1000" />
+        <cycle count="10">
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+            <echo value="Text"/>
+            <sleep duration="1000" />
+            <command for="jvm1">send agent2 Hello</command>
+        </cycle>
+        <command for="jvm1">send agent2 Hello</command>
+        <sleep duration="1000" />
+        <echo value="Text"/>
+        <command for="jvm1">send agent2 Hello</command>
+    </cycle>
 
-    <sleep duration="1000" />
+    <echo value="Text" sleep="{duration}"/>
 
-    <step>
-        <command>quit</command>
-    </step>
+    <command for="jvm1">send agent2 Hello2</command>
+    <command for="jvm2">send agent1 Hi</command>
+
+    <sleep duration="1000"/>
+
+    <echo value="Text"/>
+
+    <command>quit</command>
 
 </launcher>

@@ -1,0 +1,31 @@
+Manifest-Version: 1.0
+Class-Path: geronimo-transaction-2.0.1.jar xbean-server-3.1.0.2-fuse.j
+ ar XmlSchema-1.3.2.jar wsdl4j-1.6.1.jar commons-jexl-1.1.jar servicem
+ ix-core-3.3.1.0-fuse.jar commons-lang-2.1.jar geronimo-j2ee-managemen
+ t_1.0_spec-1.1.jar geronimo-annotation_1.0_spec-1.0.jar jencks-2.1.ja
+ r spring-aop-2.0.6.jar geronimo-connector-2.0.1.jar slf4j-api-1.5.11.
+ jar servicemix-shared-3.3.1.0-fuse.jar geronimo-j2ee-management_1.1_s
+ pec-1.0.1.jar servicemix-jms-3.3.1.0-fuse.jar commons-logging-1.1.jar
+  spring-jmx-2.0.6.jar jaxen-1.1-beta-9.jar servicemix-common-3.3.1.0-
+ fuse.jar spring-beans-2.0.6.jar mx4j-remote-3.0.1.jar commons-collect
+ ions-3.1.jar xmlsec-1.3.0.jar geronimo-activation_1.0.2_spec-1.2.jar 
+ spring-support-2.0.6.jar spring-dao-2.0.6.jar xml-apis-1.3.04.jar sta
+ x-api-1.0.1.jar geronimo-qname_1.1_spec-1.1.jar geronimo-transaction-
+ 2.0.1.jar xalan-2.7.0.jar geronimo-jta_1.0.1B_spec-1.1.jar commons-be
+ anutils-core-1.7.0.jar woden-1.0.0M6.jar wstx-asl-3.2.2.jar slf4j-log
+ 4j12-1.5.11.jar servicemix-bean-3.3.1.0-fuse.jar geronimo-j2ee-connec
+ tor_1.5_spec-1.1.jar activemq-core-5.5.0.jar activeio-core-3.1.2.jar 
+ xstream-1.1.2.jar aopalliance-1.0.jar servicemix-soap-3.3.1.0-fuse.ja
+ r mx4j-3.0.1.jar geronimo-jta_1.1_spec-1.1.jar jasypt-1.7.jar spring-
+ context-2.0.6.jar geronimo-connector-2.0.1.jar spring-core-2.0.6.jar 
+ commons-cli-1.1.jar servicemix-soap2-3.3.1.0-fuse.jar xbean-spring-3.
+ 1.0.2-fuse.jar xbean-classloader-3.1.0.2-fuse.jar commons-pool-1.2.ja
+ r howl-1.0.1-1.jar opensaml-1.1.jar activemq-protobuf-1.1.jar org.osg
+ i.core-4.1.0.jar bcprov-jdk14-136.jar commons-net-2.0.jar spring-jms-
+ 2.0.6.jar commons-dbcp-1.2.jar xbean-kernel-3.1.0.2-fuse.jar servicem
+ ix-services-3.3.1.0-fuse.jar geronimo-jms_1.1_spec-1.1.jar servicemix
+ -jbi-3.3.1.0-fuse.jar log4j-1.2.14.jar wss4j-1.5.2.jar geronimo-j2ee-
+ jacc_1.0_spec-1.1.jar junit-3.8.1.jar xercesImpl-2.8.1.jar regexp-1.3
+ .jar kahadb-5.5.0.jar commons-io-1.4.jar
+Main-Class: cz.cesnet.shongo.measurement.fuse.FuseApplication
+

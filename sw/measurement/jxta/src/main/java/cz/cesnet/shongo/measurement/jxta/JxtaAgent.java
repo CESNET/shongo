@@ -48,6 +48,13 @@ public class JxtaAgent extends Agent {
     protected void stopImpl() {
         peer.stop();
         System.out.println("Stopped Peer");
+    }
+
+    /**
+     * Implementation of exit agent
+     */
+    @Override
+    protected void exit() {
         System.exit(0);
     }
 

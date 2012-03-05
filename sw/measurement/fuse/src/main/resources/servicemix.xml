@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:app="http://cesnet.cz/shongo/measurement"
+       xmlns:bean="http://servicemix.apache.org/bean/1.0"
+       xmlns:jms="http://servicemix.apache.org/jms/1.0"
+       xmlns:sm="http://servicemix.apache.org/config/1.0"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+            http://servicemix.apache.org/config/1.0 http://servicemix.apache.org/schema/servicemix-core-3.2.3.xsd
+            http://servicemix.apache.org/bean/1.0 http://servicemix.apache.org/schema/servicemix-bean-3.2.3.xsd
+            http://servicemix.apache.org/jms/1.0 http://servicemix.apache.org/schema/servicemix-jms-3.2.3.xsd
+            http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+
+    <sm:container id="jbi" embedded="true">
+        <sm:endpoints>
+
+            <bean:endpoint service="agent" endpoint="endpoint" bean="#agentService"/>
+
+            <jms:consumer service="app:jms-input"
+                          endpoint="endpoint"
+                          targetService="agent"
+                          targetEndpoint="endpoint"
+                          destinationName="${jms.queue}"
+                          connectionFactory="#jmsFactory"/>
+
+            <jms:provider service="app:jms-output"
+                          endpoint="endpoint"
+                          connectionFactory="#jmsFactory"
+                          destinationName="Queue"
+                          destinationChooser="#jmsDestinationChooser"/>
+
+        </sm:endpoints>
+    </sm:container>
+
+    <bean id="jmsFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL">
+            <value>failover:(${jms.url})</value>
+        </property>
+    </bean>
+
+    <bean id="jmsDestinationChooser" class="cz.cesnet.shongo.measurement.fuse.JmsDestinationChooser"/>
+
+    <bean id="agentService" class="cz.cesnet.shongo.measurement.fuse.AgentService"/>
+
+</beans>

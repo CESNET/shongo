@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- A test case for testing packet loss.
+
+To be run from shongo-test3 (195.113.151.183).
+
+On shongo-ipfw (195.113.151.185), call ipfw pipe 1 config plr 0.5 noerror
+or similar to setup average packet loss rate.
+-->
+
+<launcher>
+    <!-- Machines -->
+    <!-- Note: for simulating packet loss, ipfw is configured between
+               interfaces on addresses 10.0.0.3 and 10.0.0.5 -->
+    <variable name="shongo-test3" default-value="10.0.0.3" />
+    <variable name="shongo-test5" default-value="10.0.0.5"  />
+
+    <!-- Agent Configuration -->
+    <variable name="agent-count" default-value="2" />
+
+    <!-- ESB Configuration -->
+    <variable name="host-activemq" default-value="{shongo-test3}:61616" />
+
+    <!-- Run Parameters -->
+    <variable name="host" default-value="{shongo-test3}"/>
+    <variable name="run-param">
+        <!-- ESB agents need to know where ActiveMQ is running
+             (absence of join argument in instance definition means
+             run ActiveMQ server at specified  host)
+        -->
+        <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="mule" value=" --activemq={host-activemq}"/>
+        <platform type="jade" value=" --single-jvm --localhost={host}"/> <!-- NOTE: single-jvm optional -->
+    </variable>
+
+    <!-- Run Command -->
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
+
+    <!-- Setup Launcher Instances -->
+    <instance id="jvm1" type="local">
+        {run} --agent=a --type=sender --count={agent-count}
+    </instance>
+    <instance id="jvm2" type="remote" require="jvm1" host="{shongo-test5}">
+        {run} --agent=b --type=receiver --count={agent-count} --join={shongo-test3}
+    </instance>
+
+    <!-- Instrutions -->
+    <cycle count="1000">
+        <command for="jvm1">send b{agent-id} Hello</command>
+        <sleep duration="1000" />
+    </cycle>
+
+    <command>quit</command>
+
+</launcher>

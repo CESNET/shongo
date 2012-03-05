@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launcher>
+    <!-- Default Agent and Host Setup -->
+    <variable name="host-remote" default-value="127.0.0.1" />
+    <variable name="host-activemq" default-value="127.0.0.1:61616" />
+    <variable name="agent-count" default-value="2" />
+
+    <!-- Run Script Variables -->
+    <variable name="run-param">
+        <platform type="fuse" value=" --activemq={host-activemq}"/>
+        <platform type="mule" value=" --activemq={host-activemq}"/>
+        <platform type="jade" value=" --single-jvm"/> <!-- NOTE: optional - to run all agents in a single JVM -->
+        <platform type="jade" value=" --single-jvm --localhost={host-remote}"/>
+    </variable>
+    <variable name="run" default-value="./{platform}.{extension}{run-param}" />
+
+    <!-- Setup Launcher Instances - executed sequentially in the order of appearance -->
+    <instance id="jvm1" type="local">
+        {run} --agent=s --type=sender --count={agent-count}
+    </instance>
+    <instance id="jvm2" type="remote" host="{host-remote}" require="jvm1">
+        {run} --agent=r --type=receiver --count={agent-count} --join={host-remote}
+    </instance>
+
+    <!-- Instrutions -->
+    <cycle count="3">
+        <command for="jvm1">send r{agent-id} "Hello{index}"</command>
+        <sleep duration="1000" />
+    </cycle>
+
+    <!-- Kill and start jvm2 -->
+    <command for="jvm2">restart</command>
+    <command for="jvm1">restart:agent</command>
+
+    <!-- Enable profiler -->
+    <command>profiler:enable</command>
+
+    <cycle count="3">
+        <command for="jvm1">send r{agent-id} "Hello hello {index}"</command>
+        <sleep duration="1000" />
+    </cycle>
+
+    <!-- Disable profiler -->
+    <command>profiler:disable</command>
+
+    <!-- Quit -->
+    <command>quit</command>
+
+</launcher>
