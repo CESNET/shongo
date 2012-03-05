@@ -120,7 +120,7 @@ This is specific type of reservation that can be only made by an owner of the
 resource as it permanently removes the reserved capacity from the dynamic
 Shongo scheduling.
 
-\UseCase{List all the reservations}{srv:list}
+\UseCase{List all the reservations}{rsv:list}
 
 Some querying/filtering language needs to be supported to limit list to
 
@@ -219,10 +219,76 @@ technology specific part (e.g., H.323 statistics).
 
 \UseCase{Set layout specific for a user}{ops:room:user-layout}
 
+\UseCase{Download and upload room settings}{ops:room:settings-down-up}
+
+We should provide an API that allows for downloading settings of the room to
+the maximum extent possible, in order to back it up and reupload it later on.
+This is a convenient way to back up setting as well as to reset a newly created
+room (e.g., as a part of a new reservation) to old settings.
+
+\UseCase{Download and upload room content (if technology
+permits)}{ops:room:content-down-up}
+
+If technology and access policy permits, we should be able to download and
+upload content of the room (e.g., documents, notes, polls, etc.). See
+\UCref{ops:room:settings-down-up}.
+
+\UseCase{Set technology-specific properties for a room}{ops:room:room-techspec}
+
+\UseCase{Set technology-specific properties for a user}{ops:room:user-techspec}
+
 \end{UseCases}
 
 
 \section{Monitoring \& Management}
+
+\subsection{Shongo management and monitoring}
+
+\begin{UseCases}
+
+\UseCase{List of all the agents in the system}{mgmt:shng:list-agents}
+
+The listing API must including querying language that allows selection of only
+a subset based on similar properties like those defined in \UCref{rsv:list}.
+
+\UseCase{List primary and backup controllers}{mgmt:shng:list-controllers}
+
+List all the controllers (primary and backup) for current domain.
+
+\UseCase{List domains}{mgmt:shng:list-domains}
+
+List of all other known domains including references to their domain
+controllers and state of connections to them.
+
+\end{UseCases}
+
+\subsection{Server management and monitoring}
+
+\begin{UseCases}
+
+\UseCase{Get server load}{mgmt:srv:get-load}
+
+The API should provide means to get load on the server machine, containing at
+least the following:
+
+\begin{compactitem}
+
+\item CPU load
+
+\item memory load
+
+\item disk occupancy (if available)
+
+\end{compactitem}
+
+
+\UseCase{Schedule server downtime}{mgmt:srv:schedule-downtime}
+
+Downtime scheduling must include change/migration of all the reservations and
+live events influenced by the downtime.
+
+
+\end{UseCases}
 
 
 
