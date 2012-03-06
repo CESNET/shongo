@@ -602,6 +602,8 @@ Represents an active user in a |VRoom| on a |Server|. Ideally, it should also co
 
 \APIcmd{Resources[] listManagedResources(SecurityToken token)}
 
+List of resources managed by Shongo, that a user with given |token| is entitled to see.
+
 \end{APIdef}
 
 
@@ -614,6 +616,8 @@ Represents an active user in a |VRoom| on a |Server|. Ideally, it should also co
 Lists all the virtual rooms including rooms that are part of any child reservations.
 
 \APIcmd{boolean isRoomActive(SecurityToken token, Room room)}
+
+\APIcmd{Resource[] listRoomResources(SecurityToken token, Room room)}
 
 \APIcmd{User[] listRoomUsers(SecurityToken token, Room room)}
 
