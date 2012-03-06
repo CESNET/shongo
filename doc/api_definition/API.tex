@@ -21,10 +21,37 @@
 \usepackage{ifthen}
 \usepackage{xspace}
 
-% this is to protect verbatim
-\usepackage{cprotect}
+\usepackage{relsize}
+\usepackage{xcolor}
+\usepackage{listingsutf8}
+\definecolor{lstbackground}{gray}{0.8}
+\definecolor{lstkeywordcolor}{rgb}{0,0,0.4}
+\lstset{
+extendedchars=false,
+alsoletter={-},
+basicstyle=\fontfamily{txtt}\fontseries{b}\selectfont,
+keywordstyle=\color{lstkeywordcolor}\selectfont,
+commentstyle=\color{black!60}\selectfont,
+numbers=left, numberstyle=\tiny, stepnumber=2, numbersep=5pt, frame=single,
+backgroundcolor=\color{lstbackground}, showstringspaces=false
+}
+\lstdefinestyle{mensi}{
+basicstyle=\smaller[1]\fontfamily{txtt}\fontseries{b}\selectfont,
+}
+\lstdefinestyle{maly}{
+basicstyle=\smaller[2]\fontfamily{txtt}\fontseries{b}\selectfont,
+}
+\lstdefinestyle{myinline}{
+breaklines=true,
+breakatwhitespace=true,
+breakindent=10em,
+breakautoindent=true,
+}
+\lstset{language=java}
 
-\newcommand{\APIcmd}[1]{\item \texttt{#1}}
+\lstMakeShortInline[style=myinline]|
+
+\newcommand{\APIcmd}[1]{\item \lstinline[style=myinline]!#1!}
 
 \newenvironment{APIdef}{\begin{itemize}}{\end{itemize}}
 
@@ -435,57 +462,129 @@ live events influenced by the downtime.
 
 
 
-\chapter{User Interface API Specification}
 
-\chapter{Connector API Specification}
+\chapter{Common Data Types and Object Classes}
 
-\section{Data Types}
+\section{Failure Related}
+
+\TODO{:}
+We need to decide what to do in case of failure. XMLRPC only allows |faultCode| and |faultString| to be returned as a kind of exception. If we find it insufficient, we'd probably need to look beyond XMLRPC.
+
+\section{Security and Identity Related}
+
+\begin{APIdef}
+
+\APIcmd{SecurityToken}
+
+Contains identity and credentials of a user performing the requested operation.
+
+\end{APIdef}
+
+
+\section{Time Related}
 
 \begin{APIdef}
 
 \APIcmd{Date}
 
-\APIcmd{Reservation}
+Represented as 64-bit signed integer, it has semantics of Unix time since epoch with resolution of a second.
+
+\APIcmd{PeriodicDate}
+
+\APIcmd{Duration}
 
 \end{APIdef}
 
 
-\section{Reservation API}
+\section{Reservations and Resources}
 
 \begin{APIdef}
 
-\APIcmd{Reservation makeReservation(Date date, int licenseCount)}
+\APIcmd{Reservation}
+
+\APIcmd{ResourceType}
+
+Represents types (may be also understood as capabilities) of a resource. It is composed of:
+
+\begin{compactitem}
+
+\item technology type (|H323|, |SIP|, |AdobeConnect|)
+
+\item resource role (|EndPoint|, |Server|)
+
+\end{compactitem}
+
+If resource role is |Server|, additional options become available:
+
+\begin{compactitem}
+
+\item server role (|MultiPoint|, |Gateway|)
+
+\item translation type if server role is |Gateway| (subset of Cartesian product of technology types)
+
+\end{compactitem}
+
+
+
+\APIcmd{Resource}
+
+The resource may be of the following subtypes:
+
+\begin{compactitem}
+
+\item specific endpoint representation 
+
+Refers to specific endpoint known to and managed by Shongo.
+
+\item specific endpoint representation 
+
+Generic endpoint of certain technology, not known or managed by Shongo.
+
+\item licence representation
+
+Represents only pure licenses of certain technology on specific server or gateway.
+
+\end{compactitem}
+
 
 \end{APIdef}
 
 
 
 
+\chapter{User Interface API Specification}
+
+\begin{APIdef}
+
+\APIcmd{Reservation makeReservation(SecurityToken token, String description, Date date, Duration duration, Resources[] resources)}
+
+\APIcmd{Reservation makePeriodicReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources)}
+
+\APIcmd{Reservation makePermanentReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources)}
+
+\APIcmd{releaseReservation(SecurityToken token, Reservation)}
+
+\APIcmd{Reservation[] listReservations(SecurityToken token)}
+
+\end{APIdef}
+
+
+
+
+
+\chapter{Connector API Specification}
+
+\section{Data Types}
+
+\section{Reservation API}
+
 \section{User Management API}
-
-\begin{itemize}
-
-\item
-
-\end{itemize}
-
 
 \section{Monitoring API}
 
-\begin{itemize}
-
-\item 
-
-\end{itemize}
-
-
 \section{Application Specific API}
 
-\begin{itemize}
 
-\item
-
-\end{itemize}
 
 
 \chapter{Inter-Controller API Specification}
