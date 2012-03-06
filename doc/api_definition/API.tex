@@ -487,7 +487,7 @@ Contains identity and credentials of a user performing the requested operation.
 
 \APIcmd{Date}
 
-Represented as 64-bit signed integer, it has semantics of Unix time since epoch with resolution of a second.
+Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course.
 
 \APIcmd{PeriodicDate}
 
@@ -501,6 +501,17 @@ Represented as 64-bit signed integer, it has semantics of Unix time since epoch 
 \begin{APIdef}
 
 \APIcmd{Reservation}
+
+It contains links to the following:
+
+\begin{compactitem}
+
+\item list of resources reserved directly as a part of reservation,
+
+\item list of child reservations.
+
+\end{compactitem}
+
 
 \APIcmd{ResourceType}
 
@@ -547,6 +558,14 @@ Represents only pure licenses of certain technology on specific server or gatewa
 \end{compactitem}
 
 
+\APIcmd{VRoom}
+
+Represents a virtual room on a specific resource of |Server| type (such as H.323 MCU).
+
+\APIcmd{User}
+
+Represents an active user in a |VRoom| on a |Server|. Ideally, it should also contain link to the user's eduID identity (this may or may not be available, though).
+
 \end{APIdef}
 
 
@@ -554,22 +573,51 @@ Represents only pure licenses of certain technology on specific server or gatewa
 
 \chapter{User Interface API Specification}
 
+\section{Reservations}
+
 \begin{APIdef}
 
-\APIcmd{Reservation makeReservation(SecurityToken token, String description, Date date, Duration duration, Resources[] resources)}
+\APIcmd{Reservation makeReservation(SecurityToken token, String description, Date date, Duration duration, Resources[] resources, Reservation[] childReservations)}
 
-\APIcmd{Reservation makePeriodicReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources)}
+\APIcmd{Reservation makePeriodicReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources, Reservation[] childReservations)}
 
-\APIcmd{Reservation makePermanentReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources)}
+\APIcmd{Reservation makePermanentReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources, Reservation[] childReservations)}
 
-\APIcmd{releaseReservation(SecurityToken token, Reservation)}
+\APIcmd{modifyReservation(SecurityToken token, Reservation reservation, ...)}
+
+\APIcmd{modifyPeriodicReservation(SecurityToken token, Reservation reservation, ...)}
+
+\APIcmd{modifyPermanentReservation(SecurityToken token, Reservation reservation, ...)}
+
+\APIcmd{releaseReservation(SecurityToken token, Reservation reservation)}
 
 \APIcmd{Reservation[] listReservations(SecurityToken token)}
 
 \end{APIdef}
 
 
+\section{Resources}
 
+\begin{APIdef}
+
+\APIcmd{Resources[] listManagedResources(SecurityToken token)}
+
+\end{APIdef}
+
+
+\section{Room Operations}
+
+\begin{APIdef}
+
+\APIcmd{VRoom[] listReservationRooms(SecurityToken token, Reservation reservation)}
+
+Lists all the virtual rooms including rooms that are part of any child reservations.
+
+\APIcmd{boolean isRoomActive(SecurityToken token, Room room)}
+
+\APIcmd{User[] listRoomUsers(SecurityToken token, Room room)}
+
+\end{APIdef}
 
 
 \chapter{Connector API Specification}
