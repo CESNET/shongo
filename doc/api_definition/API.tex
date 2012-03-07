@@ -113,6 +113,20 @@ web browser as an endpoint for Adobe Connect), a specific server (e.g., a
 specific Adobe Connect server or H.323 MCU), a specific physical room, or a
 specific virtual room (e.g., a specific room running on specific H.323 MCU),
 
+FQESpec may be managed by Shongo or not; for resources that Shongo does not
+manage or knows about, i.e., unmanaged resources, the user needs to specify
+type of the resource (e.g., generic H.323 endpoint). The unmanaged resources
+should have some form of identification (e.g., H.323 number, H.323 ID, or
+Shibboleth identity for Adobe Connect) so that Shongo can verify if they are
+connected to the virtual room or not during the conference. 
+
+Anonymous unmanaged resources may also be available (completely generic H.323
+enpoint without a number or H.323 ID, or guest user in Adobe Connect) , but
+some functionality may not be available -- when maximum room capacity is
+achieved (or exceeded), anonymous users not be allowed in (or even be
+disconnected in LIFO mode until maximum amount of participants is obeyed).
+
+
 \item a \emph{partially-qualified explicit specification (PQESpec)} --
 specifies a class/type of a resource (e.g., H.323 endpoint) and it is up to the
 scheduling to find suitable one (combination of availability and access-level
@@ -125,6 +139,9 @@ implement the translation; if user specifies multiple H.323 endpoints beyond
 MCU-capability of each of them, some MCU is needs to be included).  
 
 \end{compactitem}
+
+\TODO{Limiting number of participants on room level: Connect should have means
+to implement this limiting on its own, we need to verify MCUs.}
 
 
 \UseCase{One Time reservation}{rsv:reservation:one}
@@ -200,6 +217,13 @@ periodicity language should be equivalent to cron plus explicit lists.
 This is specific type of reservation that can be only made by an owner of the
 resource as it permanently removes the reserved capacity from the dynamic
 Shongo scheduling.
+
+\UseCase{Lookup available time}{rsv:lookup:time}
+
+User may look up available time slots for given amount of requested resources,
+with either inter-domain negotiation turned off or on (i.e., tell the user when
+resources are available within the domain or when merging resources of all the
+domains).
 
 \UseCase{List all the reservations}{rsv:list}
 
