@@ -140,11 +140,28 @@ MCU-capability of each of them, some MCU is needs to be included).
 
 \end{compactitem}
 
-\TODO{Limiting number of participants on room level: Connect should have means
-to implement this limiting on its own, we need to verify MCUs.}
+Generally, Shongo should use the technology to limit number of participants in
+the rooms created based on the reservations---e.g., H.323 MCUs allow for
+setting an upper limit on number of participant in each room.
+
+\UseCase{User roles}{rsv:roles}
+
+Each reservation should have at least two types of possible user roles:
+
+\begin{compactitem}
+
+\item \emph{owner/administrator}, who can modify or even delete the reservation,
+
+\item \emph{manager}, who can control the room (e.g., disconnect participants, mute participants, etc.),
+
+\item \emph{participant}, who can only view the reservation including coordinates necessary for participation.
+
+\end{compactitem}
+
+The roles can be delegated, which is important especially in case of owner/administrator: the original reservation creator can delegate this role to other users and any of them can the modify or delete the reservation.
 
 
-\UseCase{One Time reservation}{rsv:reservation:one}
+\UseCase{One time reservation}{rsv:reservation:one}
 
 Common type of reservation, where a user requests certain resources for limited
 time duration. Unlimited reservations are not assumed by this scenario (see
@@ -210,7 +227,7 @@ Each reservation has to include:
 \UseCase{Periodic reservation}{rsv:reservation:periodic}
 
 \UCref{rsv:reservation:one} extended with periodicity. Expressiveness of the
-periodicity language should be equivalent to cron plus explicit lists.
+periodicity language should be equivalent to cron plus start time, stop time or number of repetition, and explicit lists for recurring aperiodic requests.
 
 \UseCase{Permanent reservation}{rsv:reservation:permanent}
 
@@ -354,7 +371,7 @@ Some functionality will be common~\UCref{rsv:migration}.
 
 \UseCase{Get room information on Shongo level}{ops:room:shongo-options}
 
-This information typically includes name, owner, duration and type.
+This information typically includes name, owner, date/periodicity, duration and type.
 
 
 \UseCase{List users}{ops:room:users-list}
@@ -451,10 +468,17 @@ level), such as enabled codecs.
 \UseCase{Get/set technology-specific properties for a
 user}{ops:room:user-techspec}
 
+\UseCase{Management of recording archives}{ops:recordings-management}
+
+It should be possible to work with the recorded video through Shongo, e.g.,
+migrate it from a content server to a storage of a streaming server. Plus it
+should be possible for owner/administrator or manager to access URLs of the
+recorded content to send them via email. Also, it should be possible to
+automatically notify all the (non-anonymous) participants about the recording
+via email.
+
 \end{UseCases}
 
-
-\TODO{Exports to recording archives.}
 
 
 \section{Monitoring \& Management}
@@ -506,13 +530,18 @@ consistent way (specific exception or unique return value).
 \UseCase{Schedule server downtime}{mgmt:srv:schedule-downtime}
 
 Downtime scheduling must include change/migration of all the reservations and
-live events influenced by the downtime.
+live events influenced by the downtime. Conceptually, this is similar to
+permanent reservations a bit (\UCref{rsv:reservation:permanent})---the major
+difference is that during the downtime, the resource is not available to Shongo
+for management and this state is intentional. Downtime is also per-resource and
+does not have participants.
 
+\UseCase{Export Shongo stats}{mgmt:export-stats}
+
+Export reservation stats in some common format like CDR.
 
 \end{UseCases}
 
-
-\TODO{Export from Shongo - maybe CDRs.}
 
 
 
