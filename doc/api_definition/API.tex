@@ -218,6 +218,30 @@ This is specific type of reservation that can be only made by an owner of the
 resource as it permanently removes the reserved capacity from the dynamic
 Shongo scheduling.
 
+Even permanent reservations must not threaten what has already been reserved for any user. In case of priority requests (see \UCref{rsv:priority}), Shongo must be able to migrate the reservation to other resources.
+
+\UseCase{Priority reservations}{rsv:priority}
+
+Priority reservations are only allowed by an owner of the resources and they
+may affect reservations already present on the resources. However, priority
+reservation should only be allowed if there is some other resource(s) (maybe
+even in another domain) that can take over the prior reservation. In case of
+reservation migration, all the involved users must be notified
+(see~\UCref{rsv:migration}).
+
+\TODO{We need to decide, whether to allow this or not.}
+
+
+\UseCase{Maximum future time for reservations}{rsv:max-future}
+
+Each resource owner should set a date/time limit in the future (e.g., 2
+months), above which reservations are not allowed. Whole reservation duration
+must fit in that limit. This limit ensures there is some time point in the
+future, where there are no reservations on the resource---e.g., for
+maintainance purposes, removal of the device, special events the device will be
+used for, etc.
+
+
 \UseCase{Lookup available time}{rsv:lookup:time}
 
 User may look up available time slots for given amount of requested resources,
