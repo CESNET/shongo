@@ -51,7 +51,12 @@ breakautoindent=true,
 
 \lstMakeShortInline[style=myinline]|
 
-\newcommand{\APIcmd}[1]{\item \lstinline[style=myinline]!#1!}
+\newcommand{\APIcmd}[1]{%
+\item \lstinline[style=myinline]!#1!%
+
+% The previous line is intended to be blank (wraps the text 
+% to the next line even if the \APIcmd is not followed by empty line)
+}
 
 \newenvironment{APIdef}{\begin{itemize}}{\end{itemize}}
 
@@ -95,6 +100,17 @@ breakautoindent=true,
 \tableofcontents
 
 \chapter{Use Cases}
+
+\section{Resources}
+
+\begin{UseCases}
+
+\UseCase{Management of resources}{res:management}
+
+The resource owner should be able to create new resources that will be managed by Shongo. Owner should be able to modify resource parameters and also to delete the resource.
+
+\end{UseCases}
+
 
 \section{Reservations}
 
@@ -252,7 +268,7 @@ reservation migration, all the involved users must be notified
 \UseCase{Maximum future time for reservations}{rsv:max-future}
 
 Each resource owner should set a date/time limit in the future (e.g., 2
-months), above which reservations are not allowed. Whole reservation duration
+months), above which reservations are not allowed. That should be done for each owned resource. Whole reservation duration
 must fit in that limit. This limit ensures there is some time point in the
 future, where there are no reservations on the resource---e.g., for
 maintainance purposes, removal of the device, special events the device will be
@@ -545,8 +561,6 @@ Export reservation stats in some common format like CDR.
 
 
 
-
-
 \chapter{Common Data Types and Object Classes}
 
 \section{Failure Related}
@@ -554,12 +568,12 @@ Export reservation stats in some common format like CDR.
 \TODO{:}
 We need to decide what to do in case of failure. XMLRPC only allows |faultCode| and |faultString| to be returned as a kind of exception. If we find it insufficient, we'd probably need to look beyond XMLRPC.
 
+
 \section{Security and Identity Related}
 
 \begin{APIdef}
 
 \APIcmd{SecurityToken}
-
 Contains identity and credentials of a user performing the requested operation.
 
 \end{APIdef}
@@ -570,10 +584,10 @@ Contains identity and credentials of a user performing the requested operation.
 \begin{APIdef}
 
 \APIcmd{Date}
-
 Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course.
 
 \APIcmd{PeriodicDate}
+Extends |Date| type for periodicity. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too.
 
 \APIcmd{Duration}
 
@@ -584,71 +598,61 @@ Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way o
 
 \begin{APIdef}
 
-\APIcmd{Reservation}
-
-It contains links to the following:
-
-\begin{compactitem}
-
-\item list of resources reserved directly as a part of reservation,
-
-\item list of child reservations.
-
-\end{compactitem}
-
-
 \APIcmd{ResourceType}
-
-Represents types (may be also understood as capabilities) of a resource. It is composed of:
-
+Represents types (may be also understood as capabilities) of a resource. 
+It is composed of:
 \begin{compactitem}
-
 \item technology type (|H323|, |SIP|, |AdobeConnect|)
-
 \item resource role (|EndPoint|, |Server|)
-
 \end{compactitem}
-
 If resource role is |Server|, additional options become available:
-
 \begin{compactitem}
-
 \item server role (|MultiPoint|, |Gateway|)
-
 \item translation type if server role is |Gateway| (subset of Cartesian product of technology types)
-
 \end{compactitem}
-
-
 
 \APIcmd{Resource}
-
 The resource may be of the following subtypes:
-
 \begin{compactitem}
-
-\item specific endpoint representation 
-
+\item specific endpoint representation \\
 Refers to specific endpoint known to and managed by Shongo.
-
-\item specific endpoint representation 
-
+\item specific endpoint representation \\
 Generic endpoint of certain technology, not known or managed by Shongo.
-
-\item licence representation
-
+\item licence representation \\
 Represents only pure licenses of certain technology on specific server or gateway.
-
 \end{compactitem}
 
+\APIcmd{ResourceSpecification}
+Represents resource specification and can be one of the types defined in
+\UCref{rsv:specifications}. The specification instance should hold 
+the right parameters for the chosen specification type.
+\begin{compactitem}
+\item for |FullExplicit| the parameter is concrete |Resource|
+\item for |PartialExplicit| the parameter is |ResourceType| (\TODO{or list of types?})
+\item for |Implicit| \TODO{some parameters?}
+\end{compactitem}
+\TODO{How to implement it better? By three more types extending the base?}
 
-\APIcmd{VRoom}
+\APIcmd{ReservationType}
+The reservation may be of the following types:
+\begin{compactitem}
+\item |OneTime| One time reservation as defined in \UCref{rsv:reservation:one}.
+\item |Periodic| Periodic reservation as defined in \UCref{rsv:reservation:periodic}.
+\item |Permanent| Permanent reservation as defined in \UCref{rsv:reservation:permanent}.
+\end{compactitem}
 
+\APIcmd{Reservation}
+It contains links to the following:
+\begin{compactitem}
+\item list of resources reserved directly as a part of reservation,
+\item list of child reservations.
+\end{compactitem}
+
+\APIcmd{Room}
 Represents a virtual room on a specific resource of |Server| type (such as H.323 MCU).
 
 \APIcmd{User}
-
-Represents an active user in a |VRoom| on a |Server|. Ideally, it should also contain link to the user's eduID identity (this may or may not be available, though).
+Represents an active user in a |Room| on a |Server|. Ideally, it should also contain link to the user's eduID identity (this may or may not be available, though).
 
 \end{APIdef}
 
@@ -657,36 +661,40 @@ Represents an active user in a |VRoom| on a |Server|. Ideally, it should also co
 
 \chapter{User Interface API Specification}
 
-\section{Reservations}
-
-\begin{APIdef}
-
-\APIcmd{Reservation makeReservation(SecurityToken token, String description, Date date, Duration duration, Resources[] resources, Reservation[] childReservations)}
-
-\APIcmd{Reservation makePeriodicReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources, Reservation[] childReservations)}
-
-\APIcmd{Reservation makePermanentReservation(SecurityToken token, String description, PeriodicDate date, Duration duration, Resources[] resources, Reservation[] childReservations)}
-
-\APIcmd{modifyReservation(SecurityToken token, Reservation reservation, ...)}
-
-\APIcmd{modifyPeriodicReservation(SecurityToken token, Reservation reservation, ...)}
-
-\APIcmd{modifyPermanentReservation(SecurityToken token, Reservation reservation, ...)}
-
-\APIcmd{releaseReservation(SecurityToken token, Reservation reservation)}
-
-\APIcmd{Reservation[] listReservations(SecurityToken token)}
-
-\end{APIdef}
-
-
 \section{Resources}
 
 \begin{APIdef}
 
-\APIcmd{Resources[] listManagedResources(SecurityToken token)}
+\APIcmd{Resource createResource(SecurityToken token, String name, ResourceType type, String description)}
+Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner.
 
+\APIcmd{modifyResource(SecurityToken token, Resource resource)}
+Modify the specified |resource|. That operation is permited only when the user with given |token| is the resource owner.
+
+\APIcmd{deleteResource(SecurityToken token, Resource resource)}
+Delete the specified |resource| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+
+\APIcmd{setMaximumFuture(SecurityToken token, Resource resource, Duration duration)}
+Set the maximum future time for reservations of specified |resources| that a user with given |token| owns.
+
+\APIcmd{Resources[] listResources(SecurityToken token)}
 List of resources managed by Shongo, that a user with given |token| is entitled to see.
+
+\end{APIdef}
+
+
+\section{Reservations}
+
+\begin{APIdef}
+
+\APIcmd{Reservation createReservation(SecurityToken token, ReservationType type, Date date, Duration duration, String description, ResourceSpecification[] resources)}
+Create a new reservation of specified |type| at selected |date| for specified |resources|.
+
+\APIcmd{modifyReservation(SecurityToken token, Reservation reservation)}
+
+\APIcmd{deleteReservation(SecurityToken token, Reservation reservation)}
+
+\APIcmd{Reservation[] listReservations(SecurityToken token)}
 
 \end{APIdef}
 
@@ -695,7 +703,7 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 
 \begin{APIdef}
 
-\APIcmd{VRoom[] listReservationRooms(SecurityToken token, Reservation reservation)}
+\APIcmd{Room[] listReservationRooms(SecurityToken token, Reservation reservation)}
 
 Lists all the virtual rooms including rooms that are part of any child reservations.
 
