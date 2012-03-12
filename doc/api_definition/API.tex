@@ -590,6 +590,10 @@ Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way o
 Extends |Date| type for periodicity. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too.
 
 \APIcmd{Duration}
+Represented as ISO8601 duration (e.g., P3Y6M4DT12H30M5S, which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds}).
+
+\APIcmd{TimeSlot}
+Time slot is pair of |Date| and |Duration|.
 
 \end{APIdef}
 
@@ -627,9 +631,9 @@ Represents resource specification and can be one of the types defined in
 \UCref{rsv:specifications}. The specification instance should hold 
 the right parameters for the chosen specification type.
 \begin{compactitem}
-\item for |FullExplicit| the parameter is concrete |Resource|
-\item for |PartialExplicit| the parameter is |ResourceType| (\TODO{or list of types?})
-\item for |Implicit| \TODO{some parameters?}
+\item for |FullExplicit| the parameter is concrete |Resource|.
+\item for |PartialExplicit| the parameter is |ResourceType| (\TODO{or list of types?}).
+\item for |Implicit| \TODO{some parameters?}.
 \end{compactitem}
 \TODO{How to implement it better? By three more types extending the base?}
 
@@ -661,6 +665,12 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 \chapter{User Interface API Specification}
 
+\TODO{How to report failures? All by exceptions or some by return value?}
+\\
+\TODO{How to perform modifications? There are two possibilities: 
+    \\ 1) by attributes -- modifyEntity(Entity, Attr1, Attr2, ...)
+    \\ 2) by entity -- modifyEntity(Entity), where Entity \{Attr1, Attr2, ...\}}
+
 \section{Resources}
 
 \begin{APIdef}
@@ -674,7 +684,7 @@ Modify the specified |resource|. That operation is permited only when the user w
 \APIcmd{deleteResource(SecurityToken token, Resource resource)}
 Delete the specified |resource| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
-\APIcmd{setMaximumFuture(SecurityToken token, Resource resource, Duration duration)}
+\APIcmd{setResourceMaximumFuture(SecurityToken token, Resource resource, Duration duration)}
 Set the maximum future time for reservations of specified |resources| that a user with given |token| owns.
 
 \APIcmd{Resources[] listResources(SecurityToken token)}
@@ -691,10 +701,19 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 Create a new reservation of specified |type| at selected |date| for specified |resources|.
 
 \APIcmd{modifyReservation(SecurityToken token, Reservation reservation)}
+Modify the specified |reservation|.
+\\ \TODO{What changes will be able to apply?}
 
 \APIcmd{deleteReservation(SecurityToken token, Reservation reservation)}
+Release the specified |reservation| and all children reservations.
 
 \APIcmd{Reservation[] listReservations(SecurityToken token)}
+List all the reservations that a user with given |token| is entitled to see.
+\\ \TODO{Use some querying/filtering language}
+
+\APIcmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, ResourceSpecification[] resources, boolean interDomain)}
+Lookup available time slots for specified |resources|. There is flag that specifies whether inter-domain lookup should be performed.
+
 
 \end{APIdef}
 
