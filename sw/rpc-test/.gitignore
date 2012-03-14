@@ -1,0 +1,4 @@
+common/target
+soap-axis/target
+soap-ws/target
+xml-rpc/target

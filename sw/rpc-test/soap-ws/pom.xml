@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>rpc-test</artifactId>
+        <groupId>cz.cesnet.shongo.rpc-test</groupId>
+        <version>1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>soap-ws</artifactId>
+    <name>RPC Test for SOAP WebService</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo.rpc-test</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jaxws-maven-plugin</artifactId>
+                <executions>
+                    <!-- Generate WSDL file into target/wsdl -->
+                    <execution>
+                        <id>wsgen</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>wsgen</goal>
+                        </goals>
+                        <configuration>
+                            <sei>cz.cesnet.shongo.rpctest.soapws.ApiImpl</sei>
+                            <resourceDestDir>${project.build.directory}/wsdl</resourceDestDir>
+                            <genWsdl>true</genWsdl>
+                        </configuration>
+                    </execution>
+                    <!-- Generate Stubs from target/wsdl -->
+                    <execution>
+                        <id>wsimport</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <packageName>cz.cesnet.shongo.rpctest.soapws.service</packageName>
+                            <wsdlDirectory>${project.build.directory}/wsdl</wsdlDirectory>
+                            <sourceDestDir>${basedir}/src/main/java/</sourceDestDir>
+                            <keep>true</keep>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
