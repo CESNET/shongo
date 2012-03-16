@@ -2,6 +2,23 @@ package cz.cesnet.shongo.rpctest.common;
 
 public class API
 {
+    public static class Resource
+    {
+        public String name;
+        public String description;
+        public Resource resource;
+        
+        public String getName() {
+            return name;
+        }
+        public String getDescription() {
+            return description;
+        }
+        public Resource getResource() {
+            return resource;
+        }
+    }
+    
     public static class ApiException extends Exception
     {
         String dataLoad;
@@ -47,7 +64,13 @@ public class API
     public String getMessageThird() throws ApiException
     {
         throw new ApiException("My Exception", "My data");
-        //throw new XmlRpcException(25, "Hello");
-        //return "Hello";
+    }
+
+    public Resource getResource()
+    {
+        Resource resource = new Resource();
+        resource.name = "Name";
+        resource.description = "Long description";
+        return resource;
     }
 }

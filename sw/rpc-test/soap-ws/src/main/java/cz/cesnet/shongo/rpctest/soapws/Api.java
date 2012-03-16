@@ -8,7 +8,13 @@ import javax.xml.ws.WebFault;
 @WebService
 public interface Api
 {
-    @WebFault(name = "ApiException", targetNamespace = "http://soapws.rpctest.shongo.cesnet.cz/")
+    public static class Resource
+    {
+        public String name;
+
+        public String description;
+    }
+
     public static class ApiException extends Exception
     {
         private String dataLoad;
@@ -38,4 +44,7 @@ public interface Api
 
     @WebMethod
     public String getMessage() throws ApiException;
+
+    @WebMethod
+    public Resource getResource();
 }

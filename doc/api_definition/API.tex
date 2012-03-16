@@ -740,21 +740,28 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 \chapter{User Interface API Specification}
 
-\TODO{How to report failures? All by exceptions or some by return value?}
+\TODO{How to report failures? All by exceptions or some by return value? 
+    \\ => exceptions}
 \\
 \TODO{How to perform modifications? There are two possibilities: 
     \\ 1) by attributes -- modifyEntity(Entity, Attr1, Attr2, ...)
-    \\ 2) by entity -- modifyEntity(Entity), where Entity \{Attr1, Attr2, ...\}}
+    \\ 2) by entity -- modifyEntity(Entity), where Entity \{Attr1, Attr2, ...\}
+    \\ => option 1) but all attributes are merged into Attributes map}
 
 \section{Resources}
 
 \begin{APIdef}
 
-\APIcmd{String createResource(SecurityToken token, String name, ResourceType type, String description)}
-Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner.
+\APIcmd{String createResource(SecurityToken token, String domain, String name, ResourceType type, String description)}
+Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner. The resulting value is the new resource unique identifier.
 
 \APIcmd{modifyResource(SecurityToken token, String resourceId, Attributes attributes)}
 Modify the resource with specified |resourceId| identifier. That operation is permited only when the user with given |token| is the resource owner.
+
+Possible Attributes:
+\begin{compactitem}
+\item \TODO{Enumerate all possible attributes}
+\end{compactitem}
 
 \APIcmd{deleteResource(SecurityToken token, String resourceId)}
 Delete the resource with specified |resourceId| identifier from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
@@ -772,21 +779,29 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 
 \section{Reservations}
 
+\TODO{We have agreed that when the user has a reservation, he should be able to request the same resources for another date/time. Example: He has periodical reservation on Mondays at three o'clock for some resources and exceptionally he wants the same reservation this Thursday. How to perform that? 
+\\ 1) Create new reservation with specified resources (this may reserve other resources in case of PQESpec and ISpec)
+\\ 2) Each reservation can occur multiple date/times
+}
+
 \begin{APIdef}
 
-\APIcmd{Reservation createReservation(SecurityToken token, ReservationType type, Date date, Duration duration, String description, ResourceSpecification[] resources)}
+\APIcmd{String createReservation(SecurityToken token, ReservationType type, Date date, Duration duration, String description, ResourceSpecification[] resources, String[] reservations)}
 Create a new reservation of specified |type| at selected |date| for specified |resources|.
 
-\APIcmd{modifyReservation(SecurityToken token, Reservation reservation)}
+\APIcmd{modifyReservation(SecurityToken token, String reservationId)}
 Modify the specified |reservation|.
 \\ \TODO{What changes will be able to apply?}
 
-\APIcmd{deleteReservation(SecurityToken token, Reservation reservation)}
+\APIcmd{deleteReservation(SecurityToken token, String reservationId)}
 Release the specified |reservation| and all children reservations.
 
 \APIcmd{Reservation[] listReservations(SecurityToken token)}
 List all the reservations that a user with given |token| is entitled to see.
 \\ \TODO{Use some querying/filtering language}
+\\ \TODO{In which form should be Reservation returned? 
+   \\ -XML-RPC can't return arbitrary objects, but only basic types and (recursive) Maps and Lists. Apache XML-RPC can be extended in the way to return Map representation of every object (that has tree structure, what about cycles?).
+   \\ -SOAP is able to return arbitrary objects.}
 
 \APIcmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, ResourceSpecification[] resources, boolean interDomain)}
 Lookup available time slots for specified |resources|. There is flag that specifies whether inter-domain lookup should be performed.

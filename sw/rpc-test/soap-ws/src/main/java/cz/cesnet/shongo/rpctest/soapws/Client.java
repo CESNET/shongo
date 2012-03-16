@@ -22,6 +22,10 @@ public class Client
             e.printStackTrace();
         }
 
+        Resource resource = api.getResource();
+        System.out.println(resource.getName());
+        System.out.println(resource.getDescription());
+
         try {
             System.out.println(api.getMessage());
         } catch (ApiException_Exception e) {

@@ -43,6 +43,17 @@ public interface Api {
     /**
      * 
      * @return
+     *     returns cz.cesnet.shongo.rpctest.soapws.service.Resource
+     */
+    @WebMethod
+    @WebResult(targetNamespace = "")
+    @RequestWrapper(localName = "getResource", targetNamespace = "http://soapws.rpctest.shongo.cesnet.cz/", className = "cz.cesnet.shongo.rpctest.soapws.service.GetResource")
+    @ResponseWrapper(localName = "getResourceResponse", targetNamespace = "http://soapws.rpctest.shongo.cesnet.cz/", className = "cz.cesnet.shongo.rpctest.soapws.service.GetResourceResponse")
+    public Resource getResource();
+
+    /**
+     * 
+     * @return
      *     returns java.lang.String
      * @throws ApiException_Exception
      */

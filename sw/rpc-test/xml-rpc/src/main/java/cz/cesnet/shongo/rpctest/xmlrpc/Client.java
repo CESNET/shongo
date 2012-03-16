@@ -1,21 +1,46 @@
 package cz.cesnet.shongo.rpctest.xmlrpc;
 
+import cz.cesnet.shongo.rpctest.common.API;
 import cz.cesnet.shongo.rpctest.common.XmlFormatter;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.*;
 import org.xml.sax.SAXException;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 public class Client
 {
     private final static Logger logger = Logger.getLogger(Client.class);
 
+    public static Map convert(Object object) {
+        Map<String, Object> map = null;
+        try {
+            map = BeanUtils.describe(object);
+            map.remove("class");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+    
     public static void main(String[] args)
     {
+        /*API.Resource resource = new API.Resource();
+        resource.name = "ahoj";
+        resource.resource = new API.Resource();
+        resource.resource.name = "cau";
+        Map map = convert(resource);
+        System.out.println(map.size());
+        System.out.println(map.toString());
+        System.exit(0);*/
+
         try {
             XmlRpcClientConfigImpl xmlRpcClientConfig = new XmlRpcClientConfigImpl();
             xmlRpcClientConfig.setServerURL(new URL("http://127.0.0.1:" + Server.port + "/rpctest"));
@@ -23,6 +48,8 @@ public class Client
             XmlRpcClient xmlRpcClient = new XmlRpcClient();
             xmlRpcClient.setConfig(xmlRpcClientConfig);
             xmlRpcClient.setTransportFactory(new TransportFactory(xmlRpcClient));
+
+            xmlRpcClient.execute("API.getResource", new Object[]{});
 
             String message = (String) xmlRpcClient.execute("API.getMessage", new Object[]{});
 

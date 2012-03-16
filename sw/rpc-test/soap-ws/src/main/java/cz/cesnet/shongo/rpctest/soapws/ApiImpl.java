@@ -29,4 +29,13 @@ public class ApiImpl implements Api
     {
         throw new ApiException("My Exception", "My data");
     }
+
+    @Override
+    public Resource getResource()
+    {
+        Resource resource = new Resource();
+        resource.name = "Name";
+        resource.description = "Long description";
+        return resource;
+    }
 }
