@@ -6,7 +6,7 @@ public class API
     {
         public String name;
         public String description;
-        public Resource resource;
+        //public Resource resource;
         
         public String getName() {
             return name;
@@ -14,8 +14,39 @@ public class API
         public String getDescription() {
             return description;
         }
-        public Resource getResource() {
-            return resource;
+        //public Resource getResource() {
+        //    return resource;
+        //}
+    }
+
+    public static class Date
+    {
+        public String date;
+        
+        public Date(String date)
+        {
+            this.date = date;
+        }
+        
+        public String toString()
+        {
+            return "Date [" + date + "]";
+        }
+    }
+    
+    public static class PeriodicDate extends Date
+    {
+        public String period;
+
+        public PeriodicDate(String date, String period)
+        {
+            super(date);
+            this.period = period;
+        }
+
+        public String toString()
+        {
+            return "PeriodicDate [" + date + ", " + period + "]";
         }
     }
     
@@ -49,6 +80,11 @@ public class API
     public int addAndDiv(int x, int y, int z)
     {
         return (x + y) / z;
+    }
+    
+    public String formatDate(Date date)
+    {
+        return date.toString();
     }
 
     public String getMessage() throws ApiException

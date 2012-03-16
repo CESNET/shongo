@@ -13,34 +13,15 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Map;
 
 public class Client
 {
     private final static Logger logger = Logger.getLogger(Client.class);
 
-    public static Map convert(Object object) {
-        Map<String, Object> map = null;
-        try {
-            map = BeanUtils.describe(object);
-            map.remove("class");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return map;
-    }
-    
     public static void main(String[] args)
     {
-        /*API.Resource resource = new API.Resource();
-        resource.name = "ahoj";
-        resource.resource = new API.Resource();
-        resource.resource.name = "cau";
-        Map map = convert(resource);
-        System.out.println(map.size());
-        System.out.println(map.toString());
-        System.exit(0);*/
-
         try {
             XmlRpcClientConfigImpl xmlRpcClientConfig = new XmlRpcClientConfigImpl();
             xmlRpcClientConfig.setServerURL(new URL("http://127.0.0.1:" + Server.port + "/rpctest"));
@@ -48,15 +29,19 @@ public class Client
             XmlRpcClient xmlRpcClient = new XmlRpcClient();
             xmlRpcClient.setConfig(xmlRpcClientConfig);
             xmlRpcClient.setTransportFactory(new TransportFactory(xmlRpcClient));
+            xmlRpcClient.setTypeFactory(new TypeFactory(xmlRpcClient));
 
             xmlRpcClient.execute("API.getResource", new Object[]{});
+            
+            System.out.println(xmlRpcClient.execute("API.formatDate", new Object[]{new API.Date("xx")}));
+            System.out.println(xmlRpcClient.execute("API.formatDate", new Object[]{new API.PeriodicDate("xx", "yy")}));
+
+            Object[] params = new Object[]{new Integer(33), new Integer(5)};
+            Integer result = (Integer) xmlRpcClient.execute("API.div", params);
+            System.out.println(result);
 
             String message = (String) xmlRpcClient.execute("API.getMessage", new Object[]{});
 
-            Object[] params = new Object[]{new Integer(33), new Integer(0)};
-            Integer result = (Integer) xmlRpcClient.execute("API.div", params);
-
-            System.out.println(result);
         } catch (XmlRpcException exception) {
             exception.printStackTrace();
         } catch (MalformedURLException e) {

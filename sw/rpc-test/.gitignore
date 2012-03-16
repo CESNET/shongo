@@ -2,3 +2,12 @@ common/target
 soap-axis/target
 soap-ws/target
 xml-rpc/target
+.idea/ant.xml
+.idea/compiler.xml
+.idea/copyright
+.idea/encodings.xml
+.idea/libraries
+.idea/scopes
+.idea/uiDesigner.xml
+.idea/vcs.xml
+.idea/workspace.xml

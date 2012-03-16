@@ -664,6 +664,8 @@ Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way o
 \APIcmd{PeriodicDate}
 Extends |Date| type for periodicity. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too.
 
+\textbf{Note}: Apache XML-RPC can be easily extended for custom atomic types (e.g., \verb|dateTime| and \verb|periodicDateTime|) and these atomic types can be easily mapped to custom java classes (e.g., |Date| and |PeriodicDate|). These classes can also inherit one from the other. It was tested in \verb|rpc-test| application.
+
 \APIcmd{Duration}
 Represented as ISO8601 duration (e.g., P3Y6M4DT12H30M5S, which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds}).
 
