@@ -108,15 +108,73 @@ breakautoindent=true,
 
 \UseCase{Types of resources}{res:types}
 
-\TODO{Describe managed/unmanaged}
+Basic resource types include the following:
 
-Basic Types:
-\begin{compactitem}
-\item specific device/server
-\item specific physical/virtual room
-\item specific license
-\item specific identifier (Adobe Connect URL, H.323 number)
-\end{compactitem}
+\begin{compactdesc}
+
+\item[A managed endpoint]
+
+This is an endpoint, that is managed by Shongo -- the endpoint is both managed
+(calls are automatically dialed when involved in reservation, directory is
+updated, etc.) and monitored (availability and status).
+
+\item[A unmanaged endpoint] 
+
+This is an endpoint, which is not available for Shongo management for either
+technical or administrative reason. It may be, e.g., a software H.323 client or
+web browser acting as a Adobe Connect client. Its specification by a user
+(e.g., providing attributes like H.323 number or H.323 ID), however, allows for
+specific adjustments during implementation of the reservation -- e.g.,
+monitoring of participants in the calls and allowing only participants calling
+from specific H.323 number or ID.
+
+\item[A managed infrastructure element]
+
+This is one of the infrastructure resources, that is managed, monitored and
+typically also scheduled by the Shongo. It includes things such as H.323 MCUs,
+H.323 gatekeepers, Adobe Connect servers, recording servers, streaming servers,
+and various types of gateways and translators.
+
+\item[A virtual room] 
+
+A virtual room is a private compartment on a specific multi-point
+infrastructure element. Typically, this is comes as a product of a scheduling
+process. Virtual rooms are often not licensed, only their participants are
+(this is a concurrent user license model). However, other models may also
+exists and this is abstraction allows for them.
+
+\item[A license]
+
+This is typically the limiting factor of infrastructure elements in a
+concurrent user licensing model. Utilization of the licenses is scheduled by
+Shongo, while some licenses may be put aside as a part of permanent
+reservations by a resource owner (see \UCref{rsv:reservation:permanent}).
+
+\item[A physical room]
+
+This a representation of a physical meeting room and Shongo thus allows for
+reserving physical rooms. Its representation among the resources enables also
+more advanced uses: a physical room may contain multiple videoconferencing
+devices and reserving a room also means that the those devices become
+unavailable for other reservations than the one which contains the physical
+room.
+
+\item[A specific identifier]
+
+A user may reserve a specific identifier, typically Adobe Connect URL, H.323
+number, or streaming server URL. This allows for reuse of such an identifier in
+irregularly recurring and \emph{ad hoc} events.
+
+\item[An existing reservation]
+
+Reservations may be compounded to form another reservation. This allows to
+reuse elements that are already reserved (e.g., a specified identifier or
+allocation of a physical room) to implement a larger reservation. As a part of
+the scheduling process, the scheduler has to check whether the reservation
+times and durations are compatible.
+
+\end{compactdesc}
+
 \TODO{Describe each basic type}
 
 \TODO{Will be identifier reservations done the same way as all other resources?}
