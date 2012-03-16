@@ -57,6 +57,7 @@ breakautoindent=true,
 % The previous line is intended to be blank (wraps the text 
 % to the next line even if the \APIcmd is not followed by empty line)
 }
+% This line corrects syntax coloring parser from TexMaker: \end{verbatim}
 
 \newenvironment{APIdef}{\begin{itemize}}{\end{itemize}}
 
@@ -105,9 +106,61 @@ breakautoindent=true,
 
 \begin{UseCases}
 
+\UseCase{Types of resources}{res:types}
+
+\TODO{Describe managed/unmanaged}
+
+Basic Types:
+\begin{compactitem}
+\item specific device/server
+\item specific physical/virtual room
+\item specific license
+\item specific identifier (Adobe Connect URL, H.323 number)
+\end{compactitem}
+\TODO{Describe each basic type}
+
+\TODO{Will be identifier reservations done the same way as all other resources?}
+
+
 \UseCase{Management of resources}{res:management}
 
-The resource owner should be able to create new resources that will be managed by Shongo. Owner should be able to modify resource parameters and also to delete the resource.
+The resource owner should be able to create new resources that will be managed by Shongo. Owner should be able to modify the managed resource parameters and also should be able to delete the managed resource.
+
+\TODO{Will shongo know about unmanaged resources? Should the user fill all the necessary attributes every time he wants to add unmanaged resource to reservation?}
+
+\UseCase{Managed resource identification}{res:identification:managed}
+
+Each managed resource is identified by an unique identifier. The identifier will be 
+assigned to the resource by it's owner when the resource is being created 
+(\TODO{or modified too?}). The identifier follows the URN standard (\TODO{reference}):
+\begin{verbatim}
+urn:id:domain(.subdomain)*.name
+\end{verbatim}
+Examples: 
+\begin{compactitem}
+\item \verb|urn:id:cz.muni.fi.sitola.c90| -- H.323 endpoint at C90 room
+\item \verb|urn:id:cz.cesnet.srom| -- personal H.323 Mirial endpoint
+\end{compactitem}
+
+Each managed resource has own |name| and belongs to some main |domain|. The domain then can be structured to any number of |subdomain|s.
+
+By the resource identifier, the user can lookup resource type and all other attributes.
+
+\UseCase{Unmanaged resource identification}{res:identification:unmanaged}
+
+Each unmanaged resource is identified by an unique identifier that contains specified |type| (e.g., H.322 endpoint) and the resource |identity| for specified type (e.g., H.323 number):
+\begin{verbatim}
+urn:id:unmanaged:type:identity
+\end{verbatim}
+Examples: 
+\begin{compactitem}
+\item \verb|urn:id:unamanged:h323:950000001|
+\item \verb|urn:id:unmanaged:connect:<shibboleth>| 
+\\ \TODO{Is it possible?}
+\\ \TODO{How large is shibboleth or other possible identity?}
+\end{compactitem}
+
+By the unmanaged resource identifier it is possible to determine resource type and concrete identity in that resource type.
 
 \end{UseCases}
 
@@ -175,6 +228,15 @@ Each reservation should have at least two types of possible user roles:
 \end{compactitem}
 
 The roles can be delegated, which is important especially in case of owner/administrator: the original reservation creator can delegate this role to other users and any of them can the modify or delete the reservation.
+
+
+\UseCase{Reservation identification}{rsv:identification}
+
+Each reservation is identified by unique identifier. The identifier follows the URN standard (\TODO{reference}) and it is assigned to reservation automatically:
+\begin{verbatim}
+urn:uuid:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+\end{verbatim}
+The |xxx...| represents UUID which is generated automatically and it provides uniqueness (\TODO{reference}).
 
 
 \UseCase{One time reservation}{rsv:reservation:one}
@@ -569,6 +631,19 @@ Export reservation stats in some common format like CDR.
 We need to decide what to do in case of failure. XMLRPC only allows |faultCode| and |faultString| to be returned as a kind of exception. If we find it insufficient, we'd probably need to look beyond XMLRPC.
 
 
+\section{Common}
+
+\begin{APIdef}
+
+\APIcmd{Attributes = Map<String, Object>}
+The |Attributes| type is used in API methods that perform modification of entities to allow user to specify only the attributes which he aims to update and not to force him
+to enumerate all attributes.
+
+\TODO{Verify that it can be implemented in XML-RPC/SOAP}
+
+\end{APIdef}
+
+
 \section{Security and Identity Related}
 
 \begin{APIdef}
@@ -675,17 +750,19 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 \begin{APIdef}
 
-\APIcmd{Resource createResource(SecurityToken token, String name, ResourceType type, String description)}
+\APIcmd{String createResource(SecurityToken token, String name, ResourceType type, String description)}
 Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner.
 
-\APIcmd{modifyResource(SecurityToken token, Resource resource)}
-Modify the specified |resource|. That operation is permited only when the user with given |token| is the resource owner.
+\APIcmd{modifyResource(SecurityToken token, String resourceId, Attributes attributes)}
+Modify the resource with specified |resourceId| identifier. That operation is permited only when the user with given |token| is the resource owner.
 
-\APIcmd{deleteResource(SecurityToken token, Resource resource)}
-Delete the specified |resource| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+\APIcmd{deleteResource(SecurityToken token, String resourceId)}
+Delete the resource with specified |resourceId| identifier from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
-\APIcmd{setResourceMaximumFuture(SecurityToken token, Resource resource, Duration duration)}
-Set the maximum future time for reservations of specified |resources| that a user with given |token| owns.
+\APIcmd{setResourceMaximumFuture(SecurityToken token, String resourceId, Duration duration)}
+Set the maximum future time for reservations of resource with specified |resourceId| identifier that a user with given |token| owns.
+\\ \TODO{Keep this method or provide this feature by modifyResource?}
+\\ \TODO{Do we want to have ability to disable resource for future reservations?}
 
 \APIcmd{Resources[] listResources(SecurityToken token)}
 List of resources managed by Shongo, that a user with given |token| is entitled to see.
