@@ -39,8 +39,8 @@ public class Server
             xmlRpcServer.setHandlerMapping(propertyHandlerMapping);
 
             XmlRpcServerConfigImpl serverConfig = (XmlRpcServerConfigImpl) xmlRpcServer.getConfig();
-            serverConfig.setEnabledForExtensions(true);
-            serverConfig.setEnabledForExceptions(true);
+            //serverConfig.setEnabledForExtensions(true);
+            //serverConfig.setEnabledForExceptions(true);
 
             webServer.start();
         } catch (IOException e) {
