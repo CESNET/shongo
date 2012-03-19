@@ -51,12 +51,23 @@ breakautoindent=true,
 
 \lstMakeShortInline[style=myinline]|
 
+\newcommand{\APIcode}[1]{\lstinline[style=myinline]!#1!}
+
 \newcommand{\APIcmd}[1]{%
 \item \lstinline[style=myinline]!#1!%
 
 % The previous line is intended to be blank (wraps the text 
 % to the next line even if the \APIcmd is not followed by empty line)
 }
+
+\newenvironment{APItype}[1]{
+  \item \APIcode{#1 \{}
+}{
+  \newline \APIcode{\}}%
+  
+}
+\newcommand{\APItypemem}[1]{\newline \hspace*{5mm} \lstinline[style=myinline]!#1!}
+
 % This line corrects syntax coloring parser from TexMaker: \end{verbatim}
 
 \newenvironment{APIdef}{\begin{itemize}}{\end{itemize}}
@@ -175,22 +186,16 @@ times and durations are compatible.
 
 \end{compactdesc}
 
-\TODO{Describe each basic type}
-
-\TODO{Will be identifier reservations done the same way as all other resources?}
-
 
 \UseCase{Management of resources}{res:management}
 
 The resource owner should be able to create new resources that will be managed by Shongo. Owner should be able to modify the managed resource parameters and also should be able to delete the managed resource.
 
-\TODO{Will shongo know about unmanaged resources? Should the user fill all the necessary attributes every time he wants to add unmanaged resource to reservation?}
-
 \UseCase{Managed resource identification}{res:identification:managed}
 
 Each managed resource is identified by an unique identifier. The identifier will be 
 assigned to the resource by it's owner when the resource is being created 
-(\TODO{or modified too?}). The identifier follows the URN standard (\TODO{reference}):
+(\TODO{or modified too?}). The identifier follows the URN standard \cite{rfc2141}:
 \begin{verbatim}
 urn:id:domain(.subdomain)*.name
 \end{verbatim}
@@ -212,10 +217,8 @@ urn:id:unmanaged:type:identity
 \end{verbatim}
 Examples: 
 \begin{compactitem}
-\item \verb|urn:id:unamanged:h323:950000001|
-\item \verb|urn:id:unmanaged:connect:<shibboleth>| 
-\\ \TODO{Is it possible?}
-\\ \TODO{How large is shibboleth or other possible identity?}
+\item \verb|urn:id:unamanged:h323:<H.323 id or number>|
+\item \verb|urn:id:unmanaged:connect:<shibboleth identity>|
 \end{compactitem}
 
 By the unmanaged resource identifier it is possible to determine resource type and concrete identity in that resource type.
@@ -290,11 +293,11 @@ The roles can be delegated, which is important especially in case of owner/admin
 
 \UseCase{Reservation identification}{rsv:identification}
 
-Each reservation is identified by unique identifier. The identifier follows the URN standard (\TODO{reference}) and it is assigned to reservation automatically:
+Each reservation is identified by an unique identifier. The identifier follows the URN standard \cite{rfc2141} and it is assigned to reservation automatically:
 \begin{verbatim}
 urn:uuid:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 \end{verbatim}
-The |xxx...| represents UUID which is generated automatically and it provides uniqueness (\TODO{reference}).
+The |xx...xx| represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination.
 
 
 \UseCase{One time reservation}{rsv:reservation:one}
@@ -689,19 +692,6 @@ Export reservation stats in some common format like CDR.
 We need to decide what to do in case of failure. XMLRPC only allows |faultCode| and |faultString| to be returned as a kind of exception. If we find it insufficient, we'd probably need to look beyond XMLRPC.
 
 
-\section{Common}
-
-\begin{APIdef}
-
-\APIcmd{Attributes = Map<String, Object>}
-The |Attributes| type is used in API methods that perform modification of entities to allow user to specify only the attributes which he aims to update and not to force him
-to enumerate all attributes.
-
-\TODO{Verify that it can be implemented in XML-RPC/SOAP}
-
-\end{APIdef}
-
-
 \section{Security and Identity Related}
 
 \begin{APIdef}
@@ -719,13 +709,37 @@ Contains identity and credentials of a user performing the requested operation.
 \APIcmd{Date}
 Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course.
 
-\APIcmd{PeriodicDate}
-Extends |Date| type for periodicity. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too.
+\begin{APItype}{PeriodicDate extends Date}
+\APItypemem{Duration period}
+\APItypemem{Date end}
+\APItypemem{Rule[] rules}
+\end{APItype}
+It is used for events that takes place repeatedly. The first occurrence is specified as a normal |Date| from which is |PeriodicDate| extended. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too. The repeated events take place in a |period| which is of |Duration| type. The |PeriodicDate| has to specify the |end| date for events to not occur forever and it also includes a list of |rules|, which can define an extra events out of the periodicity or cancel specified periodical events.
 
-\textbf{Note}: Apache XML-RPC can be easily extended for custom atomic types (e.g., \verb|dateTime| and \verb|periodicDateTime|) and these atomic types can be easily mapped to custom java classes (e.g., |Date| and |PeriodicDate|). These classes can also inherit one from the other. It was tested in \verb|rpc-test| application.
+|Rule| can be one of the following types:
+\begin{compactitem}
+\item |Enable|/|Disable| event(s) in the specified |date| or interval by |dateFrom| and |dateTo|.
+\item |Extra| event in the specified |date|
+\end{compactitem}
+Rules contains implicit definition of |Enable| rule for whole |PeridicDate| interval. Conflicts are solved by \emph{last-match} policy.
+
+\paragraph{Example:}
+A lecture at every Thursday at 12:00 with extra lecture at 20.3.2012 and Christmas holidays.
+\begin{verbatim}
+periodicDate = 20110908T12:00:00
+periodicDate.period = P1W
+periodicDate.end = 20120631
+periodicDate.rules = {
+  { type = Disable, dateFrom = 20111219, dateTo = 20120101 },
+  { type = Extra, date = 20120320 }
+}
+\end{verbatim}
+
+
+\paragraph{Note}: Apache XML-RPC can be easily extended for custom atomic types (e.g., \verb|dateTime| and \verb|periodicDateTime|) and these atomic types can be easily mapped to custom java classes (e.g., |Date| and |PeriodicDate|). These classes can also inherit one from the other. It was tested in \verb|rpc-test| application.
 
 \APIcmd{Duration}
-Represented as ISO8601 duration (e.g., P3Y6M4DT12H30M5S, which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds}).
+Represented as ISO8601 duration (e.g., \verb|P3Y6M4DT12H30M5S| which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \verb|P4W| which is \textit{4 weeks}).
 
 \APIcmd{TimeSlot}
 Time slot is pair of |Date| and |Duration|.
@@ -800,14 +814,6 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 \chapter{User Interface API Specification}
 
-\TODO{How to report failures? All by exceptions or some by return value? 
-    \\ => exceptions}
-\\
-\TODO{How to perform modifications? There are two possibilities: 
-    \\ 1) by attributes -- modifyEntity(Entity, Attr1, Attr2, ...)
-    \\ 2) by entity -- modifyEntity(Entity), where Entity \{Attr1, Attr2, ...\}
-    \\ => option 1) but all attributes are merged into Attributes map}
-
 \section{Resources}
 
 \begin{APIdef}
@@ -839,11 +845,6 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 
 \section{Reservations}
 
-\TODO{We have agreed that when the user has a reservation, he should be able to request the same resources for another date/time. Example: He has periodical reservation on Mondays at three o'clock for some resources and exceptionally he wants the same reservation this Thursday. How to perform that? 
-\\ 1) Create new reservation with specified resources (this may reserve other resources in case of PQESpec and ISpec)
-\\ 2) Each reservation can occur multiple date/times
-}
-
 \begin{APIdef}
 
 \APIcmd{String createReservation(SecurityToken token, ReservationType type, Date date, Duration duration, String description, ResourceSpecification[] resources, String[] reservations)}
@@ -859,9 +860,6 @@ Release the specified |reservation| and all children reservations.
 \APIcmd{Reservation[] listReservations(SecurityToken token)}
 List all the reservations that a user with given |token| is entitled to see.
 \\ \TODO{Use some querying/filtering language}
-\\ \TODO{In which form should be Reservation returned? 
-   \\ -XML-RPC can't return arbitrary objects, but only basic types and (recursive) Maps and Lists. Apache XML-RPC can be extended in the way to return Map representation of every object (that has tree structure, what about cycles?).
-   \\ -SOAP is able to return arbitrary objects.}
 
 \APIcmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, ResourceSpecification[] resources, boolean interDomain)}
 Lookup available time slots for specified |resources|. There is flag that specifies whether inter-domain lookup should be performed.
@@ -913,6 +911,8 @@ Lists all the virtual rooms including rooms that are part of any child reservati
 \chapter{Inter-Controller API Specification}
 
 
+\bibliographystyle{elsarticle-num}
+\bibliography{IEEEabrv,API}
 
 \end{document}
 
