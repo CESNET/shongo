@@ -59,13 +59,6 @@ public class XmlRpcTypeFactory extends TypeFactoryImpl
                     Map<String, Object> map = null;
                     try {
                         map = BeanUtils.getInstance().describeRecursive(pObject);
-                        // Remove null values
-                        Iterator<Map.Entry<String, Object>> iterator = map.entrySet().iterator();
-                        while ( iterator.hasNext() ) {
-                            Map.Entry<String, Object> entry = iterator.next();
-                            if ( entry.getValue() == null )
-                                iterator.remove();
-                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

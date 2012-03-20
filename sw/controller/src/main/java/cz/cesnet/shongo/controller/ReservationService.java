@@ -51,5 +51,4 @@ public class ReservationService
 
         return reservations.toArray(new Reservation[]{});
     }
-
 }

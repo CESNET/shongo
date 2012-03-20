@@ -31,14 +31,6 @@ public class BeanUtils extends BeanUtilsBean
                     return super.convert(value, clazz);
                 }
             }
-            @Override
-            public String convert(Object value) {
-                if ( value instanceof Type) {
-                    System.out.println(value.toString());
-                    return super.convert(value);
-                }
-                return super.convert(value);
-            }
         });
     }
 
@@ -60,8 +52,12 @@ public class BeanUtils extends BeanUtilsBean
             String name = descriptors[i].getName();
             if ( MethodUtils.getAccessibleMethod(clazz, descriptors[i].getReadMethod()) != null) {
                 Object value = getPropertyUtils().getNestedProperty(bean, name);
+                // Skip null values
+                if ( value == null) {
+                    continue;
+                }
                 // Type attribute must be recursively described
-                if ( value instanceof Type ) {
+                else if ( value instanceof Type ) {
                     value = describeRecursive(value);
                 }
                 // Array is passed only when not empty
