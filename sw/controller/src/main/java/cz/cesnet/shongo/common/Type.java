@@ -1,4 +1,4 @@
-package cz.cesnet.shongo;
+package cz.cesnet.shongo.common;
 
 /**
  * Interface telling that object is custom Type (e.g., for XML-RPC)

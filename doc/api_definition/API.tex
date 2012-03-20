@@ -204,9 +204,9 @@ times and durations are compatible.
 
 The resource owner should be able to create new resources that will be managed by Shongo. Owner should be able to modify the managed resource parameters and also should be able to delete the managed resource.
 
-\UseCase{Managed resource identification}{res:identification:managed}
+\UseCase{Resource identification}{res:identification}
 
-Each managed resource is identified by an unique identifier. The identifier will be 
+Each resource is identified by an unique identifier. The identifier will be 
 assigned to the resource by it's owner when the resource is being created 
 (\TODO{or modified too?}). The identifier follows the URN standard \cite{rfc2141}:
 \begin{verbatim}
@@ -218,23 +218,15 @@ Examples:
 \item \verb|urn:id:cz.cesnet.srom| -- personal H.323 Mirial endpoint
 \end{compactitem}
 
-Each managed resource has own |name| and belongs to some main |domain|. The domain then can be structured to any number of |subdomain|s.
+Each resource has own |name| and belongs to some main |domain|. The domain then can be structured to any number of |subdomain|s. For unmanaged resources that don't belong to any domain there is default |unmanaged| domain which can be followed by the resource type and identity.
 
-By the resource identifier, the user can lookup resource type and all other attributes.
-
-\UseCase{Unmanaged resource identification}{res:identification:unmanaged}
-
-Each unmanaged resource is identified by an unique identifier that contains specified |type| (e.g., H.322 endpoint) and the resource |identity| for specified type (e.g., H.323 number):
-\begin{verbatim}
-urn:id:unmanaged:type:identity
-\end{verbatim}
 Examples: 
 \begin{compactitem}
 \item \verb|urn:id:unamanged:h323:<H.323 id or number>|
 \item \verb|urn:id:unmanaged:connect:<shibboleth identity>|
 \end{compactitem}
 
-By the unmanaged resource identifier it is possible to determine resource type and concrete identity in that resource type.
+By the resource identifier, the user can lookup resource type and all other attributes.
 
 \end{UseCases}
 
@@ -699,6 +691,9 @@ Export reservation stats in some common format like CDR.
 
 \chapter{Common Data Types and Object Classes}
 
+\TODO{Describe that Object is recursively converted to Struct in XML-RPC}
+\\ \TODO{Describe that Enum is converted to String in XML-RPC}
+
 \section{Failure Related}
 
 \TODO{:}
@@ -752,8 +747,27 @@ periodicDate.rules = {
 \end{verbatim}
 
 
+\APItype{AutoDate}{Date}
+Special type of date that can have different value in different moments. It extends |Date| in a way that allows special values, for instance |Now| value which stands for current time. When the date is used or evaluated, the special values are replaced by the concrete date and time which they represents and the resulting date is increased by |duration|.
+\begin{APIattrs}
+\APIattr{duration}{Duration} Default value is zero duration \verb|P0|.
+\end{APIattrs}
+
+\APIexample We want to define a maximum future time that can be specified as part of some request and we know the precise date (e.g., the date since a resource will not be available for any request). We can specify it by |Date| or by |AutoDate| as follows:
+
+\begin{verbatim}
+date = autoDate = 20121231
+\end{verbatim}
+
+\APIexample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it only by |AutoDate| as follows:
+
+\begin{verbatim}
+autoDate = Now
+autoDate.duration = P4M
+\end{verbatim}
+
 \APItype{Duration}{}
-Represented as ISO8601 duration (e.g., \verb|P3Y6M4DT12H30M5S| which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \verb|P4W| which is \textit{4 weeks}).
+Represented as ISO8601 duration (e.g., \verb|P3Y6M4DT12H30M5S| which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \verb|P4W| which is \textit{4 weeks}). The zero duration is represented by \verb|P0| value.
 
 
 \APIcmd{TimeSlot}
@@ -781,20 +795,14 @@ If resource role is |Server|, additional options become available:
 
 
 \APIcmd{Resource}
-The resource may be of the following subtypes:
-\begin{compactitem}
-\item specific endpoint representation \\
-Refers to specific endpoint known to and managed by Shongo.
-\item specific endpoint representation \\
-Generic endpoint of certain technology, not known or managed by Shongo.
-\item licence representation \\
-Represents only pure licenses of certain technology on specific server or gateway.
-\end{compactitem}
+The resource can be one of the types as defined in \UCref{res:types}.
 \begin{APIattrs}
-\APIattr{id}{String} Resource unique identifier.
-\APIattr{name}{String}
-\APIattr{description}{String}
-\APIattr{type}{ResourceType}
+\APIattr{id}{String} Resource unique identifier as defined in \UCref{res:identification}.
+\APIattr{name}{String} Short name which desribes the resource.
+\APIattr{managed}{Boolean} Specify if resource is managed and scheluded by Shongo.
+\APIattr{type}{ResourceType} Type or capabilities of the resource, see |ResourceType|. 
+\APIattr{description}{String} Long description depicting the resource.
+\APIattr{maxFuture}{AutoDate} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
 \end{APIattrs}
 
 
@@ -822,16 +830,13 @@ The reservation may be of the following types:
 \APIcmd{Reservation}
 Represents a single reservation.
 \begin{APIattrs}
-\APIattr{id}{String} Reservation unique identifier.
-\APIattr{type}{ReservationType}
-\APIattr{date}{Date}
-Requested date or periodic date for specified resources.
-\APIattr{duration}{Duration}
-\APIattr{resources}{ResourceSpecification}
-List of requested/reserved resources.
-\APIattr{reservations}{Reservation}
-List of child reservations
-\APIattr{description}{String}
+\APIattr{id}{String} Reservation unique identifier as defined in \UCref{rsv:identification}.
+\APIattr{type}{ReservationType} Type of reservation, see |ReservationType|.
+\APIattr{date}{Date} Requested date or periodic date for specified resources.
+\APIattr{duration}{Duration} Requested duration of reservation.
+\APIattr{description}{String} Long reservation description.
+\APIattr{resources}{ResourceSpecification[]} List of requested/reserved resources.
+\APIattr{reservations}{Reservation[]} List of child reservations
 \end{APIattrs}
 
 
@@ -848,8 +853,6 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 
 \chapter{User Interface API Specification}
-
-\TODO{Describe that every Type will be represented as map in XML-RPC.}
 
 \section{Resources}
 
@@ -875,7 +878,7 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 \begin{APIdef}
 
 \APIcmd{Reservation createReservation(SecurityToken token, Reservation reservation)}
-Create a new reservation of specified |type| at selected |date| for specified |resources|.
+Create a new |reservation|.
 
 \APIcmd{modifyReservation(SecurityToken token, Reservation reservation)}
 Modify the specified |reservation|.
@@ -883,12 +886,11 @@ Modify the specified |reservation|.
 \APIcmd{deleteReservation(SecurityToken token, Reservation reservation)}
 Release the specified |reservation| and all children reservations.
 
-\APIcmd{Reservation[] listReservations(SecurityToken token)}
-List all the reservations that a user with given |token| is entitled to see.
-\\ \TODO{Use some querying/filtering language}
+\APIcmd{Reservation[] listReservations(SecurityToken token, Reservation filter)}
+List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter|.
 
 \APIcmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Reservation reservation, boolean interDomain)}
-Lookup available time slots for specified |reservation| resources. Flag |interDomain| specifies whether inter-domain lookup should be performed.
+Lookup available time slots for specified |reservation| duration and resources. Flag |interDomain| specifies whether inter-domain lookup should be performed.
 
 
 \end{APIdef}
@@ -938,11 +940,12 @@ Lists all the virtual rooms including rooms that are part of any child reservati
 
 
 \appendix
+
 \chapter{User Interface API Usage}
 
 \section{Perl programming language}
 
-\TODO{Sync it with API definition}
+\subsection{Connect to Controller}
 
 \begin{verbatim}
 #!/usr/bin/perl
@@ -952,24 +955,87 @@ require RPC::XML::Client;
 
 $client = RPC::XML::Client->new('http://localhost:8008');
 
-$response = $client->send_request(
-    'Reservations.createReservation',
-     RPC::XML::struct->new(
-         'class' => RPC::XML::string->new('PeriodicDate'),
-         'date' => RPC::XML::string->new('20120101T12:00:00'),
-         'period' => RPC::XML::string->new('P1W'),
-         'end' => RPC::XML::string->new('20121231')
-     )
-);
+$response = $client->send_request(...);
+\end{verbatim}
 
+\newpage
+\subsection{Create reservation}
+\begin{verbatim}
 $response = $client->send_request(
     'Reservations.createReservation',
-     RPC::XML::struct->new(
-         'class' => RPC::XML::string->new('Date'),
-         'date' => RPC::XML::string->new('20120101'),
-     )
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('Reservation'),
+        'type' => RPC::XML::string->new('OneTime'),
+        'date' => RPC::XML::struct->new(
+            'class' => RPC::XML::string->new('Date'),
+            'date' => RPC::XML::string->new('20120101'),
+            'end' => RPC::XML::string->new('20121231')
+        )
+    )
 );
 \end{verbatim}
+\textbf{Response}
+{\small\begin{verbatim}
+<struct>
+  <member>
+    <name>class</name>
+    <value><string>Reservation</string></value>
+  </member>
+  <member>
+    <name>type</name>
+    <value><string>OneTime</string></value>
+  </member>
+  <member>
+    <name>date</name>
+    <value><struct>
+        <member>
+          <name>date</name>
+          <value><string>20120101</string></value>
+        </member>
+        <member>
+          <name>class</name>
+          <value><string>Date</string></value>
+        </member>
+    </struct></value>
+  </member>
+</struct>
+\end{verbatim}}
+
+\newpage
+\subsection{List reservations}
+\begin{verbatim}
+$response = $client->send_request(
+    'Reservations.listReservations',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    )
+);
+\end{verbatim}
+\textbf{Response}
+{\small\begin{verbatim}
+<array><data>
+  <value><struct>
+    <member>
+      <name>class</name>
+      <value><string>Reservation</string></value>
+    </member>
+    <member>
+      <name>id</name>
+      <value><string>15082783-5b6f-4287-9015-3dbc0ab2f0d9</string></value>
+    </member>
+    <member>
+      <name>type</name>
+      <value><string>Periodic</string></value>
+    </member>
+  </struct></value>
+</data></array>
+\end{verbatim}}
+
 
 
 \bibliographystyle{elsarticle-num}

@@ -1,8 +1,14 @@
 package cz.cesnet.shongo;
 
+/**
+ * Represents resource
+ *
+ * @author Martin Srom
+ */
 public class Resource
 {
     private String id;
+
     private String name;
     
     public Resource(String id, String name) {
@@ -18,4 +24,7 @@ public class Resource
         return name;
     }
 
+    public String toString() {
+        return "Resource [" + getId() + ", " + getName() + "]";
+    }
 }

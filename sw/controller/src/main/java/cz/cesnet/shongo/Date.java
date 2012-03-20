@@ -1,5 +1,7 @@
 package cz.cesnet.shongo;
 
+import cz.cesnet.shongo.common.Type;
+
 /**
  * Class representing date and time
  *
