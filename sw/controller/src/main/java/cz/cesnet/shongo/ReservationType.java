@@ -8,5 +8,5 @@ package cz.cesnet.shongo;
 public enum ReservationType {
     OneTime,
     Periodic,
-    Pernament
+    Permanent,
 }
