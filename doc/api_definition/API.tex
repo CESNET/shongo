@@ -815,38 +815,45 @@ Time slot is pair of |Date| and |Duration|.
 
 
 \ApiEnum{ResourceType}
+The resource can be one of the types as defined in \UCref{res:types}.
 \begin{ApiEnumValues}
-\ApiEnumValue{EndPoint} A managed or unmanaged endpoint.
-\ApiEnumValue{Server} A managed infrastructure element.
-\ApiEnumValue{Room} A virtual room.
+\ApiEnumValue{ManagedEndPoint}
+\ApiEnumValue{UnmanagedEndPoint}
+\ApiEnumValue{MultipointServer}
+\ApiEnumValue{GatewayServer}
+\ApiEnumValue{VirtualRoom}
 \ApiEnumValue{License}
 \ApiEnumValue{Identifier}
 \ApiEnumValue{Reservation}
-\ApiEnumValue{Other} A physical room.
+\ApiEnumValue{Other} A physical room for instance.
 \end{ApiEnumValues}
 
-\TODO{Finish this}
 
-Represents types (may be also understood as capabilities) of a resource. 
-It is composed of:
-\begin{compactitem}
-\item technology type (|H323|, |SIP|, |AdobeConnect|)
-\item resource role (|EndPoint|, |Server|)
-\end{compactitem}
-If resource role is |Server|, additional options become available:
-\begin{compactitem}
-\item server role (|MultiPoint|, |Gateway|)
-\item translation type if server role is |Gateway| (subset of Cartesian product of technology types)
-\end{compactitem}
+\ApiEnum{TechnologyType}
+\begin{ApiEnumValues}
+\ApiEnumValue{H323}
+\ApiEnumValue{SIP}
+\ApiEnumValue{AdobeConnect}
+\end{ApiEnumValues}
+
+
+\ApiClass{TranslationType}{}
+Represents translations that a |GatewayServer| resource can perform.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{from}{TechnologyType[]}
+Input technologies that server is able to transform.
+\ApiClassAttribute{to}{TechnologyType[]}
+Output technologies that server is able to produce from transformation.
+\end{ApiClassAttributes}
 
 
 \ApiClass{Resource}{}
-The resource can be one of the types as defined in \UCref{res:types}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String} Resource unique identifier as defined in \UCref{res:identification}.
 \ApiClassAttribute{name}{String} Short name which desribes the resource.
-\ApiClassAttribute{managed}{Boolean} Specify if resource is managed and scheluded by Shongo.
-\ApiClassAttribute{type}{ResourceType} Type or capabilities of the resource, see |ResourceType|. 
+\ApiClassAttribute{type}{ResourceType} Type of the resource, see |ResourceType|. 
+\ApiClassAttribute{technology}{TechnologyType} Technology type of the resource, see |TechnologyType|. 
+\ApiClassAttribute{translation}{TranslationType} Translation type of the gateway resource, see |TranslationType|. 
 \ApiClassAttribute{description}{String} Long description depicting the resource.
 \ApiClassAttribute{maxFuture}{AutoDate} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
 \end{ApiClassAttributes}
