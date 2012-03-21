@@ -91,7 +91,11 @@ breakautoindent=true,
 \newenvironment{ApiClassAttributes}{% Next empty line is intended to be blank
 
 \textbf{Attributes:}\begin{compactitem}}{\end{compactitem}}
-\newcommand{\ApiClassAttribute}[2]{\ApiItem{\ApiCode{#2} \ApiCode{#1}}}
+\newcommand{\ApiRequired}{\hspace{1mm}({\color{blue!50!black}\textbf{Required}})}
+\newcommand{\ApiOptional}{\hspace{1mm}({\color{gray}\textbf{Optional}})}
+\newcommand{\ApiClassAttribute}[3]{\ApiItem{\ApiCode{#2} \ApiCode{#1}
+  \ifx\ApiRequired#3\relax \ApiRequired \else \ApiOptional \fi}%
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API enum
@@ -728,8 +732,8 @@ In this chapter we describe atomic types, enum types and object classes . In XML
 Failures are propagete through XML-RPC by |faultCode| and |faultString| values. List of common faults:
 \begin{compactitem}
 \item |faultCode = 0| \\ Unknown fault which is described by |faultString|.
-\item |faultCode = 1| \\ The value of \ApiValue{class} member in a |struct| is wrong, the |faultString| specify which \ApiValue{class} value.
-\item |faultCode = 2| \\ The value of an enum member attribute is wrong., the |faultString| specify which value for which enum type.
+\item |faultCode = 1| \\ The value of \ApiValue{class} member in a |struct| is wrong, the |faultString| specifies which \ApiValue{class} value.
+\item |faultCode = 2| \\ The value of an enum member attribute is wrong., the |faultString| specifies which value for which enum type.
 \end{compactitem}
 
 
@@ -748,18 +752,43 @@ Contains identity and credentials of a user performing the requested operation.
 \begin{Api}
 
 \ApiClass{Date}{}
+It serves only as base class for |AbsoluteDate|, |RelativeDate| and |PeriodicalDate|.
+
+
+\ApiClass{AbsoluteDate}{Date}
 Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{date}{String}{\ApiRequired}
+\end{ApiClassAttributes}
+
+\ApiExample We want to define a maximum future time that can be specified as part of some request and we know the precise date (e.g., the date since a resource will not be available for any request). We can specify it by |AbsoluteDate|:
+\begin{verbatim}
+absoluteDate.date = 20121231
+\end{verbatim}
+
+\ApiClass{RelativeDate}{Date}
+Relative date is calculated as current date and time increased by |duration|.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{duration}{Duration} Default value is zero duration \ApiValue{P0}.
+\end{ApiClassAttributes}
+
+\ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it by |RelativeDate| as follows:
+\begin{verbatim}
+relativeDate.duration = P4M
+\end{verbatim}
 
 
 \ApiClass{PeriodicDate}{Date}
-It is used for events that takes place repeatedly. The first occurrence is specified as a normal |Date| from which is |PeriodicDate| extended. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too.
+It can be used for events that takes place repeatedly, but also for events that take place only once.
 
 \begin{ApiClassAttributes}
-\ApiClassAttribute{period}{Duration}
+\ApiClassAttribute{start}{AbsoluteDate}{\ApiRequired}
+Defines the first occurrence of an event.
+\ApiClassAttribute{period}{Duration}{}
 Defines the period in which the repeated events take place.
-\ApiClassAttribute{end}{Date}
+\ApiClassAttribute{end}{AbsoluteDate}{}
 Ending date for events to not occur forever.
-\ApiClassAttribute{rules}{Rule[]}
+\ApiClassAttribute{rules}{Rule[]}{}
 List of rules, which can define an extra events out of the periodicity or cancel specified periodical events. |Rule| can be one of the following types:
 \begin{compactitem}
 \item |Enable|/|Disable| event(s) in the specified |date| or interval by |dateFrom| and |dateTo|.
@@ -768,9 +797,14 @@ List of rules, which can define an extra events out of the periodicity or cancel
 Rules contains implicit definition of |Enable| rule for whole |PeridiocDate| interval. Conflicts are solved by \emph{last-match} policy.
 \end{ApiClassAttributes}
 
+\ApiExample Only one lecture on 20.3.2012.
+\begin{verbatim}
+periodicDate.start = 20110908T12:00:00
+\end{verbatim}
+
 \ApiExample A lecture on every Thursday at 12:00 with extra lecture on 20.3.2012 and Christmas holidays.
 \begin{verbatim}
-periodicDate = 20110908T12:00:00
+periodicDate.start = 20110908T12:00:00
 periodicDate.period = P1W
 periodicDate.end = 20120631
 periodicDate.rules = {
@@ -780,31 +814,12 @@ periodicDate.rules = {
 \end{verbatim}
 
 
-\ApiClass{AutoDate}{Date}
-Special type of date that can have different value in different moments. It extends |Date| in a way that allows special values, for instance |Now| value which stands for current time. When the date is used or evaluated, the special values are replaced by the concrete date and time which they represents and the resulting date is increased by |duration|.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{duration}{Duration} Default value is zero duration \ApiValue{P0}.
-\end{ApiClassAttributes}
-
-\ApiExample We want to define a maximum future time that can be specified as part of some request and we know the precise date (e.g., the date since a resource will not be available for any request). We can specify it by |Date| or by |AutoDate| as follows:
-
-\begin{verbatim}
-date = autoDate = 20121231
-\end{verbatim}
-
-\ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it only by |AutoDate| as follows:
-
-\begin{verbatim}
-autoDate = Now
-autoDate.duration = P4M
-\end{verbatim}
-
 \ApiClass{Duration}{}
 Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The zero duration is represented by \ApiValue{P0} value.
 
 
-\ApiClass{TimeSlot}{}
-Time slot is pair of |Date| and |Duration|.
+\ApiClass{TimeSlot = Pair<Date, Duration>}{}
+Time slot is pair of |Date| and |Duration|. |PeriodicDate| can be evaluated to |TimeSlot[]| that contains only |AbsoluteDate| instances of |Date|.
 
 \end{Api}
 
@@ -840,22 +855,22 @@ The resource can be one of the types as defined in \UCref{res:types}.
 \ApiClass{TranslationType}{}
 Represents translations that a |GatewayServer| resource can perform.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{from}{TechnologyType[]}
+\ApiClassAttribute{from}{TechnologyType[]}{\ApiRequired}
 Input technologies that server is able to transform.
-\ApiClassAttribute{to}{TechnologyType[]}
+\ApiClassAttribute{to}{TechnologyType[]}{\ApiRequired}
 Output technologies that server is able to produce from transformation.
 \end{ApiClassAttributes}
 
 
 \ApiClass{Resource}{}
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String} Resource unique identifier as defined in \UCref{res:identification}.
-\ApiClassAttribute{name}{String} Short name which desribes the resource.
-\ApiClassAttribute{type}{ResourceType} Type of the resource, see |ResourceType|. 
-\ApiClassAttribute{technology}{TechnologyType} Technology type of the resource, see |TechnologyType|. 
-\ApiClassAttribute{translation}{TranslationType} Translation type of the gateway resource, see |TranslationType|. 
-\ApiClassAttribute{description}{String} Long description depicting the resource.
-\ApiClassAttribute{maxFuture}{AutoDate} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
+\ApiClassAttribute{id}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
+\ApiClassAttribute{name}{String}{\ApiRequired} Short name which desribes the resource.
+\ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|. 
+\ApiClassAttribute{technology}{TechnologyType}{} Technology type of the resource, see |TechnologyType|. 
+\ApiClassAttribute{translation}{TranslationType}{} Translation type of the gateway resource, see |TranslationType|. 
+\ApiClassAttribute{description}{String}{} Long description depicting the resource.
+\ApiClassAttribute{maxFuture}{Date}{} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
 \end{ApiClassAttributes}
 
 
@@ -879,16 +894,14 @@ the right parameters for the chosen specification type.
 \end{ApiEnumValues}
 
 
-\ApiClass{Reservation}{}
+\ApiClass{Reservation}{Resource}
 Represents a single reservation.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String} Reservation unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{type}{ReservationType} Type of reservation, see |ReservationType|.
-\ApiClassAttribute{date}{Date} Requested date or periodic date for specified resources.
-\ApiClassAttribute{duration}{Duration} Requested duration of reservation.
-\ApiClassAttribute{description}{String} Long reservation description.
-\ApiClassAttribute{resources}{ResourceSpecification[]} List of requested/reserved resources.
-\ApiClassAttribute{reservations}{Reservation[]} List of child reservations
+\ApiClassAttribute{id}{String}{\ApiRequired} Reservation unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{type}{ReservationType}{\ApiRequired} Type of reservation, see |ReservationType|.
+\ApiClassAttribute{timeSlots}{TimeSlot[]}{\ApiRequired} Requested time slots for specified resources.
+\ApiClassAttribute{description}{String}{} Long reservation description.
+\ApiClassAttribute{resources}{Resource[]}{} List of requested/reserved resources.
 \end{ApiClassAttributes}
 
 
