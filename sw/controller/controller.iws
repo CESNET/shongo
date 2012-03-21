@@ -61,7 +61,36 @@
       <file leaf-file-name="test.pl" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test.pl">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="14" column="48" selection-start="418" selection-end="418" vertical-scroll-proportion="0.32409012">
+            <state line="7" column="35" selection-start="155" selection-end="155" vertical-scroll-proportion="0.17617449">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ReservationService.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ReservationService.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="28" column="64" selection-start="897" selection-end="897" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Fault.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/Fault.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="11" column="29" selection-start="317" selection-end="317" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Fault.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Fault.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="38" column="56" selection-start="318" selection-end="812" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -82,20 +111,20 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Duration.java" />
-        <option value="$PROJECT_DIR$/src/main/java/xmlrpc.properties" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/TypeFactory.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/TypeConverterFactory.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/TypeConverterFactory.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/TypeFactory.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/XmlRpcWebServer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcWebServer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/ReservationType.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Resource.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Reservation.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/Controller.java" />
-        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcTypeFactory.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/FaultApp.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/FaultController.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/FaultCommon.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ControllerFault.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Fault.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ReservationTypeNotFilledFaultException.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/fault/ReservationTypeNotFilledFaultException.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/FaultException.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/fault/ReservationTypeNotFilledException.java" />
         <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/BeanUtils.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcTypeFactory.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcWebServer.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcTypeConverterFactory.java" />
+        <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/Fault.java" />
         <option value="$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ReservationService.java" />
         <option value="$PROJECT_DIR$/test.pl" />
       </list>
@@ -174,7 +203,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -286,6 +314,100 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="shongo" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="PackagesPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cz.cesnet.shongo" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cz.cesnet.shongo" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="controller" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cz.cesnet.shongo" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="common" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageElementNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
     </panes>
@@ -302,12 +424,13 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
+    <property name="options.searchVisible" value="true" />
     <property name="dynamic.classpath" value="false" />
     <property name="options.splitter.details.proportions" value="0.2" />
-    <property name="options.searchVisible" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="cz.cesnet.shongo" />
       <recent name="cz.cesnet.shongo.util" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
@@ -396,24 +519,6 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
       <module name="" />
@@ -440,6 +545,24 @@
       <envs />
       <properties />
       <listeners />
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Make" enabled="true" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -547,8 +670,8 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.13169985" sideWeight="0.67" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24885145" sideWeight="0.67" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32924962" sideWeight="0.6911111" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.30888888" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="6" side_tool="false" content_ui="combo" />
@@ -611,116 +734,116 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/ReservationType.java">
+    <entry file="jar://$MAVEN_REPOSITORY$/org/apache/xmlrpc/xmlrpc-common/3.1.3/xmlrpc-common-3.1.3-sources.jar!/org/apache/xmlrpc/XmlRpcException.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="4" column="16" selection-start="53" selection-end="53" vertical-scroll-proportion="0.10398614">
+        <state line="30" column="13" selection-start="1305" selection-end="1305" vertical-scroll-proportion="0.31304348">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Resource.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/FaultException.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="48" selection-start="319" selection-end="319" vertical-scroll-proportion="0.51993066">
+        <state line="9" column="46" selection-start="169" selection-end="169" vertical-scroll-proportion="0.2347826">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Reservation.java">
+    <entry file="jar:///usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/rt.jar!/org/xml/sax/SAXException.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="3" column="0" selection-start="64" selection-end="64" vertical-scroll-proportion="0.064124785">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/Type.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="17" selection-start="153" selection-end="153" vertical-scroll-proportion="0.18197574">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcWebServer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="13" selection-start="181" selection-end="181" vertical-scroll-proportion="0.23396881">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/xmlrpc.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/PeriodicDate.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="40" selection-start="165" selection-end="165" vertical-scroll-proportion="0.25996533">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Date.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="13" selection-start="148" selection-end="148" vertical-scroll-proportion="0.23396881">
+        <state line="9" column="11" selection-start="313" selection-end="313" vertical-scroll-proportion="0.20869565">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/Controller.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="5" selection-start="1452" selection-end="1452" vertical-scroll-proportion="0.7920277">
+        <state line="31" column="29" selection-start="696" selection-end="696" vertical-scroll-proportion="0.60402685">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/BeanUtils.java">
+    <entry file="jar:///usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/rt.jar!/java/lang/RuntimeException.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="89" selection-start="527" selection-end="527" vertical-scroll-proportion="-1.5414364">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ReservationService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="52" column="5" selection-start="1318" selection-end="1318" vertical-scroll-proportion="1.2738302">
-          <folding>
-            <element signature="e#1033#1046#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ResourceService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="68" selection-start="217" selection-end="217" vertical-scroll-proportion="0.3119584">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/SecurityToken.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="13" selection-start="141" selection-end="141" vertical-scroll-proportion="0.23396881">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcTypeConverterFactory.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="0" selection-start="34" selection-end="34" vertical-scroll-proportion="-0.06585789">
+        <state line="5" column="13" selection-start="147" selection-end="147" vertical-scroll-proportion="0.10067114">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcTypeFactory.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="60" column="62" selection-start="2542" selection-end="2542" vertical-scroll-proportion="0.56845754">
+        <state line="2" column="0" selection-start="34" selection-end="34" vertical-scroll-proportion="0.051457975">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcWebServer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="5" column="46" selection-start="137" selection-end="137" vertical-scroll-proportion="0.12583892">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Resource.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="8" column="33" selection-start="107" selection-end="107" vertical-scroll-proportion="0.20134228">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Reservation.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="9" column="13" selection-start="138" selection-end="138" vertical-scroll-proportion="0.22651006">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/XmlRpcTypeConverterFactory.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="6" column="73" selection-start="217" selection-end="217" vertical-scroll-proportion="0.12583892">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/Type.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="17" selection-start="153" selection-end="153" vertical-scroll-proportion="0.17617449">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/common/BeanUtils.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="50" column="4" selection-start="1531" selection-end="1531" vertical-scroll-proportion="0.4116638">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/Fault.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="38" column="56" selection-start="318" selection-end="812" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/Fault.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="29" selection-start="317" selection-end="317" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/cz/cesnet/shongo/controller/ReservationService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="64" selection-start="897" selection-end="897" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/test.pl">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="48" selection-start="418" selection-end="418" vertical-scroll-proportion="0.32409012">
+        <state line="7" column="35" selection-start="155" selection-end="155" vertical-scroll-proportion="0.17617449">
           <folding />
         </state>
       </provider>

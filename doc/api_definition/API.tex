@@ -20,6 +20,7 @@
 \usepackage{calc}
 \usepackage{ifthen}
 \usepackage{xspace}
+\usepackage{verbatim}
 
 \usepackage{relsize}
 \usepackage{xcolor}
@@ -42,6 +43,7 @@ basicstyle=\smaller[1]\fontfamily{txtt}\fontseries{b}\selectfont,
 basicstyle=\smaller[2]\fontfamily{txtt}\fontseries{b}\selectfont,
 }
 \lstdefinestyle{myinline}{
+morekeywords={enum},
 breaklines=true,
 breakatwhitespace=true,
 breakindent=10em,
@@ -51,39 +53,67 @@ breakautoindent=true,
 
 \lstMakeShortInline[style=myinline]|
 
-\newcommand{\APIcode}[1]{\lstinline[style=myinline]!#1!}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API definition
+\newenvironment{Api}{\begin{itemize}}{\end{itemize}}
 
-% Next empty linea are intended to be blank (wraps the text 
-% to the next line even if the \APIxxx is not followed by empty line)
-\newcommand{\APIcmd}[1]{%
-\item \APIcode{#1}%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API definition code and value
+\newcommand{\ApiCode}[1]{\lstinline[style=myinline]|#1|} 
+\newcommand{\ApiValue}[1]{\verb|#1|} 
+% \end{verbatim}
+% Previous line corrects syntax coloring parser from TexMaker
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API definition item
+\newcommand{\ApiItem}[1]{\item #1 %
+
+% Previous empty line is intended to be blank (wraps the text 
+% to the next line even if the \ApiItem is not followed by empty line)
 }
-\newcommand{\APItype}[2]{
-  \item % 
-  \ifx&#2& \APIcode{#1} \else \APIcode{#1} extends \APIcode{#2} \fi %
-    
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API command
+\newcommand{\ApiCmd}[1]{\ApiItem{\ApiCode{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API atomic type
+\newcommand{\ApiType}[2]{\ApiItem{\ApiCode{#1 = #2}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API class
+\newcommand{\ApiClass}[2]{\ApiItem{%
+  \ifx&#2& \ApiCode{class #1} \else \ApiCode{class #1 extends #2} \fi}%
 }
-\newenvironment{APIattrs}{%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API class attributes
+\newenvironment{ApiClassAttributes}{% Next empty line is intended to be blank
 
 \textbf{Attributes:}\begin{compactitem}}{\end{compactitem}}
-\newcommand{\APIattr}[2]{\item{\APIcode{#2} \APIcode{#1}}
+\newcommand{\ApiClassAttribute}[2]{\ApiItem{\ApiCode{#2} \ApiCode{#1}}}
 
-}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API enum
+\newcommand{\ApiEnum}[1]{\ApiItem{\ApiCode{enum #1}}}
+\newenvironment{ApiEnumValues}{% Next empty line is intended to be blank
 
-\newcommand{\APIexample}{%
+\textbf{Enumeration values:}\begin{compactitem}}{\end{compactitem}}
+\newcommand{\ApiEnumValue}[1]{\ApiItem{{\ApiCode{#1}}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API example
+\newcommand{\ApiExample}{% Next empty line is intended to be blank
 
 \textbf{Example:}
 }
 
-\newcommand{\APInote}{%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API note
+\newcommand{\ApiNote}{% Next empty line is intended to be blank
 
 \textbf{Note:}
 }
-
-% This line corrects syntax coloring parser from TexMaker: \end{verbatim}
-
-\newenvironment{APIdef}{\begin{itemize}}{\end{itemize}}
 
 %{{{
 \makeatletter
@@ -214,16 +244,16 @@ urn:id:domain(.subdomain)*.name
 \end{verbatim}
 Examples: 
 \begin{compactitem}
-\item \verb|urn:id:cz.muni.fi.sitola.c90| -- H.323 endpoint at C90 room
-\item \verb|urn:id:cz.cesnet.srom| -- personal H.323 Mirial endpoint
+\item \ApiValue{urn:id:cz.muni.fi.sitola.c90} -- H.323 endpoint at C90 room
+\item \ApiValue{urn:id:cz.cesnet.srom} -- personal H.323 Mirial endpoint
 \end{compactitem}
 
 Each resource has own |name| and belongs to some main |domain|. The domain then can be structured to any number of |subdomain|s. For unmanaged resources that don't belong to any domain there is default |unmanaged| domain which can be followed by the resource type and identity.
 
 Examples: 
 \begin{compactitem}
-\item \verb|urn:id:unamanged:h323:<H.323 id or number>|
-\item \verb|urn:id:unmanaged:connect:<shibboleth identity>|
+\item \ApiValue{urn:id:unamanged:h323:<H.323 id or number>}
+\item \ApiValue{urn:id:unmanaged:connect:<shibboleth identity>}
 \end{compactitem}
 
 By the resource identifier, the user can lookup resource type and all other attributes.
@@ -691,51 +721,54 @@ Export reservation stats in some common format like CDR.
 
 \chapter{Common Data Types and Object Classes}
 
-\TODO{Describe that Object is recursively converted to Struct in XML-RPC}
-\\ \TODO{Describe that Enum is converted to String in XML-RPC}
+In this chapter we describe atomic types, enum types and object classes . In XML-RPC, every atomic type is converted to it's equivalent and each enum is converted to |String|. Object instances are converted to XML-RPC's |struct| and each non-empty attribute to XML-RPC |member| which consists of |name| and |value|. Every |struct| also includes one special \ApiValue{class} member which defines object class.
 
 \section{Failure Related}
 
-\TODO{:}
-We need to decide what to do in case of failure. XMLRPC only allows |faultCode| and |faultString| to be returned as a kind of exception. If we find it insufficient, we'd probably need to look beyond XMLRPC.
+Failures are propagete through XML-RPC by |faultCode| and |faultString| values. List of common faults:
+\begin{compactitem}
+\item |faultCode = 0| \\ Unknown fault which is described by |faultString|.
+\item |faultCode = 1| \\ The value of \ApiValue{class} member in a |struct| is wrong, the |faultString| specify which \ApiValue{class} value.
+\item |faultCode = 2| \\ The value of an enum member attribute is wrong., the |faultString| specify which value for which enum type.
+\end{compactitem}
 
 
 \section{Security and Identity Related}
 
-\begin{APIdef}
+\begin{Api}
 
-\APIcmd{SecurityToken}
+\ApiClass{SecurityToken}{}
 Contains identity and credentials of a user performing the requested operation.
 
-\end{APIdef}
+\end{Api}
 
 
 \section{Time Related}
 
-\begin{APIdef}
+\begin{Api}
 
-\APItype{Date}{}
+\ApiClass{Date}{}
 Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course.
 
 
-\APItype{PeriodicDate}{Date}
+\ApiClass{PeriodicDate}{Date}
 It is used for events that takes place repeatedly. The first occurrence is specified as a normal |Date| from which is |PeriodicDate| extended. The extension is meant in an OOP manner, thus wherever |Date| is used as an argument in the API definition, the |PeriodicDate| instance can be passed as the argument too.
 
-\begin{APIattrs}
-\APIattr{period}{Duration}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{period}{Duration}
 Defines the period in which the repeated events take place.
-\APIattr{end}{Date}
+\ApiClassAttribute{end}{Date}
 Ending date for events to not occur forever.
-\APIattr{rules}{Rule[]}
+\ApiClassAttribute{rules}{Rule[]}
 List of rules, which can define an extra events out of the periodicity or cancel specified periodical events. |Rule| can be one of the following types:
 \begin{compactitem}
 \item |Enable|/|Disable| event(s) in the specified |date| or interval by |dateFrom| and |dateTo|.
 \item |Extra| event in the specified |date|
 \end{compactitem}
 Rules contains implicit definition of |Enable| rule for whole |PeridiocDate| interval. Conflicts are solved by \emph{last-match} policy.
-\end{APIattrs}
+\end{ApiClassAttributes}
 
-\APIexample A lecture on every Thursday at 12:00 with extra lecture on 20.3.2012 and Christmas holidays.
+\ApiExample A lecture on every Thursday at 12:00 with extra lecture on 20.3.2012 and Christmas holidays.
 \begin{verbatim}
 periodicDate = 20110908T12:00:00
 periodicDate.period = P1W
@@ -747,40 +780,53 @@ periodicDate.rules = {
 \end{verbatim}
 
 
-\APItype{AutoDate}{Date}
+\ApiClass{AutoDate}{Date}
 Special type of date that can have different value in different moments. It extends |Date| in a way that allows special values, for instance |Now| value which stands for current time. When the date is used or evaluated, the special values are replaced by the concrete date and time which they represents and the resulting date is increased by |duration|.
-\begin{APIattrs}
-\APIattr{duration}{Duration} Default value is zero duration \verb|P0|.
-\end{APIattrs}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{duration}{Duration} Default value is zero duration \ApiValue{P0}.
+\end{ApiClassAttributes}
 
-\APIexample We want to define a maximum future time that can be specified as part of some request and we know the precise date (e.g., the date since a resource will not be available for any request). We can specify it by |Date| or by |AutoDate| as follows:
+\ApiExample We want to define a maximum future time that can be specified as part of some request and we know the precise date (e.g., the date since a resource will not be available for any request). We can specify it by |Date| or by |AutoDate| as follows:
 
 \begin{verbatim}
 date = autoDate = 20121231
 \end{verbatim}
 
-\APIexample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it only by |AutoDate| as follows:
+\ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it only by |AutoDate| as follows:
 
 \begin{verbatim}
 autoDate = Now
 autoDate.duration = P4M
 \end{verbatim}
 
-\APItype{Duration}{}
-Represented as ISO8601 duration (e.g., \verb|P3Y6M4DT12H30M5S| which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \verb|P4W| which is \textit{4 weeks}). The zero duration is represented by \verb|P0| value.
+\ApiClass{Duration}{}
+Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The zero duration is represented by \ApiValue{P0} value.
 
 
-\APIcmd{TimeSlot}
+\ApiClass{TimeSlot}{}
 Time slot is pair of |Date| and |Duration|.
 
-\end{APIdef}
+\end{Api}
 
 
 \section{Reservations and Resources}
 
-\begin{APIdef}
+\begin{Api}
 
-\APIcmd{ResourceType}
+
+\ApiEnum{ResourceType}
+\begin{ApiEnumValues}
+\ApiEnumValue{EndPoint} A managed or unmanaged endpoint.
+\ApiEnumValue{Server} A managed infrastructure element.
+\ApiEnumValue{Room} A virtual room.
+\ApiEnumValue{License}
+\ApiEnumValue{Identifier}
+\ApiEnumValue{Reservation}
+\ApiEnumValue{Other} A physical room.
+\end{ApiEnumValues}
+
+\TODO{Finish this}
+
 Represents types (may be also understood as capabilities) of a resource. 
 It is composed of:
 \begin{compactitem}
@@ -794,60 +840,59 @@ If resource role is |Server|, additional options become available:
 \end{compactitem}
 
 
-\APIcmd{Resource}
+\ApiClass{Resource}{}
 The resource can be one of the types as defined in \UCref{res:types}.
-\begin{APIattrs}
-\APIattr{id}{String} Resource unique identifier as defined in \UCref{res:identification}.
-\APIattr{name}{String} Short name which desribes the resource.
-\APIattr{managed}{Boolean} Specify if resource is managed and scheluded by Shongo.
-\APIattr{type}{ResourceType} Type or capabilities of the resource, see |ResourceType|. 
-\APIattr{description}{String} Long description depicting the resource.
-\APIattr{maxFuture}{AutoDate} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
-\end{APIattrs}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String} Resource unique identifier as defined in \UCref{res:identification}.
+\ApiClassAttribute{name}{String} Short name which desribes the resource.
+\ApiClassAttribute{managed}{Boolean} Specify if resource is managed and scheluded by Shongo.
+\ApiClassAttribute{type}{ResourceType} Type or capabilities of the resource, see |ResourceType|. 
+\ApiClassAttribute{description}{String} Long description depicting the resource.
+\ApiClassAttribute{maxFuture}{AutoDate} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
+\end{ApiClassAttributes}
 
 
-\APIcmd{ResourceSpecification}
+\ApiClass{ResourceSpecification}{}
+\TODO{Perhaps remove this...}
 Represents resource specification and can be one of the types defined in
 \UCref{rsv:specifications}. The specification instance should hold 
 the right parameters for the chosen specification type.
 \begin{compactitem}
 \item for |FullExplicit| the parameter is concrete |Resource|.
-\item for |PartialExplicit| the parameter is |ResourceType| (\TODO{or list of types?}).
-\item for |Implicit| \TODO{some parameters?}.
+\item for |PartialExplicit| the parameter is |ResourceType|.
+\item for |Implicit|.
 \end{compactitem}
-\TODO{How to implement it better? By three more types extending the base?}
 
 
-\APIcmd{ReservationType}
-The reservation may be of the following types:
-\begin{compactitem}
+\ApiEnum{ReservationType}
+\begin{ApiEnumValues}
 \item |OneTime| One time reservation as defined in \UCref{rsv:reservation:one}.
 \item |Periodic| Periodic reservation as defined in \UCref{rsv:reservation:periodic}.
 \item |Permanent| Permanent reservation as defined in \UCref{rsv:reservation:permanent}.
-\end{compactitem}
+\end{ApiEnumValues}
 
 
-\APIcmd{Reservation}
+\ApiClass{Reservation}{}
 Represents a single reservation.
-\begin{APIattrs}
-\APIattr{id}{String} Reservation unique identifier as defined in \UCref{rsv:identification}.
-\APIattr{type}{ReservationType} Type of reservation, see |ReservationType|.
-\APIattr{date}{Date} Requested date or periodic date for specified resources.
-\APIattr{duration}{Duration} Requested duration of reservation.
-\APIattr{description}{String} Long reservation description.
-\APIattr{resources}{ResourceSpecification[]} List of requested/reserved resources.
-\APIattr{reservations}{Reservation[]} List of child reservations
-\end{APIattrs}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String} Reservation unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{type}{ReservationType} Type of reservation, see |ReservationType|.
+\ApiClassAttribute{date}{Date} Requested date or periodic date for specified resources.
+\ApiClassAttribute{duration}{Duration} Requested duration of reservation.
+\ApiClassAttribute{description}{String} Long reservation description.
+\ApiClassAttribute{resources}{ResourceSpecification[]} List of requested/reserved resources.
+\ApiClassAttribute{reservations}{Reservation[]} List of child reservations
+\end{ApiClassAttributes}
 
 
-\APIcmd{Room}
+\ApiClass{Room}{}
 Represents a virtual room on a specific resource of |Server| type (such as H.323 MCU).
 
 
-\APIcmd{User}
+\ApiClass{User}{}
 Represents an active user in a |Room| on a |Server|. Ideally, it should also contain link to the user's eduID identity (this may or may not be available, though).
 
-\end{APIdef}
+\end{Api}
 
 
 
@@ -856,69 +901,67 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 \section{Resources}
 
-\begin{APIdef}
+\begin{Api}
 
-\APIcmd{Resource createResource(SecurityToken token, String domain, Resource resource)}
+\ApiCmd{Resource createResource(SecurityToken token, String domain, Resource resource)}
 Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner.
 
-\APIcmd{modifyResource(SecurityToken token, Resource resource)}
+\ApiCmd{modifyResource(SecurityToken token, Resource resource)}
 Modify the specified |resource|. That operation is permited only when the user with given |token| is the resource owner.
 
-\APIcmd{deleteResource(SecurityToken token, Resource resource)}
+\ApiCmd{deleteResource(SecurityToken token, Resource resource)}
 Delete the specified |resource| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
-\APIcmd{Resource[] listResources(SecurityToken token)}
+\ApiCmd{Resource[] listResources(SecurityToken token)}
 List of resources managed by Shongo, that a user with given |token| is entitled to see.
 
-\end{APIdef}
+\end{Api}
 
 
 \section{Reservations}
 
-\begin{APIdef}
+\begin{Api}
 
-\APIcmd{Reservation createReservation(SecurityToken token, Reservation reservation)}
+\ApiCmd{Reservation createReservation(SecurityToken token, Reservation reservation)}
 Create a new |reservation|.
 
-\APIcmd{modifyReservation(SecurityToken token, Reservation reservation)}
+\ApiCmd{modifyReservation(SecurityToken token, Reservation reservation)}
 Modify the specified |reservation|.
 
-\APIcmd{deleteReservation(SecurityToken token, Reservation reservation)}
+\ApiCmd{deleteReservation(SecurityToken token, Reservation reservation)}
 Release the specified |reservation| and all children reservations.
 
-\APIcmd{Reservation[] listReservations(SecurityToken token, Reservation filter)}
+\ApiCmd{Reservation[] listReservations(SecurityToken token, Reservation filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter|.
 
-\APIcmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Reservation reservation, boolean interDomain)}
+\ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Reservation reservation, boolean interDomain)}
 Lookup available time slots for specified |reservation| duration and resources. Flag |interDomain| specifies whether inter-domain lookup should be performed.
 
-
-\end{APIdef}
+\end{Api}
 
 
 \section{Room Operations}
 
-\begin{APIdef}
+\begin{Api}
 
-\APIcmd{Room[] listReservationRooms(SecurityToken token, Reservation reservation)}
-
+\ApiCmd{Room[] listReservationRooms(SecurityToken token, Reservation reservation)}
 Lists all the virtual rooms including rooms that are part of any child reservations.
 
-\APIcmd{boolean isRoomActive(SecurityToken token, Room room)}
+\ApiCmd{boolean isRoomActive(SecurityToken token, Room room)}
 
-\APIcmd{Resource[] listRoomResources(SecurityToken token, Room room)}
+\ApiCmd{Resource[] listRoomResources(SecurityToken token, Room room)}
 
-\APIcmd{User[] listRoomUsers(SecurityToken token, Room room)}
+\ApiCmd{User[] listRoomUsers(SecurityToken token, Room room)}
 
-\APIcmd{disconnectRoomUser(SecurityToken token, Room room, User user)}
+\ApiCmd{disconnectRoomUser(SecurityToken token, Room room, User user)}
 
-\APIcmd{muteRoomUser(SecurityToken token, Room room, User user)}
+\ApiCmd{muteRoomUser(SecurityToken token, Room room, User user)}
 
-\APIcmd{setRoomUserMicLevel(SecurityToken token, Room room, User user, int level)}
+\ApiCmd{setRoomUserMicLevel(SecurityToken token, Room room, User user, int level)}
 
-\APIcmd{setRoomUserPlaybackLevel(SecurityToken token, Room room, User user, int level)}
+\ApiCmd{setRoomUserPlaybackLevel(SecurityToken token, Room room, User user, int level)}
 
-\end{APIdef}
+\end{Api}
 
 
 \chapter{Connector API Specification}
@@ -944,10 +987,12 @@ Lists all the virtual rooms including rooms that are part of any child reservati
 \chapter{User Interface API Usage}
 
 \section{Perl programming language}
+\newenvironment{PerlCmd}{\small\verbatim}{\endverbatim}
+\newenvironment{PerlResponse}{\textbf{Response}\small\verbatim}{\endverbatim}
 
 \subsection{Connect to Controller}
 
-\begin{verbatim}
+\begin{PerlCmd}
 #!/usr/bin/perl
 
 require RPC::XML;
@@ -956,11 +1001,20 @@ require RPC::XML::Client;
 $client = RPC::XML::Client->new('http://localhost:8008');
 
 $response = $client->send_request(...);
-\end{verbatim}
+
+if ( ref($response) ) {
+    use XML::Twig;
+    $xml = XML::Twig->new(pretty_print => 'indented');
+    $xml->parse($response->as_string());
+    $xml->print();
+} else {
+    print($response . "\n");
+}
+\end{PerlCmd}
 
 \newpage
 \subsection{Create reservation}
-\begin{verbatim}
+\begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.createReservation',
     RPC::XML::struct->new(
@@ -973,13 +1027,11 @@ $response = $client->send_request(
         'date' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),
             'date' => RPC::XML::string->new('20120101'),
-            'end' => RPC::XML::string->new('20121231')
         )
     )
 );
-\end{verbatim}
-\textbf{Response}
-{\small\begin{verbatim}
+\end{PerlCmd}
+\begin{PerlResponse}
 <struct>
   <member>
     <name>class</name>
@@ -993,21 +1045,21 @@ $response = $client->send_request(
     <name>date</name>
     <value><struct>
         <member>
-          <name>date</name>
-          <value><string>20120101</string></value>
-        </member>
-        <member>
           <name>class</name>
           <value><string>Date</string></value>
+        </member>    
+        <member>
+          <name>date</name>
+          <value><string>20120101</string></value>
         </member>
     </struct></value>
   </member>
 </struct>
-\end{verbatim}}
+\end{PerlResponse}
 
 \newpage
 \subsection{List reservations}
-\begin{verbatim}
+\begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.listReservations',
     RPC::XML::struct->new(
@@ -1015,9 +1067,8 @@ $response = $client->send_request(
         ...
     )
 );
-\end{verbatim}
-\textbf{Response}
-{\small\begin{verbatim}
+\end{PerlCmd}
+\begin{PerlResponse}
 <array><data>
   <value><struct>
     <member>
@@ -1034,7 +1085,97 @@ $response = $client->send_request(
     </member>
   </struct></value>
 </data></array>
-\end{verbatim}}
+\end{PerlResponse}
+
+\newpage
+\subsection{Exception handling}
+\subsubsection{Wrong class}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.listReservations',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityTokenX'),
+        ...
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Class 'SecurityTokenX' is not defined.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>1</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\subsubsection{Wrong enum}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.listReservations',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('Reservation'),
+        'type' => RPC::XML::string->new('OneTimeX'),
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Enum value 'OneTimeX' is not defined in enum
+          'ReservationType'.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>2</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\subsubsection{Bussiness logic exception}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.createReservation',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('Reservation'),
+        'type' => RPC::XML::string->new('Periodic'),
+        'date' => RPC::XML::struct->new(
+            'class' => RPC::XML::string->new('Date'),
+            'date' => RPC::XML::string->new('20120101')
+        )
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Periodic date is required.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>102</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
 
 
 

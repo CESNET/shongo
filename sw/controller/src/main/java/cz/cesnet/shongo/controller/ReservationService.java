@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.*;
+import org.apache.xmlrpc.XmlRpcException;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -19,7 +20,13 @@ public class ReservationService
      * @param reservation
      * @return reservation id
      */
-    public Reservation createReservation(SecurityToken token, Reservation reservation) {
+    public Reservation createReservation(SecurityToken token, Reservation reservation) throws XmlRpcException {
+        if ( reservation.getType() == null )
+            throw new FaultException(Fault.ReservationType_NotFilled);
+        if ( reservation.getDate() == null )
+            throw new FaultException(Fault.Date_NotFilled);
+        if ( reservation.getType() == ReservationType.Periodic && (reservation.getDate() instanceof PeriodicDate) == false)
+            throw new FaultException(Fault.PeriodicDate_Required);
         reservation.setId(UUID.randomUUID().toString());
         return reservation;
     }

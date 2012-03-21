@@ -4,7 +4,7 @@ import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 
 /**
- * XmlRpcTypeConverterFactory that allows custom classes as method parameters
+ * XmlRpcTypeConverterFactory that allows classes that extends from Type as method parameters
  *
  * @author Martin Srom
  */

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.common;
 
+import cz.cesnet.shongo.Fault;
+import cz.cesnet.shongo.FaultException;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.DynaBean;
@@ -8,7 +10,6 @@ import org.apache.commons.beanutils.MethodUtils;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -22,16 +23,49 @@ public class BeanUtils extends BeanUtilsBean
      * Constructor
      */
     public BeanUtils() {
+        // Set convert utils that are able to convert String to Enum
         super(new ConvertUtilsBean(){
             @Override
             public Object convert(String value, Class clazz) {
                 if ( clazz.isEnum() ){
-                    return Enum.valueOf(clazz, value);
+                    try {
+                        return Enum.valueOf(clazz, value);
+                    } catch (java.lang.IllegalArgumentException exception) {
+                        throw new Exception(
+                            new FaultException(Fault.Common.EnumNotDefined, value, getClassName(clazz.getCanonicalName()))
+                        );
+                    }
                 } else {
                     return super.convert(value, clazz);
                 }
             }
         });
+    }
+
+    /**
+     * BeanUtils runtime exception that holds another not runtime exception
+     *
+     * @author Martin Srom
+     */
+    public static class Exception extends RuntimeException
+    {
+        public Exception(java.lang.Exception exception) {
+            super(exception);
+        }
+
+        public java.lang.Exception getException() {
+            return (java.lang.Exception)getCause();
+        }
+    }
+
+    /**
+     * Get short class name
+     *
+     * @param className
+     * @return
+     */
+    public static String getClassName(String className) {
+        return className.replace("cz.cesnet.shongo.", "");
     }
 
     /**
@@ -84,7 +118,7 @@ public class BeanUtils extends BeanUtilsBean
 
         // Update class
         String className = (String)map.get("class");
-        map.put("class", className.replace("class cz.cesnet.shongo.", ""));
+        map.put("class", getClassName(className.replace("class ", "")));
 
         return (map);
 

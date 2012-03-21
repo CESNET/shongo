@@ -12,7 +12,7 @@ $response = $client->send_request(
     ),
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('Reservation'),
-        'type' => RPC::XML::string->new('OneTime'),
+        'type' => RPC::XML::string->new('Periodic'),
         'date' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),
             'date' => RPC::XML::string->new('20120101'),
@@ -21,14 +21,12 @@ $response = $client->send_request(
     )
 );
 
-
-if ( $response->is_fault() ) {
-    print "Fault: " . $response->string . " (code " . $response->code . ")\n";
-} else {
+if ( ref($response) ) {
     use XML::Twig;
-    use XML::Parser;
     $xml = XML::Twig->new(pretty_print => 'indented');
     $xml->parse($response->as_string());
     $xml->print();
+} else {
+    print($response . "\n");
 }
 
