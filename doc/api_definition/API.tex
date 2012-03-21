@@ -769,7 +769,7 @@ absoluteDate.date = 20121231
 \ApiClass{RelativeDate}{Date}
 Relative date is calculated as current date and time increased by |duration|.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{duration}{Duration} Default value is zero duration \ApiValue{P0}.
+\ApiClassAttribute{duration}{Duration}{} Default value is zero duration \ApiValue{P0}.
 \end{ApiClassAttributes}
 
 \ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it by |RelativeDate| as follows:
