@@ -93,8 +93,9 @@ breakautoindent=true,
 \textbf{Attributes:}\begin{compactitem}}{\end{compactitem}}
 \newcommand{\ApiRequired}{\hspace{1mm}({\color{blue!50!black}\textbf{Required}})}
 \newcommand{\ApiOptional}{\hspace{1mm}({\color{gray}\textbf{Optional}})}
+\newcommand{\ApiReadOnly}{\hspace{1mm}({\color{red!50!black}\textbf{ReadOnly}})}
 \newcommand{\ApiClassAttribute}[3]{\ApiItem{\ApiCode{#2} \ApiCode{#1}
-  \ifx\ApiRequired#3\relax \ApiRequired \else \ApiOptional \fi}%
+  \ifx\ApiRequired#3\relax \ApiRequired \else \ifx&#3& \ApiOptional \else #3 \fi \fi}%
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -103,7 +104,7 @@ breakautoindent=true,
 \newenvironment{ApiEnumValues}{% Next empty line is intended to be blank
 
 \textbf{Enumeration values:}\begin{compactitem}}{\end{compactitem}}
-\newcommand{\ApiEnumValue}[1]{\ApiItem{{\ApiCode{#1}}}}
+\newcommand{\ApiEnumValue}[2]{\ApiItem{{\ApiCode{#1} \ifx&#2& \else \hspace{1mm} \ApiValue{\{#2\}} \fi}}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API example
@@ -222,14 +223,6 @@ room.
 A user may reserve a specific identifier, typically Adobe Connect URL, H.323
 number, or streaming server URL. This allows for reuse of such an identifier in
 irregularly recurring and \emph{ad hoc} events.
-
-\item[An existing reservation]
-
-Reservations may be compounded to form another reservation. This allows to
-reuse elements that are already reserved (e.g., a specified identifier or
-allocation of a physical room) to implement a larger reservation. As a part of
-the scheduling process, the scheduler has to check whether the reservation
-times and durations are compatible.
 
 \end{compactdesc}
 
@@ -400,6 +393,11 @@ Each reservation has to include:
 
 \end{compactitem}
 
+Reservations may be compounded to form another reservation. This allows to
+reuse elements that are already reserved (e.g., a specified identifier or
+allocation of a physical room) to implement a larger reservation. As a part of
+the scheduling process, the scheduler has to check whether the reservation
+times and durations are compatible.
 
 
 \UseCase{Periodic reservation}{rsv:reservation:periodic}
@@ -752,7 +750,7 @@ Contains identity and credentials of a user performing the requested operation.
 \begin{Api}
 
 \ApiClass{Date}{}
-It serves only as base class for |AbsoluteDate|, |RelativeDate| and |PeriodicalDate|.
+It serves only as base class for |AbsoluteDate|, |RelativeDate| and |PeriodicDate|.
 
 
 \ApiClass{AbsoluteDate}{Date}
@@ -819,7 +817,9 @@ Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \tex
 
 
 \ApiClass{TimeSlot = Pair<Date, Duration>}{}
-Time slot is pair of |Date| and |Duration|. |PeriodicDate| can be evaluated to |TimeSlot[]| that contains only |AbsoluteDate| instances of |Date|.
+Time slot is pair of |Date| and |Duration|. For reservation purposes, the array |TimeSlot[]| should be used to provide the ability to reserve multiple date and times with different durations (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
+
+If time slot contains |PeriodicDate|, all periodic events can be listed by evaluating time slot to |TimeSlot[]|, where only |AbsoluteDate| are used.
 
 \end{Api}
 
@@ -830,78 +830,98 @@ Time slot is pair of |Date| and |Duration|. |PeriodicDate| can be evaluated to |
 
 
 \ApiEnum{ResourceType}
-The resource can be one of the types as defined in \UCref{res:types}.
+The resource is one of the types as defined in \UCref{res:types}.
 \begin{ApiEnumValues}
-\ApiEnumValue{ManagedEndPoint}
-\ApiEnumValue{UnmanagedEndPoint}
-\ApiEnumValue{MultipointServer}
-\ApiEnumValue{GatewayServer}
-\ApiEnumValue{VirtualRoom}
-\ApiEnumValue{License}
-\ApiEnumValue{Identifier}
-\ApiEnumValue{Reservation}
-\ApiEnumValue{Other} A physical room for instance.
+\ApiEnumValue{ManagedEndPoint}{}
+\ApiEnumValue{UnmanagedEndPoint}{}
+\ApiEnumValue{MultipointServer}{}
+\ApiEnumValue{GatewayServer}{}
+\ApiEnumValue{VirtualRoom}{}
+\ApiEnumValue{License}{}
+\ApiEnumValue{Identifier}{}
+\ApiEnumValue{Other}{} A physical room for instance.
 \end{ApiEnumValues}
 
 
-\ApiEnum{TechnologyType}
+\ApiEnum{Technology}
 \begin{ApiEnumValues}
-\ApiEnumValue{H323}
-\ApiEnumValue{SIP}
-\ApiEnumValue{AdobeConnect}
+\ApiEnumValue{H323}{}
+\ApiEnumValue{SIP}{}
+\ApiEnumValue{AdobeConnect}{}
+\ApiEnumValue{Skype}{}
 \end{ApiEnumValues}
 
 
-\ApiClass{TranslationType}{}
+\ApiEnum{Resolution}{}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{width}{Integer}{\ApiRequired}
+\ApiClassAttribute{height}{Integer}{\ApiRequired}
+\end{ApiClassAttributes}
+\begin{ApiEnumValues}
+\ApiEnumValue{HD}{width = 1920, height = 1080}
+\ApiEnumValue{2K}{width = 2048, height = 1080}
+\ApiEnumValue{4K}{width = 4096, height = 2160}
+\TODO{Complete this}
+\end{ApiEnumValues}
+
+
+\ApiEnum{CodecType}
+\begin{ApiEnumValues}
+\ApiEnumValue{H264}{}
+\TODO{Complete this}
+\end{ApiEnumValues}
+
+
+\ApiClass{Codec}{}
+Resource technologies can provide different codecs.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{type}{CodecType}{\ApiRequired}
+\ApiClassAttribute{resolution}{Resolution}{\ApiRequired}
+\end{ApiClassAttributes}
+
+
+\ApiClass{Translation}{}
 Represents translations that a |GatewayServer| resource can perform.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{from}{TechnologyType[]}{\ApiRequired}
-Input technologies that server is able to transform.
-\ApiClassAttribute{to}{TechnologyType[]}{\ApiRequired}
-Output technologies that server is able to produce from transformation.
+\ApiClassAttribute{input}{Map<TechnologyType, Codec[]>}{\ApiRequired}
+Input technologies with specified codecs that server is able to transform.
+\ApiClassAttribute{output}{Map<TechnologyType, Codec[]>}{\ApiRequired}
+Output technologies with specified codecs that server is able to produce.
 \end{ApiClassAttributes}
 
 
 \ApiClass{Resource}{}
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
-\ApiClassAttribute{name}{String}{\ApiRequired} Short name which desribes the resource.
+\ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
 \ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|. 
-\ApiClassAttribute{technology}{TechnologyType}{} Technology type of the resource, see |TechnologyType|. 
-\ApiClassAttribute{translation}{TranslationType}{} Translation type of the gateway resource, see |TranslationType|. 
+\ApiClassAttribute{technology}{Technology}{} Technology type of the resource, see |TechnologyType|. 
+\ApiClassAttribute{translation}{Translation}{} Translation type of the gateway resource, see |TranslationType|. 
 \ApiClassAttribute{description}{String}{} Long description depicting the resource.
 \ApiClassAttribute{maxFuture}{Date}{} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
+\ApiClassAttribute{resources}{Resource[]}{} List of child resources. If the resource is physical room, |resources| contains all videoconferencing devices in the room. 
 \end{ApiClassAttributes}
-
-
-\ApiClass{ResourceSpecification}{}
-\TODO{Perhaps remove this...}
-Represents resource specification and can be one of the types defined in
-\UCref{rsv:specifications}. The specification instance should hold 
-the right parameters for the chosen specification type.
-\begin{compactitem}
-\item for |FullExplicit| the parameter is concrete |Resource|.
-\item for |PartialExplicit| the parameter is |ResourceType|.
-\item for |Implicit|.
-\end{compactitem}
 
 
 \ApiEnum{ReservationType}
 \begin{ApiEnumValues}
-\item |OneTime| One time reservation as defined in \UCref{rsv:reservation:one}.
-\item |Periodic| Periodic reservation as defined in \UCref{rsv:reservation:periodic}.
-\item |Permanent| Permanent reservation as defined in \UCref{rsv:reservation:permanent}.
+\ApiEnumValue{OneTime}{} One time reservation as defined in \UCref{rsv:reservation:one}.
+\ApiEnumValue{Periodic}{} Periodic reservation as defined in \UCref{rsv:reservation:periodic}.
+\ApiEnumValue{Permanent}{} Permanent reservation as defined in \UCref{rsv:reservation:permanent}.
 \end{ApiEnumValues}
 
 
-\ApiClass{Reservation}{Resource}
+\ApiClass{Reservation}{}
 Represents a single reservation.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiRequired} Reservation unique identifier as defined in \UCref{rsv:identification}.
 \ApiClassAttribute{type}{ReservationType}{\ApiRequired} Type of reservation, see |ReservationType|.
 \ApiClassAttribute{timeSlots}{TimeSlot[]}{\ApiRequired} Requested time slots for specified resources.
 \ApiClassAttribute{description}{String}{} Long reservation description.
-\ApiClassAttribute{resources}{Resource[]}{} List of requested/reserved resources.
+\ApiClassAttribute{reservations}{Reservation[]}{} List of child reservations. All allocated resources from child reservations become part of the parent reservation.
+\ApiClassAttribute{requestedResources}{Resource[]}{} List of requested resources by this reservation.
+\ApiClassAttribute{allocatedResources}{Resource[]}{\ApiReadOnly} List of allocated resources by scheduler for this reservation. Does not include the child reservations resources, they must be looked up from |reservations|.
+\ApiClassAttribute{users}{User[]}{} List of users that will participate in reserved videoconference.
 \end{ApiClassAttributes}
 
 
