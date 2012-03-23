@@ -9,7 +9,8 @@ public enum Fault implements cz.cesnet.shongo.Fault
 {
     ReservationType_NotFilled(100, "Reservation type is not filled."),
     Date_NotFilled(101, "Date is not filled."),
-    PeriodicDate_Required(102, "Periodic date is required.");
+    PeriodicDate_Required(102, "Periodic date is required."),
+    Reservation_NotFound(103, "Reservation with id '%s' not found.");
 
     private int code;
     private String string;

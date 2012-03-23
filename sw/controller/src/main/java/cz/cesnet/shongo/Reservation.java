@@ -16,6 +16,8 @@ public class Reservation implements Type
     private Date date;
 
     private Duration duration;
+    
+    private String description;
 
     public Reservation() {
     }
@@ -50,5 +52,13 @@ public class Reservation implements Type
 
     public void setDuration(Duration duration) {
         this.duration = duration;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

@@ -723,15 +723,32 @@ Export reservation stats in some common format like CDR.
 
 \chapter{Common Data Types and Object Classes}
 
-In this chapter we describe atomic types, enum types and object classes . In XML-RPC, every atomic type is converted to it's equivalent and each enum is converted to |String|. Object instances are converted to XML-RPC's |struct| and each non-empty attribute to XML-RPC |member| which consists of |name| and |value|. Every |struct| also includes one special \ApiValue{class} member which defines object class.
+In this chapter we describe atomic types, enum types and object classes. In XML-RPC, every atomic type is converted to it's equivalent and each enum is converted to |String|. Object instances are converted to XML-RPC's |struct| and each non-empty object's attribute to XML-RPC |member| which consists of |name| and |value|. Every |struct| also includes one special \ApiValue{class} member which defines object class.
+
+We use XML-RPC empty |struct| to represent |null| values, e.g., when the user want to clear attribute value by |modify| API method, he should set the attribute value to empty |struct| and the value will be cleared on the server.
+
+
+\section{Common}
+
+\begin{Api}
+
+\ApiClass{AttributeMap<T>}{Map<String, Object>}
+Represents map of attributes for an object of type |T|. Attribute is pair of |name| and |value|, where name is always |String| and value can be of any allowed type. The map for a type |T| can contain only the attributes that are defined in type |T|.
+
+The attribute map allows to not enumerate all entity attributes in API methods (e.g., for |create|, |modify| or |list| entities).
+
+\end{Api}
+
 
 \section{Failure Related}
 
 Failures are propagete through XML-RPC by |faultCode| and |faultString| values. List of common faults:
 \begin{compactitem}
 \item |faultCode = 0| \\ Unknown fault which is described by |faultString|.
-\item |faultCode = 1| \\ The value of \ApiValue{class} member in a |struct| is wrong, the |faultString| specifies which \ApiValue{class} value.
-\item |faultCode = 2| \\ The value of an enum member attribute is wrong., the |faultString| specifies which value for which enum type.
+\item |faultCode = 1| \\ The \ApiValue{class} is not defined, the |faultString| specifies which \ApiValue{class}.
+\item |faultCode = 2| \\ The attribute is not defined, the |faultString| specifies which attribute in which class.
+\item |faultCode = 3| \\ The attribute type is wrong, the |faultString| specifies which attribute in which class and also it specifies the presented and required type.
+\item |faultCode = 4| \\ The value of an enum attribute is wrong., the |faultString| specifies which value for which enum type.
 \end{compactitem}
 
 
@@ -819,7 +836,7 @@ Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \tex
 \ApiClass{TimeSlot = Pair<Date, Duration>}{}
 Time slot is pair of |Date| and |Duration|. For reservation purposes, the array |TimeSlot[]| should be used to provide the ability to reserve multiple date and times with different durations (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
 
-If time slot contains |PeriodicDate|, all periodic events can be listed by evaluating time slot to |TimeSlot[]|, where only |AbsoluteDate| are used.
+If time slot contains |PeriodicDate|, all periodic events can be listed by evaluating time slot to |TimeSlot[]|, where only |AbsoluteDate|s are used.
 
 \end{Api}
 
@@ -895,8 +912,8 @@ Output technologies with specified codecs that server is able to produce.
 \ApiClassAttribute{id}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
 \ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|. 
-\ApiClassAttribute{technology}{Technology}{} Technology type of the resource, see |TechnologyType|. 
-\ApiClassAttribute{translation}{Translation}{} Translation type of the gateway resource, see |TranslationType|. 
+\ApiClassAttribute{technology}{Technology}{} Technology type of the resource, see |Technology|. 
+\ApiClassAttribute{translation}{Translation}{} Translation type of the gateway resource, see |Translation|. 
 \ApiClassAttribute{description}{String}{} Long description depicting the resource.
 \ApiClassAttribute{maxFuture}{Date}{} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
 \ApiClassAttribute{resources}{Resource[]}{} List of child resources. If the resource is physical room, |resources| contains all videoconferencing devices in the room. 
@@ -914,14 +931,14 @@ Output technologies with specified codecs that server is able to produce.
 \ApiClass{Reservation}{}
 Represents a single reservation.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiRequired} Reservation unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{id}{String}{\ApiReadOnly} Reservation unique identifier as defined in \UCref{rsv:identification}.
 \ApiClassAttribute{type}{ReservationType}{\ApiRequired} Type of reservation, see |ReservationType|.
 \ApiClassAttribute{timeSlots}{TimeSlot[]}{\ApiRequired} Requested time slots for specified resources.
 \ApiClassAttribute{description}{String}{} Long reservation description.
 \ApiClassAttribute{reservations}{Reservation[]}{} List of child reservations. All allocated resources from child reservations become part of the parent reservation.
 \ApiClassAttribute{requestedResources}{Resource[]}{} List of requested resources by this reservation.
 \ApiClassAttribute{allocatedResources}{Resource[]}{\ApiReadOnly} List of allocated resources by scheduler for this reservation. Does not include the child reservations resources, they must be looked up from |reservations|.
-\ApiClassAttribute{users}{User[]}{} List of users that will participate in reserved videoconference.
+\ApiClassAttribute{users}{User[]}{} List of users that will participate in the videoconference.
 \end{ApiClassAttributes}
 
 
@@ -943,17 +960,17 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 
 \begin{Api}
 
-\ApiCmd{Resource createResource(SecurityToken token, String domain, Resource resource)}
+\ApiCmd{Resource createResource(SecurityToken token, String domain, AttributeMap<Resource> attributes)}
 Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner.
 
-\ApiCmd{modifyResource(SecurityToken token, Resource resource)}
-Modify the specified |resource|. That operation is permited only when the user with given |token| is the resource owner.
+\ApiCmd{Resource modifyResource(SecurityToken token, String id, AttributeMap<Resource> attributes)}
+Modify the resource with specified |id|. That operation is permited only when the user with given |token| is the resource owner.
 
-\ApiCmd{deleteResource(SecurityToken token, Resource resource)}
-Delete the specified |resource| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+\ApiCmd{deleteResource(SecurityToken token, String id)}
+Delete the resource with specified |id| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
-\ApiCmd{Resource[] listResources(SecurityToken token)}
-List of resources managed by Shongo, that a user with given |token| is entitled to see.
+\ApiCmd{Resource[] listResources(SecurityToken token, AttributeMap<Resource> filter)}
+List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter|.
 
 \end{Api}
 
@@ -962,20 +979,20 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 
 \begin{Api}
 
-\ApiCmd{Reservation createReservation(SecurityToken token, Reservation reservation)}
-Create a new |reservation|.
+\ApiCmd{Reservation createReservation(SecurityToken token, AttributeMap<Reservation> attributes)}
+Create a new reservation. The new reservation identifier is included in returned object as |id| attribute.
 
-\ApiCmd{modifyReservation(SecurityToken token, Reservation reservation)}
-Modify the specified |reservation|.
+\ApiCmd{Reservation modifyReservation(SecurityToken token, String id, AttributeMap<Reservation> attributes)}
+Modify the reservation with specified |id|.
 
-\ApiCmd{deleteReservation(SecurityToken token, Reservation reservation)}
-Release the specified |reservation| and all children reservations.
+\ApiCmd{deleteReservation(SecurityToken token, String id)}
+Release the reservation with specified |id| and all children reservations.
 
-\ApiCmd{Reservation[] listReservations(SecurityToken token, Reservation filter)}
+\ApiCmd{Reservation[] listReservations(SecurityToken token, AttributeMap<Reservation> filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter|.
 
-\ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Reservation reservation, boolean interDomain)}
-Lookup available time slots for specified |reservation| duration and resources. Flag |interDomain| specifies whether inter-domain lookup should be performed.
+\ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources, boolean interDomain)}
+Lookup available time slots for specified reservation |duration| and |resources|. Flag |interDomain| specifies whether inter-domain lookup should be performed.
 
 \end{Api}
 
@@ -1062,11 +1079,11 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
         'type' => RPC::XML::string->new('OneTime'),
         'date' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),
-            'date' => RPC::XML::string->new('20120101'),
+            'date' => RPC::XML::string->new('20120101')
         )
     )
 );
@@ -1076,6 +1093,12 @@ $response = $client->send_request(
   <member>
     <name>class</name>
     <value><string>Reservation</string></value>
+  </member>
+  <member>
+    <name>id</name>
+    <value>
+      <string>e5a6ee96-8ac5-46dc-ac3b-5374076aee1b</string>
+    </value>
   </member>
   <member>
     <name>type</name>
@@ -1093,6 +1116,39 @@ $response = $client->send_request(
           <value><string>20120101</string></value>
         </member>
     </struct></value>
+  </member>
+</struct>
+\end{PerlResponse}
+
+\newpage
+\subsection{Modify reservation}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.modifyReservation',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::string->new('15082783-5b6f-4287-9015-3dbc0ab2f0d9'),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'description' => RPC::XML::struct->new(),
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<struct>
+  <member>
+    <name>id</name>
+    <value><string>15082783-5b6f-4287-9015-3dbc0ab2f0d9</string></value>
+  </member>
+  <member>
+    <name>class</name>
+    <value><string>Reservation</string></value>
+  </member>
+  <member>
+    <name>type</name>
+    <value><string>OneTime</string></value>
   </member>
 </struct>
 \end{PerlResponse}
@@ -1154,6 +1210,68 @@ $response = $client->send_request(
 </fault>
 \end{PerlResponse}
 
+\subsubsection{Wrong attribute name}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.listReservations',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'typeX' => RPC::XML::string->new('OneTime')
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Attribute 'typeX' in class 'Reservation' is not defined.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>2</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\subsubsection{Wrong attribute value}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.listReservations',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'type' => RPC::XML::struct->new(
+            'class' => RPC::XML::string->new('Date'),
+            'date' => RPC::XML::string->new('20120101')
+        )
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Attribute 'type' in class 'Reservation' has type 
+          'ReservationType' but 'Date' was presented.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>3</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
 \subsubsection{Wrong enum}
 \begin{PerlCmd}
 $response = $client->send_request(
@@ -1163,8 +1281,8 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('Reservation'),
-        'type' => RPC::XML::string->new('OneTimeX'),
+        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'type' => RPC::XML::string->new('OneTimeX')
     )
 );
 \end{PerlCmd}
@@ -1178,7 +1296,7 @@ $response = $client->send_request(
     </member>
     <member>
       <name>faultCode</name>
-      <value><i4>2</i4></value>
+      <value><i4>4</i4></value>
     </member>
   </struct></value>
 </fault>
@@ -1193,7 +1311,7 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
         'type' => RPC::XML::string->new('Periodic'),
         'date' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),

@@ -17,17 +17,38 @@ public class ReservationService
      * Create reservation
      *
      * @param token
-     * @param reservation
+     * @param attributes
      * @return reservation id
      */
-    public Reservation createReservation(SecurityToken token, Reservation reservation) throws XmlRpcException {
-        if ( reservation.getType() == null )
+    public Reservation createReservation(SecurityToken token, AttributeMap<Reservation> attributes) throws XmlRpcException {
+
+        Reservation reservationAttributes = attributes.getObject();
+        if ( reservationAttributes.getType() == null )
             throw new FaultException(Fault.ReservationType_NotFilled);
-        if ( reservation.getDate() == null )
+        if ( reservationAttributes.getDate() == null )
             throw new FaultException(Fault.Date_NotFilled);
-        if ( reservation.getType() == ReservationType.Periodic && (reservation.getDate() instanceof PeriodicDate) == false)
+        if ( reservationAttributes.getType() == ReservationType.Periodic
+                && (reservationAttributes.getDate() instanceof PeriodicDate) == false)
             throw new FaultException(Fault.PeriodicDate_Required);
+
+        Reservation reservation = new Reservation();
         reservation.setId(UUID.randomUUID().toString());
+        reservation.setType(reservationAttributes.getType());
+        reservation.setDate(reservationAttributes.getDate());
+        return reservation;
+    }
+    
+    public Reservation modifyReservation(SecurityToken token, String id, AttributeMap<Reservation> attributes) throws FaultException {
+        if ( id.equals("15082783-5b6f-4287-9015-3dbc0ab2f0d9") == false )
+            throw new FaultException(Fault.Reservation_NotFound, id);
+
+        Reservation reservation = new Reservation();
+        reservation.setId("15082783-5b6f-4287-9015-3dbc0ab2f0d9");
+        reservation.setType(ReservationType.OneTime);
+        reservation.setDescription("First test reservation");
+
+        attributes.populateObject(reservation);
+
         return reservation;
     }
 
@@ -38,7 +59,7 @@ public class ReservationService
      * @return reservations
      */
     public Reservation[] listReservations(SecurityToken token) {
-        return listReservations(token, new Reservation());
+        return listReservations(token, new AttributeMap(Reservation.class));
     }
 
     /**
@@ -48,7 +69,7 @@ public class ReservationService
      * @param filter
      * @return reservations
      */
-    public Reservation[] listReservations(SecurityToken token, Reservation filter) {
+    public Reservation[] listReservations(SecurityToken token, AttributeMap<Reservation> filter) {
         ArrayList<Reservation> reservations = new ArrayList<Reservation>();
 
         Reservation reservation = new Reservation();

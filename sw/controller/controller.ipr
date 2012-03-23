@@ -31,6 +31,9 @@
     <entry_points version="2.0" />
   </component>
   <component name="IdProvider" IDEtalkID="750C02186420068647A665B54BF33248" />
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_STRING" value="-target 1.6" />
+  </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
       <list>

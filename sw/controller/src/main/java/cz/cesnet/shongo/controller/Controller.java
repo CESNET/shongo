@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.AttributeMap;
 import cz.cesnet.shongo.common.XmlRpcTypeConverterFactory;
 import cz.cesnet.shongo.common.XmlRpcWebServer;
 import org.apache.xmlrpc.XmlRpcException;
