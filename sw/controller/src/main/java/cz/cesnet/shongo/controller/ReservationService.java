@@ -20,9 +20,9 @@ public class ReservationService
      * @param attributes
      * @return reservation id
      */
-    public Reservation createReservation(SecurityToken token, AttributeMap<Reservation> attributes) throws XmlRpcException {
+    public Reservation createReservation(SecurityToken token, AttributeMap attributes) throws FaultException {
+        Reservation reservationAttributes = (Reservation)attributes.getObject(Reservation.class);
 
-        Reservation reservationAttributes = attributes.getObject();
         if ( reservationAttributes.getType() == null )
             throw new FaultException(Fault.ReservationType_NotFilled);
         if ( reservationAttributes.getDate() == null )
@@ -35,10 +35,11 @@ public class ReservationService
         reservation.setId(UUID.randomUUID().toString());
         reservation.setType(reservationAttributes.getType());
         reservation.setDate(reservationAttributes.getDate());
+        reservation.setDescription(reservationAttributes.getDescription());
         return reservation;
     }
     
-    public Reservation modifyReservation(SecurityToken token, String id, AttributeMap<Reservation> attributes) throws FaultException {
+    public Reservation modifyReservation(SecurityToken token, String id, AttributeMap attributes) throws FaultException {
         if ( id.equals("15082783-5b6f-4287-9015-3dbc0ab2f0d9") == false )
             throw new FaultException(Fault.Reservation_NotFound, id);
 
@@ -58,8 +59,8 @@ public class ReservationService
      * @param token
      * @return reservations
      */
-    public Reservation[] listReservations(SecurityToken token) {
-        return listReservations(token, new AttributeMap(Reservation.class));
+    public Reservation[] listReservations(SecurityToken token) throws FaultException {
+        return listReservations(token, new AttributeMap());
     }
 
     /**
@@ -69,7 +70,9 @@ public class ReservationService
      * @param filter
      * @return reservations
      */
-    public Reservation[] listReservations(SecurityToken token, AttributeMap<Reservation> filter) {
+    public Reservation[] listReservations(SecurityToken token, AttributeMap filter) throws FaultException {
+        Reservation reservationFilter = (Reservation)filter.getObject(Reservation.class);
+
         ArrayList<Reservation> reservations = new ArrayList<Reservation>();
 
         Reservation reservation = new Reservation();

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.common;
 
-import cz.cesnet.shongo.AttributeMap;
 import cz.cesnet.shongo.Fault;
 import cz.cesnet.shongo.FaultException;
 import org.apache.ws.commons.util.NamespaceContextImpl;
@@ -50,21 +49,10 @@ public class XmlRpcTypeFactory extends TypeFactoryImpl
                     else if ( map != null && map.containsKey("class") ) {
                         String className = (String)map.get("class");
                         try {
-                            String[] classNameParts = className.split(":");
-                            // Create attribute map instance for specified object class
-                            if ( classNameParts[0].equals("AttributeMap") && classNameParts.length == 2) {
-                                Class objectClass = Class.forName("cz.cesnet.shongo." + classNameParts[1]);
-                                AttributeMap attributeMap = new AttributeMap(objectClass);
-                                attributeMap.putAll(map);
-                                setResult(attributeMap);
-                            }
-                            // Create object instance and fill it from map
-                            else {
-                                Class objectClass = Class.forName("cz.cesnet.shongo." + classNameParts[0]);
-                                Object object = objectClass.newInstance();
-                                BeanUtils.getInstance().populate(object, map);
-                                setResult(object);
-                            }
+                            Class objectClass = Class.forName("cz.cesnet.shongo." + className);
+                            Object object = objectClass.newInstance();
+                            BeanUtils.getInstance().populate(object, map);
+                            setResult(object);
                         } catch (BeanUtils.Exception exception) {
                             throw new SAXException(exception.getException());
                         } catch (ClassNotFoundException exception) {

@@ -742,7 +742,10 @@ The attribute map allows to not enumerate all entity attributes in API methods (
 
 \section{Failure Related}
 
-Failures are propagete through XML-RPC by |faultCode| and |faultString| values. List of common faults:
+\TODO{In which language should be errors reported and how to perform translations?}
+\TODO{Message can be identified based on faultCode, but how about parameters? For instance they can be enclosed by \{\} in faultString from which they can be parsed too. In more complicated scenarios, the faultString can be of an XML structure.}
+
+Failures are propagated through XML-RPC by |faultCode| and |faultString| values. List of common faults:
 \begin{compactitem}
 \item |faultCode = 0| \\ Unknown fault which is described by |faultString|.
 \item |faultCode = 1| \\ The \ApiValue{class} is not defined, the |faultString| specifies which \ApiValue{class}.
@@ -853,6 +856,8 @@ The resource is one of the types as defined in \UCref{res:types}.
 \ApiEnumValue{UnmanagedEndPoint}{}
 \ApiEnumValue{MultipointServer}{}
 \ApiEnumValue{GatewayServer}{}
+\ApiEnumValue{RecordingServer}{}
+\ApiEnumValue{StreamingServer}{}
 \ApiEnumValue{VirtualRoom}{}
 \ApiEnumValue{License}{}
 \ApiEnumValue{Identifier}{}
@@ -947,6 +952,14 @@ Represents a virtual room on a specific resource of |Server| type (such as H.323
 
 
 \ApiClass{User}{}
+Each user that accesses shongo or participates in shongo managed videoconference should be uniquely identified by |User| definition.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{\ApiReadOnly} 
+\TODO{Perhaps eduID identity?}
+\end{ApiClassAttributes}
+
+
+\ApiClass{UserSession}{}
 Represents an active user in a |Room| on a |Server|. Ideally, it should also contain link to the user's eduID identity (this may or may not be available, though).
 
 \end{Api}
@@ -963,11 +976,11 @@ Represents an active user in a |Room| on a |Server|. Ideally, it should also con
 \ApiCmd{Resource createResource(SecurityToken token, String domain, AttributeMap<Resource> attributes)}
 Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner.
 
-\ApiCmd{Resource modifyResource(SecurityToken token, String id, AttributeMap<Resource> attributes)}
-Modify the resource with specified |id|. That operation is permited only when the user with given |token| is the resource owner.
+\ApiCmd{Resource modifyResource(SecurityToken token, String resourceId, AttributeMap<Resource> attributes)}
+Modify the resource with specified |resourceId|. That operation is permited only when the user with given |token| is the resource owner.
 
-\ApiCmd{deleteResource(SecurityToken token, String id)}
-Delete the resource with specified |id| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+\ApiCmd{deleteResource(SecurityToken token, String resourceId)}
+Delete the resource with specified |resourceId| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
 \ApiCmd{Resource[] listResources(SecurityToken token, AttributeMap<Resource> filter)}
 List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter|.
@@ -982,11 +995,11 @@ List of resources managed by Shongo, that a user with given |token| is entitled 
 \ApiCmd{Reservation createReservation(SecurityToken token, AttributeMap<Reservation> attributes)}
 Create a new reservation. The new reservation identifier is included in returned object as |id| attribute.
 
-\ApiCmd{Reservation modifyReservation(SecurityToken token, String id, AttributeMap<Reservation> attributes)}
-Modify the reservation with specified |id|.
+\ApiCmd{Reservation modifyReservation(SecurityToken token, String reservationId, AttributeMap<Reservation> attributes)}
+Modify the reservation with specified |reservationId|.
 
-\ApiCmd{deleteReservation(SecurityToken token, String id)}
-Release the reservation with specified |id| and all children reservations.
+\ApiCmd{deleteReservation(SecurityToken token, String reservationId)}
+Release the reservation with specified |reservationId| and all children reservations.
 
 \ApiCmd{Reservation[] listReservations(SecurityToken token, AttributeMap<Reservation> filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter|.
@@ -1001,7 +1014,7 @@ Lookup available time slots for specified reservation |duration| and |resources|
 
 \begin{Api}
 
-\ApiCmd{Room[] listReservationRooms(SecurityToken token, Reservation reservation)}
+\ApiCmd{Room[] listReservationRooms(SecurityToken token, String reservationId)}
 Lists all the virtual rooms including rooms that are part of any child reservations.
 
 \ApiCmd{boolean isRoomActive(SecurityToken token, Room room)}
@@ -1079,7 +1092,7 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap'),
         'type' => RPC::XML::string->new('OneTime'),
         'date' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),
@@ -1131,8 +1144,8 @@ $response = $client->send_request(
     ),
     RPC::XML::string->new('15082783-5b6f-4287-9015-3dbc0ab2f0d9'),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
-        'description' => RPC::XML::struct->new(),
+        'class' => RPC::XML::string->new('AttributeMap'),
+        'description' => RPC::XML::struct->new() # set description to null
     )
 );
 \end{PerlCmd}
@@ -1219,7 +1232,7 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap'),
         'typeX' => RPC::XML::string->new('OneTime')
     )
 );
@@ -1248,7 +1261,7 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap'),
         'type' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),
             'date' => RPC::XML::string->new('20120101')
@@ -1281,7 +1294,7 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap'),
         'type' => RPC::XML::string->new('OneTimeX')
     )
 );
@@ -1311,7 +1324,7 @@ $response = $client->send_request(
         ...
     ),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
+        'class' => RPC::XML::string->new('AttributeMap'),
         'type' => RPC::XML::string->new('Periodic'),
         'date' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('Date'),

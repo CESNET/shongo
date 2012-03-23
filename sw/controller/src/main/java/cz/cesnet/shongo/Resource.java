@@ -10,6 +10,11 @@ public class Resource
     private String id;
 
     private String name;
+
+    private String description;
+
+    public Resource() {
+    }
     
     public Resource(String id, String name) {
         this.id = id;
@@ -22,6 +27,14 @@ public class Resource
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String toString() {

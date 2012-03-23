@@ -23,7 +23,7 @@ public interface Fault
         AttributeNotDefined(2, "Attribute '%s' in class '%s' is not defined."),
         AttributeTypeMismatch(3, "Attribute '%s' in class '%s' has type '%s' but '%s' was presented."),
         EnumNotDefined(4, "Enum value '%s' is not defined in enum '%s'."),
-        ClassCannotBeInstanced(5, "Class '%s' cannot be instanced without arguments.");
+        ClassCannotBeInstanced(5, "Class '%s' cannot be instancied without arguments.");
 
         private int code;
         private String string;

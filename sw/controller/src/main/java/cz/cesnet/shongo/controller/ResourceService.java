@@ -16,7 +16,7 @@ public class ResourceService
      *
      * @return
      */
-    public Resource[] listManagedResources() {
+    public Resource[] listResources() {
         ArrayList<Resource> resources = new ArrayList<Resource>();
         resources.add(new Resource("urn:id:cz.cesnet.srom", "Martin Srom"));
         resources.add(new Resource("urn:id:cz.cesnet.srom", "Martin Srom"));

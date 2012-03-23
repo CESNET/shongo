@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common;
 
+import cz.cesnet.shongo.AttributeMap;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 
@@ -27,11 +28,14 @@ public class XmlRpcTypeConverterFactory extends TypeConverterFactoryImpl
     }
 
     private static final TypeConverter typeConverter = new IdentityTypeConverter(Type.class);
+    private static final TypeConverter attributeMapConverter = new IdentityTypeConverter(AttributeMap.class);
 
     @Override
     public TypeConverter getTypeConverter(Class pClass) {
         if ( Type.class.isAssignableFrom(pClass) ) {
             return typeConverter;
+        } else if ( AttributeMap.class.equals(pClass) ) {
+            return attributeMapConverter;
         }
         return super.getTypeConverter(pClass);
     }

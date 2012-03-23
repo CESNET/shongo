@@ -6,19 +6,19 @@ require RPC::XML::Client;
 $client = RPC::XML::Client->new('http://localhost:8008');
 
 $response = $client->send_request(
-    'Reservations.modifyReservation',
+    'Reservations.createReservation',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken')
     ),
-    RPC::XML::string->new('15082783-5b6f-4287-9015-3dbc0ab2f0d9'),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap:Reservation'),
-        'description' => RPC::XML::struct->new(),
+        'class' => RPC::XML::string->new('AttributeMap'),
+        'type' => RPC::XML::string->new('OneTime'),
+        'date' => RPC::XML::struct->new(
+            'class' => RPC::XML::string->new('Date'),
+            'date' => RPC::XML::string->new('20120101')
+        )
     )
 );
-
-
-#'id' => RPC::XML::string->new(''),
 
 if ( ref($response) ) {
     use XML::Twig;
