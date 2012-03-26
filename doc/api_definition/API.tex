@@ -1044,6 +1044,28 @@ Set the |user| playback level in the specified |room| in which the |user| is cur
 
 \section{Data Types}
 
+\begin{Api}
+
+\ApiClass{Event}{}
+Represents abstract event that takes place on specified |date| and takes |duration| period of time.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{date}{AbsoluteDate}{\ApiRequired}
+\ApiClassAttribute{duration}{Duration}{\ApiRequired}
+\end{ApiClassAttributes}
+
+\ApiClass{EndpointEvent}{Event}
+Specialized event for endpoint device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{server}{String}{\ApiRequired} Specifies the server to which the endpoint should connect to.
+\end{ApiClassAttributes}
+
+\ApiClass{ServerEvent}{Event}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{allowedClients}{String[]}{\ApiRequired} Specifies the client that are permitted to connect to server.
+\end{ApiClassAttributes}
+
+\end{Api}
+
 \section{Common API}
 
 \begin{Api}
@@ -1057,10 +1079,7 @@ Get unique identifier of a resource that is managed by the connector.
 
 \begin{Api}
 
-\ApiCmd{startEndpoint()}
-\ApiCmd{startMultipointServer()}
-\ApiCmd{startGatewayServer()}
-\ApiCmd{end()}
+\ApiCmd{setCalendar(Event[] calendar)}
 
 \end{Api}
 
