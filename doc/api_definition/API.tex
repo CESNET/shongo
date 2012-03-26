@@ -1018,18 +1018,24 @@ Lookup available time slots for specified reservation |duration| and |resources|
 Lists all the virtual rooms including rooms that are part of any child reservations.
 
 \ApiCmd{boolean isRoomActive(SecurityToken token, Room room)}
+Checks whether the specified |room| is currently used by any reservation.
 
 \ApiCmd{Resource[] listRoomResources(SecurityToken token, Room room)}
 
 \ApiCmd{User[] listRoomUsers(SecurityToken token, Room room)}
+Retrieve list of users that currently participate in the specified |room|.
 
 \ApiCmd{disconnectRoomUser(SecurityToken token, Room room, User user)}
+Disconnect the specified |user| from the |room| in which he is currently participating.
 
 \ApiCmd{muteRoomUser(SecurityToken token, Room room, User user)}
+Mute the |user| microphone in the specified |room| in which he is currently participating.
 
 \ApiCmd{setRoomUserMicLevel(SecurityToken token, Room room, User user, int level)}
+Set the |user| microphone level in the specified |room| in which the |user| is currently participating.
 
 \ApiCmd{setRoomUserPlaybackLevel(SecurityToken token, Room room, User user, int level)}
+Set the |user| playback level in the specified |room| in which the |user| is currently participating (alters his speakers volume).
 
 \end{Api}
 
@@ -1038,11 +1044,35 @@ Lists all the virtual rooms including rooms that are part of any child reservati
 
 \section{Data Types}
 
+\section{Common API}
+
+\begin{Api}
+
+\ApiCmd{String getResourceId()}
+Get unique identifier of a resource that is managed by the connector.
+
+\end{Api}
+
 \section{Reservation API}
+
+\begin{Api}
+
+\ApiCmd{startEndpoint()}
+\ApiCmd{startMultipointServer()}
+\ApiCmd{startGatewayServer()}
+\ApiCmd{end()}
+
+\end{Api}
 
 \section{User Management API}
 
 \section{Monitoring API}
+
+\begin{Api}
+
+\ApiCmd{boolean isStarted()}
+
+\end{Api}
 
 \section{Application Specific API}
 
