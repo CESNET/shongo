@@ -14,8 +14,15 @@ $response = $client->send_request(
         'class' => RPC::XML::string->new('AttributeMap'),
         'type' => RPC::XML::string->new('OneTime'),
         'date' => RPC::XML::struct->new(
-            'class' => RPC::XML::string->new('Date'),
-            'date' => RPC::XML::string->new('20120101')
+            'class' => RPC::XML::string->new('PeriodicDate'),
+            'date' => RPC::XML::string->new('20120101'),
+            'rules' => RPC::XML::array->new(
+                RPC::XML::struct->new(
+                    'class' => RPC::XML::string->new('Rule'),
+                    'type' => RPC::XML::string->new('Extra'),
+                    'date' => RPC::XML::string->new('20120102'),
+                )
+            )
         )
     )
 );

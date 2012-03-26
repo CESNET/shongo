@@ -51,7 +51,7 @@ public class XmlRpcTypeFactory extends TypeFactoryImpl
                         try {
                             Class objectClass = Class.forName("cz.cesnet.shongo." + className);
                             Object object = objectClass.newInstance();
-                            BeanUtils.getInstance().populate(object, map);
+                            BeanUtils.getInstance().populateRecursive(object, map);
                             setResult(object);
                         } catch (BeanUtils.Exception exception) {
                             throw new SAXException(exception.getException());

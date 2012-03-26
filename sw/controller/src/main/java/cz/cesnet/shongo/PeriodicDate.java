@@ -8,6 +8,8 @@ package cz.cesnet.shongo;
 public class PeriodicDate extends Date
 {
     private String end;
+    
+    private Rule[] rules;
 
     public PeriodicDate() {
     }
@@ -23,6 +25,14 @@ public class PeriodicDate extends Date
 
     public String getEnd() {
         return end;
+    }
+
+    public void setRules(Rule[] rules) {
+        this.rules = rules;
+    }
+
+    public Rule[] getRules() {
+        return rules;
     }
 
     public String toString() {

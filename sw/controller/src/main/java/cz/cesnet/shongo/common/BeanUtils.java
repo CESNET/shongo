@@ -9,7 +9,9 @@ import org.apache.commons.beanutils.MethodUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -66,6 +68,52 @@ public class BeanUtils extends BeanUtilsBean
      */
     public static String getClassName(String className) {
         return className.replace("cz.cesnet.shongo.", "");
+    }
+
+    /**
+     * Populate bean from map
+     *
+     * @param bean
+     * @param properties
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
+    public void populateRecursive(Object bean, Map properties) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        // Do nothing unless both arguments have been specified
+        if ((bean == null) || (properties == null)) {
+            return;
+        }
+
+        // Loop through the property name/value pairs to be set
+        Iterator entries = properties.entrySet().iterator();
+        while (entries.hasNext()) {
+            // Identify the property name and value(s) to be assigned
+            Map.Entry entry = (Map.Entry)entries.next();
+            String name = (String) entry.getKey();
+            if (name == null || name == "class" ) {
+                continue;
+            }
+            Object value = entry.getValue();
+
+            PropertyDescriptor propertyDescriptor = getPropertyUtils().getPropertyDescriptor(bean, name);
+            if ( propertyDescriptor != null) {
+                Class propertyClass = propertyDescriptor.getPropertyType();
+                // Convert object array to concrete type of array
+                if ( propertyClass.isArray() && value instanceof Object[] ) {
+                    Object[] valueArray = (Object[])value;
+                    try {
+                        value = Arrays.copyOf(valueArray, valueArray.length, propertyClass);
+                        System.out.println(value.toString());
+                        System.out.println(valueArray.toString());
+                    } catch (ClassCastException exception) {
+                        exception.printStackTrace();
+                    }
+                }
+            }
+
+            // Perform the assignment for this property
+            setProperty(bean, name, value);
+        }
     }
 
     /**
