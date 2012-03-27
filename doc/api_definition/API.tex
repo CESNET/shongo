@@ -755,31 +755,31 @@ Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
 
 \begin{Api}
 
-\ApiClass{User}{}
-Each user that accesses shongo or participates in shongo managed videoconference should be identified by |User| definition.
+\ApiClass{UserIdentity}{}
+Each user that accesses shongo or participates in shongo managed videoconference should be identified by |UserIdentity| definition.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiRequired} 
 Equals to eduID identity. In future there can be unique identifier that associates multiple eduID for the same person.
-\ApiClassAttribute{name}{String}{\ApiOptional} 
-Name is parsed from  eduID identity.
 \end{ApiClassAttributes}
 
 
 \ApiClass{UserSession}{}
-Represents an active user in a |Room| on a |Server|. In some cases, the |User| definition will not be available (e.g., when user is calling from cell phone), then the |id| attribute will be empty and the |name| attribute will contain special value, \textit{guest} for instance. 
+Represents an active user in a |Room| on a |Server|. In some cases, the |user| identity will not be available (e.g., when user is calling from cell phone).
 \begin{ApiClassAttributes}
-\ApiClassAttribute{user}{User}{\ApiRequired} 
-User identity.
-\ApiClassAttribute{roomId}{String}{\ApiRequired} 
+\ApiClassAttribute{roomId}{String}{\ApiReadOnly} 
 Room unique identifier.
-\ApiClassAttribute{roomUserId}{String}{\ApiRequired} 
+\ApiClassAttribute{roomUserId}{String}{\ApiReadOnly} 
 User identification in room (technology specific).
+\ApiClassAttribute{user}{UserIdentity}{\ApiOptional} 
+User identity.
 \end{ApiClassAttributes}
 
 
 \ApiClass{SecurityToken}{User}
 Contains identity and credentials of a user performing the requested operation.
 \begin{ApiClassAttributes}
+\ApiClassAttribute{user}{UserIdentity}{\ApiRequired} 
+User identity.
 \item \TODO{Authorization data}
 \end{ApiClassAttributes}
 
