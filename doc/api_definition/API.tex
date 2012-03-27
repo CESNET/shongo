@@ -741,9 +741,6 @@ The attribute map allows to not enumerate all entity attributes in API methods (
 
 \section{Failure Related}
 
-\TODO{In which language should be errors reported and how to perform translations?}
-\TODO{Message can be identified based on faultCode, but how about parameters? For instance they can be enclosed by \{\} in faultString from which they can be parsed too. In more complicated scenarios, the faultString can be of an XML structure.}
-
 Failures are propagated through XML-RPC by |faultCode| and |faultString| values. List of common faults:
 \begin{compactitem}
 \item |faultCode = 0| \\ Unknown fault which is described by |faultString|.
@@ -768,12 +765,14 @@ Name is parsed from  eduID identity.
 \end{ApiClassAttributes}
 
 
-\ApiClass{UserSession}{User}
+\ApiClass{UserSession}{}
 Represents an active user in a |Room| on a |Server|. In some cases, the |User| definition will not be available (e.g., when user is calling from cell phone), then the |id| attribute will be empty and the |name| attribute will contain special value, \textit{guest} for instance. 
 \begin{ApiClassAttributes}
+\ApiClassAttribute{user}{User}{\ApiRequired} 
+User identity.
 \ApiClassAttribute{roomId}{String}{\ApiRequired} 
 Room unique identifier.
-\ApiClassAttribute{userId}{String}{\ApiRequired} 
+\ApiClassAttribute{roomUserId}{String}{\ApiRequired} 
 User identification in room (technology specific).
 \end{ApiClassAttributes}
 
@@ -827,7 +826,7 @@ Defines the first occurrence of an event.
 \ApiClassAttribute{period}{Duration}{}
 Defines the period in which the repeated events take place.
 \ApiClassAttribute{end}{AbsoluteDateTime}{}
-Ending date for events to not occur forever.
+Ending date/time for events to not occur forever.
 \ApiClassAttribute{rules}{Rule[]}{}
 List of rules, which can define an extra events out of the periodicity or cancel specified periodical events. |Rule| can be one of the following types:
 \begin{compactitem}
@@ -945,7 +944,7 @@ Output technologies with specified codecs that server is able to produce.
 \ApiClassAttribute{technology}{Technology}{} Technology type of the resource, see |Technology|. 
 \ApiClassAttribute{translation}{Translation}{} Translation type of the gateway resource, see |Translation|. 
 \ApiClassAttribute{description}{String}{} Long description depicting the resource.
-\ApiClassAttribute{maxFuture}{Date}{} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
+\ApiClassAttribute{maxFuture}{DateTime}{} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
 \ApiClassAttribute{resources}{String[]}{} List of child resources identifiers (e.g., the resource is physical room and |resources| contains all videoconferencing devices in the room). 
 \end{ApiClassAttributes}
 
@@ -1033,7 +1032,7 @@ Get the reservation detail for specified |reservationId| that a user with given 
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter|.
 
 \ApiCmd{Resource[] listReservationResources(SecurityToken token, String reservationId)}
-List all the resources that was allocated by a scheduler for the reservation and for all child reservation (recursive).
+List all the resources that were allocated by a scheduler for the reservation and for all child reservation (recursive).
 
 \ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources, boolean interDomain)}
 Lookup available time slots for specified reservation |duration| and |resources|. Flag |interDomain| specifies whether inter-domain lookup should be performed.
@@ -1051,19 +1050,19 @@ Lists all the virtual rooms including rooms that are part of any child reservati
 \ApiCmd{boolean isRoomActive(SecurityToken token, Room room)}
 Checks whether the specified |room| is currently used by any reservation.
 
-\ApiCmd{User[] listRoomUsers(SecurityToken token, Room room)}
+\ApiCmd{UserSession[] listRoomUsers(SecurityToken token, Room room)}
 Retrieve list of users that currently participate in the specified |room|.
 
-\ApiCmd{disconnectRoomUser(SecurityToken token, Room room, User user)}
+\ApiCmd{disconnectRoomUser(SecurityToken token, Room room, UserSession user)}
 Disconnect the specified |user| from the |room| in which he is currently participating.
 
-\ApiCmd{muteRoomUser(SecurityToken token, Room room, User user)}
+\ApiCmd{muteRoomUser(SecurityToken token, Room room, UserSession user)}
 Mute the |user| microphone in the specified |room| in which he is currently participating.
 
-\ApiCmd{setRoomUserMicLevel(SecurityToken token, Room room, User user, int level)}
+\ApiCmd{setRoomUserMicLevel(SecurityToken token, Room room, UserSession user, int level)}
 Set the |user| microphone level in the specified |room| in which the |user| is currently participating.
 
-\ApiCmd{setRoomUserPlaybackLevel(SecurityToken token, Room room, User user, int level)}
+\ApiCmd{setRoomUserPlaybackLevel(SecurityToken token, Room room, UserSession user, int level)}
 Set the |user| playback level in the specified |room| in which the |user| is currently participating (alters his speakers volume).
 
 \end{Api}
