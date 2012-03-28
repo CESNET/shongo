@@ -952,6 +952,7 @@ Represents a complete reservation class that is used for creating and modifying 
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiReadOnly} Reservation unique identifier as defined in \UCref{rsv:identification}.
 \ApiClassAttribute{type}{ReservationType}{\ApiReadOnly} Type of reservation, see |ReservationType|.
+\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the scheduler should try allocate resources from other domains.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long reservation description.
 \ApiClassAttribute{resources}{Resource[]}{\ApiRequired} List of requested resources by this reservation. Each |Resource| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
 \ApiClassAttribute{slots}{TimeSlot[]}{\ApiRequired} Requested time slots for the reservation.
@@ -974,14 +975,6 @@ Represents a summary of a reservation. This class is used when listing a lot of 
 \ApiClassAttribute{type}{ReservationType}{}
 \ApiClassAttribute{description}{String}{}
 \ApiClassAttribute{date}{AbsoluteDateTime}{} Specifies the first future date/time when the reservation takes place.
-\end{ApiClassAttributes}
-
-
-\ApiClass{Room}{}
-Represents a virtual room on a specific resource of |Server| type (such as H.323 MCU).
-\begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiReadOnly} Room unique identifier.
-\ApiClassAttribute{resourceId}{String}{\ApiReadOnly} Server resource identifier.
 \end{ApiClassAttributes}
 
 
@@ -1022,6 +1015,9 @@ Get the complete resource object for specified |resourceId| that a user with giv
 \ApiCmd{ResourceSummary[] listResources(SecurityToken token, Map filter)}
 List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |ResourceSummary| class.
 
+\ApiCmd{boolean isResourceActive(SecurityToken token, String resourceId)}
+Checks whether the resource with specified |resourceId| is currently used by any reservation.
+
 \end{Api}
 
 
@@ -1044,6 +1040,9 @@ Get the complete reservation object for specified |reservationId| that a user wi
 \ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)}
 List all the time slots with assigned resources that were allocated by a scheduler for the reservation and for all child reservation (recursive).
 
+\ApiCmd{ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter)}
+Get the list of allocated resources for a reservation with specified |reservationId| and for the given time |slot| (one reservation can have multiple time slots in which the reservation takes place). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|. 
+
 \ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class.
 
@@ -1057,14 +1056,8 @@ Lookup available time slots for specified reservation |duration| and |resources|
 
 \begin{Api}
 
-\ApiCmd{Room[] listReservationRooms(SecurityToken token, String reservationId)}
-Lists all the virtual rooms including rooms that are part of any child reservations.
-
-\ApiCmd{boolean isRoomActive(SecurityToken token, Room room)}
-Checks whether the specified |room| is currently used by any reservation.
-
-\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, Room room)}
-Get the list of users that currently participate in the specified |room|.
+\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+Get the list of users that currently participate in the room with specified |roomId|.
 
 \ApiCmd{disconnectRoomUser(SecurityToken token, RoomUser user)}
 Disconnect the specified |user| from the room in which he is currently participating.
