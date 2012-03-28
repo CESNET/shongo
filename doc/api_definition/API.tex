@@ -1020,7 +1020,7 @@ Delete the resource with specified |resourceId| from Shongo management. That ope
 Get the complete resource object for specified |resourceId| that a user with given |token| is entitled to see.
 
 \ApiCmd{ResourceSummary[] listResources(SecurityToken token, Map filter)}
-List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |Resource| class.
+List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |ResourceSummary| class.
 
 \end{Api}
 
@@ -1072,7 +1072,7 @@ Disconnect the specified |user| from the room in which he is currently participa
 \ApiCmd{muteRoomUser(SecurityToken token, RoomUser user)}
 Mute the |user| microphone in the room in which he is currently participating.
 
-\ApiCmd{muteRoomUser(SecurityToken token, RoomUser user)}
+\ApiCmd{unmuteRoomUser(SecurityToken token, RoomUser user)}
 Unmute the |user| microphone in the room in which he is currently participating.
 
 \ApiCmd{setRoomUserMicLevel(SecurityToken token, RoomUser user, int level)}
@@ -1088,54 +1088,54 @@ Set the |user| playback level in the room in which the |user| is currently parti
 
 \section{Data Types}
 
-\begin{Api}
+%\begin{Api}
 
-\ApiClass{Event}{}
-Represents abstract event that takes place on specified |dateTime| and takes |duration| period of time.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{dateTime}{AbsoluteDateTime}{\ApiRequired}
-\ApiClassAttribute{duration}{Duration}{\ApiRequired}
-\end{ApiClassAttributes}
+%\ApiClass{Event}{}
+%Represents abstract event that takes place on specified |dateTime| and takes |duration| period of time.
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{dateTime}{AbsoluteDateTime}{\ApiRequired}
+%\ApiClassAttribute{duration}{Duration}{\ApiRequired}
+%\end{ApiClassAttributes}
 
-\ApiClass{EndpointEvent}{Event}
-Specialized event for endpoint device.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{server}{String}{\ApiRequired} Specifies the server to which the endpoint should connect to.
-\end{ApiClassAttributes}
+%\ApiClass{EndpointEvent}{Event}
+%Specialized event for endpoint device.
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{server}{String}{\ApiRequired} Specifies the server to which the endpoint should connect to.
+%\end{ApiClassAttributes}
 
-\ApiClass{ServerEvent}{Event}
-\begin{ApiClassAttributes}
-\ApiClassAttribute{allowedClients}{String[]}{\ApiRequired} Specifies the client that are permitted to connect to server.
-\end{ApiClassAttributes}
+%\ApiClass{ServerEvent}{Event}
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{allowedClients}{String[]}{\ApiRequired} Specifies the client that are %permitted to connect to server.
+%\end{ApiClassAttributes}
 
-\end{Api}
+%\end{Api}
 
 \section{Common API}
 
-\begin{Api}
+%\begin{Api}
 
-\ApiCmd{String getResourceId()}
-Get unique identifier of a resource that is managed by the connector.
+%\ApiCmd{String getResourceId()}
+%Get unique identifier of a resource that is managed by the connector.
 
-\end{Api}
+%\end{Api}
 
 \section{Reservation API}
 
-\begin{Api}
+%\begin{Api}
 
-\ApiCmd{setCalendar(Event[] calendar)}
+%\ApiCmd{setCalendar(Event[] calendar)}
 
-\end{Api}
+%\end{Api}
 
 \section{User Management API}
 
 \section{Monitoring API}
 
-\begin{Api}
+%\begin{Api}
 
-\ApiCmd{boolean isStarted()}
+%\ApiCmd{boolean isStarted()}
 
-\end{Api}
+%\end{Api}
 
 \section{Application Specific API}
 
