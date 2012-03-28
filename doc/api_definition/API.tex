@@ -928,6 +928,18 @@ Output technologies with specified codecs that server is able to produce.
 \end{ApiClassAttributes}
 
 
+\ApiClass{ResourceSummary}{}
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{}
+\ApiClassAttribute{parentId}{String}{}
+\ApiClassAttribute{name}{String}{}
+\ApiClassAttribute{type}{ResourceType}{}
+\ApiClassAttribute{technology}{Technology}{}
+\ApiClassAttribute{schedulable}{boolean}{}
+\ApiClassAttribute{maxFuture}{DateTime}{}
+\end{ApiClassAttributes}
+
+
 \ApiEnum{ReservationType}
 \begin{ApiEnumValues}
 \ApiEnumValue{Periodic}{} One time or periodic reservation as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time reservation is a special case of periodic reservation).
@@ -951,7 +963,7 @@ Represents a complete reservation class that is used for creating and modifying 
 \ApiClass{ReservationAllocation}{}
 Represents successfully allocated time slots with concrete allocated resources.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{slotResources}{Map<TimeSlot, String[]>}{\ApiReadOnly} Map of allocated resources where key is allocated time slot and value is list of allocated resources for the time slot (for different time slots there can be different allocated resources).
+\ApiClassAttribute{slotResources}{Map<TimeSlot, String[]>}{\ApiReadOnly} Map of allocated resources where key is allocated time slot and value is list of allocated resources identifiers for the time slot (for different time slots there can be different allocated resources).
 \end{ApiClassAttributes}
 
 
@@ -1004,7 +1016,10 @@ Modify the resource with specified |resourceId|. That operation is permited only
 \ApiCmd{deleteResource(SecurityToken token, String resourceId)}
 Delete the resource with specified |resourceId| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
-\ApiCmd{Resource[] listResources(SecurityToken token, Map filter)}
+\ApiCmd{Resource getResource(SecurityToken token, String resourceId)}
+Get the complete resource object for specified |resourceId| that a user with given |token| is entitled to see.
+
+\ApiCmd{ResourceSummary[] listResources(SecurityToken token, Map filter)}
 List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |Resource| class.
 
 \end{Api}
@@ -1029,7 +1044,7 @@ Get the complete reservation object for specified |reservationId| that a user wi
 \ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)}
 List all the time slots with assigned resources that were allocated by a scheduler for the reservation and for all child reservation (recursive).
 
-\ApiCmd{ReservationSummary[] listReservationSummary(SecurityToken token, Map filter)}
+\ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class.
 
 \ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources, boolean interDomain)}
@@ -1056,6 +1071,9 @@ Disconnect the specified |user| from the room in which he is currently participa
 
 \ApiCmd{muteRoomUser(SecurityToken token, RoomUser user)}
 Mute the |user| microphone in the room in which he is currently participating.
+
+\ApiCmd{muteRoomUser(SecurityToken token, RoomUser user)}
+Unmute the |user| microphone in the room in which he is currently participating.
 
 \ApiCmd{setRoomUserMicLevel(SecurityToken token, RoomUser user, int level)}
 Set the |user| microphone level in the room in which the |user| is currently participating.
