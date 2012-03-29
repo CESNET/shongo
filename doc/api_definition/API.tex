@@ -58,8 +58,8 @@ breakautoindent=true,
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API definition code and value
-\newcommand{\ApiCode}[1]{\lstinline[style=styleApi]|#1|} 
-\newcommand{\ApiValue}[1]{\verb|#1|} 
+\newcommand{\ApiCode}[1]{\lstinline[style=styleApi]|#1|}
+\newcommand{\ApiValue}[1]{\verb|#1|}
 % \end{verbatim}
 % Previous line corrects syntax coloring parser from TexMaker
 
@@ -67,7 +67,7 @@ breakautoindent=true,
 % API definition item
 \newcommand{\ApiItem}[1]{\item #1 %
 
-% Previous empty line is intended to be blank (wraps the text 
+% Previous empty line is intended to be blank (wraps the text
 % to the next line even if the \ApiItem is not followed by empty line)
 }
 
@@ -145,7 +145,7 @@ breakautoindent=true,
 \else%
 \begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
 \fi%
-} 
+}
 
 
 \begin{document}
@@ -176,7 +176,7 @@ This is an endpoint, that is managed by Shongo -- the endpoint is both managed
 (calls are automatically dialed when involved in reservation, directory is
 updated, etc.) and monitored (availability and status).
 
-\item[A unmanaged endpoint] 
+\item[A unmanaged endpoint]
 
 This is an endpoint, which is not available for Shongo management for either
 technical or administrative reason. It may be, e.g., a software H.323 client or
@@ -193,7 +193,7 @@ typically also scheduled by the Shongo. It includes things such as H.323 MCUs,
 H.323 gatekeepers, Adobe Connect servers, recording servers, streaming servers,
 and various types of gateways and translators.
 
-\item[A virtual room] 
+\item[A virtual room]
 
 A virtual room is a private compartment on a specific multi-point
 infrastructure element. Typically, this is comes as a product of a scheduling
@@ -232,13 +232,13 @@ The resource owner should be able to create new resources that will be managed b
 
 \UseCase{Resource identification}{res:identification}
 
-Each resource is identified by an unique identifier. The identifier will be 
-assigned to the resource by it's owner when the resource is being created 
+Each resource is identified by an unique identifier. The identifier will be
+assigned to the resource by it's owner when the resource is being created
 (\TODO{or modified too?}). The identifier follows the URN standard \cite{rfc2141}:
 \begin{verbatim}
 urn:id:domain(.subdomain)*.name
 \end{verbatim}
-Examples: 
+Examples:
 \begin{compactitem}
 \item \ApiValue{urn:id:cz.muni.fi.sitola.c90} -- H.323 endpoint at C90 room
 \item \ApiValue{urn:id:cz.cesnet.srom} -- personal H.323 Mirial endpoint
@@ -246,7 +246,7 @@ Examples:
 
 Each resource has own |name| and belongs to some main |domain|. The domain then can be structured to any number of |subdomain|s. For unmanaged resources that don't belong to any domain there is default |unmanaged| domain which can be followed by the resource type and identity.
 
-Examples: 
+Examples:
 \begin{compactitem}
 \item \ApiValue{urn:id:unamanged:h323:<H.323 id or number>}
 \item \ApiValue{urn:id:unmanaged:connect:<shibboleth identity>}
@@ -279,7 +279,7 @@ manage or knows about, i.e., unmanaged resources, the user needs to specify
 type of the resource (e.g., generic H.323 endpoint). The unmanaged resources
 should have some form of identification (e.g., H.323 number, H.323 ID, or
 Shibboleth identity for Adobe Connect) so that Shongo can verify if they are
-connected to the virtual room or not during the conference. 
+connected to the virtual room or not during the conference.
 
 Anonymous unmanaged resources may also be available (completely generic H.323
 enpoint without a number or H.323 ID, or guest user in Adobe Connect) , but
@@ -297,7 +297,7 @@ for given user),
 a resource, but the resource is needed to implement user's request (e.g., if
 user specifies Connect and H.323 endpoints, a gateway/connector is needed to
 implement the translation; if user specifies multiple H.323 endpoints beyond
-MCU-capability of each of them, some MCU is needs to be included).  
+MCU-capability of each of them, some MCU is needs to be included).
 
 \end{compactitem}
 
@@ -579,7 +579,7 @@ Immediate disconnection of a user.
 
 \UseCase{Disable H.239 content from a specific user}{ops:room:disable-user-content}
 
-Disable content the user to be H.239 content provider for the given room. 
+Disable content the user to be H.239 content provider for the given room.
 
 \UseCase{Enable H.239 content only from a specific user}{ops:room:specific-user-content}
 
@@ -748,7 +748,7 @@ Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
 \ApiClass{UserIdentity}{}
 Each user that accesses shongo or participates in shongo managed videoconference should be identified by |UserIdentity| definition.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiRequired} 
+\ApiClassAttribute{id}{String}{\ApiRequired}
 Equals to eduID identity. In future there can be unique identifier that associates multiple eduID for the same person.
 \end{ApiClassAttributes}
 
@@ -756,7 +756,7 @@ Equals to eduID identity. In future there can be unique identifier that associat
 \ApiClass{SecurityToken}{}
 Contains identity and credentials of a user performing the requested operation.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{user}{UserIdentity}{\ApiRequired} 
+\ApiClassAttribute{user}{UserIdentity}{\ApiRequired}
 User identity.
 \item \TODO{Authorization data}
 \end{ApiClassAttributes}
@@ -918,13 +918,13 @@ Output technologies with specified codecs that server is able to produce.
 \ApiClassAttribute{id}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
 \ApiClassAttribute{parentId}{String}{\ApiRequired} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
-\ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|. 
-\ApiClassAttribute{technology}{Technology}{\ApiOptional} Technology type of the resource, see |Technology|. 
-\ApiClassAttribute{translation}{Translation}{\ApiOptional} Translation type of the gateway resource, see |Translation|. 
+\ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|.
+\ApiClassAttribute{technology}{Technology}{\ApiOptional} Technology type of the resource, see |Technology|.
+\ApiClassAttribute{translation}{Translation}{\ApiOptional} Translation type of the gateway resource, see |Translation|.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
 \ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
-\ApiClassAttribute{resources}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |resources| contains all videoconferencing devices in the room). 
+\ApiClassAttribute{resources}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |resources| contains all videoconferencing devices in the room).
 \end{ApiClassAttributes}
 
 
@@ -981,11 +981,11 @@ Represents a summary of a reservation. This class is used when listing a lot of 
 \ApiClass{RoomUser}{}
 Represents an active user in a virtual |Room| on a |Server|.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiReadOnly} 
+\ApiClassAttribute{id}{String}{\ApiReadOnly}
 User identification in room (technology specific).
-\ApiClassAttribute{roomId}{String}{\ApiReadOnly} 
+\ApiClassAttribute{roomId}{String}{\ApiReadOnly}
 Room unique identifier.
-\ApiClassAttribute{user}{UserIdentity}{\ApiReadOnly} 
+\ApiClassAttribute{user}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
 \end{ApiClassAttributes}
 
@@ -1040,8 +1040,8 @@ Get the complete reservation object for specified |reservationId| that a user wi
 \ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)}
 List all the time slots with assigned resources that were allocated by a scheduler for the reservation and for all child reservation (recursive).
 
-\ApiCmd{ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter)}
-Get the list of allocated resources for a reservation with specified |reservationId| and for the given time |slot| (one reservation can have multiple time slots in which the reservation takes place). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|. 
+\ApiCmd{ReservationSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter)}
+Get the list of allocated resources for a reservation with specified |reservationId| and for the given time |slot| (one reservation can have multiple time slots in which the reservation takes place). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
 
 \ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class.
@@ -1208,7 +1208,7 @@ $response = $client->send_request(
         <member>
           <name>class</name>
           <value><string>Date</string></value>
-        </member>    
+        </member>
         <member>
           <name>date</name>
           <value><string>20120101</string></value>
@@ -1356,7 +1356,7 @@ $response = $client->send_request(
   <value><struct>
     <member>
       <name>faultString</name>
-      <value><string>Attribute 'type' in class 'Reservation' has type 
+      <value><string>Attribute 'type' in class 'Reservation' has type
           'ReservationType' but 'Date' was presented.</string></value>
     </member>
     <member>
