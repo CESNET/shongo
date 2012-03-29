@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.common;
 
 /**
- * Represents an arbitrary Date/Time.
+ * Represents a duration or period.
  *
  * @author Martin Srom
  */
-public abstract class DateTime
+public class Duration
 {
 }
