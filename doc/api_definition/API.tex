@@ -1040,7 +1040,7 @@ Get the complete reservation object for specified |reservationId| that a user wi
 \ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)}
 List all the time slots with assigned resources that were allocated by a scheduler for the reservation and for all child reservation (recursive).
 
-\ApiCmd{ReservationSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter)}
+\ApiCmd{ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter)}
 Get the list of allocated resources for a reservation with specified |reservationId| and for the given time |slot| (one reservation can have multiple time slots in which the reservation takes place). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
 
 \ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
