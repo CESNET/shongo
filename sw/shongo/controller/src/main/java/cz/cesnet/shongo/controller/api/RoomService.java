@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.Duration;
 import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.api.TimeSlot;
 
 import java.util.Map;
 
 /**
- * Interface to the service handling operations on resources.
+ * Interface to the service handling operations on rooms.
+ * (If looking for the Roxette album Room Service, please, visit the local music store ;-)
  *
  * @author Ondrej Bouda
  */
@@ -23,45 +22,33 @@ public interface RoomService {
     public RoomUser[] listRoomUsers(SecurityToken token, String roomId);
 
     /**
-     * Disconnects a user from the room he/she is currently participating in.
+     * Gets a concrete room user.
      *
      * @param token         token of the user requesting the operation
-     * @param user
+     * @param roomId        Shongo identifier of the room resource
+     * @param userId        user identifier within a concrete technology
+     * @return
      */
-    public void disconnectRoomUser(SecurityToken token, RoomUser user);
+    public RoomUser getRoomUser(SecurityToken token, String roomId, String userId);
 
     /**
-     * Mutes a given user in the room he/she is currently participating.
+     * Modifies a given room user.
      *
      * @param token         token of the user requesting the operation
-     * @param user
+     * @param roomId        Shongo identifier of the room resource
+     * @param userId        user identifier within a concrete technology
+     * @param attributes    map of room user attributes; should only contain attributes specified in the RoomUser class
      */
-    public void muteRoomUser(SecurityToken token, RoomUser user);
+    public void modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes);
 
     /**
-     * Unmutes a given user in the room he/she is currently participating.
+     * Disconnects a user from a given room.
      *
      * @param token         token of the user requesting the operation
-     * @param user
+     * @param roomId        Shongo identifier of the room resource
+     * @param userId        user identifier within a concrete technology
      */
-    public void unmuteRoomUser(SecurityToken token, RoomUser user);
+    public void disconnectRoomUser(SecurityToken token, String roomId, String userId);
 
-    /**
-     * Sets the microphone level of a user in the room he/she is currently participating.
-     *
-     * @param token         token of the user requesting the operation
-     * @param user
-     * @param level
-     */
-    public void setRoomUserMicLevel(SecurityToken token, RoomUser user, int level);
-
-    /**
-     * Sets the playback level of a user in the room he/she is currently participating - alters his speakers volume.
-     *
-     * @param token         token of the user requesting the operation
-     * @param user
-     * @param level
-     */
-    public void setRoomUserPlaybackLevel(SecurityToken token, RoomUser user, int level);
 
 }

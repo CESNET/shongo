@@ -987,6 +987,12 @@ User identification in room (technology specific).
 Room unique identifier.
 \ApiClassAttribute{user}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
+\ApiClassAttribute{muted}{boolean}{}
+Is the user muted?
+\ApiClassAttribute{microphoneLevel}{int}{}
+Microphone level.
+\ApiClassAttribute{playbackLevel}{int}{}
+Playback level (speakers volume)
 \end{ApiClassAttributes}
 
 \end{Api}
@@ -1059,20 +1065,14 @@ Lookup available time slots for specified reservation |duration| and |resources|
 \ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
 Get the list of users that currently participate in the room with specified |roomId|.
 
-\ApiCmd{disconnectRoomUser(SecurityToken token, RoomUser user)}
-Disconnect the specified |user| from the room in which he is currently participating.
+\ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String userId)}
+Gets a concrete room user.
 
-\ApiCmd{muteRoomUser(SecurityToken token, RoomUser user)}
-Mute the |user| microphone in the room in which he is currently participating.
+\ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes)}
+Modifies a given room user (suitable for setting microphone/playback level, muting/unmuting\ldots).
 
-\ApiCmd{unmuteRoomUser(SecurityToken token, RoomUser user)}
-Unmute the |user| microphone in the room in which he is currently participating.
-
-\ApiCmd{setRoomUserMicLevel(SecurityToken token, RoomUser user, int level)}
-Set the |user| microphone level in the room in which the |user| is currently participating.
-
-\ApiCmd{setRoomUserPlaybackLevel(SecurityToken token, RoomUser user, int level)}
-Set the |user| playback level in the room in which the |user| is currently participating (alters his speakers volume).
+\ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String userId)}
+Disconnect the specified |user| from a given room.
 
 \end{Api}
 

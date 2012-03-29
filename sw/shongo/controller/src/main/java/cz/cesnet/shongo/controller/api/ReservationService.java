@@ -7,7 +7,7 @@ import cz.cesnet.shongo.common.api.TimeSlot;
 import java.util.Map;
 
 /**
- * Interface to the service handling operations on resources.
+ * Interface to the service handling operations on reservations.
  *
  * @author Ondrej Bouda
  */
