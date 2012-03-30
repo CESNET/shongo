@@ -10,6 +10,7 @@ public abstract class DateTime
     /**
      * Get the earliest Date/Time since a given datetime.
      *
+     * @param referenceDateTime    the datetime since which to find the earliest occurrence
      * @return absolute Date/Time
      */
     public abstract AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime);
