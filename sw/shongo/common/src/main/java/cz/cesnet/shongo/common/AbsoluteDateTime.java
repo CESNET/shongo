@@ -27,7 +27,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable
     /**
      * Set Date/Time from ISO8601 string
      *
-     * @param dateTime
+     * @param dateTime    datetime specification as defined by ISO8601, e.g. "2007-04-05T14:30"
      */
     public void fromString(String dateTime)
     {
@@ -87,6 +87,32 @@ public class AbsoluteDateTime extends DateTime implements Comparable
     public boolean after(AbsoluteDateTime dateTime)
     {
         return compareTo(dateTime) > 0;
+    }
+
+    /**
+     * Adds a time period to this datetime and returns the result.
+     *
+     * This datetime object is not modified.
+     *
+     * @param period    time period to add
+     * @return resulting datetime
+     */
+    public AbsoluteDateTime add(Period period)
+    {
+        return this; // FIXME
+    }
+
+    /**
+     * Subtracts a time period from this datetime and returns the result.
+     *
+     * This datetime object is not modified.
+     *
+     * @param period    time period to subtract
+     * @return resulting datetime
+     */
+    public AbsoluteDateTime subtract(Period period)
+    {
+        return this; // FIXME
     }
 
 }
