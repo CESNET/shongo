@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -11,12 +12,18 @@ import static junit.framework.Assert.assertEquals;
  */
 public class RelativeDateTimeTest
 {
-    @Test
-    public void testCommon()
+    private RelativeDateTime relativeDateTime;
+
+    @Before
+    public void setUp() throws Exception
     {
-        // Test relative date/time from given base date/time
-        AbsoluteDateTime baseDateTime = new AbsoluteDateTime("20120101T12:00:00");
-        RelativeDateTime relativeDateTime = new RelativeDateTime(baseDateTime, new Period("P1Y2M3DT4H5M6S"));
-        assertEquals(relativeDateTime.getEarliest(), new AbsoluteDateTime("20130304T16:05:06"));
+        relativeDateTime = new RelativeDateTime(new Period("P1Y2M3DT4H5M6S"));
+    }
+
+    @Test
+    public void testGetEarliest() throws Exception
+    {
+        AbsoluteDateTime referenceDateTime = new AbsoluteDateTime("20120101T12:00:00");
+        assertEquals(relativeDateTime.getEarliest(referenceDateTime), new AbsoluteDateTime("20130304T16:05:06"));
     }
 }

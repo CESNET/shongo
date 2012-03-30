@@ -166,7 +166,7 @@ public class PeriodicDateTime extends DateTime
      *
      * @return array of absolute Date/Times
      */
-    AbsoluteDateTime[] enumerate()
+    public AbsoluteDateTime[] enumerate()
     {
         return enumerate(null, null);
     }
@@ -179,14 +179,16 @@ public class PeriodicDateTime extends DateTime
      * @param to
      * @return array of absolute Date/Times
      */
-    AbsoluteDateTime[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
+    public AbsoluteDateTime[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
+        // TODO: Implement PeriodicDateTime.enumerate
         throw new NotImplementedException();
     }
 
     @Override
     public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
     {
+        // TODO: Implement PeriodicDateTime.getEarliest
         throw new NotImplementedException();
     }
 
