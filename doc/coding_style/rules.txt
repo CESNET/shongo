@@ -12,6 +12,7 @@ Basic Formatting
 
 -Each line of text in your code should be at most 120 characters long.
 
+
 Block Formatting
 ----------------
 -Use curly braces for conditional, loop and other composed
@@ -34,9 +35,11 @@ Block Formatting
 -While keyword in do-while statements keep on the same line as right
  curly bracket.
 
--Ternary expression is enclosed by round brackets.
+-Boolean expression and ternary expression is enclosed by round brackets.
 
     int y = (x == 1 ? 0 : 1);
+    return (compareTo(dateTime) < 0);
+
 
 Documentation
 -------------
