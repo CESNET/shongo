@@ -9,7 +9,9 @@ import java.util.Calendar;
  */
 public class AbsoluteDateTime extends DateTime implements Comparable
 {
-    /** Internal Date/Time storage */
+    /**
+     * Internal Date/Time storage
+     */
     private Calendar calendar;
 
     /**
@@ -41,7 +43,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable
     {
         throw new RuntimeException("TODO: Implement AbsoluteDateTime.toString ISO8601");
     }
-    
+
     /**
      * Get the earliest Date/Time.
      *

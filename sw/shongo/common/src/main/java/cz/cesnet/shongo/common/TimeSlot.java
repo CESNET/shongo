@@ -65,16 +65,36 @@ public class TimeSlot<T extends DateTime>
     }
 
     /**
-     * Enumarete all time slots
+     * Enumerate list of time slots from single time slot. Time slot can contain for instance
+     * periodic date, that can represents multiple absolute date/times.
      *
-     * @return
+     * @return array of time slots with absolute date/times
      */
     public TimeSlot<AbsoluteDateTime>[] enumerate()
     {
+        return enumerate(null, null);
+    }
+
+    /**
+     * Enumerate list of time slots from single time slot. Time slot can contain for instance
+     * periodic date, that can represents multiple absolute date/times.
+     * Return only time slots that take place inside interval defined by from - to.
+     *
+     * @return array of time slots with absolute date/times
+     */
+    public TimeSlot<AbsoluteDateTime>[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
+    {
         ArrayList<TimeSlot<AbsoluteDateTime>> slots = new ArrayList<TimeSlot<AbsoluteDateTime>>();
-        if ( getDateTime() instanceof PeriodicDateTime ) {
-            PeriodicDateTime periodicDateTime = (PeriodicDateTime)getDateTime();
-            for ( AbsoluteDateTime dateTime : periodicDateTime.enumerate() ) {
+        if (getDateTime() instanceof PeriodicDateTime) {
+            PeriodicDateTime periodicDateTime = (PeriodicDateTime) getDateTime();
+            for (AbsoluteDateTime dateTime : periodicDateTime.enumerate(from, to)) {
+                slots.add(new TimeSlot<AbsoluteDateTime>(dateTime, getDuration()));
+            }
+        }
+        else {
+            AbsoluteDateTime dateTime = getDateTime().getEarliest();
+            if ((from == null || dateTime.after(from) || dateTime.equals(from))
+                    && (to == null || dateTime.before(to) || dateTime.equals(to))) {
                 slots.add(new TimeSlot<AbsoluteDateTime>(dateTime, getDuration()));
             }
         }
