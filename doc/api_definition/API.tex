@@ -773,7 +773,7 @@ It serves only as base class for |AbsoluteDateTime|, |RelativeDateTime| and |Per
 
 
 \ApiClass{AbsoluteDateTime}{DateTime}
-Represented as ISO8601 date/time (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course.
+Represented as ISO8601 date/time in UTC (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course. All time data are handled as in UTC while clients are responsible for suitable converting between timezones.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{dateTime}{String}{\ApiRequired}
 \end{ApiClassAttributes}
