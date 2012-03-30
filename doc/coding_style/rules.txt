@@ -1,25 +1,33 @@
+This document defines code style used for the Shongo project and all its
+subprojects. Most of them are available as IntelliJ Idea rules in the "Shongo
+Code Style.xml" file. Copy it to your home directory under
+.IntelliJIdea11/config/codestyles to make it available. Each new project should
+use per-project code style settings - copied from this code style.
+
+
+
 Basic Formatting
 ----------------
 -Use only spaces, and indent 4 spaces at a time.
 
--Each line of text in your code should be at most 80 characters long.
+-Each line of text in your code should be at most 120 characters long.
 
 Block Formatting
 ----------------
--Use curly braces for conditional, loop and other composed 
- statements that contains even single line of code (if, else, 
+-Use curly braces for conditional, loop and other composed
+ statements that contains even single line of code (if, else,
  while, for, etc).
 
-    if ( i < 100 ) {
+    if (i < 100) {
         i++;
-    } 
+    }
 
 -Indenting as Compact Control Readability
  http://en.wikipedia.org/wiki/Indent_style#Compact_Control_Readability_style
 
--Opening curcly bracket on the same line
+-Opening curly bracket on the same line
 
--Closing curly bracket on the standalone line
+-Closing curly bracket on a standalone line
 
 -Else statement on new line
 
