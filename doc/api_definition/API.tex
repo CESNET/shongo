@@ -787,7 +787,7 @@ absoluteDateTime.dateTime = 20121231
 \ApiClass{RelativeDateTime}{DateTime}
 Relative date is calculated as current date and time increased by |duration|.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{duration}{Period}{\ApiOptionalDefault{P0}}
+\ApiClassAttribute{duration}{Period}{\ApiOptionalDefault{PT0S}}
 \end{ApiClassAttributes}
 
 \ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it by |RelativeDateTime| as follows:
@@ -833,7 +833,7 @@ periodicDate.rules = {
 
 
 \ApiClass{Period}{}
-Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The zero duration is represented by \ApiValue{P0} value.
+Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The zero duration is represented by \ApiValue{PT0S} value.
 
 
 \ApiClass{TimeSlot = Pair<DateTime, Period>}{}

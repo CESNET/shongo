@@ -185,7 +185,7 @@ public class PeriodicDateTime extends DateTime
     }
 
     @Override
-    public AbsoluteDateTime getEarliest()
+    public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
     {
         throw new NotImplementedException();
     }

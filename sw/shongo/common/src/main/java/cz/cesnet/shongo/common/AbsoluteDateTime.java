@@ -44,13 +44,8 @@ public class AbsoluteDateTime extends DateTime implements Comparable
         throw new RuntimeException("TODO: Implement AbsoluteDateTime.toString ISO8601");
     }
 
-    /**
-     * Get the earliest Date/Time.
-     *
-     * @return absolute Date/Time
-     */
     @Override
-    public AbsoluteDateTime getEarliest()
+    public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
     {
         return this;
     }

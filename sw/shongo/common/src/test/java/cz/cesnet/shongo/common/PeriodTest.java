@@ -1,15 +1,83 @@
 package cz.cesnet.shongo.common;
 
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
 /**
- * Perid/duration tests
- *
- * @author Martin Srom
+ * @author Ondrej Bouda
  */
-public class PeriodTest extends junit.framework.TestCase
+public class PeriodTest
 {
-    public void testCommon()
+    private Period period;
+
+    @Before
+    public void setUp() throws Exception
     {
-        assertEquals(new Period("P1W"),new Period("P7D"));
-        assertEquals(new Period("P1W"),new Period("P3D").add(new Period("P4D")));
+        period.setYear(3);
+        period.setMonth(6);
+        period.setDay(4);
+        period.setHour(12);
+        period.setMinute(30);
+        period.setSecond(5);
+    }
+
+    @Test
+    public void testFromString() throws Exception
+    {
+        assertEquals(period, new Period("P3Y6M4DT12H30M5S"));
+
+        Period weeksPeriod = new Period("P2Y1W");
+        assertEquals(2, weeksPeriod.getYear());
+        assertEquals(1, weeksPeriod.getWeek());
+        
+        Period zeroPeriod = new Period("P");
+        assertEquals(0, zeroPeriod.getYear());
+        assertEquals(0, zeroPeriod.getMonth());
+        assertEquals(0, zeroPeriod.getDay());
+        assertEquals(0, zeroPeriod.getWeek());
+        assertEquals(0, zeroPeriod.getHour());
+        assertEquals(0, zeroPeriod.getMinute());
+        assertEquals(0, zeroPeriod.getSecond());
+    }
+
+    @Test
+    public void testToString() throws Exception
+    {
+        assertEquals("P3Y6M4DT12H30M5S", period.toString());
+        
+        Period p = new Period("P");
+        p.setWeek(3);
+        p.setDay(1);
+        p.setYear(1);
+        p.setSecond(4);
+        assertEquals("P1Y3W1DT4S", p.toString());
+
+        assertEquals("Ranges in the output string should be normalized.", new Period("P1W"), new Period("P7D"));
+        
+        Period zeroPeriod = new Period("P");
+        assertEquals("PT0S", zeroPeriod.toString());
+    }
+
+    @Test
+    public void testAdd() throws Exception
+    {
+        assertEquals("P3Y6M4DT13H30M5S", period.add(new Period("PT1H")).toString());
+        assertEquals("P1W", new Period("P3D").add(new Period("P4D")).toString());
+    }
+
+    @Test
+    public void testCarryOver() throws Exception
+    {
+        assertEquals("P1DT12H", new Period("PT36H").toString());
+        
+        assertEquals("P1Y1M", new Period("P10M").add(new Period("P3M")).toString());
+    }
+
+    @Test
+    public void testEquals() throws Exception
+    {
+        Period p = new Period("P3W").add(new Period("P1D")).add(new Period("P1Y")).add(new Period("PT1S"));
     }
 }

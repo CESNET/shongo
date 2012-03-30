@@ -3,6 +3,8 @@ package cz.cesnet.shongo.common;
 /**
  * Represents an relative Date/Time from now.
  *
+ * TODO: rozmyslet, jestli ma smysl relative datetime bez referenceDateTime - takovy pohyblivy casovy udaj - podle toho, kdy se vyhodnocuje; pokud nema smysl, pak vyhazovat NPE v setteru a nastavit DateTime.now() v konstruktoru
+ *
  * @author Martin Srom
  */
 public class RelativeDateTime extends DateTime
@@ -63,16 +65,11 @@ public class RelativeDateTime extends DateTime
         this.duration = duration;
     }
 
-    /**
-     * Get the earliest Date/Time.
-     *
-     * @return absolute Date/Time
-     */
     @Override
-    public AbsoluteDateTime getEarliest()
+    public AbsoluteDateTime getEarliest(AbsoluteDateTime dateTime)
     {
         if (referenceDateTime == null) {
-            return DateTime.now().add(getDuration());
+            return dateTime.add(getDuration());
         }
         else {
             return referenceDateTime.add(getDuration());
