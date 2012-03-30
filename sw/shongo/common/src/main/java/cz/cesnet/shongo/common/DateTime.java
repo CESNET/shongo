@@ -12,19 +12,23 @@ public abstract class DateTime
      *
      * @return absolute Date/Time
      */
-    public abstract AbsoluteDateTime getDateTime();
+    public abstract AbsoluteDateTime getEarliest();
 
-
+    /**
+     * Is Date/Time take place in future
+     *
+     * @return boolean
+     */
     public boolean willOccur()
     {
-        AbsoluteDateTime dateTime = getDateTime();
+        AbsoluteDateTime dateTime = getEarliest();
         return dateTime.after(now());
     }
 
     /**
      * Get current Date/Time
      *
-     * @return
+     * @return current Date/Time
      */
     public static AbsoluteDateTime now()
     {

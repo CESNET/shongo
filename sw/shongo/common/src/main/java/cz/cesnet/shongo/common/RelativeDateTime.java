@@ -13,7 +13,7 @@ public class RelativeDateTime extends DateTime
      * @return absolute Date/Time
      */
     @Override
-    public AbsoluteDateTime getDateTime()
+    public AbsoluteDateTime getEarliest()
     {
         throw new RuntimeException("TODO: Implement RelativeDateTime.getDateTime");
     }

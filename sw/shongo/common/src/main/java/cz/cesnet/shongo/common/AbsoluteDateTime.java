@@ -48,7 +48,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable
      * @return absolute Date/Time
      */
     @Override
-    public AbsoluteDateTime getDateTime()
+    public AbsoluteDateTime getEarliest()
     {
         return this;
     }

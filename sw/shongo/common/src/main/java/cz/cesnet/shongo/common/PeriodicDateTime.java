@@ -11,18 +11,31 @@ public class PeriodicDateTime extends DateTime
 
     // TODO: getters and setters for attributes
 
-    AbsoluteDateTime[] enumerateDateTimes()
+    /**
+     * Enumerate all periodic Date/Time events to array of absolute Date/Times.
+     *
+     * @return array of absolute Date/Times
+     */
+    AbsoluteDateTime[] enumerate()
     {
-        return enumerateDateTimes(null, null);
+        return enumerate(null, null);
     }
 
-    AbsoluteDateTime[] enumerateDateTimes(AbsoluteDateTime from, AbsoluteDateTime to)
+    /**
+     * Enumerate all periodic Date/Time events to array of absolute Date/Times.
+     * Return only events that take place inside interval defined by from - to.
+     *
+     * @param from
+     * @param to
+     * @return array of absolute Date/Times
+     */
+    AbsoluteDateTime[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
-        throw new RuntimeException("TODO: Implement PeriodicDateTime.enumerateDateTimes");
+        throw new RuntimeException("TODO: Implement PeriodicDateTime.enumerate");
     }
 
     @Override
-    public AbsoluteDateTime getDateTime()
+    public AbsoluteDateTime getEarliest()
     {
         throw new RuntimeException("TODO: Implement PeriodicDateTime.getDateTime");
     }

@@ -15,6 +15,8 @@ public class Period
     private int second = 0;
     private int week = 0;
 
+    // TODO: add getters and setters for attributes
+
     /**
      * Constructor
      *
