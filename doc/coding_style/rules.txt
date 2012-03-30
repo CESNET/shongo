@@ -45,3 +45,7 @@ Documentation
 -Write description and @author for classes
 
 -Write description and @param, @return, @throws for methods
+
+-Write comments to overridden method only when it brings a new description.
+ Otherwise clever IDEs are able to show Doc from the super method.
+

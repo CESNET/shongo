@@ -8,16 +8,16 @@ package cz.cesnet.shongo.common.api;
 public class RelativeDateTime extends DateTime
 {
     /**
-     * Duration from current Date/Time
+     * Period from current Date/Time
      */
-    private Duration duration;
+    private Period duration;
 
-    public Duration getDuration()
+    public Period getDuration()
     {
         return duration;
     }
 
-    public void setDuration(Duration duration)
+    public void setDuration(Period duration)
     {
         this.duration = duration;
     }

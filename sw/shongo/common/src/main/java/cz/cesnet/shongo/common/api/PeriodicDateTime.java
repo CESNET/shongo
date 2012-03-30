@@ -15,7 +15,7 @@ public class PeriodicDateTime extends DateTime
     /**
      * Specifies period
      */
-    private Duration period;
+    private Period period;
 
     /**
      * Specifies ending Date/Time
@@ -115,12 +115,12 @@ public class PeriodicDateTime extends DateTime
         this.start = start;
     }
 
-    public Duration getPeriod()
+    public Period getPeriod()
     {
         return period;
     }
 
-    public void setPeriod(Duration period)
+    public void setPeriod(Period period)
     {
         this.period = period;
     }

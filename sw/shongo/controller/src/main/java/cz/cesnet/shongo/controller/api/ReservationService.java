@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.Duration;
+import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.common.api.TimeSlot;
 
@@ -91,7 +91,7 @@ public interface ReservationService
      * @param interDomain specification whether inter-domain lookup should be performed
      * @return
      */
-    public TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources,
+    public TimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
             boolean interDomain);
 
 }

@@ -13,9 +13,9 @@ public class TimeSlot
     private DateTime dateTime;
 
     /**
-     * Duration
+     * Period
      */
-    private Duration duration;
+    private Period duration;
 
     public DateTime getDateTime()
     {
@@ -27,12 +27,12 @@ public class TimeSlot
         this.dateTime = dateTime;
     }
 
-    public Duration getDuration()
+    public Period getDuration()
     {
         return duration;
     }
 
-    public void setDuration(Duration duration)
+    public void setDuration(Period duration)
     {
         this.duration = duration;
     }
