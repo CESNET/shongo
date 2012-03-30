@@ -47,4 +47,13 @@ public class Period
         throw new RuntimeException("TODO: Implement Period.toString ISO8601");
     }
 
+    /**
+     *
+     * @param period
+     * @return
+     */
+    public Period add(Period period)
+    {
+        throw new RuntimeException("TODO: Implement Period.add");
+    }
 }
