@@ -787,7 +787,7 @@ absoluteDateTime.dateTime = 20121231
 \ApiClass{RelativeDateTime}{DateTime}
 Relative date is calculated as current date and time increased by |duration|.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{duration}{Duration}{\ApiOptionalDefault{P0}}
+\ApiClassAttribute{duration}{Period}{\ApiOptionalDefault{P0}}
 \end{ApiClassAttributes}
 
 \ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it by |RelativeDateTime| as follows:
@@ -802,7 +802,7 @@ It can be used for events that takes place repeatedly, but also for events that 
 \begin{ApiClassAttributes}
 \ApiClassAttribute{start}{AbsoluteDateTime}{\ApiRequired}
 Defines the first occurrence of an event.
-\ApiClassAttribute{period}{Duration}{\ApiOptional}
+\ApiClassAttribute{period}{Period}{\ApiOptional}
 Defines the period in which the repeated events take place.
 \ApiClassAttribute{end}{AbsoluteDateTime}{\ApiOptional}
 Ending date/time for events to not occur forever.
@@ -832,12 +832,12 @@ periodicDate.rules = {
 \end{verbatim}
 
 
-\ApiClass{Duration}{}
+\ApiClass{Period}{}
 Represented as ISO8601 duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The zero duration is represented by \ApiValue{P0} value.
 
 
-\ApiClass{TimeSlot = Pair<DateTime, Duration>}{}
-Time slot is a pair of |DateTime| and |Duration|. For reservation purposes, the array |TimeSlot[]| should be used to provide the ability to reserve multiple date and times with different durations (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
+\ApiClass{TimeSlot = Pair<DateTime, Period>}{}
+Time slot is a pair of |DateTime| and |Period|. For reservation purposes, the array |TimeSlot[]| should be used to provide the ability to reserve multiple date and times with different periods (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
 
 If time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating time slot to |TimeSlot[]|, where only |AbsoluteDateTime|s are used.
 
@@ -1052,7 +1052,7 @@ Get the list of allocated resources for a reservation with specified |reservatio
 \ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
 List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class.
 
-\ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources, boolean interDomain)}
+\ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources, boolean interDomain)}
 Lookup available time slots for specified reservation |duration| and |resources|. Argument |interDomain| specifies whether inter-domain lookup should be performed.
 
 \end{Api}
@@ -1087,7 +1087,7 @@ Disconnect the specified |user| from a given room.
 %Represents abstract event that takes place on specified |dateTime| and takes |duration| period of time.
 %\begin{ApiClassAttributes}
 %\ApiClassAttribute{dateTime}{AbsoluteDateTime}{\ApiRequired}
-%\ApiClassAttribute{duration}{Duration}{\ApiRequired}
+%\ApiClassAttribute{duration}{Period}{\ApiRequired}
 %\end{ApiClassAttributes}
 
 %\ApiClass{EndpointEvent}{Event}
