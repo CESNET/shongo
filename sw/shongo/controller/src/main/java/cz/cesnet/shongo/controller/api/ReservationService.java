@@ -11,17 +11,18 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface ReservationService {
+public interface ReservationService
+{
 
     /**
      * Creates a new reservation.
-     *
+     * <p/>
      * The user with the given token will be the resource owner.
      *
-     * @param token         token of the user requesting the operation
+     * @param token      token of the user requesting the operation
      * @param type
-     * @param attributes    map of reservation attributes; should only contain attributes specified in the Reservation
-     *                      class while all the attributes marked as required must be present
+     * @param attributes map of reservation attributes; should only contain attributes specified in the Reservation
+     *                   class while all the attributes marked as required must be present
      * @return the created reservation with auto-generated identifier
      */
     public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes);
@@ -69,12 +70,13 @@ public interface ReservationService {
      * @param filter
      * @return
      */
-    public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter);
+    public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot,
+            Map filter);
 
     /**
      * Lists all the reservations matching a filter.
      *
-     * @param token         token of the user requesting the operation
+     * @param token  token of the user requesting the operation
      * @param filter
      * @return
      */
@@ -86,9 +88,10 @@ public interface ReservationService {
      * @param token
      * @param duration
      * @param resources
-     * @param interDomain    specification whether inter-domain lookup should be performed
+     * @param interDomain specification whether inter-domain lookup should be performed
      * @return
      */
-    public TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources, boolean interDomain);
+    public TimeSlot[] findReservationAvailableTime(SecurityToken token, Duration duration, Resource[] resources,
+            boolean interDomain);
 
 }

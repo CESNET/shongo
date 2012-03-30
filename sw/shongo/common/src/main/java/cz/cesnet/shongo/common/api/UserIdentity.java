@@ -7,10 +7,13 @@ package cz.cesnet.shongo.common.api;
  */
 public class UserIdentity
 {
-    /** eduID.cz identity */
+    /**
+     * eduID.cz identity
+     */
     private String id;
 
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 }

@@ -7,16 +7,24 @@ package cz.cesnet.shongo.common.api;
  */
 public class PeriodicDateTime extends DateTime
 {
-    /** First periodic Date/Time */
+    /**
+     * First periodic Date/Time
+     */
     private AbsoluteDateTime start;
 
-    /** Specifies period */
+    /**
+     * Specifies period
+     */
     private Duration period;
 
-    /** Specifies ending Date/Time */
+    /**
+     * Specifies ending Date/Time
+     */
     private AbsoluteDateTime end;
 
-    /** Extra events and Enable/Disable rules */
+    /**
+     * Extra events and Enable/Disable rules
+     */
     private Rule[] rules;
 
     /**
@@ -26,19 +34,29 @@ public class PeriodicDateTime extends DateTime
      */
     public static class Rule
     {
-        /** Type of rule */
+        /**
+         * Type of rule
+         */
         private Type type;
 
-        /** Specifies one date */
+        /**
+         * Specifies one date
+         */
         private AbsoluteDateTime dateTime;
 
-        /** Specifies interval start */
+        /**
+         * Specifies interval start
+         */
         private AbsoluteDateTime from;
 
-        /** Specifies interval end */
+        /**
+         * Specifies interval end
+         */
         private AbsoluteDateTime to;
 
-        /** Type of rule definition */
+        /**
+         * Type of rule definition
+         */
         public enum Type
         {
             Enable,
@@ -46,68 +64,84 @@ public class PeriodicDateTime extends DateTime
             Extra
         }
 
-        public Type getType() {
+        public Type getType()
+        {
             return type;
         }
 
-        public void setType(Type type) {
+        public void setType(Type type)
+        {
             this.type = type;
         }
 
-        public AbsoluteDateTime getDateTime() {
+        public AbsoluteDateTime getDateTime()
+        {
             return dateTime;
         }
 
-        public void setDateTime(AbsoluteDateTime dateTime) {
+        public void setDateTime(AbsoluteDateTime dateTime)
+        {
             this.dateTime = dateTime;
         }
 
-        public AbsoluteDateTime getFrom() {
+        public AbsoluteDateTime getFrom()
+        {
             return from;
         }
 
-        public void setFrom(AbsoluteDateTime from) {
+        public void setFrom(AbsoluteDateTime from)
+        {
             this.from = from;
         }
 
-        public AbsoluteDateTime getTo() {
+        public AbsoluteDateTime getTo()
+        {
             return to;
         }
 
-        public void setTo(AbsoluteDateTime to) {
+        public void setTo(AbsoluteDateTime to)
+        {
             this.to = to;
         }
     }
 
-    public AbsoluteDateTime getStart() {
+    public AbsoluteDateTime getStart()
+    {
         return start;
     }
 
-    public void setStart(AbsoluteDateTime start) {
+    public void setStart(AbsoluteDateTime start)
+    {
         this.start = start;
     }
 
-    public Duration getPeriod() {
+    public Duration getPeriod()
+    {
         return period;
     }
 
-    public void setPeriod(Duration period) {
+    public void setPeriod(Duration period)
+    {
         this.period = period;
     }
 
-    public AbsoluteDateTime getEnd() {
+    public AbsoluteDateTime getEnd()
+    {
         return end;
     }
 
-    public void setEnd(AbsoluteDateTime end) {
+    public void setEnd(AbsoluteDateTime end)
+    {
         this.end = end;
     }
 
-    public Rule[] getRules() {
+    public Rule[] getRules()
+    {
         return rules;
     }
 
-    public void setRules(Rule[] rules) {
+    public void setRules(Rule[] rules)
+    {
         this.rules = rules;
     }
 }

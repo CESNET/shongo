@@ -7,4 +7,14 @@ package cz.cesnet.shongo.common;
  */
 public class RelativeDateTime extends DateTime
 {
+    /**
+     * Get the earliest Date/Time.
+     *
+     * @return absolute Date/Time
+     */
+    @Override
+    public AbsoluteDateTime getDateTime()
+    {
+        throw new RuntimeException("TODO: Implement RelativeDateTime.getDateTime");
+    }
 }

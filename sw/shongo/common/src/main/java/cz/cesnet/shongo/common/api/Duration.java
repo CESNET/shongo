@@ -7,14 +7,18 @@ package cz.cesnet.shongo.common.api;
  */
 public class Duration
 {
-    /** ISO8601 duration */
+    /**
+     * ISO8601 duration
+     */
     private String duration;
 
-    public String getDuration() {
+    public String getDuration()
+    {
         return duration;
     }
 
-    public void setDuration(String duration) {
+    public void setDuration(String duration)
+    {
         this.duration = duration;
     }
 }

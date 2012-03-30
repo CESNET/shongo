@@ -9,31 +9,43 @@ import cz.cesnet.shongo.common.api.AbsoluteDateTime;
  */
 public class ReservationSummary
 {
-    /** Unique identifier */
+    /**
+     * Unique identifier
+     */
     private String id;
 
-    /** Type of a reservation */
+    /**
+     * Type of a reservation
+     */
     private ReservationType type;
 
-    /** Long description */
+    /**
+     * Long description
+     */
     private String description;
 
-    /** The first future date/time where the reservation takes place*/
+    /**
+     * The first future date/time where the reservation takes place
+     */
     private AbsoluteDateTime dateTime;
 
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 
-    public ReservationType getType() {
+    public ReservationType getType()
+    {
         return type;
     }
 
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
-    public AbsoluteDateTime getDateTime() {
+    public AbsoluteDateTime getDateTime()
+    {
         return dateTime;
     }
 }

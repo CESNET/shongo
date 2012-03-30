@@ -11,14 +11,18 @@ import java.util.Map;
  */
 public class ReservationAllocation
 {
-    /** Map of resources that were allocated to slots */
+    /**
+     * Map of resources that were allocated to slots
+     */
     private Map<TimeSlot, String[]> slotResources;
 
-    public Map<TimeSlot, String[]> getSlotResources() {
+    public Map<TimeSlot, String[]> getSlotResources()
+    {
         return slotResources;
     }
 
-    public void setSlotResources(Map<TimeSlot, String[]> slotResources) {
+    public void setSlotResources(Map<TimeSlot, String[]> slotResources)
+    {
         this.slotResources = slotResources;
     }
 }

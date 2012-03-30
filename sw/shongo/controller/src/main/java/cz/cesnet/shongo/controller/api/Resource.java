@@ -9,113 +9,153 @@ import cz.cesnet.shongo.common.api.DateTime;
  */
 public class Resource
 {
-    /** Unique identifier */
+    /**
+     * Unique identifier
+     */
     private String id;
 
-    /** Parent resource identifier */
+    /**
+     * Parent resource identifier
+     */
     private String parentId;
 
-    /** Short name **/
+    /**
+     * Short name *
+     */
     private String name;
 
-    /** Type of resource */
+    /**
+     * Type of resource
+     */
     private ResourceType type;
 
-    /** Type of technology */
+    /**
+     * Type of technology
+     */
     private TechnologyType technology;
 
-    /** Translation that can the resource perfomr */
+    /**
+     * Translation that can the resource perfomr
+     */
     private Translation translation;
 
-    /** Long description */
+    /**
+     * Long description
+     */
     private String description;
 
-    /** Specifies whether resource can be allocated by scheduler */
+    /**
+     * Specifies whether resource can be allocated by scheduler
+     */
     private boolean schedulable;
 
-    /** Specifies maximum future for reservations of the resource */
+    /**
+     * Specifies maximum future for reservations of the resource
+     */
     private DateTime maxFuture;
 
-    /** Child resources */
+    /**
+     * Child resources
+     */
     private String[] resources;
 
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(String id)
+    {
         this.id = id;
     }
 
-    public String getParentId() {
+    public String getParentId()
+    {
         return parentId;
     }
 
-    public void setParentId(String parentId) {
+    public void setParentId(String parentId)
+    {
         this.parentId = parentId;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
-    public ResourceType getType() {
+    public ResourceType getType()
+    {
         return type;
     }
 
-    public void setType(ResourceType type) {
+    public void setType(ResourceType type)
+    {
         this.type = type;
     }
 
-    public TechnologyType getTechnology() {
+    public TechnologyType getTechnology()
+    {
         return technology;
     }
 
-    public void setTechnology(TechnologyType technology) {
+    public void setTechnology(TechnologyType technology)
+    {
         this.technology = technology;
     }
 
-    public Translation getTranslation() {
+    public Translation getTranslation()
+    {
         return translation;
     }
 
-    public void setTranslation(Translation translation) {
+    public void setTranslation(Translation translation)
+    {
         this.translation = translation;
     }
 
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = description;
     }
 
-    public boolean isSchedulable() {
+    public boolean isSchedulable()
+    {
         return schedulable;
     }
 
-    public void setSchedulable(boolean schedulable) {
+    public void setSchedulable(boolean schedulable)
+    {
         this.schedulable = schedulable;
     }
 
-    public DateTime getMaxFuture() {
+    public DateTime getMaxFuture()
+    {
         return maxFuture;
     }
 
-    public void setMaxFuture(DateTime maxFuture) {
+    public void setMaxFuture(DateTime maxFuture)
+    {
         this.maxFuture = maxFuture;
     }
 
-    public String[] getResources() {
+    public String[] getResources()
+    {
         return resources;
     }
 
-    public void setResources(String[] resources) {
+    public void setResources(String[] resources)
+    {
         this.resources = resources;
     }
 }

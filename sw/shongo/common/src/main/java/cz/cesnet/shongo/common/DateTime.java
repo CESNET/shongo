@@ -7,8 +7,10 @@ package cz.cesnet.shongo.common;
  */
 public abstract class DateTime
 {
-    public AbsoluteDateTime getFirstDateTime()
-    {
-        return null;
-    }
+    /**
+     * Get the earliest Date/Time.
+     *
+     * @return absolute Date/Time
+     */
+    public abstract AbsoluteDateTime getDateTime();
 }

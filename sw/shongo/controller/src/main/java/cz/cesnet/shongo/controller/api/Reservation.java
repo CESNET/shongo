@@ -10,83 +10,113 @@ import cz.cesnet.shongo.common.api.UserIdentity;
  */
 public class Reservation
 {
-    /** Unique identifier */
+    /**
+     * Unique identifier
+     */
     private String id;
 
-    /** Type of a reservation */
+    /**
+     * Type of a reservation
+     */
     private ReservationType type;
 
-    /** Specifies whether resources from other domain can be allocated */
+    /**
+     * Specifies whether resources from other domain can be allocated
+     */
     private boolean interDomain;
 
-    /** Long description */
+    /**
+     * Long description
+     */
     private String description;
 
-    /** Requested resources */
+    /**
+     * Requested resources
+     */
     private Resource[] resources;
 
-    /** Requested time slots */
+    /**
+     * Requested time slots
+     */
     private TimeSlot[] slots;
 
-    /** Child reservations */
+    /**
+     * Child reservations
+     */
     private String[] reservations;
 
-    /** List of permited users */
+    /**
+     * List of permited users
+     */
     private UserIdentity[] users;
 
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 
-    public ReservationType getType() {
+    public ReservationType getType()
+    {
         return type;
     }
 
-    public boolean isInterDomain() {
+    public boolean isInterDomain()
+    {
         return interDomain;
     }
 
-    public void setInterDomain(boolean interDomain) {
+    public void setInterDomain(boolean interDomain)
+    {
         this.interDomain = interDomain;
     }
 
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = description;
     }
 
-    public Resource[] getResources() {
+    public Resource[] getResources()
+    {
         return resources;
     }
 
-    public void setResources(Resource[] resources) {
+    public void setResources(Resource[] resources)
+    {
         this.resources = resources;
     }
 
-    public TimeSlot[] getSlots() {
+    public TimeSlot[] getSlots()
+    {
         return slots;
     }
 
-    public void setSlots(TimeSlot[] slots) {
+    public void setSlots(TimeSlot[] slots)
+    {
         this.slots = slots;
     }
 
-    public String[] getReservations() {
+    public String[] getReservations()
+    {
         return reservations;
     }
 
-    public void setReservations(String[] reservations) {
+    public void setReservations(String[] reservations)
+    {
         this.reservations = reservations;
     }
 
-    public UserIdentity[] getUsers() {
+    public UserIdentity[] getUsers()
+    {
         return users;
     }
 
-    public void setUsers(UserIdentity[] users) {
+    public void setUsers(UserIdentity[] users)
+    {
         this.users = users;
     }
 }

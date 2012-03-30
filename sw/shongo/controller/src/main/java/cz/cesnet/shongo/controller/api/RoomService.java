@@ -10,13 +10,14 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface RoomService {
+public interface RoomService
+{
 
     /**
      * Lists all users currently participating in a given room.
      *
-     * @param token         token of the user requesting the operation
-     * @param roomId        Shongo identifier of the room resource
+     * @param token  token of the user requesting the operation
+     * @param roomId Shongo identifier of the room resource
      * @return
      */
     public RoomUser[] listRoomUsers(SecurityToken token, String roomId);
@@ -24,9 +25,9 @@ public interface RoomService {
     /**
      * Gets a concrete room user.
      *
-     * @param token         token of the user requesting the operation
-     * @param roomId        Shongo identifier of the room resource
-     * @param userId        user identifier within a concrete technology
+     * @param token  token of the user requesting the operation
+     * @param roomId Shongo identifier of the room resource
+     * @param userId user identifier within a concrete technology
      * @return
      */
     public RoomUser getRoomUser(SecurityToken token, String roomId, String userId);
@@ -34,19 +35,19 @@ public interface RoomService {
     /**
      * Modifies a given room user.
      *
-     * @param token         token of the user requesting the operation
-     * @param roomId        Shongo identifier of the room resource
-     * @param userId        user identifier within a concrete technology
-     * @param attributes    map of room user attributes; should only contain attributes specified in the RoomUser class
+     * @param token      token of the user requesting the operation
+     * @param roomId     Shongo identifier of the room resource
+     * @param userId     user identifier within a concrete technology
+     * @param attributes map of room user attributes; should only contain attributes specified in the RoomUser class
      */
     public void modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes);
 
     /**
      * Disconnects a user from a given room.
      *
-     * @param token         token of the user requesting the operation
-     * @param roomId        Shongo identifier of the room resource
-     * @param userId        user identifier within a concrete technology
+     * @param token  token of the user requesting the operation
+     * @param roomId Shongo identifier of the room resource
+     * @param userId user identifier within a concrete technology
      */
     public void disconnectRoomUser(SecurityToken token, String roomId, String userId);
 

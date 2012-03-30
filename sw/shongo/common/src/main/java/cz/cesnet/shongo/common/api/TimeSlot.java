@@ -7,25 +7,33 @@ package cz.cesnet.shongo.common.api;
  */
 public class TimeSlot
 {
-    /** Starting Date/Time */
+    /**
+     * Starting Date/Time
+     */
     private DateTime dateTime;
 
-    /** Duration */
+    /**
+     * Duration
+     */
     private Duration duration;
 
-    public DateTime getDateTime() {
+    public DateTime getDateTime()
+    {
         return dateTime;
     }
 
-    public void setDateTime(DateTime dateTime) {
+    public void setDateTime(DateTime dateTime)
+    {
         this.dateTime = dateTime;
     }
 
-    public Duration getDuration() {
+    public Duration getDuration()
+    {
         return duration;
     }
 
-    public void setDuration(Duration duration) {
+    public void setDuration(Duration duration)
+    {
         this.duration = duration;
     }
 }

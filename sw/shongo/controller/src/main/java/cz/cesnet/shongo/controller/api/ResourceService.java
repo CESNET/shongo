@@ -9,49 +9,50 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface ResourceService {
+public interface ResourceService
+{
 
     /**
      * Creates a new resource that will be managed by Shongo.
-     *
+     * <p/>
      * The user with the given token will be the resource owner.
      *
-     * @param token         token of the user requesting the operation
-     * @param domain        identifier of the domain to create the resource in
-     * @param attributes    map of resource attributes; should only contain attributes specified in the Resource class
-     *                      while all the attributes marked as required must be present
+     * @param token      token of the user requesting the operation
+     * @param domain     identifier of the domain to create the resource in
+     * @param attributes map of resource attributes; should only contain attributes specified in the Resource class
+     *                   while all the attributes marked as required must be present
      * @return the created resource with auto-generated identifier
      */
     public Resource createResource(SecurityToken token, String domain, Map attributes);
 
     /**
      * Modifies a given resource.
-     *
+     * <p/>
      * The operation is permitted only when the user with the given token is the resource owner and only when
      * the modification does not cancel any existing reservations (the existing ones might be rescheduled, though).
      *
-     * @param token         token of the user requesting the operation
-     * @param resourceId    Shongo identifier of the resource to modify
-     * @param attributes    map of resource attributes to change;
+     * @param token      token of the user requesting the operation
+     * @param resourceId Shongo identifier of the resource to modify
+     * @param attributes map of resource attributes to change;
      */
     public void modifyResource(SecurityToken token, String resourceId, Map attributes);
 
     /**
      * Deletes a given resource from Shongo management.
-     *
+     * <p/>
      * The operation is permitted only when the user with the given token is the resource owner and the resource
      * is not user in any future reservation.
      *
-     * @param token         token of the user requesting the operation
-     * @param resourceId    Shongo identifier of the resource to delete
+     * @param token      token of the user requesting the operation
+     * @param resourceId Shongo identifier of the resource to delete
      */
     public void deleteResource(SecurityToken token, String resourceId);
 
     /**
      * Gets the complete resource object.
      *
-     * @param token         token of the user requesting the operation
-     * @param resourceId    Shongo identifier of the resource to get
+     * @param token      token of the user requesting the operation
+     * @param resourceId Shongo identifier of the resource to get
      * @return
      */
     public Resource getResource(SecurityToken token, String resourceId);
@@ -59,7 +60,7 @@ public interface ResourceService {
     /**
      * Lists all Shongo-managed resources matching the filter.
      *
-     * @param token         token of the user requesting the operation
+     * @param token  token of the user requesting the operation
      * @param filter
      * @return
      */
@@ -68,8 +69,8 @@ public interface ResourceService {
     /**
      * Checks whether a given resource is currently used by any reservation.
      *
-     * @param token         token of the user requesting the operation
-     * @param resourceId    Shongo identifier of the resource to check
+     * @param token      token of the user requesting the operation
+     * @param resourceId Shongo identifier of the resource to check
      * @return
      */
     boolean isResourceActive(SecurityToken token, String resourceId);
