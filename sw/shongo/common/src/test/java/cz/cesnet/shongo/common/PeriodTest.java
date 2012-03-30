@@ -79,5 +79,6 @@ public class PeriodTest
     public void testEquals() throws Exception
     {
         Period p = new Period("P3W").add(new Period("P1D")).add(new Period("P1Y")).add(new Period("PT1S"));
+        assertEquals(new Period("P1Y3W1DT1S"), p);
     }
 }
