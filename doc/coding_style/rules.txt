@@ -1,0 +1,39 @@
+Basic Formatting
+----------------
+-Use only spaces, and indent 4 spaces at a time.
+
+-Each line of text in your code should be at most 80 characters long.
+
+Block Formatting
+----------------
+-Use curly braces for conditional, loop and other composed 
+ statements that contains even single line of code (if, else, 
+ while, for, etc).
+
+    if ( i < 100 ) {
+        i++;
+    } 
+
+-Indenting as Compact Control Readability
+ http://en.wikipedia.org/wiki/Indent_style#Compact_Control_Readability_style
+
+-Opening curcly bracket on the same line
+
+-Closing curly bracket on the standalone line
+
+-Else statement on new line
+
+-While keyword in do-while statements keep on the same line as right
+ curly bracket.
+
+-Ternary expression is enclosed by round brackets.
+
+    int y = (x == 1 ? 0 : 1);
+
+Documentation
+-------------
+-Use documentation comments for classes and methods.
+
+-Write description and @author for classes
+
+-Write description and @param, @return, @throws for methods
