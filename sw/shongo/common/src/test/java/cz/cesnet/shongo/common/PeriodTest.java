@@ -81,7 +81,15 @@ public class PeriodTest
     {
         Period p = new Period("P3W").add(new Period("P1D")).add(new Period("P1Y")).add(new Period("PT1S"));
         assertEquals(new Period("P1Y3W1DT1S"), p);
+    }
 
-        assertEquals(new Period("P1W"), new Period("P7D"));
+    @Test
+    public void testAlternativeSyntax() throws Exception
+    {
+        assertEquals("The short alternative syntax is not accepted correctly",
+                new Period("P3Y6M4DT12H30M5S"), new Period("P00030604T123005"));
+
+        assertEquals("The extended alternative syntax is not accepted correctly",
+                new Period("P3Y6M4DT12H30M5S"), new Period("P0003-06-04T12:30:05"));
     }
 }
