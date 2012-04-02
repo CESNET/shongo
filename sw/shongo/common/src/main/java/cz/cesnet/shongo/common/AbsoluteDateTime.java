@@ -15,7 +15,15 @@ public class AbsoluteDateTime extends DateTime implements Comparable
     private Calendar calendar;
 
     /**
-     * Constructor
+     * Construct zero date/time
+     */
+    public AbsoluteDateTime()
+    {
+        fromString("00000000T000000");
+    }
+
+    /**
+     * Construct date/time from ISO8601 string
      *
      * @param dateTime ISO8601 Date/Time
      */

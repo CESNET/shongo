@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.common;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import java.util.ArrayList;
 
 /**
@@ -18,6 +16,14 @@ public class PeriodicDateTime extends DateTime
     private AbsoluteDateTime end;
 
     private ArrayList<Rule> rules = new ArrayList<Rule>();
+
+    /**
+     * Constructs empty periodical date/time events.
+     */
+    public PeriodicDateTime()
+    {
+        this(null, null, null);
+    }
 
     /**
      * Constructs periodical date/time events. The first event takes place at start
@@ -144,7 +150,7 @@ public class PeriodicDateTime extends DateTime
     }
 
     /**
-     * Remove all rules
+     * Remove all rules.
      */
     public void clearRules()
     {
@@ -152,7 +158,7 @@ public class PeriodicDateTime extends DateTime
     }
 
     /**
-     * Get all rules
+     * Get all rules.
      *
      * @return rules
      */
@@ -181,19 +187,29 @@ public class PeriodicDateTime extends DateTime
      */
     public AbsoluteDateTime[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
-        // TODO: Implement PeriodicDateTime.enumerate
-        throw new NotImplementedException();
+        throw new RuntimeException("TODO: Implement PeriodicDateTime.enumerate");
     }
 
     @Override
     public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
     {
-        // TODO: Implement PeriodicDateTime.getEarliest
-        throw new NotImplementedException();
+        throw new RuntimeException("TODO: Implement PeriodicDateTime.getEarliest");
+    }
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        throw new RuntimeException("TODO: Implement PeriodicDateTime.equals");
     }
 
     /**
-     * Periodic date/time rule type
+     * Periodic date/time rule type.
      *
      * @author Martin Srom
      */
@@ -202,10 +218,10 @@ public class PeriodicDateTime extends DateTime
         /** Represents a rule that will add new event outside periodicity. */
         Extra,
 
-        /** Represents a rule for enabling events by concrete date/time or by interval from - to */
+        /** Represents a rule for enabling events by concrete date/time or by interval from - to. */
         Enable,
 
-        /** Represents a rule for disabling events by concrete date/time or by interval from - to */
+        /** Represents a rule for disabling events by concrete date/time or by interval from - to. */
         Disable
     }
 
@@ -224,7 +240,7 @@ public class PeriodicDateTime extends DateTime
         private AbsoluteDateTime dateTimeTo;
 
         /**
-         * Construct rule that performs it's effect for concrete date/time
+         * Construct rule that performs it's effect for concrete date/time.
          *
          * @param type          Type of rule
          * @param dateTime      Concrete date/time
@@ -237,7 +253,7 @@ public class PeriodicDateTime extends DateTime
         }
 
         /**
-         * Construct rule that performs it's effect for interval of date/times
+         * Construct rule that performs it's effect for interval of date/times.
          *
          * @param type            Type of rule
          * @param dateTimeFrom    Start of date/time interval
@@ -248,6 +264,47 @@ public class PeriodicDateTime extends DateTime
             this.type = type;
             this.dateTimeFrom = dateTimeFrom;
             this.dateTimeTo = dateTimeTo;
+        }
+
+        /**
+         * Get type of rule.
+         *
+         * @return type
+         */
+        public RuleType getType()
+        {
+            return type;
+        }
+
+        /**
+         * Get rule single date/time.
+         *
+         * @return date/time
+         */
+        public AbsoluteDateTime getDateTime()
+        {
+            assert(dateTimeTo == null);
+            return dateTimeFrom;
+        }
+
+        /**
+         * Get rule interval "from" date/time.
+         *
+         * @return date/time
+         */
+        public AbsoluteDateTime getDateTimeFrom()
+        {
+            return dateTimeFrom;
+        }
+
+        /**
+         * Get rule interval "to" date/time.
+         *
+         * @return date/time
+         */
+        public AbsoluteDateTime getDateTimeTo()
+        {
+            return dateTimeTo;
         }
     }
 }

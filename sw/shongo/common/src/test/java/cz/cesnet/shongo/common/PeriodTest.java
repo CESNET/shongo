@@ -15,6 +15,7 @@ public class PeriodTest
     @Before
     public void setUp() throws Exception
     {
+        period = new Period();
         period.setYear(3);
         period.setMonth(6);
         period.setDay(4);
@@ -80,5 +81,7 @@ public class PeriodTest
     {
         Period p = new Period("P3W").add(new Period("P1D")).add(new Period("P1Y")).add(new Period("PT1S"));
         assertEquals(new Period("P1Y3W1DT1S"), p);
+
+        assertEquals(new Period("P1W"), new Period("P7D"));
     }
 }

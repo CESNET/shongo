@@ -86,6 +86,13 @@ public class Period
     }
 
     /**
+     * Constructs a zero period
+     */
+    public Period()
+    {
+    }
+
+    /**
      * Constructs a new period from a given ISO 8601 duration string, e.g. "P3Y6M4DT12H30M5S".
      *
      * @param period    a period string as defined by ISO8601, except decimal fractions, which are not supported

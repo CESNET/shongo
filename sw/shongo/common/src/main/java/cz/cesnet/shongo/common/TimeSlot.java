@@ -3,29 +3,29 @@ package cz.cesnet.shongo.common;
 import java.util.ArrayList;
 
 /**
- * Represents a time slot
+ * Represents a time slot.
  *
  * @author Martin Srom
  */
-public class TimeSlot<T extends DateTime>
+public class TimeSlot
 {
-    private T dateTime;
+    private DateTime dateTime;
     private Period duration;
 
     /**
-     * Constructor
+     * Construct time slot.
      *
-     * @param dateTime
-     * @param duration
+     * @param dateTime    Time slot date/time, can be absolute or relative date/time
+     * @param duration    Time slot duration (e.g., two hours)
      */
-    public TimeSlot(T dateTime, Period duration)
+    public TimeSlot(DateTime dateTime, Period duration)
     {
         this.dateTime = dateTime;
         this.duration = duration;
     }
 
     /**
-     * Get date/time of time slot
+     * Get date/time of time slot.
      *
      * @return date/time
      */
@@ -35,7 +35,7 @@ public class TimeSlot<T extends DateTime>
     }
 
     /**
-     * Get duration of time slot
+     * Get duration of time slot.
      *
      * @return duration
      */
@@ -45,23 +45,26 @@ public class TimeSlot<T extends DateTime>
     }
 
     /**
-     * Is taking place at the moment
+     * Checks whether time slot takes place at the moment.
      *
-     * @return boolean
+     * @return true if time slot is taking place now,
+     *         false otherwise
      */
-    public boolean isActive()
+    final public boolean isActive()
     {
-        throw new RuntimeException("TODO: Implement TimeSlot.isActive");
+        return isActive(AbsoluteDateTime.now());
     }
 
     /**
-     * Get the earliest time slot.
+     * Checks whether time slot takes place at the given referenceDateTime.
      *
-     * @return time slot with absolute date/time
+     * @param referenceDateTime    Reference date/time in which is activity checked
+     * @return true if referenced date/time is inside time slot interval,
+     *         false otherwise
      */
-    public TimeSlot<AbsoluteDateTime> getEarliest()
+    public boolean isActive(AbsoluteDateTime referenceDateTime)
     {
-        return new TimeSlot<AbsoluteDateTime>(dateTime.getEarliest(), getDuration());
+        throw new RuntimeException("TODO: Implement TimeSlot.isActive");
     }
 
     /**
@@ -70,7 +73,8 @@ public class TimeSlot<T extends DateTime>
      *
      * @return array of time slots with absolute date/times
      */
-    public TimeSlot<AbsoluteDateTime>[] enumerate()
+    @SuppressWarnings({"unchecked"})
+    public TimeSlot[] enumerate()
     {
         return enumerate(null, null);
     }
@@ -82,23 +86,56 @@ public class TimeSlot<T extends DateTime>
      *
      * @return array of time slots with absolute date/times
      */
-    public TimeSlot<AbsoluteDateTime>[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
+    @SuppressWarnings({"unchecked"})
+    public TimeSlot[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
-        ArrayList<TimeSlot<AbsoluteDateTime>> slots = new ArrayList<TimeSlot<AbsoluteDateTime>>();
+        ArrayList<TimeSlot> slots = new ArrayList<TimeSlot>();
         if (getDateTime() instanceof PeriodicDateTime) {
             PeriodicDateTime periodicDateTime = (PeriodicDateTime) getDateTime();
             for (AbsoluteDateTime dateTime : periodicDateTime.enumerate(from, to)) {
-                slots.add(new TimeSlot<AbsoluteDateTime>(dateTime, getDuration()));
+                slots.add(new TimeSlot(dateTime, getDuration()));
             }
         }
         else {
             AbsoluteDateTime dateTime = getDateTime().getEarliest();
             if ((from == null || dateTime.after(from) || dateTime.equals(from))
                     && (to == null || dateTime.before(to) || dateTime.equals(to))) {
-                slots.add(new TimeSlot<AbsoluteDateTime>(dateTime, getDuration()));
+                slots.add(new TimeSlot(dateTime, getDuration()));
             }
         }
-        return slots.toArray(new TimeSlot[]{});
+        return slots.toArray(new TimeSlot[slots.size()]);
     }
 
+    /**
+     * Get the earliest time slot from now.
+     *
+     * @return a time slot with absolute date/time
+     */
+    final public TimeSlot getEarliest()
+    {
+        return getEarliest(AbsoluteDateTime.now());
+    }
+
+    /**
+     * Get the earliest time slot since a given date/time.
+     *
+     * @param referenceDateTime    the datetime since which to find the earliest occurrence
+     * @return a time slot with absolute date/time
+     */
+    public TimeSlot getEarliest(AbsoluteDateTime referenceDateTime)
+    {
+        return new TimeSlot(dateTime.getEarliest(referenceDateTime), getDuration());
+    }
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        throw new RuntimeException("TODO: Implement TimeSlot.equals");
+    }
 }

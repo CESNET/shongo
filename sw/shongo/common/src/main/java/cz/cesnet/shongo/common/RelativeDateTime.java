@@ -1,17 +1,22 @@
 package cz.cesnet.shongo.common;
 
 /**
- * Represents an relative Date/Time from now.
- *
- * TODO: rozmyslet, jestli ma smysl relative datetime bez referenceDateTime - takovy pohyblivy casovy udaj - podle toho, kdy se vyhodnocuje; pokud nema smysl, pak vyhazovat NPE v setteru a nastavit DateTime.now() v konstruktoru
+ * Represents an relative Date/Time. The relative date/time can be evaluated
+ * only when concrete absolute date/time is given in getEarliest method.
  *
  * @author Martin Srom
  */
 public class RelativeDateTime extends DateTime
 {
-    private AbsoluteDateTime referenceDateTime;
-
     private Period duration;
+
+    /**
+     * Construct zero relative date/time.
+     */
+    public RelativeDateTime()
+    {
+        this(new Period());
+    }
 
     /**
      * Construct relative date/time from current time.
@@ -20,33 +25,11 @@ public class RelativeDateTime extends DateTime
      */
     public RelativeDateTime(Period duration)
     {
-        this(null, duration);
-    }
-
-    /**
-     * Construct relative date/time from specified referenceDateTime.
-     *
-     * @param referenceDateTime    Base date/time, can be null
-     * @param duration             Relative data/time
-     */
-    public RelativeDateTime(AbsoluteDateTime referenceDateTime, Period duration)
-    {
-        setReferenceDateTime(referenceDateTime);
         setDuration(duration);
     }
 
     /**
-     * Set base date/time from which is relative calculated.
-     *
-     * @param referenceDateTime    Base date/time, can be null
-     */
-    public void setReferenceDateTime(AbsoluteDateTime referenceDateTime)
-    {
-        this.referenceDateTime = referenceDateTime;
-    }
-
-    /**
-     * Get duration for relative date/time
+     * Get duration for relative date/time.
      *
      * @return duration
      */
@@ -56,7 +39,7 @@ public class RelativeDateTime extends DateTime
     }
 
     /**
-     * Set duration for relative date/time
+     * Set duration for relative date/time.
      *
      * @param duration
      */
@@ -66,13 +49,21 @@ public class RelativeDateTime extends DateTime
     }
 
     @Override
-    public AbsoluteDateTime getEarliest(AbsoluteDateTime dateTime)
+    public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
     {
-        if (referenceDateTime == null) {
-            return dateTime.add(getDuration());
+        return referenceDateTime.add(getDuration());
+    }
+
+    @Override
+    public boolean equals(Object object)
+    {
+        if (this == object) {
+            return true;
         }
-        else {
-            return referenceDateTime.add(getDuration());
+        if (object == null || getClass() != object.getClass()) {
+            return false;
         }
+        RelativeDateTime relativeDateTime = (RelativeDateTime)object;
+        return getDuration().equals(relativeDateTime.getDuration());
     }
 }
