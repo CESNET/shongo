@@ -32,7 +32,7 @@ public class PeriodTest
         Period weeksPeriod = new Period("P2Y1W");
         assertEquals(2, weeksPeriod.getYear());
         assertEquals(1, weeksPeriod.getWeek());
-        
+
         Period zeroPeriod = new Period("P");
         assertEquals(0, zeroPeriod.getYear());
         assertEquals(0, zeroPeriod.getMonth());
@@ -47,7 +47,7 @@ public class PeriodTest
     public void testToString() throws Exception
     {
         assertEquals("P3Y6M4DT12H30M5S", period.toString());
-        
+
         Period p = new Period("P");
         p.setWeek(3);
         p.setDay(1);
@@ -56,7 +56,7 @@ public class PeriodTest
         assertEquals("P1Y3W1DT4S", p.toString());
 
         assertEquals("Ranges in the output string should be normalized.", new Period("P1W"), new Period("P7D"));
-        
+
         Period zeroPeriod = new Period("P");
         assertEquals("PT0S", zeroPeriod.toString());
     }
@@ -72,7 +72,7 @@ public class PeriodTest
     public void testCarryOver() throws Exception
     {
         assertEquals("P1DT12H", new Period("PT36H").toString());
-        
+
         assertEquals("P1Y1M", new Period("P10M").add(new Period("P3M")).toString());
     }
 

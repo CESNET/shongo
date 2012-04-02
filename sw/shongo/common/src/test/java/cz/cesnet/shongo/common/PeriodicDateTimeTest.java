@@ -2,7 +2,6 @@ package cz.cesnet.shongo.common;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.omg.CORBA.PUBLIC_MEMBER;
 
 import static junit.framework.Assert.assertEquals;
 

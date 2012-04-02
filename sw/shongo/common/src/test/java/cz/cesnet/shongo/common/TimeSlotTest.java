@@ -3,13 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.Console;
-import java.util.ArrayList;
-import java.util.List;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 /**
  * Time slot tests
@@ -25,7 +19,7 @@ public class TimeSlotTest
     {
         // Lecture on Thursdays at 12:00-14:00 in March (1.3. - 31.3.2012)
         PeriodicDateTime periodicDateTime = new PeriodicDateTime(
-                new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"),new AbsoluteDateTime("2012-03-31"));
+                new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"), new AbsoluteDateTime("2012-03-31"));
         timeSlot = new TimeSlot(periodicDateTime, new Period("P2H"));
     }
 
@@ -39,7 +33,7 @@ public class TimeSlotTest
     @Test
     public void testIsActive() throws Exception
     {
-        for ( int day = 1; day < 31; day += 7 ) {
+        for (int day = 1; day < 31; day += 7) {
             String date = String.format("2012-03-%02d", day);
             assertFalse("Should not be active " + date, timeSlot.isActive(new AbsoluteDateTime(date + " T11:59")));
             assertTrue("Should be active " + date, timeSlot.isActive(new AbsoluteDateTime(date + " T13:00")));
@@ -92,7 +86,7 @@ public class TimeSlotTest
     public void testEquals() throws Exception
     {
         PeriodicDateTime periodicDateTime = new PeriodicDateTime(
-                new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"),new AbsoluteDateTime("2012-03-31"));
+                new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"), new AbsoluteDateTime("2012-03-31"));
         TimeSlot timeSlot = new TimeSlot(periodicDateTime, new Period("P2H"));
         assertEquals(this.timeSlot, timeSlot);
     }
