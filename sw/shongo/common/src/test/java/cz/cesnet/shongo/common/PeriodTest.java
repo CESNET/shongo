@@ -66,7 +66,7 @@ public class PeriodTest
     public void testAdd() throws Exception
     {
         assertEquals("P3Y6M4DT13H30M5S", period.add(new Period("PT1H")).toString());
-        assertEquals("P1W", new Period("P3D").add(new Period("P4D")).toString());
+        assertEquals("P7D", new Period("P3D").add(new Period("P4D")).toString());
     }
 
     @Test

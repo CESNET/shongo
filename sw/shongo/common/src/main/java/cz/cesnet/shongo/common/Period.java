@@ -12,10 +12,10 @@ public class Period
     private int year = 0;
     private int month = 0;
     private int day = 0;
+    private int week = 0;
     private int hour = 0;
     private int minute = 0;
     private int second = 0;
-    private int week = 0;
 
     public int getYear()
     {
@@ -47,6 +47,16 @@ public class Period
         this.day = day;
     }
 
+    public int getWeek()
+    {
+        return week;
+    }
+
+    public void setWeek(int week)
+    {
+        this.week = week;
+    }
+
     public int getHour()
     {
         return hour;
@@ -75,16 +85,6 @@ public class Period
     public void setSecond(int second)
     {
         this.second = second;
-    }
-
-    public int getWeek()
-    {
-        return week;
-    }
-
-    public void setWeek(int week)
-    {
-        this.week = week;
     }
 
     /**
@@ -118,7 +118,7 @@ public class Period
         }
         catch ( Exception exception ) {
             throw new RuntimeException(
-                    String.format("Fail to parse '%s': %s", period, exception.getMessage()));
+                    String.format("Failed to parse period '%s': %s", period, exception.getMessage()));
         }
         normalize();
     }
@@ -217,6 +217,15 @@ public class Period
      */
     public Period add(Period period)
     {
-        throw new RuntimeException("TODO: Implement Period.add");
+        Period resultPeriod = new Period();
+        resultPeriod.setYear(getYear() + period.getYear());
+        resultPeriod.setMonth(getMonth() + period.getMonth());
+        resultPeriod.setDay(getDay() + period.getDay());
+        resultPeriod.setWeek(getWeek() + period.getWeek());
+        resultPeriod.setHour(getHour() + period.getHour());
+        resultPeriod.setMinute(getMinute() + period.getMinute());
+        resultPeriod.setSecond(getSecond() + period.getSecond());
+        resultPeriod.normalize();
+        return resultPeriod;
     }
 }
