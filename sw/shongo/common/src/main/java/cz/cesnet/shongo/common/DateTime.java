@@ -8,17 +8,17 @@ package cz.cesnet.shongo.common;
 public abstract class DateTime
 {
     /**
-     * Get the earliest Date/Time since a given datetime.
+     * Get the earliest Date/Time since a given datetime (strict inequality).
      *
      * @param referenceDateTime    the datetime since which to find the earliest occurrence
-     * @return absolute Date/Time
+     * @return absolute Date/Time, or <code>null</code> if the datetime won't take place since referenceDateTime
      */
     public abstract AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime);
 
     /**
      * Get the earliest Date/Time from now.
      *
-     * @return absolute Date/Time
+     * @return absolute Date/Time, or <code>null</code> if the datetime won't take place
      */
     final public AbsoluteDateTime getEarliest()
     {
@@ -26,7 +26,7 @@ public abstract class DateTime
     }
 
     /**
-     * Is Date/Time take place in future
+     * Will the datetime take place in future (strict inequality)?
      *
      * @return boolean
      */
@@ -37,7 +37,7 @@ public abstract class DateTime
     }
 
     /**
-     * Checks whether this datetime will take place since a given absolute datetime.
+     * Checks whether this datetime will take place since a given absolute datetime (strict inequality).
      *
      * @param referenceDateTime    the datetime take as "now" for evaluating future
      * @return true if this datetime will take place at least once after or in referenceDateTime,
