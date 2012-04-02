@@ -2,9 +2,7 @@ package cz.cesnet.shongo.common;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * @author Ondrej Bouda
@@ -63,32 +61,84 @@ public class AbsoluteDateTimeTest
     @Test
     public void testCompareTo() throws Exception
     {
+        AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30:00");
+        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30:00");
+        AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12");
+        AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
 
+        assertEquals(0, dt1.compareTo(dt2));
+        assertEquals(0, dt2.compareTo(dt1));
+        assertEquals(0, dt2.compareTo(dt3));
+        assertTrue(dt3.compareTo(dt4) < 0);
+        assertTrue(dt4.compareTo(dt3) > 0);
+        assertTrue(dt4.compareTo(dt5) < 0);
+        assertTrue(dt5.compareTo(dt4) > 0);
     }
 
     @Test
     public void testBefore() throws Exception
     {
+        AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30:00");
+        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30:00");
+        AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12");
+        AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
 
+        assertFalse(dt1.before(dt2));
+        assertFalse(dt2.before(dt1));
+        assertFalse(dt2.before(dt3));
+        assertFalse(dt3.before(dt2));
+        assertTrue(dt3.before(dt4));
+        assertFalse(dt4.before(dt3));
+        assertTrue(dt4.before(dt5));
+        assertFalse(dt5.before(dt4));
     }
 
     @Test
     public void testAfter() throws Exception
     {
+        AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30:00");
+        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30:00");
+        AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12");
+        AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
 
+        assertFalse(dt1.after(dt2));
+        assertFalse(dt2.after(dt1));
+        assertFalse(dt2.after(dt3));
+        assertFalse(dt3.after(dt2));
+        assertFalse(dt3.after(dt4));
+        assertTrue(dt4.after(dt3));
+        assertFalse(dt4.after(dt5));
+        assertTrue(dt5.after(dt4));
     }
 
     @Test
     public void testAdd() throws Exception
     {
         AbsoluteDateTime dt = new AbsoluteDateTime();
-        dt.add(new Period("P1DT1H"));
-        assertEquals(new AbsoluteDateTime("0000-00-01T01:00:00"), dt);
+        AbsoluteDateTime result = dt.add(new Period("P1DT1H"));
+        assertEquals("The original datetime object should not be modified",
+                new AbsoluteDateTime(), dt);
+        assertEquals(new AbsoluteDateTime("0000-00-01T01:00:00"), result);
+
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("2012-02-28 T12:00");
+        AbsoluteDateTime result2 = dt2.add(new Period("PT13H"));
+        assertEquals(new AbsoluteDateTime("2012-02-29 T01:00:00"), result2);
     }
 
     @Test
     public void testSubtract() throws Exception
     {
-
+        AbsoluteDateTime dt = new AbsoluteDateTime("2012-02-28 T12:00");
+        AbsoluteDateTime result = dt.add(new Period("PT13H"));
+        assertEquals("The original datetime object should not be modified",
+                new AbsoluteDateTime("2012-02-28 T12:00"), dt);
+        assertEquals(new AbsoluteDateTime("2012-02-27 T23:00:00"), result);
+        
+        assertEquals(new AbsoluteDateTime("1234-12-12 T12:34:56"),
+                new AbsoluteDateTime("1234-12-12 T12:34:56").
+                        add(new Period("P8Y1DT8M1S")).subtract(new Period("P8Y1DT8M1S")));
     }
 }
