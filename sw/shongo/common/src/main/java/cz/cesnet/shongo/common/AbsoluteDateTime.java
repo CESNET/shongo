@@ -23,9 +23,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable
     }
 
     /**
-     * Construct date/time from ISO8601 string
+     * Construct date/time from an ISO8601 string, e.g. "2007-04-05T14:30:00"
      *
-     * @param dateTime ISO8601 Date/Time
+     * @param dateTime ISO8601 Date/Time; see {@link #fromString} for more info about supported input formats
      */
     public AbsoluteDateTime(String dateTime)
     {
@@ -33,7 +33,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable
     }
 
     /**
-     * Set Date/Time from ISO8601 string
+     * Set Date/Time from an ISO8601 string, e.g. "2007-04-05T14:30:00".
+     *
+     * According to ISO 8601, both short (e.g. "20070405T143000") and extended (e.g. "2007-04-05T14:30:00") formats are supported.
      *
      * @param dateTime    datetime specification as defined by ISO8601, e.g. "2007-04-05T14:30"
      */
