@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.common;
 
+import cz.cesnet.shongo.common.util.Parser;
+
 /**
  * Represents a duration or period.
  *
@@ -109,7 +111,16 @@ public class Period
      */
     public void fromString(String period)
     {
-        throw new RuntimeException("TODO: Implement Period.fromString ISO8601");
+        try {
+            PeriodParser parser = new PeriodParser(Parser.getTokenStream(period, PeriodLexer.class));
+            parser.setPeriod(this);
+            parser.parse();
+        }
+        catch ( Exception exception ) {
+            throw new RuntimeException(
+                    String.format("Fail to parse '%s': %s", period, exception.getMessage()));
+        }
+        normalize();
     }
 
     /**
@@ -123,7 +134,64 @@ public class Period
      */
     public String toString()
     {
-        throw new RuntimeException("TODO: Implement Period.toString ISO8601");
+        normalize();
+
+        StringBuilder period = new StringBuilder();
+        if ( getYear() != 0 ) {
+            period.append(getYear() + "Y");
+        }
+        if ( getMonth() != 0 ) {
+            period.append(getMonth() + "M");
+        }
+        if ( getDay() != 0 ) {
+            period.append(getDay() + "D");
+        }
+        StringBuilder time = new StringBuilder();
+        if ( getHour() != 0 ) {
+            time.append(getHour() + "H");
+        }
+        if ( getMinute() != 0 ) {
+            time.append(getMinute() + "M");
+        }
+        if ( getSecond() != 0 ) {
+            time.append(getSecond() + "S");
+        }
+        if ( time.length() > 0 ) {
+            period.append("T");
+            period.append(time);
+        }
+        if ( period.length() == 0 ) {
+            period.append("T0S");
+        }
+        return "P" + period.toString();
+    }
+
+    /**
+     * Perform normalization of period. Months should be < 12, hours < 24, minutes < 60
+     * and seconds < 60.
+     */
+    public void normalize()
+    {
+        if ( second >= 60 ) {
+            minute += second / 60;
+            second %= 60;
+        }
+        if ( minute >= 60 ) {
+            hour += minute / 60;
+            minute %= 60;
+        }
+        if ( hour >= 24 ) {
+            day += hour / 24;
+            hour %= 24;
+        }
+        if ( month >= 12 ) {
+            year += month / 12;
+            month %= 12;
+        }
+        if ( week > 0 ) {
+            day += week * 7;
+            week = 0;
+        }
     }
 
     @Override

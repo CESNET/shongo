@@ -31,7 +31,8 @@ public class PeriodTest
 
         Period weeksPeriod = new Period("P2Y1W");
         assertEquals(2, weeksPeriod.getYear());
-        assertEquals(1, weeksPeriod.getWeek());
+        assertEquals(0, weeksPeriod.getWeek());
+        assertEquals(7, weeksPeriod.getDay());
 
         Period zeroPeriod = new Period("P");
         assertEquals(0, zeroPeriod.getYear());
@@ -53,7 +54,7 @@ public class PeriodTest
         p.setDay(1);
         p.setYear(1);
         p.setSecond(4);
-        assertEquals("P1Y3W1DT4S", p.toString());
+        assertEquals("P1Y22DT4S", p.toString());
 
         assertEquals("Ranges in the output string should be normalized.", new Period("P1W"), new Period("P7D"));
 
