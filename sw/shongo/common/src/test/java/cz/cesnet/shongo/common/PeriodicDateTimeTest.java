@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Periodic date/time tests

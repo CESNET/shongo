@@ -2,7 +2,7 @@ package cz.cesnet.shongo.common;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Time tests
@@ -56,7 +56,7 @@ public class TimeTest
     @Test
     public void testCompareTo() throws Exception
     {
-         throw new RuntimeException("TODO: Implement");
+        throw new RuntimeException("TODO: Implement");
     }
 
     @Test

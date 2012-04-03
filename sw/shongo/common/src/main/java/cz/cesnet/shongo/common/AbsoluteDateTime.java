@@ -16,7 +16,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     private Time time;
 
     /**
-     * Construct zero date/time
+     * Construct zero date/time.
      */
     public AbsoluteDateTime()
     {
@@ -24,7 +24,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Construct date/time from an ISO8601 string, e.g. "2007-04-05T14:30:00"
+     * Construct date/time from an ISO8601 string, e.g. "2007-04-05T14:30:00".
      *
      * @param dateTime ISO8601 Date/Time; see {@link #fromString} for more info about supported input formats
      */
@@ -36,7 +36,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Construct date/time from an date and time objects
+     * Construct date/time from an date and time objects. These objects became part
+     * of date/time so when date/time is modified date and time objects become
+     * modified too.
      *
      * @param date Date object
      * @param time Time object
@@ -147,7 +149,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     public void fromString(String dateTime)
     {
         int index = dateTime.indexOf("T");
-        if ( index == -1 ) {
+        if (index == -1) {
             getDate().fromString(dateTime);
         }
         else {
@@ -157,7 +159,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Get Date/Time as ISO8601 string
+     * Get Date/Time as ISO8601 string.
      *
      * @return string of ISO8601 Date/Time
      */
@@ -165,7 +167,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     {
         StringBuilder dateTime = new StringBuilder();
         dateTime.append(getDate().toString());
-        if ( getTime().isEmpty() == false ) {
+        if (getTime().isEmpty() == false) {
             dateTime.append("T");
             dateTime.append(getTime().toString());
         }
@@ -204,18 +206,20 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         }
 
         int dateResult = getDate().compareTo(absoluteDateTime.getDate());
-        if ( dateResult != EQUAL )
+        if (dateResult != EQUAL) {
             return dateResult;
+        }
 
         int timeResult = getTime().compareTo(absoluteDateTime.getTime());
-        if ( timeResult != EQUAL )
+        if (timeResult != EQUAL) {
             return timeResult;
+        }
 
         return EQUAL;
     }
 
     /**
-     * Is this Date/Time before given
+     * Is this Date/Time before given.
      *
      * @param dateTime
      * @return boolean
@@ -226,7 +230,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Is this Date/Time after given
+     * Is this Date/Time after given.
      *
      * @param dateTime
      * @return boolean
@@ -237,7 +241,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Clone absolute date/time
+     * Clone absolute date/time.
      *
      * @return cloned instance of absolute date/time
      */
@@ -277,7 +281,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         overflowedDays += time.addHourInplace(period.getHour());
         overflowedDays += time.addMinuteInplace(period.getMinute());
         overflowedDays += time.addSecondInplace(period.getSecond());
-        if ( overflowedDays != 0 ) {
+        if (overflowedDays != 0) {
             date.addDayInplace(overflowedDays);
         }
 
@@ -308,7 +312,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         overflowedDays += time.addHourInplace(-period.getHour());
         overflowedDays += time.addMinuteInplace(-period.getMinute());
         overflowedDays += time.addSecondInplace(-period.getSecond());
-        if ( overflowedDays != 0 ) {
+        if (overflowedDays != 0) {
             date.addDayInplace(overflowedDays);
         }
 

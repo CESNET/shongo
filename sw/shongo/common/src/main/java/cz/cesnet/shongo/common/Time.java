@@ -19,7 +19,7 @@ public class Time implements Comparable<Time>
     private int second;
 
     /**
-     * Construct empty time
+     * Construct empty time.
      */
     public Time()
     {
@@ -27,7 +27,7 @@ public class Time implements Comparable<Time>
     }
 
     /**
-     * Construct time from ISO8601 string, e.g. "12:00:00"
+     * Construct time from ISO8601 string, e.g. "12:00:00".
      *
      * @param time
      */
@@ -43,7 +43,7 @@ public class Time implements Comparable<Time>
 
     public void setHour(int hour)
     {
-        if ( hour == NullValue ) {
+        if (hour == NullValue) {
             this.hour = NullValue;
             return;
         }
@@ -58,7 +58,7 @@ public class Time implements Comparable<Time>
 
     public void setMinute(int minute)
     {
-        if ( minute == NullValue ) {
+        if (minute == NullValue) {
             this.minute = NullValue;
             return;
         }
@@ -73,7 +73,7 @@ public class Time implements Comparable<Time>
 
     public void setSecond(int second)
     {
-        if ( second == NullValue ) {
+        if (second == NullValue) {
             this.second = NullValue;
             return;
         }
@@ -82,7 +82,7 @@ public class Time implements Comparable<Time>
     }
 
     /**
-     * Check whether all fields have NullValue
+     * Check whether all fields have NullValue.
      *
      * @return boolean
      */
@@ -92,7 +92,7 @@ public class Time implements Comparable<Time>
     }
 
     /**
-     * Clear all fields
+     * Clear all fields.
      */
     public void clear()
     {
@@ -103,7 +103,7 @@ public class Time implements Comparable<Time>
 
     /**
      * Set time from an ISO8601 string, e.g. "12:00:00".
-
+     *
      * @param time time specification as defined by ISO8601
      */
     public void fromString(String time)
@@ -121,7 +121,7 @@ public class Time implements Comparable<Time>
     }
 
     /**
-     * Get time as ISO8601 string
+     * Get time as ISO8601 string.
      *
      * @return string of ISO8601 time
      */
@@ -208,7 +208,7 @@ public class Time implements Comparable<Time>
     }
 
     /**
-     * Clone time
+     * Clone time.
      *
      * @return cloned instance of time
      */
@@ -230,17 +230,21 @@ public class Time implements Comparable<Time>
     public int addHourInplace(int hour)
     {
         int overflowedDays = 0;
+        if (hour == 0) {
+            return overflowedDays;
+        }
 
         // Update hours
-        if ( this.hour == NullValue )
+        if (this.hour == NullValue) {
             throw new RuntimeException("Can't add to hours because it is empty.");
+        }
         this.hour += hour;
 
         // Overflow to days
-        if ( this.hour < 0 || this.hour >= 24 ) {
+        if (this.hour < 0 || this.hour >= 24) {
             overflowedDays += this.hour / 24;
             this.hour %= 24;
-            if ( this.hour < 0 ) {
+            if (this.hour < 0) {
                 this.hour += 24;
                 overflowedDays--;
             }
@@ -258,17 +262,21 @@ public class Time implements Comparable<Time>
     public int addMinuteInplace(int minute)
     {
         int overflowedDays = 0;
+        if (minute == 0) {
+            return overflowedDays;
+        }
 
         // Update minutes
-        if ( this.minute == NullValue )
+        if (this.minute == NullValue) {
             throw new RuntimeException("Can't add to minutes because it is empty.");
+        }
         this.minute += minute;
 
         // Overflow to hours
-        if ( this.minute < 0 || this.minute >= 60) {
+        if (this.minute < 0 || this.minute >= 60) {
             overflowedDays += addHourInplace(this.minute / 60);
             this.minute %= 60;
-            if ( this.minute < 0 ) {
+            if (this.minute < 0) {
                 this.minute += 60;
                 overflowedDays += addHourInplace(-1);
             }
@@ -286,17 +294,21 @@ public class Time implements Comparable<Time>
     public int addSecondInplace(int second)
     {
         int overflowedDays = 0;
+        if (second == 0) {
+            return overflowedDays;
+        }
 
         // Update seconds
-        if ( this.second == NullValue )
+        if (this.second == NullValue) {
             throw new RuntimeException("Can't add to seconds because it is empty.");
+        }
         this.second += second;
 
         // Overflow to minutes
-        if ( this.second < 0 || this.second >= 60) {
+        if (this.second < 0 || this.second >= 60) {
             overflowedDays += addMinuteInplace(this.second / 60);
             this.second %= 60;
-            if ( this.second < 0 ) {
+            if (this.second < 0) {
                 this.second += 60;
                 overflowedDays += addMinuteInplace(-1);
             }

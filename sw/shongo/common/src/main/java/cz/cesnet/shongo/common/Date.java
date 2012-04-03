@@ -2,8 +2,11 @@ package cz.cesnet.shongo.common;
 
 import cz.cesnet.shongo.common.util.Parser;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 /**
- * Represents absolute date
+ * Represents absolute date.
  *
  * @author Martin Srom
  */
@@ -19,7 +22,7 @@ public class Date implements Comparable<Date>
     private int day;
 
     /**
-     * Construct empty date
+     * Construct empty date.
      */
     public Date()
     {
@@ -27,7 +30,7 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Construct date from ISO8601 string, e.g. "2012-01-01"
+     * Construct date from ISO8601 string, e.g. "2012-01-01".
      *
      * @param date
      */
@@ -43,7 +46,7 @@ public class Date implements Comparable<Date>
 
     public void setYear(int year)
     {
-        if ( year == 0 || year == NullValue ) {
+        if (year == 0 || year == NullValue) {
             this.year = NullValue;
             return;
         }
@@ -58,7 +61,7 @@ public class Date implements Comparable<Date>
 
     public void setMonth(int month)
     {
-        if ( month == 0 || month == NullValue ) {
+        if (month == 0 || month == NullValue) {
             this.month = NullValue;
             return;
         }
@@ -73,7 +76,7 @@ public class Date implements Comparable<Date>
 
     public void setDay(int day)
     {
-        if ( day == 0 || day == NullValue ) {
+        if (day == 0 || day == NullValue) {
             this.day = NullValue;
             return;
         }
@@ -82,7 +85,7 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Check whether all fields have NullValue
+     * Check whether all fields have NullValue.
      *
      * @return boolean
      */
@@ -92,7 +95,7 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Clear all fields
+     * Clear all fields.
      */
     public void clear()
     {
@@ -103,7 +106,7 @@ public class Date implements Comparable<Date>
 
     /**
      * Set date from an ISO8601 string, e.g. "2007-04-05".
-
+     *
      * @param date date specification as defined by ISO8601, e.g. "2007-04-05"
      */
     public void fromString(String date)
@@ -121,7 +124,7 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Get date as ISO8601 string
+     * Get date as ISO8601 string.
      *
      * @return string of ISO8601 date
      */
@@ -232,8 +235,14 @@ public class Date implements Comparable<Date>
      */
     public void addYearInplace(int year)
     {
-        if ( this.year == NullValue )
+        if (year == 0) {
+            return;
+        }
+
+        // Update year
+        if (this.year == NullValue) {
             throw new RuntimeException("Can't add to year because it is empty.");
+        }
         this.year += year;
     }
 
@@ -244,17 +253,22 @@ public class Date implements Comparable<Date>
      */
     public void addMonthInplace(int month)
     {
+        if (month == 0) {
+            return;
+        }
+
         // Update month
-        if ( this.month == NullValue )
+        if (this.month == NullValue) {
             throw new RuntimeException("Can't add to month because it is empty.");
+        }
         this.month += month;
 
         // Overflow to years
         this.month -= 1;
-        if ( this.month < 0 || this.month >= 12 ) {
+        if (this.month < 0 || this.month >= 12) {
             addYearInplace(this.month / 12);
             this.month %= 12;
-            if ( this.month < 0 ) {
+            if (this.month < 0) {
                 this.month += 12;
                 addYearInplace(-1);
             }
@@ -270,7 +284,21 @@ public class Date implements Comparable<Date>
 
     public void addDayInplace(int day)
     {
-        //To change body of created methods use File | Settings | File Templates.
+        if (day == 0) {
+            return;
+        }
+
+        if (this.year == NullValue || this.month == NullValue || this.day == NullValue) {
+            throw new RuntimeException("Can't add to day because year, month or day is empty.");
+        }
+
+        // Add days by Calendar in UTC timezone
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        calendar.set(this.year, this.month - 1, this.day);
+        calendar.add(Calendar.DAY_OF_MONTH, day);
+        this.year = calendar.get(Calendar.YEAR);
+        this.month = calendar.get(Calendar.MONTH) + 1;
+        this.day = calendar.get(Calendar.DAY_OF_MONTH);
     }
 
     /**

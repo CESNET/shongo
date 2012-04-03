@@ -129,11 +129,11 @@ public class AbsoluteDateTimeTest
     @Test
     public void testAdd() throws Exception
     {
-        AbsoluteDateTime dt = new AbsoluteDateTime();
+        AbsoluteDateTime dt = new AbsoluteDateTime("2012-02-28 T12:00");
         AbsoluteDateTime result = dt.add(new Period("P1DT1H"));
         assertEquals("The original datetime object should not be modified",
-                new AbsoluteDateTime(), dt);
-        assertEquals(new AbsoluteDateTime("0000-00-01T01:00:00"), result);
+                new AbsoluteDateTime("2012-02-28 T12:00"), dt);
+        assertEquals(new AbsoluteDateTime("2012-02-29 T13:00"), result);
 
         AbsoluteDateTime dt2 = new AbsoluteDateTime("2012-02-28 T12:00");
         AbsoluteDateTime result2 = dt2.add(new Period("PT13H"));
@@ -144,11 +144,11 @@ public class AbsoluteDateTimeTest
     public void testSubtract() throws Exception
     {
         AbsoluteDateTime dt = new AbsoluteDateTime("2012-02-28 T12:00");
-        AbsoluteDateTime result = dt.add(new Period("PT13H"));
+        AbsoluteDateTime result = dt.subtract(new Period("PT13H"));
         assertEquals("The original datetime object should not be modified",
                 new AbsoluteDateTime("2012-02-28 T12:00"), dt);
         assertEquals(new AbsoluteDateTime("2012-02-27 T23:00:00"), result);
-        
+
         assertEquals(new AbsoluteDateTime("1234-12-12 T12:34:56"),
                 new AbsoluteDateTime("1234-12-12 T12:34:56").
                         add(new Period("P8Y1DT8M1S")).subtract(new Period("P8Y1DT8M1S")));

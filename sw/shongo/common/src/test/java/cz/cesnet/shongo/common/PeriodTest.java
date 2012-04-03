@@ -3,7 +3,8 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 /**
  * @author Ondrej Bouda

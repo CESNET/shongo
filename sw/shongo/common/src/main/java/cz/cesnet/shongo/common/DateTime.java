@@ -58,7 +58,7 @@ public abstract class DateTime
      */
     public static AbsoluteDateTime now()
     {
-        java.util.Calendar now = java.util.Calendar.getInstance();
+        Calendar now = Calendar.getInstance();
         now.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         AbsoluteDateTime absoluteDateTime = new AbsoluteDateTime();
