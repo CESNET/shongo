@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static junit.framework.Assert.*;
 
 /**
  * @author Ondrej Bouda
@@ -81,7 +81,7 @@ public class AbsoluteDateTimeTest
 
         assertEquals(0, dt1.compareTo(dt2));
         assertEquals(0, dt2.compareTo(dt1));
-        assertEquals(0, dt2.compareTo(dt3));
+        assertEquals(0, dt1.compareTo(dt3));
         assertTrue(dt3.compareTo(dt4) < 0);
         assertTrue(dt4.compareTo(dt3) > 0);
         assertTrue(dt4.compareTo(dt5) < 0);
@@ -99,7 +99,7 @@ public class AbsoluteDateTimeTest
 
         assertFalse(dt1.before(dt2));
         assertFalse(dt2.before(dt1));
-        assertFalse(dt2.before(dt3));
+        assertTrue(dt2.before(dt3));
         assertFalse(dt3.before(dt2));
         assertTrue(dt3.before(dt4));
         assertFalse(dt4.before(dt3));
@@ -119,7 +119,7 @@ public class AbsoluteDateTimeTest
         assertFalse(dt1.after(dt2));
         assertFalse(dt2.after(dt1));
         assertFalse(dt2.after(dt3));
-        assertFalse(dt3.after(dt2));
+        assertTrue(dt3.after(dt2));
         assertFalse(dt3.after(dt4));
         assertTrue(dt4.after(dt3));
         assertFalse(dt4.after(dt5));

@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.common;
 
-import cz.cesnet.shongo.common.util.Parser;
-
 /**
  * Represents an absolute Date/Time.
  *
@@ -12,21 +10,17 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     /**
      * Null field value.
      */
-    public final int NULL = Integer.MAX_VALUE;
+    public final int NullValue = Integer.MAX_VALUE;
 
-    private int year;
-    private int month;
-    private int day;
-    private int hour;
-    private int minute;
-    private int second;
+    private Date date;
+    private Time time;
 
     /**
      * Construct zero date/time
      */
     public AbsoluteDateTime()
     {
-        clear();
+        this(new Date(), new Time());
     }
 
     /**
@@ -36,73 +30,101 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public AbsoluteDateTime(String dateTime)
     {
+        this(new Date(), new Time());
+
         fromString(dateTime);
+    }
+
+    /**
+     * Construct date/time from an date and time objects
+     *
+     * @param date Date object
+     * @param time Time object
+     */
+    public AbsoluteDateTime(Date date, Time time)
+    {
+        this.date = date;
+        this.time = time;
+    }
+
+    public Date getDate()
+    {
+        return date;
+    }
+
+    public void setDate(Date date)
+    {
+        this.date = date;
+    }
+
+    public Time getTime()
+    {
+        return time;
+    }
+
+    public void setTime(Time time)
+    {
+        this.time = time;
     }
 
     public int getYear()
     {
-        return year;
+        return getDate().getYear();
     }
 
     public void setYear(int year)
     {
-        assert (year >= 0 && year <= 9999) : "Year should be in range 0 to 9999.";
-        this.year = (year == 0 ? NULL : year);
+        getDate().setYear(year);
     }
 
     public int getMonth()
     {
-        return month;
+        return getDate().getMonth();
     }
 
     public void setMonth(int month)
     {
-        assert (month >= 0 && month <= 12) : "Month should be in range 0 to 12.";
-        this.month = (month == 0 ? NULL : month);
+        getDate().setMonth(month);
     }
 
     public int getDay()
     {
-        return day;
+        return getDate().getDay();
     }
 
     public void setDay(int day)
     {
-        assert (day >= 0 && day <= 31) : "Day should be in range 0 to 31.";
-        this.day = (day == 0 ? NULL : day);
+        getDate().setDay(day);
     }
 
     public int getHour()
     {
-        return hour;
+        return getTime().getHour();
     }
 
     public void setHour(int hour)
     {
-        assert (hour >= 0 && hour <= 23) : "Hour should be in range 0 to 23.";
-        this.hour = hour;
+        getTime().setHour(hour);
     }
 
     public int getMinute()
     {
-        return minute;
+        return getTime().getMinute();
     }
 
     public void setMinute(int minute)
     {
-        assert (minute >= 0 && minute <= 59) : "Minute should be in range 0 to 59.";
-        this.minute = minute;
+        getTime().setMinute(minute);
     }
 
     public int getSecond()
     {
-        return second;
+        return getTime().getSecond();
     }
 
     public void setSecond(int second)
     {
-        assert (second >= 0 && second <= 59) : "Second should be in range 0 to 59.";
-        this.second = second;
+        getTime().setSecond(second);
     }
 
     /**
@@ -110,12 +132,8 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public void clear()
     {
-        year = NULL;
-        month = NULL;
-        day = NULL;
-        hour = NULL;
-        minute = NULL;
-        second = NULL;
+        getDate().clear();
+        getTime().clear();
     }
 
     /**
@@ -128,16 +146,13 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public void fromString(String dateTime)
     {
-        clear();
-        try {
-            AbsoluteDateTimeParser parser = new AbsoluteDateTimeParser(Parser.getTokenStream(dateTime,
-                    AbsoluteDateTimeLexer.class));
-            parser.setAbsoluteDateTime(this);
-            parser.parse();
+        int index = dateTime.indexOf("T");
+        if ( index == -1 ) {
+            getDate().fromString(dateTime);
         }
-        catch (Exception exception) {
-            throw new RuntimeException(
-                    String.format("Failed to parse date/time '%s': %s", dateTime, exception.getMessage()));
+        else {
+            getDate().fromString(dateTime.substring(0, index));
+            getTime().fromString(dateTime.substring(index + 1, dateTime.length()));
         }
     }
 
@@ -148,34 +163,11 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public String toString()
     {
-        int year = getYear();
-        if (year == NULL) {
-            year = 0;
-        }
-        int month = getMonth();
-        if (month == NULL) {
-            month = 0;
-        }
-        int day = getDay();
-        if (day == NULL) {
-            day = 0;
-        }
-
         StringBuilder dateTime = new StringBuilder();
-        dateTime.append(String.format("%04d-%02d-%02d", year, month, day));
-        StringBuilder time = new StringBuilder();
-        if (getHour() != NULL) {
-            time.append(String.format("%02d", getHour()));
-            if (getMinute() != NULL) {
-                time.append(String.format(":%02d", getMinute()));
-                if (getSecond() != NULL) {
-                    time.append(String.format(":%02d", getSecond()));
-                }
-            }
-        }
-        if (time.length() > 0) {
+        dateTime.append(getDate().toString());
+        if ( getTime().isEmpty() == false ) {
             dateTime.append("T");
-            dateTime.append(time);
+            dateTime.append(getTime().toString());
         }
         return dateTime.toString();
     }
@@ -199,101 +191,25 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
             return false;
         }
         AbsoluteDateTime dateTime = (AbsoluteDateTime) object;
-        if (getYear() != NULL && dateTime.getYear() != NULL && getYear() != dateTime.getYear()) {
-            return false;
-        }
-        if (getMonth() != NULL && dateTime.getMonth() != NULL && getMonth() != dateTime.getMonth()) {
-            return false;
-        }
-        if (getDay() != NULL && dateTime.getDay() != NULL && getDay() != dateTime.getDay()) {
-            return false;
-        }
-        if (getHour() != NULL && dateTime.getHour() != NULL && getHour() != dateTime.getHour()) {
-            return false;
-        }
-        if (getMinute() != NULL && dateTime.getMinute() != NULL && getMinute() != dateTime.getMinute()) {
-            return false;
-        }
-        if (getSecond() != NULL && dateTime.getSecond() != NULL && getSecond() != dateTime.getSecond()) {
-            return false;
-        }
-        return true;
+        return getDate().equals(dateTime.getDate()) && getTime().equals(dateTime.getTime());
     }
 
     @Override
     public int compareTo(AbsoluteDateTime absoluteDateTime)
     {
-        final int BEFORE = -1;
         final int EQUAL = 0;
-        final int AFTER = 1;
 
         if (this == absoluteDateTime) {
             return EQUAL;
         }
 
-        int year1 = getYear();
-        int year2 = absoluteDateTime.getYear();
-        if (year1 != NULL && year2 != NULL) {
-            if (year1 < year2) {
-                return BEFORE;
-            }
-            else if (year1 > year2) {
-                return AFTER;
-            }
-        }
+        int dateResult = getDate().compareTo(absoluteDateTime.getDate());
+        if ( dateResult != EQUAL )
+            return dateResult;
 
-        int month1 = getMonth();
-        int month2 = absoluteDateTime.getMonth();
-        if (month1 != NULL && month2 != NULL) {
-            if (month1 < month2) {
-                return BEFORE;
-            }
-            else if (month1 > month2) {
-                return AFTER;
-            }
-        }
-
-        int day1 = getDay();
-        int day2 = absoluteDateTime.getDay();
-        if (day1 != NULL && day2 != NULL) {
-            if (day1 < day2) {
-                return BEFORE;
-            }
-            else if (day1 > day2) {
-                return AFTER;
-            }
-        }
-
-        int hour1 = getHour();
-        int hour2 = absoluteDateTime.getHour();
-        if (hour1 < hour2) {
-            return BEFORE;
-        }
-        else if (hour1 > hour2) {
-            return AFTER;
-        }
-
-        int minut1 = getMinute();
-        int minute2 = absoluteDateTime.getMinute();
-        if (minut1 != NULL && minute2 != NULL) {
-            if (minut1 < minute2) {
-                return BEFORE;
-            }
-            else if (minut1 > minute2) {
-                return AFTER;
-            }
-        }
-
-        int second1 = getSecond();
-        int second2 = absoluteDateTime.getSecond();
-        if (second1 != NULL && second2 != NULL) {
-            if (second1 < second2) {
-                return BEFORE;
-            }
-            else if (second1 > second2) {
-                return AFTER;
-            }
-        }
+        int timeResult = getTime().compareTo(absoluteDateTime.getTime());
+        if ( timeResult != EQUAL )
+            return timeResult;
 
         return EQUAL;
     }
@@ -321,6 +237,23 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
+     * Clone absolute date/time
+     *
+     * @return cloned instance of absolute date/time
+     */
+    public AbsoluteDateTime clone()
+    {
+        AbsoluteDateTime absoluteDateTime = new AbsoluteDateTime();
+        absoluteDateTime.setYear(getYear());
+        absoluteDateTime.setMonth(getMonth());
+        absoluteDateTime.setDay(getDay());
+        absoluteDateTime.setHour(getHour());
+        absoluteDateTime.setMinute(getMinute());
+        absoluteDateTime.setSecond(getSecond());
+        return absoluteDateTime;
+    }
+
+    /**
      * Adds a time period to this datetime and returns the result.
      * <p/>
      * This datetime object is not modified.
@@ -330,7 +263,25 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public AbsoluteDateTime add(Period period)
     {
-        throw new RuntimeException("TODO: Implement AbsoluteDateTime.add");
+        period.normalize();
+
+        AbsoluteDateTime absoluteDateTime = clone();
+        Date date = absoluteDateTime.getDate();
+        Time time = absoluteDateTime.getTime();
+
+        date.addYearInplace(period.getYear());
+        date.addMonthInplace(period.getMonth());
+        date.addDayInplace(period.getDay());
+
+        int overflowedDays = 0;
+        overflowedDays += time.addHourInplace(period.getHour());
+        overflowedDays += time.addMinuteInplace(period.getMinute());
+        overflowedDays += time.addSecondInplace(period.getSecond());
+        if ( overflowedDays != 0 ) {
+            date.addDayInplace(overflowedDays);
+        }
+
+        return absoluteDateTime;
     }
 
     /**
@@ -343,7 +294,24 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public AbsoluteDateTime subtract(Period period)
     {
-        throw new RuntimeException("TODO: Implement AbsoluteDateTime.subtract");
-    }
+        period.normalize();
 
+        AbsoluteDateTime absoluteDateTime = clone();
+        Date date = absoluteDateTime.getDate();
+        Time time = absoluteDateTime.getTime();
+
+        date.addYearInplace(-period.getYear());
+        date.addMonthInplace(-period.getMonth());
+        date.addDayInplace(-period.getDay());
+
+        int overflowedDays = 0;
+        overflowedDays += time.addHourInplace(-period.getHour());
+        overflowedDays += time.addMinuteInplace(-period.getMinute());
+        overflowedDays += time.addSecondInplace(-period.getSecond());
+        if ( overflowedDays != 0 ) {
+            date.addDayInplace(overflowedDays);
+        }
+
+        return absoluteDateTime;
+    }
 }
