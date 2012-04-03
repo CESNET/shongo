@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * @author Ondrej Bouda
@@ -80,8 +80,26 @@ public class PeriodTest
     @Test
     public void testEquals() throws Exception
     {
+        assertEquals(period, period);
+
         Period p = new Period("P3W").add(new Period("P1D")).add(new Period("P1Y")).add(new Period("PT1S"));
         assertEquals(new Period("P1Y3W1DT1S"), p);
+    }
+
+    @Test
+    public void testCompareTo() throws Exception
+    {
+        Period period1 = new Period("P7D");
+        Period period2 = new Period("P1W");
+        Period period3 = new Period("P12M");
+        Period period4 = new Period("P1Y");
+
+        assertEquals(0, period1.compareTo(period2));
+        assertEquals(0, period3.compareTo(period4));
+        assertTrue(period1.compareTo(period3) < 0);
+        assertTrue(period3.compareTo(period1) > 0);
+        assertTrue(period2.compareTo(period4) < 0);
+        assertTrue(period4.compareTo(period2) > 0);
     }
 
     @Test

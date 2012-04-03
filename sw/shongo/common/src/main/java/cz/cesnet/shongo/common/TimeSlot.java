@@ -15,8 +15,8 @@ public class TimeSlot
     /**
      * Construct time slot.
      *
-     * @param dateTime    Time slot date/time, can be absolute or relative date/time
-     * @param duration    Time slot duration (e.g., two hours)
+     * @param dateTime Time slot date/time, can be absolute or relative date/time
+     * @param duration Time slot duration (e.g., two hours)
      */
     public TimeSlot(DateTime dateTime, Period duration)
     {
@@ -58,7 +58,7 @@ public class TimeSlot
     /**
      * Checks whether time slot takes place at the given referenceDateTime.
      *
-     * @param referenceDateTime    Reference date/time in which is activity checked
+     * @param referenceDateTime Reference date/time in which is activity checked
      * @return true if referenced date/time is inside time slot interval,
      *         false otherwise
      */
@@ -119,7 +119,7 @@ public class TimeSlot
     /**
      * Get the earliest time slot since a given date/time.
      *
-     * @param referenceDateTime    the datetime since which to find the earliest occurrence
+     * @param referenceDateTime the datetime since which to find the earliest occurrence
      * @return a time slot with absolute date/time
      */
     public TimeSlot getEarliest(AbsoluteDateTime referenceDateTime)

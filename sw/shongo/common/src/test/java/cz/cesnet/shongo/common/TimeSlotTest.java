@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 
 /**
  * Time slot tests
@@ -20,14 +20,14 @@ public class TimeSlotTest
         // Lecture on Thursdays at 12:00-14:00 in March (1.3. - 31.3.2012)
         PeriodicDateTime periodicDateTime = new PeriodicDateTime(
                 new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"), new AbsoluteDateTime("2012-03-31"));
-        timeSlot = new TimeSlot(periodicDateTime, new Period("P2H"));
+        timeSlot = new TimeSlot(periodicDateTime, new Period("PT2H"));
     }
 
     @Test
     public void testGetters() throws Exception
     {
         assertTrue(timeSlot.getDateTime() instanceof PeriodicDateTime);
-        assertEquals(timeSlot.getDuration(), new Period("P60M"));
+        assertEquals(timeSlot.getDuration(), new Period("PT120M"));
     }
 
     @Test
@@ -45,11 +45,11 @@ public class TimeSlotTest
     public void testEnumerate() throws Exception
     {
         TimeSlot[] correctTimeSlots = new TimeSlot[]{
-                new TimeSlot(new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P2H")),
-                new TimeSlot(new AbsoluteDateTime("2012-03-08 T12:00"), new Period("P2H")),
-                new TimeSlot(new AbsoluteDateTime("2012-03-15 T12:00"), new Period("P2H")),
-                new TimeSlot(new AbsoluteDateTime("2012-03-22 T12:00"), new Period("P2H")),
-                new TimeSlot(new AbsoluteDateTime("2012-03-29 T12:00"), new Period("P2H"))
+                new TimeSlot(new AbsoluteDateTime("2012-03-01 T12:00"), new Period("PT2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-08 T12:00"), new Period("PT2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-15 T12:00"), new Period("PT2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-22 T12:00"), new Period("PT2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-29 T12:00"), new Period("PT2H"))
         };
         TimeSlot[] timeSlots = timeSlot.enumerate();
         assertEquals(timeSlots.length, correctTimeSlots.length);
@@ -62,9 +62,9 @@ public class TimeSlotTest
     public void testEnumerateRange() throws Exception
     {
         TimeSlot[] correctTimeSlots = new TimeSlot[]{
-                new TimeSlot(new AbsoluteDateTime("2012-03-08 T12:00"), new Period("P2H")),
-                new TimeSlot(new AbsoluteDateTime("2012-03-15 T12:00"), new Period("P2H")),
-                new TimeSlot(new AbsoluteDateTime("2012-03-22 T12:00"), new Period("P2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-08 T12:00"), new Period("PT2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-15 T12:00"), new Period("PT2H")),
+                new TimeSlot(new AbsoluteDateTime("2012-03-22 T12:00"), new Period("PT2H")),
         };
         TimeSlot[] timeSlots = timeSlot.enumerate(
                 new AbsoluteDateTime("2012-03-02"), new AbsoluteDateTime("2012-03-23"));
@@ -79,15 +79,17 @@ public class TimeSlotTest
     {
         AbsoluteDateTime referenceDateTime = new AbsoluteDateTime("2012-01-08 T12:01");
         assertEquals(timeSlot.getEarliest(referenceDateTime), new TimeSlot(
-                new AbsoluteDateTime("2012-03-22 T12:00"), new Period("P2H")));
+                new AbsoluteDateTime("2012-03-22 T12:00"), new Period("PT2H")));
     }
 
     @Test
     public void testEquals() throws Exception
     {
+        assertEquals(timeSlot, timeSlot);
+
         PeriodicDateTime periodicDateTime = new PeriodicDateTime(
                 new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"), new AbsoluteDateTime("2012-03-31"));
-        TimeSlot timeSlot = new TimeSlot(periodicDateTime, new Period("P2H"));
+        TimeSlot timeSlot = new TimeSlot(periodicDateTime, new Period("PT2H"));
         assertEquals(this.timeSlot, timeSlot);
     }
 }

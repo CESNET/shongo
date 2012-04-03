@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.common;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 /**
  * Represents an arbitrary Date/Time.
  *
@@ -10,7 +13,7 @@ public abstract class DateTime
     /**
      * Get the earliest Date/Time since a given datetime (strict inequality).
      *
-     * @param referenceDateTime    the datetime since which to find the earliest occurrence
+     * @param referenceDateTime the datetime since which to find the earliest occurrence
      * @return absolute Date/Time, or <code>null</code> if the datetime won't take place since referenceDateTime
      */
     public abstract AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime);
@@ -39,7 +42,7 @@ public abstract class DateTime
     /**
      * Checks whether this datetime will take place since a given absolute datetime (strict inequality).
      *
-     * @param referenceDateTime    the datetime take as "now" for evaluating future
+     * @param referenceDateTime the datetime take as "now" for evaluating future
      * @return true if this datetime will take place at least once after or in referenceDateTime,
      *         false if not
      */
@@ -55,6 +58,17 @@ public abstract class DateTime
      */
     public static AbsoluteDateTime now()
     {
-        throw new RuntimeException("TODO: Implement AbsoluteDateTime.now ISO8601");
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        now.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+        AbsoluteDateTime absoluteDateTime = new AbsoluteDateTime();
+        absoluteDateTime.setYear(now.get(Calendar.YEAR));
+        absoluteDateTime.setMonth(now.get(Calendar.MONTH));
+        absoluteDateTime.setDay(now.get(Calendar.DAY_OF_MONTH));
+        absoluteDateTime.setHour(now.get(Calendar.HOUR));
+        absoluteDateTime.setMinute(now.get(Calendar.MINUTE));
+        absoluteDateTime.setSecond(now.get(Calendar.SECOND));
+
+        return absoluteDateTime;
     }
 }

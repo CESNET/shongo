@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Periodic date/time tests
@@ -118,6 +118,8 @@ public class PeriodicDateTimeTest
     @Test
     public void testEquals() throws Exception
     {
+        assertEquals(periodicDateTime, periodicDateTime);
+
         PeriodicDateTime periodicDateTime = new PeriodicDateTime();
         periodicDateTime.addRule(PeriodicDateTime.RuleType.Extra, new AbsoluteDateTime("2012-03-01 T12:00"));
         periodicDateTime.addRule(PeriodicDateTime.RuleType.Extra, new AbsoluteDateTime("2012-03-08 T12:00"));

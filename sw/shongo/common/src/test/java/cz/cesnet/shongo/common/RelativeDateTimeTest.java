@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 /**
  * Relative date/time tests
@@ -44,6 +44,7 @@ public class RelativeDateTimeTest
     @Test
     public void testEquals() throws Exception
     {
+        assertEquals(relativeDateTime, relativeDateTime);
         assertEquals(new RelativeDateTime(new Period("P1W")), new RelativeDateTime(new Period("P7D")));
     }
 }

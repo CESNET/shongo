@@ -7,7 +7,7 @@ import cz.cesnet.shongo.common.util.Parser;
  *
  * @author Martin Srom
  */
-public class Period
+public class Period implements Comparable<Period>
 {
     private int year = 0;
     private int month = 0;
@@ -97,7 +97,7 @@ public class Period
     /**
      * Constructs a new period from a given ISO 8601 duration string, e.g. "P3Y6M4DT12H30M5S".
      *
-     * @param period    a period string as defined by ISO8601, except decimal fractions, which are not supported
+     * @param period a period string as defined by ISO8601, except decimal fractions, which are not supported
      */
     public Period(String period)
     {
@@ -107,7 +107,7 @@ public class Period
     /**
      * Set Period from a given ISO 8601 duration string, e.g. "P3Y6M4DT12H30M5S".
      *
-     * @param period    a period string as defined by ISO 8601, except decimal fractions, which are not supported
+     * @param period a period string as defined by ISO 8601, except decimal fractions, which are not supported
      */
     public void fromString(String period)
     {
@@ -116,7 +116,7 @@ public class Period
             parser.setPeriod(this);
             parser.parse();
         }
-        catch ( Exception exception ) {
+        catch (Exception exception) {
             throw new RuntimeException(
                     String.format("Failed to parse period '%s': %s", period, exception.getMessage()));
         }
@@ -125,7 +125,7 @@ public class Period
 
     /**
      * Get period as ISO 8601 duration, e.g. "P3Y6M4DT12H30M5S".
-     *
+     * <p/>
      * Individual date/time components do not exceed their natural range, e.g. "PT25H" is returned se "P1DT1H".
      * Returns the shortest representation possible, i.e. omits zero components, except for zero period, which (instead
      * of just "P") is returned as "PT0S" to make it more readable.
@@ -137,30 +137,30 @@ public class Period
         normalize();
 
         StringBuilder period = new StringBuilder();
-        if ( getYear() != 0 ) {
+        if (getYear() != 0) {
             period.append(getYear() + "Y");
         }
-        if ( getMonth() != 0 ) {
+        if (getMonth() != 0) {
             period.append(getMonth() + "M");
         }
-        if ( getDay() != 0 ) {
+        if (getDay() != 0) {
             period.append(getDay() + "D");
         }
         StringBuilder time = new StringBuilder();
-        if ( getHour() != 0 ) {
+        if (getHour() != 0) {
             time.append(getHour() + "H");
         }
-        if ( getMinute() != 0 ) {
+        if (getMinute() != 0) {
             time.append(getMinute() + "M");
         }
-        if ( getSecond() != 0 ) {
+        if (getSecond() != 0) {
             time.append(getSecond() + "S");
         }
-        if ( time.length() > 0 ) {
+        if (time.length() > 0) {
             period.append("T");
             period.append(time);
         }
-        if ( period.length() == 0 ) {
+        if (period.length() == 0) {
             period.append("T0S");
         }
         return "P" + period.toString();
@@ -172,47 +172,52 @@ public class Period
      */
     public void normalize()
     {
-        if ( second >= 60 ) {
+        if (second >= 60) {
             minute += second / 60;
             second %= 60;
         }
-        if ( minute >= 60 ) {
+        if (minute >= 60) {
             hour += minute / 60;
             minute %= 60;
         }
-        if ( hour >= 24 ) {
+        if (hour >= 24) {
             day += hour / 24;
             hour %= 24;
         }
-        if ( month >= 12 ) {
+        if (month >= 12) {
             year += month / 12;
             month %= 12;
         }
-        if ( week > 0 ) {
+        if (week > 0) {
             day += week * 7;
             week = 0;
         }
     }
 
     @Override
-    public boolean equals(Object o)
+    public boolean equals(Object object)
     {
-        if (this == o) {
+        if (this == object) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        
-        return toString().equals(o.toString());
+        return toString().equals(object.toString());
+    }
+
+    @Override
+    public int compareTo(Period period)
+    {
+        throw new RuntimeException("TODO: Implement Period.compareTo");
     }
 
     /**
      * Adds a period of time to this period and returns the resulting period.
-     *
+     * <p/>
      * Does not modify this object.
      *
-     * @param period    time period to add to this one
+     * @param period time period to add to this one
      * @return a new period - sum of this and given period
      */
     public Period add(Period period)

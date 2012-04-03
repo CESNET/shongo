@@ -129,8 +129,8 @@ public class PeriodicDateTime extends DateTime
     /**
      * Add a new rule for periodic date/time.
      *
-     * @param type        Type of rule
-     * @param dateTime    Concrete date/time
+     * @param type     Type of rule
+     * @param dateTime Concrete date/time
      */
     public void addRule(RuleType type, AbsoluteDateTime dateTime)
     {
@@ -140,9 +140,9 @@ public class PeriodicDateTime extends DateTime
     /**
      * Add a new rule for periodic date/time.
      *
-     * @param type            Type of rule
-     * @param dateTimeFrom    Start of interval
-     * @param dateTimeTo      End of interval
+     * @param type         Type of rule
+     * @param dateTimeFrom Start of interval
+     * @param dateTimeTo   End of interval
      */
     public void addRule(RuleType type, AbsoluteDateTime dateTimeFrom, AbsoluteDateTime dateTimeTo)
     {
@@ -215,13 +215,19 @@ public class PeriodicDateTime extends DateTime
      */
     public enum RuleType
     {
-        /** Represents a rule that will add new event outside periodicity. */
+        /**
+         * Represents a rule that will add new event outside periodicity.
+         */
         Extra,
 
-        /** Represents a rule for enabling events by concrete date/time or by interval from - to. */
+        /**
+         * Represents a rule for enabling events by concrete date/time or by interval from - to.
+         */
         Enable,
 
-        /** Represents a rule for disabling events by concrete date/time or by interval from - to. */
+        /**
+         * Represents a rule for disabling events by concrete date/time or by interval from - to.
+         */
         Disable
     }
 
@@ -242,9 +248,8 @@ public class PeriodicDateTime extends DateTime
         /**
          * Construct rule that performs it's effect for concrete date/time.
          *
-         * @param type          Type of rule
-         * @param dateTime      Concrete date/time
-         *
+         * @param type     Type of rule
+         * @param dateTime Concrete date/time
          */
         public Rule(RuleType type, AbsoluteDateTime dateTime)
         {
@@ -255,9 +260,9 @@ public class PeriodicDateTime extends DateTime
         /**
          * Construct rule that performs it's effect for interval of date/times.
          *
-         * @param type            Type of rule
-         * @param dateTimeFrom    Start of date/time interval
-         * @param dateTimeTo      End of date/time interval
+         * @param type         Type of rule
+         * @param dateTimeFrom Start of date/time interval
+         * @param dateTimeTo   End of date/time interval
          */
         public Rule(RuleType type, AbsoluteDateTime dateTimeFrom, AbsoluteDateTime dateTimeTo)
         {
@@ -283,7 +288,7 @@ public class PeriodicDateTime extends DateTime
          */
         public AbsoluteDateTime getDateTime()
         {
-            assert(dateTimeTo == null);
+            assert (dateTimeTo == null);
             return dateTimeFrom;
         }
 

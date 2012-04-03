@@ -27,7 +27,7 @@ public class Parser
             lexer.setCharStream(input);
             tokens = new org.antlr.runtime.CommonTokenStream(lexer);
         }
-        catch ( Exception exception ) {
+        catch (Exception exception) {
             exception.printStackTrace();
         }
         return tokens;

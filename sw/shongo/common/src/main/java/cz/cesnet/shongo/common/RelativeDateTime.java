@@ -21,7 +21,7 @@ public class RelativeDateTime extends DateTime
     /**
      * Construct relative date/time from current time.
      *
-     * @param duration    Relative date/time
+     * @param duration Relative date/time
      */
     public RelativeDateTime(Period duration)
     {
@@ -63,7 +63,7 @@ public class RelativeDateTime extends DateTime
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        RelativeDateTime relativeDateTime = (RelativeDateTime)object;
+        RelativeDateTime relativeDateTime = (RelativeDateTime) object;
         return getDuration().equals(relativeDateTime.getDuration());
     }
 }
