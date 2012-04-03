@@ -16,9 +16,18 @@ package cz.cesnet.shongo.common;
         this.period = period;
     }
 
+    @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e)
     {
         throw new RuntimeException(getErrorMessage(e, tokenNames));
+    }
+}
+
+@lexer::members {
+    @Override
+    public void reportError(RecognitionException exception)
+    {
+        throw new RuntimeException(getErrorMessage(exception, null));
     }
 }
 

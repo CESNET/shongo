@@ -21,6 +21,8 @@ public class AbsoluteDateTimeTest
     {
         assertEquals("Omitting some date/time parts should work",
                 "2007-04-00T14:30:00", new AbsoluteDateTime("2007-04T14:30").toString());
+        assertEquals("Omitting some date/time parts should work",
+                "2007-00-00T14:00:00", new AbsoluteDateTime("2007T14").toString());
 
         assertEquals("ISO short time format should be supported",
                 "2007-04-05T14:30:00", new AbsoluteDateTime("20070405T1430").toString());
