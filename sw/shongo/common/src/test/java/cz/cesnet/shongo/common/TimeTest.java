@@ -2,7 +2,7 @@ package cz.cesnet.shongo.common;
 
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.*;
 
 /**
  * Time tests
@@ -14,49 +14,81 @@ public class TimeTest
     @Test
     public void testGetters() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        Time time = new Time("12:01:02");
+        assertEquals(12, time.getHour());
+        assertEquals(01, time.getMinute());
+        assertEquals(02, time.getSecond());
     }
 
     @Test
     public void testSetters() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        Time time = new Time();
+        time.setHour(13);
+        time.setMinute(03);
+        time.setSecond(04);
+        assertEquals(new Time("13:03:04"), time);
     }
 
     @Test
     public void testIsEmpty() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        assertTrue(new Time().isEmpty());
+        assertFalse(new Time("12:01:01").isEmpty());
     }
 
     @Test
     public void testClear() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        Time time = new Time("12:01:01");
+        time.clear();
+        assertTrue(time.isEmpty());
     }
 
     @Test
     public void testFromString() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        assertEquals(new Time("12:01:02"), new Time("120102"));
+        assertEquals(new Time("12:01"), new Time("1201"));
+        assertEquals(new Time("12"), new Time("12"));
     }
 
     @Test
     public void testToString() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        assertEquals("12:01:02", new Time("120102").toString());
+        assertEquals("12:01", new Time("1201").toString());
+        assertEquals("12", new Time("12").toString());
     }
 
     @Test
     public void testEquals() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        assertEquals(new Time("12:01:02"), new Time("120102"));
+        assertEquals(new Time("12:01"), new Time("120101"));
+        assertEquals(new Time("12:01"), new Time("120102"));
+        assertEquals(new Time("12"), new Time("120101"));
+        assertEquals(new Time("12"), new Time("120201"));
     }
 
     @Test
     public void testCompareTo() throws Exception
     {
-        throw new RuntimeException("TODO: Implement");
+        Time time1 = new Time("12:01:01");
+        Time time2 = new Time("12:01");
+        Time time3 = new Time("12");
+        Time time4 = new Time("11:01:01");
+        Time time5 = new Time("12:01:02");
+
+        assertEquals(0, time1.compareTo(time2));
+        assertEquals(0, time2.compareTo(time1));
+        assertEquals(0, time2.compareTo(time3));
+        assertEquals(0, time3.compareTo(time2));
+        assertEquals(0, time1.compareTo(time3));
+        assertEquals(0, time3.compareTo(time1));
+
+        assertEquals(-1, time4.compareTo(time5));
+        assertEquals(1, time5.compareTo(time4));
     }
 
     @Test

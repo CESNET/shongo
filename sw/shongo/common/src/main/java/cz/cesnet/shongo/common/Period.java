@@ -209,7 +209,72 @@ public class Period implements Comparable<Period>
     @Override
     public int compareTo(Period period)
     {
-        throw new RuntimeException("TODO: Implement Period.compareTo");
+        normalize();
+        period.normalize();
+
+        final int BEFORE = -1;
+        final int EQUAL = 0;
+        final int AFTER = 1;
+
+        if (this == period) {
+            return EQUAL;
+        }
+
+        int year1 = getYear();
+        int year2 = period.getYear();
+        if (year1 < year2) {
+            return BEFORE;
+        }
+        else if (year1 > year2) {
+            return AFTER;
+        }
+
+        int month1 = getMonth();
+        int month2 = period.getMonth();
+        if (month1 < month2) {
+            return BEFORE;
+        }
+        else if (month1 > month2) {
+            return AFTER;
+        }
+
+        int day1 = getDay();
+        int day2 = period.getDay();
+        if (day1 < day2) {
+            return BEFORE;
+        }
+        else if (day1 > day2) {
+            return AFTER;
+        }
+
+        int hour1 = getHour();
+        int hour2 = period.getHour();
+        if (hour1 < hour2) {
+            return BEFORE;
+        }
+        else if (hour1 > hour2) {
+            return AFTER;
+        }
+
+        int minute1 = getMinute();
+        int minute2 = period.getMinute();
+        if (minute1 < minute2) {
+            return BEFORE;
+        }
+        else if (minute1 > minute2) {
+            return AFTER;
+        }
+
+        int second1 = getSecond();
+        int second2 = period.getSecond();
+        if (second1 < second2) {
+            return BEFORE;
+        }
+        else if (second1 > second2) {
+            return AFTER;
+        }
+
+        return EQUAL;
     }
 
     /**
