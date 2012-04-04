@@ -859,10 +859,22 @@ periodicDate.rules = {
 \end{verbatim}
 
 
-\ApiClass{TimeSlot = Pair<DateTime, Period>}{}
-Time slot is a pair of |DateTime| and |Period|. For reservation purposes, the array |TimeSlot[]| should be used to provide the ability to reserve multiple date and times with different periods (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
+\ApiClass{DateTimeSlot}{}
+Date/time slot is a pair of |DateTime| and |Period|. 
+\begin{ApiClassAttributes}
+\ApiClassAttribute{dateTime}{AbsoluteDateTime}{\ApiRequired}
+Defines the start of date/time slot.
+\ApiClassAttribute{duration}{Period}{\ApiOptional}
+Defines the duration of date/time slot.
+\end{ApiClassAttributes}
 
-If time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating time slot to |TimeSlot[]|, where only |AbsoluteDateTime|s are used.
+For reservation purposes, the array |DateTimeSlot[]| should be used to provide the ability to reserve multiple date/times with different periods (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
+
+If date/time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating date/time slot to |AbsoluteDateTimeSlot[]|.
+
+\ApiClass{AbsoluteDateTimeSlot}{DateTimeSlot}
+Extension of |DateTimeSlot| that allows only |AbsoluteDateTime| as an instance of date/time in the slot.
+
 
 \end{Api}
 
@@ -985,24 +997,24 @@ This class represents a summary of a resource. The summary of resource is lightw
 
 
 \ApiClass{Reservation}{}
-This class represents a complete reservation definition. It contains specification of requested resources, requested time slots, child reservations and all other reservation attributes. This class is used for creating and modifying reservations.
+This class represents a complete reservation definition. It contains specification of requested resources, requested date/time slots, child reservations and all other reservation attributes. This class is used for creating and modifying reservations.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiReadOnly} Reservation unique identifier as defined in \UCref{rsv:identification}.
 \ApiClassAttribute{type}{ReservationType}{\ApiReadOnly} Type of reservation, see |ReservationType|.
 \ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the scheduler should try allocate resources from other domains.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long reservation description.
 \ApiClassAttribute{resources}{Resource[]}{\ApiRequired} List of requested resources by this reservation. Each |Resource| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
-\ApiClassAttribute{slots}{TimeSlot[]}{\ApiRequired} Requested time slots for the reservation.
+\ApiClassAttribute{slots}{DateTimeSlot[]}{\ApiRequired} Requested date/time slots for the reservation.
 \ApiClassAttribute{reservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
 \ApiClassAttribute{users}{User[]}{\ApiOptional} List of users that will be permitted to participate in the videoconference. The list can contain several empty |User| definitions to allow guests.
 \end{ApiClassAttributes}
 
 
 \ApiClass{ReservationAllocation}{}
-This class represents a successfully allocated time slots and its' allocated resources for a reservation. It contains only read only data that are obtained from a scheduler.
+This class represents a successfully allocated date/time slots and its' allocated resources for a reservation. It contains only read only data that are obtained from a scheduler.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{} Reservation unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{slotResources}{Map<TimeSlot, String[]>}{\ApiReadOnly} Map of allocated resources where key is allocated time slot and value is list of allocated resources identifiers for the time slot (for different time slots there can be different allocated resources).
+\ApiClassAttribute{slotResources}{Map<AbsoluteDateTimeSlot, String[]>}{\ApiReadOnly} Map of allocated resources where key is allocated date/time slot and value is list of allocated resources identifiers for the date/time slot (for different date/time slots there can be different allocated resources).
 \end{ApiClassAttributes}
 
 
@@ -1054,13 +1066,17 @@ Modify the resource with specified |resourceId|. That operation is permited only
 Delete the resource with specified |resourceId| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
 \ApiCmd{Resource getResource(SecurityToken token, String resourceId)}
-Get the complete resource object for specified |resourceId| that a user with given |token| is entitled to see.
+Get the complete resource object for specified |resourceId| that a user with given |token| is entitled to see. See |Resource| for details.
 
 \ApiCmd{ResourceSummary[] listResources(SecurityToken token, Map filter)}
-List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |ResourceSummary| class.
+List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |ResourceSummary| class. See |ResourceSummary| for details.
 
-\ApiCmd{boolean isResourceActive(SecurityToken token, String resourceId)}
-Checks whether the resource with specified |resourceId| is currently used by any reservation.
+\ApiCmd{boolean isResourceActive(SecurityToken token, String resourceId, AbsoluteDateTime dateTime)}
+Checks whether the resource with specified |resourceId| is in given |dateTime| used by any reservation.
+
+\ApiCmd{AbsoluteDateTimeSlot[] findResourceAvailableSlots(SecurityToken token, String resourceId)}
+Lookup date/time slots when the resource with specified |resourceId| is not allocated to any reservation.
+
 
 \end{Api}
 
@@ -1086,19 +1102,19 @@ Modify the reservation with specified |reservationId|. Map of |attributes| shoul
 Release the reservation with specified |reservationId|. The child reservations remain untouched.
 
 \ApiCmd{Reservation getReservation(SecurityToken token, String reservationId)}
-Get the complete reservation object for specified |reservationId| that a user with given |token| is entitled to see.
+Get the reservation object for specified |reservationId| that a user with given |token| is entitled to see. The returned object contains requested time slots, requested resources, child reservations and all other attributes that can be modified. It does not contain the read only scheduler allocation information which can be obtained by |getReservationAllocation|.
 
 \ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)}
-List all the time slots with assigned resources that were allocated by a scheduler for the reservation and for all child reservation (recursive).
+List all the date/time slots that were allocated by a scheduler for the reservation and for all child reservation (recursive). Each date/time slot contains list of identifiers for resources that are allocated for the date/time slot.
 
-\ApiCmd{ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot, Map filter)}
-Get the list of allocated resources for a reservation with specified |reservationId| and for the given time |slot| (one reservation can have multiple time slots in which the reservation takes place). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
+\ApiCmd{ResourceSummary[] listReservationSlotResources(SecurityToken token, String reservationId, AbsoluteDateTimeSlot slot, Map filter)}
+Get a list of allocated resources for the given date/time slot in a reservation with specified |reservationId| (one reservation can have multiple date/time slots in which the reservation takes place and the list of allocated resources may vary). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
 
 \ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
-List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class.
+List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class. Only the lightweight definitions of reservations is returned, see |ReservationSummary| for details.
 
-\ApiCmd{TimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources, boolean interDomain)}
-Lookup available time slots for specified reservation |duration| and |resources|. Argument |interDomain| specifies whether inter-domain lookup should be performed.
+\ApiCmd{AbsoluteDateTimeSlot[] findReservationAvailableSlots(SecurityToken token, Period duration, Resource[] resources, boolean interDomain)}
+Lookup available date/time slots for specified reservation |duration| and |resources|. Argument |interDomain| specifies whether inter-domain lookup should be performed.
 
 \end{Api}
 
