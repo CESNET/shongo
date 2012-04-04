@@ -924,38 +924,66 @@ The resource is one of the types as defined in \UCref{res:types}.
 \ApiEnumValue{1080p}{1920x1080}
 \ApiEnumValue{2K}{2048x1080}
 \ApiEnumValue{4K}{4096x2160}
-\TODO{Complete this}
 \end{ApiEnumValues}
 
 
-\ApiEnum{CodecType}
+\ApiEnum{AudioCodec}
+\begin{ApiEnumValues}
+\ApiEnumValue{MP3}{}
+\ApiEnumValue{AC3}{}
+\end{ApiEnumValues}
+
+
+\ApiEnum{VideoCodec}
 \begin{ApiEnumValues}
 \ApiEnumValue{H261}{}
 \ApiEnumValue{H263}{}
 \ApiEnumValue{H264}{}
-\TODO{Complete this}
 \end{ApiEnumValues}
 
 
-\ApiClass{Codec}{}
-Resource technologies can provide different codecs.
+\ApiClass{Channel}{}
 \begin{ApiClassAttributes}
-\ApiClassAttribute{type}{CodecType}{\ApiRequired}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired}
+\ApiClassAttribute{audio}{AudioCodec}{\ApiRequired}
+\ApiClassAttribute{video}{VideoCodec}{\ApiRequired}
 \ApiClassAttribute{resolution}{Resolution}{\ApiRequired}
 \end{ApiClassAttributes}
+Can be represented by string:
+\begin{verbatim}
+<technology>:<audio>:<video>:<resolution>
+\end{verbatim}
 
 
-\ApiClass{Translation}{}
-Represents translations that a |GatewayServer| resource can perform.
+\ApiEnum{CapabilityType}
+\begin{ApiEnumValues}
+\ApiEnumValue{Input}{}
+\ApiEnumValue{Output}{}
+\ApiEnumValue{Translation}{}
+\ApiEnumValue{Recording}{}
+\ApiEnumValue{Streaming}{}
+\end{ApiEnumValues}
+
+
+\ApiClass{Capability}{}
 \begin{ApiClassAttributes}
-\ApiClassAttribute{input}{Map<TechnologyType, Codec[]>}{\ApiRequired}
-Input technologies with specified codecs that server is able to transform.
-\ApiClassAttribute{output}{Map<TechnologyType, Codec[]>}{\ApiRequired}
-Output technologies with specified codecs that server is able to produce.
+\ApiClassAttribute{type}{CapabilityType}{\ApiRequired} Type of capability, see |CapabilityType|.
+\ApiClassAttribute{rules}{Rule[]}{\ApiRequired} List of rules which defines what channels is capability able to process. Rule can be one of the following types:
+\begin{compactitem}
+\item |Enable| means that the device is able to process specified channel.
+\item |Disable| means that the device is not able to process specified channel.
+\end{compactitem}
+For |Input|, |Output|, |Recording| and |Streaming| capability type one |channel| must be specified. For |Translation| capability type channel |from| and |to| must be specified.
 \end{ApiClassAttributes}
-\TODO{Do better translation specification (add exceptions or replace by patterns)}
-\\ \TODO{Specify also technology here and remove it from resource}
-\\ \TODO{Rename it to something better}
+
+\ApiExample{}
+\begin{verbatim}
+capability.type = Translation
+capability.rules = {
+    { type = Enable, from = H323|SIP:*:H261:*x*, to = H323|SIP:*:H261:*x* },
+    { type = Disable, from = *:*:*:1080p, to = *:*:*:1080p },
+}
+\end{verbatim}
 
 
 \ApiClass{Resource}{}
@@ -965,10 +993,7 @@ This class represents a complete resource definition. It contains child resource
 \ApiClassAttribute{parentId}{String}{\ApiRequired} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
 \ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|.
-\ApiClassAttribute{technology}{Technology}{\ApiOptional} Technology type of the resource, see |Technology|.
-\\ \TODO{Perhaps remove technology or change it to array}
-\ApiClassAttribute{translation}{Translation}{\ApiOptional} Translation type of the gateway resource, see |Translation|.
-\\ \TODO{Change it according to Translation changes}
+\ApiClassAttribute{capabilities}{Capability[]}{\ApiOptional} Capabilities of the resource.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
 \ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
