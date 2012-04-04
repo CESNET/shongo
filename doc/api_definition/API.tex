@@ -939,7 +939,7 @@ The resource is one of the types as defined in \UCref{res:types}.
 \end{ApiEnumValues}
 
 
-\ApiClass{Channel}{}
+\ApiClass{Format}{}
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technology}{Technology}{\ApiRequired}
 \ApiClassAttribute{audio}{AudioCodec}{\ApiRequired}
@@ -965,20 +965,21 @@ Can be represented by string:
 \ApiClass{Capability}{}
 \begin{ApiClassAttributes}
 \ApiClassAttribute{type}{CapabilityType}{\ApiRequired} Type of capability, see |CapabilityType|.
-\ApiClassAttribute{rules}{Rule[]}{\ApiRequired} List of rules which defines what channels is capability able to process. Rule can be one of the following types:
+\ApiClassAttribute{rules}{Rule[]}{\ApiRequired} List of rules that defines which formats is capability able to process. Rule can be one of the following types:
 \begin{compactitem}
-\item |Enable| means that the device is able to process specified channel.
-\item |Disable| means that the device is not able to process specified channel.
+\item |Enable| means that the device is able to process specified format.
+\item |Disable| means that the device is not able to process specified format.
 \end{compactitem}
-For |Input|, |Output|, |Recording| and |Streaming| capability type one |channel| must be specified. For |Translation| capability type channel |from| and |to| must be specified.
+Conflicts in rules are solved by \textit{last-match} policy.
+For |Input|, |Output|, |Recording| and |Streaming| capability type one |format| must be specified. For |Translation| capability type format |from| and |to| must be specified.
 \end{ApiClassAttributes}
 
 \ApiExample{}
 \begin{verbatim}
 capability.type = Translation
 capability.rules = {
-    { type = Enable, from = H323|SIP:*:H261:*x*, to = H323|SIP:*:H261:*x* },
-    { type = Disable, from = *:*:*:1080p, to = *:*:*:1080p },
+    { type = Enable, from = H323,SIP:*:H264:*, to = H323,SIP:*:H264:* },
+    { type = Disable, from = *:AC3:*:*, to = *:AC3:*:* },
 }
 \end{verbatim}
 
@@ -994,7 +995,7 @@ This class represents a complete resource definition. It contains child resource
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
 \ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
-\ApiClassAttribute{resources}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |resources| contains all videoconferencing devices in the room).
+\ApiClassAttribute{childResources}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |childResources| contains all videoconferencing devices in the room).
 \end{ApiClassAttributes}
 
 
@@ -1027,7 +1028,7 @@ This class represents a complete reservation definition. It contains specificati
 \ApiClassAttribute{description}{String}{\ApiOptional} Long reservation description.
 \ApiClassAttribute{resources}{Resource[]}{\ApiRequired} List of requested resources by this reservation. Each |Resource| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
 \ApiClassAttribute{slots}{DateTimeSlot[]}{\ApiRequired} Requested date/time slots for the reservation.
-\ApiClassAttribute{reservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
+\ApiClassAttribute{childReservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
 \ApiClassAttribute{users}{User[]}{\ApiOptional} List of users that will be permitted to participate in the videoconference. The list can contain several empty |User| definitions to allow guests.
 \end{ApiClassAttributes}
 
