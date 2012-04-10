@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.common.api;
 
+import cz.cesnet.shongo.common.xmlrpc.StructType;
+
 /**
  * Represents a time slot
  *
  * @author Martin Srom
  */
-public class TimeSlot
+public class TimeSlot implements StructType
 {
     /**
      * Starting Date/Time

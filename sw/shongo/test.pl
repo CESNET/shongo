@@ -10,9 +10,8 @@ $response = $client->send_request(
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken')
     ),
+    RPC::XML::string->new('Periodic'),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('AttributeMap'),
-        'type' => RPC::XML::string->new('OneTime'),
         'date' => RPC::XML::string->new('20120101')
     )
 );

@@ -1,17 +1,18 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.common.api.TimeSlot;
+import cz.cesnet.shongo.controller.api.*;
 
 import java.util.Map;
 
 /**
- * Interface to the service handling operations on reservations.
+ * Reservation service implementation
  *
- * @author Ondrej Bouda
+ * @author Martin Srom
  */
-public interface ReservationService
+public class ReservationServiceImpl implements ReservationService
 {
     /**
      * Creates a new reservation.
@@ -24,7 +25,11 @@ public interface ReservationService
      *                   class while all the attributes marked as required must be present
      * @return the created reservation with auto-generated identifier
      */
-    public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes);
+    @Override
+    public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.createReservation");
+    }
 
     /**
      * Modifies a given reservation.
@@ -33,7 +38,11 @@ public interface ReservationService
      * @param reservationId Shongo identifier of the reservation to modify
      * @param attributes    map of reservation attributes to change
      */
-    public void modifyReservation(SecurityToken token, String reservationId, Map attributes);
+    @Override
+    public void modifyReservation(SecurityToken token, String reservationId, Map attributes)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.modifyReservation");
+    }
 
     /**
      * Deletes a given reservation.
@@ -41,7 +50,11 @@ public interface ReservationService
      * @param token         token of the user requesting the operation
      * @param reservationId Shongo identifier of the reservation to modify
      */
-    public void deleteReservation(SecurityToken token, String reservationId);
+    @Override
+    public void deleteReservation(SecurityToken token, String reservationId)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.deleteReservation");
+    }
 
     /**
      * Gets the complete Reservation object.
@@ -49,7 +62,11 @@ public interface ReservationService
      * @param token         token of the user requesting the operation
      * @param reservationId Shongo identifier of the reservation to get
      */
-    public Reservation getReservation(SecurityToken token, String reservationId);
+    @Override
+    public Reservation getReservation(SecurityToken token, String reservationId)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.getReservation");
+    }
 
     /**
      * Lists all the time slots with assigned resources that were allocated by the scheduler for the reservation.
@@ -58,7 +75,11 @@ public interface ReservationService
      * @param reservationId Shongo identifier of the reservation to get
      * @return
      */
-    public ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId);
+    @Override
+    public ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.getReservationAllocation");
+    }
 
     /**
      * Lists resources allocated by a given reservation in a given time slot, matching a filter.
@@ -69,8 +90,12 @@ public interface ReservationService
      * @param filter
      * @return
      */
+    @Override
     public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot,
-            Map filter);
+            Map filter)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.listReservationResources");
+    }
 
     /**
      * Lists all the reservations matching a filter.
@@ -79,7 +104,11 @@ public interface ReservationService
      * @param filter
      * @return
      */
-    public ReservationSummary[] listReservations(SecurityToken token, Map filter);
+    @Override
+    public ReservationSummary[] listReservations(SecurityToken token, Map filter)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.listReservations");
+    }
 
     /**
      * Looks up available time slots for a given reservation duration and resources.
@@ -90,7 +119,10 @@ public interface ReservationService
      * @param interDomain specification whether inter-domain lookup should be performed
      * @return
      */
+    @Override
     public TimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
-            boolean interDomain);
-
+            boolean interDomain)
+    {
+        throw new RuntimeException("TODO: Implement ReservationServiceImpl.findReservationAvailableTime");
+    }
 }

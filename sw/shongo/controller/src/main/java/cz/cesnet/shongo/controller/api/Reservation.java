@@ -50,6 +50,16 @@ public class Reservation
      */
     private UserIdentity[] users;
 
+    /**
+     * Construct reservation
+     *
+     * @param type
+     */
+    public Reservation(ReservationType type)
+    {
+        this.type = type;
+    }
+
     public String getId()
     {
         return id;

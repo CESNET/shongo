@@ -32,7 +32,6 @@ public class Controller
             PropertyHandlerMapping propertyHandlerMapping = new PropertyHandlerMapping();
             propertyHandlerMapping.setTypeConverterFactory(new XmlRpcTypeConverterFactory());
             propertyHandlerMapping.load(Thread.currentThread().getContextClassLoader(), "xmlrpc.properties");
-            propertyHandlerMapping.addHandler();
 
             XmlRpcWebServer webServer = new XmlRpcWebServer(port);
             XmlRpcServer xmlRpcServer = webServer.getXmlRpcServer();
