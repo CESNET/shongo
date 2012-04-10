@@ -51,7 +51,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object convert(Object pObject)
         {
-            if ( pObject instanceof String ) {
+            if (pObject instanceof String) {
                 String value = (String) pObject;
                 AtomicType atomicType = null;
                 try {

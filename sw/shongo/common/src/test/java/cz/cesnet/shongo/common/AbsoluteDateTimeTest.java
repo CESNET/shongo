@@ -46,8 +46,16 @@ public class AbsoluteDateTimeTest
     public void testEquals() throws Exception
     {
         assertEquals(absoluteDateTime, absoluteDateTime);
-        assertEquals(new AbsoluteDateTime("20070405T143000"), new AbsoluteDateTime("2007-04-05 T14:30"));
-        assertEquals(new AbsoluteDateTime("20070400T14"), new AbsoluteDateTime("2007-04-00T14:00:00"));
+        assertEquals(new AbsoluteDateTime("20070405T1430"), new AbsoluteDateTime("2007-04-05 T14:30"));
+        assertEquals(new AbsoluteDateTime("20070400T14"), new AbsoluteDateTime("2007-04-00T14"));
+    }
+
+    @Test
+    public void testMatch() throws Exception
+    {
+        assertTrue(absoluteDateTime.match(absoluteDateTime));
+        assertTrue(new AbsoluteDateTime("20070405T143000").match(new AbsoluteDateTime("2007-04-05 T14:30")));
+        assertTrue(new AbsoluteDateTime("20070400T14").match(new AbsoluteDateTime("2007-04-00T14:00:00")));
     }
 
     @Test
@@ -63,7 +71,7 @@ public class AbsoluteDateTimeTest
                 new AbsoluteDateTime("1234-04-05T14:30").getEarliest(new AbsoluteDateTime("1234-04-05T14:30")));
 
         // NOTE: requires correctly set system clock (at least with precision to centuries)
-        assertEquals(new AbsoluteDateTime("9876-04-05T14:30:00"),
+        assertEquals(new AbsoluteDateTime("9876-04-05T14:30"),
                 new AbsoluteDateTime("9876-04-05T14:30").getEarliest());
 
         assertNull("A datetime which will never occur",
@@ -74,8 +82,8 @@ public class AbsoluteDateTimeTest
     public void testCompareTo() throws Exception
     {
         AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30:00");
-        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30:30");
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30");
+        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30");
         AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12 T00");
         AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
 
@@ -92,8 +100,8 @@ public class AbsoluteDateTimeTest
     public void testBefore() throws Exception
     {
         AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30:00");
-        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30:30");
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30");
+        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:31");
         AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12 T00");
         AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
 
@@ -111,8 +119,8 @@ public class AbsoluteDateTimeTest
     public void testAfter() throws Exception
     {
         AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30:00");
-        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30:30");
+        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30");
+        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:31");
         AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12 T00");
         AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
 
@@ -137,7 +145,7 @@ public class AbsoluteDateTimeTest
 
         AbsoluteDateTime dt2 = new AbsoluteDateTime("2012-02-28 T12:00");
         AbsoluteDateTime result2 = dt2.add(new Period("PT13H"));
-        assertEquals(new AbsoluteDateTime("2012-02-29 T01:00:00"), result2);
+        assertEquals(new AbsoluteDateTime("2012-02-29 T01:00"), result2);
     }
 
     @Test
@@ -147,7 +155,7 @@ public class AbsoluteDateTimeTest
         AbsoluteDateTime result = dt.subtract(new Period("PT13H"));
         assertEquals("The original datetime object should not be modified",
                 new AbsoluteDateTime("2012-02-28 T12:00"), dt);
-        assertEquals(new AbsoluteDateTime("2012-02-27 T23:00:00"), result);
+        assertEquals(new AbsoluteDateTime("2012-02-27 T23:00"), result);
 
         assertEquals(new AbsoluteDateTime("1234-12-12 T12:34:56"),
                 new AbsoluteDateTime("1234-12-12 T12:34:56").

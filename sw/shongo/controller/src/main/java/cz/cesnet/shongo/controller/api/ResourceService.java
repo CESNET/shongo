@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.common.api.AbsoluteDateTime;
 import cz.cesnet.shongo.common.api.SecurityToken;
 
 import java.util.Map;
@@ -11,7 +12,6 @@ import java.util.Map;
  */
 public interface ResourceService
 {
-
     /**
      * Creates a new resource that will be managed by Shongo.
      * <p/>
@@ -67,12 +67,12 @@ public interface ResourceService
     ResourceSummary[] listResources(SecurityToken token, Map filter);
 
     /**
-     * Checks whether a given resource is currently used by any reservation.
+     * Checks whether a given resource is used by any reservation in specified date/time.
      *
      * @param token      token of the user requesting the operation
      * @param resourceId Shongo identifier of the resource to check
+     * @param dateTime   date/time to check
      * @return
      */
-    boolean isResourceActive(SecurityToken token, String resourceId);
-
+    boolean isResourceActive(SecurityToken token, String resourceId, AbsoluteDateTime dateTime);
 }

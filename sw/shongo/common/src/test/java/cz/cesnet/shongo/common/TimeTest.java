@@ -41,7 +41,7 @@ public class TimeTest
     public void testClear() throws Exception
     {
         Time time = new Time("12:01:01");
-        time.clear();
+        time.setEmpty();
         assertTrue(time.isEmpty());
     }
 
@@ -65,10 +65,19 @@ public class TimeTest
     public void testEquals() throws Exception
     {
         assertEquals(new Time("12:01:02"), new Time("120102"));
-        assertEquals(new Time("12:01"), new Time("120101"));
-        assertEquals(new Time("12:01"), new Time("120102"));
-        assertEquals(new Time("12"), new Time("120101"));
-        assertEquals(new Time("12"), new Time("120201"));
+        assertEquals(new Time("12:01"), new Time("1201"));
+        assertNotSame(new Time("12:01"), new Time("120102"));
+        assertNotSame(new Time("12"), new Time("120101"));
+    }
+
+    @Test
+    public void testMatch() throws Exception
+    {
+        assertTrue(new Time("12:01:02").match(new Time("120102")));
+        assertTrue(new Time("12:01").match(new Time("120101")));
+        assertTrue(new Time("12:01").match(new Time("120102")));
+        assertTrue(new Time("12").match(new Time("120101")));
+        assertTrue(new Time("12").match(new Time("120201")));
     }
 
     @Test
@@ -76,17 +85,25 @@ public class TimeTest
     {
         Time time1 = new Time("12:01:01");
         Time time2 = new Time("12:01");
-        Time time3 = new Time("12");
+        Time time3 = new Time("1201");
         Time time4 = new Time("11:01:01");
         Time time5 = new Time("12:01:02");
 
-        assertEquals(0, time1.compareTo(time2));
-        assertEquals(0, time2.compareTo(time1));
-        assertEquals(0, time2.compareTo(time3));
-        assertEquals(0, time3.compareTo(time2));
-        assertEquals(0, time1.compareTo(time3));
-        assertEquals(0, time3.compareTo(time1));
+        try {
+            assertEquals(0, time1.compareTo(time2));
+            fail("AssertionError should be thrown.");
+        }
+        catch (AssertionError error) {
+        }
 
+        try {
+            assertEquals(0, time2.compareTo(time1));
+            fail("AssertionError should be thrown.");
+        }
+        catch (AssertionError error) {
+        }
+
+        assertEquals(0, time2.compareTo(time3));
         assertEquals(-1, time4.compareTo(time5));
         assertEquals(1, time5.compareTo(time4));
     }
@@ -94,38 +111,41 @@ public class TimeTest
     @Test
     public void testAdd() throws Exception
     {
-        assertEquals(new Time("01:01:00"), new Time("23:59:59").addHour(1).addMinute(1).addSecond(1));
-        assertEquals(new Time("02:02:02"), new Time("23:59:59").addHour(49).addMinute(61).addSecond(63));
+        assertEquals(new Time("01:01:00"), new Time("23:59:59").add(new Time(1, 1, 1)));
+        assertEquals(new Time("02:02:02"), new Time("23:59:59").add(49, 61, 63));
     }
 
+    @Test
     public void testAddOverflow() throws Exception
     {
-        assertEquals(1, new Time("23:59:59").addHourInplace(1));
-        assertEquals(0, new Time("22:59:59").addHourInplace(1));
-        assertEquals(1, new Time("23:59:59").addMinuteInplace(1));
-        assertEquals(0, new Time("23:58:59").addMinuteInplace(1));
-        assertEquals(1, new Time("23:59:59").addSecondInplace(1));
-        assertEquals(0, new Time("23:59:58").addSecondInplace(1));
+        assertEquals(1, new Time("23:59:59").add(1, 0, 0).popOverflow());
+        assertEquals(0, new Time("22:59:59").add(1, 0, 0).popOverflow());
+        assertEquals(1, new Time("23:59:59").add(0, 1, 0).popOverflow());
+        assertEquals(0, new Time("23:58:59").add(0, 1, 0).popOverflow());
+        assertEquals(1, new Time("23:59:59").add(0, 0, 1).popOverflow());
+        assertEquals(0, new Time("23:59:58").add(0, 0, 1).popOverflow());
     }
 
     @Test
     public void testSubtract() throws Exception
     {
-        assertEquals(new Time("23:59:59"), new Time("00:00:00").addSecond(-1));
-        assertEquals(new Time("22:58:59"), new Time("00:00:00").addHour(-1).addMinute(-1).addSecond(-1));
+        assertEquals(new Time("23:59:59"), new Time("00:00:00").subtract(0, 0, 1));
+        assertEquals(new Time("22:58:59"), new Time("00:00:00").subtract(new Time(1, 1, 1)));
     }
 
     @Test
     public void testSubtractUnderflow() throws Exception
     {
-        assertEquals(-1, new Time("00:00:00").addHourInplace(-1));
-        assertEquals(-1, new Time("00:00:00").addHourInplace(-24));
-        assertEquals(-2, new Time("00:00:00").addHourInplace(-25));
-        assertEquals(-3, new Time("00:00:00").addHourInplace(-49));
-        assertEquals(0, new Time("01:00:00").addHourInplace(-1));
-        assertEquals(-1, new Time("00:00:00").addMinuteInplace(-1));
-        assertEquals(0, new Time("00:01:00").addMinuteInplace(-1));
-        assertEquals(-1, new Time("00:00:00").addSecondInplace(-1));
-        assertEquals(0, new Time("00:00:01").addSecondInplace(-1));
+        assertEquals(1, new Time("00:00:00").subtract(1, 0, 0).popUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(24, 0, 0).popUnderflow());
+        assertEquals(2, new Time("00:00:00").subtract(25, 0, 0).popUnderflow());
+        assertEquals(3, new Time("00:00:00").subtract(49, 0, 0).popUnderflow());
+        assertEquals(0, new Time("01:00:00").subtract(1, 0, 0).popUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(0, 1, 0).popUnderflow());
+        assertEquals(2, new Time("00:00:00").subtract(0, 24 * 60 + 1, 0).popUnderflow());
+        assertEquals(0, new Time("00:01:00").subtract(0, 1, 0).popUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(0, 0, 1).popUnderflow());
+        assertEquals(2, new Time("00:00:00").subtract(0, 0, 24 * 60 * 60 + 1).popUnderflow());
+        assertEquals(0, new Time("00:00:01").subtract(0, 0, 1).popUnderflow());
     }
 }

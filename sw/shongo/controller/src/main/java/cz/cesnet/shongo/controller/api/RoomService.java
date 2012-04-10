@@ -12,7 +12,6 @@ import java.util.Map;
  */
 public interface RoomService
 {
-
     /**
      * Lists all users currently participating in a given room.
      *
@@ -50,6 +49,4 @@ public interface RoomService
      * @param userId user identifier within a concrete technology
      */
     public void disconnectRoomUser(SecurityToken token, String roomId, String userId);
-
-
 }

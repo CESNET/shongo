@@ -134,8 +134,8 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public void clear()
     {
-        getDate().clear();
-        getTime().clear();
+        getDate().setEmpty();
+        getTime().setEmpty();
     }
 
     /**
@@ -199,23 +199,40 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     @Override
     public int compareTo(AbsoluteDateTime absoluteDateTime)
     {
-        final int EQUAL = 0;
-
         if (this == absoluteDateTime) {
-            return EQUAL;
+            return 0;
         }
 
         int dateResult = getDate().compareTo(absoluteDateTime.getDate());
-        if (dateResult != EQUAL) {
+        if (dateResult != 0) {
             return dateResult;
         }
 
         int timeResult = getTime().compareTo(absoluteDateTime.getTime());
-        if (timeResult != EQUAL) {
+        if (timeResult != 0) {
             return timeResult;
         }
 
-        return EQUAL;
+        return 0;
+    }
+
+    /**
+     * Checks whether this date/time equals the given date/time by skipping
+     * all empty fields (in this or given date/time).
+     *
+     * @param dateTime
+     * @return true if this date/time matches the given date/time,
+     *         false otherwise
+     */
+    public boolean match(AbsoluteDateTime dateTime)
+    {
+        if (this == dateTime) {
+            return true;
+        }
+        if (dateTime == null) {
+            return false;
+        }
+        return getDate().match(dateTime.getDate()) && getTime().match(dateTime.getTime());
     }
 
     /**
@@ -269,23 +286,13 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     {
         period.normalize();
 
-        AbsoluteDateTime absoluteDateTime = clone();
-        Date date = absoluteDateTime.getDate();
-        Time time = absoluteDateTime.getTime();
+        Time time = getTime();
+        time = time.add(period.getHour(), period.getMinute(), period.getSecond());
 
-        date.addYearInplace(period.getYear());
-        date.addMonthInplace(period.getMonth());
-        date.addDayInplace(period.getDay());
+        Date date = getDate();
+        date = date.add(period.getYear(), period.getMonth(), period.getDay() + time.popOverflow());
 
-        int overflowedDays = 0;
-        overflowedDays += time.addHourInplace(period.getHour());
-        overflowedDays += time.addMinuteInplace(period.getMinute());
-        overflowedDays += time.addSecondInplace(period.getSecond());
-        if (overflowedDays != 0) {
-            date.addDayInplace(overflowedDays);
-        }
-
-        return absoluteDateTime;
+        return new AbsoluteDateTime(date, time);
     }
 
     /**
@@ -300,22 +307,12 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     {
         period.normalize();
 
-        AbsoluteDateTime absoluteDateTime = clone();
-        Date date = absoluteDateTime.getDate();
-        Time time = absoluteDateTime.getTime();
+        Time time = getTime();
+        time = time.subtract(period.getHour(), period.getMinute(), period.getSecond());
 
-        date.addYearInplace(-period.getYear());
-        date.addMonthInplace(-period.getMonth());
-        date.addDayInplace(-period.getDay());
+        Date date = getDate();
+        date = date.subtract(period.getYear(), period.getMonth(), period.getDay() + time.popUnderflow());
 
-        int overflowedDays = 0;
-        overflowedDays += time.addHourInplace(-period.getHour());
-        overflowedDays += time.addMinuteInplace(-period.getMinute());
-        overflowedDays += time.addSecondInplace(-period.getSecond());
-        if (overflowedDays != 0) {
-            date.addDayInplace(overflowedDays);
-        }
-
-        return absoluteDateTime;
+        return new AbsoluteDateTime(date, time);
     }
 }

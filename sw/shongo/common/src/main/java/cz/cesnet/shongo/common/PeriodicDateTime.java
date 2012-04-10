@@ -187,6 +187,11 @@ public class PeriodicDateTime extends DateTime
      */
     public AbsoluteDateTime[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
+        /*List<AbsoluteDateTime> dateTimeList = new ArrayList<AbsoluteDateTime>();
+        AbsoluteDateTime start = this.start;
+        while ( start.after(from) == false ) {
+            start = start.add(period);
+        }*/
         throw new RuntimeException("TODO: Implement PeriodicDateTime.enumerate");
     }
 

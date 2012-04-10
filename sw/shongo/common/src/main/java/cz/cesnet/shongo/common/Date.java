@@ -15,18 +15,39 @@ public class Date implements Comparable<Date>
     /**
      * Null field value.
      */
-    public final int NullValue = Integer.MAX_VALUE;
+    public static final int NullValue = Integer.MAX_VALUE;
 
     private int year;
     private int month;
     private int day;
 
     /**
-     * Construct empty date.
+     * Construct date by field values.
+     *
+     * @param year
+     * @param month
+     * @param day
      */
+    public Date(int year, int month, int day)
+    {
+        setYear(year);
+        setMonth(month);
+        setDay(day);
+    }
+
     public Date()
     {
-        clear();
+        this(NullValue, NullValue, NullValue);
+    }
+
+    public Date(int year)
+    {
+        this(year, NullValue, NullValue);
+    }
+
+    public Date(int year, int month)
+    {
+        this(year, NullValue, NullValue);
     }
 
     /**
@@ -97,7 +118,7 @@ public class Date implements Comparable<Date>
     /**
      * Clear all fields.
      */
-    public void clear()
+    public void setEmpty()
     {
         year = NullValue;
         month = NullValue;
@@ -111,7 +132,7 @@ public class Date implements Comparable<Date>
      */
     public void fromString(String date)
     {
-        clear();
+        setEmpty();
         try {
             DateParser parser = new DateParser(Parser.getTokenStream(date, DateLexer.class));
             parser.setDate(this);
@@ -130,15 +151,15 @@ public class Date implements Comparable<Date>
      */
     public String toString()
     {
-        int year = getYear();
+        int year = this.year;
         if (year == NullValue) {
             year = 0;
         }
-        int month = getMonth();
+        int month = this.month;
         if (month == NullValue) {
             month = 0;
         }
-        int day = getDay();
+        int day = this.day;
         if (day == NullValue) {
             day = 0;
         }
@@ -155,63 +176,109 @@ public class Date implements Comparable<Date>
             return false;
         }
         Date date = (Date) object;
-        if (getYear() != NullValue && date.getYear() != NullValue && getYear() != date.getYear()) {
+        if (year != date.year) {
             return false;
         }
-        if (getMonth() != NullValue && date.getMonth() != NullValue && getMonth() != date.getMonth()) {
+        if (month != date.month) {
             return false;
         }
-        if (getDay() != NullValue && date.getDay() != NullValue && getDay() != date.getDay()) {
+        if (day != date.day) {
             return false;
         }
         return true;
     }
 
     @Override
+    public int hashCode()
+    {
+        int result = 13;
+        result = 37 * result + (year != NullValue ? year : 0);
+        result = 37 * result + (month != NullValue ? month : 0);
+        result = 37 * result + (day != NullValue ? day : 0);
+        return result;
+    }
+
+    @Override
     public int compareTo(Date date)
     {
-        final int BEFORE = -1;
-        final int EQUAL = 0;
-        final int AFTER = 1;
-
         if (this == date) {
-            return EQUAL;
+            return 0;
         }
 
-        int year1 = getYear();
-        int year2 = date.getYear();
-        if (year1 != NullValue && year2 != NullValue) {
-            if (year1 < year2) {
-                return BEFORE;
+        // Fields should be both empty or nonempty
+        assert ((year == NullValue && date.year == NullValue) || (year != NullValue && date.year != NullValue)) :
+                "Can't compare dates with empty year in only one of them.";
+        assert ((month == NullValue && date.month == NullValue) || (month != NullValue && date.month != NullValue)) :
+                "Can't compare dates with empty month in only one of them.";
+        assert ((day == NullValue && date.day == NullValue) || (day != NullValue && date.day != NullValue)) :
+                "Can't compare dates with empty day in only one of them.";
+
+        // Compare years
+        if (year != NullValue && date.year != NullValue) {
+            if (year < date.year) {
+                return -1;
             }
-            else if (year1 > year2) {
-                return AFTER;
+            else if (year > date.year) {
+                return 1;
+            }
+        }
+        else {
+            assert (month == NullValue && date.month == NullValue) : "Can't compare months with empty year.";
+            assert (day == NullValue && date.day == NullValue) : "Can't compare days with empty year.";
+        }
+
+        // Compare months
+        if (month != NullValue && date.month != NullValue) {
+            if (month < date.month) {
+                return -1;
+            }
+            else if (month > date.month) {
+                return 1;
+            }
+        }
+        else {
+            assert (day == NullValue && date.day == NullValue) : "Can't compare days with empty year.";
+        }
+
+        // Compare days
+        if (day != NullValue && date.day != NullValue) {
+            if (day < date.day) {
+                return -1;
+            }
+            else if (day > date.day) {
+                return 1;
             }
         }
 
-        int month1 = getMonth();
-        int month2 = date.getMonth();
-        if (month1 != NullValue && month2 != NullValue) {
-            if (month1 < month2) {
-                return BEFORE;
-            }
-            else if (month1 > month2) {
-                return AFTER;
-            }
-        }
+        return 0;
+    }
 
-        int day1 = getDay();
-        int day2 = date.getDay();
-        if (day1 != NullValue && day2 != NullValue) {
-            if (day1 < day2) {
-                return BEFORE;
-            }
-            else if (day1 > day2) {
-                return AFTER;
-            }
+    /**
+     * Checks whether this date equals the given date by skipping
+     * all empty fields (in this or given date).
+     *
+     * @param date
+     * @return true if this date matches the given date,
+     *         false otherwise
+     */
+    public boolean match(Date date)
+    {
+        if (this == date) {
+            return true;
         }
-
-        return EQUAL;
+        if (date == null) {
+            return false;
+        }
+        if (year != NullValue && date.year != NullValue && year != date.year) {
+            return false;
+        }
+        if (month != NullValue && date.month != NullValue && month != date.month) {
+            return false;
+        }
+        if (day != NullValue && date.day != NullValue && day != date.day) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -229,114 +296,124 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Add to year.
+     * Add given date to this date. This object is not modified.
      *
-     * @param year
+     * @param date
+     * @return result of addition
      */
-    public void addYearInplace(int year)
+    public Date add(Date date)
     {
-        if (year == 0) {
-            return;
-        }
-
-        // Update year
-        if (this.year == NullValue) {
-            throw new RuntimeException("Can't add to year because it is empty.");
-        }
-        this.year += year;
+        int year = (date.year != NullValue ? date.year : 0);
+        int month = (date.month != NullValue ? date.month : 0);
+        int day = (date.day != NullValue ? date.day : 0);
+        return add(year, month, day);
     }
 
     /**
-     * Add to month.
+     * Add given date to this date. This object is not modified.
      *
+     * @param year
      * @param month
+     * @param day
+     * @return result of addition
      */
-    public void addMonthInplace(int month)
+    public Date add(int year, int month, int day)
     {
-        if (month == 0) {
-            return;
-        }
+        Date result = clone();
 
-        // Update month
-        if (this.month == NullValue) {
-            throw new RuntimeException("Can't add to month because it is empty.");
-        }
-        this.month += month;
-
-        // Overflow to years
-        this.month -= 1;
-        if (this.month < 0 || this.month >= 12) {
-            addYearInplace(this.month / 12);
-            this.month %= 12;
-            if (this.month < 0) {
-                this.month += 12;
-                addYearInplace(-1);
+        if (month > 0) {
+            assert (result.month != NullValue) : "Can't add to month because it is empty.";
+            result.month += month;
+            result.month -= 1;
+            if (result.month >= 12) {
+                year += result.month / 12;
+                result.month %= 12;
             }
+            result.month += 1;
         }
-        this.month += 1;
+
+        if (year > 0) {
+            assert (result.year != NullValue) : "Can't add to year because it is empty.";
+            result.year += year;
+        }
+
+        if (day > 0) {
+            assert (result.day != NullValue) : "Can't add to day because it is empty.";
+            assert (result.month != NullValue) : "Can't add to day because month is empty.";
+            assert (result.year != NullValue) : "Can't add to day because year is empty.";
+
+            // Add days by Calendar in UTC timezone
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            calendar.set(result.year, result.month - 1, result.day);
+            calendar.add(Calendar.DAY_OF_MONTH, day);
+            result.year = calendar.get(Calendar.YEAR);
+            result.month = calendar.get(Calendar.MONTH) + 1;
+            result.day = calendar.get(Calendar.DAY_OF_MONTH);
+        }
+
+        return result;
     }
 
     /**
-     * Add to day.
+     * Subtract given date from this date. This object is not modified.
      *
-     * @param day
+     * @param date
+     * @return result of subtraction
      */
-
-    public void addDayInplace(int day)
+    public Date subtract(Date date)
     {
-        if (day == 0) {
-            return;
-        }
-
-        if (this.year == NullValue || this.month == NullValue || this.day == NullValue) {
-            throw new RuntimeException("Can't add to day because year, month or day is empty.");
-        }
-
-        // Add days by Calendar in UTC timezone
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        calendar.set(this.year, this.month - 1, this.day);
-        calendar.add(Calendar.DAY_OF_MONTH, day);
-        this.year = calendar.get(Calendar.YEAR);
-        this.month = calendar.get(Calendar.MONTH) + 1;
-        this.day = calendar.get(Calendar.DAY_OF_MONTH);
+        int year = (date.year != NullValue ? date.year : 0);
+        int month = (date.month != NullValue ? date.month : 0);
+        int day = (date.day != NullValue ? date.day : 0);
+        return subtract(year, month, day);
     }
 
     /**
-     * Add to year and return new date object. This object will not be modified.
+     * Subtract given date from this date. This object is not modified.
      *
      * @param year
-     * @return a new date
-     */
-    public Date addYear(int year)
-    {
-        Date date = clone();
-        date.addYearInplace(year);
-        return date;
-    }
-
-    /**
-     * Add to month and return new date object. This object will not be modified.
-     *
      * @param month
-     * @return a new date
-     */
-    public Date addMonth(int month)
-    {
-        Date date = clone();
-        date.addMonthInplace(month);
-        return date;
-    }
-
-    /**
-     * Add to day and return new date object. This object will not be modified.
-     *
      * @param day
-     * @return a new date
+     * @return result of subtraction
      */
-    public Date addDay(int day)
+    public Date subtract(int year, int month, int day)
     {
-        Date date = clone();
-        date.addDayInplace(day);
-        return date;
+        Date result = clone();
+
+        if (month > 0) {
+            assert (result.month != NullValue) : "Can't add to month because it is empty.";
+            result.month -= month;
+            result.month -= 1;
+            if (result.month < 0) {
+                year += -result.month / 12;
+                result.month %= 12;
+                if (result.month != 0) {
+                    result.month += 12;
+                    year++;
+                }
+            }
+            result.month += 1;
+        }
+
+        if (year > 0) {
+            assert (result.year != NullValue) : "Can't add to year because it is empty.";
+            result.year -= year;
+        }
+
+        if (day > 0) {
+            assert (result.day != NullValue) : "Can't add to day because it is empty.";
+            assert (result.month != NullValue) : "Can't add to day because month is empty.";
+            assert (result.year != NullValue) : "Can't add to day because year is empty.";
+
+            // Add days by Calendar in UTC timezone
+            Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            calendar.set(result.year, result.month - 1, result.day);
+            calendar.add(Calendar.DAY_OF_MONTH, -day);
+            result.year = calendar.get(Calendar.YEAR);
+            result.month = calendar.get(Calendar.MONTH) + 1;
+            result.day = calendar.get(Calendar.DAY_OF_MONTH);
+        }
+
+        return result;
     }
 }

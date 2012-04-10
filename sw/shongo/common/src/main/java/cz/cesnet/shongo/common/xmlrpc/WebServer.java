@@ -49,7 +49,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      *
      * @author Martin Srom
      */
-    class ConnectionServer extends XmlRpcHttpServer
+    private static class ConnectionServer extends XmlRpcHttpServer
     {
         @Override
         protected Throwable convertThrowable(Throwable pError)

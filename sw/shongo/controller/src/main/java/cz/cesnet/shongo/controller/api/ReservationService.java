@@ -92,5 +92,4 @@ public interface ReservationService
      */
     public TimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
             boolean interDomain);
-
 }
