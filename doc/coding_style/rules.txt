@@ -52,3 +52,16 @@ Documentation
 -Write comments to overridden method only when it brings a new description.
  Otherwise clever IDEs are able to show Doc from the super method.
 
+
+Objects
+-------
+-Use List<T> instead of arrays T[] in function input and output values
+
+-Try to implement equals by java contract (reflexive, symmetrical, transitive)
+
+-Implement hashCode when equals is implemented
+
+-Try to create immutable objects, all attributes final, without setters, modifiers return new objects
+
+
+
