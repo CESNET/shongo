@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.TimeSlot;
+import cz.cesnet.shongo.common.api.DateTimeSlot;
 
 import java.util.Map;
 
@@ -14,14 +14,14 @@ public class ReservationAllocation
     /**
      * Map of resources that were allocated to slots
      */
-    private Map<TimeSlot, String[]> slotResources;
+    private Map<DateTimeSlot, String[]> slotResources;
 
-    public Map<TimeSlot, String[]> getSlotResources()
+    public Map<DateTimeSlot, String[]> getSlotResources()
     {
         return slotResources;
     }
 
-    public void setSlotResources(Map<TimeSlot, String[]> slotResources)
+    public void setSlotResources(Map<DateTimeSlot, String[]> slotResources)
     {
         this.slotResources = slotResources;
     }

@@ -3,30 +3,30 @@ package cz.cesnet.shongo.common.api;
 import cz.cesnet.shongo.common.xmlrpc.StructType;
 
 /**
- * Represents a time slot
+ * Represents a date/time slot
  *
  * @author Martin Srom
  */
-public class TimeSlot implements StructType
+public class DateTimeSlot implements StructType
 {
     /**
      * Starting Date/Time
      */
-    private DateTime dateTime;
+    private DateTime start;
 
     /**
      * Period
      */
     private Period duration;
 
-    public DateTime getDateTime()
+    public DateTime getStart()
     {
-        return dateTime;
+        return start;
     }
 
-    public void setDateTime(DateTime dateTime)
+    public void setStart(DateTime start)
     {
-        this.dateTime = dateTime;
+        this.start = start;
     }
 
     public Period getDuration()
