@@ -27,7 +27,7 @@ public class TimeSlotTest
     public void testGetters() throws Exception
     {
         assertTrue(timeSlot.getDateTime() instanceof PeriodicDateTime);
-        assertEquals(timeSlot.getDuration(), new Period("PT120M"));
+        assertEquals(new Period("PT120M"), timeSlot.getDuration());
     }
 
     @Test
@@ -52,9 +52,9 @@ public class TimeSlotTest
                 new TimeSlot(new AbsoluteDateTime("2012-03-29 T12:00"), new Period("PT2H"))
         };
         TimeSlot[] timeSlots = timeSlot.enumerate();
-        assertEquals(timeSlots.length, correctTimeSlots.length);
+        assertEquals(correctTimeSlots.length, timeSlots.length);
         for (int index = 0; index < correctTimeSlots.length; index++) {
-            assertEquals(timeSlots[index], correctTimeSlots[index]);
+            assertEquals(correctTimeSlots[index], timeSlots[index]);
         }
     }
 
@@ -68,18 +68,18 @@ public class TimeSlotTest
         };
         TimeSlot[] timeSlots = timeSlot.enumerate(
                 new AbsoluteDateTime("2012-03-02"), new AbsoluteDateTime("2012-03-23"));
-        assertEquals(timeSlots.length, correctTimeSlots.length);
+        assertEquals(correctTimeSlots.length, timeSlots.length);
         for (int index = 0; index < correctTimeSlots.length; index++) {
-            assertEquals(timeSlots[index], correctTimeSlots[index]);
+            assertEquals(correctTimeSlots[index], timeSlots[index]);
         }
     }
 
     @Test
     public void testGetEarliest() throws Exception
     {
-        AbsoluteDateTime referenceDateTime = new AbsoluteDateTime("2012-01-08 T12:01");
-        assertEquals(timeSlot.getEarliest(referenceDateTime), new TimeSlot(
-                new AbsoluteDateTime("2012-03-22 T12:00"), new Period("PT2H")));
+        AbsoluteDateTime referenceDateTime = new AbsoluteDateTime("2012-03-08 T12:01");
+        assertEquals(new TimeSlot(new AbsoluteDateTime("2012-03-15 T12:00"), new Period("PT2H")),
+                timeSlot.getEarliest(referenceDateTime));
     }
 
     @Test
@@ -90,6 +90,6 @@ public class TimeSlotTest
         PeriodicDateTime periodicDateTime = new PeriodicDateTime(
                 new AbsoluteDateTime("2012-03-01 T12:00"), new Period("P1W"), new AbsoluteDateTime("2012-03-31"));
         TimeSlot timeSlot = new TimeSlot(periodicDateTime, new Period("PT2H"));
-        assertEquals(this.timeSlot, timeSlot);
+        assertEquals(timeSlot, this.timeSlot);
     }
 }

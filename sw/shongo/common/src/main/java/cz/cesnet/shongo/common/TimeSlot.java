@@ -9,8 +9,8 @@ import java.util.ArrayList;
  */
 public class TimeSlot
 {
-    private DateTime dateTime;
-    private Period duration;
+    private final DateTime dateTime;
+    private final Period duration;
 
     /**
      * Construct time slot.
@@ -50,7 +50,7 @@ public class TimeSlot
      * @return true if time slot is taking place now,
      *         false otherwise
      */
-    final public boolean isActive()
+    public final boolean isActive()
     {
         return isActive(AbsoluteDateTime.now());
     }
@@ -73,7 +73,6 @@ public class TimeSlot
      *
      * @return array of time slots with absolute date/times
      */
-    @SuppressWarnings({"unchecked"})
     public TimeSlot[] enumerate()
     {
         return enumerate(null, null);
@@ -86,21 +85,27 @@ public class TimeSlot
      *
      * @return array of time slots with absolute date/times
      */
-    @SuppressWarnings({"unchecked"})
     public TimeSlot[] enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
         ArrayList<TimeSlot> slots = new ArrayList<TimeSlot>();
-        if (getDateTime() instanceof PeriodicDateTime) {
-            PeriodicDateTime periodicDateTime = (PeriodicDateTime) getDateTime();
+        if (dateTime instanceof PeriodicDateTime) {
+            PeriodicDateTime periodicDateTime = (PeriodicDateTime) dateTime;
             for (AbsoluteDateTime dateTime : periodicDateTime.enumerate(from, to)) {
                 slots.add(new TimeSlot(dateTime, getDuration()));
             }
         }
         else {
-            AbsoluteDateTime dateTime = getDateTime().getEarliest();
-            if ((from == null || dateTime.after(from) || dateTime.equals(from))
-                    && (to == null || dateTime.before(to) || dateTime.equals(to))) {
-                slots.add(new TimeSlot(dateTime, getDuration()));
+            AbsoluteDateTime dateTime = null;
+            if ( this.dateTime instanceof AbsoluteDateTime) {
+                dateTime = (AbsoluteDateTime)this.dateTime;
+            } else {
+                dateTime = getDateTime().getEarliest();
+            }
+            if (dateTime != null) {
+                if ((from == null || dateTime.after(from) || dateTime.equals(from))
+                        && (to == null || dateTime.before(to) || dateTime.equals(to))) {
+                    slots.add(new TimeSlot(dateTime, getDuration()));
+                }
             }
         }
         return slots.toArray(new TimeSlot[slots.size()]);
@@ -124,7 +129,11 @@ public class TimeSlot
      */
     public TimeSlot getEarliest(AbsoluteDateTime referenceDateTime)
     {
-        return new TimeSlot(dateTime.getEarliest(referenceDateTime), getDuration());
+        AbsoluteDateTime dateTime = this.dateTime.getEarliest(referenceDateTime);
+        if (dateTime == null) {
+            return null;
+        }
+        return new TimeSlot(dateTime, getDuration());
     }
 
     @Override
@@ -136,6 +145,48 @@ public class TimeSlot
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        throw new RuntimeException("TODO: Implement TimeSlot.equals");
+
+        TimeSlot timeSlot = (TimeSlot) object;
+        TimeSlot[] timeSlots1 = enumerate();
+        TimeSlot[] timeSlots2 = timeSlot.enumerate();
+        if (timeSlots1.length != timeSlots2.length) {
+            return false;
+        }
+        for (int index = 0; index < timeSlots1.length; index++) {
+            if (timeSlots1[index].dateTime.equals(timeSlots2[index].dateTime) == false) {
+                return false;
+            }
+            if (timeSlots1[index].duration.equals(timeSlots2[index].duration) == false) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = 23;
+        result = 37 * result + dateTime.hashCode();
+        result = 37 * result + duration.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString()
+    {
+        TimeSlot[] dateTimes = enumerate();
+        StringBuilder result = new StringBuilder();
+        for (TimeSlot timeSlot : dateTimes) {
+            if (result.length() > 0) {
+                result.append(", ");
+            }
+            result.append("(");
+            result.append(timeSlot.dateTime.toString());
+            result.append(",");
+            result.append(timeSlot.duration.toString());
+            result.append(")");
+        }
+        return "TimeSlot [" + result.toString() + "]";
     }
 }

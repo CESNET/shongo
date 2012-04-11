@@ -190,7 +190,7 @@ public class PeriodicDateTime extends DateTime
         // Find all events in range from-to
         List<AbsoluteDateTime> dateTimeList = new ArrayList<AbsoluteDateTime>();
         if (this.start != null) {
-            AbsoluteDateTime start = (AbsoluteDateTime)this.start.clone();
+            AbsoluteDateTime start = (AbsoluteDateTime) this.start.clone();
             while (start.after(this.end) == false) {
                 if (to != null && start.after(to)) {
                     break;
@@ -271,9 +271,10 @@ public class PeriodicDateTime extends DateTime
     public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
     {
         AbsoluteDateTime[] dateTimes = enumerate();
-        for ( AbsoluteDateTime dateTime : dateTimes ) {
-            if (dateTime.before(referenceDateTime) == false)
+        for (AbsoluteDateTime dateTime : dateTimes) {
+            if (dateTime.before(referenceDateTime) == false) {
                 return dateTime;
+            }
         }
         return null;
     }
