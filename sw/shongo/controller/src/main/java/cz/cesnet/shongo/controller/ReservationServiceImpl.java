@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.api.TimeSlot;
+import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.controller.api.*;
 
 import java.util.Map;
@@ -45,7 +45,7 @@ public class ReservationServiceImpl implements ReservationService
     }
 
     @Override
-    public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, TimeSlot slot,
+    public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, DateTimeSlot slot,
             Map filter)
     {
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.listReservationResources");
@@ -58,7 +58,7 @@ public class ReservationServiceImpl implements ReservationService
     }
 
     @Override
-    public TimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
+    public DateTimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
             boolean interDomain)
     {
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.findReservationAvailableTime");
