@@ -5,15 +5,15 @@ package cz.cesnet.shongo.common;
  *
  * @author Martin Srom
  */
-public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDateTime>
+public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDateTime>, Cloneable
 {
     /**
      * Null field value.
      */
     public final int NullValue = Integer.MAX_VALUE;
 
-    private Date date;
-    private Time time;
+    private final Date date;
+    private final Time time;
 
     /**
      * Construct zero date/time.
@@ -26,13 +26,19 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     /**
      * Construct date/time from an ISO8601 string, e.g. "2007-04-05T14:30:00".
      *
-     * @param dateTime ISO8601 Date/Time; see {@link #fromString} for more info about supported input formats
+     * @param dateTime ISO8601 Date/Time;
      */
     public AbsoluteDateTime(String dateTime)
     {
-        this(new Date(), new Time());
-
-        fromString(dateTime);
+        int index = dateTime.indexOf("T");
+        if (index == -1) {
+            date = new Date(dateTime);
+            time = new Time();
+        }
+        else {
+            date = new Date(dateTime.substring(0, index));
+            time = new Time(dateTime.substring(index + 1, dateTime.length()));
+        }
     }
 
     /**
@@ -49,113 +55,84 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         this.time = time;
     }
 
+    /**
+     * Get date/time date.
+     *
+     * @return date
+     */
     public Date getDate()
     {
         return date;
     }
 
-    public void setDate(Date date)
-    {
-        this.date = date;
-    }
-
+    /**
+     * Get date/time time.
+     *
+     * @return time.
+     */
     public Time getTime()
     {
         return time;
     }
 
-    public void setTime(Time time)
-    {
-        this.time = time;
-    }
-
+    /**
+     * Get date year.
+     *
+     * @return year
+     */
     public int getYear()
     {
         return getDate().getYear();
     }
 
-    public void setYear(int year)
-    {
-        getDate().setYear(year);
-    }
-
+    /**
+     * Get date month.
+     *
+     * @return month
+     */
     public int getMonth()
     {
         return getDate().getMonth();
     }
 
-    public void setMonth(int month)
-    {
-        getDate().setMonth(month);
-    }
-
+    /**
+     * Get date day.
+     *
+     * @return day
+     */
     public int getDay()
     {
         return getDate().getDay();
     }
 
-    public void setDay(int day)
-    {
-        getDate().setDay(day);
-    }
-
+    /**
+     * Get time hour.
+     *
+     * @return hour
+     */
     public int getHour()
     {
         return getTime().getHour();
     }
 
-    public void setHour(int hour)
-    {
-        getTime().setHour(hour);
-    }
-
+    /**
+     * Get time minute.
+     *
+     * @return minute
+     */
     public int getMinute()
     {
         return getTime().getMinute();
     }
 
-    public void setMinute(int minute)
-    {
-        getTime().setMinute(minute);
-    }
-
+    /**
+     * Get time second.
+     *
+     * @return second
+     */
     public int getSecond()
     {
         return getTime().getSecond();
-    }
-
-    public void setSecond(int second)
-    {
-        getTime().setSecond(second);
-    }
-
-    /**
-     * Clear all date/time fields
-     */
-    public void clear()
-    {
-        getDate().setEmpty();
-        getTime().setEmpty();
-    }
-
-    /**
-     * Set Date/Time from an ISO8601 string, e.g. "2007-04-05T14:30:00".
-     * <p/>
-     * According to ISO 8601, both short (e.g. "20070405T143000") and extended (e.g. "2007-04-05T14:30:00")
-     * formats are supported.
-     *
-     * @param dateTime datetime specification as defined by ISO8601, e.g. "2007-04-05T14:30"
-     */
-    public void fromString(String dateTime)
-    {
-        int index = dateTime.indexOf("T");
-        if (index == -1) {
-            getDate().fromString(dateTime);
-        }
-        else {
-            getDate().fromString(dateTime.substring(0, index));
-            getTime().fromString(dateTime.substring(index + 1, dateTime.length()));
-        }
     }
 
     /**
@@ -225,6 +202,12 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         return 0;
     }
 
+    @Override
+    public Object clone()
+    {
+        return new AbsoluteDateTime(date, time);
+    }
+
     /**
      * Checks whether this date/time equals the given date/time by skipping
      * all empty fields (in this or given date/time).
@@ -289,23 +272,6 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Clone absolute date/time.
-     *
-     * @return cloned instance of absolute date/time
-     */
-    public AbsoluteDateTime clone()
-    {
-        AbsoluteDateTime absoluteDateTime = new AbsoluteDateTime();
-        absoluteDateTime.setYear(getYear());
-        absoluteDateTime.setMonth(getMonth());
-        absoluteDateTime.setDay(getDay());
-        absoluteDateTime.setHour(getHour());
-        absoluteDateTime.setMinute(getMinute());
-        absoluteDateTime.setSecond(getSecond());
-        return absoluteDateTime;
-    }
-
-    /**
      * Adds a time period to this datetime and returns the result.
      * <p/>
      * This datetime object is not modified.
@@ -321,7 +287,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         time = time.add(period.getHour(), period.getMinute(), period.getSecond());
 
         Date date = getDate();
-        date = date.add(period.getYear(), period.getMonth(), period.getDay() + time.popOverflow());
+        date = date.add(period.getYear(), period.getMonth(), period.getDay() + time.getOverflow());
 
         return new AbsoluteDateTime(date, time);
     }
@@ -342,7 +308,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         time = time.subtract(period.getHour(), period.getMinute(), period.getSecond());
 
         Date date = getDate();
-        date = date.subtract(period.getYear(), period.getMonth(), period.getDay() + time.popUnderflow());
+        date = date.subtract(period.getYear(), period.getMonth(), period.getDay() + time.getUnderflow());
 
         return new AbsoluteDateTime(date, time);
     }

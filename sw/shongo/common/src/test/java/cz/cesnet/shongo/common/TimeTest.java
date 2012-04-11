@@ -22,28 +22,10 @@ public class TimeTest
     }
 
     @Test
-    public void testSetters() throws Exception
-    {
-        Time time = new Time();
-        time.setHour(13);
-        time.setMinute(03);
-        time.setSecond(04);
-        assertEquals(new Time("13:03:04"), time);
-    }
-
-    @Test
     public void testIsEmpty() throws Exception
     {
         assertTrue(new Time().isEmpty());
         assertFalse(new Time("12:01:01").isEmpty());
-    }
-
-    @Test
-    public void testClear() throws Exception
-    {
-        Time time = new Time("12:01:01");
-        time.setEmpty();
-        assertTrue(time.isEmpty());
     }
 
     @Test
@@ -119,12 +101,12 @@ public class TimeTest
     @Test
     public void testAddOverflow() throws Exception
     {
-        assertEquals(1, new Time("23:59:59").add(1, 0, 0).popOverflow());
-        assertEquals(0, new Time("22:59:59").add(1, 0, 0).popOverflow());
-        assertEquals(1, new Time("23:59:59").add(0, 1, 0).popOverflow());
-        assertEquals(0, new Time("23:58:59").add(0, 1, 0).popOverflow());
-        assertEquals(1, new Time("23:59:59").add(0, 0, 1).popOverflow());
-        assertEquals(0, new Time("23:59:58").add(0, 0, 1).popOverflow());
+        assertEquals(1, new Time("23:59:59").add(1, 0, 0).getOverflow());
+        assertEquals(0, new Time("22:59:59").add(1, 0, 0).getOverflow());
+        assertEquals(1, new Time("23:59:59").add(0, 1, 0).getOverflow());
+        assertEquals(0, new Time("23:58:59").add(0, 1, 0).getOverflow());
+        assertEquals(1, new Time("23:59:59").add(0, 0, 1).getOverflow());
+        assertEquals(0, new Time("23:59:58").add(0, 0, 1).getOverflow());
     }
 
     @Test
@@ -137,16 +119,16 @@ public class TimeTest
     @Test
     public void testSubtractUnderflow() throws Exception
     {
-        assertEquals(1, new Time("00:00:00").subtract(1, 0, 0).popUnderflow());
-        assertEquals(1, new Time("00:00:00").subtract(24, 0, 0).popUnderflow());
-        assertEquals(2, new Time("00:00:00").subtract(25, 0, 0).popUnderflow());
-        assertEquals(3, new Time("00:00:00").subtract(49, 0, 0).popUnderflow());
-        assertEquals(0, new Time("01:00:00").subtract(1, 0, 0).popUnderflow());
-        assertEquals(1, new Time("00:00:00").subtract(0, 1, 0).popUnderflow());
-        assertEquals(2, new Time("00:00:00").subtract(0, 24 * 60 + 1, 0).popUnderflow());
-        assertEquals(0, new Time("00:01:00").subtract(0, 1, 0).popUnderflow());
-        assertEquals(1, new Time("00:00:00").subtract(0, 0, 1).popUnderflow());
-        assertEquals(2, new Time("00:00:00").subtract(0, 0, 24 * 60 * 60 + 1).popUnderflow());
-        assertEquals(0, new Time("00:00:01").subtract(0, 0, 1).popUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(1, 0, 0).getUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(24, 0, 0).getUnderflow());
+        assertEquals(2, new Time("00:00:00").subtract(25, 0, 0).getUnderflow());
+        assertEquals(3, new Time("00:00:00").subtract(49, 0, 0).getUnderflow());
+        assertEquals(0, new Time("01:00:00").subtract(1, 0, 0).getUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(0, 1, 0).getUnderflow());
+        assertEquals(2, new Time("00:00:00").subtract(0, 24 * 60 + 1, 0).getUnderflow());
+        assertEquals(0, new Time("00:01:00").subtract(0, 1, 0).getUnderflow());
+        assertEquals(1, new Time("00:00:00").subtract(0, 0, 1).getUnderflow());
+        assertEquals(2, new Time("00:00:00").subtract(0, 0, 24 * 60 * 60 + 1).getUnderflow());
+        assertEquals(0, new Time("00:00:01").subtract(0, 0, 1).getUnderflow());
     }
 }

@@ -9,12 +9,9 @@ package cz.cesnet.shongo.common;
 }
 
 @members {
-    private Time time;
-
-    public void setTime(Time time)
-    {
-        this.time = time;
-    }
+    public int hour = Time.NullValue;
+    public int minute = Time.NullValue;
+    public int second = Time.NullValue;
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e)
@@ -32,25 +29,25 @@ package cz.cesnet.shongo.common;
 }
 
 parse
-    :   (   hour=INT ':' minute=INT ( ':' second=INT { time.setSecond(Integer.parseInt($second.text)); } )?
+    :   (   tokenHour=INT ':' tokenMinute=INT ( ':' tokenSecond=INT { second = Integer.parseInt($tokenSecond.text); } )?
             {
-                time.setHour(Integer.parseInt($hour.text));
-                time.setMinute(Integer.parseInt($minute.text));
+                hour = Integer.parseInt($tokenHour.text);
+                minute = Integer.parseInt($tokenMinute.text);
             }
         )
     |   (   INT
             {
                 if ( $INT.text.length() == 6 ) {
-                    time.setHour(Integer.parseInt($INT.text.substring(0, 2)));
-                    time.setMinute(Integer.parseInt($INT.text.substring(2, 4)));
-                    time.setSecond(Integer.parseInt($INT.text.substring(4, 6)));
+                    hour = Integer.parseInt($INT.text.substring(0, 2));
+                    minute = Integer.parseInt($INT.text.substring(2, 4));
+                    second = Integer.parseInt($INT.text.substring(4, 6));
                 }
                 else if ( $INT.text.length() == 4 ) {
-                    time.setHour(Integer.parseInt($INT.text.substring(0, 2)));
-                    time.setMinute(Integer.parseInt($INT.text.substring(2, 4)));
+                    hour = Integer.parseInt($INT.text.substring(0, 2));
+                    minute = Integer.parseInt($INT.text.substring(2, 4));
                 }
                 else {
-                    time.setHour(Integer.parseInt($INT.text));
+                    hour = Integer.parseInt($INT.text);
                 }
             }
         )

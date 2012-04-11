@@ -7,18 +7,17 @@ import cz.cesnet.shongo.common.util.Parser;
  *
  * @author Martin Srom
  */
-public class Time implements Comparable<Time>
+public final class Time implements Comparable<Time>, Cloneable
 {
     /**
      * Null field value.
      */
     public static final int NullValue = Integer.MAX_VALUE;
 
-    private int hour;
-    private int minute;
-    private int second;
-    private int overflow = 0;
-    private int underflow = 0;
+    private final int hour;
+    private final int minute;
+    private final int second;
+    private final int overflow;
 
     /**
      * Construct time by field values.
@@ -27,26 +26,36 @@ public class Time implements Comparable<Time>
      * @param minute
      * @param second
      */
-    public Time(int hour, int minute, int second)
+    public Time(int hour, int minute, int second, int overflow)
     {
-        setHour(hour);
-        setMinute(minute);
-        setSecond(second);
+        assert (hour == NullValue || (hour >= 0 && hour <= 23)) : "Hour should be in range 0 to 23.";
+        assert (minute == NullValue || (minute >= 0 && minute <= 59)) : "Minute should be in range 0 to 59.";
+        assert (second == NullValue || (second >= 0 && second <= 59)) : "Second should be in range 0 to 59.";
+
+        this.hour = hour;
+        this.minute = minute;
+        this.second = second;
+        this.overflow = overflow;
     }
 
     public Time()
     {
-        this(NullValue, NullValue, NullValue);
+        this(NullValue, NullValue, NullValue, 0);
     }
 
     public Time(int hour)
     {
-        this(hour, NullValue, NullValue);
+        this(hour, NullValue, NullValue, 0);
     }
 
     public Time(int hour, int minute)
     {
-        this(hour, NullValue, NullValue);
+        this(hour, minute, NullValue, 0);
+    }
+
+    public Time(int hour, int minute, int second)
+    {
+        this(hour, minute, second, 0);
     }
 
     /**
@@ -56,40 +65,49 @@ public class Time implements Comparable<Time>
      */
     public Time(String time)
     {
-        fromString(time);
+        try {
+            TimeParser parser = new TimeParser(Parser.getTokenStream(time, TimeLexer.class));
+            parser.parse();
+
+            hour = parser.hour;
+            minute = parser.minute;
+            second = parser.second;
+            overflow = 0;
+        }
+        catch (Exception exception) {
+            throw new RuntimeException(
+                    String.format("Failed to parse time '%s': %s", time, exception.getMessage()));
+        }
     }
 
+    /**
+     * Get time hour.
+     *
+     * @return hour
+     */
     public int getHour()
     {
         return hour;
     }
 
-    public void setHour(int hour)
-    {
-        assert (hour == NullValue || (hour >= 0 && hour <= 23)) : "Hour should be in range 0 to 23.";
-        this.hour = hour;
-    }
-
+    /**
+     * Get time minute.
+     *
+     * @return minute
+     */
     public int getMinute()
     {
         return minute;
     }
 
-    public void setMinute(int minute)
-    {
-        assert (minute == NullValue || (minute >= 0 && minute <= 59)) : "Minute should be in range 0 to 59.";
-        this.minute = minute;
-    }
-
+    /**
+     * Get time second.
+     *
+     * @return second
+     */
     public int getSecond()
     {
         return second;
-    }
-
-    public void setSecond(int second)
-    {
-        assert (second == NullValue || (second >= 0 && second <= 59)) : "Second should be in range 0 to 59.";
-        this.second = second;
     }
 
     /**
@@ -100,35 +118,6 @@ public class Time implements Comparable<Time>
     public boolean isEmpty()
     {
         return hour == NullValue && minute == NullValue && second == NullValue;
-    }
-
-    /**
-     * Clear all fields.
-     */
-    public void setEmpty()
-    {
-        hour = NullValue;
-        minute = NullValue;
-        second = NullValue;
-    }
-
-    /**
-     * Set time from an ISO8601 string, e.g. "12:00:00".
-     *
-     * @param time time specification as defined by ISO8601
-     */
-    public void fromString(String time)
-    {
-        setEmpty();
-        try {
-            TimeParser parser = new TimeParser(Parser.getTokenStream(time, TimeLexer.class));
-            parser.setTime(this);
-            parser.parse();
-        }
-        catch (Exception exception) {
-            throw new RuntimeException(
-                    String.format("Failed to parse time '%s': %s", time, exception.getMessage()));
-        }
     }
 
     /**
@@ -238,6 +227,12 @@ public class Time implements Comparable<Time>
         return 0;
     }
 
+    @Override
+    public Object clone()
+    {
+        return new Time(hour, minute, second);
+    }
+
     /**
      * Checks whether this time equals the given time by skipping
      * all empty fields (in this or given time).
@@ -267,20 +262,6 @@ public class Time implements Comparable<Time>
     }
 
     /**
-     * Clone time.
-     *
-     * @return cloned instance of time
-     */
-    public Time clone()
-    {
-        Time time = new Time();
-        time.hour = hour;
-        time.minute = minute;
-        time.second = second;
-        return time;
-    }
-
-    /**
      * Add given time to this time. This object is not modified.
      *
      * @param time
@@ -304,36 +285,39 @@ public class Time implements Comparable<Time>
      */
     public Time add(int hour, int minute, int second)
     {
-        Time result = clone();
+        int resultHour = this.hour;
+        int resultMinute = this.minute;
+        int resultSecond = this.second;
+        int resultOverflow = 0;
 
         if (second > 0) {
-            assert (result.second != NullValue) : "Can't add to seconds because it is empty.";
-            result.second += second;
-            if (result.second >= 60) {
-                minute += result.second / 60;
-                result.second %= 60;
+            assert (resultSecond != NullValue) : "Can't add to seconds because it is empty.";
+            resultSecond += second;
+            if (resultSecond >= 60) {
+                minute += resultSecond / 60;
+                resultSecond %= 60;
             }
         }
 
         if (minute > 0) {
-            assert (result.minute != NullValue) : "Can't add to minutes because it is empty.";
-            result.minute += minute;
-            if (result.minute >= 60) {
-                hour += result.minute / 60;
-                result.minute %= 60;
+            assert (resultMinute != NullValue) : "Can't add to minutes because it is empty.";
+            resultMinute += minute;
+            if (resultMinute >= 60) {
+                hour += resultMinute / 60;
+                resultMinute %= 60;
             }
         }
 
         if (hour > 0) {
-            assert (result.hour != NullValue) : "Can't add to hours because it is empty.";
-            result.hour += hour;
-            if (result.hour >= 24) {
-                result.overflow += result.hour / 24;
-                result.hour %= 24;
+            assert (resultHour != NullValue) : "Can't add to hours because it is empty.";
+            resultHour += hour;
+            if (resultHour >= 24) {
+                resultOverflow = resultHour / 24;
+                resultHour %= 24;
             }
         }
 
-        return result;
+        return new Time(resultHour, resultMinute, resultSecond, resultOverflow);
     }
 
     /**
@@ -360,92 +344,73 @@ public class Time implements Comparable<Time>
      */
     public Time subtract(int hour, int minute, int second)
     {
-        Time result = clone();
+        int resultHour = this.hour;
+        int resultMinute = this.minute;
+        int resultSecond = this.second;
+        int resultOverflow = 0;
 
         if (second > 0) {
-            assert (result.second != NullValue) : "Can't subtract from seconds because it is empty.";
-            result.second -= second;
-            if (result.second < 0) {
-                minute += -result.second / 60;
-                result.second %= 60;
-                if (result.second != 0) {
-                    result.second += 60;
+            assert (resultSecond != NullValue) : "Can't subtract from seconds because it is empty.";
+            resultSecond -= second;
+            if (resultSecond < 0) {
+                minute += -resultSecond / 60;
+                resultSecond %= 60;
+                if (resultSecond != 0) {
+                    resultSecond += 60;
                     minute++;
                 }
             }
         }
 
         if (minute > 0) {
-            assert (result.minute != NullValue) : "Can't subtract from minutes because it is empty.";
-            result.minute -= minute;
-            if (result.minute < 0) {
-                hour += -result.minute / 60;
-                result.minute %= 60;
-                if (result.minute != 0) {
-                    result.minute += 60;
+            assert (resultMinute != NullValue) : "Can't subtract from minutes because it is empty.";
+            resultMinute -= minute;
+            if (resultMinute < 0) {
+                hour += -resultMinute / 60;
+                resultMinute %= 60;
+                if (resultMinute != 0) {
+                    resultMinute += 60;
                     hour++;
                 }
             }
         }
 
         if (hour > 0) {
-            assert (result.hour != NullValue) : "Can't subtract from hours because it is empty.";
-            result.hour -= hour;
-            if (result.hour < 0) {
-                result.underflow += -result.hour / 24;
-                result.hour %= 24;
-                if (result.hour != 0) {
-                    result.hour += 24;
-                    result.underflow++;
+            assert (resultHour != NullValue) : "Can't subtract from hours because it is empty.";
+            resultHour -= hour;
+            if (resultHour < 0) {
+                resultOverflow = resultHour / 24;
+                resultHour %= 24;
+                if (resultHour != 0) {
+                    resultHour += 24;
+                    resultOverflow--;
                 }
             }
         }
 
-        return result;
+        return new Time(resultHour, resultMinute, resultSecond, resultOverflow);
     }
 
     /**
-     * Checks if overflowed days are nonzero
-     *
-     * @return boolean
-     */
-    public boolean isOverflow()
-    {
-        return this.overflow > 0;
-    }
-
-    /**
-     * Get overflowed days and set the overflowed days to zero.
+     * Get overflowed days.
      *
      * @return overflowed days
      */
-    public int popOverflow()
+    public int getOverflow()
     {
-        int overflow = this.overflow;
-        this.overflow = 0;
+        assert (overflow >= 0) : "Overflow should be positive.";
         return overflow;
     }
 
     /**
-     * Checks if under-flowed days are nonzero
-     *
-     * @return boolean
-     */
-    public boolean isUnderflow()
-    {
-        return this.underflow > 0;
-    }
-
-    /**
-     * Get under-flowed days and set the under-flowed days to zero.
+     * Get under-flowed days.
      *
      * @return under-flowed days
      */
-    public int popUnderflow()
+    public int getUnderflow()
     {
-        int underflow = this.underflow;
-        this.underflow = 0;
-        return underflow;
+        assert (overflow <= 0) : "Underflow should be negative.";
+        return -overflow;
     }
 
     /**
@@ -459,10 +424,9 @@ public class Time implements Comparable<Time>
      */
     public Time merge(Time time)
     {
-        Time result = new Time();
-        result.hour = (time.hour != NullValue ? time.hour : hour);
-        result.minute = (time.minute != NullValue ? time.minute : minute);
-        result.second = (time.second != NullValue ? time.second : second);
-        return result;
+        int resultHour = (time.hour != NullValue ? time.hour : hour);
+        int resultMinute = (time.minute != NullValue ? time.minute : minute);
+        int resultSecond = (time.second != NullValue ? time.second : second);
+        return new Time(resultHour, resultMinute, resultSecond);
     }
 }

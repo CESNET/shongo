@@ -20,28 +20,10 @@ public class DateTest
     }
 
     @Test
-    public void testSetters() throws Exception
-    {
-        Date date = new Date();
-        date.setYear(2013);
-        date.setMonth(03);
-        date.setDay(04);
-        assertEquals(new Date("2013-03-04"), date);
-    }
-
-    @Test
     public void testIsEmpty() throws Exception
     {
         assertTrue(new Date().isEmpty());
         assertFalse(new Date("2012-01-01").isEmpty());
-    }
-
-    @Test
-    public void testClear() throws Exception
-    {
-        Date date = new Date("2012-01-01");
-        date.setEmpty();
-        assertTrue(date.isEmpty());
     }
 
     @Test

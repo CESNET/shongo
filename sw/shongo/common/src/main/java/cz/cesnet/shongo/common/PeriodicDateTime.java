@@ -190,7 +190,7 @@ public class PeriodicDateTime extends DateTime
         // Find all events in range from-to
         List<AbsoluteDateTime> dateTimeList = new ArrayList<AbsoluteDateTime>();
         if (this.start != null) {
-            AbsoluteDateTime start = this.start.clone();
+            AbsoluteDateTime start = (AbsoluteDateTime)this.start.clone();
             while (start.after(this.end) == false) {
                 if (to != null && start.after(to)) {
                     break;

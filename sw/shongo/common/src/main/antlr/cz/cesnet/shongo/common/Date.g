@@ -9,12 +9,9 @@ package cz.cesnet.shongo.common;
 }
 
 @members {
-    private Date date;
-
-    public void setDate(Date date)
-    {
-        this.date = date;
-    }
+    int year = Date.NullValue;
+    int month = Date.NullValue;
+    int day = Date.NullValue;
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e)
@@ -32,25 +29,25 @@ package cz.cesnet.shongo.common;
 }
 
 parse
-    :   (   year=INT '-' month=INT ( '-' day=INT { date.setDay(Integer.parseInt($day.text)); } )?
+    :   (   tokenYear=INT '-' tokenMonth=INT ( '-' tokenDay=INT { day = Integer.parseInt($tokenDay.text); } )?
             {
-                date.setYear(Integer.parseInt($year.text));
-                date.setMonth(Integer.parseInt($month.text));
+                year = Integer.parseInt($tokenYear.text);
+                month = Integer.parseInt($tokenMonth.text);
             }
         )
     |   (   INT
             {
                 if ( $INT.text.length() == 8 ) {
-                    date.setYear(Integer.parseInt($INT.text.substring(0, 4)));
-                    date.setMonth(Integer.parseInt($INT.text.substring(4, 6)));
-                    date.setDay(Integer.parseInt($INT.text.substring(6, 8)));
+                    year = Integer.parseInt($INT.text.substring(0, 4));
+                    month = Integer.parseInt($INT.text.substring(4, 6));
+                    day = Integer.parseInt($INT.text.substring(6, 8));
                 }
                 else if ( $INT.text.length() == 6 ) {
-                    date.setYear(Integer.parseInt($INT.text.substring(0, 4)));
-                    date.setMonth(Integer.parseInt($INT.text.substring(4, 6)));
+                    year = Integer.parseInt($INT.text.substring(0, 4));
+                    month = Integer.parseInt($INT.text.substring(4, 6));
                 }
                 else {
-                    date.setYear(Integer.parseInt($INT.text));
+                    year = Integer.parseInt($INT.text);
                 }
             }
         )

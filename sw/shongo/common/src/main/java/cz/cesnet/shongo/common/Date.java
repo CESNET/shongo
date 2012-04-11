@@ -10,16 +10,16 @@ import java.util.TimeZone;
  *
  * @author Martin Srom
  */
-public class Date implements Comparable<Date>
+public final class Date implements Comparable<Date>, Cloneable
 {
     /**
      * Null field value.
      */
     public static final int NullValue = Integer.MAX_VALUE;
 
-    private int year;
-    private int month;
-    private int day;
+    private final int year;
+    private final int month;
+    private final int day;
 
     /**
      * Construct date by field values.
@@ -30,9 +30,13 @@ public class Date implements Comparable<Date>
      */
     public Date(int year, int month, int day)
     {
-        setYear(year);
-        setMonth(month);
-        setDay(day);
+        assert (year == NullValue || (year >= 0 && year <= 9999)) : "Year should be in range 1 to 9999 or empty.";
+        assert (month == NullValue || (month >= 0 && month <= 12)) : "Month should be in range 1 to 12 or empty.";
+        assert (day == NullValue || (day >= 0 && day <= 31)) : "Day should be in range 1 to 31 or empty.";
+
+        this.year = (year == 0 ? NullValue : year);
+        this.month = (month == 0 ? NullValue : month);
+        this.day = (day == 0 ? NullValue : day);
     }
 
     public Date()
@@ -47,7 +51,7 @@ public class Date implements Comparable<Date>
 
     public Date(int year, int month)
     {
-        this(year, NullValue, NullValue);
+        this(year, month, NullValue);
     }
 
     /**
@@ -57,7 +61,18 @@ public class Date implements Comparable<Date>
      */
     public Date(String date)
     {
-        fromString(date);
+        try {
+            DateParser parser = new DateParser(Parser.getTokenStream(date, DateLexer.class));
+            parser.parse();
+
+            year = parser.year;
+            month = parser.month;
+            day = parser.day;
+        }
+        catch (Exception exception) {
+            throw new RuntimeException(
+                    String.format("Failed to parse date '%s': %s", date, exception.getMessage()));
+        }
     }
 
     /**
@@ -71,21 +86,6 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Set date year.
-     *
-     * @param year
-     */
-    public void setYear(int year)
-    {
-        if (year == 0 || year == NullValue) {
-            this.year = NullValue;
-            return;
-        }
-        assert (year >= 1 && year <= 9999) : "Year should be in range 0 to 9999.";
-        this.year = year;
-    }
-
-    /**
      * Get date month.
      *
      * @return month
@@ -93,21 +93,6 @@ public class Date implements Comparable<Date>
     public int getMonth()
     {
         return month;
-    }
-
-    /**
-     * Set date month.
-     *
-     * @param month
-     */
-    public void setMonth(int month)
-    {
-        if (month == 0 || month == NullValue) {
-            this.month = NullValue;
-            return;
-        }
-        assert (month >= 1 && month <= 12) : "Month should be in range 0 to 12.";
-        this.month = month;
     }
 
     /**
@@ -121,21 +106,6 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Set date day
-     *
-     * @param day
-     */
-    public void setDay(int day)
-    {
-        if (day == 0 || day == NullValue) {
-            this.day = NullValue;
-            return;
-        }
-        assert (day >= 1 && day <= 31) : "Day should be in range 0 to 31.";
-        this.day = day;
-    }
-
-    /**
      * Check whether all fields have NullValue.
      *
      * @return boolean
@@ -143,35 +113,6 @@ public class Date implements Comparable<Date>
     public boolean isEmpty()
     {
         return getYear() == NullValue && getMonth() == NullValue && getDay() == NullValue;
-    }
-
-    /**
-     * Clear all fields.
-     */
-    public void setEmpty()
-    {
-        year = NullValue;
-        month = NullValue;
-        day = NullValue;
-    }
-
-    /**
-     * Set date from an ISO8601 string, e.g. "2007-04-05".
-     *
-     * @param date date specification as defined by ISO8601, e.g. "2007-04-05"
-     */
-    public void fromString(String date)
-    {
-        setEmpty();
-        try {
-            DateParser parser = new DateParser(Parser.getTokenStream(date, DateLexer.class));
-            parser.setDate(this);
-            parser.parse();
-        }
-        catch (Exception exception) {
-            throw new RuntimeException(
-                    String.format("Failed to parse date '%s': %s", date, exception.getMessage()));
-        }
     }
 
     /**
@@ -283,6 +224,12 @@ public class Date implements Comparable<Date>
         return 0;
     }
 
+    @Override
+    public Object clone()
+    {
+        return new Date(year, month, day);
+    }
+
     /**
      * Checks whether this date equals the given date by skipping
      * all empty fields (in this or given date).
@@ -312,20 +259,6 @@ public class Date implements Comparable<Date>
     }
 
     /**
-     * Clone date.
-     *
-     * @return cloned instance of date
-     */
-    public Date clone()
-    {
-        Date date = new Date();
-        date.setYear(getYear());
-        date.setMonth(getMonth());
-        date.setDay(getDay());
-        return date;
-    }
-
-    /**
      * Add given date to this date. This object is not modified.
      *
      * @param date
@@ -349,39 +282,41 @@ public class Date implements Comparable<Date>
      */
     public Date add(int year, int month, int day)
     {
-        Date result = clone();
+        int resultYear = this.year;
+        int resultMonth = this.month;
+        int resultDay = this.day;
 
         if (month > 0) {
-            assert (result.month != NullValue) : "Can't add to month because it is empty.";
-            result.month += month;
-            result.month -= 1;
-            if (result.month >= 12) {
-                year += result.month / 12;
-                result.month %= 12;
+            assert (resultMonth != NullValue) : "Can't add to month because it is empty.";
+            resultMonth += month;
+            resultMonth -= 1;
+            if (resultMonth >= 12) {
+                year += resultMonth / 12;
+                resultMonth %= 12;
             }
-            result.month += 1;
+            resultMonth += 1;
         }
 
         if (year > 0) {
-            assert (result.year != NullValue) : "Can't add to year because it is empty.";
-            result.year += year;
+            assert (resultYear != NullValue) : "Can't add to year because it is empty.";
+            resultYear += year;
         }
 
         if (day > 0) {
-            assert (result.day != NullValue) : "Can't add to day because it is empty.";
-            assert (result.month != NullValue) : "Can't add to day because month is empty.";
-            assert (result.year != NullValue) : "Can't add to day because year is empty.";
+            assert (resultDay != NullValue) : "Can't add to day because it is empty.";
+            assert (resultDay != NullValue) : "Can't add to day because month is empty.";
+            assert (resultDay != NullValue) : "Can't add to day because year is empty.";
 
             // Add days by Calendar in UTC timezone
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            calendar.set(result.year, result.month - 1, result.day);
+            calendar.set(resultYear, resultMonth - 1, resultDay);
             calendar.add(Calendar.DAY_OF_MONTH, day);
-            result.year = calendar.get(Calendar.YEAR);
-            result.month = calendar.get(Calendar.MONTH) + 1;
-            result.day = calendar.get(Calendar.DAY_OF_MONTH);
+            resultYear = calendar.get(Calendar.YEAR);
+            resultMonth = calendar.get(Calendar.MONTH) + 1;
+            resultDay = calendar.get(Calendar.DAY_OF_MONTH);
         }
 
-        return result;
+        return new Date(resultYear, resultMonth, resultDay);
     }
 
     /**
@@ -408,43 +343,45 @@ public class Date implements Comparable<Date>
      */
     public Date subtract(int year, int month, int day)
     {
-        Date result = clone();
+        int resultYear = this.year;
+        int resultMonth = this.month;
+        int resultDay = this.day;
 
         if (month > 0) {
-            assert (result.month != NullValue) : "Can't add to month because it is empty.";
-            result.month -= month;
-            result.month -= 1;
-            if (result.month < 0) {
-                year += -result.month / 12;
-                result.month %= 12;
-                if (result.month != 0) {
-                    result.month += 12;
+            assert (resultMonth != NullValue) : "Can't add to month because it is empty.";
+            resultMonth -= month;
+            resultMonth -= 1;
+            if (resultMonth < 0) {
+                year += -resultMonth / 12;
+                resultMonth %= 12;
+                if (resultMonth != 0) {
+                    resultMonth += 12;
                     year++;
                 }
             }
-            result.month += 1;
+            resultMonth += 1;
         }
 
         if (year > 0) {
-            assert (result.year != NullValue) : "Can't add to year because it is empty.";
-            result.year -= year;
+            assert (resultYear != NullValue) : "Can't add to year because it is empty.";
+            resultYear -= year;
         }
 
         if (day > 0) {
-            assert (result.day != NullValue) : "Can't add to day because it is empty.";
-            assert (result.month != NullValue) : "Can't add to day because month is empty.";
-            assert (result.year != NullValue) : "Can't add to day because year is empty.";
+            assert (resultDay != NullValue) : "Can't add to day because it is empty.";
+            assert (resultMonth != NullValue) : "Can't add to day because month is empty.";
+            assert (resultYear != NullValue) : "Can't add to day because year is empty.";
 
             // Add days by Calendar in UTC timezone
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-            calendar.set(result.year, result.month - 1, result.day);
+            calendar.set(resultYear, resultMonth - 1, resultDay);
             calendar.add(Calendar.DAY_OF_MONTH, -day);
-            result.year = calendar.get(Calendar.YEAR);
-            result.month = calendar.get(Calendar.MONTH) + 1;
-            result.day = calendar.get(Calendar.DAY_OF_MONTH);
+            resultYear = calendar.get(Calendar.YEAR);
+            resultMonth = calendar.get(Calendar.MONTH) + 1;
+            resultDay = calendar.get(Calendar.DAY_OF_MONTH);
         }
 
-        return result;
+        return new Date(resultYear, resultMonth, resultDay);
     }
 
     /**
@@ -458,10 +395,9 @@ public class Date implements Comparable<Date>
      */
     public Date merge(Date date)
     {
-        Date result = new Date();
-        result.year = (date.year != NullValue ? date.year : year);
-        result.month = (date.month != NullValue ? date.month : month);
-        result.day = (date.day != NullValue ? date.day : day);
-        return result;
+        int resultYear = (date.year != NullValue ? date.year : year);
+        int resultMonth = (date.month != NullValue ? date.month : month);
+        int resultDay = (date.day != NullValue ? date.day : day);
+        return new Date(resultYear, resultMonth, resultDay);
     }
 }
