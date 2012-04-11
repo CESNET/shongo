@@ -245,7 +245,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Is this Date/Time before given.
+     * Is this Date/Time before a given one?
      *
      * @param dateTime
      * @return boolean
@@ -256,7 +256,18 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
-     * Is this Date/Time after given.
+     * Is this Date/Time before a given one or equal to it?
+     *
+     * @param dateTime
+     * @return boolean
+     */
+    public boolean beforeOrEqual(AbsoluteDateTime dateTime)
+    {
+        return compareTo(dateTime) <= 0;
+    }
+
+    /**
+     * Is this Date/Time after a given one?
      *
      * @param dateTime
      * @return boolean
@@ -264,6 +275,17 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     public boolean after(AbsoluteDateTime dateTime)
     {
         return compareTo(dateTime) > 0;
+    }
+
+    /**
+     * Is this Date/Time after a given one or equal to it?
+     *
+     * @param dateTime
+     * @return boolean
+     */
+    public boolean afterOrEqual(AbsoluteDateTime dateTime)
+    {
+        return compareTo(dateTime) >= 0;
     }
 
     /**
