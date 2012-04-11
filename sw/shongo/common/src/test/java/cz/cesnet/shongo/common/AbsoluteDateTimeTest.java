@@ -113,6 +113,15 @@ public class AbsoluteDateTimeTest
         assertFalse(dt4.before(dt3));
         assertTrue(dt4.before(dt5));
         assertFalse(dt5.before(dt4));
+
+        assertTrue(dt1.beforeOrEqual(dt2));
+        assertTrue(dt2.beforeOrEqual(dt1));
+        assertTrue(dt2.beforeOrEqual(dt3));
+        assertFalse(dt3.beforeOrEqual(dt2));
+        assertTrue(dt3.beforeOrEqual(dt4));
+        assertFalse(dt4.beforeOrEqual(dt3));
+        assertTrue(dt4.beforeOrEqual(dt5));
+        assertFalse(dt5.beforeOrEqual(dt4));
     }
 
     @Test
@@ -132,6 +141,15 @@ public class AbsoluteDateTimeTest
         assertTrue(dt4.after(dt3));
         assertFalse(dt4.after(dt5));
         assertTrue(dt5.after(dt4));
+
+        assertTrue(dt1.afterOrEqual(dt2));
+        assertTrue(dt2.afterOrEqual(dt1));
+        assertFalse(dt2.afterOrEqual(dt3));
+        assertTrue(dt3.afterOrEqual(dt2));
+        assertFalse(dt3.afterOrEqual(dt4));
+        assertTrue(dt4.afterOrEqual(dt3));
+        assertFalse(dt4.afterOrEqual(dt5));
+        assertTrue(dt5.afterOrEqual(dt4));
     }
 
     @Test
