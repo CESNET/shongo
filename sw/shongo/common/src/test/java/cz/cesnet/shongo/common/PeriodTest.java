@@ -3,8 +3,8 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
+import static junitx.framework.Assert.*;
 
 /**
  * @author Ondrej Bouda
@@ -85,6 +85,8 @@ public class PeriodTest
 
         Period p = new Period("P3W").add(new Period("P1D")).add(new Period("P1Y")).add(new Period("PT1S"));
         assertEquals(new Period("P1Y3W1DT1S"), p);
+
+        assertNotEquals(new Period("P1Y2M3D"), new Period("P1Y2M3DT1H"));
     }
 
     @Test

@@ -203,7 +203,29 @@ public class Period implements Comparable<Period>
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        return toString().equals(object.toString());
+        Period period = (Period) object;
+        normalize();
+        period.normalize();
+        if (year != period.year || month != period.month || day != period.day) {
+            return false;
+        }
+        if (hour != period.hour || minute != period.minute || second != period.second) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = 13;
+        result = 37 * result + year;
+        result = 37 * result + month;
+        result = 37 * result + day;
+        result = 37 * result + hour;
+        result = 37 * result + minute;
+        result = 37 * result + second;
+        return result;
     }
 
     @Override

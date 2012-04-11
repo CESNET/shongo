@@ -197,6 +197,15 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     @Override
+    public int hashCode()
+    {
+        int result = 19;
+        result = 37 * result + date.hashCode();
+        result = 37 * result + time.hashCode();
+        return result;
+    }
+
+    @Override
     public int compareTo(AbsoluteDateTime absoluteDateTime)
     {
         if (this == absoluteDateTime) {
@@ -314,5 +323,19 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         date = date.subtract(period.getYear(), period.getMonth(), period.getDay() + time.popUnderflow());
 
         return new AbsoluteDateTime(date, time);
+    }
+
+    /**
+     * Merge this date/time with given date/time and return
+     * result. This and given date/time stay unchanged.
+     * <p/>
+     * The returned date/time contains values from this date/time
+     * replaced by non-empty values from given date/time.
+     *
+     * @param dateTime Date/time to merge
+     */
+    public AbsoluteDateTime merge(AbsoluteDateTime dateTime)
+    {
+        return new AbsoluteDateTime(date.merge(dateTime.getDate()), time.merge(dateTime.getTime()));
     }
 }

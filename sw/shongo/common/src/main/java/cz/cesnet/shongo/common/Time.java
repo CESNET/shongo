@@ -447,4 +447,22 @@ public class Time implements Comparable<Time>
         this.underflow = 0;
         return underflow;
     }
+
+    /**
+     * Merge this time with given time and return
+     * result. This and given time stay unchanged.
+     * <p/>
+     * The returned time contains values from this time
+     * replaced by non-empty values from given time.
+     *
+     * @param time Time to merge
+     */
+    public Time merge(Time time)
+    {
+        Time result = new Time();
+        result.hour = (time.hour != NullValue ? time.hour : hour);
+        result.minute = (time.minute != NullValue ? time.minute : minute);
+        result.second = (time.second != NullValue ? time.second : second);
+        return result;
+    }
 }

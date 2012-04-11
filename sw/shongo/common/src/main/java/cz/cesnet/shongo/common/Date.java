@@ -60,11 +60,21 @@ public class Date implements Comparable<Date>
         fromString(date);
     }
 
+    /**
+     * Get date year.
+     *
+     * @return year
+     */
     public int getYear()
     {
         return year;
     }
 
+    /**
+     * Set date year.
+     *
+     * @param year
+     */
     public void setYear(int year)
     {
         if (year == 0 || year == NullValue) {
@@ -75,11 +85,21 @@ public class Date implements Comparable<Date>
         this.year = year;
     }
 
+    /**
+     * Get date month.
+     *
+     * @return month
+     */
     public int getMonth()
     {
         return month;
     }
 
+    /**
+     * Set date month.
+     *
+     * @param month
+     */
     public void setMonth(int month)
     {
         if (month == 0 || month == NullValue) {
@@ -90,11 +110,21 @@ public class Date implements Comparable<Date>
         this.month = month;
     }
 
+    /**
+     * Get date day.
+     *
+     * @return day
+     */
     public int getDay()
     {
         return day;
     }
 
+    /**
+     * Set date day
+     *
+     * @param day
+     */
     public void setDay(int day)
     {
         if (day == 0 || day == NullValue) {
@@ -414,6 +444,24 @@ public class Date implements Comparable<Date>
             result.day = calendar.get(Calendar.DAY_OF_MONTH);
         }
 
+        return result;
+    }
+
+    /**
+     * Merge this date with given date and return
+     * result. This and given date stay unchanged.
+     * <p/>
+     * The returned date contains values from this date
+     * replaced by non-empty values from given date.
+     *
+     * @param date Date to merge
+     */
+    public Date merge(Date date)
+    {
+        Date result = new Date();
+        result.year = (date.year != NullValue ? date.year : year);
+        result.month = (date.month != NullValue ? date.month : month);
+        result.day = (date.day != NullValue ? date.day : day);
         return result;
     }
 }

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.common;
 import org.junit.Test;
 
 import static junit.framework.Assert.*;
+import static junitx.framework.Assert.assertNotEquals;
 
 /**
  * Time tests
@@ -66,8 +67,8 @@ public class TimeTest
     {
         assertEquals(new Time("12:01:02"), new Time("120102"));
         assertEquals(new Time("12:01"), new Time("1201"));
-        assertNotSame(new Time("12:01"), new Time("120102"));
-        assertNotSame(new Time("12"), new Time("120101"));
+        assertNotEquals(new Time("12:01"), new Time("120102"));
+        assertNotEquals(new Time("12"), new Time("120101"));
     }
 
     @Test
