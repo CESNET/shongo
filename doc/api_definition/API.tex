@@ -751,6 +751,20 @@ In this chapter we describe atomic types, enum types and object classes. In XML-
 We use XML-RPC empty |struct| to represent |null| values, e.g., when the user want to clear attribute value by |modify| API method, he should set the attribute value to empty |struct| and the value will be cleared on the server.
 
 
+\section{Common}
+
+\begin{Api}
+
+\ApiClass{ControllerInfo}{}
+Represents information about controller platform.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{}
+\ApiClassAttribute{description}{String}{}
+\end{ApiClassAttributes}
+
+\end{Api}
+
+
 \section{Failure Related}
 
 Failures are propagated through XML-RPC by |faultCode| and |faultString| values. List of common faults:
@@ -1074,6 +1088,16 @@ Playback level (speakers volume)
 
 
 \chapter{User Interface API Specification}
+
+\section{Common}
+
+\begin{Api}
+
+\ApiCmd{ControllerInfo getControllerInfo()}
+Get information about controller platform. See |ControllerInfo| class.
+
+\end{Api}
+
 
 \section{Resources}
 
