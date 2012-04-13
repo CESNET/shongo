@@ -970,6 +970,7 @@ Can be represented by string:
 \begin{ApiEnumValues}
 \ApiEnumValue{Input}{}
 \ApiEnumValue{Output}{}
+\ApiEnumValue{Multipoint}{}\TODO{Does it make sense to have Multipoint capability type?}
 \ApiEnumValue{Translation}{}
 \ApiEnumValue{Recording}{}
 \ApiEnumValue{Streaming}{}
@@ -1066,13 +1067,13 @@ This class represents a summary of a reservation. The summary of reservation is 
 
 
 \ApiClass{RoomUser}{}
-Represents an active user in a virtual |Room| on a |Server|.
+Represents an active user in a virtual room on a server.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiReadOnly}
+\ApiClassAttribute{userId}{String}{\ApiReadOnly}
 User identification in room (technology specific).
 \ApiClassAttribute{roomId}{String}{\ApiReadOnly}
 Room unique identifier.
-\ApiClassAttribute{user}{UserIdentity}{\ApiReadOnly}
+\ApiClassAttribute{userIdentity}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
 \ApiClassAttribute{muted}{boolean}{}
 Is the user muted?
@@ -1103,8 +1104,8 @@ Get information about controller platform. See |ControllerInfo| class.
 
 \begin{Api}
 
-\ApiCmd{Resource createResource(SecurityToken token, String domain, Map attributes)}
-Create a new resource that will be managed by Shongo. The user with given |token| will be the resource owner. Map of |attributes| should contain only attributes specified in |Resource| class and all attributes marked as \ApiRequired\ must be present.
+\ApiCmd{String createResource(SecurityToken token, String domain, Map attributes)}
+Create a new resource that will be managed by Shongo. The new resource identifier is returned as a result. The user with given |token| will be the resource owner. Map of |attributes| should contain only attributes specified in |Resource| class and all attributes marked as \ApiRequired\ must be present.
 
 \ApiCmd{modifyResource(SecurityToken token, String resourceId, Map attributes)}
 Modify the resource with specified |resourceId|. That operation is permited only when the user with given |token| is the resource owner. Map of |attributes| should contain only attributes specified in |Resource| class.
@@ -1139,8 +1140,8 @@ Lookup date/time slots when the resource with specified |resourceId| is not allo
 
 \begin{Api}
 
-\ApiCmd{Reservation createReservation(SecurityToken token, ReservationType type, Map attributes)}
-Create a new reservation. The new reservation identifier is included in returned object as |id| attribute. Map of |attributes| should contain only attributes specified in |Reservation| class and all attributes marked as \ApiRequired\ must be present.
+\ApiCmd{String createReservation(SecurityToken token, ReservationType type, Map attributes)}
+Create a new reservation. The new reservation identifier is returned as a result. Map of |attributes| should contain only attributes specified in |Reservation| class and all attributes marked as \ApiRequired\ must be present.
 
 \ApiCmd{modifyReservation(SecurityToken token, String reservationId, Map attributes)}
 Modify the reservation with specified |reservationId|. Map of |attributes| should contain only attributes specified in |Reservation| class.
@@ -1184,10 +1185,10 @@ Get the list of users that currently participate in the room with specified |roo
 Gets a concrete room user.
 
 \ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes)}
-Modifies a given room user (suitable for setting microphone/playback level, muting/unmuting\ldots).
+Modifies the user with specified |userId| in the room with given |roomId| (suitable for setting microphone/playback level, muting/unmuting\ldots).
 
 \ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String userId)}
-Disconnect the specified |user| from a given room.
+Disconnect the user with specified |userId| from the room with given |roomId|.
 
 \end{Api}
 
@@ -1203,58 +1204,88 @@ Disconnect the specified |user| from a given room.
 
 \section{Data Types}
 
-%\begin{Api}
+\begin{Api}
 
-%\ApiClass{Event}{}
-%Represents abstract event that takes place on specified |dateTime| and takes |duration| period of time.
-%\begin{ApiClassAttributes}
-%\ApiClassAttribute{dateTime}{AbsoluteDateTime}{\ApiRequired}
-%\ApiClassAttribute{duration}{Period}{\ApiRequired}
-%\end{ApiClassAttributes}
+\ApiClass{ConnectorInfo}{}
+Information about connector.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{}
+\end{ApiClassAttributes}
 
-%\ApiClass{EndpointEvent}{Event}
-%Specialized event for endpoint device.
-%\begin{ApiClassAttributes}
-%\ApiClassAttribute{server}{String}{\ApiRequired} Specifies the server to which the endpoint should connect to.
-%\end{ApiClassAttributes}
+\ApiClass{Room}{}
+Represents a virtual room on a multipoint server device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{users}{RoomUser[]}{\ApiRequired} List of allowed users. There should be option to also allow guests.
+\ApiClassAttribute{licenseCount}{int}{\ApiRequired} Number of licenses that multipoint server can utilize for this room.
+\ApiClassAttribute{configuration}{String[]}{\ApiOptional} Platform specific configuration.
+\end{ApiClassAttributes}
+\TODO{Room settings should be auto-modified in time be uploaded calendar}
 
-%\ApiClass{ServerEvent}{Event}
-%\begin{ApiClassAttributes}
-%\ApiClassAttribute{allowedClients}{String[]}{\ApiRequired} Specifies the client that are %permitted to connect to server.
-%\end{ApiClassAttributes}
 
-%\end{Api}
+\end{Api}
+
 
 \section{Common API}
 
-%\begin{Api}
+\begin{Api}
 
-%\ApiCmd{String getResourceId()}
-%Get unique identifier of a resource that is managed by the connector.
+\ApiCmd{ConnectorInfo getConnectorInfo()}
+Get information about connector.
 
-%\end{Api}
+\TODO{How to upload/modify calendars for Endpoint/Multipoint device types?}
 
-\section{Reservation API}
+\end{Api}
 
-%\begin{Api}
+\section{Multipoint Device}
 
-%\ApiCmd{setCalendar(Event[] calendar)}
+\begin{Api}
 
-%\end{Api}
+\ApiCmd{String createRoom(SecurityToken token, Room room)}
+Create a new virtual room on a multipoint device that is managed by this connector. The settings are specified in |room| definition.
 
-\section{User Management API}
+\ApiCmd{deleteRoom(SecurityToken token, String roomId)}
+Delete an existing virtual room on a multipoint device that is managed by this connector.
+
+\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+
+\ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String roomUserId)}
+Get user information and settings in a room.
+
+\ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String roomUserId, Map attributes)}
+Modify user settings in the room (suitable for setting
+microphone/playback level, muting/unmuting...)
+
+\ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String roomUserId)}
+Disconnect user from the room.
+
+\end{Api}
+
+
+\section{Endpoint Device}
+
+\begin{Api}
+
+\ApiCmd{dial(SecurityToken token, String server)}
+
+\end{Api}
+
 
 \section{Monitoring API}
 
-%\begin{Api}
+\begin{Api}
 
-%\ApiCmd{boolean isStarted()}
+\ApiCmd{} \TODO{Complete this}
 
-%\end{Api}
-
-\section{Application Specific API}
+\end{Api}
 
 
+\section{Technology Specific API}
+
+\begin{Api}
+
+\ApiCmd{} \TODO{Complete this}
+
+\end{Api}
 
 
 \chapter{Inter-Controller API Specification}

@@ -15,7 +15,7 @@ sub populate()
 {
     my ($self, $shell) = @_;
     my @tree = (
-        'resource' => 'Management of resources <create|modify|delete>',
+        'resource' => 'Management of resources',
         'resource create' => {
             help => 'Create a new resource',
             opts => 'domain=s',

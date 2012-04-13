@@ -8,6 +8,7 @@ use warnings;
 
 use Shongo::Client::Controller;
 use Shongo::Client::Resource;
+use Shongo::Client::Reservation;
 use Term::Shell::MultiCmd;
 
 #
@@ -38,6 +39,9 @@ sub new() {
     # Populate resource management commands
     Shongo::Client::Resource->populate($self->{'_shell'});
 
+    # Populate reservation management commands
+    Shongo::Client::Reservation->populate($self->{'_shell'});
+
     return $self;
 }
 
@@ -46,7 +50,7 @@ sub new() {
 #
 sub run {
     my ($self) = @_;
-    print("Type 'help' for list of supported commands.\n");
+    print("Type 'help' or 'help COMMAND' for more info.\n");
     $self->{'_shell'}->loop();
 }
 
@@ -57,6 +61,25 @@ sub command {
     my ($self, $command) = @_;
     print("Performing command '", $command, "'.\n");
     $self->{'_shell'}->cmd($command);
+}
+
+# Override Term::Shell::MultiCmd::_say to better format help
+{
+    no strict 'refs';
+    no warnings 'redefine';
+    *{"Term::Shell::MultiCmd" . '::' . "_say"} = \&_say;
+
+    sub _say(@) {
+        my $string = join ('', @_);
+        $string =~ /^\n*(.*?)\s*$/s;
+
+        # Convert " :\t" to fixed width form
+        if ( $string =~ m/(.*): \t(.*)/ ) {
+        	printf("%-15s  %s\n", $1 . ":", $2);
+        } else {
+            print($string, "\n");
+        }
+    }
 }
 
 1;

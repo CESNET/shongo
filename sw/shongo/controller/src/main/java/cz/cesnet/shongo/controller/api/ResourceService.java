@@ -21,9 +21,9 @@ public interface ResourceService
      * @param domain     identifier of the domain to create the resource in
      * @param attributes map of resource attributes; should only contain attributes specified in the Resource class
      *                   while all the attributes marked as required must be present
-     * @return the created resource with auto-generated identifier
+     * @return the created resource identifier
      */
-    public Resource createResource(SecurityToken token, String domain, Map attributes);
+    public String createResource(SecurityToken token, String domain, Map attributes);
 
     /**
      * Modifies a given resource.

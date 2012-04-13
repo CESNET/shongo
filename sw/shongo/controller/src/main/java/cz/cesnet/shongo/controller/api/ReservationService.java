@@ -22,9 +22,9 @@ public interface ReservationService
      * @param type
      * @param attributes map of reservation attributes; should only contain attributes specified in the Reservation
      *                   class while all the attributes marked as required must be present
-     * @return the created reservation with auto-generated identifier
+     * @return the created reservation auto-generated identifier
      */
-    public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes);
+    public String createReservation(SecurityToken token, ReservationType type, Map attributes);
 
     /**
      * Modifies a given reservation.

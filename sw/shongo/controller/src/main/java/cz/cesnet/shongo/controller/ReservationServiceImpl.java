@@ -15,7 +15,7 @@ import java.util.Map;
 public class ReservationServiceImpl implements ReservationService
 {
     @Override
-    public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes)
+    public String createReservation(SecurityToken token, ReservationType type, Map attributes)
     {
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.createReservation");
     }
