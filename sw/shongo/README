@@ -1,0 +1,7 @@
+Shongo Resource Management System
+
+Shongo consists of the following modules:
+1) Shongo Controller
+   See controller/README.
+2) Shongo Controller Command-Line Client
+   See client/README.
