@@ -25,6 +25,6 @@ http://maven.apache.org/download.html and follow
 the Installation Instructions on the same page.
 
 To install java on Ubuntu/Debian system type
-following command:
+the following command:
 
     sudo apt-get install sun-java6-jdk
