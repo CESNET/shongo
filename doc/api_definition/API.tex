@@ -751,20 +751,6 @@ In this chapter we describe atomic types, enum types and object classes. In XML-
 We use XML-RPC empty |struct| to represent |null| values, e.g., when the user want to clear attribute value by |modify| API method, he should set the attribute value to empty |struct| and the value will be cleared on the server.
 
 
-\section{Common}
-
-\begin{Api}
-
-\ApiClass{ControllerInfo}{}
-Represents information about controller platform.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{name}{String}{}
-\ApiClassAttribute{description}{String}{}
-\end{ApiClassAttributes}
-
-\end{Api}
-
-
 \section{Failure Related}
 
 Failures are propagated through XML-RPC by |faultCode| and |faultString| values. List of common faults:
@@ -1044,7 +1030,7 @@ This class represents a complete reservation definition. It contains specificati
 \ApiClassAttribute{resources}{Resource[]}{\ApiRequired} List of requested resources by this reservation. Each |Resource| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
 \ApiClassAttribute{slots}{DateTimeSlot[]}{\ApiRequired} Requested date/time slots for the reservation.
 \ApiClassAttribute{childReservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
-\ApiClassAttribute{users}{User[]}{\ApiOptional} List of users that will be permitted to participate in the videoconference. The list can contain several empty |User| definitions to allow guests.
+\ApiClassAttribute{users}{UserIdentity[]}{\ApiOptional} List of users that will be permitted to participate in the videoconference. The list can contain several empty |User| definitions to allow guests.
 \end{ApiClassAttributes}
 
 
@@ -1085,10 +1071,26 @@ Playback level (speakers volume)
 
 \end{Api}
 
-
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{img/common_data_types.pdf}
+\caption{Class Diagram of Common Data Types}
+\end{figure}
 
 
 \chapter{User Interface API Specification}
+
+\section{Data types}
+
+\begin{Api}
+
+\ApiClass{ControllerInfo}{}
+Represents information about controller platform.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{}
+\ApiClassAttribute{description}{String}{}
+\end{ApiClassAttributes}
+
+\end{Api}
 
 \section{Common}
 

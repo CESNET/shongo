@@ -1,0 +1,17 @@
+Shongo Controller Command-Line Client
+
+REQUIREMENTS
+
+This client requires following Perl modules:
+1) RPC::XML
+2) XML::Twig
+
+On Ubuntu/Debian system, the modules can be installed by
+following command:
+
+    sudo apt-get install librpc-xml-perl libxml-twig-perl
+
+On other platform the modules can be installed for instance
+by CPAN utility:
+
+    cpan -i RPC::XML XML::Twig

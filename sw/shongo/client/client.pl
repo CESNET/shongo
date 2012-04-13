@@ -4,6 +4,15 @@
 #
 package main;
 
+# Setup lib directory
+BEGIN {
+    use File::Spec::Functions qw(rel2abs);
+    use File::Basename qw(dirname);
+    my $path   = rel2abs( $0 );
+    our $directory = dirname( $path );
+}
+use lib $directory . "/src/main/perl";
+
 use strict;
 use warnings;
 
@@ -69,9 +78,9 @@ my $shell = Shongo::Client::Shell->new();
 if ( defined($cmd) ) {
     $shell->command($cmd);
 }
-# Run commands from file
+# Run command from file
 elsif ( defined($file) ) {
-    open(FILE1, $file) || die "Error openning file '$file': $!\n";
+    open(FILE1, $file) || die "Error openning file $file: $!\n";
     my @lines = <FILE1>;
     my $line;
     foreach $line (@lines) {
