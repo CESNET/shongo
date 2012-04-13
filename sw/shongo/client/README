@@ -1,17 +1,29 @@
 Shongo Controller Command-Line Client
 
+USAGE
+
+To run client application go to directory
+<shongo_repository>/sw/shongo and type the
+following command:
+
+    ./client.sh
+
+For printing application help type:
+
+    ./client.sh --help
+
 REQUIREMENTS
 
-This client requires following Perl modules:
+This client requires Perl installed to run and following Perl modules:
 1) RPC::XML
 2) XML::Twig
 
-On Ubuntu/Debian system, the modules can be installed by
-following command:
+On Ubuntu/Debian system, Perl is installed by default and the modules
+can be installed by the following command:
 
     sudo apt-get install librpc-xml-perl libxml-twig-perl
 
-On other platform the modules can be installed for instance
+On other platforms the modules can be installed for instance
 by CPAN utility:
 
     cpan -i RPC::XML XML::Twig
