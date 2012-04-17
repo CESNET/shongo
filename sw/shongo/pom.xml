@@ -18,6 +18,14 @@
         <module>client</module>
     </modules>
 
+    <repositories>
+        <repository>
+            <id>lib</id>
+            <name>Shongo Maven Extra Libraries</name>
+            <url>file://${project.basedir}/../lib</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>

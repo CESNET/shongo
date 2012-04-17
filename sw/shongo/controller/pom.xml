@@ -42,6 +42,11 @@
             <artifactId>hibernate-entitymanager</artifactId>
             <version>4.1.1.Final</version>
         </dependency>
+        <dependency>
+            <groupId>com.tilab.jade</groupId>
+            <artifactId>jade</artifactId>
+            <version>4.1.1</version>
+        </dependency>
     </dependencies>
 
     <build>
