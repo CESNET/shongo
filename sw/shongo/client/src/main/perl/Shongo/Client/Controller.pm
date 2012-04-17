@@ -47,9 +47,13 @@ sub connect()
     if ( ref($response) ) {
         print("Successfully connected to controller!\n");
 
-        die "Server hasn't return ControllerInfo object!\n" unless ($response->{"class"}->value eq "ControllerInfo");
-        $self->{"_name"} = $response->{"name"}->value;
-        $self->{"_description"} = $response->{"description"}->value;
+        if ( $response->is_fault() ) {
+            die "Server failed to get controller info!\n" . $response->string . "\n";
+        } else {
+            die "Server hasn't return ControllerInfo object!\n" unless ($response->{"class"}->value eq "ControllerInfo");
+            $self->{"_name"} = $response->{"name"}->value;
+            $self->{"_description"} = $response->{"description"}->value;
+        }
         return 1;
     } else {
         print("Failed to connect to controller! Is the controller running?\n");

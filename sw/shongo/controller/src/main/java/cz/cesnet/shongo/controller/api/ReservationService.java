@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
+import cz.cesnet.shongo.common.xmlrpc.Service;
 
 import java.util.Map;
 
@@ -11,7 +12,7 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface ReservationService
+public interface ReservationService extends Service
 {
     /**
      * Creates a new reservation.

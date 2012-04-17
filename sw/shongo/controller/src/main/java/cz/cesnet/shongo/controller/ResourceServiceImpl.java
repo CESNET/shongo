@@ -16,6 +16,12 @@ import java.util.Map;
 public class ResourceServiceImpl implements ResourceService
 {
     @Override
+    public String getServiceName()
+    {
+        return "Resource";
+    }
+
+    @Override
     public String createResource(SecurityToken token, String domain, Map attributes)
     {
         throw new RuntimeException("TODO: Implement ResourceServiceImpl.createResource");

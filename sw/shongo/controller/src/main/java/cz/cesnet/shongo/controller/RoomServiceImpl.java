@@ -14,6 +14,12 @@ import java.util.Map;
 public class RoomServiceImpl implements RoomService
 {
     @Override
+    public String getServiceName()
+    {
+        return "Room";
+    }
+
+    @Override
     public RoomUser[] listRoomUsers(SecurityToken token, String roomId)
     {
         throw new RuntimeException("TODO: Implement RoomServiceImpl.listRoomUsers");

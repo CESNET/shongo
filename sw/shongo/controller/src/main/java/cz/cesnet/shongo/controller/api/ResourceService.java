@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.common.api.AbsoluteDateTime;
 import cz.cesnet.shongo.common.api.SecurityToken;
+import cz.cesnet.shongo.common.xmlrpc.Service;
 
 import java.util.Map;
 
@@ -10,7 +11,7 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface ResourceService
+public interface ResourceService extends Service
 {
     /**
      * Creates a new resource that will be managed by Shongo.

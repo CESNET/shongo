@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.common.api.SecurityToken;
+import cz.cesnet.shongo.common.xmlrpc.Service;
 
 import java.util.Map;
 
@@ -10,7 +11,7 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface RoomService
+public interface RoomService extends Service
 {
     /**
      * Lists all users currently participating in a given room.
