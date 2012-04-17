@@ -16,6 +16,7 @@
         <module>common</module>
         <module>controller</module>
         <module>client</module>
+        <module>connector</module>
     </modules>
 
     <repositories>

@@ -5,3 +5,5 @@ Shongo consists of the following modules:
    See controller/README.
 2) Shongo Controller Command-Line Client
    See client/README.
+3) Shongo Connector
+   See connector/README.
