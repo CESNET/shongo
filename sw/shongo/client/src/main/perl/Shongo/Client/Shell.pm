@@ -16,8 +16,8 @@ use File::HomeDir;
 #
 # Create a new Shell instance.
 #
-sub new() {
-
+sub new()
+{
     my $class = shift;
     my $self = {};
     bless $self, $class;
@@ -29,14 +29,11 @@ sub new() {
 
     # Populate common commands
     my @tree = (
-        'info' => {
-            help => 'Show controller info',
-            exec => sub {
-                Shongo::Client::Controller->instance()->print_info();
-            },
-        }
     );
     $self->{'_shell'}->populate(@tree);
+
+    # Populate controller commands
+    Shongo::Client::Controller->populate($self->{'_shell'});
 
     # Populate resource management commands
     Shongo::Client::Resource->populate($self->{'_shell'});
@@ -50,7 +47,8 @@ sub new() {
 #
 # Run the shell - prompt user in loop
 #
-sub run {
+sub run
+{
     my ($self) = @_;
     print("Type 'help' or 'help COMMAND' for more info.\n");
     $self->{'_shell'}->loop();
@@ -59,7 +57,8 @@ sub run {
 #
 # Run single command
 #
-sub command {
+sub command
+{
     my ($self, $command) = @_;
     print("Performing command '", $command, "'.\n");
     $self->{'_shell'}->cmd($command);

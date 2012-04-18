@@ -29,6 +29,48 @@ sub instance
 }
 
 #
+# Populate shell by options for managing controller connection.
+#
+# @param shell
+#
+sub populate()
+{
+    my ($self, $shell) = @_;
+    my @tree = (
+        'connect' => {
+            help => 'Connect to a controller. You must specify an <URL>.',
+            exec => sub {
+                my ($shell, %p) = @_;
+                my $url = $p{ARGV}[0];
+                if (defined($url) == 0) {
+                    my $controller = Shongo::Client::Controller->instance();
+                    if ( defined($controller->{"_url"}) ) {
+                        $url = $controller->{"_url"};
+                    } else {
+                        print("[ERROR] You must specify <URL> when connecting to controller.\n");
+                        return;
+                    }
+                }
+                Shongo::Client::Controller->instance()->connect($url);
+            },
+        },
+        'disconnect' => {
+            help => 'Disconnect from a controller.',
+            exec => sub {
+                Shongo::Client::Controller->instance()->disconnect();
+            },
+        },
+        'status' => {
+            help => 'Show status and information about connected controller.',
+            exec => sub {
+                Shongo::Client::Controller->instance()->status();
+            },
+        }
+    );
+    $shell->populate(@tree);
+}
+
+#
 # Connect to Controller XML-RPC server.
 #
 # @param url
@@ -36,24 +78,24 @@ sub instance
 sub connect()
 {
     my ($self, $url) = @_;
+
+    # Append default port if not presented
+    if ( !($url =~ /.+:[0-9]+$/ ) ) {
+        $url = $url . ":8181";
+    }
+    # Prepend http:// if not presented
+    if ( !($url =~ /^http:\/\// ) ) {
+        $url = 'http://' . $url;
+    }
+
     $self->{"_url"} = $url;
-    $self->{"_name"} = "";
-    $self->{"_description"} = "";
 
     print("Connecting to controller at '$url'...\n");
     my $client = RPC::XML::Client->new($url);
-    $self->{"_client"} = $client;
-    my $response = $self->{"_client"}->send_request("Common.getControllerInfo");
+    my $response = $client->send_request("Common.getControllerInfo");
     if ( ref($response) ) {
-        print("Successfully connected to controller!\n");
-
-        if ( $response->is_fault() ) {
-            die "Server failed to get controller info!\n" . $response->string . "\n";
-        } else {
-            die "Server hasn't return ControllerInfo object!\n" unless ($response->{"class"}->value eq "ControllerInfo");
-            $self->{"_name"} = $response->{"name"}->value;
-            $self->{"_description"} = $response->{"description"}->value;
-        }
+        $self->{"_client"} = $client;
+        print("Successfully connected to the controller!\n");
         return 1;
     } else {
         print("Failed to connect to controller! Is the controller running?\n");
@@ -62,20 +104,47 @@ sub connect()
 }
 
 #
+# Disconnect from Controller XML-RPC server.
+#
+sub disconnect()
+{
+    my ($self) = @_;
+    if ( !defined($self->{"_client"}) ) {
+        print("[ERROR] Client is not connected to any controller!\n");
+        return;
+    }
+    undef $self->{"_client"};
+    print("Successfully disconnected from the controller!\n");
+}
+
+#
+# Checks whether client is connected to controller
+#
+sub is_connected()
+{
+    my ($self) = @_;
+    if ( !defined($self->{"_client"}) ) {
+        return 0;
+    }
+    return 1;
+}
+
+#
 # Send request to Controller XML-RPC server.
 #
 # @param... Arguments for XML-RPC request
+# @return response
 #
 sub request()
 {
-    my ($self, %args) = @_;
-    print("Sending request...\n");
-    my $response = $self->{"_client"}->send_request("hello");
-    if ( ref($response) == 0 ) {
-
-    } else {
-        print($response . "\n");
-        return '';
+    my ($self, @args) = @_;
+    my $response = $self->{"_client"}->send_request(@args);
+    if ( !ref($response) ) {
+        print("[ERROR] Failed to send request to controller!\n" . $response . "\n");
+        return;
+    }
+    if ( $response->is_fault() ) {
+        print("[ERROR] Server failed to perform request!\n" . $response->string . "\n");
     }
     return $response;
 }
@@ -83,15 +152,28 @@ sub request()
 #
 # Print Controller XML-RPC server info
 #
-sub print_info()
+sub status()
 {
     my ($self) = @_;
+    if ( !defined($self->{"_client"}) ) {
+        print("[ERROR] Client is not connected to any controller!\n");
+        return;
+    }
+
+    my $response = $self->request("Common.getControllerInfo");
+    if ( !ref($response) || $response->is_fault() ) {
+        return;
+    }
+    if ( !($response->{"class"}->value eq "ControllerInfo") ) {
+        print("[ERROR] Server hasn't return ControllerInfo object!\n");
+        return;
+    }
     printf("+----------------------------------------------------------------------+\n");
-    printf("| Shongo Controller Command-Line Client                                |\n");
-    printf("+----------------------------------------------------------------------+\n");
+    printf("| Connected to following controller:                                   |\n");
+    printf("| -------------------------------------------------------------------- |\n");
     printf("| URL:         %-55s |\n", $self->{'_url'});
-    printf("| Name:        %-55s |\n", $self->{'_name'});
-    printf("| Description: %-55s |\n", substr($self->{'_description'}, 0, 55));
+    printf("| Name:        %-55s |\n", $response->{"name"}->value);
+    printf("| Description: %-55s |\n", substr($response->{"description"}->value, 0, 55));
     printf("+----------------------------------------------------------------------+\n");
 }
 

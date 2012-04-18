@@ -11,7 +11,7 @@ BEGIN {
     my $path   = rel2abs( $0 );
     our $directory = dirname( $path );
 }
-use lib $directory . "/src/main/perl";
+use lib $directory . '/src/main/perl';
 
 use strict;
 use warnings;
@@ -39,7 +39,7 @@ sub usage {
       $message,
       "usage: $command [options]\n" .
       "    -help         Show this usage information\n" .
-      "    -url=URL      Set controller url\n" .
+      "    -connect=URL  Connect to a controller\n" .
       "    -cmd=COMMAND  Perform given command in controller\n" .
       "    -file=FILE    Perform commands from file in controller\n"
    );
@@ -47,29 +47,32 @@ sub usage {
 }
 
 # Parse command line
-my $url = 'http://127.0.0.1:8181';
+my $connect;
 my $cmd;
 my $file;
 my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
-    'url=s' => \$url,
+    'connect:s' => \$connect,
     'cmd=s' => \$cmd,
     'file=s' => \$file
 ) or usage("Invalid commmand line options.");
-
-# Print help
 if ( $help == 1) {
     usage();
     exit(0);
 }
 
-# Connect to controller
 my $controller = Shongo::Client::Controller->instance();
-if ( $controller->connect($url) == 0) {
-    exit(-1);
+
+# Connect to controller
+if ( defined($connect) ) {
+    if ( $connect eq '') {
+        $connect = 'http://127.0.0.1:8181';
+    }
+    if ( $controller->connect($connect)) {
+        $controller->status();
+    }
 }
-$controller->print_info();
 
 # Create shell
 my $shell = Shongo::Client::Shell->new();
@@ -91,6 +94,11 @@ elsif ( defined($file) ) {
 # Run shell
 else {
     $shell->run();
+}
+
+# Disconnect from controller
+if ( $controller->is_connected() ) {
+    $controller->disconnect();
 }
 
 exit(0);
