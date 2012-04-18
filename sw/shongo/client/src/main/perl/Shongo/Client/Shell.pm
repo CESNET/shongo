@@ -9,6 +9,7 @@ use warnings;
 use Shongo::Client::Controller;
 use Shongo::Client::Resource;
 use Shongo::Client::Reservation;
+use Term::ReadLine 1.07;
 use Term::Shell::MultiCmd;
 use File::HomeDir;
 
