@@ -11,6 +11,7 @@ import org.apache.xmlrpc.webserver.RequestData;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,9 +33,9 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      *
      * @param pPort
      */
-    public WebServer(int pPort)
+    public WebServer(String host, int pPort) throws IOException
     {
-        super(pPort);
+        super(pPort, InetAddress.getByName(host));
 
         handlerMapping = new PropertyHandlerMapping();
         handlerMapping.setTypeConverterFactory(new TypeConverterFactory());

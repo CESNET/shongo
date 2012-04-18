@@ -12,7 +12,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
     {
         DateTime dateTime = super.getStart();
         assert (dateTime instanceof AbsoluteDateTime) : "Absolute date/time slot should contain absolute date/time.";
-        return (AbsoluteDateTime)dateTime;
+        return (AbsoluteDateTime) dateTime;
     }
 
     @Override

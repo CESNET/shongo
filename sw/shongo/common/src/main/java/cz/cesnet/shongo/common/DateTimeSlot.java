@@ -77,7 +77,7 @@ public class DateTimeSlot
      */
     public boolean isActive(AbsoluteDateTime referenceDateTime)
     {
-        for ( AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
+        for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
             if (slot.getStart().beforeOrEqual(referenceDateTime) && slot.getEnd().afterOrEqual(referenceDateTime)) {
                 return true;
             }
@@ -92,7 +92,7 @@ public class DateTimeSlot
      */
     private List<AbsoluteDateTimeSlot> getEvaluatedSlots()
     {
-        if ( slots == null ) {
+        if (slots == null) {
             slots = new ArrayList<AbsoluteDateTimeSlot>();
             if (start instanceof PeriodicDateTime) {
                 PeriodicDateTime periodicDateTime = (PeriodicDateTime) start;
@@ -102,9 +102,10 @@ public class DateTimeSlot
             }
             else {
                 AbsoluteDateTime dateTime = null;
-                if ( this.start instanceof AbsoluteDateTime) {
-                    dateTime = (AbsoluteDateTime)this.start;
-                } else {
+                if (this.start instanceof AbsoluteDateTime) {
+                    dateTime = (AbsoluteDateTime) this.start;
+                }
+                else {
                     assert (false) : "Date/time slot can contains only periodic or absolute date/time.";
                 }
                 if (dateTime != null) {
@@ -136,7 +137,7 @@ public class DateTimeSlot
     public List<AbsoluteDateTimeSlot> enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
         ArrayList<AbsoluteDateTimeSlot> slots = new ArrayList<AbsoluteDateTimeSlot>();
-        for ( AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
+        for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
             if ((from == null || slot.getStart().afterOrEqual(from))
                     && (to == null || slot.getEnd().beforeOrEqual(to))) {
                 slots.add(slot);

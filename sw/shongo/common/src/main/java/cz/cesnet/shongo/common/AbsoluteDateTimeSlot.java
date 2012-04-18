@@ -30,7 +30,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      */
     public AbsoluteDateTime getEnd()
     {
-        if ( end == null ) {
+        if (end == null) {
             end = getStart().add(getDuration());
         }
         return end;
@@ -41,6 +41,6 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
     {
         DateTime dateTime = super.getStart();
         assert (dateTime instanceof AbsoluteDateTime) : "Absolute date/time slot should contain absolute date/time.";
-        return (AbsoluteDateTime)dateTime;
+        return (AbsoluteDateTime) dateTime;
     }
 }

@@ -20,19 +20,61 @@
     </modules>
 
     <repositories>
+        <!-- Shongo project contains internal maven repository for libraries
+             that aren't placed in any of central maven repositories -->
         <repository>
             <id>lib</id>
-            <name>Shongo Maven Extra Libraries</name>
+            <name>Shongo Maven Repository</name>
             <url>file://${project.basedir}/../lib</url>
         </repository>
     </repositories>
 
     <dependencies>
+        <!-- We use SLF4J API for all logging in Shongo -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
+        <!-- We want the Commons Logging (used in libraries) to be implemented
+             by SLF4J -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
+        <!-- We want the JUL (java.util.logging, used in libraries) to be
+             implemented by SLF4J.
+             The cz.cesnet.shongo.common.util.Logging.installBridge() must be
+             called to proper install this bridge. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+
+        <!-- SLF4J will be implemented by LOG4J -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.6.4</version>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.16</version>
+        </dependency>
+
+        <!-- For unit testing purposes the JUnit library is used -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
         </dependency>
+
+        <!-- JUnit-addons contains usable extensions for JUnit library -->
         <dependency>
             <groupId>junit-addons</groupId>
             <artifactId>junit-addons</artifactId>
@@ -42,7 +84,6 @@
 
     <build>
         <plugins>
-
             <!-- Plugin that copy all JAR dependencies along to module target JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -72,7 +113,6 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-
         </plugins>
     </build>
     

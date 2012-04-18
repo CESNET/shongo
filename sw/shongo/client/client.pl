@@ -47,7 +47,7 @@ sub usage {
 }
 
 # Parse command line
-my $url = 'http://localhost:8008';
+my $url = 'http://127.0.0.1:8181';
 my $cmd;
 my $file;
 my $help = 0;
