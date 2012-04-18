@@ -9,7 +9,9 @@ use warnings;
 use Shongo::Client::Controller;
 use Shongo::Client::Resource;
 use Shongo::Client::Reservation;
+use Term::ReadLine 1.07;
 use Term::Shell::MultiCmd;
+use File::HomeDir;
 
 #
 # Create a new Shell instance.
@@ -22,7 +24,7 @@ sub new() {
     $self->{'_shell'} = Term::Shell::MultiCmd->new(
         -prompt => 'command',
         -quit_cmd => 'exit',
-        -history_file => "$ENV{HOME}/.shongo_client"
+        -history_file => File::HomeDir->my_home . "/.shongo_client"
     );
 
     # Populate common commands

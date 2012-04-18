@@ -36,7 +36,7 @@ public class DatabaseTest
         entityManager.persist(new Person("Martin Srom"));
         entityManager.getTransaction().commit();
 
-        List<Person> listPersons = entityManager.createQuery("SELECT p FROM DatabaseTest$Person p").getResultList();
+        List<Person> listPersons = entityManager.createQuery("SELECT p FROM DatabaseTest$Person p", Person.class).getResultList();
         for (Person person : listPersons) {
             System.out.println(person.toString());
         }

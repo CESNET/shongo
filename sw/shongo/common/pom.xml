@@ -17,11 +17,14 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- ANTLR is used for parsing Date, Time and Period from string -->
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr</artifactId>
             <version>3.4</version>
         </dependency>
+
+        <!-- Apache XML-RPC is used as implementation of remote procedure calls -->
         <dependency>
             <groupId>org.apache.xmlrpc</groupId>
             <artifactId>xmlrpc-common</artifactId>
@@ -31,7 +34,15 @@
             <groupId>org.apache.xmlrpc</groupId>
             <artifactId>xmlrpc-server</artifactId>
             <version>3.1.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
+        <!-- Commons BeanUtils are used to convert between Map and POJOs -->
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
@@ -41,6 +52,7 @@
 
     <build>
         <plugins>
+            <!-- Plugin performs generation of java classes from ANTLR grammar files (*.g) -->
             <plugin>
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr3-maven-plugin</artifactId>
