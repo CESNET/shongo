@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
+import cz.cesnet.shongo.common.xmlrpc.Service;
 
 import java.util.Map;
 
@@ -11,7 +12,7 @@ import java.util.Map;
  *
  * @author Ondrej Bouda
  */
-public interface ReservationService
+public interface ReservationService extends Service
 {
     /**
      * Creates a new reservation.
@@ -22,9 +23,9 @@ public interface ReservationService
      * @param type
      * @param attributes map of reservation attributes; should only contain attributes specified in the Reservation
      *                   class while all the attributes marked as required must be present
-     * @return the created reservation with auto-generated identifier
+     * @return the created reservation auto-generated identifier
      */
-    public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes);
+    public String createReservation(SecurityToken token, ReservationType type, Map attributes);
 
     /**
      * Modifies a given reservation.

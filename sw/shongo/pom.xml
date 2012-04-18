@@ -15,7 +15,17 @@
     <modules>
         <module>common</module>
         <module>controller</module>
+        <module>client</module>
+        <module>connector</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>lib</id>
+            <name>Shongo Maven Extra Libraries</name>
+            <url>file://${project.basedir}/../lib</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>

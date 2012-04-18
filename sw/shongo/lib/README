@@ -1,0 +1,26 @@
+Maven Shongo Repository
+
+INSTALL LIBRARY
+
+New library can be installed for instance by following command:
+
+    mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+            -DlocalRepositoryPath=/home/martin/project/cesnet/shongo/sw/shongo/lib/ \
+            -Dfile=/home/martin/Downloads/jade.jar \
+            -DgroupId=com.tilab.jade \
+            -DartifactId=jade \
+            -Dversion=4.1.1 \
+            -Dpackaging=jar \
+            -DcreateChecksum=true
+
+Sources for library can be installed by following command:
+
+    mvn org.apache.maven.plugins:maven-install-plugin:2.3.1:install-file \
+            -DlocalRepositoryPath=/home/martin/project/cesnet/shongo/sw/shongo/lib/ \
+            -Dfile=/home/martin/Downloads/jade-src.jar \
+            -DgroupId=com.tilab.jade \
+            -DartifactId=jade \
+            -Dversion=4.1.1 \
+            -Dclassifier=sources \
+            -Dpackaging=jar \
+            -DcreateChecksum=true

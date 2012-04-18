@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.controller.api.*;
 
 import java.util.Map;
@@ -15,7 +15,13 @@ import java.util.Map;
 public class ReservationServiceImpl implements ReservationService
 {
     @Override
-    public Reservation createReservation(SecurityToken token, ReservationType type, Map attributes)
+    public String getServiceName()
+    {
+        return "Reservation";
+    }
+
+    @Override
+    public String createReservation(SecurityToken token, ReservationType type, Map attributes)
     {
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.createReservation");
     }
@@ -51,7 +57,7 @@ public class ReservationServiceImpl implements ReservationService
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.listReservationResources");
     }
 
-     @Override
+    @Override
     public ReservationSummary[] listReservations(SecurityToken token, Map filter)
     {
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.listReservations");

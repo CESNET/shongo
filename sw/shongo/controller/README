@@ -1,0 +1,30 @@
+Shongo Controller
+
+BUILD
+
+To build controller by maven go to a directory
+<shongo_repository>/sw/shongo and type the following
+command:
+
+    mvn package
+
+To run controller on localhost at port 8008 type:
+
+    ./controller.sh
+
+To connect to the controller use the client application:
+
+    ./client.sh
+
+REQUIREMENTS
+
+Controller requires java and maven to compile.
+
+To install maven download the version 2.2.1 from
+http://maven.apache.org/download.html and follow
+the Installation Instructions on the same page.
+
+To install java on Ubuntu/Debian system type
+the following command:
+
+    sudo apt-get install sun-java6-jdk
