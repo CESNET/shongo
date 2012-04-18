@@ -35,7 +35,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      */
     public WebServer(String host, int pPort) throws IOException
     {
-        super(pPort, InetAddress.getByName(host));
+        super(pPort, (host != null ? InetAddress.getByName(host) : null));
 
         handlerMapping = new PropertyHandlerMapping();
         handlerMapping.setTypeConverterFactory(new TypeConverterFactory());
