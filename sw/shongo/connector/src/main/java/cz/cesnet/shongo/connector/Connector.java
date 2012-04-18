@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.common.util.Logging;
+import jade.core.Profile;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,10 +28,27 @@ public class Connector
     /**
      * Init connector
      */
-    public void init()
+    public void start() throws Exception
     {
         logger.info("Starting Controller Jade Agent on {}:{}...", agentHost, agentPort);
         logger.info("Connecting to controller {}:{}...", controllerHost, controllerPort);
+
+        jade.core.Runtime runtime = jade.core.Runtime.instance();
+        jade.core.Profile profile = new jade.core.ProfileImpl();
+        profile.setParameter(Profile.LOCAL_HOST, agentHost);
+        profile.setParameter(Profile.LOCAL_PORT, Integer.toString(agentPort));
+        profile.setParameter(Profile.MAIN_HOST, controllerHost);
+        profile.setParameter(Profile.MAIN_PORT, Integer.toString(controllerPort));
+        profile.setParameter(Profile.FILE_DIR, "data/jade/");
+        new java.io.File("data/jade").mkdir();
+
+        Logging.disableSystemOut();
+        jade.wrapper.ContainerController container = runtime.createAgentContainer(profile);
+        Logging.enableSystemOut();
+
+        jade.wrapper.AgentController agent = container.createNewAgent("Connector",
+                ConnectorAgent.class.getCanonicalName(), null);
+        agent.start();
     }
 
     /**
@@ -39,7 +58,7 @@ public class Connector
      */
     public static void main(String[] args)
     {
-        cz.cesnet.shongo.common.util.Logging.installBridge();
+        Logging.installBridge();
 
         // Create options
         Option optionHelp = new Option(null, "help", false, "Print this usage information");
@@ -122,7 +141,12 @@ public class Connector
         }
 
         Connector connector = new Connector();
-        connector.init();
+        try {
+            connector.start();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 
         logger.info("Connector successfully started.");
     }

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
 import jade.core.Profile;
@@ -38,7 +39,7 @@ public class Controller implements ApplicationContextAware
      * Init controller
      */
     @PostConstruct
-    public void init()
+    public void start() throws Exception
     {
         logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost == null ? "*" : rpcHost), rpcPort);
 
@@ -62,16 +63,20 @@ public class Controller implements ApplicationContextAware
 
         jade.core.Runtime runtime = jade.core.Runtime.instance();
         jade.core.Profile profile = new jade.core.ProfileImpl();
+        profile.setParameter(Profile.PLATFORM_ID, "Shongo");
+        profile.setParameter(Profile.CONTAINER_NAME, "Controller");
         profile.setParameter(Profile.LOCAL_HOST, agentHost);
         profile.setParameter(Profile.LOCAL_PORT, Integer.toString(agentPort));
+        profile.setParameter(Profile.FILE_DIR, "data/jade/");
+        new java.io.File("data/jade").mkdir();
+
+        Logging.disableSystemOut();
         jade.wrapper.ContainerController container = runtime.createMainContainer(profile);
-        try {
-            jade.wrapper.AgentController agent = container
-                    .createNewAgent("controller", ControllerAgent.class.getCanonicalName(), null);
-        }
-        catch (StaleProxyException e) {
-            e.printStackTrace();
-        }
+        Logging.enableSystemOut();
+
+        jade.wrapper.AgentController agent = container.createNewAgent("Controller",
+                ControllerAgent.class.getCanonicalName(), null);
+        agent.start();
     }
 
     /**
@@ -92,7 +97,7 @@ public class Controller implements ApplicationContextAware
      */
     public static void main(String[] args)
     {
-        cz.cesnet.shongo.common.util.Logging.installBridge();
+        Logging.installBridge();
 
         // Create options
         Option optionHelp = new Option(null, "help", false, "Print this usage information");
