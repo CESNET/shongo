@@ -17,13 +17,14 @@ REQUIREMENTS
 This client requires Perl installed to run and following Perl modules:
 1) RPC::XML
 2) XML::Twig
+3) File::HomeDir
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 
-    sudo apt-get install librpc-xml-perl libxml-twig-perl
+    sudo apt-get install librpc-xml-perl libxml-twig-perl  libfile-homedir-perl
 
 On other platforms the modules can be installed for instance
 by CPAN utility:
 
-    cpan -i RPC::XML XML::Twig
+    cpan -i RPC::XML XML::Twig File::HomeDir
