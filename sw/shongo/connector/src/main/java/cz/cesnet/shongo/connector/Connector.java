@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.common.jade.JadeContainer;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
-import jade.core.Profile;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,46 +22,27 @@ public class Connector
     /**
      * Connector parameters
      */
-    public static String agentHost = "127.0.0.1";
-    public static int agentPort = 8383;
+    public static String jadeHost = "127.0.0.1";
+    public static int jadePort = 8383;
     public static String controllerHost = "127.0.0.1";
     public static int controllerPort = 8282;
 
     /**
-     * Jade container
+     * Jade jadeContainer
      */
-    jade.wrapper.ContainerController container;
-
-    /**
-     * Jade agent
-     */
-    jade.wrapper.AgentController agent;
+    JadeContainer jadeContainer;
 
     /**
      * Init connector
      */
     public void start() throws Exception
     {
-        logger.info("Starting Controller Jade Agent on {}:{}...", agentHost, agentPort);
+        logger.info("Starting Connector JADE container on {}:{}...", jadeHost, jadePort);
         logger.info("Connecting to controller {}:{}...", controllerHost, controllerPort);
 
-        jade.core.Runtime runtime = jade.core.Runtime.instance();
-        runtime.setCloseVM(true);
-
-        jade.core.Profile profile = new jade.core.ProfileImpl();
-        profile.setParameter(Profile.LOCAL_HOST, agentHost);
-        profile.setParameter(Profile.LOCAL_PORT, Integer.toString(agentPort));
-        profile.setParameter(Profile.MAIN_HOST, controllerHost);
-        profile.setParameter(Profile.MAIN_PORT, Integer.toString(controllerPort));
-        profile.setParameter(Profile.FILE_DIR, "data/jade/");
-        new java.io.File("data/jade").mkdir();
-
-        Logging.disableSystemOut();
-        container = runtime.createAgentContainer(profile);
-        Logging.enableSystemOut();
-
-        agent = container.createNewAgent("Connector", ConnectorAgent.class.getCanonicalName(), null);
-        agent.start();
+        jadeContainer = JadeContainer.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
+        jadeContainer.addAgent("Connector", ConnectorAgent.class);
+        jadeContainer.start();
     }
 
     /**
@@ -91,8 +72,7 @@ public class Connector
     public void stop()
     {
         try {
-            agent.kill();
-            container.kill();
+            jadeContainer.stop();
         }
         catch (Exception exception) {
             exception.printStackTrace();
@@ -121,12 +101,12 @@ public class Connector
         Option optionHost = OptionBuilder.withLongOpt("host")
                 .withArgName("HOST")
                 .hasArg()
-                .withDescription("Set the local interface address on which the connector Jade agent will run")
+                .withDescription("Set the local interface address on which the connector Jade container will run")
                 .create("h");
         Option optionPort = OptionBuilder.withLongOpt("port")
                 .withArgName("PORT")
                 .hasArg()
-                .withDescription("Set the port on which the connector Jade agent will run")
+                .withDescription("Set the port on which the connector Jade container will run")
                 .create("p");
         Option optionController = OptionBuilder.withLongOpt("controller")
                 .withArgName("HOST:PORT")
@@ -175,10 +155,10 @@ public class Connector
 
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
-            agentHost = commandLine.getOptionValue(optionHost.getOpt());
+            jadeHost = commandLine.getOptionValue(optionHost.getOpt());
         }
         if (commandLine.hasOption(optionPort.getOpt())) {
-            agentPort = Integer.parseInt(commandLine.getOptionValue(optionPort.getOpt()));
+            jadePort = Integer.parseInt(commandLine.getOptionValue(optionPort.getOpt()));
         }
         if (commandLine.hasOption(optionController.getOpt())) {
             String url = commandLine.getOptionValue(optionController.getOpt());
@@ -199,12 +179,13 @@ public class Connector
         Connector connector = new Connector();
         try {
             connector.start();
+
+            logger.info("Connector successfully started.");
+
             connector.run();
         }
         catch (Exception e) {
             e.printStackTrace();
         }
-
-        logger.info("Connector successfully started.");
     }
 }

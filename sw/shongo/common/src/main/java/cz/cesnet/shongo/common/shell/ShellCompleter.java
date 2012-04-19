@@ -2,7 +2,6 @@ package cz.cesnet.shongo.common.shell;
 
 import jline.console.completer.Completer;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
 import java.util.Collection;
 import java.util.List;
@@ -58,18 +57,18 @@ public class ShellCompleter implements Completer
                     candidates.add(keyword);
                 }
                 // Candidates for commands options
-                else if ( options.size() > 0 ) {
+                else if (options.size() > 0) {
                     String bufferPrefix = buffer.substring(0, Math.min(buffer.length(), keyword.length()));
-                    if ( keyword.startsWith(bufferPrefix)) {
+                    if (keyword.startsWith(bufferPrefix)) {
                         String bufferSuffix = "";
                         int position = buffer.lastIndexOf(" ");
-                        if ( position != -1 ) {
+                        if (position != -1) {
                             bufferSuffix = buffer.substring(position + 1, buffer.length());
                         }
-                        for ( Object item : options ) {
+                        for (Object item : options) {
                             Option option = (Option) item;
                             String optionKeyword = "--" + option.getLongOpt();
-                            if ( optionKeyword.startsWith(bufferSuffix)) {
+                            if (optionKeyword.startsWith(bufferSuffix)) {
                                 candidates.add(optionKeyword);
                             }
                         }

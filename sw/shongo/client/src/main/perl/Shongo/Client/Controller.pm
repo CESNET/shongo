@@ -169,7 +169,7 @@ sub status()
         return;
     }
     printf("+----------------------------------------------------------------------+\n");
-    printf("| Connected to following controller:                                   |\n");
+    printf("| Connected to the following controller:                               |\n");
     printf("| -------------------------------------------------------------------- |\n");
     printf("| URL:         %-55s |\n", $self->{'_url'});
     printf("| Name:        %-55s |\n", $response->{"name"}->value);

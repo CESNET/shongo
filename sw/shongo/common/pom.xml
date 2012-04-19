@@ -42,7 +42,7 @@
             </exclusions>
         </dependency>
 
-        <!-- Commons BeanUtils are used to convert between Map and POJOs -->
+        <!-- Commons BeanUtils are used to convert between Map and POJOs for XML-RPC mapping -->
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
@@ -56,11 +56,18 @@
             <version>1.2</version>
         </dependency>
 
-        <!-- JLine is used as shell framework -->
+        <!-- JLine is used as framework for interactive shell implementation -->
         <dependency>
             <groupId>jline</groupId>
             <artifactId>jline</artifactId>
             <version>2.6</version>
+        </dependency>
+
+        <!-- JADE is used as middle-ware for messaging -->
+        <dependency>
+            <groupId>com.tilab.jade</groupId>
+            <artifactId>jade</artifactId>
+            <version>4.1.1</version>
         </dependency>
     </dependencies>
 

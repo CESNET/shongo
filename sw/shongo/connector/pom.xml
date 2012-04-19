@@ -22,13 +22,6 @@
             <artifactId>common</artifactId>
             <version>1.0</version>
         </dependency>
-
-        <!-- JADE is used as middle-ware for messaging -->
-        <dependency>
-            <groupId>com.tilab.jade</groupId>
-            <artifactId>jade</artifactId>
-            <version>4.1.1</version>
-        </dependency>
     </dependencies>
 
     <build>

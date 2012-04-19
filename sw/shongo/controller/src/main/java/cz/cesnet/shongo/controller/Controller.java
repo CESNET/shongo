@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.jade.JadeContainer;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
-import jade.core.Profile;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -33,24 +32,19 @@ public class Controller implements ApplicationContextAware
      */
     public static String rpcHost = null; // All interfaces
     public static int rpcPort = 8181;
-    public static String agentHost = "127.0.0.1";
-    public static int agentPort = 8282;
+    public static String jadeHost = "127.0.0.1";
+    public static int jadePort = 8282;
+    public static String jadePlatformId = "Shongo";
 
     /**
-     * XML-RPC web server
+     * XML-RPC server
      */
     WebServer rpcServer;
 
     /**
-     * Jade container
+     * Jade jadeContainer
      */
-    jade.wrapper.ContainerController container;
-
-    /**
-     * Jade agent
-     */
-    jade.wrapper.AgentController agent;
-
+    JadeContainer jadeContainer;
 
     /**
      * Init controller
@@ -60,41 +54,18 @@ public class Controller implements ApplicationContextAware
     {
         logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost == null ? "*" : rpcHost), rpcPort);
 
-        try {
-            rpcServer = new WebServer(rpcHost, rpcPort);
-
-            // Fill services to web server
-            Map<String, Service> services = applicationContext.getBeansOfType(Service.class);
-            for (Service service : services.values()) {
-                rpcServer.addHandler(service.getServiceName(), service);
-            }
-
-            // Start web server
-            rpcServer.start();
+        rpcServer = new WebServer(rpcHost, rpcPort);
+        Map<String, Service> services = applicationContext.getBeansOfType(Service.class);
+        for (Service service : services.values()) {
+            rpcServer.addHandler(service.getServiceName(), service);
         }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        rpcServer.start();
 
-        logger.info("Starting Controller Jade Agent on {}:{}...", agentHost, agentPort);
+        logger.info("Starting Controller JADE container on {}:{}...", jadeHost, jadePort);
 
-        jade.core.Runtime runtime = jade.core.Runtime.instance();
-        runtime.setCloseVM(true);
-
-        jade.core.Profile profile = new jade.core.ProfileImpl();
-        profile.setParameter(Profile.PLATFORM_ID, "Shongo");
-        profile.setParameter(Profile.CONTAINER_NAME, "Controller");
-        profile.setParameter(Profile.LOCAL_HOST, agentHost);
-        profile.setParameter(Profile.LOCAL_PORT, Integer.toString(agentPort));
-        profile.setParameter(Profile.FILE_DIR, "data/jade/");
-        new java.io.File("data/jade").mkdir();
-
-        Logging.disableSystemOut();
-        container = runtime.createMainContainer(profile);
-        Logging.enableSystemOut();
-
-        agent = container.createNewAgent("Controller", ControllerAgent.class.getCanonicalName(), null);
-        agent.start();
+        jadeContainer = JadeContainer.createMainContainer(jadeHost, jadePort, jadePlatformId);
+        jadeContainer.addAgent("Controller", ControllerAgent.class);
+        jadeContainer.start();
     }
 
     /**
@@ -124,9 +95,8 @@ public class Controller implements ApplicationContextAware
     public void stop()
     {
         try {
-            rpcServer.shutdown();
-            agent.kill();
-            container.kill();
+            rpcServer.stop();
+            jadeContainer.stop();
         }
         catch (Exception exception) {
             exception.printStackTrace();
@@ -171,17 +141,23 @@ public class Controller implements ApplicationContextAware
         Option optionRpcPort = OptionBuilder.withLongOpt("rpc-port")
                 .withArgName("PORT")
                 .hasArg()
-                .withDescription("Set the port on which the controller XML-RPC server will run")
+                .withDescription("Set the port on which the XML-RPC server will run")
                 .create("r");
-        Option optionAgentPort = OptionBuilder.withLongOpt("agent-port")
+        Option optionJadePort = OptionBuilder.withLongOpt("jade-port")
                 .withArgName("PORT")
                 .hasArg()
-                .withDescription("Set the port on which the controller Jade agent will run")
+                .withDescription("Set the port on which the JADE main controller will run")
                 .create("a");
+        Option optionJadePlatform = OptionBuilder.withLongOpt("jade-platform")
+                .withArgName("PLATFORM")
+                .hasArg()
+                .withDescription("Set the platform-id for the JADE main controller")
+                .create("p");
         Options options = new Options();
         options.addOption(optionHost);
         options.addOption(optionRpcPort);
-        options.addOption(optionAgentPort);
+        options.addOption(optionJadePort);
+        options.addOption(optionJadePlatform);
         options.addOption(optionHelp);
 
         // Parse command line
@@ -222,13 +198,16 @@ public class Controller implements ApplicationContextAware
         if (commandLine.hasOption(optionHost.getOpt())) {
             String host = commandLine.getOptionValue(optionHost.getOpt());
             rpcHost = host;
-            agentHost = host;
+            jadeHost = host;
         }
         if (commandLine.hasOption(optionRpcPort.getOpt())) {
             rpcPort = Integer.parseInt(commandLine.getOptionValue(optionRpcPort.getOpt()));
         }
-        if (commandLine.hasOption(optionAgentPort.getOpt())) {
-            agentPort = Integer.parseInt(commandLine.getOptionValue(optionAgentPort.getOpt()));
+        if (commandLine.hasOption(optionJadePort.getOpt())) {
+            jadePort = Integer.parseInt(commandLine.getOptionValue(optionJadePort.getOpt()));
+        }
+        if (commandLine.hasOption(optionJadePlatform.getOpt())) {
+            jadePlatformId = commandLine.getOptionValue(optionJadePlatform.getOpt());
         }
 
         // Run application by spring application context

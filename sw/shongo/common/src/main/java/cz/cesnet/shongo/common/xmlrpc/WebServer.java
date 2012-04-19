@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,13 +30,32 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     private PropertyHandlerMapping handlerMapping;
 
     /**
+     * Get host address by name
+     *
+     * @param host
+     * @return host address
+     */
+    public static java.net.InetAddress getHostByName(String host)
+    {
+        if ( host != null) {
+            try {
+                return InetAddress.getByName(host);
+            }
+            catch (UnknownHostException e) {
+            }
+
+        }
+        return null;
+    }
+
+    /**
      * Construct XML-RPC web server
      *
      * @param pPort
      */
-    public WebServer(String host, int pPort) throws IOException
+    public WebServer(String host, int pPort)
     {
-        super(pPort, (host != null ? InetAddress.getByName(host) : null));
+        super(pPort, getHostByName(host));
 
         handlerMapping = new PropertyHandlerMapping();
         handlerMapping.setTypeConverterFactory(new TypeConverterFactory());
@@ -88,6 +108,14 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         // Add instance to request processory factory
         RequestProcessorFactory factory = (RequestProcessorFactory) handlerMapping.getRequestProcessorFactoryFactory();
         factory.addInstance(handler);
+    }
+
+    /**
+     * Stop XML-RPC server
+     */
+    public void stop()
+    {
+        shutdown();
     }
 
     /**

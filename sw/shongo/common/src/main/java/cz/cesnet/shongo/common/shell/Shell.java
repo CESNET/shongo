@@ -161,7 +161,7 @@ public class Shell
      */
     public void printHelp(String forCommand)
     {
-        if ( forCommand == null ) {
+        if (forCommand == null) {
             for (Command command : commands.values()) {
                 String help = command.getHelp();
                 if (help == null) {
@@ -169,14 +169,15 @@ public class Shell
                 }
                 System.out.printf("%-10s %s\n", command.getCommand(), help);
             }
-        } else {
+        }
+        else {
             Command command = commands.get(forCommand);
-            if ( command == null) {
+            if (command == null) {
                 System.out.printf("[ERROR] Cannot show help for unknown command '%s'!\n", forCommand);
                 return;
             }
             System.out.println(command.getHelp());
-            if ( command.getOptions().getOptions().size() > 0) {
+            if (command.getOptions().getOptions().size() > 0) {
                 HelpFormatter formatter = new HelpFormatter();
                 formatter.printHelp(forCommand, command.getOptions());
             }

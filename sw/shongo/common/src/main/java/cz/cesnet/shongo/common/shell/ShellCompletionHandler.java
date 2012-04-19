@@ -60,7 +60,8 @@ class ShellCompletionHandler extends CandidateListCompletionHandler
             // (user must type at least one character "-" to start auto completion)
             if (position < (buffer.length() - 1)) {
                 newBuffer = buffer.substring(0, position + 1) + newBuffer;
-            } else {
+            }
+            else {
                 newBuffer = buffer;
             }
         }
