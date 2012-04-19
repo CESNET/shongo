@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
 /**
- * Represents a service that can handle
+ * Represents a service that can perform
  * XML-RPC requests.
  *
  * @author Martin Srom

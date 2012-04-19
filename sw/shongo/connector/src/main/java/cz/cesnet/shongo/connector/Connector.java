@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.common.shell.CommandHandler;
+import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import jade.core.Profile;
 import org.apache.commons.cli.*;
@@ -26,6 +28,16 @@ public class Connector
     public static int controllerPort = 8282;
 
     /**
+     * Jade container
+     */
+    jade.wrapper.ContainerController container;
+
+    /**
+     * Jade agent
+     */
+    jade.wrapper.AgentController agent;
+
+    /**
      * Init connector
      */
     public void start() throws Exception
@@ -34,6 +46,8 @@ public class Connector
         logger.info("Connecting to controller {}:{}...", controllerHost, controllerPort);
 
         jade.core.Runtime runtime = jade.core.Runtime.instance();
+        runtime.setCloseVM(true);
+
         jade.core.Profile profile = new jade.core.ProfileImpl();
         profile.setParameter(Profile.LOCAL_HOST, agentHost);
         profile.setParameter(Profile.LOCAL_PORT, Integer.toString(agentPort));
@@ -43,12 +57,54 @@ public class Connector
         new java.io.File("data/jade").mkdir();
 
         Logging.disableSystemOut();
-        jade.wrapper.ContainerController container = runtime.createAgentContainer(profile);
+        container = runtime.createAgentContainer(profile);
         Logging.enableSystemOut();
 
-        jade.wrapper.AgentController agent = container.createNewAgent("Connector",
-                ConnectorAgent.class.getCanonicalName(), null);
+        agent = container.createNewAgent("Connector", ConnectorAgent.class.getCanonicalName(), null);
         agent.start();
+    }
+
+    /**
+     * Run connector shell
+     */
+    public void run()
+    {
+        Shell shell = new Shell();
+        shell.setPrompt("connector");
+        shell.setExitCommand("exit", "Shutdown the connector");
+        shell.addCommand("status", "Print status of the connector", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                status();
+            }
+        });
+        shell.run();
+
+        stop();
+    }
+
+    /**
+     * De init connector
+     */
+    public void stop()
+    {
+        try {
+            agent.kill();
+            container.kill();
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Print controller status
+     */
+    public void status()
+    {
+        System.out.println("TODO: Print status information about connector!");
     }
 
     /**
@@ -143,6 +199,7 @@ public class Connector
         Connector connector = new Connector();
         try {
             connector.start();
+            connector.run();
         }
         catch (Exception e) {
             e.printStackTrace();

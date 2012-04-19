@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.shell.CommandHandler;
+import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
 import jade.core.Profile;
-import jade.wrapper.StaleProxyException;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,22 @@ public class Controller implements ApplicationContextAware
     public static int agentPort = 8282;
 
     /**
+     * XML-RPC web server
+     */
+    WebServer rpcServer;
+
+    /**
+     * Jade container
+     */
+    jade.wrapper.ContainerController container;
+
+    /**
+     * Jade agent
+     */
+    jade.wrapper.AgentController agent;
+
+
+    /**
      * Init controller
      */
     @PostConstruct
@@ -44,16 +61,16 @@ public class Controller implements ApplicationContextAware
         logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost == null ? "*" : rpcHost), rpcPort);
 
         try {
-            WebServer webServer = new WebServer(rpcHost, rpcPort);
+            rpcServer = new WebServer(rpcHost, rpcPort);
 
             // Fill services to web server
             Map<String, Service> services = applicationContext.getBeansOfType(Service.class);
             for (Service service : services.values()) {
-                webServer.addHandler(service.getServiceName(), service);
+                rpcServer.addHandler(service.getServiceName(), service);
             }
 
             // Start web server
-            webServer.start();
+            rpcServer.start();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -62,6 +79,8 @@ public class Controller implements ApplicationContextAware
         logger.info("Starting Controller Jade Agent on {}:{}...", agentHost, agentPort);
 
         jade.core.Runtime runtime = jade.core.Runtime.instance();
+        runtime.setCloseVM(true);
+
         jade.core.Profile profile = new jade.core.ProfileImpl();
         profile.setParameter(Profile.PLATFORM_ID, "Shongo");
         profile.setParameter(Profile.CONTAINER_NAME, "Controller");
@@ -71,12 +90,55 @@ public class Controller implements ApplicationContextAware
         new java.io.File("data/jade").mkdir();
 
         Logging.disableSystemOut();
-        jade.wrapper.ContainerController container = runtime.createMainContainer(profile);
+        container = runtime.createMainContainer(profile);
         Logging.enableSystemOut();
 
-        jade.wrapper.AgentController agent = container.createNewAgent("Controller",
-                ControllerAgent.class.getCanonicalName(), null);
+        agent = container.createNewAgent("Controller", ControllerAgent.class.getCanonicalName(), null);
         agent.start();
+    }
+
+    /**
+     * Run controller shell
+     */
+    public void run()
+    {
+        Shell shell = new Shell();
+        shell.setPrompt("controller");
+        shell.setExitCommand("exit", "Shutdown the controller");
+        shell.addCommand("status", "Print status of the controller", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                status();
+            }
+        });
+        shell.run();
+
+        stop();
+    }
+
+    /**
+     * Stop the controller
+     */
+    public void stop()
+    {
+        try {
+            rpcServer.shutdown();
+            agent.kill();
+            container.kill();
+        }
+        catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    /**
+     * Print controller status
+     */
+    public void status()
+    {
+        System.out.println("TODO: Print status information about controller!");
     }
 
     /**
@@ -170,8 +232,12 @@ public class Controller implements ApplicationContextAware
         }
 
         // Run application by spring application context
-        new ClassPathXmlApplicationContext("spring-context.xml");
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-context.xml");
 
         logger.info("Controller successfully started.");
+
+        // Runn controller
+        Controller controller = (Controller) applicationContext.getBean("controller");
+        controller.run();
     }
 }

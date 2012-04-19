@@ -298,6 +298,17 @@
         <root url="jar://$MAVEN_REPOSITORY$/dom4j/dom4j/1.6.1/dom4j-1.6.1-sources.jar!/" />
       </SOURCES>
     </library>
+    <library name="Maven: jline:jline:2.6">
+      <CLASSES>
+        <root url="jar://$MAVEN_REPOSITORY$/jline/jline/2.6/jline-2.6.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$MAVEN_REPOSITORY$/jline/jline/2.6/jline-2.6-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$MAVEN_REPOSITORY$/jline/jline/2.6/jline-2.6-sources.jar!/" />
+      </SOURCES>
+    </library>
     <library name="Maven: junit-addons:junit-addons:1.4">
       <CLASSES>
         <root url="jar://$MAVEN_REPOSITORY$/junit-addons/junit-addons/1.4/junit-addons-1.4.jar!/" />
