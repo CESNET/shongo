@@ -2,6 +2,8 @@ package cz.cesnet.shongo.common.shell;
 
 import jline.console.ConsoleReader;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +20,8 @@ import java.util.Map;
  */
 public class Shell
 {
+    private static Logger logger = LoggerFactory.getLogger(Shell.class);
+
     /**
      * Predefined exit command
      */
@@ -173,7 +177,7 @@ public class Shell
         else {
             Command command = commands.get(forCommand);
             if (command == null) {
-                System.out.printf("[ERROR] Cannot show help for unknown command '%s'!\n", forCommand);
+                printError("Cannot show help for unknown command '%s'!", forCommand);
                 return;
             }
             System.out.println(command.getHelp());
@@ -182,6 +186,17 @@ public class Shell
                 formatter.printHelp(forCommand, command.getOptions());
             }
         }
+    }
+
+    /**
+     * Print error message
+     *
+     * @param error
+     * @param objects
+     */
+    public static void printError(String error, java.lang.Object... objects)
+    {
+        System.err.printf("[ERROR] %s\n", String.format(error, objects));
     }
 
     /**
@@ -203,8 +218,8 @@ public class Shell
                 }
             }
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (Exception exception) {
+            logger.error("Failed to create shell console.", exception);
         }
     }
 
@@ -225,7 +240,7 @@ public class Shell
 
         Command command = commands.get(args[0]);
         if (command == null) {
-            System.out.printf("[ERROR] Unknown command '%s'!\n", args[0]);
+            printError("Unknown command '%s'!", args[0]);
             return true;
         }
 
@@ -235,7 +250,7 @@ public class Shell
             commandLine = parser.parse(command.getOptions(), args);
         }
         catch (ParseException e) {
-            System.out.println("[ERROR] " + e.getMessage());
+            printError(e.getMessage());
             return true;
         }
 

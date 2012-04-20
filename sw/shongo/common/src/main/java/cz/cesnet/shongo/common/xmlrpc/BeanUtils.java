@@ -4,6 +4,8 @@ import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.beanutils.MethodUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
@@ -20,6 +22,8 @@ import java.util.*;
  */
 public class BeanUtils extends BeanUtilsBean
 {
+    private static Logger logger = LoggerFactory.getLogger(BeanUtils.class);
+
     /**
      * Constructor
      */
@@ -149,7 +153,7 @@ public class BeanUtils extends BeanUtilsBean
                         value = Arrays.copyOf(valueArray, valueArray.length, propertyClass);
                     }
                     catch (ClassCastException exception) {
-                        exception.printStackTrace();
+                        logger.error("Failed to copy array.", exception);
                     }
                 }
             }

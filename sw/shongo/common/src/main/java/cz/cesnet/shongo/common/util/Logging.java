@@ -3,19 +3,20 @@ package cz.cesnet.shongo.common.util;
 import java.io.PrintStream;
 
 /**
- * Helper class for logging
+ * Helper class for logging.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Logging
 {
     /**
-     * Flag if logging bridge was installed
+     * Flag if logging bridge was installed.
      */
     private static boolean bridgeInstalled = false;
 
     /**
-     * Install bridge to logging systems
+     * Install bridge from other logging systems to SLF4J.
+     * For example java.util.logging needs this bridge.
      */
     public static synchronized void installBridge()
     {
@@ -30,12 +31,12 @@ public class Logging
     }
 
     /**
-     * Saved System.out property
+     * Saved System.out property.
      */
     private static PrintStream systemOut;
 
     /**
-     * Disable System.out
+     * Disable printing by System.out.
      */
     public static void disableSystemOut()
     {
@@ -44,7 +45,7 @@ public class Logging
     }
 
     /**
-     * Enable System.out
+     * Enable printing by System.out.
      */
     public static void enableSystemOut()
     {

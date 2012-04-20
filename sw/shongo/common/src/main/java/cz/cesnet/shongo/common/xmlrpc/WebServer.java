@@ -7,6 +7,8 @@ import org.apache.xmlrpc.common.XmlRpcStreamRequestConfig;
 import org.apache.xmlrpc.server.*;
 import org.apache.xmlrpc.webserver.Connection;
 import org.apache.xmlrpc.webserver.RequestData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.util.Map;
  */
 public class WebServer extends org.apache.xmlrpc.webserver.WebServer
 {
+    private static Logger logger = LoggerFactory.getLogger(WebServer.class);
+
     /**
      * Handler mapping, provide set of service instances
      * that will handler all XML-RPC requests.
@@ -87,7 +91,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
             handlerMapping.load(Thread.currentThread().getContextClassLoader(), mappingFile);
         }
         catch (Exception exception) {
-            exception.printStackTrace();
+            logger.error("Failed to load handler mappings from file.", exception);
         }
     }
 
@@ -102,8 +106,8 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         try {
             handlerMapping.addHandler(name, handler.getClass());
         }
-        catch (XmlRpcException e) {
-            e.printStackTrace();
+        catch (XmlRpcException exception) {
+            logger.error("Failed to add new handler.", exception);
         }
         // Add instance to request processory factory
         RequestProcessorFactory factory = (RequestProcessorFactory) handlerMapping.getRequestProcessorFactoryFactory();

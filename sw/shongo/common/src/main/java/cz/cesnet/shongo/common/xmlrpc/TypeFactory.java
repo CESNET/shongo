@@ -9,6 +9,8 @@ import org.apache.xmlrpc.parser.MapParser;
 import org.apache.xmlrpc.parser.TypeParser;
 import org.apache.xmlrpc.serializer.MapSerializer;
 import org.apache.xmlrpc.serializer.TypeSerializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -21,6 +23,8 @@ import java.util.Map;
  */
 public class TypeFactory extends TypeFactoryImpl
 {
+    private static Logger logger = LoggerFactory.getLogger(TypeFactory.class);
+
     public TypeFactory(XmlRpcController pController)
     {
         super(pController);
@@ -101,8 +105,8 @@ public class TypeFactory extends TypeFactoryImpl
                         // Get map from object instance
                         map = BeanUtils.getInstance().describeRecursive(pObject);
                     }
-                    catch (Exception e) {
-                        e.printStackTrace();
+                    catch (Exception exception) {
+                        logger.error("Failed convert object to map.", exception);
                     }
                     super.write(pHandler, map);
                 }

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.jade.Container;
+import cz.cesnet.shongo.common.jade.command.SendCommand;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
@@ -19,7 +20,7 @@ import java.util.Comparator;
 import java.util.Map;
 
 /**
- * Controller class
+ * Represents a domain controller.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -42,7 +43,7 @@ public class Controller implements ApplicationContextAware
     WebServer rpcServer;
 
     /**
-     * Jade jadeContainer
+     * Jade container
      */
     Container jadeContainer;
 
@@ -73,7 +74,7 @@ public class Controller implements ApplicationContextAware
      */
     public void run()
     {
-        Shell shell = new Shell();
+        final Shell shell = new Shell();
         shell.setPrompt("controller");
         shell.setExitCommand("exit", "Shutdown the controller");
         shell.addCommand("status", "Print status of the controller", new CommandHandler()
@@ -82,6 +83,19 @@ public class Controller implements ApplicationContextAware
             public void perform(CommandLine commandLine)
             {
                 status();
+            }
+        });
+        shell.addCommand("send", "Send message to another agent", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if ( commandLine.getArgs().length < 3 ) {
+                    Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
+                    return;
+                }
+                jadeContainer.performCommand("Controller", SendCommand.createSendMessage(args[1], args[2]));
             }
         });
         shell.run();
@@ -94,13 +108,8 @@ public class Controller implements ApplicationContextAware
      */
     public void stop()
     {
-        try {
-            rpcServer.stop();
-            jadeContainer.stop();
-        }
-        catch (Exception exception) {
-            exception.printStackTrace();
-        }
+        rpcServer.stop();
+        jadeContainer.stop();
     }
 
     /**
@@ -215,7 +224,7 @@ public class Controller implements ApplicationContextAware
 
         logger.info("Controller successfully started.");
 
-        // Runn controller
+        // Run controller
         Controller controller = (Controller) applicationContext.getBean("controller");
         controller.run();
     }

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.common.jade.Container;
+import cz.cesnet.shongo.common.jade.command.SendCommand;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
@@ -11,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Comparator;
 
 /**
- * Device connector main class.
+ * Represents a device connector.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -28,7 +29,7 @@ public class Connector
     public static int controllerPort = 8282;
 
     /**
-     * Jade jadeContainer
+     * Jade container
      */
     Container jadeContainer;
 
@@ -61,6 +62,19 @@ public class Connector
                 status();
             }
         });
+        shell.addCommand("send", "Send message to another agent", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if ( commandLine.getArgs().length < 3 ) {
+                    Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
+                    return;
+                }
+                jadeContainer.performCommand("Connector", SendCommand.createSendMessage(args[1], args[2]));
+            }
+        });
         shell.run();
 
         stop();
@@ -71,12 +85,7 @@ public class Connector
      */
     public void stop()
     {
-        try {
-            jadeContainer.stop();
-        }
-        catch (Exception exception) {
-            exception.printStackTrace();
-        }
+        jadeContainer.stop();
     }
 
     /**
@@ -184,8 +193,8 @@ public class Connector
 
             connector.run();
         }
-        catch (Exception e) {
-            e.printStackTrace();
+        catch (Exception exception) {
+            logger.error("Failed to start connector.", exception);
         }
     }
 }

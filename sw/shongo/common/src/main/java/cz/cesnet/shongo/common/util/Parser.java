@@ -2,6 +2,8 @@ package cz.cesnet.shongo.common.util;
 
 import org.antlr.runtime.Lexer;
 import org.antlr.runtime.TokenStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Parser helper
@@ -10,6 +12,8 @@ import org.antlr.runtime.TokenStream;
  */
 public class Parser
 {
+    private static Logger logger = LoggerFactory.getLogger(Parser.class);
+
     /**
      * Get token stream from text and lexer class
      *
@@ -28,7 +32,7 @@ public class Parser
             tokens = new org.antlr.runtime.CommonTokenStream(lexer);
         }
         catch (Exception exception) {
-            exception.printStackTrace();
+            logger.error("Failed create token stream for parsing.", exception);
         }
         return tokens;
     }

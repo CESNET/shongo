@@ -1,19 +1,14 @@
 package cz.cesnet.shongo.common.jade.command;
 
 import cz.cesnet.shongo.common.jade.Agent;
+import cz.cesnet.shongo.common.jade.ontology.Message;
 import jade.content.Concept;
-import jade.content.ContentElement;
-import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
-import jade.content.onto.OntologyException;
-import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.naming.OperationNotSupportedException;
 
 /**
  * Send message command for a JADE agent.
@@ -34,17 +29,34 @@ public class SendCommand implements Command
 
     /**
      * Construct command that send message to another agent.
-     *
-     * @param recipient
-     * @param performative
-     * @param ontology
-     * @param concept
      */
-    public SendCommand(AID recipient, int performative, Ontology ontology, Concept concept)
+    public SendCommand()
     {
-        setRecipient(recipient);
-        setPerformative(performative);
-        setContent(ontology, concept);
+    }
+
+    /**
+     * Create send command for sending simple text message
+     *
+     * @param agentName
+     * @param message
+     * @return send command
+     */
+    public static SendCommand createSendMessage(String agentName, String message)
+    {
+        SendCommand sendCommand = new SendCommand();
+
+        AID agentId = null;
+        if (agentName.indexOf("@") != -1) {
+            agentId = new AID(agentName, AID.ISGUID);
+        }
+        else {
+            agentId = new AID(agentName, AID.ISLOCALNAME);
+        }
+        sendCommand.setRecipient(agentId);
+        sendCommand.setPerformative(ACLMessage.INFORM);
+        sendCommand.setContent(null, new Message(message));
+
+        return sendCommand;
     }
 
     /**
@@ -125,9 +137,19 @@ public class SendCommand implements Command
         ACLMessage msg = new ACLMessage(performative);
         msg.addReceiver(recipient);
         msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-        msg.setOntology(ontology.getName());
+        if (ontology != null) {
+            msg.setOntology(ontology.getName());
+        }
 
-        ContentElement content = new Action(agent.getAID(), getConcept());
+        msg.setSender(agent.getAID());
+        if (getConcept() instanceof Message) {
+            msg.setContent(((Message) getConcept()).getMessage());
+        }
+        else {
+            throw new RuntimeException("Concept " + getConcept().getClass().getCanonicalName() + " is not supported!");
+        }
+
+        /*ContentElement content = new Action(agent.getAID(), getConcept());
         try {
             agent.getContentManager().fillContent(msg, content);
         }
@@ -138,9 +160,9 @@ public class SendCommand implements Command
         catch (OntologyException e) {
             e.printStackTrace();
             return false;
-        }
+        }*/
 
-        logger.info("{} -> {}: {}\n", new Object[]{agent.getLocalName(), recipient.getLocalName(), msg.toString()});
+        logger.info("{} -> {}: {}\n", new Object[]{agent.getAID().getName(), recipient.getName(), msg.toString()});
         agent.send(msg);
 
         return true;

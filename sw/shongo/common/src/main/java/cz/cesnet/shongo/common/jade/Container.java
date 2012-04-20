@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common.jade;
 
+import cz.cesnet.shongo.common.jade.command.Command;
 import cz.cesnet.shongo.common.util.Logging;
 import jade.core.Agent;
 import jade.core.Profile;
@@ -7,6 +8,8 @@ import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +21,8 @@ import java.util.Map;
  */
 public class Container
 {
+    private static Logger logger = LoggerFactory.getLogger(Container.class);
+
     /**
      * Configuration for container in JADE middle-ware.
      */
@@ -155,8 +160,8 @@ public class Container
         try {
             containerController.kill();
         }
-        catch (StaleProxyException e) {
-            e.printStackTrace();
+        catch (StaleProxyException exception) {
+            logger.error("Failed to kill container.", exception);
         }
         containerController = null;
     }
@@ -180,8 +185,8 @@ public class Container
                 agentControllers.put(agentName, agentController);
                 return true;
             }
-            catch (StaleProxyException e) {
-                e.printStackTrace();
+            catch (StaleProxyException exception) {
+                logger.error("Failed to create or start agent.", exception);
             }
         }
         else if (agent instanceof Agent) {
@@ -192,8 +197,8 @@ public class Container
                 agentControllers.put(agentName, agentController);
                 return true;
             }
-            catch (StaleProxyException e) {
-                e.printStackTrace();
+            catch (StaleProxyException exception) {
+                logger.error("Failed to accept or start agent.", exception);
             }
         }
         else {
@@ -215,8 +220,8 @@ public class Container
                 agentController.kill();
                 agentControllers.remove(agentName);
             }
-            catch (StaleProxyException e) {
-                e.printStackTrace();
+            catch (StaleProxyException exception) {
+                logger.error("Failed to kill agent.", exception);
             }
         }
     }
@@ -261,6 +266,25 @@ public class Container
 
         if (isStarted()) {
             startAgent(agentName);
+        }
+    }
+
+    /**
+     * Perform command on local agent
+     *
+     * @param command
+     */
+    public void performCommand(String agentName, Command command)
+    {
+        AgentController agentController = agentControllers.get(agentName);
+        if (agentController == null) {
+            return;
+        }
+        try {
+            agentController.putO2AObject(command, AgentController.SYNC);
+        }
+        catch (StaleProxyException exception) {
+            logger.error("Failed to put command object to agent queue.", exception);
         }
     }
 }
