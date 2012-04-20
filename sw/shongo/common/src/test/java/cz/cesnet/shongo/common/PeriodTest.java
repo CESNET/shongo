@@ -7,7 +7,7 @@ import static junit.framework.Assert.*;
 import static junitx.framework.Assert.*;
 
 /**
- * @author Ondrej Bouda
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class PeriodTest
 {

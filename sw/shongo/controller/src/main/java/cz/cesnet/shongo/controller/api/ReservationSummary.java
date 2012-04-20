@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.api.AbsoluteDateTime;
 /**
  * Summary of a reservation
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ReservationSummary
 {

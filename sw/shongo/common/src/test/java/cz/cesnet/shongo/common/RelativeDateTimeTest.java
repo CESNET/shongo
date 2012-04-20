@@ -8,7 +8,7 @@ import static junit.framework.Assert.assertEquals;
 /**
  * Relative date/time tests
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RelativeDateTimeTest
 {

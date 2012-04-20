@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.xmlrpc.StructType;
 /**
  * Represents a user identity
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class UserIdentity implements StructType
 {

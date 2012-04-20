@@ -6,7 +6,7 @@ import static junit.framework.Assert.*;
 /**
  * Date tests
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class DateTest
 {

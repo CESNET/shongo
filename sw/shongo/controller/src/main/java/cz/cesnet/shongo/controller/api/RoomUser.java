@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.api.UserIdentity;
 /**
  * Represents an active user in a virtual Room
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RoomUser
 {

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.common.jade.JadeContainer;
+import cz.cesnet.shongo.common.jade.Container;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
@@ -13,7 +13,7 @@ import java.util.Comparator;
 /**
  * Device connector main class.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Connector
 {
@@ -30,7 +30,7 @@ public class Connector
     /**
      * Jade jadeContainer
      */
-    JadeContainer jadeContainer;
+    Container jadeContainer;
 
     /**
      * Init connector
@@ -40,7 +40,7 @@ public class Connector
         logger.info("Starting Connector JADE container on {}:{}...", jadeHost, jadePort);
         logger.info("Connecting to controller {}:{}...", controllerHost, controllerPort);
 
-        jadeContainer = JadeContainer.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
+        jadeContainer = Container.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
         jadeContainer.addAgent("Connector", ConnectorAgent.class);
         jadeContainer.start();
     }

@@ -14,9 +14,9 @@ import java.util.Map;
 /**
  * Represents a container in JADE middle-ware.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class JadeContainer
+public class Container
 {
     /**
      * Configuration for container in JADE middle-ware.
@@ -43,7 +43,7 @@ public class JadeContainer
      *
      * @param profile
      */
-    private JadeContainer(Profile profile)
+    private Container(Profile profile)
     {
         this.profile = profile;
     }
@@ -54,14 +54,14 @@ public class JadeContainer
      * @param profile
      * @return jade container
      */
-    private static JadeContainer createContainer(Profile profile)
+    private static Container createContainer(Profile profile)
     {
         // Setup container profile
         profile.setParameter(Profile.FILE_DIR, "data/jade/");
         // Create directory if not exits
         new java.io.File("data/jade").mkdir();
 
-        return new JadeContainer(profile);
+        return new Container(profile);
     }
 
     /**
@@ -73,7 +73,7 @@ public class JadeContainer
      * @param platformId
      * @return jade container
      */
-    public static JadeContainer createMainContainer(String localHost, int localPort, String platformId)
+    public static Container createMainContainer(String localHost, int localPort, String platformId)
     {
         jade.core.Profile profile = new jade.core.ProfileImpl();
         profile.setParameter(Profile.MAIN, "true");
@@ -93,7 +93,7 @@ public class JadeContainer
      * @param localPort
      * @return jade container
      */
-    public static JadeContainer createContainer(String mainHost, int mainPort, String localHost, int localPort)
+    public static Container createContainer(String mainHost, int mainPort, String localHost, int localPort)
     {
         jade.core.Profile profile = new jade.core.ProfileImpl();
         profile.setParameter(Profile.MAIN, "false");

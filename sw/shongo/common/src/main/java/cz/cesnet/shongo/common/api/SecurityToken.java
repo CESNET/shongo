@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.xmlrpc.StructType;
 /**
  * Represents a security token
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class SecurityToken implements StructType
 {

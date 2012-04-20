@@ -9,7 +9,7 @@ import java.util.Map;
  * Interface to the service handling operations on rooms.
  * (If looking for the Roxette album Room Service, please, visit the local music store ;-)
  *
- * @author Ondrej Bouda
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public interface RoomService extends Service
 {

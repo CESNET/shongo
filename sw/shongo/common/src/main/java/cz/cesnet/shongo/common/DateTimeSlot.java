@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Represents a time slot.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class DateTimeSlot
 {

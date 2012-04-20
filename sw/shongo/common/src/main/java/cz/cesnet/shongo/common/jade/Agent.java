@@ -1,17 +1,16 @@
 package cz.cesnet.shongo.common.jade;
 
-import jade.core.Agent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Represents an agent in jade middle-ware.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class JadeAgent extends Agent
+public class Agent extends jade.core.Agent
 {
-    private static Logger logger = LoggerFactory.getLogger(JadeAgent.class);
+    private static Logger logger = LoggerFactory.getLogger(Agent.class);
 
     @Override
     protected void setup()

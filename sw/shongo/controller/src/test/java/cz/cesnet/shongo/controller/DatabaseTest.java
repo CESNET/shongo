@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Test database
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class DatabaseTest
 {

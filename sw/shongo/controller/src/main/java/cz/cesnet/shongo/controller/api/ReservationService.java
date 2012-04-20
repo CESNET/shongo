@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Interface to the service handling operations on reservations.
  *
- * @author Ondrej Bouda
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public interface ReservationService extends Service
 {

@@ -8,7 +8,7 @@ import java.util.TimeZone;
 /**
  * Represents absolute date.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public final class Date implements Comparable<Date>, Cloneable
 {

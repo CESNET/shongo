@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 /**
  * Represents an absolute Date/Time.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDateTime>, Cloneable
 {

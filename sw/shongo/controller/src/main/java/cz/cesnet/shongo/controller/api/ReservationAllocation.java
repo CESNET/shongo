@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Reservation allocation
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ReservationAllocation
 {

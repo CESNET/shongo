@@ -4,7 +4,7 @@ package cz.cesnet.shongo.common.xmlrpc;
  * Fault interface. Every fault must implement fault
  * interface. Contains common faults.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public interface Fault
 {
@@ -25,7 +25,7 @@ public interface Fault
     /**
      * Fault enumeration for common faults
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     public static enum Common implements Fault
     {

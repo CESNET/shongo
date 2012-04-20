@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.xmlrpc.Service;
 /**
  * Interface to the service handling common operations.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public interface CommonService extends Service
 {

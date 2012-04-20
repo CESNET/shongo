@@ -16,7 +16,7 @@ import java.util.*;
  * perform type conversion between strings, enums and custom
  * XML-RPC atomic types.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class BeanUtils extends BeanUtilsBean
 {

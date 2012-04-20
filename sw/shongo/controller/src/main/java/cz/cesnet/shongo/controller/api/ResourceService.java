@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Interface to the service handling operations on resources.
  *
- * @author Ondrej Bouda
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public interface ResourceService extends Service
 {

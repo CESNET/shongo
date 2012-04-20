@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.xmlrpc.AtomicType;
 /**
  * Represents a Date/Time duration/period
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Period implements AtomicType
 {

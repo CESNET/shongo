@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.xmlrpc.StructType;
 /**
  * Represents a date/time slot
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class DateTimeSlot implements StructType
 {

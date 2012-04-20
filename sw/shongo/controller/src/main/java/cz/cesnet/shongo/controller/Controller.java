@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.jade.JadeContainer;
+import cz.cesnet.shongo.common.jade.Container;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Controller class
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Controller implements ApplicationContextAware
 {
@@ -44,7 +44,7 @@ public class Controller implements ApplicationContextAware
     /**
      * Jade jadeContainer
      */
-    JadeContainer jadeContainer;
+    Container jadeContainer;
 
     /**
      * Init controller
@@ -63,7 +63,7 @@ public class Controller implements ApplicationContextAware
 
         logger.info("Starting Controller JADE container on {}:{}...", jadeHost, jadePort);
 
-        jadeContainer = JadeContainer.createMainContainer(jadeHost, jadePort, jadePlatformId);
+        jadeContainer = Container.createMainContainer(jadeHost, jadePort, jadePlatformId);
         jadeContainer.addAgent("Controller", ControllerAgent.class);
         jadeContainer.start();
     }

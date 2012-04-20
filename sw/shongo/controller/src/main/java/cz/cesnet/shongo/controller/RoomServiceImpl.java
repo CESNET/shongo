@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Room service implementation.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RoomServiceImpl implements RoomService
 {

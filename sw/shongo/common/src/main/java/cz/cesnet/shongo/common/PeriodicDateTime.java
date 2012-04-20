@@ -5,7 +5,7 @@ import java.util.*;
 /**
  * Represents a Date/Time of events that takes place periodically.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class PeriodicDateTime extends DateTime
 {
@@ -320,7 +320,7 @@ public class PeriodicDateTime extends DateTime
     /**
      * Periodic date/time rule type.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     public enum RuleType
     {
@@ -344,7 +344,7 @@ public class PeriodicDateTime extends DateTime
      * Periodic date/time rule.
      * Rule conflicts are solved by last-match policy.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     public static class Rule
     {

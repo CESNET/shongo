@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * TypeFactory that converts between objects and maps
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TypeFactory extends TypeFactoryImpl
 {

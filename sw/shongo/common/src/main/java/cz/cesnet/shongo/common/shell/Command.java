@@ -8,7 +8,7 @@ import org.apache.commons.cli.Options;
  * Command consists of keyword, help string and handler that
  * is performed when the command is executed in a shell.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Command
 {

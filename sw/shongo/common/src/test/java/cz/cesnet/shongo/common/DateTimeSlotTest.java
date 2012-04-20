@@ -10,7 +10,7 @@ import static junit.framework.Assert.*;
 /**
  * Time slot tests
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class DateTimeSlotTest
 {

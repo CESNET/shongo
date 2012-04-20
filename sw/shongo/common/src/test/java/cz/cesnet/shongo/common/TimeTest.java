@@ -8,7 +8,7 @@ import static junitx.framework.Assert.assertNotEquals;
 /**
  * Time tests
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TimeTest
 {

@@ -8,7 +8,7 @@ import java.util.List;
  * This class evaluates quotes to be able to pass spaces
  * inside argument.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public final class CommandLineParser
 {

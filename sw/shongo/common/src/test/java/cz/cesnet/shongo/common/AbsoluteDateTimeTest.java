@@ -6,7 +6,7 @@ import org.junit.Test;
 import static junit.framework.Assert.*;
 
 /**
- * @author Ondrej Bouda
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class AbsoluteDateTimeTest
 {

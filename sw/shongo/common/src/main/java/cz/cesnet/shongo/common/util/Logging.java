@@ -5,7 +5,7 @@ import java.io.PrintStream;
 /**
  * Helper class for logging
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Logging
 {

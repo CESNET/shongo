@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api;
 /**
  * Represents information about controller.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ControllerInfo
 {

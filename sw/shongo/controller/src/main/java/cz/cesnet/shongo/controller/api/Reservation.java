@@ -6,7 +6,7 @@ import cz.cesnet.shongo.common.api.UserIdentity;
 /**
  * Represents a single reservation
  *
- * @author Martin srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Reservation
 {

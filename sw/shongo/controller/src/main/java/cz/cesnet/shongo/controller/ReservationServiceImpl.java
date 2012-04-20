@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Reservation service implementation
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ReservationServiceImpl implements ReservationService
 {

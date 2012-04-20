@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common.api;
 /**
  * Represents a Date/Time that takes places periodically
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class PeriodicDateTime extends DateTime
 {
@@ -30,7 +30,7 @@ public class PeriodicDateTime extends DateTime
     /**
      * Represents a rule in Periodic Date/Time
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     public static class Rule
     {

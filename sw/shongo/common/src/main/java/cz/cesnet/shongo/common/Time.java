@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.util.Parser;
 /**
  * Represents absolute time
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public final class Time implements Comparable<Time>, Cloneable
 {

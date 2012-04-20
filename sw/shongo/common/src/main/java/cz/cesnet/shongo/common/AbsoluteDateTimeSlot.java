@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common;
 /**
  * Represents an absolute date/time slot.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class AbsoluteDateTimeSlot extends DateTimeSlot
 {

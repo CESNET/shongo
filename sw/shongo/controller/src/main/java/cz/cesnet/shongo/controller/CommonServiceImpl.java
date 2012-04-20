@@ -9,7 +9,7 @@ import javax.persistence.EntityManager;
 /**
  * Room service implementation.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class CommonServiceImpl implements CommonService
 {

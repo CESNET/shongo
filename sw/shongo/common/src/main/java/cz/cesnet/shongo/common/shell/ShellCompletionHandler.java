@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Shell completition handler.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 class ShellCompletionHandler extends CandidateListCompletionHandler
 {

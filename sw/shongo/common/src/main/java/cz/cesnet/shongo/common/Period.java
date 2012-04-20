@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.util.Parser;
 /**
  * Represents a duration or period.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Period implements Comparable<Period>
 {

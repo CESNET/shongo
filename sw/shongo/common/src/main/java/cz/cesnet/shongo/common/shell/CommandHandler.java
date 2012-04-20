@@ -7,7 +7,7 @@ import org.apache.commons.cli.CommandLine;
  * action that is performed when command
  * is executed in a shell.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public interface CommandHandler
 {

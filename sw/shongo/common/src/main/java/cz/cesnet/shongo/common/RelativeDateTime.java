@@ -4,7 +4,7 @@ package cz.cesnet.shongo.common;
  * Represents an relative Date/Time. The relative date/time can be evaluated
  * only when concrete absolute date/time is given in getEarliest method.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RelativeDateTime extends DateTime
 {

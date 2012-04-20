@@ -5,7 +5,7 @@ import org.apache.xmlrpc.XmlRpcException;
 /**
  * Fault exception
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class FaultException extends XmlRpcException
 {

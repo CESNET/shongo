@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Shell completer
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ShellCompleter implements Completer
 {

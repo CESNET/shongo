@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.api.DateTime;
 /**
  * Represents a single resource
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Resource
 {

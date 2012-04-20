@@ -6,7 +6,7 @@ import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 /**
  * TypeConverterFactory that allows classes that extends from Type as method parameters.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TypeConverterFactory extends TypeConverterFactoryImpl
 {
@@ -31,7 +31,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Converter for atomic types.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     private static class AtomicTypeConverter implements TypeConverter
     {
@@ -77,7 +77,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Identity converter.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     private static class IdentityTypeConverter implements TypeConverter
     {
@@ -110,7 +110,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Converter for enum types.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     private static class EnumTypeConverter implements TypeConverter
     {

@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * XmlRpc WebServer with improved type factory
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class WebServer extends org.apache.xmlrpc.webserver.WebServer
 {
@@ -124,7 +124,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      * our purposes and this class overrides this mechanism to return existing instances
      * for specified class.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     private static class RequestProcessorFactory
             extends RequestProcessorFactoryFactory.RequestSpecificProcessorFactoryFactory
@@ -151,7 +151,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      * convertThrowable method to allow use of cause from runtime exception
      * as fault.
      *
-     * @author Martin Srom
+     * @author Martin Srom <martin.srom@cesnet.cz>
      */
     private static class ConnectionServer extends XmlRpcHttpServer
     {

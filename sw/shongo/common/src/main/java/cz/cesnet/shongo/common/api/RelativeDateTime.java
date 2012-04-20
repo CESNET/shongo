@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common.api;
 /**
  * Represents a relative Date/Time
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RelativeDateTime extends DateTime
 {

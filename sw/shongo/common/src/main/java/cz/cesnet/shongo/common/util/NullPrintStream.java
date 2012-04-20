@@ -7,7 +7,7 @@ import java.io.PrintStream;
 /**
  * PrintStream that doesn't output anything to anywhere.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class NullPrintStream extends PrintStream
 {

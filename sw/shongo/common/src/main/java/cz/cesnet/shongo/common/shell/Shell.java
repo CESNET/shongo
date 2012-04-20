@@ -14,7 +14,7 @@ import java.util.Map;
  * Commands must be specified by <code>addCommand</code> methods
  * and then the shell shall be run by <code>run</code> method.
  *
- * @author Martin Srom
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Shell
 {
