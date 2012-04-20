@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Represents an agent in jade middle-ware.
+ * Represents an agent in JADE middle-ware.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -64,7 +64,7 @@ public class Agent extends jade.core.Agent
     @Override
     protected void takeDown()
     {
-        super.setup();
+        super.takeDown();
 
         logger.info("Agent [{}] exiting!", getAID().getName());
     }

@@ -3,7 +3,7 @@ package cz.cesnet.shongo.common.jade.ontology;
 import jade.content.AgentAction;
 
 /**
- * Message agent action
+ * Message agent action.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

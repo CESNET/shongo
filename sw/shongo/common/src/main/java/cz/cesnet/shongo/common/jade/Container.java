@@ -144,7 +144,7 @@ public class Container
     }
 
     /**
-     * Stop JADE container
+     * Stop JADE container.
      */
     public void stop()
     {
@@ -270,7 +270,7 @@ public class Container
     }
 
     /**
-     * Perform command on local agent
+     * Perform command on local agent.
      *
      * @param command
      */
