@@ -66,7 +66,9 @@ public class Controller implements ApplicationContextAware
 
         jadeContainer = Container.createMainContainer(jadeHost, jadePort, jadePlatformId);
         jadeContainer.addAgent("Controller", ControllerAgent.class);
-        jadeContainer.start();
+        if (jadeContainer.start() == false) {
+            throw new Exception("Failed to start JADE container.");
+        }
     }
 
     /**
@@ -82,7 +84,7 @@ public class Controller implements ApplicationContextAware
             @Override
             public void perform(CommandLine commandLine)
             {
-                status();
+                jadeContainer.printStatus();
             }
         });
         shell.addCommand("send", "Send message to another agent", new CommandHandler()
@@ -91,11 +93,24 @@ public class Controller implements ApplicationContextAware
             public void perform(CommandLine commandLine)
             {
                 String[] args = commandLine.getArgs();
-                if ( commandLine.getArgs().length < 3 ) {
+                if (commandLine.getArgs().length < 3) {
                     Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
                     return;
                 }
                 jadeContainer.performCommand("Controller", SendCommand.createSendMessage(args[1], args[2]));
+            }
+        });
+        shell.addCommand("jade-gui", "Show/hide JADE Management GUI", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                if ( jadeContainer.hasManagementGui()) {
+                    jadeContainer.removeManagementGui();
+                }
+                else {
+                    jadeContainer.addManagementGui();
+                }
             }
         });
         shell.run();
@@ -108,16 +123,11 @@ public class Controller implements ApplicationContextAware
      */
     public void stop()
     {
+        logger.info("Stopping Controller XML-RPC server...");
         rpcServer.stop();
-        jadeContainer.stop();
-    }
 
-    /**
-     * Print controller status
-     */
-    public void status()
-    {
-        System.out.println("TODO: Print status information about controller!");
+        logger.info("Stopping Controller JADE container...");
+        jadeContainer.stop();
     }
 
     /**
@@ -227,5 +237,7 @@ public class Controller implements ApplicationContextAware
         // Run controller
         Controller controller = (Controller) applicationContext.getBean("controller");
         controller.run();
+
+        logger.info("Controller exiting...");
     }
 }

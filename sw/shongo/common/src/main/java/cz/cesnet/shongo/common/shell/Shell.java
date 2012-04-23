@@ -5,6 +5,7 @@ import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,11 @@ import java.util.Map;
 public class Shell
 {
     private static Logger logger = LoggerFactory.getLogger(Shell.class);
+
+    /**
+     * Console
+     */
+    ConsoleReader console;
 
     /**
      * Predefined exit command
@@ -189,7 +195,18 @@ public class Shell
     }
 
     /**
-     * Print error message
+     * Print info message with automatic newline.
+     *
+     * @param info
+     * @param objects
+     */
+    public static void printInfo(String info, java.lang.Object... objects)
+    {
+        System.out.printf("%s\n", String.format(info, objects));
+    }
+
+    /**
+     * Print error message with automatic newline.
      *
      * @param error
      * @param objects
@@ -207,16 +224,22 @@ public class Shell
         System.setProperty("jline.shutdownhook", "true");
 
         try {
-            ConsoleReader console = new ConsoleReader();
+            console = new ConsoleReader();
             console.setHistoryEnabled(true);
             console.addCompleter(new ShellCompleter(this));
             console.setCompletionHandler(new ShellCompletionHandler());
+
+            // Run loop
             while (true) {
+                active = this;
                 String line = console.readLine(prompt + "> ");
+                active = null;
                 if (parserCommandLine(line) == false) {
                     break;
                 }
             }
+
+            console = null;
         }
         catch (Exception exception) {
             logger.error("Failed to create shell console.", exception);
@@ -262,6 +285,75 @@ public class Shell
             return false;
         }
         return true;
+    }
+
+    /**
+     * Re-prompt thread.
+     */
+    public class RePromptThread extends Thread
+    {
+        long at;
+
+        @Override
+        public void run()
+        {
+            while (System.nanoTime() < at) {
+                try {
+                    Thread.sleep(100);
+                }
+                catch (InterruptedException e) {
+                }
+            }
+            try {
+                console.getOutput().write(console.getPrompt() + console.getCursorBuffer().toString());
+                console.getOutput().flush();
+                thread = null;
+            }
+            catch (Exception exception) {
+            }
+        }
+    }
+
+    /**
+     * Active re-prompt thread.
+     */
+    static RePromptThread thread;
+
+    /**
+     * Perform re-prompt.
+     */
+    public void rePrompt()
+    {
+        if (thread == null) {
+            try {
+                console.getOutput().write("\n");
+                console.getOutput().flush();
+            }
+            catch (IOException e) {
+            }
+            try {
+                thread = new RePromptThread();
+                thread.start();
+            }
+            catch (Exception exception) {
+            }
+        }
+        thread.at = System.nanoTime() + 1000000;
+    }
+
+    /**
+     * Active shell instance.
+     */
+    private static Shell active;
+
+    /**
+     * Get active shell
+     *
+     * @return active shell
+     */
+    public static Shell getActive()
+    {
+        return active;
     }
 
     /**

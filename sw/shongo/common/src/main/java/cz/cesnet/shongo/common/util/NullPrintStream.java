@@ -12,14 +12,24 @@ import java.io.PrintStream;
 public class NullPrintStream extends PrintStream
 {
     /**
-     * Construct null print stream.
+     * Construct null printInfo stream.
      */
     public NullPrintStream()
     {
         super(new OutputStream()
         {
             @Override
-            public void write(int i) throws IOException
+            public void write(final byte[] b) throws IOException
+            {
+            }
+
+            @Override
+            public void write(final byte[] b, final int off, final int len) throws IOException
+            {
+            }
+
+            @Override
+            public void write(final int b) throws IOException
             {
             }
         });

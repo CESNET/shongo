@@ -4,7 +4,6 @@ import cz.cesnet.shongo.common.jade.command.Command;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.wrapper.AgentController;
-import jade.wrapper.StaleProxyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,22 @@ import org.slf4j.LoggerFactory;
 public class Agent extends jade.core.Agent
 {
     private static Logger logger = LoggerFactory.getLogger(Agent.class);
+
+    /**
+     * Is agent started?
+     */
+    private boolean started = false;
+
+    /**
+     * Is agent started?
+     *
+     * @return true if agent is started,
+     *         false otherwise
+     */
+    public boolean isStarted()
+    {
+        return started;
+    }
 
     /**
      * Register ontology that agent can handle.
@@ -34,6 +49,10 @@ public class Agent extends jade.core.Agent
      */
     public void performCommand(String agentName, Command command)
     {
+        if (isStarted() == false) {
+            logger.error("Cannot perform command when the agent is not started.");
+            return;
+        }
         try {
             this.putO2AObject(command, AgentController.SYNC);
         }
@@ -47,6 +66,8 @@ public class Agent extends jade.core.Agent
     protected void setup()
     {
         super.setup();
+
+        started = true;
 
         logger.info("Agent [{}] is ready!", getAID().getName());
 
@@ -64,6 +85,8 @@ public class Agent extends jade.core.Agent
     @Override
     protected void takeDown()
     {
+        started = false;
+
         super.takeDown();
 
         logger.info("Agent [{}] exiting!", getAID().getName());

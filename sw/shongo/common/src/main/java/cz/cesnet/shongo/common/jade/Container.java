@@ -2,6 +2,7 @@ package cz.cesnet.shongo.common.jade;
 
 import cz.cesnet.shongo.common.jade.command.Command;
 import cz.cesnet.shongo.common.util.Logging;
+import cz.cesnet.shongo.common.util.ThreadHelper;
 import jade.core.Agent;
 import jade.core.Profile;
 import jade.core.Runtime;
@@ -117,23 +118,54 @@ public class Container
      */
     public boolean start()
     {
+        if (isStarted()) {
+            return true;
+        }
+
         // Setup JADE runtime
         Runtime runtime = Runtime.instance();
-        runtime.setCloseVM(true);
 
         // Disable System.out, because JADE prints an unwanted messages
         Logging.disableSystemOut();
+        Logging.disableSystemErr();
+
+        if (containerController != null) {
+            try {
+                containerController.kill();
+                containerController.getPlatformController().kill();
+            }
+            catch (Exception exception) {
+                exception.printStackTrace();
+            }
+            containerController = null;
+        }
 
         // Create main or agent container base on Profile.MAIN parameter
+        boolean result = true;
         if (profile.isMain()) {
             containerController = runtime.createMainContainer(profile);
+            if (containerController == null) {
+                logger.error("Failed to start the JADE main container.");
+                result = false;
+            }
         }
         else {
             containerController = runtime.createAgentContainer(profile);
+            if (containerController == null) {
+                String url = profile.getParameter(Profile.MAIN_HOST, "");
+                url += ":" + profile.getParameter(Profile.MAIN_PORT, "");
+                logger.error("Failed to start the JADE container. Is the main container {} running?", url);
+                result = false;
+            }
         }
 
         // Enable System.out back
         Logging.enableSystemOut();
+        Logging.enableSystemErr();
+
+        if (result == false) {
+            return false;
+        }
 
         // Start agents
         for (String agentName : agents.keySet()) {
@@ -148,22 +180,30 @@ public class Container
      */
     public void stop()
     {
-        if (containerController == null || containerController.isJoined() == false) {
-            return;
+        if (isStarted()) {
+            // Stop agents
+            for (String agentName : agents.keySet()) {
+                stopAgent(agentName);
+            }
+
+            // Stop platform
+            try {
+                if (profile.isMain()) {
+                    containerController.getPlatformController().kill();
+                }
+                else {
+                    containerController.kill();
+                }
+                containerController = null;
+            }
+            catch (Exception exception) {
+                logger.error("Failed to kill container.", exception);
+            }
         }
 
-        // Stop agents
-        for (String agentName : agents.keySet()) {
-            stopAgent(agentName);
-        }
-
-        try {
-            containerController.kill();
-        }
-        catch (StaleProxyException exception) {
-            logger.error("Failed to kill container.", exception);
-        }
-        containerController = null;
+        // Kill JADE threads
+        logger.debug("Killing all JADE threads...");
+        ThreadHelper.killThreadGroup("JADE");
     }
 
     /**
@@ -175,36 +215,70 @@ public class Container
      */
     private boolean startAgent(String agentName)
     {
+        // Check if agent controller is started and if so skip the startup
+        AgentController agentController = agentControllers.get(agentName);
+        if (agentController != null) {
+            try {
+                agentController.getState();
+                return true;
+            }
+            catch (StaleProxyException exception) {
+                logger.error("Agent is not started.", exception);
+                try {
+                    agentController.kill();
+                }
+                catch (StaleProxyException e1) {
+                }
+                // Remove agent and it will be restarted
+                agentControllers.remove(agentName);
+            }
+            agentController = null;
+        }
+
+        // Start agent
         Object agent = agents.get(agentName);
         if (agent instanceof Class) {
             Class agentClass = (Class) agent;
             try {
-                AgentController agentController = containerController.createNewAgent(agentName,
-                        agentClass.getCanonicalName(), null);
-                agentController.start();
-                agentControllers.put(agentName, agentController);
-                return true;
+                agentController = containerController.createNewAgent(agentName, agentClass.getCanonicalName(), null);
             }
             catch (StaleProxyException exception) {
-                logger.error("Failed to create or start agent.", exception);
+                logger.error("Failed to create agent.", exception);
+                return false;
+            }
+
+            try {
+                agentController.start();
+            }
+            catch (Exception exception) {
+                logger.error("Failed to start agent.", exception);
+                return false;
             }
         }
         else if (agent instanceof Agent) {
             try {
                 Agent agentInstance = (Agent) agent;
-                AgentController agentController = containerController.acceptNewAgent(agentName, agentInstance);
-                agentController.start();
-                agentControllers.put(agentName, agentController);
-                return true;
+                agentController = containerController.acceptNewAgent(agentName, agentInstance);
             }
             catch (StaleProxyException exception) {
                 logger.error("Failed to accept or start agent.", exception);
+                return false;
+            }
+            try {
+                agentController.start();
+            }
+            catch (Exception exception) {
+                logger.error("Failed to start agent.", exception);
+                return false;
             }
         }
         else {
             throw new RuntimeException("Unknown agent type " + agent.getClass().getCanonicalName() + "!");
         }
-        return false;
+
+        agentControllers.put(agentName, agentController);
+
+        return true;
     }
 
     /**
@@ -270,12 +344,39 @@ public class Container
     }
 
     /**
+     * Remove agent.
+     *
+     * @param agentName
+     */
+    public void removeAgent(String agentName)
+    {
+        stopAgent(agentName);
+        agents.remove(agentName);
+    }
+
+    /**
+     * Checks whether container contains agent with given name.
+     *
+     * @param agentName
+     * @return true if container contains agent,
+     *         false otherwise
+     */
+    public boolean containsAgent(String agentName)
+    {
+        return agents.containsKey(agentName);
+    }
+
+    /**
      * Perform command on local agent.
      *
      * @param command
      */
     public void performCommand(String agentName, Command command)
     {
+        if (isStarted() == false) {
+            logger.error("Cannot perform command when the container is not started.");
+            return;
+        }
         AgentController agentController = agentControllers.get(agentName);
         if (agentController == null) {
             return;
@@ -286,5 +387,88 @@ public class Container
         catch (StaleProxyException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
         }
+    }
+
+    /**
+     * Print status information.
+     */
+    public void printStatus()
+    {
+        try {
+            System.out.println();
+
+            // Print controller status
+            String containerName = "Unnamed";
+            String containerStatus = "Not-Started";
+            if (containerController == null) {
+                profile.getParameter(Profile.CONTAINER_NAME, "");
+            }
+            else {
+                containerName = containerController.getContainerName();
+                if (containerController.isJoined()) {
+                    if (profile.isMain()) {
+                        containerStatus = "Started as Main";
+                    }
+                    else {
+                        containerStatus = "Started";
+                    }
+                }
+            }
+            System.out.printf("Container: [%s]:\n", containerName);
+            System.out.printf("Status:    [%s]\n", containerStatus);
+
+            // Print agents status
+            if (agentControllers.size() > 0) {
+                System.out.println();
+                System.out.printf("Agents:\n");
+                int index = 0;
+                for (Map.Entry<String, AgentController> entry : agentControllers.entrySet()) {
+                    AgentController agentController = entry.getValue();
+                    String agentName = entry.getKey();
+                    String agentStatus = "Not-Started";
+                    try {
+                        agentName = agentController.getName();
+                        agentStatus = agentController.getState().getName();
+                    }
+                    catch (StaleProxyException exception) {
+                    }
+                    System.out.printf("%2d) Name: [%s]\n", index + 1, agentName);
+                    System.out.printf("    Status: [%s]\n", agentStatus);
+                    index++;
+                }
+            }
+
+            System.out.println();
+        }
+        catch (Exception exception) {
+            logger.error("Failed to get container status.", exception);
+        }
+    }
+
+    /**
+     * Show JADE Management GUI
+     */
+    public void addManagementGui()
+    {
+        addAgent("rma", jade.tools.rma.rma.class);
+    }
+
+    /**
+     * Has JADE management GUI?
+     *
+     * @return boolean
+     */
+
+    public boolean hasManagementGui()
+    {
+        return containsAgent("rma");
+    }
+
+    /**
+     * Hide JADE Management GUI
+     */
+    public void removeManagementGui()
+    {
+        removeAgent("rma");
     }
 }

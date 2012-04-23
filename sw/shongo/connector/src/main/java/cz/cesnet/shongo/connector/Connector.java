@@ -27,6 +27,7 @@ public class Connector
     public static int jadePort = 8383;
     public static String controllerHost = "127.0.0.1";
     public static int controllerPort = 8282;
+    public static int reconnectTimeout = 10000;
 
     /**
      * Jade container
@@ -36,10 +37,10 @@ public class Connector
     /**
      * Init connector
      */
-    public void start() throws Exception
+    public void start()
     {
         logger.info("Starting Connector JADE container on {}:{}...", jadeHost, jadePort);
-        logger.info("Connecting to controller {}:{}...", controllerHost, controllerPort);
+        logger.info("Connecting to the JADE main container {}:{}...", controllerHost, controllerPort);
 
         jadeContainer = Container.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
         jadeContainer.addAgent("Connector", ConnectorAgent.class);
@@ -51,7 +52,7 @@ public class Connector
      */
     public void run()
     {
-        Shell shell = new Shell();
+        final Shell shell = new Shell();
         shell.setPrompt("connector");
         shell.setExitCommand("exit", "Shutdown the connector");
         shell.addCommand("status", "Print status of the connector", new CommandHandler()
@@ -59,7 +60,7 @@ public class Connector
             @Override
             public void perform(CommandLine commandLine)
             {
-                status();
+                jadeContainer.printStatus();
             }
         });
         shell.addCommand("send", "Send message to another agent", new CommandHandler()
@@ -67,15 +68,44 @@ public class Connector
             @Override
             public void perform(CommandLine commandLine)
             {
+                if (jadeContainer.isStarted() == false) {
+                    Shell.printError("Cannot send message when the JADE container is not started.");
+                    return;
+                }
                 String[] args = commandLine.getArgs();
-                if ( commandLine.getArgs().length < 3 ) {
+                if (commandLine.getArgs().length < 3) {
                     Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
                     return;
                 }
                 jadeContainer.performCommand("Connector", SendCommand.createSendMessage(args[1], args[2]));
             }
         });
+
+        // Thread that checks the connection to the main controller
+        // and if it is down it tries to connect.
+        final Thread connectThread = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                while (true) {
+                    try {
+                        Thread.sleep(reconnectTimeout);
+                    }
+                    catch (InterruptedException e) {
+                    }
+                    if (jadeContainer.isStarted() == false) {
+                        logger.info("Reconnecting to the JADE main controller...");
+                        jadeContainer.start();
+                    }
+                }
+            }
+        });
+        connectThread.start();
+
         shell.run();
+
+        connectThread.stop();
 
         stop();
     }
@@ -85,15 +115,8 @@ public class Connector
      */
     public void stop()
     {
+        logger.info("Stopping Connector JADE container...");
         jadeContainer.stop();
-    }
-
-    /**
-     * Print controller status
-     */
-    public void status()
-    {
-        System.out.println("TODO: Print status information about connector!");
     }
 
     /**
@@ -185,16 +208,13 @@ public class Connector
             }
         }
 
-        Connector connector = new Connector();
-        try {
-            connector.start();
+        final Connector connector = new Connector();
+        connector.start();
 
-            logger.info("Connector successfully started.");
+        logger.info("Connector successfully started.");
 
-            connector.run();
-        }
-        catch (Exception exception) {
-            logger.error("Failed to start connector.", exception);
-        }
+        connector.run();
+
+        logger.info("Connector exiting...");
     }
 }

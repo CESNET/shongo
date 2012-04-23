@@ -49,9 +49,34 @@ public class Logging
      */
     public static void enableSystemOut()
     {
-        if ( systemOut != null ) {
+        if (systemOut != null) {
             System.setOut(systemOut);
             systemOut = null;
+        }
+    }
+
+    /**
+     * Saved System.err property.
+     */
+    private static PrintStream systemErr;
+
+    /**
+     * Disable printing by System.err.
+     */
+    public static void disableSystemErr()
+    {
+        systemErr = System.err;
+        System.setErr(new NullPrintStream());
+    }
+
+    /**
+     * Enable printing by System.err.
+     */
+    public static void enableSystemErr()
+    {
+        if (systemErr != null) {
+            System.setErr(systemErr);
+            systemErr = null;
         }
     }
 }
