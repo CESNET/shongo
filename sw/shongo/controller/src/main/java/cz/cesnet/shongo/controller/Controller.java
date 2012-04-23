@@ -5,6 +5,7 @@ import cz.cesnet.shongo.common.jade.command.SendCommand;
 import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
+import cz.cesnet.shongo.common.util.ThreadHelper;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
 import org.apache.commons.cli.*;
@@ -105,7 +106,7 @@ public class Controller implements ApplicationContextAware
             @Override
             public void perform(CommandLine commandLine)
             {
-                if ( jadeContainer.hasManagementGui()) {
+                if (jadeContainer.hasManagementGui()) {
                     jadeContainer.removeManagementGui();
                 }
                 else {

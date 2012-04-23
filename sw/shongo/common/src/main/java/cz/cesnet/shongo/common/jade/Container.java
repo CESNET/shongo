@@ -3,8 +3,8 @@ package cz.cesnet.shongo.common.jade;
 import cz.cesnet.shongo.common.jade.command.Command;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.util.ThreadHelper;
-import jade.core.Agent;
 import jade.core.Profile;
+import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Represents a container in JADE middle-ware.
@@ -132,13 +133,25 @@ public class Container
         if (containerController != null) {
             try {
                 containerController.kill();
-                containerController.getPlatformController().kill();
             }
             catch (Exception exception) {
                 exception.printStackTrace();
             }
             containerController = null;
         }
+
+        // Clone profile
+        Properties properties = (Properties) ((ProfileImpl) this.profile).getProperties().clone();
+        Profile profile = new ProfileImpl();
+        for (java.util.Map.Entry<Object, Object> entry : properties.entrySet()) {
+            String name = (String) entry.getKey();
+            String value = (String) entry.getValue();
+            if (name.equals(Profile.MTPS) || name.equals(Profile.SERVICES)) {
+                continue;
+            }
+            profile.setParameter(name, value);
+        }
+        this.profile = profile;
 
         // Create main or agent container base on Profile.MAIN parameter
         boolean result = true;
@@ -169,7 +182,9 @@ public class Container
 
         // Start agents
         for (String agentName : agents.keySet()) {
-            startAgent(agentName);
+            if (startAgent(agentName) == false) {
+                return false;
+            }
         }
 
         return true;
@@ -223,7 +238,6 @@ public class Container
                 return true;
             }
             catch (StaleProxyException exception) {
-                logger.error("Agent is not started.", exception);
                 try {
                     agentController.kill();
                 }
@@ -246,7 +260,6 @@ public class Container
                 logger.error("Failed to create agent.", exception);
                 return false;
             }
-
             try {
                 agentController.start();
             }
@@ -361,9 +374,19 @@ public class Container
      * @return true if container contains agent,
      *         false otherwise
      */
-    public boolean containsAgent(String agentName)
+    public boolean isAgentStarted(String agentName)
     {
-        return agents.containsKey(agentName);
+        if (agents.containsKey(agentName) == false) {
+            return false;
+        }
+        AgentController agentController = agentControllers.get(agentName);
+        try {
+            agentController.getState();
+        }
+        catch (StaleProxyException e) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -461,7 +484,7 @@ public class Container
 
     public boolean hasManagementGui()
     {
-        return containsAgent("rma");
+        return isAgentStarted("rma");
     }
 
     /**

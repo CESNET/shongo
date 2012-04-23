@@ -88,15 +88,19 @@ public class Connector
             @Override
             public void run()
             {
+                boolean connected = false;
                 while (true) {
                     try {
                         Thread.sleep(reconnectTimeout);
                     }
                     catch (InterruptedException e) {
                     }
-                    if (jadeContainer.isStarted() == false) {
+                    if (connected == false || jadeContainer.isStarted() == false) {
                         logger.info("Reconnecting to the JADE main controller...");
-                        jadeContainer.start();
+                        connected = false;
+                        if ( jadeContainer.start() ) {
+                            connected = true;
+                        }
                     }
                 }
             }
