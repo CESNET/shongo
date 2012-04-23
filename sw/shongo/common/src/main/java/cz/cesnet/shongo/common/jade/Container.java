@@ -301,6 +301,9 @@ public class Container
      */
     private void stopAgent(String agentName)
     {
+        if (isAgentStarted(agentName) == false) {
+            return;
+        }
         AgentController agentController = agentControllers.get(agentName);
         if (agentController != null) {
             try {
@@ -430,10 +433,10 @@ public class Container
                 containerName = containerController.getContainerName();
                 if (containerController.isJoined()) {
                     if (profile.isMain()) {
-                        containerStatus = "Started as Main";
+                        containerStatus = "Started:Main";
                     }
                     else {
-                        containerStatus = "Started";
+                        containerStatus = "Started:Slave";
                     }
                 }
             }
@@ -455,7 +458,7 @@ public class Container
                     }
                     catch (StaleProxyException exception) {
                     }
-                    System.out.printf("%2d) Name: [%s]\n", index + 1, agentName);
+                    System.out.printf("%2d) Name:   [%s]\n", index + 1, agentName);
                     System.out.printf("    Status: [%s]\n", agentStatus);
                     index++;
                 }

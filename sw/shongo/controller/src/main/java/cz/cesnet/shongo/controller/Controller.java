@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.jade.Container;
-import cz.cesnet.shongo.common.jade.command.SendCommand;
-import cz.cesnet.shongo.common.shell.CommandHandler;
+import cz.cesnet.shongo.common.jade.ContainerCommandSet;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
-import cz.cesnet.shongo.common.util.ThreadHelper;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
 import org.apache.commons.cli.*;
@@ -77,43 +75,11 @@ public class Controller implements ApplicationContextAware
      */
     public void run()
     {
-        final Shell shell = new Shell();
+        Shell shell = new Shell();
         shell.setPrompt("controller");
         shell.setExitCommand("exit", "Shutdown the controller");
-        shell.addCommand("status", "Print status of the controller", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                jadeContainer.printStatus();
-            }
-        });
-        shell.addCommand("send", "Send message to another agent", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                String[] args = commandLine.getArgs();
-                if (commandLine.getArgs().length < 3) {
-                    Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
-                    return;
-                }
-                jadeContainer.performCommand("Controller", SendCommand.createSendMessage(args[1], args[2]));
-            }
-        });
-        shell.addCommand("jade-gui", "Show/hide JADE Management GUI", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                if (jadeContainer.hasManagementGui()) {
-                    jadeContainer.removeManagementGui();
-                }
-                else {
-                    jadeContainer.addManagementGui();
-                }
-            }
-        });
+        shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
+        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.run();
 
         stop();

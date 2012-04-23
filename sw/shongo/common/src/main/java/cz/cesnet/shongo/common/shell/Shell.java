@@ -6,10 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Represents an interactive shell in which commands
@@ -19,37 +15,32 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Shell
+public class Shell extends CommandSet
 {
     private static Logger logger = LoggerFactory.getLogger(Shell.class);
 
     /**
-     * Console
+     * Console reader.
      */
     ConsoleReader console;
 
     /**
-     * Predefined exit command
+     * Predefined exit command.
      */
     private Command exitCommand;
 
     /**
-     * Predefined help command
+     * Predefined help command.
      */
     private Command helpCommand;
 
     /**
-     * List of supported commands
-     */
-    private Map<String, Command> commands = new HashMap<String, Command>();
-
-    /**
-     * Command prompt string
+     * Command prompt string.
      */
     private String prompt = "cmd";
 
     /**
-     * Exit exception
+     * Exit exception.
      */
     private static class ExitException extends RuntimeException
     {
@@ -82,7 +73,7 @@ public class Shell
     }
 
     /**
-     * Set shell prompt string
+     * Set shell prompt string.
      *
      * @param prompt
      */
@@ -92,7 +83,7 @@ public class Shell
     }
 
     /**
-     * Set exit command properties
+     * Set exit command properties.
      *
      * @param command
      * @param help
@@ -104,7 +95,7 @@ public class Shell
     }
 
     /**
-     * Set help command properties
+     * Set help command properties.
      *
      * @param command
      * @param help
@@ -113,57 +104,6 @@ public class Shell
     {
         this.helpCommand.setCommand(command);
         this.helpCommand.setHelp(help);
-    }
-
-    /**
-     * Add command that shell can perform.
-     *
-     * @param command
-     * @return new command
-     */
-    public Command addCommand(Command command)
-    {
-        commands.put(command.getCommand(), command);
-        return command;
-    }
-
-    /**
-     * Add command that shell can perform.
-     *
-     * @param command
-     * @param help
-     * @param handler
-     * @return new command
-     */
-    public Command addCommand(String command, String help, CommandHandler handler)
-    {
-        return addCommand(new Command(command, help, handler));
-    }
-
-    /**
-     * Add command that shell can perform.
-     *
-     * @param command
-     * @param handler
-     * @return new command
-     */
-    public Command addCommand(String command, CommandHandler handler)
-    {
-        return addCommand(new Command(command, handler));
-    }
-
-    /**
-     * Get list of commands that shell can perform
-     *
-     * @return list of commands
-     */
-    public List<Command> getCommands()
-    {
-        List<Command> commands = new ArrayList<Command>();
-        for (Command command : this.commands.values()) {
-            commands.add(command);
-        }
-        return commands;
     }
 
     /**
@@ -320,7 +260,7 @@ public class Shell
     static RePromptThread thread;
 
     /**
-     * Perform re-prompt.
+     * Perform re-prompt. Show again the prompt on a newline.
      */
     public void rePrompt()
     {
@@ -347,7 +287,7 @@ public class Shell
     private static Shell active;
 
     /**
-     * Get active shell
+     * Get active shell.
      *
      * @return active shell
      */

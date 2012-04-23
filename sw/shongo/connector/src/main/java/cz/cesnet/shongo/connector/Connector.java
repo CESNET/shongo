@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.common.jade.Container;
-import cz.cesnet.shongo.common.jade.command.SendCommand;
-import cz.cesnet.shongo.common.shell.CommandHandler;
+import cz.cesnet.shongo.common.jade.ContainerCommandSet;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import org.apache.commons.cli.*;
@@ -55,31 +54,8 @@ public class Connector
         final Shell shell = new Shell();
         shell.setPrompt("connector");
         shell.setExitCommand("exit", "Shutdown the connector");
-        shell.addCommand("status", "Print status of the connector", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                jadeContainer.printStatus();
-            }
-        });
-        shell.addCommand("send", "Send message to another agent", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                if (jadeContainer.isStarted() == false) {
-                    Shell.printError("Cannot send message when the JADE container is not started.");
-                    return;
-                }
-                String[] args = commandLine.getArgs();
-                if (commandLine.getArgs().length < 3) {
-                    Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
-                    return;
-                }
-                jadeContainer.performCommand("Connector", SendCommand.createSendMessage(args[1], args[2]));
-            }
-        });
+        shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
+        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Connector"));
 
         // Thread that checks the connection to the main controller
         // and if it is down it tries to connect.
@@ -88,18 +64,20 @@ public class Connector
             @Override
             public void run()
             {
-                boolean connected = false;
+                boolean startFailed = false;
                 while (true) {
                     try {
                         Thread.sleep(reconnectTimeout);
                     }
                     catch (InterruptedException e) {
                     }
-                    if (connected == false || jadeContainer.isStarted() == false) {
-                        logger.info("Reconnecting to the JADE main controller...");
-                        connected = false;
-                        if ( jadeContainer.start() ) {
-                            connected = true;
+                    // We want to reconnect if container is not started or when the
+                    // previous start failed
+                    if (startFailed || jadeContainer.isStarted() == false) {
+                        logger.info("Reconnecting to the JADE main container {}:{}...", controllerHost, controllerPort);
+                        startFailed = false;
+                        if (jadeContainer.start() == false) {
+                            startFailed = true;
                         }
                     }
                 }
