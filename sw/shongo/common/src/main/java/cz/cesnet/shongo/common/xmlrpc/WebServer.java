@@ -41,7 +41,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      */
     public static java.net.InetAddress getHostByName(String host)
     {
-        if ( host != null) {
+        if (host != null) {
             try {
                 return InetAddress.getByName(host);
             }

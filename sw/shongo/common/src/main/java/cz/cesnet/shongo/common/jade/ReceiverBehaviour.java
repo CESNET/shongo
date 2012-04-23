@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.common.jade;
 
 import jade.core.behaviours.CyclicBehaviour;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +19,20 @@ public class ReceiverBehaviour extends CyclicBehaviour
     public void action()
     {
         ACLMessage msg = myAgent.receive();
-        if (msg != null) {
-            logger.info("{} received from {}: {}\n\n",
-                    new Object[]{myAgent.getAID().getName(), msg.getSender().getName(), msg.toString()});
-
-            onReceiveMessage(msg);
-        }
-        else {
+        if (msg == null) {
             block();
+            return;
         }
+
+        if (msg.getSender().getLocalName().equals(FIPANames.DEFAULT_DF)) {
+            myAgent.putBack(msg);
+            return;
+        }
+
+        logger.info("{} received from {}: {}\n\n",
+                new Object[]{myAgent.getAID().getName(), msg.getSender().getName(), msg.toString()});
+
+        onReceiveMessage(msg);
     }
 
     private void onReceiveMessage(ACLMessage msg)

@@ -28,7 +28,7 @@ public class Controller implements ApplicationContextAware
     private static Logger logger = LoggerFactory.getLogger(Controller.class);
 
     /**
-     * Controller parameters
+     * Controller parameters.
      */
     public static String rpcHost = null; // All interfaces
     public static int rpcPort = 8181;
@@ -37,17 +37,22 @@ public class Controller implements ApplicationContextAware
     public static String jadePlatformId = "Shongo";
 
     /**
-     * XML-RPC server
+     * XML-RPC server.
      */
     WebServer rpcServer;
 
     /**
-     * Jade container
+     * Jade container.
      */
     Container jadeContainer;
 
     /**
-     * Init controller
+     * Jade agent.
+     */
+    ControllerAgent jadeAgent;
+
+    /**
+     * Init controller.
      */
     @PostConstruct
     public void start() throws Exception
@@ -63,8 +68,9 @@ public class Controller implements ApplicationContextAware
 
         logger.info("Starting Controller JADE container on {}:{}...", jadeHost, jadePort);
 
+        jadeAgent = new ControllerAgent();
         jadeContainer = Container.createMainContainer(jadeHost, jadePort, jadePlatformId);
-        jadeContainer.addAgent("Controller", ControllerAgent.class);
+        jadeContainer.addAgent("Controller", jadeAgent);
         if (jadeContainer.start() == false) {
             throw new Exception("Failed to start JADE container.");
         }
@@ -80,6 +86,7 @@ public class Controller implements ApplicationContextAware
         shell.setExitCommand("exit", "Shutdown the controller");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
+        shell.addCommands(jadeAgent.createCommandSet());
         shell.run();
 
         stop();

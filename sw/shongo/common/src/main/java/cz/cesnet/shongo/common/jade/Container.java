@@ -234,7 +234,7 @@ public class Container
         AgentController agentController = agentControllers.get(agentName);
         if (agentController != null) {
             try {
-                agentController.getState();
+                agentController.getState().toString();
                 return true;
             }
             catch (StaleProxyException exception) {
@@ -271,6 +271,11 @@ public class Container
         else if (agent instanceof Agent) {
             try {
                 Agent agentInstance = (Agent) agent;
+                if (agentInstance.getState() == Agent.AP_DELETED) {
+                    logger.error("Can't start agent that was deleted [{} of type {}]!", agentName,
+                            agentInstance.getClass().getName());
+                    return false;
+                }
                 agentController = containerController.acceptNewAgent(agentName, agentInstance);
             }
             catch (StaleProxyException exception) {
@@ -386,7 +391,7 @@ public class Container
         try {
             agentController.getState();
         }
-        catch (StaleProxyException e) {
+        catch (Exception exception) {
             return false;
         }
         return true;
@@ -472,7 +477,7 @@ public class Container
     }
 
     /**
-     * Show JADE Management GUI
+     * Show JADE Management GUI.
      */
     public void addManagementGui()
     {
@@ -491,7 +496,7 @@ public class Container
     }
 
     /**
-     * Hide JADE Management GUI
+     * Hide JADE Management GUI.
      */
     public void removeManagementGui()
     {

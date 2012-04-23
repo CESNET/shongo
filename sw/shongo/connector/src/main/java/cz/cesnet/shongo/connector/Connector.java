@@ -2,13 +2,16 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.common.jade.Container;
 import cz.cesnet.shongo.common.jade.ContainerCommandSet;
+import cz.cesnet.shongo.common.shell.CommandHandler;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Represents a device connector.
@@ -20,7 +23,7 @@ public class Connector
     private static Logger logger = LoggerFactory.getLogger(Connector.class);
 
     /**
-     * Connector parameters
+     * Connector parameters.
      */
     public static String jadeHost = "127.0.0.1";
     public static int jadePort = 8383;
@@ -29,12 +32,17 @@ public class Connector
     public static int reconnectTimeout = 10000;
 
     /**
-     * Jade container
+     * Jade container.
      */
     Container jadeContainer;
 
     /**
-     * Init connector
+     * Jade agent names.
+     */
+    List<String> jadeAgents = new ArrayList<String>();
+
+    /**
+     * Init connector.
      */
     public void start()
     {
@@ -42,12 +50,11 @@ public class Connector
         logger.info("Connecting to the JADE main container {}:{}...", controllerHost, controllerPort);
 
         jadeContainer = Container.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
-        jadeContainer.addAgent("Connector", ConnectorAgent.class);
         jadeContainer.start();
     }
 
     /**
-     * Run connector shell
+     * Run connector shell.
      */
     public void run()
     {
@@ -55,7 +62,55 @@ public class Connector
         shell.setPrompt("connector");
         shell.setExitCommand("exit", "Shutdown the connector");
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
-        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Connector"));
+
+        shell.addCommand("add", "Add a new connector instance", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (commandLine.getArgs().length < 2) {
+                    Shell.printError("You must specify the new agent name.");
+                    return;
+                }
+                String agentName = args[1];
+                jadeContainer.addAgent(agentName, ConnectorAgent.class);
+                jadeAgents.add(agentName);
+            }
+        });
+        shell.addCommand("list", "List all connector instances", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                for (String agent : jadeAgents) {
+                    Shell.printInfo("Connector [%s]", agent);
+                }
+            }
+        });
+        shell.addCommand("select", "Select current connector instance", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (commandLine.getArgs().length < 2) {
+                    shell.setPrompt("connector");
+                    shell.removeCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, null));
+                    return;
+                }
+                String agentName = args[1];
+                for (String agent : jadeAgents) {
+                    if (agent.equals(agentName)) {
+                        shell.setPrompt(agentName + "@connector");
+                        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, agentName));
+
+                        return;
+                    }
+                }
+                Shell.printError("Agent [%s] was not found!", agentName);
+            }
+        });
 
         // Thread that checks the connection to the main controller
         // and if it is down it tries to connect.

@@ -61,8 +61,20 @@ public class CommandSet
      */
     public void addCommands(CommandSet commandGroup)
     {
-        for ( Command command : commandGroup.commands.values()) {
+        for (Command command : commandGroup.commands.values()) {
             commands.put(command.getCommand(), command);
+        }
+    }
+
+    /**
+     * Remove commands by set of commands.
+     *
+     * @param commandGroup
+     */
+    public void removeCommands(CommandSet commandGroup)
+    {
+        for (Command command : commandGroup.commands.values()) {
+            commands.remove(command.getCommand());
         }
     }
 

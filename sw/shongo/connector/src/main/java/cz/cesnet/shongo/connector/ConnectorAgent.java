@@ -9,4 +9,11 @@ import cz.cesnet.shongo.common.jade.Agent;
  */
 public class ConnectorAgent extends Agent
 {
+    @Override
+    protected void setup()
+    {
+        super.setup();
+
+        registerService("connector", "Connector Service");
+    }
 }
