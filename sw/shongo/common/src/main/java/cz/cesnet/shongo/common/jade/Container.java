@@ -3,18 +3,27 @@ package cz.cesnet.shongo.common.jade;
 import cz.cesnet.shongo.common.jade.command.Command;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.util.ThreadHelper;
+import jade.content.ContentElement;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
+import jade.content.onto.basic.Action;
+import jade.content.onto.basic.Result;
+import jade.core.ContainerID;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
+import jade.domain.FIPANames;
+import jade.domain.JADEAgentManagement.JADEManagementOntology;
+import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Represents a container in JADE middle-ware.
@@ -135,7 +144,6 @@ public class Container
                 containerController.kill();
             }
             catch (Exception exception) {
-                exception.printStackTrace();
             }
             containerController = null;
         }
@@ -183,6 +191,12 @@ public class Container
         // Start agents
         for (String agentName : agents.keySet()) {
             if (startAgent(agentName) == false) {
+                try {
+                    containerController.kill();
+                }
+                catch (Exception exception) {
+                }
+                containerController = null;
                 return false;
             }
         }
@@ -430,28 +444,53 @@ public class Container
 
             // Print controller status
             String containerName = "Unnamed";
+            String containerType = (profile.isMain() ? "Main" : "Slave");
             String containerStatus = "Not-Started";
+            String containerAddress = profile.getParameter(Profile.LOCAL_HOST, "") + ":"
+                    + profile.getParameter(Profile.LOCAL_PORT, "");
             if (containerController == null) {
                 profile.getParameter(Profile.CONTAINER_NAME, "");
             }
             else {
                 containerName = containerController.getContainerName();
                 if (containerController.isJoined()) {
-                    if (profile.isMain()) {
-                        containerStatus = "Started:Main";
-                    }
-                    else {
-                        containerStatus = "Started:Slave";
+                    containerStatus = "Started";
+                }
+            }
+            System.out.printf("Container: [%s]\n", containerName);
+            System.out.printf("Type:      [%s]\n", containerType);
+            System.out.printf("Status:    [%s]\n", containerStatus);
+            System.out.printf("Address:   [%s]\n", containerAddress);
+
+            // Show main container address
+            if (profile.isMain() == false) {
+                System.out.printf("Main:      [%s:%s]\n", profile.getParameter(Profile.MAIN_HOST, ""),
+                        profile.getParameter(Profile.MAIN_PORT, ""));
+            }
+            // Show all slave containers in platform
+            else {
+                List<ContainerID> containerList = listContainers();
+                if (containerList.size() > 1) {
+                    System.out.println();
+                    System.out.printf("List of slave containers:\n");
+
+                    int index = 0;
+                    for (ContainerID container : containerList) {
+                        if (container.getMain()) {
+                            continue;
+                        }
+                        System.out.printf("%2d) [%s] at [%s]\n", index + 1, container.getName(),
+                                container.getAddress());
+                        index++;
                     }
                 }
             }
-            System.out.printf("Container: [%s]:\n", containerName);
-            System.out.printf("Status:    [%s]\n", containerStatus);
 
             // Print agents status
             if (agentControllers.size() > 0) {
                 System.out.println();
-                System.out.printf("Agents:\n");
+                System.out.printf("List of agents:\n");
+
                 int index = 0;
                 for (Map.Entry<String, AgentController> entry : agentControllers.entrySet()) {
                     AgentController agentController = entry.getValue();
@@ -501,5 +540,57 @@ public class Container
     public void removeManagementGui()
     {
         removeAgent("rma");
+    }
+
+    /**
+     * List containers in platform.
+     *
+     * @return containers
+     */
+    private List<ContainerID> listContainers()
+    {
+        try {
+            Ontology ontology = JADEManagementOntology.getInstance();
+
+            // Create agent that will perform listing
+            jade.core.Agent agent = new jade.core.Agent();
+            agent.getContentManager().registerLanguage(new SLCodec());
+            agent.getContentManager().registerOntology(ontology);
+            AgentController agentController = containerController.acceptNewAgent("listContainers", agent);
+            agentController.start();
+
+            // Send Request to AMS
+            QueryPlatformLocationsAction query = new QueryPlatformLocationsAction();
+            Action action = new Action(agent.getAID(), query);
+            ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
+            message.addReceiver(agent.getAMS());
+            message.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+            message.setOntology(ontology.getName());
+            agent.getContentManager().fillContent(message, action);
+            agent.send(message);
+
+            // Receive response
+            ACLMessage receivedMessage = agent.blockingReceive(MessageTemplate.MatchSender(agent.getAMS()));
+            ContentElement content = agent.getContentManager().extractContent(receivedMessage);
+
+            // Build list of containers
+            List<ContainerID> containers = new ArrayList<ContainerID>();
+            Result result = (Result) content;
+            jade.util.leap.List listOfPlatforms = (jade.util.leap.List) result.getValue();
+            Iterator iter = listOfPlatforms.iterator();
+            while (iter.hasNext()) {
+                ContainerID next = (ContainerID) iter.next();
+                containers.add(next);
+            }
+
+            // Kill agent
+            agentController.kill();
+
+            return containers;
+        }
+        catch (Exception exception) {
+            logger.error("Failed to list containers", exception);
+        }
+        return new ArrayList<ContainerID>();
     }
 }
