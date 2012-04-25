@@ -1,0 +1,12 @@
+digraph g{
+  node [shape=box];
+  ranksep=1.5;
+
+  mcu gatekeeper
+  
+  endpoint1 -> gatekeeper -> endpoint1
+  endpoint2 -> gatekeeper -> endpoint2
+  endpoint3 -> gatekeeper -> endpoint3
+  mcu -> gatekeeper -> mcu
+}
+

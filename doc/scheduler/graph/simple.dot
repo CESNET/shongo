@@ -1,0 +1,7 @@
+digraph {
+  node [shape=record]
+
+  endpoint1 -> mcu1 -> endpoint1
+  endpoint2 -> mcu1 -> endpoint2
+  endpoint3 -> mcu1 -> endpoint3
+}

@@ -1,0 +1,211 @@
+\documentclass[a4paper]{report}
+\usepackage{geometry}
+\geometry{paper=a4paper}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenx}
+\usepackage{palatino}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\renewcommand*\ttdefault{txtt}
+
+\usepackage[czech,english]{babel}
+
+\usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage{paralist} 
+\usepackage{multicol}
+
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
+\usepackage{amsmath}
+
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{%
+\def\empty{}%
+\def\prvniparametr{#1}%
+\ifx\prvniparametr\empty%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
+\else%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
+\fi%
+}
+
+% Include graph (label, filename, name, scale)
+\newcommand{\graph}[4]{
+\begin{figure}[h!]
+\centering\scalebox{\ifx&#4& 0.75 \else #4 \fi}{\input{#2}}
+\label{#1}
+\caption{#3}
+\end{figure}
+}
+
+
+\begin{document}
+
+
+\title{Scheduler for Shongo}
+\author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
+\date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
+\maketitle
+\tableofcontents
+
+
+\chapter{Topology}
+
+Topology is in-memory representation of videoconferencing devices and it's relations. Each domain controller will keep the local topology of all devices that the controller manages.
+Controller will know nothing about topologies from foreign domains. Every time when the controller will need some information about foreign devices it send request to foreign domain controller.
+
+Topology is abstract representation of all technology dependent topologies (e.g, H.323, SIP, Adobe Connect topologies).
+
+\section{Elements}
+
+Type of elements in topology:
+\begin{itemize}
+
+\item{\textbf{Node}} 
+
+Each node represents one device.
+Each node gets assigned input and output capacity (e.g., the limitation of 
+a number of incoming/outgoing connections, bandwidth, etc.) for every channel
+that it supports.
+
+Endpoint devices will limit the number of input/output connections for each
+channel to 1.
+
+%Multipoint devices will have... TODO:
+   
+% Managed device gets assigned agent, that manages the device. The agent
+% is identified by NAME which is part of agent identifier in JADE 
+% middle-ware (NAME@DOMAIN).  
+
+\item{\textbf{Oriented Edge}} 
+
+Edge links two nodes (devices) and it represents the 
+ability to transmit data (or to make a call) between these two devices 
+in specified direction.
+  
+Each edge can have the following capabilities:
+\begin{compactitem}   
+  \item \textbf{Audio and Video Channel} -- Specify whether an audio and video channel is available between the two devices.
+      
+  \item \textbf{Content Channel} -- Specifies whether a content channel is available between two devices.
+    
+  \item \textbf{Weight} -- Composed of several components:
+  \begin{compactitem}  
+    \item Inter-domain/Intra-domain
+    \item Distance (roughly)
+  \end{compactitem}  
+\end{compactitem}   
+
+\end{itemize}
+  
+
+\section{Implementation}
+Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.
+
+\TODO{Topology should keep the information about already scheduled reservations.}
+      
+\subsection{Construction}
+
+Construction is performed when the controller is started. Steps to construct a topology:
+
+\begin{enumerate}
+
+\item Get the list of all devices with it's capabilities in a topology.
+
+\item For each device: 
+  \begin{compactitem}
+  \item Find all other devices that the device is able to transmit
+  data to (or to make a call) and for each:
+    \begin{compactitem}
+    \item Add edge with proper parameters.
+    \end{compactitem}
+  \end{compactitem}
+
+\end{enumerate}     
+
+     
+\subsection{Update Topology}     
+
+Steps to update a topology when the capabilities for a device are changed:
+\begin{enumerate}
+
+\item Remove all edges that reference the device.
+
+\item Find all other devices that the device is able to transmit data from/to
+   (or to make a call) and for each:
+   \begin{compactitem}
+   \item Add edge(s) with proper parameters.
+   \end{compactitem}
+
+\end{enumerate}  
+
+
+\section{H.323 Topology}
+
+In H.323 network, the following elements are used:
+
+\begin{itemize}
+
+\item \textbf{Endpoint} (Terminal) \\
+Endpoint represents a hardware device or a software client that enables a single person or a group of persons situated in front of the device to connect to another H.323 element and take a videoconference call.
+
+\item \textbf{Multipoint Control Unit} (MCU) \\
+MCU represents a hardware device that is used for hosting of videoconference calls in which can generally participate any number of endpoints. MCU contains one or more \textbf{virtual rooms} and each virtual room can host one videoconference call at the time. MCU can restrict the number of participants per virtual room or per whole MCU device.
+
+\item \textbf{Gatekeeper} \\
+Gatekeeper is a hardware device that provides special services to the other elements in the network: endpoint registration, address resolution, admission control and user authentication.
+
+\end{itemize}
+
+Each H.323 element is running on specific IP address that can be used to connect to the element. An element can have assigned \textbf{H.323 phone number} (sequence of digits) or \textbf{ H.323 identifier} (string) that can be used to connect to it. It is useful when the IP address is not known (e.g., it is behind the NAT) or it is likely to change (organization changes).
+
+H.323 phone number or identifier can be assigned only to \textbf{endpoint} or \textbf{virtual room} in MCU. When an endpoint have assigned phone number or identifier it must register to one \textbf{gatekeeper} that will be able to translate the phone number or identifier to the endpoint IP address. When another element want to connect to a videoconference by phone number or identifier, it must use the same gatekeeper that has the proper registry of phone number and identifiers.
+
+When a gatekeeper is used for connecting elements in videoconference, it can work in two modes:
+\begin{itemize}
+\item Direct Endpoint Model -- The gatekeeper is used only for initialization purposes (address resolution, admission control, etc.) and the videoconference call itself is managed by it's participants (endpoints and MCUs). The gatekeeper doesn't have full control over the data streams.
+\item Gatekeeper Routed Model -- The gatekeeper is used throughout videoconference call, the data streams flow through the gatekeeper and it has the full control over it.
+\end{itemize}
+
+Each endpoint and MCU element can have set zero or one gatekeeper. If gatekeeper is set then each endpoint and virtual room in MCU can have set H.323 phone number and/or identifier. Each endpoint and MCU element should also be configured to allow or forbid the direct connections through IP address. When the gatekeeper with admission control is set, it is appropriate to forbid direct connections through IP address.
+
+
+\subsection{Examples}
+
+\TODO{Do we allow more gatekeepers in one controller domain?}
+
+\subsubsection{Connection through direct IP addresses}
+
+Endpoints and virtual rooms in MCU don't have assigned any H.323 phone numbers or identifiers thus the connecting is done through IP addresses. This topology allows for 2-point videoconferences (e.g., \emph{endpoint1 -- endpoint2}) and multipoint videoconferences through the MCU (e.g., \emph{endpoint1 -- endpoint2 -- endpoint3 -- mcu}). When an endpoint connects to the MCU it must select the proper virtual room (if more is present).
+
+\graph{graph:h323:direct}{graph/h323_direct.tex}{Connection through direct IP addresses}{}
+
+
+\subsubsection{Connection through gatekeeper}
+
+Endpoints and MCUs are configured to forbid direct connections through IP addresses. Endpoints and MCU virtual rooms have assigned H.323 phone numbers or identifiers and the devices register them to the gatekeeper that is able to resolve these tokens to direct IP addresses. When endpoint want to start videoconference he must request the gatekeeper.
+
+\graph{graph:h323:gatekeeper}{graph/h323_gatekeeper.tex}{Connection through gatekeeper}{}
+
+
+\subsubsection{Connection through gatekeeper and direct IP addresses}
+
+These topology is combination of previous two topologies. Endpoints and MCUs are configured to allow direct connections through IP addresses. Endpoints and MCU virtual rooms have assigned H.323 phone numbers or identifiers. Videoconference can be started by direct connection throught IP address or through the gatekeeper.
+
+\graph{graph:h323:gatekeeper}{graph/h323_gatekeeper_or_direct.tex}{Connection through gatekeeper or direct IP addresses}{0.7}
+
+
+\subsubsection{Hybrid -- Connections through gatekeeper and/or direct IP addresses}
+
+\TODO{Describe}
+
+
+\chapter{Scheduler}
+
+Scheduler will use described topology for scheduling reservations of videoconference devices.
+\TODO{}
+
+
+\end{document}

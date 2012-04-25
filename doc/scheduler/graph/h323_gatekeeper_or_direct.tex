@@ -1,0 +1,83 @@
+
+\begin{tikzpicture}[>=latex,line join=bevel,]
+  \pgfsetlinewidth{1bp}
+%%
+\pgfsetcolor{black}
+  % Edge: endpoint1 -> mcu
+  \draw [->] (211.4bp,252.02bp) .. controls (229.23bp,230.83bp) and (254.74bp,195.84bp)  .. (275.47bp,162.81bp);
+  % Edge: endpoint3 -> endpoint2
+  \draw [->] (39.476bp,85.105bp) .. controls (36.818bp,111.87bp) and (36.54bp,162.23bp)  .. (39.487bp,204.28bp);
+  % Edge: endpoint3 -> gatekeeper
+  \draw [->] (87.032bp,59.444bp) .. controls (105.43bp,54.247bp) and (126.94bp,47.345bp)  .. (155.16bp,37.183bp);
+  % Edge: endpoint2 -> endpoint3
+  \draw [->] (48.524bp,204.16bp) .. controls (51.182bp,177.39bp) and (51.46bp,127.04bp)  .. (48.513bp,84.99bp);
+  % Edge: gatekeeper -> endpoint1
+  \draw [->] (187.99bp,37.07bp) .. controls (184.2bp,80.247bp) and (183.94bp,189.68bp)  .. (187.97bp,252.02bp);
+  % Edge: endpoint2 -> gatekeeper
+  \draw [->] (62.433bp,204.18bp) .. controls (92.562bp,168.17bp) and (151.15bp,87.679bp)  .. (183.32bp,37.03bp);
+  % Edge: endpoint2 -> mcu
+  \draw [->] (87.253bp,213.76bp) .. controls (132.79bp,201.1bp) and (203.67bp,178.01bp)  .. (255.95bp,158.21bp);
+  % Edge: gatekeeper -> endpoint2
+  \draw [->] (173.26bp,37.097bp) .. controls (143.13bp,73.108bp) and (84.538bp,153.6bp)  .. (52.371bp,204.25bp);
+  % Edge: mcu -> gatekeeper
+  \draw [->] (275.51bp,126.52bp) .. controls (262.88bp,105.11bp) and (237.51bp,69.508bp)  .. (211.48bp,37.347bp);
+  % Edge: gatekeeper -> endpoint3
+  \draw [->] (144.64bp,27.692bp) .. controls (127.29bp,32.699bp) and (107.67bp,39.039bp)  .. (80.509bp,48.813bp);
+  % Edge: endpoint3 -> endpoint1
+  \draw [->] (52.48bp,85.197bp) .. controls (74.517bp,121.47bp) and (133bp,202.55bp)  .. (173.25bp,252.16bp);
+  % Edge: endpoint3 -> mcu
+  \draw [->] (82.659bp,85.021bp) .. controls (127.78bp,101.93bp) and (201.83bp,125.91bp)  .. (255.94bp,140.45bp);
+  % Edge: endpoint1 -> endpoint2
+  \draw [->] (155.51bp,252.21bp) .. controls (137.85bp,245.61bp) and (116.27bp,238.43bp)  .. (87.171bp,229.86bp);
+  % Edge: gatekeeper -> mcu
+  \draw [->] (199.15bp,37.117bp) .. controls (211.78bp,58.519bp) and (237.15bp,94.126bp)  .. (263.18bp,126.29bp);
+  % Edge: endpoint1 -> endpoint3
+  \draw [->] (183.21bp,252.06bp) .. controls (161.17bp,215.78bp) and (102.69bp,134.71bp)  .. (62.442bp,85.096bp);
+  % Edge: endpoint2 -> endpoint1
+  \draw [->] (80.184bp,240.33bp) .. controls (97.841bp,246.94bp) and (119.42bp,254.11bp)  .. (148.52bp,262.68bp);
+  % Edge: mcu -> endpoint2
+  \draw [->] (255.58bp,148.9bp) .. controls (215.75bp,159.05bp) and (141.27bp,182.83bp)  .. (82.684bp,204.24bp);
+  % Edge: mcu -> endpoint3
+  \draw [->] (255.56bp,130.91bp) .. controls (217.07bp,115.81bp) and (146.26bp,92.421bp)  .. (87.406bp,75.546bp);
+  % Edge: mcu -> endpoint1
+  \draw [->] (263.26bp,162.88bp) .. controls (245.43bp,184.07bp) and (219.92bp,219.06bp)  .. (199.18bp,252.09bp);
+  % Edge: endpoint1 -> gatekeeper
+  \draw [->] (195.39bp,252.2bp) .. controls (199.18bp,209.02bp) and (199.44bp,99.585bp)  .. (195.41bp,37.244bp);
+  % Node: gatekeeper
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (239bp,37bp) -- (145bp,37bp) -- (145bp,1bp) -- (239bp,1bp) -- cycle;
+  \draw (191.69bp,19bp) node {gatekeeper};
+\end{scope}
+  % Node: mcu
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (310bp,163bp) -- (256bp,163bp) -- (256bp,127bp) -- (310bp,127bp) -- cycle;
+  \draw (282.97bp,144.63bp) node {mcu};
+\end{scope}
+  % Node: endpoint3
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (87bp,85bp) -- (1bp,85bp) -- (1bp,49bp) -- (87bp,49bp) -- cycle;
+  \draw (44bp,66.988bp) node {endpoint3};
+\end{scope}
+  % Node: endpoint2
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (87bp,240bp) -- (1bp,240bp) -- (1bp,204bp) -- (87bp,204bp) -- cycle;
+  \draw (44bp,222.28bp) node {endpoint2};
+\end{scope}
+  % Node: endpoint1
+\begin{scope}
+  \definecolor{strokecol}{rgb}{0.0,0.0,0.0};
+  \pgfsetstrokecolor{strokecol}
+  \draw (235bp,288bp) -- (149bp,288bp) -- (149bp,252bp) -- (235bp,252bp) -- cycle;
+  \draw (191.69bp,270.27bp) node {endpoint1};
+\end{scope}
+%
+\end{tikzpicture}
+
