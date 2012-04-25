@@ -1,13 +1,13 @@
 digraph g{
   node [shape=box];
 
-  mcu endpoint3 endpoint2 endpoint1
+  mcu terminal3 terminal2 terminal1
   
-  endpoint1 -> endpoint2 -> endpoint1
-  endpoint1 -> endpoint3 -> endpoint1
-  endpoint2 -> endpoint3 -> endpoint2
-  endpoint1 -> mcu -> endpoint1
-  endpoint2 -> mcu -> endpoint2
-  endpoint3 -> mcu -> endpoint3
+  terminal1 -> terminal2 -> terminal1
+  terminal1 -> terminal3 -> terminal1
+  terminal2 -> terminal3 -> terminal2
+  terminal1 -> mcu -> terminal1
+  terminal2 -> mcu -> terminal2
+  terminal3 -> mcu -> terminal3
 }
 

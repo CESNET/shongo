@@ -4,9 +4,9 @@ digraph g{
 
   mcu gatekeeper
   
-  endpoint1 -> gatekeeper -> endpoint1
-  endpoint2 -> gatekeeper -> endpoint2
-  endpoint3 -> gatekeeper -> endpoint3
+  terminal1 -> gatekeeper -> terminal1
+  terminal2 -> gatekeeper -> terminal2
+  terminal3 -> gatekeeper -> terminal3
   mcu -> gatekeeper -> mcu
 }
 

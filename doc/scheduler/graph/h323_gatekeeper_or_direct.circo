@@ -2,19 +2,19 @@
 digraph g{
   node [shape=box];
 
-  gatekeeper mcu endpoint2 endpoint1 endpoint3
+  gatekeeper mcu terminal2 terminal1 terminal3
 
-  endpoint1 -> endpoint2 -> endpoint1
-  endpoint1 -> endpoint3 -> endpoint1
-  endpoint1 -> mcu -> endpoint1
-  endpoint1 -> gatekeeper -> endpoint1
+  terminal1 -> terminal2 -> terminal1
+  terminal1 -> terminal3 -> terminal1
+  terminal1 -> mcu -> terminal1
+  terminal1 -> gatekeeper -> terminal1
 
-  endpoint2 -> endpoint3 -> endpoint2
-  endpoint2 -> mcu -> endpoint2
-  endpoint2 -> gatekeeper -> endpoint2
+  terminal2 -> terminal3 -> terminal2
+  terminal2 -> mcu -> terminal2
+  terminal2 -> gatekeeper -> terminal2
 
-  endpoint3 -> mcu -> endpoint3
-  endpoint3 -> gatekeeper -> endpoint3
+  terminal3 -> mcu -> terminal3
+  terminal3 -> gatekeeper -> terminal3
 
   mcu -> gatekeeper -> mcu
 }
