@@ -19,6 +19,7 @@
 \usepackage{tikz}
 \usetikzlibrary{snakes,arrows,shapes}
 \usepackage{amsmath}
+\usepackage[numbers]{natbib}
 
 \usepackage{xcolor}
 \newcommand{\TODO}[1]{%
@@ -57,6 +58,7 @@ Topology is in-memory representation of videoconferencing devices and it's relat
 Controller will know nothing about topologies from foreign domains. Every time when the controller will need some information about foreign devices it send request to foreign domain controller.
 
 Topology is abstract representation of all technology dependent topologies (e.g, H.323, SIP, Adobe Connect topologies).
+
 
 \section{Elements}
 
@@ -106,6 +108,7 @@ Each edge can have the following capabilities:
 \section{Implementation}
 Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.
       
+      
 \subsection{Construction}
 
 Construction is performed when the controller is started. Steps to construct a topology:
@@ -146,6 +149,9 @@ Steps to update a topology when the capabilities for a device are changed:
 
 The H.323 network is composed of terminals, multipoint control units, gateways and gatekeepers. Terminals, MCUs and gateways are referred to as endpoints. At least two terminals are needed to start a videoconference call.
 
+
+\subsection{Elements}
+
 \begin{itemize}
 
 \item \textbf{Terminal} \\
@@ -177,6 +183,17 @@ When a gatekeeper is used in videoconference, it can work in two modes:
 Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper is set then each terminal and virtual room in MCU can have an alias set. Each terminal and MCU element should also be configured to allow or forbid the direct connections through IP address. When the gatekeeper with admission control is set, it is appropriate to forbid direct connections through IP address.
 
 
+\subsection{Constraints}
+
+\begin{itemize}
+
+\item Always bidirectional connections. When an device $A$ can connect to a device $B$ then also $B$ can connect to $A$.
+\\ \TODO{How about the case when A can send only audio to B but B can send \\ audio+video+content?}
+\\ \TODO{I think we should allow asymmetric links...}
+
+\end{itemize}
+
+
 \subsection{Examples}
 
 \subsubsection{Connection through direct IP addresses}
@@ -188,7 +205,7 @@ Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus th
 
 \subsubsection{Connection through gatekeeper}
 
-Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When terminal want to start videoconference he must request the gatekeeper.
+Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal want to connect.
 
 \graph{graph:h323:gatekeeper}{graph/h323_gatekeeper.tex}{Connection through gatekeeper}{}
 
@@ -200,10 +217,55 @@ These topology is combination of previous two topologies. Terminals and MCUs are
 \graph{graph:h323:gatekeeper}{graph/h323_gatekeeper_or_direct.tex}{Connection through gatekeeper or direct IP addresses}{0.7}
 
 
-\subsubsection{Hybrid -- Connections through gatekeeper and/or direct IP addresses}
+\subsubsection{Multiple gatekeepers}
 
-\TODO{Describe} \\
+The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 endpoints and one gatekeeper. 
+\graph{graph:h323:gatekeeperMultiple}{graph/h323_gatekeeper_multiple.tex}{Multiple gatekeepers}{0.7}
+The network is composed from three local networks: main domain, subdomain1 and subdomain2. Adjacent endpoints (endpoints in the same local network) can connect directly or through it's gatekeeper. Not adjacent endpoints (endpoints from different local networks) can connect only by it's gatekeepers.
+
 \TODO{Do we allow more gatekeepers in one controller domain?}
+
+
+\subsection{References}
+
+\renewcommand{\bibsection}{}
+\begin{thebibliography}{1}
+
+\bibitem[1]{bib:h323:architecture}
+Basic Architecture of H.323.
+\\ \url{http://hive1.hive.packetizer.com/users/packetizer/papers/h323/h323_basics_handout.pdf}
+
+\bibitem[2]{bib:h323:wiki}
+H.323 on Wikipedia.
+\\ \url{https://en.wikipedia.org/wiki/H.323}
+
+\end{thebibliography}
+
+
+\section{SIP Topology}
+
+\TODO{}
+
+\subsection{Elements}
+
+\subsection{Constraints}
+
+\subsection{Examples}
+
+\subsection{References}
+
+\renewcommand{\bibsection}{}
+\begin{thebibliography}{1}
+
+\bibitem[1]{bib:sip:architecture}
+Session Initiation Protocol (SIP)
+\\ \url{http://www.vide.net/cookbook/cookbook.en//list_page.php?topic=3&url=sip.htm}
+
+\bibitem[2]{bib:sip:wiki}
+Session Initiation Protocol on Wikipedia.
+\\ \url{https://en.wikipedia.org/wiki/Session_Initiation_Protocol}
+
+\end{thebibliography}
 
 
 \chapter{Scheduler}

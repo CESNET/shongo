@@ -1,0 +1,37 @@
+digraph g{
+  node [shape=box];
+
+  {rank=same; terminal1 mcu terminal2}
+
+  terminal1 -> terminal2 -> terminal1
+  terminal1 -> mcu -> terminal1
+  terminal1 -> gatekeeper1 -> terminal1
+  terminal2 -> mcu -> terminal2
+  terminal2 -> gatekeeper1 -> terminal2
+  mcu -> gatekeeper1 -> mcu
+  
+  subgraph cluster1 {
+    label="subdomain1";
+    gatekeeper2
+    terminal3 -> gatekeeper2 -> terminal3
+    terminal4 -> gatekeeper2 -> terminal4
+    terminal3 -> terminal4 -> terminal3
+    {rank=same; terminal3 terminal4}
+  }
+
+  subgraph cluster2 {
+    label="subdomain2";
+    gatekeeper3
+    terminal5 -> gatekeeper3 -> terminal5
+    terminal6 -> gatekeeper3 -> terminal6
+    terminal6 -> terminal5 -> terminal6
+    {rank=same; terminal5 terminal6}
+  }
+
+  {rank=same; gatekeeper2 gatekeeper3}
+
+  gatekeeper1 -> gatekeeper2 -> gatekeeper1
+  gatekeeper1 -> gatekeeper3 -> gatekeeper1
+  gatekeeper2 -> gatekeeper3 -> gatekeeper2
+}
+
