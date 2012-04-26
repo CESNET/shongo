@@ -52,103 +52,14 @@
 \tableofcontents
 
 
-\chapter{Topology}
+\chapter{Technology}
 
-Topology is in-memory representation of videoconferencing devices and it's relations. Each domain controller will keep the local topology of all devices that the controller manages.
-Controller will know nothing about topologies from foreign domains. Every time when the controller will need some information about foreign devices it send request to foreign domain controller.
-
-Topology is abstract representation of all technology dependent topologies (e.g, H.323, SIP, Adobe Connect topologies).
+This chapter describes widely-used videoconference technologies. Element types and network examples are listed  for each technology.
 
 
-\section{Elements}
-
-Type of elements in topology:
-\begin{itemize}
-
-\item{\textbf{Node}} 
-
-Each node represents one device.
-Each node gets assigned input and output capacity (e.g., the limitation of 
-a number of incoming/outgoing connections, bandwidth, etc.) for every channel
-that it supports.
-
-Terminal devices will limit the number of input/output connections for each
-channel to 1.
-
-%Multipoint devices will have... TODO:
-   
-% Managed device gets assigned agent, that manages the device. The agent
-% is identified by NAME which is part of agent identifier in JADE 
-% middle-ware (NAME@DOMAIN).  
-
-\item{\textbf{Oriented Edge}} 
-
-Edge links two nodes (devices) and it represents the 
-ability to transmit data (or to make a call) between these two devices 
-in specified direction.
-  
-Each edge can have the following capabilities:
-\begin{compactitem}   
-  \item \textbf{Audio and Video Channel} -- Specify whether an audio and video channel is available between the two devices.
-      
-  \item \textbf{Content Channel} -- Specifies whether a content channel is available between two devices.
-    
-  \item \textbf{Weight} -- Composed of several components:
-  \begin{compactitem}  
-    \item Inter-domain/Intra-domain
-    \item Distance (roughly)
-  \end{compactitem}  
-\end{compactitem}   
-
-\end{itemize}
-
-\TODO{Topology should keep the information about already scheduled reservations.}
-  
-
-\section{Implementation}
-Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.
-      
-      
-\subsection{Construction}
-
-Construction is performed when the controller is started. Steps to construct a topology:
-
-\begin{enumerate}
-
-\item Get the list of all devices with it's capabilities in a topology.
-
-\item For each device: 
-  \begin{compactitem}
-  \item Find all other devices that the device is able to transmit
-  data to (or to make a call) and for each:
-    \begin{compactitem}
-    \item Add edge with proper parameters.
-    \end{compactitem}
-  \end{compactitem}
-
-\end{enumerate}     
-
-     
-\subsection{Update Topology}     
-
-Steps to update a topology when the capabilities for a device are changed:
-\begin{enumerate}
-
-\item Remove all edges that reference the device.
-
-\item Find all other devices that the device is able to transmit data from/to
-   (or to make a call) and for each:
-   \begin{compactitem}
-   \item Add edge(s) with proper parameters.
-   \end{compactitem}
-
-\end{enumerate}  
-
-
-\section{H.323 Topology}
+\section{H.323}
 
 The H.323 network is composed of terminals, multipoint control units, gateways and gatekeepers. Terminals, MCUs and gateways are referred to as endpoints. At least two terminals are needed to start a videoconference call.
-
 
 \subsection{Elements}
 
@@ -182,7 +93,6 @@ When a gatekeeper is used in videoconference, it can work in two modes:
 
 Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper is set then each terminal and virtual room in MCU can have an alias set. Each terminal and MCU element should also be configured to allow or forbid the direct connections through IP address. When the gatekeeper with admission control is set, it is appropriate to forbid direct connections through IP address.
 
-
 \subsection{Constraints}
 
 \begin{itemize}
@@ -200,8 +110,7 @@ Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper
 
 \end{itemize}
 
-
-\subsection{Examples}
+\subsection{Network Examples}
 
 \subsubsection{Connection through direct IP addresses}
 
@@ -209,20 +118,17 @@ Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus th
 
 \graph{graph:h323:direct}{graph/h323_direct.tex}{Connection through direct IP addresses}{}
 
-
 \subsubsection{Connection through gatekeeper}
 
 Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal want to connect.
 
 \graph{graph:h323:gatekeeper}{graph/h323_gatekeeper.tex}{Connection through gatekeeper}{}
 
-
 \subsubsection{Connection through gatekeeper or direct IP addresses}
 
 These topology is combination of previous two topologies. Terminals and MCUs are configured to allow direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases. Videoconference can be started by direct connection throught IP address or through the gatekeeper.
 
 \graph{graph:h323:gatekeeper}{graph/h323_gatekeeper_or_direct.tex}{Connection through gatekeeper or direct IP addresses}{}
-
 
 \subsubsection{Multiple gatekeepers}
 
@@ -248,9 +154,9 @@ H.323 on Wikipedia.
 \end{thebibliography}
 
 
-\section{SIP Topology}
+\section{SIP}
 
-\TODO{}
+\TODO{Describe SIP}
 
 \subsection{Elements}
 
@@ -280,7 +186,7 @@ TODO
 
 \end{itemize}
 
-\subsection{Examples}
+\subsection{Network Examples}
 
 \subsection{References}
 
@@ -298,10 +204,128 @@ Session Initiation Protocol on Wikipedia.
 \end{thebibliography}
 
 
+\section{Adobe Connect}
+
+\TODO{Describe Adobe Connect}
+
+
+\chapter{Abstract Topology}
+
+Abstract topology is representation of videoconferencing devices from various technologies and it's relations. Each domain controller in Shongo will keep in memory the local topology of all devices that the controller manages.
+Controller will know nothing about topologies from foreign domains. Every time when the controller needs some information about foreign devices it send request to foreign domain controller.
+
+Abstract topology is composed of nodes and edges. Nodes represents a videoconference devices and and edges theirs relations, ability to communicate.
+
+\section{Node}
+
+Each node in Abstract Topology represents one videoconference device. Device is able to communicate with one or more technologies (H.323, SIP, Adobe Connect, etc.).
+\\ 
+If device is able to communicate with a technology it means that it has capability to:
+\TODO{Finish node capabilities}
+\begin{compactitem}
+%\item \textbf{send} and/or \textbf{receive} the technology \textbf{data} in \textbf{number} of streams. 
+%\textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate}.
+
+\item \textbf{send} and/or \textbf{receive} the technology \textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate}.
+\item \textbf{send} and/or \textbf{receive} the technology \textbf{video} in a specific \textbf{video codec} and \textbf{resolution}.
+\item \textbf{send} and/or \textbf{receive} the technology \textbf{data} in a specific \textbf{data format}.
+\item \textbf{mix} received streams (audio, video or data)
+\end{compactitem}
+If device is able to communicate with a multiple technologies it can also have the following capabilities:
+\begin{compactitem}
+\item translate the technology \textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate} to another technology \textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate}.
+\end{compactitem}
+
+Each device can have one or more described capabilities.
+   
+% Managed device gets assigned agent, that manages the device. The agent
+% is identified by NAME which is part of agent identifier in JADE 
+% middle-ware (NAME@DOMAIN).  
+
+\section{Edge}
+
+Edge links two nodes (devices) and it represents the 
+ability to transmit data (or to make a call) between these two devices 
+in specified direction.
+  
+Each edge can have the following capabilities:
+
+\TODO{Finish edge capabilities}
+
+\begin{compactitem}   
+  \item \textbf{Audio and Video Channel} -- Specify whether an audio and video channel is available between the two devices.
+      
+  \item \textbf{Content Channel} -- Specifies whether a content channel is available between two devices.
+    
+  \item \textbf{Weight} -- Composed of several components:
+  \begin{compactitem}  
+    \item Inter-domain/Intra-domain
+    \item Distance (roughly)
+  \end{compactitem}
+    
+\end{compactitem}   
+
+\TODO{Topology should keep the information about already scheduled reservations.}
+  
+
+\chapter{Technology Implementation in Abstract Topology}
+Each videoconference network in a specific technology can be implemented by Abstract Topology. This chapter shows examples of network implementation for each technology.
+
+\TODO{Show examples}
+
+\section{H.323}
+
+\section{SIP}
+
+\section{Adobe Connect}
+
+
+\chapter{Abstract Topology Implementation}
+
+\TODO{Describe implementation better}
+
+Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.      
+      
+\section{Construction}
+
+Construction is performed when the controller is started. Steps to construct a topology:
+
+\begin{enumerate}
+
+\item Get the list of all devices with it's capabilities in a topology.
+
+\item For each device: 
+  \begin{compactitem}
+  \item Find all other devices that the device is able to transmit
+  data to (or to make a call) and for each:
+    \begin{compactitem}
+    \item Add edge with proper parameters.
+    \end{compactitem}
+  \end{compactitem}
+
+\end{enumerate}     
+     
+\section{Update Topology}     
+
+Steps to update a topology when the capabilities for a device are changed:
+\begin{enumerate}
+
+\item Remove all edges that reference the device.
+
+\item Find all other devices that the device is able to transmit data from/to
+   (or to make a call) and for each:
+   \begin{compactitem}
+   \item Add edge(s) with proper parameters.
+   \end{compactitem}
+
+\end{enumerate}  
+
+
 \chapter{Scheduler}
 
-Scheduler will use described topology for scheduling reservations of videoconference devices.
-\TODO{}
+Scheduler will use described abstract topology implementation for scheduling reservations of videoconference devices.
+
+\TODO{Describe scheduler}
 
 
 \end{document}
