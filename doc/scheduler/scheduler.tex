@@ -219,24 +219,97 @@ Abstract topology is composed of nodes and edges. Nodes represents a videoconfer
 \section{Node}
 
 Each node in Abstract Topology represents one videoconference device. Device is able to communicate with one or more technologies (H.323, SIP, Adobe Connect, etc.).
-\\ 
-If device is able to communicate with a technology it means that it has capability to:
-\TODO{Finish node capabilities}
+\\
+If device is able to communicate with a \textbf{technology} it means that it 
+has at least one capability from the following types (for that technology):
 \begin{compactitem}
-%\item \textbf{send} and/or \textbf{receive} the technology \textbf{data} in \textbf{number} of streams. 
-%\textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate}.
-
-\item \textbf{send} and/or \textbf{receive} the technology \textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate}.
-\item \textbf{send} and/or \textbf{receive} the technology \textbf{video} in a specific \textbf{video codec} and \textbf{resolution}.
-\item \textbf{send} and/or \textbf{receive} the technology \textbf{data} in a specific \textbf{data format}.
-\item \textbf{mix} received streams (audio, video or data)
+\item \textbf{receive} and/or \textbf{send} through a limited number of 
+  the technology input/output \textbf{channels}. Each channel must contain 
+  at least one of the following \textbf{streams}:
+  \begin{itemize}
+    \item \textbf{audio} in a specific \textbf{audio codecs} and 
+      \textbf{bitrates}.
+    \item \textbf{video} in a specific \textbf{video codecs} and 
+      \textbf{resolutions}.
+    \item \textbf{content} in a specific \textbf{content formats}.
+  \end{itemize} 
+\item \textbf{mix} input channels and send the combined result through 
+  an output channel.
+\item \textbf{virtual rooming} means that the device divide input channels 
+  into groups (virtual rooms), \textbf{mixing} is applied per group and
+  each group is bound to one output channel. For each virtual room there can 
+  be specified a maximum number of input channels (maximum videoconference 
+  participants).
+\item \textbf{gatekeeper client} means that the device has set an alias 
+  and an address of a gatekeeper server to which it registers itself.
+  When the device want to connect to another device by an alias it contacts 
+  the gatekeeper server which resolves the device address from the alias 
+  or route the videoconference through the gatekeeper server (and do not tell
+  the resolved address to the caller).
+\item \textbf{gatekeeper server} means that the device is gatekeeper server
+  that has registry of devices and its' aliases. The gatekeeper server is
+  able to resolve addresses or route the videoconference through itself. It is 
+  able to perform an admission control or user authentication.
+\item \textbf{stream} from an input channel.
+\item \textbf{record} from an input channel.
 \end{compactitem}
+Each device can have one or more described capabilities for each technology
+that it supports.
 If device is able to communicate with a multiple technologies it can also have the following capabilities:
 \begin{compactitem}
-\item translate the technology \textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate} to another technology \textbf{audio} in a specific \textbf{audio codec} and \textbf{bitrate}.
+\item \textbf{translate} the technology input channel to another technology output 
+  channel.
 \end{compactitem}
 
-Each device can have one or more described capabilities.
+
+\subsection*{Examples of abstract devices (not bound to any technology):}
+\begin{itemize}
+\item \textbf{Terminal device} \\
+  Terminal device is hardware or software client that is used by an user to 
+  connect to a videoconference. The device allow user to participate only in
+  one videoconference at the time thus it has \textbf{receive} and 
+  \textbf{send} capability but limited to 1 channel. No other capability is 
+  provided by the simple terminal device. If we have available only terminal 
+  devices we are able to establish only 2-point videoconferences (terminal-to-
+  terminal link).
+
+\item \textbf{Terminal device with embedded virtual room} \\
+  Terminal device with embedded virtual room is extension of terminal device 
+  that allows user to host a single multipoint videoconference. The device has 
+  \textbf{receive} capability with limited number of input channels to number 
+  of allowed participants in the provided single virtual room. It also has 
+  \textbf{send} capability but limited to 1 channel. The last provided 
+  capability is \textbf{mix} which combines input channels to a single output 
+  channel and through it mediates the multipoint videoconference. It is worth 
+  to note that the terminal device with embedded virtual room itself is part of 
+  the hosted videoconference.
+
+\item \textbf{Multipoint device} \\
+  Multipoint device is a special type of device that hosts one or more virtual 
+  rooms and an arbitrary device can connect to a hosted virtual room and take 
+  a videoconference there. The difference between multipoint and the previous 
+  device is that the multipoint device can host more than one videoconference 
+  and the multipoint device isn't part of these videoconferences, it only 
+  manages them. The multipoint device has \textbf{receive}, \textbf{send} and 
+  \textbf{virtual rooming} capabilities. Number of input channels for 
+  \textbf{receive} capability is limited to a maximum number of participants 
+  in all hosted videoconference in the device. Number of output channels for 
+  \textbf{send} capability is limited to a maximum number of virtual rooms 
+  (=~videoconferences) in the device. \textbf{Virtual rooming} capability 
+  provides the ability to combine the input channels to one output channels 
+  that are routed to all participants.
+
+\item \textbf{Gatekeeper device} \\
+  Gatekeeper device is a special type of device that has only 
+  \textbf{gatekeeper server} capability. All of previous device examples can 
+  also have \textbf{gatekeeper client} capability which allows them to use a 
+  device alias as a videoconference callee specification. When device alias is 
+  used for initiating the videoconference then the device contacts the proper 
+  gatekeeper which has two options: to resolve address from the alias and 
+  return it to the caller or to route the videoconference through the 
+  gatekeeper.
+\end{itemize}
+
    
 % Managed device gets assigned agent, that manages the device. The agent
 % is identified by NAME which is part of agent identifier in JADE 
