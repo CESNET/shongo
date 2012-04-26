@@ -252,6 +252,7 @@ has at least one capability from the following types (for that technology):
   able to perform an admission control or user authentication.
 \item \textbf{stream} from an input channel.
 \item \textbf{record} from an input channel.
+\item \TODO{Describe used capacity by scheduler...}
 \end{compactitem}
 Each device can have one or more described capabilities for each technology
 that it supports.
@@ -309,36 +310,33 @@ If device is able to communicate with a multiple technologies it can also have t
   return it to the caller or to route the videoconference through the 
   gatekeeper.
 \end{itemize}
-
-   
-% Managed device gets assigned agent, that manages the device. The agent
-% is identified by NAME which is part of agent identifier in JADE 
-% middle-ware (NAME@DOMAIN).  
+ 
 
 \section{Edge}
 
-Edge links two nodes (devices) and it represents the 
-ability to transmit data (or to make a call) between these two devices 
-in specified direction.
-  
-Each edge can have the following capabilities:
-
-\TODO{Finish edge capabilities}
-
+Edge links two nodes (devices) and it represents a relation between the 
+nodes. The relation can have various meaning, for instance that the devices
+are able to take a videoconference together in a specific technology or
+that the first device is a gatekeeper and the second can resolve a device 
+address from an alias (in specific technology as well).
+\\
+The edge can represents a relation in one or more technologies. For each \textbf{technology} that the edge relates to, the edge can have one or more 
+capabilities from the following types:
 \begin{compactitem}   
-  \item \textbf{Audio and Video Channel} -- Specify whether an audio and video channel is available between the two devices.
-      
-  \item \textbf{Content Channel} -- Specifies whether a content channel is available between two devices.
-    
-  \item \textbf{Weight} -- Composed of several components:
-  \begin{compactitem}  
-    \item Inter-domain/Intra-domain
-    \item Distance (roughly)
-  \end{compactitem}
-    
+\item \textbf{channel} means that between two devices can be established
+  a communication channel. It must contain at least one of the following 
+  \textbf{streams}:
+  \begin{itemize}
+    \item \textbf{audio} in a specific \textbf{audio codecs} and 
+      \textbf{bitrates}.
+    \item \textbf{video} in a specific \textbf{video codecs} and 
+      \textbf{resolutions}.
+    \item \textbf{content} in a specific \textbf{content formats}.
+  \end{itemize} 
+  
+\item \TODO{Describe weights...}
+   \\ \TODO{Describe used capacity by scheduler...}
 \end{compactitem}   
-
-\TODO{Topology should keep the information about already scheduled reservations.}
   
 
 \chapter{Technology Implementation in Abstract Topology}
