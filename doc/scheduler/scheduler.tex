@@ -35,7 +35,7 @@
 % Include graph (label, filename, name, scale)
 \newcommand{\graph}[4]{
 \begin{figure}[h!]
-\centering\scalebox{\ifx&#4& 0.75 \else #4 \fi}{\input{#2}}
+\centering\scalebox{\ifx&#4& 0.7 \else #4 \fi}{\input{#2}}
 \label{#1}
 \caption{#3}
 \end{figure}
@@ -176,8 +176,8 @@ Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in MCU.
 
 When a gatekeeper is used in videoconference, it can work in two modes:
 \begin{itemize}
-\item Direct Endpoint Model -- The gatekeeper is used only for initialization (address resolution, admission control, etc.) and the videoconference call itself is managed by it's participants (endpoints). The gatekeeper doesn't have full control over the call signaling.
-\item Gatekeeper Routed Model -- The gatekeeper is used throughout videoconference call, the call signaling flow through the gatekeeper and it has the full control over it.
+\item Direct Endpoint Model -- The gatekeeper is used only for initialization (address resolution, admission control, etc.) and the videoconference call itself is managed by it's participants (endpoints). The gatekeeper doesn't have full control over the call signaling. The target IP address is communicated to the caller.
+\item Gatekeeper Routed Model -- The gatekeeper is used throughout videoconference call, the call signaling flow through the gatekeeper and it has the full control over it. The target IP address is not communicated to the caller.
 \end{itemize}
 
 Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper is set then each terminal and virtual room in MCU can have an alias set. Each terminal and MCU element should also be configured to allow or forbid the direct connections through IP address. When the gatekeeper with admission control is set, it is appropriate to forbid direct connections through IP address.
@@ -187,9 +187,16 @@ Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper
 
 \begin{itemize}
 
+\item Communication consists of:
+\begin{compactenum}
+\item Audio
+\item Audio + Video
+\item Audio + Video + Data
+\end{compactenum}
+
 \item Always bidirectional connections. When an device $A$ can connect to a device $B$ then also $B$ can connect to $A$.
 \\ \TODO{How about the case when A can send only audio to B but B can send \\ audio+video+content?}
-\\ \TODO{I think we should allow asymmetric links...}
+\\ \TODO{I think we should allow asymmetric links... There may be terminals that for instance don't support data streams (behind the NAT)}
 
 \end{itemize}
 
@@ -210,21 +217,20 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
 \graph{graph:h323:gatekeeper}{graph/h323_gatekeeper.tex}{Connection through gatekeeper}{}
 
 
-\subsubsection{Connection through gatekeeper and direct IP addresses}
+\subsubsection{Connection through gatekeeper or direct IP addresses}
 
 These topology is combination of previous two topologies. Terminals and MCUs are configured to allow direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases. Videoconference can be started by direct connection throught IP address or through the gatekeeper.
 
-\graph{graph:h323:gatekeeper}{graph/h323_gatekeeper_or_direct.tex}{Connection through gatekeeper or direct IP addresses}{0.7}
+\graph{graph:h323:gatekeeper}{graph/h323_gatekeeper_or_direct.tex}{Connection through gatekeeper or direct IP addresses}{}
 
 
 \subsubsection{Multiple gatekeepers}
 
 The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 endpoints and one gatekeeper. 
-\graph{graph:h323:gatekeeperMultiple}{graph/h323_gatekeeper_multiple.tex}{Multiple gatekeepers}{0.7}
+\graph{graph:h323:gatekeeperMultiple}{graph/h323_gatekeeper_multiple.tex}{Multiple gatekeepers}{0.6}
 The network is composed from three local networks: main domain, subdomain1 and subdomain2. Adjacent endpoints (endpoints in the same local network) can connect directly or through it's gatekeeper. Not adjacent endpoints (endpoints from different local networks) can connect only by it's gatekeepers.
-
-\TODO{Do we allow more gatekeepers in one controller domain?}
-
+\\ \TODO{Do we allow more gatekeepers in one controller domain?}
+\\ \TODO{How to enable direct connections inside subdomains and disable them outside subdomains?}
 
 \subsection{References}
 
@@ -248,7 +254,31 @@ H.323 on Wikipedia.
 
 \subsection{Elements}
 
+Type of elements in SIP network:
+
+\begin{itemize}
+\item \textbf{User Agent} \\
+TODO
+\item \textbf{Proxy Server} \\
+TODO
+\item \textbf{Redirect Server} \\
+TODO
+\item \textbf{Registrar} \\
+TODO
+\end{itemize}
+
 \subsection{Constraints}
+
+\begin{itemize}
+
+\item Communication consists of:
+\begin{compactenum}
+\item Audio
+\item Audio + Video
+\item Audio + Video + Data
+\end{compactenum}
+
+\end{itemize}
 
 \subsection{Examples}
 

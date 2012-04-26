@@ -1,6 +1,6 @@
-
 digraph g{
   node [shape=box];
+  mindist=0.8;
 
   gatekeeper mcu terminal2 terminal1 terminal3
 
