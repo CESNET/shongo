@@ -1,0 +1,104 @@
+\usepackage{ifthen}
+
+% Draw vertex (node, position, title)
+\newcommand{\Vertex}[3]{\node[vertex] (#2) at (#1)  {#3};}
+
+% Draw edge (type, styles, from, to)  
+\newcounter{EdgeCount}      
+\newcommand{\Edge}[4]{
+    % Count edges
+    \setcounter{EdgeCount}{0}
+    \foreach \x in{#2}{
+        \stepcounter{EdgeCount}
+    }    
+
+    % Determine edges starting bend ratio
+    \def\EdgeCountOriginal{\arabic{EdgeCount}}
+    \def\EdgeCountEven{\the\numexpr((\value{EdgeCount}-1)/2)*2\relax}    
+    \if\EdgeCountOriginal\EdgeCountEven
+       % For even edges count
+       \def\EdgeBegin{\the\numexpr5-((\value{EdgeCount}-1)/2)*10\relax}
+    \else
+       % For odd edges count
+       \def\EdgeBegin{\the\numexpr0-((\value{EdgeCount}-1)/2)*10\relax}
+    \fi
+
+    % Determine edge arrow style    
+    \def\EdgeType{-}
+    \ifthenelse{\equal{#1}{<->}}{\def\EdgeType{latex-latex}}{}
+    \ifthenelse{\equal{#1}{->}}{\def\EdgeType{-latex}}{}
+    \ifthenelse{\equal{#1}{<-}}{\def\EdgeType{latex-}}{}
+       
+    % Draw edges
+    \foreach \EdgeStyle [count=\EdgeStyleIndex] in{#2}{
+      \draw [
+        \EdgeType, 
+        \EdgeStyle, 
+        bend left=\the\numexpr\EdgeBegin+(\EdgeStyleIndex - 1)*10\relax
+      ] (#3) edge (#4);
+    }
+}
+
+% Draw all edges between the nodes (type, styles, all)
+\newcommand{\EdgeAllToAll}[3] {
+  \foreach \EdgeNodeFrom [count=\EdgeNodeFromIndex] in{#3}{
+    \foreach \EdgeNodeTo [count=\EdgeNodeToIndex] in{#3}{
+      \ifthenelse{\EdgeNodeToIndex > \EdgeNodeFromIndex}{
+        \Edge{#1}{#2}{\EdgeNodeFrom}{\EdgeNodeTo}        
+      }{}
+    } 
+  }
+}
+
+% Draw all edges between the nodes (type, styles, one, all)
+\newcommand{\EdgeOneToAll}[4] {
+  \foreach \EdgeNodeTo in{#4}{
+    \Edge{#1}{#2}{#3}{\EdgeNodeTo}
+    
+  }
+}
+
+% Legend (position)
+\newenvironment{GraphLegend}[1]{
+  \node (legend) at ($(#1) + (0, 0.5)$) {};
+}{
+}
+
+% Legend Item (style, title)
+\newcommand{\GraphLegendItem}[2]{  
+  \node (legend) at ($(legend) + (0, -0.5)$) {};
+  \draw [#1, line width=1.5pt]  (legend) --++ (-0.9, 0);
+  \node[right, font=\footnotesize] at (legend)  {#2};
+}
+
+% Legend with all items
+\newcommand{\GraphLegendAll}[1]{
+  \begin{GraphLegend}{#1}
+    \GraphLegendItem{data}{Call data flow}
+    \GraphLegendItem{control}{Call control flow}
+    \GraphLegendItem{alias}{Connect by H.323 alias}
+    \GraphLegendItem{ip}{Connect by IP address}
+  \end{GraphLegend}
+}
+
+% Draw graph figure (label, title)
+\newenvironment{Graph}[2]{%
+  \begin{figure}[h!]%
+  \providecommand{\tmpArgFirst}{#1}%
+  \providecommand{\tmpArgSecond}{#2}%
+  \begin{center}%
+  \begin{tikzpicture}%
+    \tikzstyle{every node}=[]%
+    \tikzstyle{vertex}=[draw=black, inner sep=8pt, font=\footnotesize]%
+    \tikzstyle{data}=[color=red, line width=0.8pt]%
+    \tikzstyle{dataDashed}=[color=red, dashed, line width=0.8pt]%
+    \tikzstyle{control}=[color=orange, line width=0.8pt]%
+    \tikzstyle{alias}=[color=blue, dashed, line width=0.8pt]%
+    \tikzstyle{ip}=[color=green, dashed, line width=0.8pt]%
+}{%
+  \end{tikzpicture}
+  \end{center}
+  \label{\tmpArgFirst}
+  \caption{\tmpArgSecond}
+  \end{figure}
+}
