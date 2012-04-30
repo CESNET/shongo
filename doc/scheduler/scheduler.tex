@@ -74,9 +74,9 @@ Gatekeeper is a hardware device that provides special services to the other elem
 
 \end{itemize}
 
-Each H.323 element is running on specific IP address that can be used to connect to the element. An element can have assigned alias, \textbf{H.323 phone number} (sequence of digits) or \textbf{H.323 identifier} (string, e.g., email), that can be used to connect to it. It is useful when the IP address is not known (e.g., the device is behind the NAT) or it is likely to change (organization changes).
+Each H.323 element is running on specific IP address that can be used to connect to the element. An element can have assigned alias, \textbf{H.323 phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., email), that can be used to connect to it. Alias is useful when the IP address is not known (e.g., the device is behind the NAT) or it is likely to change (organization changes).
 
-Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in MCU. When an terminal has assigned alias it must register to one \textbf{gatekeeper} that will be able to translate the alias to the terminal IP address. When an element want to connect to another terminal or virtual room by alias, it must use the same gatekeeper that has the proper registry of aliases.
+Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in MCU. When a terminal has assigned alias it must register to one \textbf{gatekeeper} that will be able to translate the alias to the terminal IP address. When an element want to connect to another terminal or virtual room by alias, it must use the same gatekeeper that has the proper registry of aliases.
 
 When a gatekeeper is used in videoconference, it can work in two modes:
 \begin{itemize}
@@ -97,17 +97,32 @@ Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper
 \item Audio + Data
 \item Audio + Video + Data
 \end{compactenum}
+\TODO{Do we want to know in Abstract Topology which of 4 modes each device support?}
 
 \item Always bidirectional connections. When an device $A$ can connect to a device $B$ then also $B$ can connect to $A$.
-\\ \TODO{Do we want to know in Abstract Topology which of 4 modes each device support?}
 
 \end{itemize}
 
 \subsection{Network Examples}
 
+% H.323 Graph Declarations
+\tikzstyle{hxxxData}=[color=red]
+\tikzstyle{hxxxDataDashed}=[color=red, dashed]
+\tikzstyle{hxxxControl}=[color=orange]
+\tikzstyle{hxxxAlias}=[color=blue, dashed]
+\tikzstyle{hxxxIp}=[color=green, dashed]
+\newcommand{\HXXXLegend}[1]{
+  \begin{GraphLegend}{#1}
+    \GraphLegendItem{hxxxData}{Call data flow}
+    \GraphLegendItem{hxxxControl}{Call control flow}
+    \GraphLegendItem{hxxxAlias}{Connect by H.323 alias}
+    \GraphLegendItem{hxxxIp}{Connect by IP address}
+  \end{GraphLegend}
+}
+
 \subsubsection{Connection through direct IP addresses}
 
-Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus the connecting is done through IP addresses. This topology allows for 2-point videoconferences (e.g., \emph{terminal1 -- terminal2}) and multipoint videoconferences through the MCU (e.g., \emph{terminal1 -- terminal2 -- terminal3 -- mcu}). When an terminal connects to the MCU it must select the proper virtual room, because the IP address determines only the MCU not the specific virtual room.
+Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus the connecting is done through IP addresses. This topology allows for 2-point videoconferences (e.g., \emph{terminal1 -- terminal2}) and multipoint videoconferences through the MCU (e.g., \emph{terminal1 -- terminal2 -- terminal3 -- mcu}). When a terminal connects to the MCU it must select the proper virtual room, because the IP address determines only the MCU not a specific virtual room.
 
 \begin{Graph}{graph:h323:direct}{Connection through direct IP addresses}
   \Vertex{0, 0}{t1}{terminal1}
@@ -115,14 +130,14 @@ Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus th
   \Vertex{4,-4}{t3}{terminal3}
   \Vertex{0,-4}{mcu}{mcu}
   
-  \EdgeAllToAll{<->}{ip, data, control}{t1, t2, t3, mcu}
+  \EdgeAllToAll{<->}{hxxxIp, hxxxData, hxxxControl}{t1, t2, t3, mcu}
   
-  \GraphLegendAll{6, -1.5}
+  \HXXXLegend{6, -1.5}
 \end{Graph}
 
 \subsubsection{Connection through a gatekeeper (Direct Endpoint Model)}
 
-Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and return it to the caller which then is able to start videoconference data flow to the requested target.
+Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and return it to the caller which then is able to start videoconference data flow to the requested target.
 
 \begin{Graph}{graph:h323:gatekeeper}{Connection through gatekeeper}{}
   \Vertex{ 0, 0}{t1}{terminal1}
@@ -131,15 +146,15 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
   \Vertex{ 0,-4}{mcu}{mcu}
   \Vertex{-2,-2}{gk}{gatekeeper}
   
-  \EdgeAllToAll{<->}{data, control}{t1, t2, t3, mcu}
-  \EdgeOneToAll{<->}{alias}{gk}{t1, t2, t3, mcu}
+  \EdgeAllToAll{<->}{hxxxData, hxxxControl}{t1, t2, t3, mcu}
+  \EdgeOneToAll{<->}{hxxxAlias}{gk}{t1, t2, t3, mcu}
   
-  \GraphLegendAll{6, -1.5}
+  \HXXXLegend{6, -1.5}
 \end{Graph}
 
 \subsubsection{Connection through a gatekeeper (Gatekeeper Routed Model)}
 
-Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and establish connection to the target endpoint. The call is then mediated by the gatekeeper throughout the videoconference.
+Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and establish connection to the target endpoint. The call is then mediated by the gatekeeper throughout the videoconference.
 
 \begin{Graph}{graph:h323:gatekeeperRouted}{Connection through gatekeeper}{}
   \Vertex{0, 0}{t1}{terminal1}
@@ -148,48 +163,80 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
   \Vertex{0,-4}{mcu}{mcu}
   \Vertex{-2,-2}{gk}{gatekeeper}
   
-  \EdgeAllToAll{<->}{data}{t1, t2, t3, mcu}  
-  \EdgeOneToAll{<->}{alias, control}{gk}{t1, t2, t3, mcu}
+  \EdgeAllToAll{<->}{hxxxData}{t1, t2, t3, mcu}  
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk}{t1, t2, t3, mcu}
   
-  \GraphLegendAll{6, -1.5}
+  \HXXXLegend{6, -1.5}
 \end{Graph}
 
-\subsubsection{Multiple gatekeepers (Gatekeeper Routed Model)}
+\subsubsection{Multiple gatekeepers}
 
-The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 endpoints and one gatekeeper. 
+The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 endpoints and one gatekeeper.%
 \begin{Graph}{graph:h323:gatekeeperMultiple}{Multiple gatekeepers}{}
   \Vertex{ 0, 0}{gk1}{gatekeeper1}
   \Vertex{-2,-2}{gk2}{gatekeeper2}
   \Vertex{ 2,-2}{gk3}{gatekeeper3}
-  \EdgeAllToAll{<->}{alias, control}{gk1, gk2, gk3}
+  \EdgeAllToAll{<->}{hxxxAlias, hxxxControl}{gk1, gk2, gk3}
   
   \Vertex{-2, 2}{t1}{terminal1}
   \Vertex{ 2, 2}{t2}{terminal2}
   \Vertex{ 0, 4}{mcu}{mcu}
-  \EdgeAllToAll{<->}{ip, control, data}{t1, t2, mcu}  
-  \EdgeOneToAll{<->}{alias, control}{gk1}{t1, t2, mcu}  
+  \EdgeAllToAll{<->}{hxxxIp, hxxxControl, hxxxData}{t1, t2, mcu}  
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk1}{t1, t2, mcu}  
 
   \Vertex{-5,-1}{t3}{terminal3}
   \Vertex{-5,-3}{t4}{terminal4}
-  \Edge{<->}{ip, control, data}{t3}{t4}
-  \EdgeOneToAll{<->}{alias, control}{gk2}{t3, t4}  
+  \Edge{<->}{hxxxIp, hxxxControl, hxxxData}{t3}{t4}
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk2}{t3, t4}  
      
   \Vertex{5,-1}{t5}{terminal5}
   \Vertex{5,-3}{t6}{terminal6}
-  \Edge{<->}{ip, control, data}{t5}{t6}
-  \EdgeOneToAll{<->}{alias, control}{gk3}{t5, t6}    
+  \Edge{<->}{hxxxIp, hxxxControl, hxxxData}{t5}{t6}
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk3}{t5, t6}    
   
-  \Edge{<-}{dataDashed}{mcu}{$(mcu) + (0,1)$}
-  \Edge{<-}{dataDashed}{t1}{$(t1) + (-1.5,0)$}
-  \Edge{<-}{dataDashed}{t2}{$(t2) + (1.5,0)$}
-  \Edge{<-}{dataDashed}{t3}{$(t3) + (0, 1)$}
-  \Edge{<-}{dataDashed}{t4}{$(t4) + (0,-1)$}
-  \Edge{<-}{dataDashed}{t5}{$(t5) + (0, 1)$}
-  \Edge{<-}{dataDashed}{t6}{$(t6) + (0,-1)$}
+  \Edge{<-}{hxxxDataDashed}{mcu}{$(mcu) + (0,1)$}
+  \Edge{<-}{hxxxDataDashed}{t1}{$(t1) + (-1.5,0)$}
+  \Edge{<-}{hxxxDataDashed}{t2}{$(t2) + (1.5,0)$}
+  \Edge{<-}{hxxxDataDashed}{t3}{$(t3) + (0.3, 1)$}
+  \Edge{<-}{hxxxDataDashed}{t4}{$(t4) + (0.8,-1)$}
+  \Edge{<-}{hxxxDataDashed}{t5}{$(t5) + (-0.3, 1)$}
+  \Edge{<-}{hxxxDataDashed}{t6}{$(t6) + (-0.8,-1)$}
 
-  \GraphLegendAll{4, 4}
-\end{Graph}
+  \HXXXLegend{4.5, 4}
+\end{Graph}%
 Adjacent endpoints (endpoints in the same local network) can connect directly or through it's gatekeeper. Not adjacent endpoints (endpoints from different local networks) can connect only by it's gatekeepers.
+
+\subsection{Suggested Topology}
+In topology should be present only endpoints (terminals, MCUs, gateways). The gatekeepers will be kept aside and will be used only to determine which devices are accessible by which devices and to limit the number of active connections that will flow through them (if maximum number of connections is specified for the gatekeeper).
+
+\begin{Graph}{graph:h323:topology}{Suggested topology}{}  
+  \Vertex{-2, 4}{gk}{gatekeeper1}
+  \Vertex{-2, 2}{t1}{terminal1}
+  \Vertex{-2,-2}{t2}{terminal2}
+  \Vertex{-4, 0}{mcu}{mcu}
+
+  \Vertex{2, 4}{gk}{gatekeeper2}  
+  \Vertex{2, 2}{t3}{terminal3}
+  \Vertex{2,-2}{t4}{terminal4}
+  
+  \draw[dashed](0,4.5) -- (0,-2.5);
+  
+  \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t1, t2, mcu}  
+  \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t3, t4}  
+  \EdgeOneToAll{<->}{hxxxAlias}{t3}{t1, t2, mcu}  
+  \EdgeOneToAll{<->}{hxxxAlias}{t4}{t1, t2, mcu}  
+  
+  \begin{GraphLegend}{4, 0.5}
+    \GraphLegendItem{hxxxAlias}{Accessible by alias}
+    \GraphLegendItem{hxxxIp}{Accessible by IP}
+  \end{GraphLegend}
+\end{Graph}
+
+\textbf{Notes:}
+\begin{itemize}
+\item Each gatekeeper should have set a list of neighboring gatekeepers and a list of redirection rules for H.323 phone numbers.
+\item At the global level there should be a list of rules that defines which devices are accessible to which device by IP address (similarly to firewall definition).
+\end{itemize}
 
 \subsection{References}
 
@@ -204,7 +251,7 @@ Basic Architecture of H.323.
 \\\url{http://hive1.hive.packetizer.com/users/packetizer/papers/h323/h323_basics_handout.pdf}
 
 \bibitem[3]{bib:h323:gatekeepers}
-Understanding H.323 Gatekeepers
+Understanding H.323 Gatekeepers.
 \\\url{http://www.cisco.com/en/US/tech/tk1077/technologies_tech_note09186a00800c5e0d.shtml}
 \end{thebibliography}
 
