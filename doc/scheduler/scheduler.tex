@@ -67,7 +67,7 @@ There are special terminal devices that provides a single virtual room to which 
 MCU represents a hardware device that is used for hosting of videoconference calls in which can generally participate any number of endpoints. MCU contains one or more \textbf{virtual rooms} and each virtual room can host one videoconference call at the time. MCU can restrict the number of participants per virtual room or per whole MCU device.
 
 \item \textbf{Gateway} \\
-Gateway is device that enable communication between H.323 network and other network (e.g., PSTN).
+Gateway is device that enable communication between H.323 network and other networks (e.g., PSTN).
 
 \item \textbf{Gatekeeper} \\
 Gatekeeper is a hardware device that provides special services to the other elements in the network: endpoint registration, address resolution, admission control and user authentication.
@@ -97,7 +97,7 @@ Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper
 \item Audio + Data
 \item Audio + Video + Data
 \end{compactenum}
-\TODO{Do we want to know in Abstract Topology which of 4 modes each device support?}
+\TODO{Do we want to know in Topology which of 4 modes each device support?}
 
 \item Always bidirectional connections. When an device $A$ can connect to a device $B$ then also $B$ can connect to $A$.
 
@@ -139,7 +139,7 @@ Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus th
 
 Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and return it to the caller which then is able to start videoconference data flow to the requested target.
 
-\begin{Graph}{graph:h323:gatekeeper}{Connection through gatekeeper}{}
+\begin{Graph}{graph:h323:gatekeeper}{Connection through gatekeeper}
   \Vertex{ 0, 0}{t1}{terminal1}
   \Vertex{ 4, 0}{t2}{terminal2}
   \Vertex{ 4,-4}{t3}{terminal3}
@@ -156,7 +156,7 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
 
 Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and establish connection to the target endpoint. The call is then mediated by the gatekeeper throughout the videoconference.
 
-\begin{Graph}{graph:h323:gatekeeperRouted}{Connection through gatekeeper}{}
+\begin{Graph}{graph:h323:gatekeeperRouted}{Connection through gatekeeper}
   \Vertex{0, 0}{t1}{terminal1}
   \Vertex{4, 0}{t2}{terminal2}
   \Vertex{4,-4}{t3}{terminal3}
@@ -172,7 +172,7 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
 \subsubsection{Multiple gatekeepers}
 
 The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 endpoints and one gatekeeper.%
-\begin{Graph}{graph:h323:gatekeeperMultiple}{Multiple gatekeepers}{}
+\begin{Graph}{graph:h323:gatekeeperMultiple}{Multiple gatekeepers}
   \Vertex{ 0, 0}{gk1}{gatekeeper1}
   \Vertex{-2,-2}{gk2}{gatekeeper2}
   \Vertex{ 2,-2}{gk3}{gatekeeper3}
@@ -209,17 +209,21 @@ Adjacent endpoints (endpoints in the same local network) can connect directly or
 \subsection{Suggested Topology}
 In topology should be present only endpoints (terminals, MCUs, gateways). The gatekeepers will be kept aside and will be used only to determine which devices are accessible by which devices and to limit the number of active connections that will flow through them (if maximum number of connections is specified for the gatekeeper).
 
-\begin{Graph}{graph:h323:topology}{Suggested topology}{}  
-  \Vertex{-2, 4}{gk}{gatekeeper1}
+\begin{Graph}{graph:h323:topology}{Suggested topology}  
+  \Vertex{-2, 4}{gk1}{gatekeeper1}
   \Vertex{-2, 2}{t1}{terminal1}
   \Vertex{-2,-2}{t2}{terminal2}
   \Vertex{-4, 0}{mcu}{mcu}
 
-  \Vertex{2, 4}{gk}{gatekeeper2}  
+  \Vertex{2, 4}{gk2}{gatekeeper2}  
   \Vertex{2, 2}{t3}{terminal3}
   \Vertex{2,-2}{t4}{terminal4}
   
-  \draw[dashed](0,4.5) -- (0,-2.5);
+  \node at (-2, 3) {\textit{subdomain1}};
+  \node at ( 2, 3) {\textit{subdomain2}};
+  \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
+  \draw[-](gk1) -- node[above, font=\scriptsize] {neightbours} (gk2);
+  
   
   \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t1, t2, mcu}  
   \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t3, t4}  
@@ -237,6 +241,7 @@ In topology should be present only endpoints (terminals, MCUs, gateways). The ga
 \item Each gatekeeper should have set a list of neighboring gatekeepers and a list of redirection rules for H.323 phone numbers.
 \item At the global level there should be a list of rules that defines which devices are accessible to which device by IP address (similarly to firewall definition).
 \end{itemize}
+\TODO{How many nodes will we support? 1000 nodes may cause 1000$^2$ edges, and it is a lot....}
 
 \subsection{References}
 
@@ -258,7 +263,7 @@ Understanding H.323 Gatekeepers.
 
 \section{SIP}
 
-\TODO{Describe SIP}
+The Session Initiation Protocol (SIP) is a signaling protocol for establishing calls and videoconferences over IP networks.
 
 \subsection{Elements}
 
@@ -266,14 +271,23 @@ Type of elements in SIP network:
 
 \begin{itemize}
 \item \textbf{User Agent} \\
-TODO
+User agent is a hardware or software client that allows user to take a 
+videoconference call. It can create and receive SIP messages and thereby
+manage a SIP session.
+\\ \TODO{Can user agent have set one or more servers which it will use for initiating a call?}
 \item \textbf{Proxy Server} \\
-TODO
+Proxy server is an intermediary entity whose main role is to route requests to another entity that is closer to the target. Proxy server can also perform admission control.
 \item \textbf{Redirect Server} \\
-TODO
+Redirect server response to each client request by alternative set of URIs which should client contact instead of the original target.
 \item \textbf{Registrar} \\
-TODO
+Registrar is an element that keeps register of user agents. Each user agent can register itself to a registrar for a specific URI. More user agents can be registered to a single URI. 
+\\ \TODO{Can one agent be registered multiple times to a single/multiple registers?}
+\item \textbf{Gateway} \\
+Gateway is a device that enable communication between SIP network and other networks (e.g., PSTN).
+\item \TODO{Is there a similar entity like a MCU in H.323 to create a virtual room?}
 \end{itemize}
+
+Each element in a SIP network is identified by an uniform resource identifier (URI), for instance \verb|sip:username:password@host:port|. Single element in SIP network can be a combination of multiple SIP element types (e.g., \emph{Proxy and Registrar Server} or \emph{Redirect and Registrar Server}).
 
 \subsection{Constraints}
 
@@ -290,6 +304,34 @@ TODO
 
 \subsection{Network Examples}
 
+% SIP Graph Declarations
+\tikzstyle{sipUri}=[color=blue, dashed]
+\newcommand{\SipLegend}[1]{
+  \begin{GraphLegend}{#1}
+    \GraphLegendItem{sipUri}{Accessible by URI}
+  \end{GraphLegend}
+}
+
+\TODO{List some}
+
+\subsection{Suggested topology}
+
+In topology are present only user agents and gateways. Server elements are used only when the topology is constructed to determine which elements are accessible from which elements.
+
+\begin{Graph}{graph:sip:topology}{Suggested topology}  
+  \Vertex{-2, 2}{a1}{useAgent1}
+  \Vertex{-2,-2}{a2}{useAgent2}
+  \Vertex{2, 2}{a3}{useAgent3}  
+  \Vertex{2, -2}{a4}{useAgent4}
+  
+  
+  \EdgeAllToAll{<->}{sipUri}{a1, a2, a3, a4}  
+  
+  \begin{GraphLegend}{4, 0}
+    \GraphLegendItem{sipUri}{Accessible by URI}
+  \end{GraphLegend}
+\end{Graph}
+
 \subsection{References}
 
 \renewcommand{\bibsection}{}
@@ -297,7 +339,7 @@ TODO
 
 \bibitem[1]{bib:sip:architecture}
 Session Initiation Protocol (SIP)
-\\ \url{http://www.vide.net/cookbook/cookbook.en//list_page.php?topic=3&url=sip.htm}
+\\ \url{http://www.vide.net/cookbook/cookbook.en/list_page.php?topic=3&url=sip.htm}
 
 \bibitem[2]{bib:sip:wiki}
 Session Initiation Protocol on Wikipedia.
@@ -310,17 +352,28 @@ Session Initiation Protocol on Wikipedia.
 
 \TODO{Describe Adobe Connect}
 
+\subsection{Elements}
 
-\chapter{Abstract Topology}
+Type of elements in Adobe Connect network:
 
-Abstract topology is representation of videoconferencing devices from various technologies and it's relations. Each domain controller in Shongo will keep in memory the local topology of all devices that the controller manages.
+\begin{itemize}
+\item \textbf{Client} \\
+\TODO{}
+\item \textbf{Server} \\
+\TODO{}
+\end{itemize}
+
+
+\chapter{Topology}
+
+Topology is representation of videoconferencing devices from various technologies and it's relations. Each domain controller in Shongo will keep in memory the local topology of all devices that the controller manages.
 Controller will know nothing about topologies from foreign domains. Every time when the controller needs some information about foreign devices it send request to foreign domain controller.
 
-Abstract topology is composed of nodes and edges. Nodes represents a videoconference devices and and edges theirs relations, ability to communicate.
+Topology is composed of nodes and edges. Nodes represents a videoconference devices and and edges theirs relations, ability to communicate.
 
 \section{Node}
 
-Each node in Abstract Topology represents one videoconference device. Device is able to communicate with one or more technologies (H.323, SIP, Adobe Connect, etc.).
+Each node in Topology represents one videoconference device. Device is able to communicate with one or more technologies (H.323, SIP, Adobe Connect, etc.).
 \\
 If device is able to communicate with a \textbf{technology} it means that it 
 has at least one capability from the following types (for that technology):
@@ -441,8 +494,8 @@ capabilities from the following types:
 \end{compactitem}   
   
 
-\chapter{Technology Implementation in Abstract Topology}
-Each videoconference network in a specific technology can be implemented by Abstract Topology. This chapter shows examples of network implementation for each technology.
+\chapter{Technology Implementation in Topology}
+Each videoconference network in a specific technology can be implemented by Topology. This chapter shows examples of network implementation for each technology.
 
 \TODO{Show examples}
 
@@ -453,7 +506,7 @@ Each videoconference network in a specific technology can be implemented by Abst
 \section{Adobe Connect}
 
 
-\chapter{Abstract Topology Implementation}
+\chapter{Topology Implementation}
 
 \TODO{Describe implementation better}
 
@@ -496,7 +549,7 @@ Steps to update a topology when the capabilities for a device are changed:
 
 \chapter{Scheduler}
 
-Scheduler will use described abstract topology implementation for scheduling reservations of videoconference devices.
+Scheduler will use described Topology implementation for scheduling reservations of videoconference devices.
 
 \TODO{Describe scheduler}
 
