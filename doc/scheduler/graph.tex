@@ -33,8 +33,8 @@
     \foreach \EdgeStyle [count=\EdgeStyleIndex] in{#2}{
       \draw [
         \EdgeType, 
+        edge,
         \EdgeStyle, 
-        line width=0.8pt,
         bend left=\the\numexpr\EdgeBegin+(\EdgeStyleIndex - 1)*10\relax
       ] (#3) edge (#4);
     }
@@ -81,9 +81,11 @@
   \begin{tikzpicture}%
     \tikzstyle{every node}=[font=\footnotesize]%
     \tikzstyle{vertex}=[draw=black, inner sep=8pt]%
+    \tikzstyle{edge}=[line width=0.7pt]%
 }{%
   \end{tikzpicture}
   \end{center}
+  \vspace*{-4mm}
   \label{\tmpArgFirst}
   \caption{\tmpArgSecond}
   \end{figure}

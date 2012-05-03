@@ -63,6 +63,8 @@ Terminal represents a hardware device or a software client that enables a single
 
 There are special terminal devices that provides a single virtual room to which can connect multiple other endpoints.  These terminals thus allow to make a multipoint videoconference even without the MCU.
 
+There are also special terminal devices that only receives videoconference channels and are used to stream or record them. They are referred to as streaming or recording servers.
+
 \item \textbf{Multipoint Control Unit} (MCU) \\
 MCU represents a hardware device that is used for hosting of videoconference calls in which can generally participate any number of endpoints. MCU contains one or more \textbf{virtual rooms} and each virtual room can host one videoconference call at the time. MCU can restrict the number of participants per virtual room or per whole MCU device.
 
@@ -70,7 +72,7 @@ MCU represents a hardware device that is used for hosting of videoconference cal
 Gateway is device that enable communication between H.323 network and other networks (e.g., PSTN).
 
 \item \textbf{Gatekeeper} \\
-Gatekeeper is a hardware device that provides special services to the other elements in the network: endpoint registration, address resolution, admission control and user authentication.
+Gatekeeper is a hardware device that provides special services to the other elements in the network: endpoint registration, address resolution, admission control and user authentication. It can limit the number of connections that are established through it.
 
 \end{itemize}
 
@@ -137,7 +139,7 @@ Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus th
 
 \subsubsection{Connection through a gatekeeper (Direct Endpoint Model)}
 
-Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and return it to the caller which then is able to start videoconference data flow to the requested target.
+Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and return it to the caller which then is able to start videoconference data flow to the requested target. The gatekeeper can perform admission control and forbid the connection. When a videoconference ends the caller informs the gatekeeper again. The gatekeeper holds the list of active connections and thus can limit the maximum number of connections at the same time.
 
 \begin{Graph}{graph:h323:gatekeeper}{Connection through gatekeeper}
   \Vertex{ 0, 0}{t1}{terminal1}
@@ -154,7 +156,7 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
 
 \subsubsection{Connection through a gatekeeper (Gatekeeper Routed Model)}
 
-Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and establish connection to the target endpoint. The call is then mediated by the gatekeeper throughout the videoconference.
+Terminals and MCUs are configured to forbid direct connections through IP addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the devices register to the gatekeeper that is able to resolve these aliases to direct IP addresses. When a terminal want to start videoconference he must request the gatekeeper. The request must contain H.323 alias of another terminal or virtual room in MCU to which the terminal wants to connect. The gatekeeper resolves an IP address from the alias and establish connection to the target endpoint. The call is then mediated by the gatekeeper throughout the videoconference. The gatekeeper can also perform admission control and limit the number of active connections. In special cases even the data flow can be routed through the gatekeeper (e.g., when connecting endpoints behind the NAT).
 
 \begin{Graph}{graph:h323:gatekeeperRouted}{Connection through gatekeeper}
   \Vertex{0, 0}{t1}{terminal1}
@@ -207,7 +209,7 @@ The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) mana
 Adjacent endpoints (endpoints in the same local network) can connect directly or through it's gatekeeper. Not adjacent endpoints (endpoints from different local networks) can connect only by it's gatekeepers.
 
 \subsection{Suggested Topology}
-In topology should be present only endpoints (terminals, MCUs, gateways). The gatekeepers will be kept aside and will be used only to determine which devices are accessible by which devices and to limit the number of active connections that will flow through them (if maximum number of connections is specified for the gatekeeper).
+In Topology should be present only endpoints (terminals, MCUs, gateways). The gatekeepers will be kept aside and will be used only to determine which devices are accessible by which devices and to limit the number of active connections that will flow through them (if maximum number of connections is specified for the gatekeeper).
 
 \begin{Graph}{graph:h323:topology}{Suggested topology}  
   \Vertex{-2, 4}{gk1}{gatekeeper1}
@@ -219,29 +221,26 @@ In topology should be present only endpoints (terminals, MCUs, gateways). The ga
   \Vertex{2, 2}{t3}{terminal3}
   \Vertex{2,-2}{t4}{terminal4}
   
-  \node at (-2, 3) {\textit{subdomain1}};
-  \node at ( 2, 3) {\textit{subdomain2}};
+  \node at (-2, 3) {\textit{H.323 subdomain 1}};
+  \node at ( 2, 3) {\textit{H.323 subdomain 2}};
   \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
-  \draw[-](gk1) -- node[above, font=\scriptsize] {neightbours} (gk2);
-  
-  
+    
   \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t1, t2, mcu}  
   \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t3, t4}  
   \EdgeOneToAll{<->}{hxxxAlias}{t3}{t1, t2, mcu}  
   \EdgeOneToAll{<->}{hxxxAlias}{t4}{t1, t2, mcu}  
   
   \begin{GraphLegend}{4, 0.5}
-    \GraphLegendItem{hxxxAlias}{Accessible by alias}
-    \GraphLegendItem{hxxxIp}{Accessible by IP}
+    \GraphLegendItem{hxxxAlias}{Accessible by H.323 alias}
+    \GraphLegendItem{hxxxIp}{Accessible by IP in H.323}
   \end{GraphLegend}
 \end{Graph}
 
 \textbf{Notes:}
 \begin{itemize}
-\item Each gatekeeper should have set a list of neighboring gatekeepers and a list of redirection rules for H.323 phone numbers.
-\item At the global level there should be a list of rules that defines which devices are accessible to which device by IP address (similarly to firewall definition).
+\item At the global level there should be a list of rules that defines which devices are accessible to which devices by IP address (similarly to firewall definition). By default all H.323 endpoints are accessible to all by IP address (even with different assigned gatekeepers).
+\item At the global level there should be a list of rules that defines which devices are accessible to which devices by alias. Rules should primarily use gatekeepers for specifying accessibility (e.g., endpoints from the first gatekeeper are accessible to endpoints from the second gatekeeper). By default endpoints are accessible only inside the same gatekeeper. The accessibility between two gatekeepers must be explicitly defined by a rule.
 \end{itemize}
-\TODO{How many nodes will we support? 1000 nodes may cause 1000$^2$ edges, and it is a lot....}
 
 \subsection{References}
 
@@ -274,20 +273,32 @@ Type of elements in SIP network:
 User agent is a hardware or software client that allows user to take a 
 videoconference call. It can create and receive SIP messages and thereby
 manage a SIP session.
-\\ \TODO{Can user agent have set one or more servers which it will use for initiating a call?}
+
+Each user agent should have set precisely one registrar to which it registers and it will be available through it to other agents.
+
+\item \textbf{Multipoint Control Unit} (MCU) \\
+MCU represents the same hardware device as in H.323. It contains one or more \textbf{virtual rooms} and each virtual room can host one videoconference call at the time.
+
+A single MCU device can support both SIP and H.323 technology which means that to a single virtual room on that MCU can connect SIP user agents and also H.323 terminals. Each virtual room can be configured to support both technologies or only one of these technologies.
+
 \item \textbf{Proxy Server} \\
 Proxy server is an intermediary entity whose main role is to route requests to another entity that is closer to the target. Proxy server can also perform admission control.
+
 \item \textbf{Redirect Server} \\
 Redirect server response to each client request by alternative set of URIs which should client contact instead of the original target.
+
 \item \textbf{Registrar} \\
 Registrar is an element that keeps register of user agents. Each user agent can register itself to a registrar for a specific URI. More user agents can be registered to a single URI. 
-\\ \TODO{Can one agent be registered multiple times to a single/multiple registers?}
+
 \item \textbf{Gateway} \\
 Gateway is a device that enable communication between SIP network and other networks (e.g., PSTN).
-\item \TODO{Is there a similar entity like a MCU in H.323 to create a virtual room?}
 \end{itemize}
 
-Each element in a SIP network is identified by an uniform resource identifier (URI), for instance \verb|sip:username:password@host:port|. Single element in SIP network can be a combination of multiple SIP element types (e.g., \emph{Proxy and Registrar Server} or \emph{Redirect and Registrar Server}).
+Each element in a SIP network is identified by an uniform resource identifier (URI), for instance \verb|sip:username:password@host:port|. Multiple user agents can register to registrar with a single URI and when the URI is requested by a caller all devices will "ring" and only one can answer the call (e.g., one user with single URI can have multiple phones, hardware or software, by which he can answer an incoming calls).
+
+The URI can contain the target IP address. When an user agent use this type of URI to start a call, user agent's Gatekeeper is still used to initiating the call unlike in H.323 where the connection can be done directly through the IP address without notifying a Gatekeeper.
+
+Single element in SIP network can be a combination of multiple SIP element types (e.g., \emph{Proxy and Registrar Server} or \emph{Redirect and Registrar Server}).
 
 \subsection{Constraints}
 
@@ -300,37 +311,46 @@ Each element in a SIP network is identified by an uniform resource identifier (U
 \item Audio + Video + Data
 \end{compactenum}
 
+\item Each user agent must have the the Registrar set.
+
 \end{itemize}
 
 \subsection{Network Examples}
 
-% SIP Graph Declarations
-\tikzstyle{sipUri}=[color=blue, dashed]
-\newcommand{\SipLegend}[1]{
-  \begin{GraphLegend}{#1}
-    \GraphLegendItem{sipUri}{Accessible by URI}
-  \end{GraphLegend}
-}
-
-\TODO{List some}
+SIP network is very similar to H.323 network and doesn't bring any new aspects or elements thus this section can be skipped.
 
 \subsection{Suggested topology}
 
-In topology are present only user agents and gateways. Server elements are used only when the topology is constructed to determine which elements are accessible from which elements.
+For SIP network we will use the same naming convention as for H.323 and endpoints will stand for user agents (terminals), MCUs and gateways. Proxy server, Redirect server and Registrar will be grouped into a single element Gatekeeper. In Topology should be present only endpoints. Gatekeeper elements are kept aside and they are used only when the topology is constructed to determine which endpoints are accessible from which endpoints.
+
+% SIP Graph Declarations
+\tikzstyle{sipUri}=[color=red, dashed]
 
 \begin{Graph}{graph:sip:topology}{Suggested topology}  
-  \Vertex{-2, 2}{a1}{useAgent1}
-  \Vertex{-2,-2}{a2}{useAgent2}
-  \Vertex{2, 2}{a3}{useAgent3}  
-  \Vertex{2, -2}{a4}{useAgent4}
+  \Vertex{-2, 4}{gk1}{gatekeeper1}
+  \Vertex{-2, 2}{a1}{userAgent1}
+  \Vertex{-2,-2}{a2}{userAgent2}
+  \Vertex{-4, 0}{mcu}{mcu}
+
+  \Vertex{2, 4}{gk2}{gatekeeper2}  
+  \Vertex{2, 2}{a3}{userAgent3}
+  \Vertex{2,-2}{a4}{userAgent4}
   
+  \node at (-2, 3) {\textit{SIP subdomain 1}};
+  \node at ( 2, 3) {\textit{SIP subdomain 2}};
+  \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
+    
+  \EdgeAllToAll{<->}{sipUri}{a1, a2, mcu, a3, a4}  
   
-  \EdgeAllToAll{<->}{sipUri}{a1, a2, a3, a4}  
-  
-  \begin{GraphLegend}{4, 0}
-    \GraphLegendItem{sipUri}{Accessible by URI}
+  \begin{GraphLegend}{4, 0.0}
+    \GraphLegendItem{sipUri}{Accessible by SIP URI}
   \end{GraphLegend}
 \end{Graph}
+
+\textbf{Notes:}
+\begin{itemize}
+\item Similarly like in H.323, at the global level there should be a list of rules that defines which devices are accessible to which devices by URI. By default endpoints are accessible only inside the same gatekeeper. The accessibility between two gatekeepers must be explicitly defined by a rule.
+\end{itemize}
 
 \subsection{References}
 
