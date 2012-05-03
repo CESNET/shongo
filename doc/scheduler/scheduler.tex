@@ -441,21 +441,44 @@ Adobe Connect on Wikipedia.
 
 \chapter{Topology}
 
-Topology is representation of videoconferencing devices from various technologies and it's relations. Each domain controller in Shongo will keep in memory the local topology of all devices that the controller manages.
-Controller will know nothing about topologies from foreign domains. Every time when the controller needs some information about foreign devices it send request to foreign domain controller.
+Topology is representation of videoconferencing devices from various 
+technologies and its' mutual reachability in a single domain. Each domain 
+controller in Shongo will keep in memory the local topology of all devices 
+that the controller manages and that are part of controller reservations.
+Controller will not know topologies from foreign domains. Every time when the 
+controller needs some information about foreign devices it send request to 
+foreign domain controller.
 
-Topology is composed of nodes and edges. Nodes represents a videoconference devices and and edges theirs relations, ability to communicate.
+Topology is composed of nodes and edges. Nodes represents a videoconference 
+devices and edges theirs reachability in a specific technology (e.g., ability 
+to communicate in H.323).
+
+\TODO{Mention global rules}
 
 \section{Node}
 
-Each node in Topology represents one videoconference device. Device is able to communicate with one or more technologies (H.323, SIP, Adobe Connect, etc.).
+Each node in Topology represents one videoconference device. Device is able to 
+communicate with one or more \textbf{technologies} (H.323, SIP, Adobe Connect, 
+etc.).
 \\
-If device is able to communicate with a \textbf{technology} it means that it 
-has at least one capability from the following types (for that technology):
-\begin{compactitem}
-\item \textbf{receive} and/or \textbf{send} through a limited number of 
-  the technology input/output \textbf{channels}. Each channel must contain 
-  at least one of the following \textbf{streams}:
+Device can have one or more \textbf{capabilities}. Each capability can specify 
+one or more device \textbf{technologies} to which it is provided. Capabilities 
+can be from the following types:
+
+\begin{itemize}
+\newcommand{\RequireCapability}[1]{(requires #1)}
+
+\item \textbf{Standalone Terminal} \\
+  Capability tells that device is a terminal that is able to communicate to
+  other standalone terminal directly without \textbf{Mixing} or \textbf{Virtual 
+  Rooming} device (e.g., H.323 and SIP terminals are generally standalone 
+  terminal devices but Adobe Connect Client is not standalone device because it 
+  always need the Adobe Connect Server to start a videoconference).
+  
+\item \textbf{Receive}/\textbf{Send} \\
+  Capability allows for receiving/sending through a limited (or unlimited) 
+  number of the \textbf{input}/\textbf{output channels}. Each channel must 
+  contain at least one of the following \textbf{streams}:
   \begin{itemize}
     \item \textbf{audio} in a specific \textbf{audio codecs} and 
       \textbf{bitrates}.
@@ -463,54 +486,74 @@ has at least one capability from the following types (for that technology):
       \textbf{resolutions}.
     \item \textbf{content} in a specific \textbf{content formats}.
   \end{itemize} 
-\item \textbf{mix} input channels and send the combined result through 
-  an output channel.
-\item \textbf{virtual rooming} means that the device divides input channels 
-  into groups (virtual rooms), \textbf{mixing} is applied per group and
-  each group is bound to one output channel. For each virtual room there can 
+  
+\item \textbf{Mix} \RequireCapability{\textbf{Receive} and \textbf{Send}} \\
+  Capability allows for mixing of multiple input channels and send 
+  the combined result through one output channel.
+
+\item \textbf{Virtual Rooming} \RequireCapability{\textbf{Mix}} \\
+  Capability allows the device to divide input channels into groups (virtual 
+  rooms). \textbf{Mixing} is applied per group and each group 
+  is bound to one output channel. Maximum number of output channels thus 
+  defines the maximum number of virtual rooms. For each virtual room there can 
   be specified the maximum number of input channels (maximum videoconference 
   participants).
-\item \textbf{gatekeeper client} means that the device has set an alias 
+
+\item \textbf{Gatekeeper Client} \\
+  Capability that requires the device to have set an alias 
   and an address of a gatekeeper server to which it registers itself.
   When the device want to connect to another device by an alias it contacts 
   the gatekeeper server which resolves the device address from the alias 
   or route the videoconference through the gatekeeper server (and do not tell
   the resolved address to the caller).
-\item \textbf{gatekeeper server} means that the device is gatekeeper server
+  
+\TODO{Remove the gatekeeper description of translation and routing and describe rather the reacheability.}
+
+\item \textbf{Gatekeeper Server} \\
+  Capability tells that the device is gatekeeper server
   that has registry of devices and its' aliases. The gatekeeper server is
   able to resolve addresses or route the videoconference through itself. It is 
   able to perform an admission control or user authentication.
-\item \textbf{stream} from an input channel.
-\item \textbf{record} from an input channel.
-\item \TODO{Describe used capacity by scheduler...}
-\end{compactitem}
-Each device can have one or more described capabilities for each technology
-that it supports.
-If device is able to communicate with a multiple technologies it can also have the following capabilities:
-\begin{compactitem}
-\item \textbf{translate} the technology input channel to another technology output 
-  channel.
-\end{compactitem}
 
+\item \textbf{Translate} \RequireCapability{\textbf{Receive} and \textbf{Send} 
+  and at least 2 \textbf{technologies}} \\
+  Capability allows for translation from one input channel to another output 
+  channel where the first channel is from one specified technology and the 
+  second is from another specified technology. By default all translations from 
+  input to output channels are allowed. The list of \textbf{rules} can be used 
+  to restrict the allowed translations.
+
+\item \textbf{Stream} \RequireCapability{\textbf{Receive}} \\
+  Capability tells that the device is able to perform streaming from an input 
+  channel.
+
+\item \textbf{Record} \RequireCapability{\textbf{Receive}} \\
+  Capability tells that the device is able to perform recording from an input 
+  channel.
+\end{itemize}
+
+Each device can have one or more described capabilities. If device supports 
+for instance receiving/sending in multiple technologies, it can be implemented 
+by multiple capability of the same type (one for each technology) or by single 
+capability that lists all the technologies (provided that all technologies has same \textbf{channels} settings).
 
 \subsection*{Examples of abstract devices (not bound to any technology):}
 \begin{itemize}
 \item \textbf{Terminal device} \\
   Terminal device is hardware or software client that is used by an user to 
-  connect to a videoconference. The device allow user to participate only in
-  one videoconference at the time thus it has \textbf{receive} and 
-  \textbf{send} capability but limited to 1 channel. No other capability is 
-  provided by the simple terminal device. If we have available only terminal 
-  devices we are able to establish only 2-point videoconferences 
-  (terminal-to-terminal links).
+  connect to a videoconference. The device allow an user to participate only in
+  one videoconference at the time thus it has \textbf{Receive} and 
+  \textbf{Send} capability but limited to 1 channel. It has also the 
+  \textbf{Standalone Terminal} capability which allows the terminal devices to  
+  establish only 2-point videoconferences. 
 
 \item \textbf{Terminal device with embedded virtual room} \\
   Terminal device with embedded virtual room is extension of terminal device 
   that allows user to host a single multipoint videoconference. The device has 
-  \textbf{receive} capability with limited number of input channels to number 
+  \textbf{Receive} capability with limited number of input channels to number 
   of allowed participants in the provided single virtual room. It also has 
-  \textbf{send} capability but limited to 1 channel. The last provided 
-  capability is \textbf{mix} which combines input channels to a single output 
+  \textbf{Send} capability but limited to 1 channel. The last provided 
+  capability is \textbf{Mix} which combines input channels to a single output 
   channel and through it mediates the multipoint videoconference. It is worth 
   to note that the terminal device with embedded virtual room itself is part of 
   the hosted videoconference.
@@ -521,28 +564,35 @@ If device is able to communicate with a multiple technologies it can also have t
   a videoconference there. The difference between multipoint and the previous 
   device is that the multipoint device can host more than one videoconference 
   and the multipoint device isn't part of these videoconferences, it only 
-  manages them. The multipoint device has \textbf{receive}, \textbf{send} and 
-  \textbf{virtual rooming} capabilities. Number of input channels for 
-  \textbf{receive} capability is limited to a maximum number of participants 
-  in all hosted videoconferences in the device. Number of output channels for 
-  \textbf{send} capability is limited to a maximum number of virtual rooms 
-  (=~videoconferences) in the device. \textbf{Virtual rooming} capability 
-  provides the ability to mix input channels to one output channel 
+  manages them. The multipoint device has \textbf{Receive}, \textbf{Send},
+  \textbf{Mix} and \textbf{Virtual Rooming} capabilities. Number of input 
+  channels for \textbf{Receive} capability is limited to a maximum number of 
+  participants in all hosted videoconferences in the device. Number of output 
+  channels for \textbf{Send} capability is limited to a maximum number of 
+  virtual rooms (=~videoconferences) in the device. \textbf{Virtual Rooming} 
+  capability provides the ability to mix input channels to one output channel 
   that is routed to all participants in each virtual room.
 
 \item \textbf{Gatekeeper device} \\
   Gatekeeper device is a special type of device that has only 
-  \textbf{gatekeeper server} capability. All of previous device examples can 
-  also have \textbf{gatekeeper client} capability which allows them to use a 
+  \textbf{Gatekeeper Server} capability. All of previous device examples can 
+  also have \textbf{Gatekeeper Client} capability which allows them to use a 
   device alias as a videoconference callee specification. When device alias is 
   used for initiating the videoconference then the device contacts the proper 
   gatekeeper which has two options: to resolve address from the alias and 
   return it to the caller or to route the videoconference through the 
   gatekeeper.
 \end{itemize}
+
+\TODO{Remove the gatekeeper description of translation and routing and describe rather the reacheability.}
+
+\section{Rule}
+\TODO{Describe global rules}
  
 
 \section{Edge}
+
+\TODO{This description is old rewrite it with aspect of reachability}
 
 Edge links two nodes (devices) and it represents a relation between the 
 nodes. The relation can have a various meaning, for instance that the devices
