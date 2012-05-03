@@ -91,7 +91,6 @@ Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper
 \subsection{Constraints}
 
 \begin{itemize}
-
 \item Communication consists of:
 \begin{compactenum}
 \item Audio
@@ -101,8 +100,7 @@ Each terminal and MCU element can have set zero or one gatekeeper. If gatekeeper
 \end{compactenum}
 \TODO{Do we want to know in Topology which of 4 modes each device support?}
 
-\item Always bidirectional connections. When an device $A$ can connect to a device $B$ then also $B$ can connect to $A$.
-
+\item Bidirectional accessibility. When an element $A$ is accessible to an element $B$ then also $B$ is accessible to $A$.
 \end{itemize}
 
 \subsection{Network Examples}
@@ -209,9 +207,9 @@ The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) mana
 Adjacent endpoints (endpoints in the same local network) can connect directly or through it's gatekeeper. Not adjacent endpoints (endpoints from different local networks) can connect only by it's gatekeepers.
 
 \subsection{Suggested Topology}
-In Topology should be present only endpoints (terminals, MCUs, gateways). The gatekeepers will be kept aside and will be used only to determine which devices are accessible by which devices and to limit the number of active connections that will flow through them (if maximum number of connections is specified for the gatekeeper).
+In Topology should be present only endpoints (terminals, MCUs, gateways). The gatekeepers will be kept aside and will be used only to determine which devices are accessible by which devices and to limit the number of active connections that will flow through them (if maximum number of connections is specified for the gatekeeper). See fig. \ref{graph:h323:topology}.
 
-\begin{Graph}{graph:h323:topology}{Suggested topology}  
+\begin{Graph}{graph:h323:topology}{Suggested topology for H.323}  
   \Vertex{-2, 4}{gk1}{gatekeeper1}
   \Vertex{-2, 2}{t1}{terminal1}
   \Vertex{-2,-2}{t2}{terminal2}
@@ -236,7 +234,7 @@ In Topology should be present only endpoints (terminals, MCUs, gateways). The ga
   \end{GraphLegend}
 \end{Graph}
 
-\textbf{Notes:}
+\paragraph{Notes:}
 \begin{itemize}
 \item At the global level there should be a list of rules that defines which devices are accessible to which devices by IP address (similarly to firewall definition). By default all H.323 endpoints are accessible to all by IP address (even with different assigned gatekeepers).
 \item At the global level there should be a list of rules that defines which devices are accessible to which devices by alias. Rules should primarily use gatekeepers for specifying accessibility (e.g., endpoints from the first gatekeeper are accessible to endpoints from the second gatekeeper). By default endpoints are accessible only inside the same gatekeeper. The accessibility between two gatekeepers must be explicitly defined by a rule.
@@ -311,6 +309,8 @@ Single element in SIP network can be a combination of multiple SIP element types
 \item Audio + Video + Data
 \end{compactenum}
 
+\item Bidirectional accessibility. When an element $A$ is accessible to an element $B$ then also $B$ is accessible to $A$.
+
 \item Each user agent must have the the Registrar set.
 
 \end{itemize}
@@ -321,12 +321,9 @@ SIP network is very similar to H.323 network and doesn't bring any new aspects o
 
 \subsection{Suggested topology}
 
-For SIP network we will use the same naming convention as for H.323 and endpoints will stand for user agents (terminals), MCUs and gateways. Proxy server, Redirect server and Registrar will be grouped into a single element Gatekeeper. In Topology should be present only endpoints. Gatekeeper elements are kept aside and they are used only when the topology is constructed to determine which endpoints are accessible from which endpoints.
-
-% SIP Graph Declarations
+For SIP network we will use the same naming convention as for H.323 and endpoints will stand for user agents (terminals), MCUs and gateways. Proxy server, Redirect server and Registrar will be grouped into a single element Gatekeeper.%
 \tikzstyle{sipUri}=[color=red, dashed]
-
-\begin{Graph}{graph:sip:topology}{Suggested topology}  
+\begin{Graph}{graph:sip:topology}{Suggested topology for SIP}  
   \Vertex{-2, 4}{gk1}{gatekeeper1}
   \Vertex{-2, 2}{a1}{userAgent1}
   \Vertex{-2,-2}{a2}{userAgent2}
@@ -346,8 +343,9 @@ For SIP network we will use the same naming convention as for H.323 and endpoint
     \GraphLegendItem{sipUri}{Accessible by SIP URI}
   \end{GraphLegend}
 \end{Graph}
+In Topology should be present only endpoints. Gatekeeper elements are kept aside and they are used only when the topology is constructed to determine which endpoints are accessible from which endpoints. See fig. \ref{graph:sip:topology}.
 
-\textbf{Notes:}
+\paragraph{Notes:}
 \begin{itemize}
 \item Similarly like in H.323, at the global level there should be a list of rules that defines which devices are accessible to which devices by URI. By default endpoints are accessible only inside the same gatekeeper. The accessibility between two gatekeepers must be explicitly defined by a rule.
 \end{itemize}
@@ -370,7 +368,7 @@ Session Initiation Protocol on Wikipedia.
 
 \section{Adobe Connect}
 
-\TODO{Describe Adobe Connect}
+Adobe Connect is a web conferencing software for web meetings, eLearning, and webinars. The software is running as a server on a specific URL. It contains several meetings (virtual rooms) which can be accessed by clients.
 
 \subsection{Elements}
 
@@ -378,10 +376,67 @@ Type of elements in Adobe Connect network:
 
 \begin{itemize}
 \item \textbf{Client} \\
-\TODO{}
+Client for Adobe Connect is a web browser with Adobe Flash Player installed or Adobe Connect Add-in. To be able to connect two clients, the Adobe Connect server with created meeting is needed as opposed to H.323/SIP  where two terminals/user agents are sufficient to start a videoconference.
+
+Special type of client \textbf{Gateway} can exists. This client can translate Adobe Connect videoconference to other technology (e.g., SIP or H.323).
+
 \item \textbf{Server} \\
-\TODO{}
+Server is an installed Adobe Connect software that is made accessible on a specific URL. On the server one or multiple meetings (virtual rooms) can be created. Clients are then able to connect to a meeting on a server. Each virtual room can be accessed by the server URL followed by a meeting name (e.g., \verb|obelix.cesnet.cz/<MEETING_NAME>|).
 \end{itemize}
+
+Adobe Connect servers cannot be cascaded (connected together) as opposed to H.323/SIP MCUs which can be cascaded. Thus the Adobe Connect videoconference scheduling will be simpler task than scheduling for other described technologies.
+
+Clients can be identified by shibboleth (e.g., eduID.cz). Managed client doesn't make sense, it would be controlling application for web browser. Managed client only make sense for gateway client (e.g, client that translate Adobe Connect channels to SIP or H.323).
+
+\subsection{Constraints}
+
+\begin{itemize}
+\item Communication consists of:
+\begin{compactenum}
+\item Audio
+\item Audio + Video
+\item Audio + Video + Data
+\end{compactenum}
+\end{itemize}
+
+\subsection{Suggested topology}
+
+In Topology should be present both clients and servers. Edges will be only between clients and servers and not between clients themselves.
+
+% SIP Graph Declarations
+\tikzstyle{connectUrl}=[color=violet, dashed]
+
+\begin{Graph}{graph:connect:topology}{Suggested topology for Adobe Connect}  
+  \Vertex{-2, 3}{s1}{server1}
+  \Vertex{-3, 0}{c1}{client1}
+  \Vertex{-1, 0}{c2}{client2}
+
+  \Vertex{2, 3}{s2}{server2}  
+  \Vertex{1, 0}{c3}{client3}
+  \Vertex{3, 0}{c4}{client4}
+      
+  \EdgeOneToAll{<-}{connectUrl}{s1}{c1, c2, c3, c4}  
+  \EdgeOneToAll{<-}{connectUrl}{s2}{c1, c2, c3, c4}  
+  
+  \begin{GraphLegend}{4.5, 1.5}
+    \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
+  \end{GraphLegend}
+\end{Graph}
+
+\subsection{References}
+
+\renewcommand{\bibsection}{}
+\begin{thebibliography}{1}
+
+\bibitem[1]{bib:sip:architecture}
+Adobe Connect Official Website.
+\\ \url{http://www.adobe.com/products/adobeconnect.html}
+
+\bibitem[2]{bib:sip:wiki}
+Adobe Connect on Wikipedia.
+\\ \url{http://en.wikipedia.org/wiki/Adobe_Connect}
+
+\end{thebibliography}
 
 
 \chapter{Topology}
