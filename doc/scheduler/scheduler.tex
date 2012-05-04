@@ -15,9 +15,11 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{paralist} 
 \usepackage{multicol}
+\usepackage{verbatim}
+\usepackage{listings}
 
 \usepackage{tikz}
-\usetikzlibrary{snakes,arrows,shapes,calc}
+\usetikzlibrary{arrows, shapes, calc, decorations}
 \usepackage{amsmath}
 \usepackage[numbers]{natbib}
 
@@ -428,11 +430,11 @@ In Topology should be present both clients and servers. Edges will be only betwe
 \renewcommand{\bibsection}{}
 \begin{thebibliography}{1}
 
-\bibitem[1]{bib:sip:architecture}
+\bibitem[1]{bib:connect:architecture}
 Adobe Connect Official Website.
 \\ \url{http://www.adobe.com/products/adobeconnect.html}
 
-\bibitem[2]{bib:sip:wiki}
+\bibitem[2]{bib:connect:wiki}
 Adobe Connect on Wikipedia.
 \\ \url{http://en.wikipedia.org/wiki/Adobe_Connect}
 
@@ -444,16 +446,14 @@ Adobe Connect on Wikipedia.
 Topology is representation of videoconferencing devices from various 
 technologies and its' mutual reachability in a single domain. Each domain 
 controller in Shongo will keep in memory the local topology of all devices 
-that the controller manages and that are part of controller reservations.
+which the controller manages and which are part of controller reservations (unmanaged or foreign devices but only as single nodes without theirs topology).
 Controller will not know topologies from foreign domains. Every time when the 
 controller needs some information about foreign devices it send request to 
 foreign domain controller.
 
 Topology is composed of nodes and edges. Nodes represents a videoconference 
 devices and edges theirs reachability in a specific technology (e.g., ability 
-to communicate in H.323).
-
-\TODO{Mention global rules}
+to communicate in H.323). The reachability is determined by devices' capabilities and by list of global rules which defines the additional constraints.
 
 \section{Node}
 
@@ -467,13 +467,14 @@ can be from the following types:
 
 \begin{itemize}
 \newcommand{\RequireCapability}[1]{(requires #1)}
+\newcommand{\ExtendCapability}[1]{(extends #1)}
 
 \item \textbf{Standalone Terminal} \\
   Capability tells that device is a terminal that is able to communicate to
   other standalone terminal directly without \textbf{Mixing} or \textbf{Virtual 
   Rooming} device (e.g., H.323 and SIP terminals are generally standalone 
-  terminal devices but Adobe Connect Client is not standalone device because it 
-  always need the Adobe Connect Server to start a videoconference).
+  terminal devices but Adobe Connect client is not standalone device because it 
+  always needs the Adobe Connect server to start a videoconference).
   
 \item \textbf{Receive}/\textbf{Send} \\
   Capability allows for receiving/sending through a limited (or unlimited) 
@@ -489,9 +490,9 @@ can be from the following types:
   
 \item \textbf{Mix} \RequireCapability{\textbf{Receive} and \textbf{Send}} \\
   Capability allows for mixing of multiple input channels and send 
-  the combined result through one output channel.
+  the combined result through one output channel. To each input channel can be connected one other device (each other device sends different data -- unicast). To each output channel can be connected multiple other devices (each other device want to receive the same data -- multicast).
 
-\item \textbf{Virtual Rooming} \RequireCapability{\textbf{Mix}} \\
+\item \textbf{Virtual Rooming} \ExtendCapability{\textbf{Mix}} \\
   Capability allows the device to divide input channels into groups (virtual 
   rooms). \textbf{Mixing} is applied per group and each group 
   is bound to one output channel. Maximum number of output channels thus 
@@ -500,20 +501,18 @@ can be from the following types:
   participants).
 
 \item \textbf{Gatekeeper Client} \\
-  Capability that requires the device to have set an alias 
+  Capability makes the device to have set an alias 
   and an address of a gatekeeper server to which it registers itself.
-  When the device want to connect to another device by an alias it contacts 
-  the gatekeeper server which resolves the device address from the alias 
-  or route the videoconference through the gatekeeper server (and do not tell
-  the resolved address to the caller).
-  
-\TODO{Remove the gatekeeper description of translation and routing and describe rather the reacheability.}
+  The devices that are registered to the same gatekeeper server are by
+  default reachable by an alias. This behavior can be changed by global rules. 
+  Also the global rules are able to make reachable devices registered to 
+  different gatekeeper servers.
 
 \item \textbf{Gatekeeper Server} \\
   Capability tells that the device is gatekeeper server
-  that has registry of devices and its' aliases. The gatekeeper server is
-  able to resolve addresses or route the videoconference through itself. It is 
-  able to perform an admission control or user authentication.
+  that has registry of devices and its' aliases and make that devices by default 
+  reachable. Gatekeepers can have set maximum number of connections that may
+  be established through the gatekeeper by aliases.
 
 \item \textbf{Translate} \RequireCapability{\textbf{Receive} and \textbf{Send} 
   and at least 2 \textbf{technologies}} \\
@@ -521,7 +520,7 @@ can be from the following types:
   channel where the first channel is from one specified technology and the 
   second is from another specified technology. By default all translations from 
   input to output channels are allowed. The list of \textbf{rules} can be used 
-  to restrict the allowed translations.
+  to restrict the allowed translations (e.g., for specific codecs, resolutions, etc.).
 
 \item \textbf{Stream} \RequireCapability{\textbf{Receive}} \\
   Capability tells that the device is able to perform streaming from an input 
@@ -537,8 +536,41 @@ for instance receiving/sending in multiple technologies, it can be implemented
 by multiple capability of the same type (one for each technology) or by single 
 capability that lists all the technologies (provided that all technologies has same \textbf{channels} settings).
 
-\subsection*{Examples of abstract devices (not bound to any technology):}
+\subsection*{Examples of abstract devices (each with technology dependent examples):}
+
+\lstnewenvironment{TopologyExample}[2]{%
+    \vspace{2mm}
+    \lstset{
+        basicstyle=\footnotesize\ttfamily,
+        aboveskip=0pt,
+        belowskip=0pt,           
+        xleftmargin=8pt,
+        classoffset=0,
+        alsoletter={7},
+        morekeywords={SIP, H323, AdobeConnect, StandaloneTerminal, Receive, 
+            Send, Mix, VirtualRooming, GatekeeperServer, GatekeeperClient,
+            H264, CIF, 720p,
+            Address, Alias, Enable, Disable},
+        keywordstyle=\textbf,
+        classoffset=1,
+        morekeywords={technologies, capabilities, type, channels, count},
+        keywordstyle=\color{black},
+        morecomment=[l]{//},     
+        commentstyle=\color{gray},
+    }
+    \minipage{\textwidth}
+    \advance\leftmargini -3mm \quote
+    \footnotesize\ttfamily \textbf{#1} = \{
+    \ifx&#2& \else {\color{gray}// #2} \fi
+}{%
+    \vspace*{-4pt}
+    \footnotesize\ttfamily \}
+    \endquote
+    \endminipage
+}
+
 \begin{itemize}
+
 \item \textbf{Terminal device} \\
   Terminal device is hardware or software client that is used by an user to 
   connect to a videoconference. The device allow an user to participate only in
@@ -546,17 +578,57 @@ capability that lists all the technologies (provided that all technologies has s
   \textbf{Send} capability but limited to 1 channel. It has also the 
   \textbf{Standalone Terminal} capability which allows the terminal devices to  
   establish only 2-point videoconferences. 
+  
+\begin{TopologyExample}{terminal1}{Example of terminal for H.323 and/or SIP}
+technology: [H323, SIP],
+capability: [
+  {type: StandaloneTerminal, technology: *},
+  {type: Receive, channel: {count: 1}}, // "technology: *" is by default
+  {type: Send, channel: {count: 1}}
+]
+\end{TopologyExample}
 
-\item \textbf{Terminal device with embedded virtual room} \\
-  Terminal device with embedded virtual room is extension of terminal device 
-  that allows user to host a single multipoint videoconference. The device has 
-  \textbf{Receive} capability with limited number of input channels to number 
-  of allowed participants in the provided single virtual room. It also has 
-  \textbf{Send} capability but limited to 1 channel. The last provided 
+\begin{TopologyExample}{terminal2}{Example of terminal (client) for Adobe Connect}
+technology: AdobeConnect,
+capability: [
+  {type: [Receive, Send], channel: {count: 1}},
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{terminal3}{Example of H323 terminal}
+// It can process arbitrary audio, but video only in H.264 (CIF -- 720p)
+// It cannot process content
+technology: H323,
+capability: [
+  {type: [Receive, Send], channel: {
+    count: 1, 
+    stream: {
+      audio: *,
+      video: {codec: H264, resolution: [CIF..720p]}
+    }  
+  }}
+]
+\end{TopologyExample}
+
+\item \textbf{Terminal device with virtual room} \\
+  Terminal device with a single embedded virtual room is extension of terminal 
+  device that allows user to host a single multipoint videoconference. The 
+  device has \textbf{Receive} capability with limited number of input channels 
+  to number of allowed participants in the provided single virtual room. It also 
+  has \textbf{Send} capability but limited to 1 channel. The last provided 
   capability is \textbf{Mix} which combines input channels to a single output 
   channel and through it mediates the multipoint videoconference. It is worth 
   to note that the terminal device with embedded virtual room itself is part of 
   the hosted videoconference.
+  
+\begin{TopologyExample}{terminal4}{Example of terminal with one virtual room for H.323 and/or SIP}
+technology: [H323, SIP],
+capability: [
+  {type: Receive, channel: {count: 9}}, // max 9 other participants
+  {type: Send, channel: {count: 1}},
+  {type: Mix}
+]
+\end{TopologyExample}
 
 \item \textbf{Multipoint device} \\
   Multipoint device is a special type of device that hosts one or more virtual 
@@ -564,8 +636,8 @@ capability that lists all the technologies (provided that all technologies has s
   a videoconference there. The difference between multipoint and the previous 
   device is that the multipoint device can host more than one videoconference 
   and the multipoint device isn't part of these videoconferences, it only 
-  manages them. The multipoint device has \textbf{Receive}, \textbf{Send},
-  \textbf{Mix} and \textbf{Virtual Rooming} capabilities. Number of input 
+  manages them. The multipoint device has \textbf{Receive}, \textbf{Send}
+  and \textbf{Virtual Rooming} capabilities. Number of input 
   channels for \textbf{Receive} capability is limited to a maximum number of 
   participants in all hosted videoconferences in the device. Number of output 
   channels for \textbf{Send} capability is limited to a maximum number of 
@@ -573,62 +645,145 @@ capability that lists all the technologies (provided that all technologies has s
   capability provides the ability to mix input channels to one output channel 
   that is routed to all participants in each virtual room.
 
+\begin{TopologyExample}{mcu}{Example of H.323 and/or SIP multipoint device}
+technology: [H323, SIP],
+capability: [
+  {type: Receive, channel: {count: 99}}, // max 99 participants
+  {type: Send, channel: {count: 9}},     // max 9 virtual rooms
+  {type: VirtualRooming}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{connectServer}{Example of Adobe Connect server}
+technology: AdobeConnect,
+capability: [
+  {type: Receive, channel: {count: 99}}, // max 99 participants
+  {type: Send, channel: {count: *}},     // unlimited virtual rooms
+  {type: VirtualRooming}
+]
+\end{TopologyExample}
+
 \item \textbf{Gatekeeper device} \\
   Gatekeeper device is a special type of device that has only 
   \textbf{Gatekeeper Server} capability. All of previous device examples can 
-  also have \textbf{Gatekeeper Client} capability which allows them to use a 
-  device alias as a videoconference callee specification. When device alias is 
-  used for initiating the videoconference then the device contacts the proper 
-  gatekeeper which has two options: to resolve address from the alias and 
-  return it to the caller or to route the videoconference through the 
-  gatekeeper.
+  also have \textbf{Gatekeeper Client} capability which allows other devices
+  to address them by it's alias.
+    
+\begin{TopologyExample}{gatekeeper1}{Example of gatekeeper for H.323}
+technology: H323,
+capability: [
+  {type: GatekeeperServer, max-connection: 99}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{gatekeeper2}{Example of gatekeeper for SIP}
+technology: SIP,
+capability: [
+  {type: GatekeeperServer, max-connection: 55}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{terminal5}{Example of terminal that is registered to H.323 and SIP gatekeepers}
+technology: [H323, SIP],
+capability: [
+  {type: [Send, Receive], channel: {count: 1}},
+  {type: GatekeeperClient, technology: H323, alias: 9500000001, 
+     server: gatekeeper1},
+  {type: GatekeeperClient, technology: SIP, alias: sip:srom@cesnet.cz, 
+     server: gatekeeper2}
+]
+\end{TopologyExample}
+
 \end{itemize}
-
-\TODO{Remove the gatekeeper description of translation and routing and describe rather the reacheability.}
-
-\section{Rule}
-\TODO{Describe global rules}
  
 
 \section{Edge}
 
-\TODO{This description is old rewrite it with aspect of reachability}
+The oriented edge is a link between two nodes and it tells that the second node (the node with incoming arrow) is reachable from the first node. A bidirectional edge tells that either node is reachable to the other node. Each edge is bound to a specific \textbf{technology} and to a specific \textbf{type} of connection in the technology (e.g., in H.323 may be endpoints reachable by IP address or by H.323 alias, if both is available two edges must be present). Each edge also specifies number of \textbf{channels} that are available between the nodes (devices) and for each channel is specified set of \textbf{streams} that can be used.
 
-Edge links two nodes (devices) and it represents a relation between the 
-nodes. The relation can have a various meaning, for instance that the devices
-are able to take a videoconference together in a specific technology or
-that the first device is a gatekeeper and the second can resolve a device 
-address from an alias (in specific technology as well).
-\\
-The edge can represents a relation in one or more technologies. For each \textbf{technology} that the edge relates to, the edge can have one or more 
-capabilities from the following types:
-\begin{compactitem}   
-\item \textbf{channel} means that between two devices can be established
-  a communication channel. It must contain at least one of the following 
-  \textbf{streams}:
-  \begin{itemize}
-    \item \textbf{audio} in a specific \textbf{audio codecs} and 
-      \textbf{bitrates}.
-    \item \textbf{video} in a specific \textbf{video codecs} and 
-      \textbf{resolutions}.
-    \item \textbf{content} in a specific \textbf{content formats}.
-  \end{itemize} 
+\begin{TopologyExample}{gatekeeper}{}
+technology: SIP,
+capability: [{type: GatekeeperServer}]
+\end{TopologyExample}
+
+\begin{TopologyExample}{terminal1}{}
+address: 147.251.99.1,
+technology: [H323, SIP],
+capability: [
+  {type: StandaloneTerminal},
+  {type: [Send, Receive], channel: {count: 1}}, 
+  {type: GatekeeperClient, technology: SIP, alias: sip:1, server: gatekeeper}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{terminal2}{}
+address: 147.251.99.2,
+technology: [H323, SIP],
+capability: [
+  {type: StandaloneTerminal},
+  {type: [Send, Receive], channel: {count: 1}}, 
+  {type: GatekeeperClient, technology: SIP, alias: sip:2, server: gatekeeper}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{edge1}{terminal1 <-> terminal2}
+technology: H323,
+type: Address,
+channel: {count: 1}
+\end{TopologyExample}
+
+\begin{TopologyExample}{edge2}{terminal1 <-> terminal2}
+technology: SIP,
+type: Alias,
+channel: {count: 1}
+\end{TopologyExample} 
   
-\item \TODO{Describe weights...}
-   \\ \TODO{Describe used capacity by scheduler...}
-\end{compactitem}   
   
+\section{Rule}
+Rules in Topology are at global level and they are used for changing the default reachability. Each rule must specify a target \textbf{technology}, a \textbf{type} of connection in technology (\verb|Address| or \verb|Alias|), nodes (or groups of nodes) to which is applied and modifier (\verb|Enable| or \verb|Disable|) which tells whether the reachability will be enabled or disabled. The nodes can be specified by pattern for identifier, address or alias. If more than one group of nodes is specified then the rule is applied only for edges between the groups and not inside the groups.
 
-\chapter{Technology Implementation in Topology}
-Each videoconference network in a specific technology can be implemented by Topology. This chapter shows examples of network implementation for each technology.
+\begin{TopologyExample}{rule1}{Disable reachability by IP address for all H.323 devices}
+technology: H323,
+type: Address,
+node: *,
+goal: Disable
+\end{TopologyExample}
 
-\TODO{Show examples}
+\begin{TopologyExample}{rule2}{Enable reachability by IP address for all H.323 devices at FI MUNI}
+technology: H323,
+type: Address,
+node: cz.muni.fi.*,
+goal: Enable
+\end{TopologyExample}
 
-\section{H.323}
+\begin{TopologyExample}{rule3}{}
+// Enable reachability by alias of SIP and H.323 devices between two networks.
+// Devices from each network are referenced by the network gatekeeper.
+technology: [H323, SIP],
+type: Alias,
+node: [gatekeeper1.*, gatekeeper2.*],
+goal: Enable
+\end{TopologyExample}
 
-\section{SIP}
+\begin{TopologyExample}{rule3}{Enable all correct reachability}
+technology: *,
+type: *,
+node: *,
+goal: Enable
+\end{TopologyExample}
 
-\section{Adobe Connect}
+
+\section{Examples}
+
+\TODO{Topology examples}
+
+
+%\chapter{Technology Implementation in Topology}
+%Each videoconference network in a specific technology can be implemented by Topology. This chapter shows examples of network implementation for each technology.
+%\TODO{Show examples}
+%\section{H.323}
+%\section{SIP}
+%\section{Adobe Connect}
 
 
 \chapter{Topology Implementation}
