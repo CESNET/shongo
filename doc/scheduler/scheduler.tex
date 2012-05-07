@@ -49,7 +49,7 @@
 
 \chapter{Technology}
 
-This chapter describes widely-used videoconference technologies. Element types and network examples are listed  for each technology.
+This chapter describes widely-used videoconference technologies. Types of network elements and network examples are listed for each technology.
 
 
 \section{H.323}
@@ -78,9 +78,9 @@ Gatekeeper is a hardware device that provides special services to the other elem
 
 \end{itemize}
 
-Each H.323 element is running on specific IP address that can be used to connect to the element. An element can have assigned alias, \textbf{H.323 phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., email), that can be used to connect to it. Alias is useful when the IP address is not known (e.g., the device is behind the NAT) or it is likely to change (organization changes).
+Each H.323 element is running on a specific IP address that can be used to connect to the element. An element can have assigned alias, \textbf{H.323 phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., email), that can be used to connect to it. Alias is useful when the IP address is not known (e.g., the device is behind the NAT) or it is likely to change (organization changes).
 
-Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in MCU. When a terminal has assigned alias it must register to one \textbf{gatekeeper} that will be able to translate the alias to the terminal IP address. When an element want to connect to another terminal or virtual room by alias, it must use the same gatekeeper that has the proper registry of aliases.
+Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in MCU. When a terminal has assigned alias it must register to one \textbf{gatekeeper} that will be able to translate the alias to the terminal IP address. When an element want to connect to another terminal or virtual room by alias, it must use the same gatekeeper that has the proper registry of aliases or the gatekeeper must be configured to route the request to a proper other gatekeeper.
 
 When a gatekeeper is used in videoconference, it can work in two modes:
 \begin{itemize}
@@ -294,9 +294,9 @@ Registrar is an element that keeps register of user agents. Each user agent can 
 Gateway is a device that enable communication between SIP network and other networks (e.g., PSTN).
 \end{itemize}
 
-Each element in a SIP network is identified by an uniform resource identifier (URI), for instance \verb|sip:username:password@host:port|. Multiple user agents can register to registrar with a single URI and when the URI is requested by a caller all devices will "ring" and only one can answer the call (e.g., one user with single URI can have multiple phones, hardware or software, by which he can answer an incoming calls).
+Each user agent in a SIP network is identified by an uniform resource identifier (URI), for instance \verb|sip:username:password@host:port|. Multiple user agents can register to registrar with a single URI and when the URI is requested by a caller all devices will "ring" and only one can answer the call (e.g., one user with single URI can have multiple phones, hardware or software, by which he can answer an incoming calls).
 
-The URI can contain the target IP address. When an user agent use this type of URI to start a call, user agent's Gatekeeper is still used to initiating the call unlike in H.323 where the connection can be done directly through the IP address without notifying a Gatekeeper.
+The URI can contain the target IP address. When an user agent use this type of URI to start a call, user agent's Gatekeeper (Registrar, Proxy or Redirect Server) is still used to initiate the call unlike in H.323 where the connection can be done directly through the IP address without notifying a Gatekeeper.
 
 Single element in SIP network can be a combination of multiple SIP element types (e.g., \emph{Proxy and Registrar Server} or \emph{Redirect and Registrar Server}).
 
@@ -380,7 +380,7 @@ Type of elements in Adobe Connect network:
 \item \textbf{Client} \\
 Client for Adobe Connect is a web browser with Adobe Flash Player installed or Adobe Connect Add-in. To be able to connect two clients, the Adobe Connect server with created meeting is needed as opposed to H.323/SIP  where two terminals/user agents are sufficient to start a videoconference.
 
-Special type of client \textbf{Gateway} can exists. This client can translate Adobe Connect videoconference to other technology (e.g., SIP or H.323).
+Special type of client \textbf{Gateway} can exist. This client can translate Adobe Connect videoconference to other technology (e.g., SIP or H.323).
 
 \item \textbf{Server} \\
 Server is an installed Adobe Connect software that is made accessible on a specific URL. On the server one or multiple meetings (virtual rooms) can be created. Clients are then able to connect to a meeting on a server. Each virtual room can be accessed by the server URL followed by a meeting name (e.g., \verb|obelix.cesnet.cz/<MEETING_NAME>|).
@@ -388,7 +388,7 @@ Server is an installed Adobe Connect software that is made accessible on a speci
 
 Adobe Connect servers cannot be cascaded (connected together) as opposed to H.323/SIP MCUs which can be cascaded. Thus the Adobe Connect videoconference scheduling will be simpler task than scheduling for other described technologies.
 
-Clients can be identified by shibboleth (e.g., eduID.cz). Managed client doesn't make sense, it would be controlling application for web browser. Managed client only make sense for gateway client (e.g, client that translate Adobe Connect channels to SIP or H.323).
+Clients can be identified by shibboleth (e.g., eduID.cz). Managed client doesn't make sense, it would be controlling application for a web browser. Managed client only make sense for gateway client (e.g, client that translate Adobe Connect channels to SIP or H.323).
 
 \subsection{Constraints}
 
@@ -403,7 +403,7 @@ Clients can be identified by shibboleth (e.g., eduID.cz). Managed client doesn't
 
 \subsection{Suggested topology}
 
-In Topology should be present both clients and servers. Edges will be only between clients and servers and not between clients themselves.
+In Topology should be present both clients and servers. Edges will be only between clients and servers and not between clients themselves. When two clients want to take a videoconference call they both must connect to the same Adobe Connect meeting on the same server.
 
 % SIP Graph Declarations
 \tikzstyle{connectUrl}=[color=violet, dashed]
@@ -451,7 +451,7 @@ Controller will not know topologies from foreign domains. Every time when the
 controller needs some information about foreign devices it send request to 
 foreign domain controller.
 
-Topology is composed of nodes and edges. Nodes represents a videoconference 
+Topology is composed of nodes and edges. Nodes represents videoconference 
 devices and edges theirs reachability in a specific technology (e.g., ability 
 to communicate in H.323). The reachability is determined by devices' capabilities and by list of global rules which defines the additional constraints.
 
@@ -529,6 +529,11 @@ can be from the following types:
 \item \textbf{Record} \RequireCapability{\textbf{Receive}} \\
   Capability tells that the device is able to perform recording from an input 
   channel.
+  
+\item \TODO{Do we have Managed/Unmanaged capability?}
+ \\ \TODO{Managed capability would have Connector address attribute.}
+ \\ \TODO{Unmanaged capability would have contact (e.g., email) to which
+ are send reservations calendars.}
 \end{itemize}
 
 Each device can have one or more described capabilities. If device supports 
@@ -575,9 +580,9 @@ capability that lists all the technologies (provided that all technologies has s
   Terminal device is hardware or software client that is used by an user to 
   connect to a videoconference. The device allow an user to participate only in
   one videoconference at the time thus it has \textbf{Receive} and 
-  \textbf{Send} capability but limited to 1 channel. It has also the 
+  \textbf{Send} capability but limited to 1 channel. It can have also the 
   \textbf{Standalone Terminal} capability which allows the terminal devices to  
-  establish only 2-point videoconferences. 
+  establish also 2-point videoconferences. 
   
 \begin{TopologyExample}{terminal1}{Example of terminal for H.323 and/or SIP}
 technology: [H323, SIP],
@@ -645,7 +650,7 @@ capability: [
   capability provides the ability to mix input channels to one output channel 
   that is routed to all participants in each virtual room.
 
-\begin{TopologyExample}{mcu}{Example of H.323 and/or SIP multipoint device}
+\begin{TopologyExample}{mcu1}{Example of H.323 and/or SIP multipoint device}
 technology: [H323, SIP],
 capability: [
   {type: Receive, channel: {count: 99}}, // max 99 participants
@@ -654,7 +659,7 @@ capability: [
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{connectServer}{Example of Adobe Connect server}
+\begin{TopologyExample}{server1}{Example of Adobe Connect server}
 technology: AdobeConnect,
 capability: [
   {type: Receive, channel: {count: 99}}, // max 99 participants
@@ -683,14 +688,26 @@ capability: [
 ]
 \end{TopologyExample}
 
+\begin{TopologyExample}{mcu2}{Example of MCU that is registered to H.323 and SIP gatekeepers}
+technology: [H323, SIP],
+capability: [
+  {type: [Send, Receive], channel: {count: 99}},
+  {type: VirtualRooming, room: [room1, room2]},
+  {type: GatekeeperClient, technology: H323, server: gatekeeper1,
+     alias: {room1: 9500000002, room2: 9500000003}},
+  {type: GatekeeperClient, technology: SIP, server: gatekeeper2,
+     alias: {room1: sip:room1@cesnet.cz}} // room2 is registered only to H.323
+]
+\end{TopologyExample}
+
 \begin{TopologyExample}{terminal5}{Example of terminal that is registered to H.323 and SIP gatekeepers}
 technology: [H323, SIP],
 capability: [
   {type: [Send, Receive], channel: {count: 1}},
-  {type: GatekeeperClient, technology: H323, alias: 9500000001, 
-     server: gatekeeper1},
-  {type: GatekeeperClient, technology: SIP, alias: sip:srom@cesnet.cz, 
-     server: gatekeeper2}
+  {type: GatekeeperClient, technology: H323, server: gatekeeper1,
+     alias: 9500000001},
+  {type: GatekeeperClient, technology: SIP, server: gatekeeper2,
+     alias: sip:srom@cesnet.cz}
 ]
 \end{TopologyExample}
 
@@ -699,7 +716,7 @@ capability: [
 
 \section{Edge}
 
-The oriented edge is a link between two nodes and it tells that the second node (the node with incoming arrow) is reachable from the first node. A bidirectional edge tells that either node is reachable to the other node. Each edge is bound to a specific \textbf{technology} and to a specific \textbf{type} of connection in the technology (e.g., in H.323 may be endpoints reachable by IP address or by H.323 alias, if both is available two edges must be present). Each edge also specifies number of \textbf{channels} that are available between the nodes (devices) and for each channel is specified set of \textbf{streams} that can be used.
+The oriented edge is a link between two nodes and it tells that the second node (the node with incoming arrow) is reachable from the first node. A bidirectional edge tells that either node is reachable to the other node. Each edge is bound to a specific \textbf{technology} (e.g., H.323 or SIP) and to a specific \textbf{type} of connection in the technology (e.g., in H.323 may be endpoints reachable by IP address or by H.323 alias, if both is available two edges must be present). Each edge also specifies number of \textbf{channels} that are available between the nodes (devices) and for each channel is specified set of \textbf{streams} that can be used.
 
 \begin{TopologyExample}{gatekeeper}{}
 technology: SIP,
@@ -712,7 +729,7 @@ technology: [H323, SIP],
 capability: [
   {type: StandaloneTerminal},
   {type: [Send, Receive], channel: {count: 1}}, 
-  {type: GatekeeperClient, technology: SIP, alias: sip:1, server: gatekeeper}
+  {type: GatekeeperClient, technology: SIP, server: gatekeeper, alias: sip:1}
 ]
 \end{TopologyExample}
 
@@ -722,7 +739,7 @@ technology: [H323, SIP],
 capability: [
   {type: StandaloneTerminal},
   {type: [Send, Receive], channel: {count: 1}}, 
-  {type: GatekeeperClient, technology: SIP, alias: sip:2, server: gatekeeper}
+  {type: GatekeeperClient, technology: SIP, server: gatekeeper, alias: sip:2}
 ]
 \end{TopologyExample}
 
@@ -740,7 +757,7 @@ channel: {count: 1}
   
   
 \section{Rule}
-Rules in Topology are at global level and they are used for changing the default reachability. Each rule must specify a target \textbf{technology}, a \textbf{type} of connection in technology (\verb|Address| or \verb|Alias|), nodes (or groups of nodes) to which is applied and modifier (\verb|Enable| or \verb|Disable|) which tells whether the reachability will be enabled or disabled. The nodes can be specified by pattern for identifier, address or alias. If more than one group of nodes is specified then the rule is applied only for edges between the groups and not inside the groups.
+Rules in Topology are at global level and they are used for modifying the default reachability (determined by nodes capability settings). Each rule must specify a target \textbf{technology}, a \textbf{type} of connection in the technology (\verb|Address| or \verb|Alias|), nodes (or groups of nodes) to which the rule is applied and modifier (\verb|Enable| or \verb|Disable|) which tells whether the reachability will be enabled or disabled. The nodes can be specified by pattern for identifier, address or alias. If more than one group of nodes is specified then the rule is applied only for edges between the groups and not inside the groups.
 
 \begin{TopologyExample}{rule1}{Disable reachability by IP address for all H.323 devices}
 technology: H323,
@@ -775,7 +792,7 @@ goal: Enable
 
 \section{Examples}
 
-\TODO{Topology examples}
+\TODO{Show some complex Topology examples}
 
 
 %\chapter{Technology Implementation in Topology}
@@ -787,8 +804,6 @@ goal: Enable
 
 
 \chapter{Topology Implementation}
-
-\TODO{Describe implementation better}
 
 Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.      
       
@@ -826,12 +841,45 @@ Steps to update a topology when the capabilities for a device are changed:
 
 \end{enumerate}  
 
+\TODO{Continue in describing implementation}
+
 
 \chapter{Scheduler}
 
-Scheduler will use described Topology implementation for scheduling reservations of videoconference devices.
+Scheduler is a component of a domain controller that has access to a database of domain resources and reservations. Scheduler allocates the requested resources by reservations to specific time slots and specific resources according to requested parameters and optimization criteria.
 
-\TODO{Describe scheduler}
+Scheduler should keep in memory the database of resources in efficient form. There are following types of resources:
+\begin{compactitem}
+\item Device
+\item Virtual Room
+\item License
+\item Identifier
+\item Physical Room
+\item Other
+\end{compactitem}
+The device resources will be kept in Topology representation, that was described in previous chapter. Virtual room resources are part of the multipoint devices thus the virtual rooms are kept inside the multipoint devices in the Topology. Licenses represents active videoconference channels on infrastructure elements (e.g., multipoint devices or gatekeepers) and are kept also inside the devices in the Topology. Identifier resource represents a device alias in specific technology. All identifiers will be kept aside from the Topology and will be allocated from ranges that was defined to a Shongo controller. For each technology Shongo should get specified the range of aliases that it can allocate to reservations. Physical rooms and other resources will be kept aside from the Topology and will be allocated separately.
 
+Each resource can have set that it is located inside another resource, for instance H.323 terminal can be located inside physical room. When scheduler allocates resource, it must also allocate resource in which the requested resource is located (recursively).
+
+\TODO{Do we create LocatedIn capability? Or all resource will have the attribute?}
+
+\paragraph{Resource}
+\begin{compactitem}
+\item Has some attributes (e.g., identifier, name, etc.).
+\item Has \textbf{resource type} enum attribute (one of: Device, Virtual Room, Licence, Identifier, Physical Room, Other).
+\item A resource type can restrict what other resource types may be located inside it or in which resource types it can be located.
+\item Has some capabilities (e.g., StandaloneTerminal, Receive, Send, etc.).
+\item Each capability can restrict in which resource types may be used (or resource type may restrict which capabilities can have).
+\item There will be more capabilities (e.g., Located In, Managed/Unmanaged).
+\item Capability can be part of a set, and resource type may request that the resource has exactly one capability from that set (e.g., Manage/Unmanaged). 
+\end{compactitem}
+
+\paragraph{Scheduler optimization criteria:}
+\begin{compactitem}
+\item Minimize resource utilization
+\item Maximize available continuous time slots for resources (minimize fragmentation)
+\end{compactitem}
+
+\TODO{Continue in describing scheduler}
 
 \end{document}
