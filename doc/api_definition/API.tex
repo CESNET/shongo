@@ -590,6 +590,8 @@ should contain technology agnostic part (e.g., when the user joined) and
 technology specific part (i.e., H.323 statistics, H.245/SIP capabilities
 negotiation info, H.239 content information, etc.).
 
+\TODO{Could the use case be more specific regarding the technology specific part? What does H.323 statistics and others look like? Should a class be defined for each such a technology-specific information?}
+
 \UseCase{Set room layout}{ops:room:layout}
 
 Shongo should be able to set up global layout of a room and user-specific
@@ -1059,9 +1061,10 @@ Represents an active user in a virtual room on a server.
 \ApiClassAttribute{userId}{String}{\ApiReadOnly}
 User identification in room (technology specific).
 \ApiClassAttribute{roomId}{String}{\ApiReadOnly}
-Room unique identifier.
+Room unique identifier. \TODO{The identifier should contain a part denoting the user and a part denoting his/her session -- as requested by use case \ref{UC:ops:room:users-list}.}
 \ApiClassAttribute{userIdentity}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
+\ApiClassAttribute{joinTime}{AbsoluteDateTime}{} Date and time when the user joined the room.
 \ApiClassAttribute{muted}{boolean}{}
 Is the user muted?
 \ApiClassAttribute{microphoneLevel}{int}{}
@@ -1326,7 +1329,9 @@ Usage stats of a given multipoint device.
 A brief info about a room at a server.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
-\TODO{some more attributes? whether it is currently in use, number of participants, the next usage...}
+\ApiClassAttribute{owner}{String}{} Identification of the room owner.
+\ApiClassAttribute{creation}{AbsoluteDateTime}{} Date and time when the room was created. \TODO{Is that what the use case \ref{UC:ops:room:shongo-options} mentions? What does the "on Shongo level" mean?}
+\ApiClassAttribute{type}{String}{} Type of the room. \TODO{Which types of rooms are to be considered? H.323/SIP/Connect/...? Or some other types?}
 \end{ApiClassAttributes}
 
 
@@ -1340,14 +1345,39 @@ A brief info about a room at a server.
 \ApiCmd{ConnectorInfo getConnectorInfo()}
 Get information about connector.
 
+\ApiCmd{muteRoomUser(SecurityToken token, String RoomUserId)}
+Mutes a user in a room.
+
+\ApiCmd{unmuteRoomUser(SecurityToken token, String RoomUserId)}
+Unmutes a user in a room.
+
+\ApiCmd{setMicrophoneLevel(SecurityToken token, String RoomUserId, int level)}
+Sets microphone audio level of a user in a room to a given value.
+
+\ApiCmd{disableUserVideo(SecurityToken token, String RoomUserId)}
+Disables video from a user in a room.
+\TODO{enableUserVideo() as well?}
+
+\ApiCmd{Byte[] getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}
+Gets a snapshot of the video stream received by a user in a room. The return value is a byte sequence -- the resulting image.
+\TODO{To be used both with multipoint and endpoint devices, or just one of them?}
+\TODO{Need for differentianing among various image types?}
+
+\ApiCmd{Byte[] getSentVideoSnapshot(SecurityToken token, String RoomUserId)}
+Gets a snapshot of the video stream that a user is sending in a room. The return value is a byte sequence -- the resulting image.
+\TODO{To be used both with multipoint and endpoint devices, or just one of them?}
+\TODO{Need for differentianing among various image types?}
+
 \TODO{How to upload/modify calendars for Endpoint/Multipoint device types?}
 
 \end{Api}
 
 \section{Multipoint Device} \label{sect:connector-api-multipoint}
-\TODO{read through the use cases and complete the API}
 
 \begin{Api}
+
+\ApiCmd{RoomInfo getRoomInfo(SecurityToken token, String roomId)}
+Gets info about an existing room.
 
 \ApiCmd{String createRoom(SecurityToken token, Room room)}
 Create a new virtual room on a multipoint device that is managed by this connector. The settings are specified in |room| definition.
@@ -1367,15 +1397,52 @@ microphone/playback level, muting/unmuting...)
 \ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String roomUserId)}
 Disconnect user from the room.
 
+\ApiCmd{enableContentProvider(SecurityToken token, String roomUserId)}
+Enables a given room user as a content provider in the room. This is typically enabled by default.
+
+\ApiCmd{disableContentProvider(SecurityToken token, String roomUserId)}
+Disables a given room user as a content provider in the room. Typically, all users are allowed to fight for being the content provider. Using this method, a user is not allowed to do this.
+
+\TODO{room layout setup -- specified by use case \ref{UC:ops:room:layout} and \ref{UC:ops:room:user-layout}}
+
+\ApiCmd{String exportRoomSettings(SecurityToken token, String RoomId)}
+Gets current settings of a room exported to a textual format.
+\TODO{What format? XML? Should we specify the corresponding XML Schema somewhere?}
+
+\ApiCmd{importRoomSettings(SecurityToken token, String RoomId, String settings)}
+Sets up a room according to a given configuration previously exported by the |exportRoomSettings| method.
+\TODO{Describe the \texttt{settings} argument according to resolution of \texttt{exportRoomSettings} TODO item}
+
+\ApiCmd{Byte[] getRoomContent(SecurityToken token, String roomId)}
+Gets all room content (e.g., documents, notes, polls, etc.) as a single |tgz| archive.
+\TODO{Use a \texttt{tgz} archive? Is the room content in form of plain files just accessible to room members, or are there some special kinds of content?}
+
+\ApiCmd{addRoomContent(SecurityToken token, String roomId, String name, Byte[] data)}
+Adds a data file to room content under a given name.
+\TODO{Are there some special kinds of content?}
+\TODO{Use compression?}
+
+\ApiCmd{removeRoomContentFile(SecurityToken token, String roomId, String name)}
+Removes a file of a given name from room content.
+\TODO{Is filename enough?}
+
+\ApiCmd{clearRoomContent(SecurityToken token, String roomId)}
+Clears all room content.
+
+\TODO{Cover use case \ref{UC:ops:recordings-management} -- management of recording archives. Some technology background and several real use cases of what would the administrator want to do will be helpful.}
+
 \end{Api}
 
 
 \section{Endpoint Device} \label{sect:connector-endpoint-api}
-\TODO{read through the use cases and complete the API}
 
 \begin{Api}
 
+\ApiCmd{setPlaybackLevel(SecurityToken token, String RoomUserId, int level)}
+Sets playback audio level of a user in a room to a given value. Typically available only for endpoints controlled by Shongo. \TODO{Is it correct that this method is just in the endpoint API, whereas setMicrophoneLevel is common to endpoint and multipoint devices?}
+
 \ApiCmd{dial(SecurityToken token, String server)}
+\TODO{dial should be common to endpoints and multipoints, since even MCU may dial an endpoint -- correct?}
 
 \end{Api}
 
@@ -1393,7 +1460,7 @@ Gets the multipoint usage stats.
 
 \ApiCmd{RoomInfo[] getRoomList()}
 Gets a list of all rooms at a given server.
-\TODO{Just for a multipoint device -- move to section \ref{sect:connector-api-multipoint}?}
+\TODO{Just for a multipoint device -- move to section \ref{sect:connector-api-multipoint}? (but requested to be in the monitoring API -- the categories multi/end-point API and monitoring API contain common methods -- like this}
 
 
 
@@ -1405,7 +1472,8 @@ Gets a list of all rooms at a given server.
 
 \begin{Api}
 
-\ApiCmd{} \TODO{Complete this}
+\ApiCmd{}
+\TODO{Cover use cases \ref{UC:ops:room:room-techspec} and \ref{UC:ops:room:user-techspec}.}
 
 \end{Api}
 
