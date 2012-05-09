@@ -10,6 +10,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.proto.AchieveREInitiator;
 
 /**
  * A command for sending a concept to a single agent using the SL codec and Shongo ontology.

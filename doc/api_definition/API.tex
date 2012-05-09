@@ -172,7 +172,7 @@ breakautoindent=true,
 \begin{UseCases}
 
 \UseCase{Entity identification}{com:identification}
-Each entity in Shongo (e.g., resource, or reservation) is identified by an unique identifier. 
+Each entity in Shongo (e.g., resource, or reservation) is identified by an unique identifier.
 The identifier follows the URN standard \cite{rfc2141}:
 \begin{verbatim}
 urn:shongo:<type>:<domain>(.<subdomain>)*:(<section>.)*<name>
@@ -860,7 +860,7 @@ periodicDate.rules = {
 
 
 \ApiClass{DateTimeSlot}{}
-Date/time slot is a pair of |DateTime| and |Period|. 
+Date/time slot is a pair of |DateTime| and |Period|.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{start}{DateTime}{\ApiRequired}
 Defines the start of date/time slot.
@@ -1133,7 +1133,7 @@ Lookup date/time slots when the resource with specified |resourceId| is not allo
 \subsection{Failures}
 
 \begin{ApiFailures}
-\ApiFailure{100} 
+\ApiFailure{100}
 \end{ApiFailures}
 \TODO{Complete this}
 
@@ -1171,7 +1171,7 @@ Lookup available date/time slots for specified reservation |duration| and |resou
 \subsection{Failures}
 
 \begin{ApiFailures}
-\ApiFailure{200} 
+\ApiFailure{200}
 \end{ApiFailures}
 \TODO{Complete this}
 
@@ -1197,12 +1197,49 @@ Disconnect the user with specified |userId| from the room with given |roomId|.
 \subsection{Failures}
 
 \begin{ApiFailures}
-\ApiFailure{300} 
+\ApiFailure{300}
 \end{ApiFailures}
 \TODO{Complete this}
 
 
 \chapter{Connector API Specification}
+
+\section{Communication Protocol}
+
+\TODO{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes.}
+
+Communication among controllers and connectors is implemented using JADE \cite{jade}. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called \texttt{ShongoOntology}, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
+
+The ontology used by all agents consists of concepts, predicates, and agent actions. A special type is defined for each concept, predicate or agent action, implementing the \texttt{Concept}, \texttt{Predicate} or \texttt{AgentAction} interface, respectivelly, from the \texttt{jade.content} package. Each of the commands specified in this API document is defined by a class implementing \texttt{AgentAction}, declaring all the command arguments as attributes accessed by public getters and setters. For example, the \texttt{setMicrophoneLevel(int level)} command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class within the \texttt{cz.cesnet.shongo.ontology} package:
+\begin{verbatim}
+public class SetMicrophoneLevel implements AgentAction {
+    private int level = 0;
+
+    public int getLevel() {
+        return level;
+    }
+    public void setLevel(int level) {
+        this.level = level;
+    }
+}
+\end{verbatim}
+The \texttt{setMicrophoneLevel} call implementation instantiates a new \texttt{SetMicrophoneLevel} object, sets up the \texttt{level} attribute, and passes the object to a controller agent content manager to send it to an endpoint. The corresponding endpoint agent creates the \texttt{SetMicrophoneLevel} object received from the controller agent and implements the requested functionality according to it. The message sent during such a call might be similar to the following:
+\begin{verbatim}
+(REQUEST
+ :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
+ :content  "((action (agent-identifier :name
+     Controller-Main-Container@127.0.0.1:1099/JADE :addresses (sequence
+     http://localhost:7778/acc)) (SET-MICROPHONE-LEVEL :level 46)))"
+ :language  fipa-sl  :ontology  shongo-ontology )
+\end{verbatim}
+Note that all classes of object arguments of any command should be defined within the \texttt{cz.cesnet.shongo.ontology} interface and tagged by the \texttt{Concept} interface for the agent content manager to be able to encode the command argument properly.
+
+The agent receiving a command should always send a reply. In case of commands without any return value, a \texttt{Done} predicate from the package \texttt{jade.content.onto.basic} should be sent as a reply, denoting a successful command execution. When a return value is expected, a \texttt{Result} predicate, defined by \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the \texttt{cz.cesnet.shongo.ontology} interface and be tagged by the \texttt{Concept} interface.
+
+An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
+
+
+
 
 \section{Data Types}
 
@@ -1263,7 +1300,7 @@ Disconnect user from the room.
 \end{Api}
 
 
-\section{Endpoint Device}
+\section{Endpoint Device} \label{sect:connector-endpoint-api}
 
 \begin{Api}
 
@@ -1582,6 +1619,95 @@ $response = $client->send_request(
   </struct></value>
 </fault>
 \end{PerlResponse}
+
+\chapter{JADE Command Encoding Example} \label{appendix:jade-command-encoding}
+
+Consider the following command required by this API:
+\begin{Api}
+\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+\end{Api}
+
+The following classes should be defined to represent the command and all objects used by it:
+\begin{verbatim}
+public class ListRoomUsers implements AgentAction {
+    private SecurityToken token;
+    private String roomId;
+
+    public String getRoomId() {
+        return roomId;
+    }
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+    public String getToken() {
+        return token;
+    }
+    public void setToken(String token) {
+        this.token = token;
+    }
+}
+
+public class SecurityToken implements Concept {
+    private UserIdentity user;
+
+    public UserIdentity getUser() {
+        return user;
+    }
+    public void setUser(UserIdentity user) {
+        this.user = user;
+    }
+}
+
+public class UserIdentity implements Concept {
+    private String id;
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+}
+
+public class RoomUser implements Concept {
+    private String userId;
+    private String roomId;
+    private UserIdentity userIdentity;
+    private boolean muted;
+    private int microphoneLevel;
+    private int playbackLevel;
+
+    // getters and setters ...
+}
+\end{verbatim}
+
+The command might be encoded in the following message:
+\begin{verbatim}
+(REQUEST
+ :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
+ :content  "((action (agent-identifier :name
+     Controller-Main-Container@127.0.0.1:1099/JADE :addresses
+     (sequence http://localhost:7778/acc)) (ListRoomUsers)))"
+ :language  fipa-sl  :ontology  shongo-ontology )
+\end{verbatim}
+
+A successful reply would then be encoded as follows:
+\begin{verbatim}
+(INFORM
+ :sender  ( agent-identifier :name dev@127.0.0.1:1099/JADE  :addresses (sequence
+     http://localhost:7778/acc ))
+ :receiver  (set ( agent-identifier :name Controller-Main-Container@127.0.0.1:1099/JADE
+     :addresses (sequence http://localhost:7778/acc )) )
+ :content  "((result (action (agent-identifier :name
+     Controller-Main-Container@127.0.0.1:1099/JADE :addresses (sequence
+     http://localhost:7778/acc)) (ListRoomUsers)) (sequence (RoomUser :microphoneLevel 45
+     :muted false :playbackLevel 0 :roomId konf :userId Azurit :userIdentity
+     (UserIdentity :id shongololo)) (RoomUser :microphoneLevel 57 :muted false
+     :playbackLevel 0 :roomId konf :userId Shongololo :userIdentity (UserIdentity)))))"
+ :reply-with  Controller-Main-Container@127.0.0.1:1099/JADE1336527079398  :language
+     fipa-sl  :ontology  shongo-ontology )
+\end{verbatim}
+
 
 
 

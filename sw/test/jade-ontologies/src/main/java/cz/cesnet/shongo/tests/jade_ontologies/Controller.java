@@ -2,10 +2,7 @@ package cz.cesnet.shongo.tests.jade_ontologies;
 
 import cz.cesnet.shongo.tests.jade_ontologies.commands.Command;
 import cz.cesnet.shongo.tests.jade_ontologies.commands.SendCommand;
-import cz.cesnet.shongo.tests.jade_ontologies.ontology.Mute;
-import cz.cesnet.shongo.tests.jade_ontologies.ontology.SetMicrophoneLevel;
-import cz.cesnet.shongo.tests.jade_ontologies.ontology.ShongoOntology;
-import cz.cesnet.shongo.tests.jade_ontologies.ontology.Unmute;
+import cz.cesnet.shongo.tests.jade_ontologies.ontology.*;
 import jade.content.Concept;
 import jade.content.lang.sl.SLCodec;
 import jade.core.AID;
@@ -90,10 +87,12 @@ public class Controller
 
     private static void printCommands()
     {
-        System.out.println("You can instruct a device agent to mute/unmute or set microphone level using command:");
+        System.out.println("You can instruct a device agent to mute/unmute, set microphone level, get the device status, or list users using command:");
         System.out.println("  <agent-name> mute");
         System.out.println("  <agent-name> unmute");
         System.out.println("  <agent-name> miclevel <0-100>");
+        System.out.println("  <agent-name> getdevicestatus");
+        System.out.println("  <agent-name> listusers");
     }
 
     private static void processCommand(String commandStr)
@@ -145,6 +144,21 @@ public class Controller
                 return null; // not in range
             }
             return new SetMicrophoneLevel(level);
+        }
+        else if (command.equals("getdevicestatus")) {
+            return new GetDeviceStatus();
+        }
+        else if (command.equals("listusers")) {
+            UserIdentity user = new UserIdentity();
+            user.setId("shongololo");
+
+            SecurityToken token = new SecurityToken();
+            token.setUser(user);
+
+            ListRoomUsers lru = new ListRoomUsers();
+            lru.setRoomId("konf");
+            lru.setToken(token);
+            return new ListRoomUsers();
         }
 
         return null; // bad command
