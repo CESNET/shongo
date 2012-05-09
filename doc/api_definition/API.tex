@@ -688,7 +688,7 @@ via email.
 
 \UseCase{List of all the agents in the system}{mgmt:shng:list-agents}
 
-The listing API must including querying language that allows selection of only
+The listing API must include querying language that allows selection of only
 a subset based on similar properties like those defined in \UCref{rsv:list}.
 
 \UseCase{List primary and backup controllers}{mgmt:shng:list-controllers}
@@ -738,6 +738,7 @@ does not have participants.
 \UseCase{Export Shongo stats}{mgmt:export-stats}
 
 Export reservation stats in some common format like CDR.
+\TODO{Specify in more detail -- what stats?}
 
 \end{UseCases}
 
@@ -1083,11 +1084,37 @@ Playback level (speakers volume)
 
 \begin{Api}
 
+\ApiEnum{ControllerType}
+Types of controllers in the domain.
+\begin{ApiEnumValues}
+\ApiEnumValue{Primary}{} The primary controller.
+\ApiEnumValue{Backup}{} A backup controller. Behaves just like the primary controller, even some agents may be connected to a backup controller instead of the primary one.
+\end{ApiEnumValues}
+
 \ApiClass{ControllerInfo}{}
-Represents information about controller platform.
+Represents information about the domain controller.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{name}{String}{}
-\ApiClassAttribute{description}{String}{}
+\ApiClassAttribute{name}{String}{\ApiRequired} A unique name within the domain.
+\ApiClassAttribute{description}{String}{\ApiOptional}
+\ApiClassAttribute{type}{ControllerType}{\ApiRequired}
+\end{ApiClassAttributes}
+
+\ApiClass{Agent}{}
+Represents an agent managing a resource.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{\ApiRequired} A unique agent identifier within the domain.
+\ApiClassAttribute{address}{String}{\ApiRequired} An address where the agent is reachable.
+\ApiClassAttribute{port}{int}{\ApiRequired} Port on which the agent is reachable.
+\ApiClassAttribute{resource}{ResourceSummary}{\ApiOptional} Resource managed by the agent.
+\end{ApiClassAttributes}
+
+\ApiClass{DomainInfo}{}
+Information about a domain and its controller.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiRequired} A unique domain name.
+\ApiClassAttribute{organization}{String}{\ApiOptional} Organization owning the domain.
+\ApiClassAttribute{controller}{ControllerInfo}{\ApiRequired} A controller of the domain.
+\ApiClassAttribute{connected}{boolean}{\ApiRequired} Whether a connection to the domain controller is established.
 \end{ApiClassAttributes}
 
 \end{Api}
@@ -1097,7 +1124,16 @@ Represents information about controller platform.
 \begin{Api}
 
 \ApiCmd{ControllerInfo getControllerInfo()}
-Get information about controller platform. See |ControllerInfo| class.
+Get information about the domain controller. See |ControllerInfo| class.
+
+\ApiCmd{Agent[] listAgents(Map filter)}
+Lists all agents within the platform (i.e., managed by the controller) managing a resource satisfying a given filter.
+
+\ApiCmd{ControllerInfo[] listControllers()}
+Lists the primary and all backup controllers for the domain.
+
+\ApiCmd{DomainInfo[] listDomains()}
+Lists all known domains.
 
 \end{Api}
 
@@ -1208,9 +1244,9 @@ Disconnect the user with specified |userId| from the room with given |roomId|.
 
 \TODO{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes.}
 
-Communication among controllers and connectors is implemented using JADE \cite{jade}. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called \texttt{ShongoOntology}, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
+Communication among controllers and connectors is implemented using JADE \cite{jade}. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
 
-The ontology used by all agents consists of concepts, predicates, and agent actions. A special type is defined for each concept, predicate or agent action, implementing the \texttt{Concept}, \texttt{Predicate} or \texttt{AgentAction} interface, respectivelly, from the \texttt{jade.content} package. Each of the commands specified in this API document is defined by a class implementing \texttt{AgentAction}, declaring all the command arguments as attributes accessed by public getters and setters. For example, the \texttt{setMicrophoneLevel(int level)} command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
+The ontology used by all agents consists of concepts, predicates, and agent actions. A special type is defined for each concept, predicate or agent action, implementing the |Concept|, |Predicate| or |AgentAction| interface, respectivelly, from the |jade.content| package. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters. For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
 \begin{verbatim}
 package cz.cesnet.shongo.ontology;
 
@@ -1225,7 +1261,7 @@ public class SetMicrophoneLevel implements AgentAction {
     }
 }
 \end{verbatim}
-The \texttt{setMicrophoneLevel} call implementation instantiates a new \texttt{SetMicrophoneLevel} object, sets up the \texttt{level} attribute, and passes the object to a controller agent content manager to send it to an endpoint as a \texttt{request} communicative act \cite{FIPA-ComActSpec}. The corresponding endpoint agent creates the \texttt{SetMicrophoneLevel} object received from the controller agent and implements the requested functionality according to it. The message sent during such a call might be similar to the following:
+The |setMicrophoneLevel| call implementation instantiates a new |SetMicrophoneLevel| object, sets up the |level| attribute, and passes the object to a controller agent content manager to send it to an endpoint as a |request| communicative act \cite{FIPA-ComActSpec}. The corresponding endpoint agent creates the |SetMicrophoneLevel| object received from the controller agent and implements the requested functionality according to it. The message sent during such a call might be similar to the following:
 \begin{verbatim}
 (REQUEST
  :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
@@ -1234,9 +1270,10 @@ The \texttt{setMicrophoneLevel} call implementation instantiates a new \texttt{S
      http://localhost:7778/acc)) (SET-MICROPHONE-LEVEL :level 46)))"
  :language  fipa-sl  :ontology  shongo-ontology )
 \end{verbatim}
-Note that all classes of object arguments of any command should be defined within the \texttt{cz.cesnet.shongo.ontology} interface and tagged by the \texttt{Concept} interface for the \texttt{ShongoOntology} class to be able to find them and comprise them in the ontology.
+Note that all classes of object arguments of any command should be defined within the \\
+|cz.cesnet.shongo.ontology| interface and tagged by the |Concept| interface for the |ShongoOntology| class to be able to find them and comprise them in the ontology.
 
-The agent receiving a command should always send a reply as an \texttt{inform} \cite{FIPA-ComActSpec} message. In case of commands without any return value, a \texttt{Done} predicate from the package \texttt{jade.content.onto.basic} should be sent as a reply, denoting a successful command execution. When a return value is expected, a \texttt{Result} predicate, defined by \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the \texttt{cz.cesnet.shongo.ontology} interface and be tagged by the \texttt{Concept} interface.
+The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined by \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.ontology| interface and be tagged by the |Concept| interface.
 
 An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
 
@@ -1252,6 +1289,17 @@ Information about connector.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{}
 \end{ApiClassAttributes}
+\TODO{Some more attributes?}
+
+\ApiClass{DeviceLoadInfo}{}
+Current device load information. A negative value in any attribute means the value could not be determined.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{cpuLoad}{Float}{}
+\ApiClassAttribute{memoryOccupied}{Long}{}
+\ApiClassAttribute{memoryAvailable}{Long}{}
+\ApiClassAttribute{diskSpaceOccupied}{Long}{}
+\ApiClassAttribute{diskSpaceAvailable}{Long}{}
+\end{ApiClassAttributes}
 
 \ApiClass{Room}{}
 Represents a virtual room on a multipoint server device.
@@ -1262,12 +1310,24 @@ Represents a virtual room on a multipoint server device.
 \end{ApiClassAttributes}
 \TODO{Room settings should be auto-modified in time be uploaded calendar}
 
+\ApiClass{UsageStats}{}
+Usage stats of a given multipoint device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{callLog}{Byte[]}{} Call log in CDR. Should contain at least start time and duration of each call.
+\end{ApiClassAttributes}
+
+\ApiClass{RoomInfo}{}
+A brief info about a room at a server.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
+\TODO{some more attributes? whether it is currently in use, number of participants, the next usage...}
+\end{ApiClassAttributes}
+
 
 \end{Api}
 
 
 \section{Common API}
-\TODO{read through the use cases and complete the API}
 
 \begin{Api}
 
@@ -1278,7 +1338,7 @@ Get information about connector.
 
 \end{Api}
 
-\section{Multipoint Device}
+\section{Multipoint Device} \label{sect:connector-api-multipoint}
 \TODO{read through the use cases and complete the API}
 
 \begin{Api}
@@ -1315,11 +1375,22 @@ Disconnect user from the room.
 
 
 \section{Monitoring API}
-\TODO{read through the use cases and complete the API}
 
 \begin{Api}
 
-\ApiCmd{} \TODO{Complete this}
+\ApiCmd{DeviceLoadInfo getDeviceLoadInfo()}
+Gets info about current load of the device.
+
+\ApiCmd{UsageStats getUsageStats()}
+Gets the multipoint usage stats.
+\TODO{Just for a multipoint device -- move to section \ref{sect:connector-api-multipoint}?}
+
+\ApiCmd{RoomInfo[] getRoomList()}
+Gets a list of all rooms at a given server.
+\TODO{Just for a multipoint device -- move to section \ref{sect:connector-api-multipoint}?}
+
+
+
 
 \end{Api}
 
