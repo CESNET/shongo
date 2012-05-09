@@ -16,7 +16,8 @@
 \usepackage{paralist} 
 \usepackage{multicol}
 \usepackage{verbatim}
-\usepackage{listings}
+
+\usepackage{listingsutf8}
 
 \usepackage{tikz}
 \usetikzlibrary{arrows, shapes, calc, decorations}
@@ -441,25 +442,28 @@ Adobe Connect on Wikipedia.
 \end{thebibliography}
 
 
-\chapter{Topology}
+\chapter{Device Topology}
 
-Topology is representation of videoconferencing devices from various 
+Device Topology is representation of videoconferencing devices from various 
 technologies and its' mutual reachability in a single domain. Each domain 
 controller in Shongo will keep in memory the local topology of all devices 
-which the controller manages and which are part of controller reservations (unmanaged or foreign devices but only as single nodes without theirs topology).
+which the controller manages and which are part of controller reservations 
+(unmanaged or foreign devices but only as single nodes without theirs 
+topology).
 Controller will not know topologies from foreign domains. Every time when the 
 controller needs some information about foreign devices it send request to 
 foreign domain controller.
 
-Topology is composed of nodes and edges. Nodes represents videoconference 
-devices and edges theirs reachability in a specific technology (e.g., ability 
-to communicate in H.323). The reachability is determined by devices' capabilities and by list of global rules which defines the additional constraints.
+Device Topology is composed of nodes and edges. Nodes represents 
+videoconference devices and edges theirs reachability in a specific technology 
+(e.g., ability to communicate in H.323). The reachability is determined by 
+devices' capabilities and by list of global rules which defines the additional 
+constraints.
 
 \section{Node}
 
-Each node in Topology represents one videoconference device. Device is able to 
-communicate with one or more \textbf{technologies} (H.323, SIP, Adobe Connect, 
-etc.).
+Each node in Device Topology represents one videoconference device. Device is 
+able to communicate with one or more \textbf{technologies} (H.323, SIP, Adobe Connect, etc.).
 \\
 Device can have one or more \textbf{capabilities}. Each capability can specify 
 one or more device \textbf{technologies} to which it is provided. Capabilities 
@@ -757,7 +761,7 @@ channel: {count: 1}
   
   
 \section{Rule}
-Rules in Topology are at global level and they are used for modifying the default reachability (determined by nodes capability settings). Each rule must specify a target \textbf{technology}, a \textbf{type} of connection in the technology (\verb|Address| or \verb|Alias|), nodes (or groups of nodes) to which the rule is applied and modifier (\verb|Enable| or \verb|Disable|) which tells whether the reachability will be enabled or disabled. The nodes can be specified by pattern for identifier, address or alias. If more than one group of nodes is specified then the rule is applied only for edges between the groups and not inside the groups.
+Rules in Device Topology are at global level and they are used for modifying the default reachability (determined by nodes capability settings). Each rule must specify a target \textbf{technology}, a \textbf{type} of connection in the technology (\verb|Address| or \verb|Alias|), nodes (or groups of nodes) to which the rule is applied and modifier (\verb|Enable| or \verb|Disable|) which tells whether the reachability will be enabled or disabled. The nodes can be specified by pattern for identifier, address or alias. If more than one group of nodes is specified then the rule is applied only for edges between the groups and not inside the groups.
 
 \begin{TopologyExample}{rule1}{Disable reachability by IP address for all H.323 devices}
 technology: H323,
@@ -792,86 +796,117 @@ goal: Enable
 
 \section{Examples}
 
-\TODO{Show some complex Topology examples}
+\begin{Graph}{graph:connect:topology}{Example of complex device topology}  
+  \begin{SubGraph}{-3,3}{}
+  \Vertex{0,0}{s1}{server1}  
+  \Vertex{-1.5,-2}{c1}{client1}
+  \Vertex{1.5,-2}{c2}{client2}
+  \EdgeOneToAll{<-}{connectUrl}{s1}{c1, c2}
+  \end{SubGraph}
+  
+  \begin{SubGraph}{3,3}{}
+  \Vertex{3,0}{gk1}{gatekeeper}  
+  \Vertex{0,0}{m1}{mcu}  
+  \Vertex{-1.5,-2}{t1}{terminal1}
+  \Vertex{1.5,-2}{t2}{terminal2}
+  \EdgeAllToAll{<->}{hxxxIp, hxxxAlias}{m1, t1, t2}  
+  \end{SubGraph}
 
+  \Vertex{0,3}{gw1}{gateway}
+  \Edge{<-}{connectUrl}{s1}{gw1}
+  \EdgeOneToAll{<->}{hxxxIp, hxxxAlias}{gw1}{m1, t1, t2}            
+  
+  \begin{GraphLegend}{-1, 5}
+    \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
+    \GraphLegendItem{hxxxIp}{Accessible by IP Address in H.323}
+    \GraphLegendItem{hxxxAlias}{Accessible by H.323 Alias}
+  \end{GraphLegend}
+\end{Graph}
 
-%\chapter{Technology Implementation in Topology}
-%Each videoconference network in a specific technology can be implemented by Topology. This chapter shows examples of network implementation for each technology.
-%\TODO{Show examples}
-%\section{H.323}
-%\section{SIP}
-%\section{Adobe Connect}
+\TODO{Show some complex Device Topology examples}
 
+\section{Operations}
 
-\chapter{Topology Implementation}
-
-Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.      
+Device Topology implementation should allow dynamic modification when for instance some device parameters are changed to not force the whole topology reconstruction.      
       
-\section{Construction}
+\subsection*{Construction}
 
 Construction is performed when the controller is started. Steps to construct a topology:
 
-\begin{enumerate}
-
-\item Get the list of all devices with it's capabilities in a topology.
-
+\begin{compactenum}
+\item Get the list of all devices in the topology.
 \item For each device: 
   \begin{compactitem}
-  \item Find all other devices that the device is able to transmit
-  data to (or to make a call) and for each:
-    \begin{compactitem}
-    \item Add edge with proper parameters.
-    \end{compactitem}
+  \item \textbf{Add new device}.
   \end{compactitem}
+\end{compactenum}     
 
-\end{enumerate}     
-     
-\section{Update Topology}     
+\subsection*{Add new device}     
 
-Steps to update a topology when the capabilities for a device are changed:
-\begin{enumerate}
-
-\item Remove all edges that reference the device.
-
-\item Find all other devices that the device is able to transmit data from/to
-   (or to make a call) and for each:
+Steps to add new device to the topology:
+\begin{compactenum}
+\item Get device capabilities.
+\item Add a new node to the topology.
+\item Find all other devices that the device is able to take a videoconference with (based on capabilities):
    \begin{compactitem}
    \item Add edge(s) with proper parameters.
    \end{compactitem}
+\end{compactenum}  
 
-\end{enumerate}  
+\subsection*{Update existing device}     
 
-\TODO{Continue in describing implementation}
+Steps to update an existing device in a topology for instance when the capabilities for the device are changed:
+\begin{compactenum}
+\item \textbf{Remove existing device}.
+\item \textbf{Add new device}.
+\end{compactenum} 
+     
+\subsection*{Remove existing device}     
+
+Steps to remove existing device from a topology:
+\begin{compactenum}
+\item Remove all edges that reference the device.
+\item Remove the node from the topology.
+\end{compactenum}   
 
 
 \chapter{Scheduler}
 
 Scheduler is a component of a domain controller that has access to a database of domain resources and reservations. Scheduler allocates the requested resources by reservations to specific time slots and specific resources according to requested parameters and optimization criteria.
 
-Scheduler should keep in memory the database of resources in efficient form. There are following types of resources:
-\begin{compactitem}
-\item Device
-\item Virtual Room
-\item License
-\item Identifier
-\item Physical Room
-\item Other
-\end{compactitem}
-The device resources will be kept in Topology representation, that was described in previous chapter. Virtual room resources are part of the multipoint devices thus the virtual rooms are kept inside the multipoint devices in the Topology. Licenses represents active videoconference channels on infrastructure elements (e.g., multipoint devices or gatekeepers) and are kept also inside the devices in the Topology. Identifier resource represents a device alias in specific technology. All identifiers will be kept aside from the Topology and will be allocated from ranges that was defined to a Shongo controller. For each technology Shongo should get specified the range of aliases that it can allocate to reservations. Physical rooms and other resources will be kept aside from the Topology and will be allocated separately.
+\section{Resource Database}
 
-Each resource can have set that it is located inside another resource, for instance H.323 terminal can be located inside physical room. When scheduler allocates resource, it must also allocate resource in which the requested resource is located (recursively).
+Resource is physical or logical entity that can be scheduled by a scheduler. Resources are persistently stored in a relational database. Scheduler has access to that database and should keep the resources in memory in an efficient form for scheduling. Some of resources are created by Shongo users (e.g., videoconference devices or physical rooms), some are created by Shongo scheduler (e.g., virtual rooms or identifiers) and some are created due to a reservation request (e.g., unmanaged devices or resources from foreign domains). Resource database is composed of:
+\begin{compactenum}
+\item List of all known resources.
+\item Device Topology that contains all device resources and represents videoconference reachability between them.
+\end{compactenum}
+Each resource can be one of the following types:
+\begin{compactenum}
+\item \textbf{Device} -- represents a videconference harware or software element.
+\item \textbf{Device Component} -- represents a resource that is a part of a device resource. Can be one of the following types:
+  \begin{compactenum}
+    \item \textbf{Identifier}
+    \item \textbf{Virtual Room}
+    \item \textbf{License}
+  \end{compactenum}
+\item \textbf{Physical Room} -- represent a physical room (e.g., classroom or boardroom).
+\item \textbf{Other} -- \TODO{Examples?}
+\end{compactenum}
+Each resource can be dependent on another resource (e.g., can be located inside it or can be part of it), for instance a H.323 terminal can be located inside a physical room or a H.323 identifier is assigned to a H.323 device. When scheduler allocates resource, it must also allocate a resource to which the requested resource is dependent (recursively).
 
-\TODO{Do we create LocatedIn capability? Or all resource will have the attribute?}
+\TODO{Do we create LocatedIn capability (with resource and alsoReservate attributes)? Or all resource will have the attribute locatedIn and alsoReservate?}
 
 \paragraph{Resource}
 \begin{compactitem}
 \item Has some attributes (e.g., identifier, name, etc.).
-\item Has \textbf{resource type} enum attribute (one of: Device, Virtual Room, Licence, Identifier, Physical Room, Other).
-\item A resource type can restrict what other resource types may be located inside it or in which resource types it can be located.
+\item Is one of the resource type.
+\item Can be dependent on another resource. \TODO{Or on more resources?}
+\item A resource type can restrict what other resource types may be dependent to it or to which resource types it can be dependent.
 \item Has some capabilities (e.g., StandaloneTerminal, Receive, Send, etc.).
 \item Each capability can restrict in which resource types may be used (or resource type may restrict which capabilities can have).
 \item There will be more capabilities (e.g., Located In, Managed/Unmanaged).
-\item Capability can be part of a set, and resource type may request that the resource has exactly one capability from that set (e.g., Manage/Unmanaged). 
+\item Capability can be part of a set, and resource type may request that the resource has exactly one capability from that set (e.g., device must be Managed or Unmanaged). 
 \end{compactitem}
 
 \paragraph{Scheduler optimization criteria:}
@@ -879,6 +914,21 @@ Each resource can have set that it is located inside another resource, for insta
 \item Minimize resource utilization
 \item Maximize available continuous time slots for resources (minimize fragmentation)
 \end{compactitem}
+
+\subsection{Operations}
+
+Operations that can be performed on resource database:
+
+\begin{description}
+\item[Construct]
+Resource database is constructed when the controller (and thus the scheduler) is started. The scheduler loads all resources from relational database and performs \textbf{Add new resource} for each loaded resource.
+
+\item[Add new resource]
+The scheduler adds the resource to the list of all resources. If the resource is device type then the resource is also added to the Device Topology.
+
+\item[Remove existing resource]
+The scheduler removes the resource from the list of all resources. If the resource is device type then the resource is also removed from the Device Topology.
+\end{description}
 
 \TODO{Continue in describing scheduler}
 

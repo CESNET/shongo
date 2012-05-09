@@ -72,6 +72,29 @@
   \node[right, font=\footnotesize] at (legend)  {#2};
 }
 
+% Draw subgraph (position, title)
+\newenvironment{SubGraph}[2]{%
+  \begin{pgfinterruptboundingbox} 
+  \begin{scope}[shift={(#1)}]  
+  \providecommand{\tmpSubGraphArgTwo}{#2}%
+}{%
+  \ifthenelse{\equal{\tmpSubGraphArgTwo}{}}
+  {
+    \coordinate (tmpNE) at (current bounding box.north east); 
+    \coordinate (tmpSW) at (current bounding box.south west);   
+  }{
+    \coordinate (tmpNorth) at ($(current bounding box.north) + (0,0.4)$); 
+    \coordinate (tmpNE) at ($(current bounding box.north east) + (0.2,0.2)$); 
+    \coordinate (tmpSW) at ($(current bounding box.south west) - (0.2,0.2)$);   
+    \draw[dashed] (tmpNE) rectangle (tmpSW);
+    \node at (tmpNorth) {\tmpSubGraphArgTwo};
+  }
+  \end{scope}
+  \end{pgfinterruptboundingbox}  
+  \useasboundingbox (tmpNE) rectangle (tmpSW); 
+}
+
+
 % Draw graph figure (label, title)
 \newenvironment{Graph}[2]{%
   \begin{figure}[ht!]%
