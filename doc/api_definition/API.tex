@@ -1246,7 +1246,14 @@ Disconnect the user with specified |userId| from the room with given |roomId|.
 
 Communication among controllers and connectors is implemented using JADE \cite{jade}. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
 
-The ontology used by all agents consists of concepts, predicates, and agent actions. A special type is defined for each concept, predicate or agent action, implementing the |Concept|, |Predicate| or |AgentAction| interface, respectivelly, from the |jade.content| package. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters. For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
+The ontology used by all agents consists of concepts, predicates, and agent actions.
+\begin{description}
+\item[An agent action,] tagged by |jade.content.AgentAction| interface, expresses a request what should the receiving agent do. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters.
+\item[A predicate,] tagged by |jade.content.Predicate| interface, expresses a claim about a fact. In this API, we use just two predicates defined in the JADE framework, for the purpose of expressing result of a command. We use no custom predicates.
+\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such classes must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
+\end{description}
+
+For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
 \begin{verbatim}
 package cz.cesnet.shongo.ontology;
 
@@ -1270,10 +1277,8 @@ The |setMicrophoneLevel| call implementation instantiates a new |SetMicrophoneLe
      http://localhost:7778/acc)) (SET-MICROPHONE-LEVEL :level 46)))"
  :language  fipa-sl  :ontology  shongo-ontology )
 \end{verbatim}
-Note that all classes of object arguments of any command should be defined within the \\
-|cz.cesnet.shongo.ontology| interface and tagged by the |Concept| interface for the |ShongoOntology| class to be able to find them and comprise them in the ontology.
 
-The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined by \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.ontology| interface and be tagged by the |Concept| interface.
+The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined in \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.ontology| interface and be tagged by the |Concept| interface.
 
 An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
 
