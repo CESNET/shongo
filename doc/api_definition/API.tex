@@ -1250,8 +1250,9 @@ The ontology used by all agents consists of concepts, predicates, and agent acti
 \begin{description}
 \item[An agent action,] tagged by |jade.content.AgentAction| interface, expresses a request what should the receiving agent do. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters.
 \item[A predicate,] tagged by |jade.content.Predicate| interface, expresses a claim about a fact. In this API, we use just two predicates defined in the JADE framework, for the purpose of expressing result of a command. We use no custom predicates.
-\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such classes must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
+\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such a class must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
 \end{description}
+
 
 For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
 \begin{verbatim}
