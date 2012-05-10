@@ -135,7 +135,7 @@ Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus th
   
   \EdgeAllToAll{<->}{hxxxIp, hxxxData, hxxxControl}{t1, t2, t3, mcu}
   
-  \HXXXLegend{6, -1.5}
+  \HXXXLegend{6, -1}
 \end{Graph}
 
 \subsubsection{Connection through a gatekeeper (Direct Endpoint Model)}
@@ -152,7 +152,7 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
   \EdgeAllToAll{<->}{hxxxData, hxxxControl}{t1, t2, t3, mcu}
   \EdgeOneToAll{<->}{hxxxAlias}{gk}{t1, t2, t3, mcu}
   
-  \HXXXLegend{6, -1.5}
+  \HXXXLegend{6, -1}
 \end{Graph}
 
 \subsubsection{Connection through a gatekeeper (Gatekeeper Routed Model)}
@@ -169,7 +169,7 @@ Terminals and MCUs are configured to forbid direct connections through IP addres
   \EdgeAllToAll{<->}{hxxxData}{t1, t2, t3, mcu}  
   \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk}{t1, t2, t3, mcu}
   
-  \HXXXLegend{6, -1.5}
+  \HXXXLegend{6, -1}
 \end{Graph}
 
 \subsubsection{Multiple gatekeepers}
@@ -205,7 +205,7 @@ The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) mana
   \Edge{<-}{hxxxDataDashed}{t5}{$(t5) + (-0.3, 1)$}
   \Edge{<-}{hxxxDataDashed}{t6}{$(t6) + (-0.8,-1)$}
 
-  \HXXXLegend{4.5, 4}
+  \HXXXLegend{4.5, 4.5}
 \end{Graph}%
 Adjacent endpoints (endpoints in the same local network) can connect directly or through it's gatekeeper. Not adjacent endpoints (endpoints from different local networks) can connect only by it's gatekeepers.
 
@@ -291,15 +291,15 @@ Redirect server response to each client request by alternative set of URIs which
 \item \textbf{Registrar} \\
 Registrar is an element that keeps register of user agents. Each user agent can register itself to a registrar for a specific URI. More user agents can be registered to a single URI. 
 
+For scheduling purposes we combine the previous three servers (Proxy, Redirect and Registrar) to a single server referred to as SIP Proxy.
+
 \item \textbf{Gateway} \\
 Gateway is a device that enable communication between SIP network and other networks (e.g., PSTN).
 \end{itemize}
 
 Each user agent in a SIP network is identified by an uniform resource identifier (URI), for instance \verb|sip:username:password@host:port|. Multiple user agents can register to registrar with a single URI and when the URI is requested by a caller all devices will "ring" and only one can answer the call (e.g., one user with single URI can have multiple phones, hardware or software, by which he can answer an incoming calls).
 
-The URI can contain the target IP address. When an user agent use this type of URI to start a call, user agent's Gatekeeper (Registrar, Proxy or Redirect Server) is still used to initiate the call unlike in H.323 where the connection can be done directly through the IP address without notifying a Gatekeeper.
-
-Single element in SIP network can be a combination of multiple SIP element types (e.g., \emph{Proxy and Registrar Server} or \emph{Redirect and Registrar Server}).
+The URI can contain the target IP address. When an user agent use this type of URI to start a call, user agent's Proxy (combination of Registrar, Proxy and/or Redirect Server) is still used to initiate the call unlike in H.323 where the connection can be done directly through the IP address without notifying a gatekeeper.
 
 \subsection{Constraints}
 
@@ -324,15 +324,15 @@ SIP network is very similar to H.323 network and doesn't bring any new aspects o
 
 \subsection{Suggested topology}
 
-For SIP network we will use the same naming convention as for H.323 and endpoints will stand for user agents (terminals), MCUs and gateways. Proxy server, Redirect server and Registrar will be grouped into a single element Gatekeeper.%
+For SIP network we will use the same naming convention as for H.323 and endpoints will stand for user agents (terminals), MCUs and gateways. Proxy Server, Redirect Server and Registrar are grouped into a single element SIP Proxy.%
 \tikzstyle{sipUri}=[color=red, dashed]
 \begin{Graph}{graph:sip:topology}{Suggested topology for SIP}  
-  \Vertex{-2, 4}{gk1}{gatekeeper1}
+  \Vertex{-2, 4}{gk1}{proxy1}
   \Vertex{-2, 2}{a1}{userAgent1}
   \Vertex{-2,-2}{a2}{userAgent2}
   \Vertex{-4, 0}{mcu}{mcu}
 
-  \Vertex{2, 4}{gk2}{gatekeeper2}  
+  \Vertex{2, 4}{gk2}{proxy2}  
   \Vertex{2, 2}{a3}{userAgent3}
   \Vertex{2,-2}{a4}{userAgent4}
   
@@ -342,15 +342,15 @@ For SIP network we will use the same naming convention as for H.323 and endpoint
     
   \EdgeAllToAll{<->}{sipUri}{a1, a2, mcu, a3, a4}  
   
-  \begin{GraphLegend}{4, 0.0}
+  \begin{GraphLegend}{4, 0.25}
     \GraphLegendItem{sipUri}{Accessible by SIP URI}
   \end{GraphLegend}
 \end{Graph}
-In Topology should be present only endpoints. Gatekeeper elements are kept aside and they are used only when the topology is constructed to determine which endpoints are accessible from which endpoints. See fig. \ref{graph:sip:topology}.
+In Device Topology should be present only endpoints. SIP Proxy elements are kept aside and they are used only when the topology is constructed to determine which endpoints are accessible from which endpoints. See fig. \ref{graph:sip:topology}.
 
 \paragraph{Notes:}
 \begin{itemize}
-\item Similarly like in H.323, at the global level there should be a list of rules that defines which devices are accessible to which devices by URI. By default endpoints are accessible only inside the same gatekeeper. The accessibility between two gatekeepers must be explicitly defined by a rule.
+\item Similarly like in H.323, at the global level there should be a list of rules that defines which devices are accessible to which devices by URI. By default endpoints are accessible only inside the same Proxy. The accessibility between two Proxies must be explicitly defined by a rule.
 \end{itemize}
 
 \subsection{References}
@@ -421,7 +421,7 @@ In Topology should be present both clients and servers. Edges will be only betwe
   \EdgeOneToAll{<-}{connectUrl}{s1}{c1, c2, c3, c4}  
   \EdgeOneToAll{<-}{connectUrl}{s2}{c1, c2, c3, c4}  
   
-  \begin{GraphLegend}{4.5, 1.5}
+  \begin{GraphLegend}{4.5, 1.75}
     \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
   \end{GraphLegend}
 \end{Graph}
@@ -504,19 +504,19 @@ can be from the following types:
   be specified the maximum number of input channels (maximum videoconference 
   participants).
 
-\item \textbf{Gatekeeper Client} \\
+\item \textbf{Signaling Client} \\
   Capability makes the device to have set an alias 
-  and an address of a gatekeeper server to which it registers itself.
-  The devices that are registered to the same gatekeeper server are by
+  and an address of a signaling server to which it registers itself.
+  The devices that are registered to the same signaling server are by
   default reachable by an alias. This behavior can be changed by global rules. 
   Also the global rules are able to make reachable devices registered to 
-  different gatekeeper servers.
+  different signaling servers.
 
-\item \textbf{Gatekeeper Server} \\
-  Capability tells that the device is gatekeeper server
-  that has registry of devices and its' aliases and make that devices by default 
-  reachable. Gatekeepers can have set maximum number of connections that may
-  be established through the gatekeeper by aliases.
+\item \textbf{Signaling Server} \\
+  Capability tells that the device is signaling server
+  that has registry of devices and its' aliases and make that devices by 
+  default reachable. Signaling servers can have set maximum number of 
+  connections that may be established through the server by aliases.
 
 \item \textbf{Translate} \RequireCapability{\textbf{Receive} and \textbf{Send} 
   and at least 2 \textbf{technologies}} \\
@@ -557,8 +557,8 @@ capability that lists all the technologies (provided that all technologies has s
         classoffset=0,
         alsoletter={7},
         morekeywords={SIP, H323, AdobeConnect, StandaloneTerminal, Receive, 
-            Send, Mix, VirtualRooming, GatekeeperServer, GatekeeperClient,
-            H264, CIF, 720p,
+            Send, Mix, VirtualRooming, SignalingServer, SignalingClient,
+            Translate, H264, CIF, 720p,
             Address, Alias, Enable, Disable},
         keywordstyle=\textbf,
         classoffset=1,
@@ -672,45 +672,45 @@ capability: [
 ]
 \end{TopologyExample}
 
-\item \textbf{Gatekeeper device} \\
-  Gatekeeper device is a special type of device that has only 
-  \textbf{Gatekeeper Server} capability. All of previous device examples can 
-  also have \textbf{Gatekeeper Client} capability which allows other devices
+\item \textbf{Signaling server device} \\
+  Signaling server device is a special type of device that has only 
+  \textbf{Signaling Server} capability. All of previous device examples can 
+  also have \textbf{Signaling Client} capability which allows other devices
   to address them by it's alias.
     
-\begin{TopologyExample}{gatekeeper1}{Example of gatekeeper for H.323}
+\begin{TopologyExample}{gatekeeper}{Example of gatekeeper for H.323}
 technology: H323,
 capability: [
-  {type: GatekeeperServer, max-connection: 99}
+  {type: SignalingServer, max-connection: 99}
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{gatekeeper2}{Example of gatekeeper for SIP}
+\begin{TopologyExample}{proxy}{Example of proxy for SIP}
 technology: SIP,
 capability: [
-  {type: GatekeeperServer, max-connection: 55}
+  {type: SignalingServer, max-connection: 55}
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{mcu2}{Example of MCU that is registered to H.323 and SIP gatekeepers}
+\begin{TopologyExample}{mcu2}{Example of MCU that is registered to H.323 and SIP servers}
 technology: [H323, SIP],
 capability: [
   {type: [Send, Receive], channel: {count: 99}},
   {type: VirtualRooming, room: [room1, room2]},
-  {type: GatekeeperClient, technology: H323, server: gatekeeper1,
+  {type: SignalingClient, technology: H323, server: gatekeeper,
      alias: {room1: 9500000002, room2: 9500000003}},
-  {type: GatekeeperClient, technology: SIP, server: gatekeeper2,
+  {type: SignalingClient, technology: SIP, server: proxy,
      alias: {room1: sip:room1@cesnet.cz}} // room2 is registered only to H.323
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{terminal5}{Example of terminal that is registered to H.323 and SIP gatekeepers}
+\begin{TopologyExample}{terminal5}{Example of terminal that is registered to H.323 and SIP servers}
 technology: [H323, SIP],
 capability: [
   {type: [Send, Receive], channel: {count: 1}},
-  {type: GatekeeperClient, technology: H323, server: gatekeeper1,
+  {type: SignalingClient, technology: H323, server: gatekeeper,
      alias: 9500000001},
-  {type: GatekeeperClient, technology: SIP, server: gatekeeper2,
+  {type: SignalingClient, technology: SIP, server: proxy,
      alias: sip:srom@cesnet.cz}
 ]
 \end{TopologyExample}
@@ -722,9 +722,9 @@ capability: [
 
 The oriented edge is a link between two nodes and it tells that the second node (the node with incoming arrow) is reachable from the first node. A bidirectional edge tells that either node is reachable to the other node. Each edge is bound to a specific \textbf{technology} (e.g., H.323 or SIP) and to a specific \textbf{type} of connection in the technology (e.g., in H.323 may be endpoints reachable by IP address or by H.323 alias, if both is available two edges must be present). Each edge also specifies number of \textbf{channels} that are available between the nodes (devices) and for each channel is specified set of \textbf{streams} that can be used.
 
-\begin{TopologyExample}{gatekeeper}{}
+\begin{TopologyExample}{proxy}{}
 technology: SIP,
-capability: [{type: GatekeeperServer}]
+capability: [{type: SignalingServer}]
 \end{TopologyExample}
 
 \begin{TopologyExample}{terminal1}{}
@@ -733,7 +733,7 @@ technology: [H323, SIP],
 capability: [
   {type: StandaloneTerminal},
   {type: [Send, Receive], channel: {count: 1}}, 
-  {type: GatekeeperClient, technology: SIP, server: gatekeeper, alias: sip:1}
+  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:1}
 ]
 \end{TopologyExample}
 
@@ -743,7 +743,7 @@ technology: [H323, SIP],
 capability: [
   {type: StandaloneTerminal},
   {type: [Send, Receive], channel: {count: 1}}, 
-  {type: GatekeeperClient, technology: SIP, server: gatekeeper, alias: sip:2}
+  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:2}
 ]
 \end{TopologyExample}
 
@@ -796,34 +796,124 @@ goal: Enable
 
 \section{Examples}
 
-\begin{Graph}{graph:connect:topology}{Example of complex device topology}  
+\subsection{Example of complex videoconference network}
+
+The network (fig. \ref{graph:topology:example1}) is composed of two SIP user agents (\emph{userAgent1} and \emph{userAgent2}), two H.323 terminals (\emph{terminal1} and \emph{terminal2}), multipoint device (\emph{mcu}) that allows H.323 and SIP devices to connect to it's virtual rooms. User agents are configured to use SIP Proxy (\emph{proxy}) and terminals are configured to use H.323 gatekeeper (\emph{gatekeeper}). The \emph{mcu} is configured to use both SIP and H.323 signaling servers. The network also contains Adobe Connect server (\emph{server}) and two web clients that can connect to it (\emph{client1} and \emph{client2}). H.323 endpoints can connect to Adobe Connect server through special gateway device (\emph{gateway}). The SIP user agents can also connect to Adobe Connect server but only through the \emph{mcu}.
+
+\begin{Graph}{graph:topology:example1}{Example of complex device topology}  
   \begin{SubGraph}{-3,3}{}
-  \Vertex{0,0}{s1}{server1}  
+  \Vertex{1.5,0}{gw1}{gateway}
+  \Vertex{-1.5,0}{m1}{mcu}  
+  \Vertex{-1.5,-2}{t1}{terminal1}
+  \Vertex{1.5,-2}{t2}{terminal2}
+  \Vertex{-1.5,2}{a1}{userAgent1}
+  \Vertex{1.5,2}{a2}{userAgent2}
+  \EdgeAllToAll{<->}{hxxxIp, hxxxAlias}{m1, t1, t2}  
+  \EdgeAllToAll{<->}{sipUri}{m1, a1, a2}  
+  \Vertex{-4,-1}{ss1}{gatekeeper}  
+  \Vertex{-4,1}{ss2}{proxy}  
+  \end{SubGraph}
+  
+  \begin{SubGraph}{3,3}{}
+  \Vertex{0,0}{s1}{server}  
   \Vertex{-1.5,-2}{c1}{client1}
   \Vertex{1.5,-2}{c2}{client2}
   \EdgeOneToAll{<-}{connectUrl}{s1}{c1, c2}
   \end{SubGraph}
   
-  \begin{SubGraph}{3,3}{}
-  \Vertex{3,0}{gk1}{gatekeeper}  
-  \Vertex{0,0}{m1}{mcu}  
-  \Vertex{-1.5,-2}{t1}{terminal1}
-  \Vertex{1.5,-2}{t2}{terminal2}
-  \EdgeAllToAll{<->}{hxxxIp, hxxxAlias}{m1, t1, t2}  
-  \end{SubGraph}
-
-  \Vertex{0,3}{gw1}{gateway}
   \Edge{<-}{connectUrl}{s1}{gw1}
   \EdgeOneToAll{<->}{hxxxIp, hxxxAlias}{gw1}{m1, t1, t2}            
   
-  \begin{GraphLegend}{-1, 5}
-    \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
+  \begin{GraphLegend}{1, 5.5}
     \GraphLegendItem{hxxxIp}{Accessible by IP Address in H.323}
     \GraphLegendItem{hxxxAlias}{Accessible by H.323 Alias}
+    \GraphLegendItem{sipUri}{Accessible by SIP URI}
+    \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
   \end{GraphLegend}
 \end{Graph}
 
-\TODO{Show some complex Device Topology examples}
+\begin{TopologyExample}{proxy}{SIP signaling server}
+technology: SIP, capability: [{type: SignalingServer}]
+\end{TopologyExample}
+
+\begin{TopologyExample}{gatekeeper}{H.323 signaling server}
+technology: H323, capability: [{type: SignalingServer}]
+\end{TopologyExample}
+
+\begin{TopologyExample}{terminal1}{First H.323 terminal}
+technology: H323, address: 147.251.99.1,
+capability: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
+  {type: SignalingClient, technology: H323, server: gatekeeper, alias: 9501}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{terminal2}{Second H.323 terminal}
+technology: H323, address: 147.251.99.2,
+capability: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
+  {type: SignalingClient, technology: H323, server: gatekeeper, alias: 9502}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{userAgent1}{First SIP user agent}
+technology: SIP,
+capability: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
+  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:a1}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{userAgent2}{Second SIP user agent}
+technology: SIP,
+capability: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
+  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:a2}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{mcu}{Multipoint device for H.323 and SIP}
+technology: [H323, SIP], address: 147.251.99.3,
+capability: [
+  {type: [Send, Receive], channel: {count: *}}, 
+  {type: VirtualRooming, room: [room1, room2]},
+  {type: SignalingClient, technology: H323, server: proxy, 
+     alias: {room1: 9503, room2: 9504}},
+  {type: SignalingClient, technology: SIP, server: proxy, 
+     alias: {room1: sip:r1, room2: sip:r2}}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{server}{Adobe Connect server}
+technology: AdobeConnect,
+capability: [
+  {type: VirtualRooming, room: [room1, room2]}, 
+  {type: [Send, Receive], channel: {count: *}}, 
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{client1}{First Adobe Connect client}
+technology: AdobeConnect, identity: srom@cesnet.cz,
+capability: [
+  {type: [Send, Receive], channel: {count: 1}}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{client2}{Second Adobe Connect client}
+technology: AdobeConnect, identity: bouda@cesnet.cz,
+capability: [
+  {type: [Send, Receive], channel: {count: 1}}
+]
+\end{TopologyExample}
+
+\begin{TopologyExample}{gateway}{Gateway between H.323 and Adobe Connect}
+technology: [H323, AdobeConnect], address: 147.251.99.4,
+capability: [
+  {type: [Send, Receive], channel: {count: 1}},
+  {type: Translate, rule: [{from: *, to: *}]},
+  {type: SignalingClient, technology: H323, server: gatekeeper, alias: 9505}
+]
+\end{TopologyExample}
 
 \section{Operations}
 
