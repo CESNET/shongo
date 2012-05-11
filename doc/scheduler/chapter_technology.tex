@@ -1,0 +1,528 @@
+\chapter{Technology}
+
+This chapter describes widely-used videoconference technologies. Types of 
+network elements and network examples are listed for each technology.
+
+\section{H.323}
+
+The H.323 network is composed of terminals, multipoint control units, gateways 
+and gatekeepers. Terminals, MCUs and gateways are referred to as endpoints. At 
+least two terminals are needed to start a videoconference call.
+
+\subsection{Elements}
+
+\begin{itemize}
+
+\item \textbf{Terminal} \\
+Terminal represents a hardware device or a software client that enables a 
+single person or a group of persons situated in front of the device to connect 
+to another H.323 endpoint and take a videoconference call.
+
+There are special terminal devices that provides a single virtual room to 
+which can connect multiple other endpoints.  These terminals thus allow to 
+make a multipoint videoconference even without the MCU.
+
+There are also special terminal devices that only receives videoconference 
+channels and are used to stream or record them. They are referred to as 
+streaming or recording servers.
+
+\item \textbf{Multipoint Control Unit} (MCU) \\
+MCU represents a hardware device that is used for hosting of videoconference 
+calls in which can generally participate any number of endpoints. MCU contains 
+one or more \textbf{virtual rooms} and each virtual room can host one 
+videoconference call at the time. MCU can restrict the number of participants 
+per virtual room or per whole MCU device.
+
+\item \textbf{Gateway} \\
+Gateway is device that enable communication between H.323 network and other 
+networks (e.g., PSTN).
+
+\item \textbf{Gatekeeper} \\
+Gatekeeper is a hardware device that provides special services to the other 
+elements in the network: endpoint registration, address resolution, admission 
+control and user authentication. It can limit the number of connections that 
+are established through it.
+
+\end{itemize}
+
+Each H.323 element is running on a specific IP address that can be used to 
+connect to the element. An element can have assigned alias, \textbf{H.323 
+phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., 
+email), that can be used to connect to it. Alias is useful when the IP address 
+is not known (e.g., the device is behind the NAT) or it is likely to change 
+(organization changes).
+
+Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in 
+MCU. When a terminal has assigned alias it must register to one 
+\textbf{gatekeeper} that will be able to translate the alias to the terminal 
+IP address. When an element want to connect to another terminal or virtual 
+room by alias, it must use the same gatekeeper that has the proper registry 
+of aliases or the gatekeeper must be configured to route the request to a 
+proper other gatekeeper.
+
+When a gatekeeper is used in videoconference, it can work in two modes:
+\begin{itemize}
+\item Direct Endpoint Model -- The gatekeeper is used only for initialization 
+(address resolution, admission control, etc.) and the videoconference call 
+itself is managed by it's participants (endpoints). The gatekeeper doesn't 
+have full control over the call signaling. The target IP address is 
+communicated to the caller.
+\item Gatekeeper Routed Model -- The gatekeeper is used throughout 
+videoconference call, the call signaling flow through the gatekeeper and it 
+has the full control over it. The target IP address is not communicated to 
+the caller.
+\end{itemize}
+
+Each terminal and MCU element can have set zero or one gatekeeper. If 
+gatekeeper is set then each terminal and virtual room in MCU can have an alias 
+set. Each terminal and MCU element should also be configured to allow or 
+forbid the direct connections through IP address. When the gatekeeper with 
+admission control is set, it is appropriate to forbid direct connections 
+through IP address.
+
+\subsection{Constraints}
+
+\begin{itemize}
+\item Communication consists of:
+\begin{compactenum}
+\item Audio
+\item Audio + Video
+\item Audio + Data
+\item Audio + Video + Data
+\end{compactenum}
+\TODO{Do we want to know in Topology which of 4 modes each device support?}
+
+\item Bidirectional accessibility. When an element $A$ is accessible to an 
+element $B$ then also $B$ is accessible to $A$.
+\end{itemize}
+
+\subsection{Network Examples}
+
+% H.323 Graph Declarations
+\tikzstyle{hxxxData}=[color=red]
+\tikzstyle{hxxxDataDashed}=[color=red, dashed]
+\tikzstyle{hxxxControl}=[color=orange]
+\tikzstyle{hxxxAlias}=[color=blue, dashed]
+\tikzstyle{hxxxIp}=[color=green, dashed]
+\newcommand{\HXXXLegend}[1]{
+  \begin{GraphLegend}{#1}
+    \GraphLegendItem{hxxxData}{Call data flow}
+    \GraphLegendItem{hxxxControl}{Call control flow}
+    \GraphLegendItem{hxxxAlias}{Connect by H.323 alias}
+    \GraphLegendItem{hxxxIp}{Connect by IP address}
+  \end{GraphLegend}
+}
+
+\subsubsection{Connection through direct IP addresses}
+
+Terminals and virtual rooms in MCU don't have assigned any H.323 aliases thus 
+the connecting is done through IP addresses. This topology allows for 2-point 
+videoconferences (e.g., \emph{terminal1 -- terminal2}) and multipoint 
+videoconferences through the MCU (e.g., \emph{terminal1 -- terminal2 -- 
+terminal3 -- mcu}). When a terminal connects to the MCU it must select the 
+proper virtual room, because the IP address determines only the MCU not a 
+specific virtual room.
+
+\begin{Graph}{graph:h323:direct}{Connection through direct IP addresses}
+  \Vertex{0, 0}{t1}{terminal1}
+  \Vertex{4, 0}{t2}{terminal2}
+  \Vertex{4,-4}{t3}{terminal3}
+  \Vertex{0,-4}{mcu}{mcu}
+  
+  \EdgeAllToAll{<->}{hxxxIp, hxxxData, hxxxControl}{t1, t2, t3, mcu}
+  
+  \HXXXLegend{6, -1}
+\end{Graph}
+
+\subsubsection{Connection through a gatekeeper (Direct Endpoint Model)}
+
+Terminals and MCUs are configured to forbid direct connections through IP 
+addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the 
+devices register to the gatekeeper that is able to resolve these aliases to 
+direct IP addresses. When a terminal want to start videoconference he must 
+request the gatekeeper. The request must contain H.323 alias of another 
+terminal or virtual room in MCU to which the terminal wants to connect. The 
+gatekeeper resolves an IP address from the alias and return it to the caller 
+which then is able to start videoconference data flow to the requested target. 
+The gatekeeper can perform admission control and forbid the connection. When a 
+videoconference ends the caller informs the gatekeeper again. The gatekeeper 
+holds the list of active connections and thus can limit the maximum number of 
+connections at the same time.
+
+\begin{Graph}{graph:h323:gatekeeper}{Connection through gatekeeper}
+  \Vertex{ 0, 0}{t1}{terminal1}
+  \Vertex{ 4, 0}{t2}{terminal2}
+  \Vertex{ 4,-4}{t3}{terminal3}
+  \Vertex{ 0,-4}{mcu}{mcu}
+  \Vertex{-2,-2}{gk}{gatekeeper}
+  
+  \EdgeAllToAll{<->}{hxxxData, hxxxControl}{t1, t2, t3, mcu}
+  \EdgeOneToAll{<->}{hxxxAlias}{gk}{t1, t2, t3, mcu}
+  
+  \HXXXLegend{6, -1}
+\end{Graph}
+
+\subsubsection{Connection through a gatekeeper (Gatekeeper Routed Model)}
+
+Terminals and MCUs are configured to forbid direct connections through IP 
+addresses. Terminals and MCU virtual rooms have assigned H.323 aliases and the 
+devices register to the gatekeeper that is able to resolve these aliases to 
+direct IP addresses. When a terminal want to start videoconference he must 
+request the gatekeeper. The request must contain H.323 alias of another 
+terminal or virtual room in MCU to which the terminal wants to connect. The 
+gatekeeper resolves an IP address from the alias and establish connection to 
+the target endpoint. The call is then mediated by the gatekeeper throughout 
+the videoconference. The gatekeeper can also perform admission control and 
+limit the number of active connections. In special cases even the data flow 
+can be routed through the gatekeeper (e.g., when connecting endpoints behind 
+the NAT).
+
+\begin{Graph}{graph:h323:gatekeeperRouted}{Connection through gatekeeper}
+  \Vertex{0, 0}{t1}{terminal1}
+  \Vertex{4, 0}{t2}{terminal2}
+  \Vertex{4,-4}{t3}{terminal3}
+  \Vertex{0,-4}{mcu}{mcu}
+  \Vertex{-2,-2}{gk}{gatekeeper}
+  
+  \EdgeAllToAll{<->}{hxxxData}{t1, t2, t3, mcu}  
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk}{t1, t2, t3, mcu}
+  
+  \HXXXLegend{6, -1}
+\end{Graph}
+
+\subsubsection{Multiple gatekeepers}
+
+The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) 
+managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 
+endpoints and one gatekeeper.%
+\begin{Graph}{graph:h323:gatekeeperMultiple}{Multiple gatekeepers}
+  \Vertex{ 0, 0}{gk1}{gatekeeper1}
+  \Vertex{-2,-2}{gk2}{gatekeeper2}
+  \Vertex{ 2,-2}{gk3}{gatekeeper3}
+  \EdgeAllToAll{<->}{hxxxAlias, hxxxControl}{gk1, gk2, gk3}
+  
+  \Vertex{-2, 2}{t1}{terminal1}
+  \Vertex{ 2, 2}{t2}{terminal2}
+  \Vertex{ 0, 4}{mcu}{mcu}
+  \EdgeAllToAll{<->}{hxxxIp, hxxxControl, hxxxData}{t1, t2, mcu}  
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk1}{t1, t2, mcu}  
+
+  \Vertex{-5,-1}{t3}{terminal3}
+  \Vertex{-5,-3}{t4}{terminal4}
+  \Edge{<->}{hxxxIp, hxxxControl, hxxxData}{t3}{t4}
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk2}{t3, t4}  
+     
+  \Vertex{5,-1}{t5}{terminal5}
+  \Vertex{5,-3}{t6}{terminal6}
+  \Edge{<->}{hxxxIp, hxxxControl, hxxxData}{t5}{t6}
+  \EdgeOneToAll{<->}{hxxxAlias, hxxxControl}{gk3}{t5, t6}    
+  
+  \Edge{<-}{hxxxDataDashed}{mcu}{$(mcu) + (0,1)$}
+  \Edge{<-}{hxxxDataDashed}{t1}{$(t1) + (-1.5,0)$}
+  \Edge{<-}{hxxxDataDashed}{t2}{$(t2) + (1.5,0)$}
+  \Edge{<-}{hxxxDataDashed}{t3}{$(t3) + (0.3, 1)$}
+  \Edge{<-}{hxxxDataDashed}{t4}{$(t4) + (0.8,-1)$}
+  \Edge{<-}{hxxxDataDashed}{t5}{$(t5) + (-0.3, 1)$}
+  \Edge{<-}{hxxxDataDashed}{t6}{$(t6) + (-0.8,-1)$}
+
+  \HXXXLegend{4.5, 4.5}
+\end{Graph}%
+Adjacent endpoints (endpoints in the same local network) can connect directly 
+or through it's gatekeeper. Not adjacent endpoints (endpoints from different 
+local networks) can connect only by it's gatekeepers.
+
+\subsection{Suggested Topology}
+In Topology should be present only endpoints (terminals, MCUs, gateways). The 
+gatekeepers will be kept aside and will be used only to determine which 
+devices are accessible by which devices and to limit the number of active 
+connections that will flow through them (if maximum number of connections is 
+specified for the gatekeeper). See fig. \ref{graph:h323:topology}.
+
+\begin{Graph}{graph:h323:topology}{Suggested topology for H.323}  
+  \Vertex{-2, 4}{gk1}{gatekeeper1}
+  \Vertex{-2, 2}{t1}{terminal1}
+  \Vertex{-2,-2}{t2}{terminal2}
+  \Vertex{-4, 0}{mcu}{mcu}
+
+  \Vertex{2, 4}{gk2}{gatekeeper2}  
+  \Vertex{2, 2}{t3}{terminal3}
+  \Vertex{2,-2}{t4}{terminal4}
+  
+  \node at (-2, 3) {\textit{H.323 subdomain 1}};
+  \node at ( 2, 3) {\textit{H.323 subdomain 2}};
+  \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
+    
+  \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t1, t2, mcu}  
+  \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t3, t4}  
+  \EdgeOneToAll{<->}{hxxxAlias}{t3}{t1, t2, mcu}  
+  \EdgeOneToAll{<->}{hxxxAlias}{t4}{t1, t2, mcu}  
+  
+  \begin{GraphLegend}{4, 0.5}
+    \GraphLegendItem{hxxxAlias}{Accessible by H.323 alias}
+    \GraphLegendItem{hxxxIp}{Accessible by IP in H.323}
+  \end{GraphLegend}
+\end{Graph}
+
+\paragraph{Notes:}
+\begin{itemize}
+\item At the global level there should be a list of rules that defines which 
+devices are accessible to which devices by IP address (similarly to firewall 
+definition). By default all H.323 endpoints are accessible to all by IP 
+address (even with different assigned gatekeepers).
+\item At the global level there should be a list of rules that defines which 
+devices are accessible to which devices by alias. Rules should primarily use 
+gatekeepers for specifying accessibility (e.g., endpoints from the first 
+gatekeeper are accessible to endpoints from the second gatekeeper). By default 
+endpoints are accessible only inside the same gatekeeper. The accessibility 
+between two gatekeepers must be explicitly defined by a rule.
+\end{itemize}
+
+\subsection{References}
+
+\renewcommand{\bibsection}{}
+\begin{thebibliography}{1}
+\bibitem[1]{bib:h323:wiki}
+H.323 on Wikipedia.
+\\\url{https://en.wikipedia.org/wiki/H.323}
+
+\bibitem[2]{bib:h323:architecture}
+Basic Architecture of H.323.
+\\\url{http://hive1.hive.packetizer.com/users/packetizer/papers/h323/h323_basics_handout.pdf}
+
+\bibitem[3]{bib:h323:gatekeepers}
+Understanding H.323 Gatekeepers.
+\\\url{http://www.cisco.com/en/US/tech/tk1077/technologies_tech_note09186a00800c5e0d.shtml}
+\end{thebibliography}
+
+\section{SIP}
+
+The Session Initiation Protocol (SIP) is a signaling protocol for establishing 
+calls and videoconferences over IP networks.
+
+\subsection{Elements}
+
+Type of elements in SIP network:
+
+\begin{itemize}
+\item \textbf{User Agent} \\
+User agent is a hardware or software client that allows user to take a 
+videoconference call. It can create and receive SIP messages and thereby
+manage a SIP session.
+
+Each user agent should have set precisely one registrar to which it registers 
+and it will be available through it to other agents.
+
+\item \textbf{Multipoint Control Unit} (MCU) \\
+MCU represents the same hardware device as in H.323. It contains one or more 
+\textbf{virtual rooms} and each virtual room can host one videoconference call 
+at the time.
+
+A single MCU device can support both SIP and H.323 technology which means that 
+to a single virtual room on that MCU can connect SIP user agents and also 
+H.323 terminals. Each virtual room can be configured to support both 
+technologies or only one of these technologies.
+
+\item \textbf{Proxy Server} \\
+Proxy server is an intermediary entity whose main role is to route requests to 
+another entity that is closer to the target. Proxy server can also perform 
+admission control.
+
+\item \textbf{Redirect Server} \\
+Redirect server response to each client request by alternative set of URIs 
+which should client contact instead of the original target.
+
+\item \textbf{Registrar} \\
+Registrar is an element that keeps register of user agents. Each user agent 
+can register itself to a registrar for a specific URI. More user agents can be 
+registered to a single URI. 
+
+For scheduling purposes we combine the previous three servers (Proxy, Redirect 
+and Registrar) to a single server referred to as SIP Proxy.
+
+\item \textbf{Gateway} \\
+Gateway is a device that enable communication between SIP network and other 
+networks (e.g., PSTN).
+\end{itemize}
+
+Each user agent in a SIP network is identified by an uniform resource 
+identifier (URI), for instance \verb|sip:username:password@host:port|. 
+Multiple user agents can register to registrar with a single URI and when the 
+URI is requested by a caller all devices will "ring" and only one can answer 
+the call (e.g., one user with single URI can have multiple phones, hardware or 
+software, by which he can answer an incoming calls).
+
+The URI can contain the target IP address. When an user agent use this type of 
+URI to start a call, user agent's Proxy (combination of Registrar, Proxy 
+and/or Redirect Server) is still used to initiate the call unlike in H.323 
+where the connection can be done directly through the IP address without 
+notifying a gatekeeper.
+
+\subsection{Constraints}
+
+\begin{itemize}
+
+\item Communication consists of:
+\begin{compactenum}
+\item Audio
+\item Audio + Video
+\item Audio + Video + Data
+\end{compactenum}
+
+\item Bidirectional accessibility. When an element $A$ is accessible to an 
+element $B$ then also $B$ is accessible to $A$.
+
+\item Each user agent must have the the Registrar set.
+
+\end{itemize}
+
+\subsection{Network Examples}
+
+SIP network is very similar to H.323 network and doesn't bring any new aspects 
+or elements thus this section can be skipped.
+
+\subsection{Suggested topology}
+
+For SIP network we will use the same naming convention as for H.323 and 
+endpoints will stand for user agents (terminals), MCUs and gateways. Proxy 
+Server, Redirect Server and Registrar are grouped into a single element SIP 
+Proxy.%
+\tikzstyle{sipUri}=[color=red, dashed]
+\begin{Graph}{graph:sip:topology}{Suggested topology for SIP}  
+  \Vertex{-2, 4}{gk1}{proxy1}
+  \Vertex{-2, 2}{a1}{userAgent1}
+  \Vertex{-2,-2}{a2}{userAgent2}
+  \Vertex{-4, 0}{mcu}{mcu}
+
+  \Vertex{2, 4}{gk2}{proxy2}  
+  \Vertex{2, 2}{a3}{userAgent3}
+  \Vertex{2,-2}{a4}{userAgent4}
+  
+  \node at (-2, 3) {\textit{SIP subdomain 1}};
+  \node at ( 2, 3) {\textit{SIP subdomain 2}};
+  \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
+    
+  \EdgeAllToAll{<->}{sipUri}{a1, a2, mcu, a3, a4}  
+  
+  \begin{GraphLegend}{4, 0.25}
+    \GraphLegendItem{sipUri}{Accessible by SIP URI}
+  \end{GraphLegend}
+\end{Graph}
+In Device Topology should be present only endpoints. SIP Proxy elements are 
+kept aside and they are used only when the topology is constructed to 
+determine which endpoints are accessible from which endpoints. See fig. 
+\ref{graph:sip:topology}.
+
+\paragraph{Notes:}
+\begin{itemize}
+\item Similarly like in H.323, at the global level there should be a list of 
+rules that defines which devices are accessible to which devices by URI. By 
+default endpoints are accessible only inside the same Proxy. The accessibility 
+between two Proxies must be explicitly defined by a rule.
+\end{itemize}
+
+\subsection{References}
+
+\renewcommand{\bibsection}{}
+\begin{thebibliography}{1}
+
+\bibitem[1]{bib:sip:architecture}
+Session Initiation Protocol (SIP)
+\\ \url{http://www.vide.net/cookbook/cookbook.en/list_page.php?
+topic=3&url=sip.htm}
+
+\bibitem[2]{bib:sip:wiki}
+Session Initiation Protocol on Wikipedia.
+\\ \url{https://en.wikipedia.org/wiki/Session_Initiation_Protocol}
+
+\end{thebibliography}
+
+\section{Adobe Connect}
+
+Adobe Connect is a web conferencing software for web meetings, eLearning, and 
+webinars. The software is running as a server on a specific URL. It contains 
+several meetings (virtual rooms) which can be accessed by clients.
+
+\subsection{Elements}
+
+Type of elements in Adobe Connect network:
+
+\begin{itemize}
+\item \textbf{Client} \\
+Client for Adobe Connect is a web browser with Adobe Flash Player installed or 
+Adobe Connect Add-in. To be able to connect two clients, the Adobe Connect 
+server with created meeting is needed as opposed to H.323/SIP  where two 
+terminals/user agents are sufficient to start a videoconference.
+
+Special type of client \textbf{Gateway} can exist. This client can translate 
+Adobe Connect videoconference to other technology (e.g., SIP or H.323).
+
+\item \textbf{Server} \\
+Server is an installed Adobe Connect software that is made accessible on a 
+specific URL. On the server one or multiple meetings (virtual rooms) can be 
+created. Clients are then able to connect to a meeting on a server. Each 
+virtual room can be accessed by the server URL followed by a meeting name 
+(e.g., \verb|obelix.cesnet.cz/<MEETING_NAME>|).
+\end{itemize}
+
+Adobe Connect servers cannot be cascaded (connected together) as opposed to 
+H.323/SIP MCUs which can be cascaded. Thus the Adobe Connect videoconference 
+scheduling will be simpler task than scheduling for other described 
+technologies.
+
+Clients can be identified by shibboleth (e.g., eduID.cz). Managed client 
+doesn't make sense, it would be controlling application for a web browser. 
+Managed client only make sense for gateway client (e.g, client that translate 
+Adobe Connect channels to SIP or H.323).
+
+\subsection{Constraints}
+
+\begin{itemize}
+\item Communication consists of:
+\begin{compactenum}
+\item Audio
+\item Audio + Video
+\item Audio + Video + Data
+\end{compactenum}
+\end{itemize}
+
+\subsection{Suggested topology}
+
+In Topology should be present both clients and servers. Edges will be only 
+between clients and servers and not between clients themselves. When two 
+clients want to take a videoconference call they both must connect to the same 
+Adobe Connect meeting on the same server.
+
+% SIP Graph Declarations
+\tikzstyle{connectUrl}=[color=violet, dashed]
+
+\begin{Graph}{graph:connect:topology}{Suggested topology for Adobe Connect}  
+  \Vertex{-2, 3}{s1}{server1}
+  \Vertex{-3, 0}{c1}{client1}
+  \Vertex{-1, 0}{c2}{client2}
+
+  \Vertex{2, 3}{s2}{server2}  
+  \Vertex{1, 0}{c3}{client3}
+  \Vertex{3, 0}{c4}{client4}
+      
+  \EdgeOneToAll{<-}{connectUrl}{s1}{c1, c2, c3, c4}  
+  \EdgeOneToAll{<-}{connectUrl}{s2}{c1, c2, c3, c4}  
+  
+  \begin{GraphLegend}{4.5, 1.75}
+    \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
+  \end{GraphLegend}
+\end{Graph}
+
+\subsection{References}
+
+\renewcommand{\bibsection}{}
+\begin{thebibliography}{1}
+
+\bibitem[1]{bib:connect:architecture}
+Adobe Connect Official Website.
+\\ \url{http://www.adobe.com/products/adobeconnect.html}
+
+\bibitem[2]{bib:connect:wiki}
+Adobe Connect on Wikipedia.
+\\ \url{http://en.wikipedia.org/wiki/Adobe_Connect}
+
+\end{thebibliography}
