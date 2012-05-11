@@ -37,6 +37,29 @@
 
 \input{graph.tex}
 
+\lstdefinestyle{Scheduler}{
+    basicstyle=\footnotesize\ttfamily,
+    aboveskip=0pt,
+    belowskip=0pt,           
+    xleftmargin=8pt,
+    classoffset=0,
+    alsoletter={7-*},
+    morecomment=[l]{//},
+    morecomment=[l][\color{red}]{TODO},
+    morecomment=[s]{/*}{*/},     
+    commentstyle=\color{gray},
+}
+
+% Use code style (keywords, values)
+\newcommand{\UseCodeStyle}[1]{
+  \lstset{
+    style=Scheduler,
+    classoffset=1,
+    morekeywords={#1},
+    keywordstyle=\color{black}\textbf,
+  }
+}
+
 
 \begin{document}
 
@@ -549,24 +572,12 @@ capability that lists all the technologies (provided that all technologies has s
 
 \lstnewenvironment{TopologyExample}[2]{%
     \vspace{2mm}
-    \lstset{
-        basicstyle=\footnotesize\ttfamily,
-        aboveskip=0pt,
-        belowskip=0pt,           
-        xleftmargin=8pt,
-        classoffset=0,
-        alsoletter={7},
-        morekeywords={SIP, H323, AdobeConnect, StandaloneTerminal, Receive, 
-            Send, Mix, VirtualRooming, SignalingServer, SignalingClient,
-            Translate, H264, CIF, 720p,
-            Address, Alias, Enable, Disable},
-        keywordstyle=\textbf,
-        classoffset=1,
-        morekeywords={technologies, capabilities, type, channels, count},
-        keywordstyle=\color{black},
-        morecomment=[l]{//},     
-        commentstyle=\color{gray},
-    }
+    \UseCodeStyle{
+      StandaloneTerminal, Receive, Send, Mix, VirtualRooming, 
+      SignalingServer, SignalingClient, Translate,
+      SIP, H323, AdobeConnect, H264, CIF, 720p, Address, Alias, Enable, 
+      Disable
+    }     
     \minipage{\textwidth}
     \advance\leftmargini -3mm \quote
     \footnotesize\ttfamily \textbf{#1} = \{
@@ -1004,6 +1015,13 @@ Each resource can be dependent on another resource (e.g., can be located inside 
 \item Minimize resource utilization
 \item Maximize available continuous time slots for resources (minimize fragmentation)
 \end{compactitem}
+
+\subsection{Data Types}
+
+\UseCodeStyle{
+  Object, Enum, Integer, String, IP-Address, URN, List, extends, of, or, *
+}
+\lstinputlisting{data_model.txt}
 
 \subsection{Operations}
 
