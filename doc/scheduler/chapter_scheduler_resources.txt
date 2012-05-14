@@ -20,9 +20,9 @@ Resource = Object {
   // Name of the Resource.
   name: String,
   // Capabilities that the Resource has.
-  capabilities: List<1:n> of Capability 
-
-  TODO: Add all attributes needed for scheduler
+  capabilities: List<1:n> of Capability
+  // Maximum future
+  maxFuture: DateTime, 
 }
 
 /** 
@@ -189,7 +189,7 @@ TranslateCapability = Object extends DeviceCapability {
 /** 
  * Stream capability tells that a device is able to perform streaming.
  *
- * @RequireCapability(ReceiveCapability, SendCapability)
+ * @RequireCapability(ReceiveCapability)
  */
 StreamCapability = Object extends DeviceCapability {  
 }
@@ -197,7 +197,7 @@ StreamCapability = Object extends DeviceCapability {
 /** 
  * Record capability tells that a device is able to perform recording.
  *
- * @RequireCapability(ReceiveCapability, SendCapability)
+ * @RequireCapability(ReceiveCapability)
  */
 RecordCapability = Object extends DeviceCapability {  
 }
@@ -209,6 +209,15 @@ RecordCapability = Object extends DeviceCapability {
 ManagedCapability = Object extends DeviceCapability {
   // URL to a device connector.
   connectorUrl: URL
+}
+
+/**
+ * Capability tells that a resource is located inside
+ * another resource (e.g., in physical room).
+ */
+LocatedInCapability = Object extends Capability {
+  // Another resource in which the resource is located. 
+  resource: Resource
 }
 
 /**

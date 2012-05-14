@@ -1,0 +1,85 @@
+/**
+ * Date/Time objects as defined in API document.
+ */
+DateTime = Object {
+}
+AbsoluteDateTime = Object extends DateTime {
+}
+PeriodicDateTime = Object extends DateTime {
+}
+
+/** 
+ * Represents a user identity.
+ */
+UserIdentity = Object {
+}
+
+/** 
+ * Holds the specifications of requested resources for
+ * a single reservation.
+ */
+ReservationRequestedResources = Object {
+  // List of resource specifications.
+  resources: List of Object {
+    // Resource specification
+    specification: (
+      /** Fully-qualified explicit specification. */
+      Object {
+        // Specific resource.
+        resource: Resource,
+      } 
+      /** Partially-qualified explicit specification. */
+      or Object {
+        // Technology of a resource.
+        technology: * or Technology,
+        // Type of a resource.
+        type: Enum {Terminal, Multipoint}
+      }
+    ),
+    // List of identities that will/are allowed to connect 
+    // to a videoconference from that resource.
+    identities: List<1:n> of UserIdentity 
+  },
+  // Option specifying whether inter domain lookup can be performed.
+  interDomain: Boolean
+}
+
+/**
+ * Event represents the reservation on specific date/time. If reservation
+ * takes place multiple date/times it is scheduled multiple times
+ * and the scheduling result (assigned resources) can be different. This
+ * object holds the allocated resources. 
+ */
+ReservationEvent = Object {
+  // Absolute date/time when the event takes place.
+  dateTime: AbsoluteDateTime,
+
+  // Requested resources for the reservation.
+  requestedResources: ReservationRequestedResources,
+
+  // Allocated resources for the reservation event. 
+  allocatedResources: List<1:n> of Object {
+    // Specific resource.
+    resource: Resource,
+    // List of identities.
+    identities: List<1:n> of UserIdentity
+  }
+}
+
+/** 
+ * Single reservation that was requested by an user. It can
+ * contain multiple reservation events when periodic date is used.
+ */
+Reservation = Object {
+  // Simple or periodic date.
+  dateTime: DateTime,
+
+  // Requested resources for the reservation.
+  requestedResources: ReservationRequestedResources,
+
+  // Enumerated list of reservation events.
+  events: List<1:n> of ReservationEvent
+}
+
+
+

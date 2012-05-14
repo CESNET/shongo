@@ -1,5 +1,15 @@
 \chapter{Scheduler}
 
+\newcommand{\SchedulerInputCode}[1]{
+\UseCodeStyle{
+  Object, Enum, Integer, String, Boolean, List,  
+  IP-Address, URL, URN, 
+  extends, of, or, *
+}
+\vspace{2mm}
+\lstinputlisting{#1}
+}
+
 Scheduler is a component of a domain controller that has access to a database 
 of domain resources and reservations. Scheduler allocates the requested 
 resources by reservations to specific time slots and specific resources 
@@ -65,13 +75,7 @@ alsoReservate?}
 
 The resource database is implemented as follows:
 
-\UseCodeStyle{
-  Object, Enum, Integer, String, List,  
-  IP-Address, URL, URN, 
-  extends, of, or, *
-}
-\vspace{2mm}
-\lstinputlisting{chapter_scheduler_model.txt}
+\SchedulerInputCode{chapter_scheduler_resources.txt}
 
 \subsection{Operations}
 
@@ -112,6 +116,8 @@ all reservation events. If infinite reservations are allowed the scheduling must
 \item ...
 \end{compactenum}
 }
+
+\SchedulerInputCode{chapter_scheduler_reservations.txt}
 
 \TODO{Continue in describing scheduler}
 
