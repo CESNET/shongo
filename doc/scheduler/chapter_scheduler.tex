@@ -1,7 +1,5 @@
-\chapter{Scheduler}
-
 \newcommand{\SchedulerInputCode}[1]{
-\UseCodeStyle{
+\CodeStyle{
   Object, Enum, Integer, String, Boolean, List, Set,  
   IP-Address, URL, URN, 
   extends, of, or, *
@@ -9,6 +7,8 @@
 \vspace{2mm}
 \lstinputlisting{#1}
 }
+
+\chapter{Scheduler}
 
 Scheduler is a component of a domain controller that has access to a database 
 of domain resources and reservations. Scheduler allocates the requested 
@@ -50,26 +50,6 @@ inside it or can be part of it), for instance a H.323 terminal can be located
 inside a physical room or a H.323 identifier is assigned to a H.323 device. 
 When scheduler allocates resource, it must also allocate a resource to which 
 the requested resource is dependent (recursively).
-
-\TODO{Do we create LocatedIn capability (with resource and alsoReservate 
-attributes)? Or all resource will have the attribute locatedIn and 
-alsoReservate?}
-
-\paragraph{Resource}
-\begin{compactitem}
-\item Has some attributes (e.g., identifier, name, etc.).
-\item Is one of the resource type.
-\item Can be dependent on another resource. \TODO{Or on more resources?}
-\item A resource type can restrict what other resource types may be dependent 
-  to it or to which resource types it can be dependent.
-\item Has some capabilities (e.g., StandaloneTerminal, Receive, Send, etc.).
-\item Each capability can restrict in which resource types may be used (or 
-  resource type may restrict which capabilities can have).
-\item There will be more capabilities (e.g., Located In, Managed/Unmanaged).
-\item Capability can be part of a set, and resource type may request that the 
-  resource has exactly one capability from that set (e.g., device must be   
-  Managed or Unmanaged). 
-\end{compactitem}
 
 \subsection{Implementation}
 

@@ -1,0 +1,38 @@
+% Listing style
+\lstdefinestyle{Scheduler}{
+    basicstyle=\footnotesize\ttfamily,
+    aboveskip=0pt,
+    belowskip=0pt,           
+    xleftmargin=8pt,
+    classoffset=0,
+    alsoletter={7-*},
+    morecomment=[l][\color{gray}]{//},
+    morecomment=[s][\color{green!50!black}]{/*}{*/},     
+    morecomment=[l][\color{red}]{TODO},
+}
+
+% Use code style (keywords)
+\newcommand{\CodeStyle}[1]{
+  \lstset{
+    style=Scheduler,
+    classoffset=1,
+    morekeywords={#1},
+    keywordstyle=\color{black}\textbf,
+  }
+}
+
+% Resource example (type, name, comment)
+\lstnewenvironment{ResourceExample}[3]{%
+    \vspace{0.5mm}
+    \minipage{\textwidth}
+    \advance\leftmargini -3mm \quote
+    \footnotesize\ttfamily #2 = \ifx&#1&\else\textbf{#1} \fi{}\{
+    \ifx&#3& \else {\color{gray}// #3} \fi
+}{%
+    %
+    \vspace*{-4pt}
+    \footnotesize\ttfamily \}
+    \endquote
+    \endminipage
+    \vspace{0.5mm}
+} 

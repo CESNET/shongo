@@ -33,31 +33,11 @@
 \fi%
 }
 
-% Listing style
-\lstdefinestyle{Scheduler}{
-    basicstyle=\footnotesize\ttfamily,
-    aboveskip=0pt,
-    belowskip=0pt,           
-    xleftmargin=8pt,
-    classoffset=0,
-    alsoletter={7-*},
-    morecomment=[l][\color{gray}]{//},
-    morecomment=[s][\color{green!50!black}]{/*}{*/},     
-    morecomment=[l][\color{red}]{TODO},
-}
-
-% Use code style (keywords)
-\newcommand{\UseCodeStyle}[1]{
-  \lstset{
-    style=Scheduler,
-    classoffset=1,
-    morekeywords={#1},
-    keywordstyle=\color{black}\textbf,
-  }
-}
-
 % Graph commands
 \input{graph.tex}
+
+% Listings commands
+\input{code.tex}
 
 \begin{document}
 
@@ -68,10 +48,30 @@
 \maketitle
 \tableofcontents
 
+% Technology styles
+\tikzstyle{hxxxAlias}=[color=blue, dashed]
+\tikzstyle{hxxxIp}=[color=green, dashed]
+\tikzstyle{sipUri}=[color=red, dashed]
+\tikzstyle{connectUrl}=[color=violet, dashed]
+
 \input{chapter_technology.tex}
 
 \input{chapter_topology.tex}
 
 \input{chapter_scheduler.tex}
+
+\chapter{Examples}
+
+This chapter shows some examples of domain controllers, resource databases and scheduling scenarios.
+
+\CodeStyle{
+  StandaloneCapability, ReceiveCapability, SendCapability,
+  VirtualRoomsCapability, TranslateCapability, 
+  SignalingServerCapability, SignalingClientCapability,
+  SIP, H323, AdobeConnect, H264, CIF, 720p, 
+  Address, Alias, Enable, Disable
+}
+
+\input{chapter_example_first.tex}
 
 \end{document}

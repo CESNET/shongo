@@ -102,8 +102,6 @@ element $B$ then also $B$ is accessible to $A$.
 \tikzstyle{hxxxData}=[color=red]
 \tikzstyle{hxxxDataDashed}=[color=red, dashed]
 \tikzstyle{hxxxControl}=[color=orange]
-\tikzstyle{hxxxAlias}=[color=blue, dashed]
-\tikzstyle{hxxxIp}=[color=green, dashed]
 \newcommand{\HXXXLegend}[1]{
   \begin{GraphLegend}{#1}
     \GraphLegendItem{hxxxData}{Call data flow}
@@ -386,7 +384,6 @@ For SIP network we will use the same naming convention as for H.323 and
 endpoints will stand for user agents (terminals), MCUs and gateways. Proxy 
 Server, Redirect Server and Registrar are grouped into a single element SIP 
 Proxy.%
-\tikzstyle{sipUri}=[color=red, dashed]
 \begin{Graph}{graph:sip:topology}{Suggested topology for SIP}  
   \Vertex{-2, 4}{gk1}{proxy1}
   \Vertex{-2, 2}{a1}{userAgent1}
@@ -491,9 +488,6 @@ In Topology should be present both clients and servers. Edges will be only
 between clients and servers and not between clients themselves. When two 
 clients want to take a videoconference call they both must connect to the same 
 Adobe Connect meeting on the same server.
-
-% SIP Graph Declarations
-\tikzstyle{connectUrl}=[color=violet, dashed]
 
 \begin{Graph}{graph:connect:topology}{Suggested topology for Adobe Connect}  
   \Vertex{-2, 3}{s1}{server1}
