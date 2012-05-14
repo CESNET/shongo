@@ -33,10 +33,10 @@ can be from the following types:
 \item \textbf{Standalone Terminal} \\
   Capability tells that device is a terminal that is able to communicate to
   other standalone terminal directly without \textbf{Mixing} or 
-  \textbf{Virtual 
-  Rooming} device (e.g., H.323 and SIP terminals are generally standalone 
-  terminal devices but Adobe Connect client is not standalone device because 
-  it always needs the Adobe Connect server to start a videoconference).
+  \textbf{Virtual Rooms} device (e.g., H.323 and SIP terminals are generally 
+  standalone terminal devices but Adobe Connect client is not standalone 
+  device because it always needs the Adobe Connect server to start a 
+  videoconference).
   
 \item \textbf{Receive}/\textbf{Send} \\
   Capability allows for receiving/sending through a limited (or unlimited) 
@@ -57,7 +57,7 @@ can be from the following types:
   unicast). To each output channel can be connected multiple other devices 
   (each other device want to receive the same data -- multicast).
 
-\item \textbf{Virtual Rooming} \ExtendCapability{\textbf{Mix}} \\
+\item \textbf{Virtual Rooms} \ExtendCapability{\textbf{Mix}} \\
   Capability allows the device to divide input channels into groups (virtual 
   rooms). \textbf{Mixing} is applied per group and each group 
   is bound to one output channel. Maximum number of output channels thus 
@@ -114,7 +114,7 @@ same \textbf{channels} settings).
 \lstnewenvironment{TopologyExample}[2]{%
     \vspace{2mm}
     \UseCodeStyle{
-      StandaloneTerminal, Receive, Send, Mix, VirtualRooming, 
+      Standalone, Receive, Send, Mix, VirtualRooms, 
       SignalingServer, SignalingClient, Translate,
       SIP, H323, AdobeConnect, H264, CIF, 720p, Address, Alias, Enable, 
       Disable
@@ -141,32 +141,32 @@ same \textbf{channels} settings).
   establish also 2-point videoconferences. 
   
 \begin{TopologyExample}{terminal1}{Example of terminal for H.323 and/or SIP}
-technology: [H323, SIP],
-capability: [
-  {type: StandaloneTerminal, technology: *},
-  {type: Receive, channel: {count: 1}}, // "technology: *" is by default
-  {type: Send, channel: {count: 1}}
+technologies: [H323, SIP],
+capabilities: [
+  {type: Standalone, technologies: *},
+  {type: Receive, channels: {count: 1}}, // "technologies: *" is by default
+  {type: Send, channels: {count: 1}}
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{terminal2}
+\begin{TopologyExample}{terminal2}%
       {Example of terminal (client) for Adobe Connect}
-technology: AdobeConnect,
-capability: [
-  {type: [Receive, Send], channel: {count: 1}},
+technologies: [AdobeConnect],
+capabilities: [
+  {type: [Receive, Send], channels: {count: 1}},
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{terminal3}{Example of H323 terminal}
 // It can process arbitrary audio, but video only in H.264 (CIF -- 720p)
 // It cannot process content
-technology: H323,
-capability: [
-  {type: [Receive, Send], channel: {
+technologies: [H323],
+capabilities: [
+  {type: [Receive, Send], channels: {
     count: 1, 
-    stream: {
+    template: {
       audio: *,
-      video: {codec: H264, resolution: [CIF..720p]}
+      video: {codecs: [H264], resolutions: [CIF..720p]}
     }  
   }}
 ]
@@ -184,13 +184,12 @@ capability: [
   virtual room itself is part of 
   the hosted videoconference.
   
-\begin{TopologyExample}{terminal4}
-      {Example of terminal with one virtual room 
-for H.323 and/or SIP}
-technology: [H323, SIP],
-capability: [
-  {type: Receive, channel: {count: 9}}, // max 9 other participants
-  {type: Send, channel: {count: 1}},
+\begin{TopologyExample}{terminal4}%
+      {Example of terminal with one virtual room for H.323 and/or SIP}
+technologies: [H323, SIP],
+capabilities: [
+  {type: Receive, channels: {count: 9}}, // max 9 other participants
+  {type: Send, channels: {count: 1}},
   {type: Mix}
 ]
 \end{TopologyExample}
@@ -202,29 +201,29 @@ capability: [
   device is that the multipoint device can host more than one videoconference 
   and the multipoint device isn't part of these videoconferences, it only 
   manages them. The multipoint device has \textbf{Receive}, \textbf{Send}
-  and \textbf{Virtual Rooming} capabilities. Number of input 
+  and \textbf{Virtual Rooms} capabilities. Number of input 
   channels for \textbf{Receive} capability is limited to a maximum number of 
   participants in all hosted videoconferences in the device. Number of output 
   channels for \textbf{Send} capability is limited to a maximum number of 
-  virtual rooms (=~videoconferences) in the device. \textbf{Virtual Rooming} 
+  virtual rooms (=~videoconferences) in the device. \textbf{Virtual Rooms} 
   capability provides the ability to mix input channels to one output channel 
   that is routed to all participants in each virtual room.
 
 \begin{TopologyExample}{mcu1}{Example of H.323 and/or SIP multipoint device}
-technology: [H323, SIP],
-capability: [
-  {type: Receive, channel: {count: 99}}, // max 99 participants
-  {type: Send, channel: {count: 9}},     // max 9 virtual rooms
-  {type: VirtualRooming}
+technologies: [H323, SIP],
+capabilities: [
+  {type: Receive, channels: {count: 99}}, // max 99 participants
+  {type: Send, channels: {count: 9}},     // max 9 virtual rooms
+  {type: VirtualRooms}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{server1}{Example of Adobe Connect server}
-technology: AdobeConnect,
-capability: [
+technologies: [AdobeConnect],
+capabilities: [
   {type: Receive, channel: {count: 99}}, // max 99 participants
   {type: Send, channel: {count: *}},     // unlimited virtual rooms
-  {type: VirtualRooming}
+  {type: VirtualRooms}
 ]
 \end{TopologyExample}
 
@@ -235,41 +234,42 @@ capability: [
   to address them by it's alias.
     
 \begin{TopologyExample}{gatekeeper}{Example of gatekeeper for H.323}
-technology: H323,
-capability: [
-  {type: SignalingServer, max-connection: 99}
+technologies: [H323],
+capabilities: [
+  {type: SignalingServer, max-connections: 99}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{proxy}{Example of proxy for SIP}
-technology: SIP,
-capability: [
-  {type: SignalingServer, max-connection: 55}
+technologies: [SIP],
+capabilities: [
+  {type: SignalingServer, max-connections: 55}
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{mcu2}
+\begin{TopologyExample}{mcu2}%
       {Example of MCU that is registered to H.323 and SIP servers}
-technology: [H323, SIP],
-capability: [
-  {type: [Send, Receive], channel: {count: 99}},
-  {type: VirtualRooming, room: [room1, room2]},
-  {type: SignalingClient, technology: H323, server: gatekeeper,
-     alias: {room1: 9500000002, room2: 9500000003}},
-  {type: SignalingClient, technology: SIP, server: proxy,
-     alias: {room1: sip:room1@cesnet.cz}} // room2 is registered only to H.323
+technologies: [H323, SIP],
+capabilities: [
+  {type: [Send, Receive], channels: {count: 99}},
+  {type: VirtualRooms, rooms: [room1, room2]},
+  {type: SignalingClient, technologies: [H323], server: gatekeeper,
+     aliases: {room1: [9500000002], room2: [9500000003]}},
+  {type: SignalingClient, technologies: [SIP], server: proxy,
+     aliases: {room1: [sip:room1@cesnet.cz]}} 
+     // room2 is not registered to SIP Proxy
 ]
 \end{TopologyExample}
 
-\begin{TopologyExample}{terminal5}
+\begin{TopologyExample}{terminal5}%
       {Example of terminal that is registered to H.323 and SIP servers}
-technology: [H323, SIP],
-capability: [
-  {type: [Send, Receive], channel: {count: 1}},
-  {type: SignalingClient, technology: H323, server: gatekeeper,
-     alias: 9500000001},
-  {type: SignalingClient, technology: SIP, server: proxy,
-     alias: sip:srom@cesnet.cz}
+technologies: [H323, SIP],
+capabilities: [
+  {type: [Send, Receive], channels: {count: 1}},
+  {type: SignalingClient, technologies: [H323], server: gatekeeper,
+     aliases: [9500000001]},
+  {type: SignalingClient, technologies: [SIP], server: proxy,
+     aliases: [sip:srom@cesnet.cz]}
 ]
 \end{TopologyExample}
 
@@ -289,40 +289,40 @@ available two edges must be present). Each edge also specifies number of
 channel is specified set of \textbf{streams} that can be used.
 
 \begin{TopologyExample}{proxy}{}
-technology: SIP,
-capability: [{type: SignalingServer}]
+technologies: [SIP],
+capabilities: [{type: SignalingServer}]
 \end{TopologyExample}
 
 \begin{TopologyExample}{terminal1}{}
 address: 147.251.99.1,
-technology: [H323, SIP],
-capability: [
-  {type: StandaloneTerminal},
-  {type: [Send, Receive], channel: {count: 1}}, 
-  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:1}
+technologies: [H323, SIP],
+capabilities: [
+  {type: Standalone},
+  {type: [Send, Receive], channels: {count: 1}}, 
+  {type: SignalingClient, technologies: [SIP], server: proxy, aliases: [sip:1]}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{terminal2}{}
 address: 147.251.99.2,
-technology: [H323, SIP],
-capability: [
-  {type: StandaloneTerminal},
-  {type: [Send, Receive], channel: {count: 1}}, 
-  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:2}
+technologies: [H323, SIP],
+capabilities: [
+  {type: Standalone},
+  {type: [Send, Receive], channels: {count: 1}}, 
+  {type: SignalingClient, technologies: [SIP], server: proxy, aliases: [sip:2]}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{edge1}{terminal1 <-> terminal2}
 technology: H323,
 type: Address,
-channel: {count: 1}
+format: *
 \end{TopologyExample}
 
 \begin{TopologyExample}{edge2}{terminal1 <-> terminal2}
 technology: SIP,
 type: Alias,
-channel: {count: 1}
+format: *
 \end{TopologyExample} 
   
   
@@ -337,35 +337,35 @@ can be specified by pattern for identifier, address or alias. If more than
 one group of nodes is specified then the rule is applied only for edges 
 between the groups and not inside the groups.
 
-\begin{TopologyExample}{rule1}
+\begin{TopologyExample}{rule1}%
       {Disable reachability by IP address for all H.323 devices}
-technology: H323,
-type: Address,
-node: *,
-goal: Disable
+technologies: [H323],
+types: [Address],
+nodes: *,
+goals: Disable
 \end{TopologyExample}
 
-\begin{TopologyExample}{rule2}
+\begin{TopologyExample}{rule2}%
       {Enable reachability by IP address for all H.323 devices at FI MUNI}
-technology: H323,
-type: Address,
-node: cz.muni.fi.*,
+technologies: [H323],
+types: [Address],
+nodes: cz.muni.fi.*,
 goal: Enable
 \end{TopologyExample}
 
 \begin{TopologyExample}{rule3}{}
 // Enable reachability by alias of SIP and H.323 devices between two networks.
 // Devices from each network are referenced by the network gatekeeper.
-technology: [H323, SIP],
-type: Alias,
-node: [gatekeeper1.*, gatekeeper2.*],
+technologies: [H323, SIP],
+types: [Alias],
+nodes: [gatekeeper1.*, gatekeeper2.*],
 goal: Enable
 \end{TopologyExample}
 
 \begin{TopologyExample}{rule3}{Enable all correct reachability}
-technology: *,
-type: *,
-node: *,
+technologies: *,
+types: *,
+nodes: *,
 goal: Enable
 \end{TopologyExample}
 
@@ -420,85 +420,86 @@ agents can also connect to Adobe Connect server but only through the
 \end{Graph}
 
 \begin{TopologyExample}{proxy}{SIP signaling server}
-technology: SIP, capability: [{type: SignalingServer}]
+technologies: [SIP], capabilities: [{type: SignalingServer}]
 \end{TopologyExample}
 
 \begin{TopologyExample}{gatekeeper}{H.323 signaling server}
-technology: H323, capability: [{type: SignalingServer}]
+technologies: [H323], capabilities: [{type: SignalingServer}]
 \end{TopologyExample}
 
 \begin{TopologyExample}{terminal1}{First H.323 terminal}
-technology: H323, address: 147.251.99.1,
-capability: [
-  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
-  {type: SignalingClient, technology: H323, server: gatekeeper, alias: 9501}
+technologies: [H323], address: 147.251.99.1,
+capabilities: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channels: {count: 1}}, 
+  {type: SignalingClient, server: gatekeeper, aliases: [9501]}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{terminal2}{Second H.323 terminal}
-technology: H323, address: 147.251.99.2,
-capability: [
-  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
-  {type: SignalingClient, technology: H323, server: gatekeeper, alias: 9502}
+technologies: [H323], address: 147.251.99.2,
+capabilities: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channels: {count: 1}}, 
+  {type: SignalingClient, server: gatekeeper, aliases: [9502]}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{userAgent1}{First SIP user agent}
-technology: SIP,
-capability: [
-  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
-  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:a1}
+technologies: [SIP],
+capabilities: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channels: {count: 1}}, 
+  {type: SignalingClient, server: proxy, aliases: [sip:a1]}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{userAgent2}{Second SIP user agent}
-technology: SIP,
-capability: [
-  {type: StandaloneTerminal}, {type: [Send, Receive], channel: {count: 1}}, 
-  {type: SignalingClient, technology: SIP, server: proxy, alias: sip:a2}
+technologies: [SIP],
+capabilities: [
+  {type: StandaloneTerminal}, {type: [Send, Receive], channels: {count: 1}}, 
+  {type: SignalingClient, server: proxy, aliases: [sip:a2]}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{mcu}{Multipoint device for H.323 and SIP}
-technology: [H323, SIP], address: 147.251.99.3,
-capability: [
-  {type: [Send, Receive], channel: {count: *}}, 
-  {type: VirtualRooming, room: [room1, room2]},
-  {type: SignalingClient, technology: H323, server: proxy, 
-     alias: {room1: 9503, room2: 9504}},
-  {type: SignalingClient, technology: SIP, server: proxy, 
-     alias: {room1: sip:r1, room2: sip:r2}}
+technologies: [H323, SIP], address: 147.251.99.3,
+capabilities: [
+  {type: [Send, Receive], channels: {count: *}}, 
+  {type: VirtualRooms, rooms: [room1, room2]},
+  {type: SignalingClient, technologies: [H323], server: proxy, 
+     aliases: {room1: [9503], room2: [9504]}},
+  {type: SignalingClient, technologies: [SIP], server: proxy, 
+     aliases: {room1: [sip:r1], room2: [sip:r2]}}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{server}{Adobe Connect server}
-technology: AdobeConnect,
-capability: [
-  {type: VirtualRooming, room: [room1, room2]}, 
-  {type: [Send, Receive], channel: {count: *}}, 
+technologies: [AdobeConnect],
+capabilities: [
+  {type: VirtualRooms, room: [room1, room2]}, 
+  {type: [Send, Receive], channels: {count: *}}, 
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{client1}{First Adobe Connect client}
-technology: AdobeConnect, identity: srom@cesnet.cz,
-capability: [
-  {type: [Send, Receive], channel: {count: 1}}
+technologies: [AdobeConnect], identity: srom@cesnet.cz,
+capabilities: [
+  {type: [Send, Receive], channels: {count: 1}}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{client2}{Second Adobe Connect client}
-technology: AdobeConnect, identity: bouda@cesnet.cz,
-capability: [
-  {type: [Send, Receive], channel: {count: 1}}
+technologies: [AdobeConnect], identity: bouda@cesnet.cz,
+capabilities: [
+  {type: [Send, Receive], channels: {count: 1}}
 ]
 \end{TopologyExample}
 
 \begin{TopologyExample}{gateway}{Gateway between H.323 and Adobe Connect}
-technology: [H323, AdobeConnect], address: 147.251.99.4,
-capability: [
-  {type: [Send, Receive], channel: {count: 1}},
-  {type: Translate, rule: [{from: *, to: *}]},
-  {type: SignalingClient, technology: H323, server: gatekeeper, alias: 9505}
+technologies: [H323, AdobeConnect], address: 147.251.99.4,
+capabilities: [
+  {type: [Send, Receive], channels: {count: 1}},
+  {type: Translate, rules: [{from: *, to: *}]},
+  {type: SignalingClient, technologies: [H323], server: gatekeeper, 
+     aliases: [9505]}
 ]
 \end{TopologyExample}
 
