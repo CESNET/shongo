@@ -54,7 +54,7 @@ DeviceResource = Object extends Resource {
     }
     /** Device unmanaged mode. */
     or UnmanagedMode = Object {
-      // Email for contacting unmanaged admin.
+      // Email for contacting admin of unmanaged resource.
       email: String
     }
   )
