@@ -7,6 +7,8 @@ AbsoluteDateTime = Object extends DateTime {
 }
 PeriodicDateTime = Object extends DateTime {
 }
+Duration = Object {
+}
 
 /** 
  * Represents a user identity.

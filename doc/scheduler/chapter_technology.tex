@@ -18,27 +18,22 @@ Terminal represents a hardware device or a software client that enables a
 single person or a group of persons situated in front of the device to connect 
 to another H.323 endpoint and take a videoconference call.
 
-There are special terminal devices that provides a single virtual room to 
-which can connect multiple other endpoints.  These terminals thus allow to 
-make a multipoint videoconference even without the MCU.
+Some terminals may be equipped with MCU functionality for one virtual room and thus connect multiple other endpoints to a single videoconference. Terminal that provides described functionality always participate in the provided virtual room.
 
-There are also special terminal devices that only receives videoconference 
+There are special terminal devices that only receives videoconference 
 channels and are used to stream or record them. They are referred to as 
 streaming or recording servers.
 
 \item \textbf{Multipoint Control Unit} (MCU) \\
-MCU represents a hardware device that is used for hosting of videoconference 
-calls in which can generally participate any number of endpoints. MCU contains 
-one or more \textbf{virtual rooms} and each virtual room can host one 
-videoconference call at the time. MCU can restrict the number of participants 
-per virtual room or per whole MCU device.
+MCU represents a hardware (or software) device that can host multiple virtual rooms.  In each virtual room can more than two endpoints participate in one videoconference session simultaneously.
+\TODO{How can MCU restrict number of participants? DCP/license (sometimes resolution based)...}
 
 \item \textbf{Gateway} \\
 Gateway is device that enable communication between H.323 network and other 
 networks (e.g., PSTN).
 
 \item \textbf{Gatekeeper} \\
-Gatekeeper is a hardware device that provides special services to the other 
+Gatekeeper is a functionality device that provides special services to the other 
 elements in the network: endpoint registration, address resolution, admission 
 control and user authentication. It can limit the number of connections that 
 are established through it.
@@ -48,14 +43,13 @@ are established through it.
 Each H.323 element is running on a specific IP address that can be used to 
 connect to the element. An element can have assigned alias, \textbf{H.323 
 phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., 
-email), that can be used to connect to it. Alias is useful when the IP address 
-is not known (e.g., the device is behind the NAT) or it is likely to change 
-(organization changes).
+email) \TODO{or URI (how it can be used?)}, that can be used to connect to it.
 
 Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in 
-MCU. When a terminal has assigned alias it must register to one 
+MCU. When a terminal has assigned alias it must register to a 
 \textbf{gatekeeper} that will be able to translate the alias to the terminal 
-IP address. When an element want to connect to another terminal or virtual 
+IP address. Similarly the MCU must register aliases for it's virtual rooms to 
+a gatekeeper. When an element want to connect to another terminal or virtual 
 room by alias, it must use the same gatekeeper that has the proper registry 
 of aliases or the gatekeeper must be configured to route the request to a 
 proper other gatekeeper.
@@ -73,12 +67,10 @@ has the full control over it. The target IP address is not communicated to
 the caller.
 \end{itemize}
 
-Each terminal and MCU element can have set zero or one gatekeeper. If 
-gatekeeper is set then each terminal and virtual room in MCU can have an alias 
-set. Each terminal and MCU element should also be configured to allow or 
-forbid the direct connections through IP address. When the gatekeeper with 
-admission control is set, it is appropriate to forbid direct connections 
-through IP address.
+Each terminal and MCU element can have set one main gatekeeper and one backup 
+gatekeeper. \TODO{Or more backups? Does backup have different registry of 
+aliases?} If gatekeeper is set then each terminal and virtual room in MCU 
+can have an alias set.
 
 \subsection{Constraints}
 
@@ -87,16 +79,17 @@ through IP address.
 \begin{compactenum}
 \item Audio
 \item Audio + Video
-\item Audio + Data
-\item Audio + Video + Data
+\item Audio + Content
+\item Audio + Video + Content
 \end{compactenum}
-\TODO{Do we want to know in Topology which of 4 modes each device support?}
 
 \item Bidirectional accessibility. When an element $A$ is accessible to an 
 element $B$ then also $B$ is accessible to $A$.
 \end{itemize}
 
 \subsection{Network Examples}
+
+This section shows some examples of H.323 networks via graphs where nodes represents H.323 elements and edges represents available channels or reachability that are worth to mention. Edge does not mean that it is present in a specific videoconference. For instance when MCU is used in videoconference then "Connect by ..." edges are used only between each participating terminal and MCU and not between terminals mutually. The graphs  show all edges (channels and reachability) that can be used by any videoconference.
 
 % H.323 Graph Declarations
 \tikzstyle{hxxxData}=[color=red]
@@ -119,7 +112,7 @@ videoconferences (e.g., \emph{terminal1 -- terminal2}) and multipoint
 videoconferences through the MCU (e.g., \emph{terminal1 -- terminal2 -- 
 terminal3 -- mcu}). When a terminal connects to the MCU it must select the 
 proper virtual room, because the IP address determines only the MCU not a 
-specific virtual room.
+specific virtual room. See fig. \ref{graph:h323:direct}.
 
 \begin{Graph}{graph:h323:direct}{Connection through direct IP addresses}
   \Vertex{0, 0}{t1}{terminal1}
@@ -145,7 +138,7 @@ which then is able to start videoconference data flow to the requested target.
 The gatekeeper can perform admission control and forbid the connection. When a 
 videoconference ends the caller informs the gatekeeper again. The gatekeeper 
 holds the list of active connections and thus can limit the maximum number of 
-connections at the same time.
+connections at the same time. See fig. \ref{graph:h323:gatekeeper}.
 
 \begin{Graph}{graph:h323:gatekeeper}{Connection through gatekeeper}
   \Vertex{ 0, 0}{t1}{terminal1}
@@ -173,7 +166,7 @@ the target endpoint. The call is then mediated by the gatekeeper throughout
 the videoconference. The gatekeeper can also perform admission control and 
 limit the number of active connections. In special cases even the data flow 
 can be routed through the gatekeeper (e.g., when connecting endpoints behind 
-the NAT).
+the NAT). See fig. \ref{graph:h323:gatekeeperRouted}.
 
 \begin{Graph}{graph:h323:gatekeeperRouted}{Connection through gatekeeper}
   \Vertex{0, 0}{t1}{terminal1}
@@ -192,7 +185,11 @@ the NAT).
 
 The network is composed from 3 endpoints (\emph{terminal1, terminal2, mcu}) 
 managed by \emph{gatekeeper1} and 2 subdomains where each is composed of 2 
-endpoints and one gatekeeper.%
+endpoints and one gatekeeper. Adjacent endpoints (endpoints in the same local 
+network) can connect directly or through it's gatekeeper. Not adjacent 
+endpoints (endpoints from different local networks) can connect only by it's 
+gatekeepers. See fig. \ref{graph:h323:gatekeeperMultiple}.
+
 \begin{Graph}{graph:h323:gatekeeperMultiple}{Multiple gatekeepers}
   \Vertex{ 0, 0}{gk1}{gatekeeper1}
   \Vertex{-2,-2}{gk2}{gatekeeper2}
@@ -224,10 +221,7 @@ endpoints and one gatekeeper.%
   \Edge{<-}{hxxxDataDashed}{t6}{$(t6) + (-0.8,-1)$}
 
   \HXXXLegend{4.5, 4.5}
-\end{Graph}%
-Adjacent endpoints (endpoints in the same local network) can connect directly 
-or through it's gatekeeper. Not adjacent endpoints (endpoints from different 
-local networks) can connect only by it's gatekeepers.
+\end{Graph}
 
 \subsection{Suggested Topology}
 In Topology should be present only endpoints (terminals, MCUs, gateways). The 
@@ -246,8 +240,8 @@ specified for the gatekeeper). See fig. \ref{graph:h323:topology}.
   \Vertex{2, 2}{t3}{terminal3}
   \Vertex{2,-2}{t4}{terminal4}
   
-  \node at (-2, 3) {\textit{H.323 subdomain 1}};
-  \node at ( 2, 3) {\textit{H.323 subdomain 2}};
+  \node at (-2, 3) {\textit{H.323 zone 1}};
+  \node at ( 2, 3) {\textit{H.323 zone 2}};
   \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
     
   \EdgeAllToAll{<->}{hxxxAlias, hxxxIp}{t1, t2, mcu}  
@@ -290,6 +284,10 @@ Basic Architecture of H.323.
 \bibitem[3]{bib:h323:gatekeepers}
 Understanding H.323 Gatekeepers.
 \\\url{http://www.cisco.com/en/US/tech/tk1077/technologies_tech_note09186a00800c5e0d.shtml}
+
+\bibitem[4]{bib:h323:seminar}
+Seminář IP telefonie.
+\\\url{http://www.cesnet.cz/akce/20051115/pr/voz02_h323.pdf}
 \end{thebibliography}
 
 \section{SIP}
@@ -363,7 +361,7 @@ notifying a gatekeeper.
 \begin{compactenum}
 \item Audio
 \item Audio + Video
-\item Audio + Video + Data
+\item Audio + Video + Content
 \end{compactenum}
 
 \item Bidirectional accessibility. When an element $A$ is accessible to an 
@@ -478,7 +476,7 @@ Adobe Connect channels to SIP or H.323).
 \begin{compactenum}
 \item Audio
 \item Audio + Video
-\item Audio + Video + Data
+\item Audio + Video + Content
 \end{compactenum}
 \end{itemize}
 
