@@ -345,7 +345,7 @@ identifier (URI), for instance \verb|sip:username:password@host:port|.
 Multiple user agents can register to registrar with a single URI and when the 
 URI is requested by a caller all devices will "ring" and only one can answer 
 the call (e.g., one user with single URI can have multiple phones, hardware or 
-software, by which he can answer an incoming calls).
+software, by which he can answer an incoming call).
 
 The URI can contain the target IP address. When an user agent use this type of 
 URI to start a call, user agent's Proxy (combination of Registrar, Proxy 
@@ -392,8 +392,8 @@ Proxy.%
   \Vertex{2, 2}{a3}{userAgent3}
   \Vertex{2,-2}{a4}{userAgent4}
   
-  \node at (-2, 3) {\textit{SIP subdomain 1}};
-  \node at ( 2, 3) {\textit{SIP subdomain 2}};
+  \node at (-2, 3) {\textit{SIP zone 1}};
+  \node at ( 2, 3) {\textit{SIP zone 2}};
   \draw[dashed, color=gray](0,4.6) -- (0,-2.5);
     
   \EdgeAllToAll{<->}{sipUri}{a1, a2, mcu, a3, a4}  

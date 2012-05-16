@@ -58,6 +58,22 @@
 
 \input{chapter_topology.tex}
 
+\chapter{Reservation}
+
+Reservations are used for booking a videoconference calls between multiple participants. Reservation request can be created by a Shongo user via console or web interface of a domain controller. The user become the reservation owner. Each reservation belongs to a domain controller where it was created and the reservation is stored there. Every domain controller is running a scheduler which process created reservations and tries to schedule them. Through the console or web interface the reservation owner is able to watch the reservation state and also to modify or delete the reservation. The owner and all the reservation participants should be notified about changes in reservation (e.g., by email or SMS). 
+
+Reservation request consists of date/time and duration specifications, specification of requested devices and/or participants that should take part in the videoconference and a set of options that can modify the scheduling process. Reservation request may be used to book multiple videoconference calls (e.g., every Wednesday or two specific dates). Reservation can request following types of entities to take part in the videoconference(s):
+\begin{compactenum}
+\item Person known to Shongo by a user identity.
+\item Person unknown to Shongo. 
+\item Resource known to Shongo by a resource identifier.
+\item Resource unknown to Shongo.
+\end{compactenum}
+
+\TODO{Continue in description of reservations}
+
+
+
 \input{chapter_scheduler.tex}
 
 \chapter{Examples}
