@@ -1,7 +1,8 @@
 \CodeStyle{
-  Standalone, Receive, Send, Mix, VirtualRooms, 
-  SignalingServer, SignalingClient, Translate,
-  SIP, H323, AdobeConnect, H264, CIF, 720p, Address, Alias, Enable, 
+  ReceiveCapability, SendCapability, TerminalCapability, 
+  StandaloneTerminalCapability, MixCapability, VirtualRoomsCapability, 
+  SignalingServerCapability, SignalingClientCapability, TranslateCapability,
+  SIP, H323, AdobeConnect, H264, CIF, 720p, IPAddress, URI, Alias, Enable, 
   Disable
 }     
 
@@ -30,85 +31,89 @@ able to communicate with one or more \textbf{technologies} (H.323, SIP, Adobe
 Connect, etc.).
 \\
 Device can have one or more \textbf{capabilities}. Each capability can specify 
-one or more device \textbf{technologies} to which it is provided. Capabilities 
+one or more device \textbf{technologies} to which it is provided. By default a capability is provided to all device technologies. Capabilities 
 can be from the following types:
 
 \begin{itemize}
 \newcommand{\RequireCapability}[1]{(requires #1)}
 \newcommand{\ExtendCapability}[1]{(extends #1)}
-
-\item \textbf{Standalone Terminal} \\
-  Capability tells that device is a terminal that is able to communicate to
-  other standalone terminal directly without \textbf{Mixing} or 
-  \textbf{Virtual Rooms} device (e.g., H.323 and SIP terminals are generally 
-  standalone terminal devices but Adobe Connect client is not standalone 
-  device because it always needs the Adobe Connect server to start a 
-  videoconference).
   
 \item \textbf{Receive}/\textbf{Send} \\
-  Capability allows for receiving/sending through a limited (or unlimited) 
-  number of the \textbf{input}/\textbf{output channels}. Each channel must 
-  contain at least one of the following \textbf{streams}:
-  \begin{itemize}
+  Capability allows the device for receiving/sending videoconference data in
+  input/output \textbf{format} that can specify:
+  \begin{compactitem}
     \item \textbf{audio} in a specific \textbf{audio codecs} and 
       \textbf{bitrates}.
     \item \textbf{video} in a specific \textbf{video codecs} and 
       \textbf{resolutions}.
     \item \textbf{content} in a specific \textbf{content formats}.
-  \end{itemize} 
+  \end{compactitem}
+  By default (if format is not specified) the device can receive/send all 
+  streams (audio, video and content) in all codecs and resolutions.
+  If format is specified the device can receive/send only
+  given streams (audio, video and/or content) in specified 
+  codecs and resolutions.
+  
+\item \textbf{Terminal} %
+  \RequireCapability{\textbf{Send} and \textbf{Receive}} \\
+  Capability tells that the device is able to participate in a 
+  videoconference. Terminal devices must have \textbf{Receive} and 
+  \textbf{Send} capability. The input/output \textbf{format} can be 
+  specified only once in the \textbf{Terminal} capability and it will be 
+  copied/merged to both \textbf{Send} and \textbf{Received} capability in the 
+  same device.
+  
+\item \textbf{Standalone Terminal} \ExtendCapability{\textbf{Terminal}} \\
+  Capability tells that the device is a terminal which is able to communicate 
+  to other standalone terminal directly without \textbf{Mix} or 
+  \textbf{Virtual Rooms} device (e.g., H.323 and SIP terminals are generally 
+  standalone terminal devices but Adobe Connect client is not standalone 
+  terminal because it always needs the Adobe Connect server to start a 
+  videoconference).
   
 \item \textbf{Mix} \RequireCapability{\textbf{Receive} and \textbf{Send}} \\
-  Capability allows for mixing of multiple input channels and send 
-  the combined result through one output channel. To each input channel can be 
-  connected one other device (each other device sends different data -- 
-  unicast). To each output channel can be connected multiple other devices 
-  (each other device want to receive the same data -- multicast).
-
+  Capability allows for mixing videoconference data from multiple 
+  \textbf{Terminals} and send them back the combined result.
+  
 \item \textbf{Virtual Rooms} \ExtendCapability{\textbf{Mix}} \\
-  Capability allows the device to divide input channels into groups (virtual 
-  rooms). \textbf{Mixing} is applied per group and each group 
-  is bound to one output channel. Maximum number of output channels thus 
-  defines the maximum number of virtual rooms. For each virtual room there can 
-  be specified the maximum number of input channels (maximum videoconference 
-  participants).
+  Capability allows the device to host multiple virtual 
+  rooms. \textbf{Terminal} devices will connect to these virtual rooms. 
+  \textbf{Mixing} is applied per virtual room.
 
 \item \textbf{Signaling Client} \\
-  Capability makes the device to have set an alias 
-  and an address of a signaling server to which it registers itself.
-  The devices that are registered to the same signaling server are by
-  default reachable by an alias. This behavior can be changed by global rules. 
-  Also the global rules are able to make reachable devices registered to 
-  different signaling servers.
+  Capability makes the device to have set an address of a signaling server 
+  which is used for initiating and/or routing the call. The device can
+  also have set a list of aliases which identifies the device inside
+  the signaling server zone and the server is able to translate the alias
+  to URI or IP address.
 
 \item \textbf{Signaling Server} \\
-  Capability tells that the device is signaling server
-  that has registry of devices and its' aliases and make that devices by 
-  default reachable. Signaling servers can have set maximum number of 
-  connections that may be established through the server by aliases.
+  Capability tells that the device is signaling server that can be used
+  by other devices for initiating and/or routing the calls.
 
 \item \textbf{Translate} \RequireCapability{\textbf{Receive} and \textbf{Send} 
   and at least 2 \textbf{technologies}} \\
-  Capability allows for translation from one input channel to another output 
-  channel where the first channel is from one specified technology and the 
+  Capability allows for translation from one input format to another output 
+  format where the first format is from one specified technology and the 
   second is from another specified technology. By default all translations 
-  from input to output channels are allowed. The list of \textbf{rules} can be 
+  from input to output formats are allowed. The list of \textbf{rules} can be 
   used to restrict the allowed translations (e.g., for specific codecs, 
   resolutions, etc.).
 
 \item \textbf{Stream} \RequireCapability{\textbf{Receive}} \\
   Capability tells that the device is able to perform streaming from an input 
-  channel.
+  format.
 
 \item \textbf{Record} \RequireCapability{\textbf{Receive}} \\
   Capability tells that the device is able to perform recording from an input 
-  channel.
+  format.
 \end{itemize}
 
 Each device can have one or more described capabilities. If device supports 
 for instance receiving/sending in multiple technologies, it can be implemented 
 by multiple capability of the same type (one for each technology) or by single 
 capability that lists all the technologies (provided that all technologies has 
-same \textbf{channels} settings).
+same \textbf{format} settings).
 
 \subsection*{Examples of abstract devices (each with technology dependent 
              examples):}
@@ -118,62 +123,71 @@ same \textbf{channels} settings).
 \item \textbf{Terminal device} \\
   Terminal device is hardware or software client that is used by an user to 
   connect to a videoconference. The device allow an user to participate only 
-  in one videoconference at the time thus it has \textbf{Receive} and 
-  \textbf{Send} capability but limited to 1 channel. It can have also the 
+  in one videoconference at the time. It has \textbf{Receive}, \textbf{Send} 
+  and \textbf{Terminal} capability. It can have also the 
   \textbf{Standalone Terminal} capability which allows the terminal devices to  
   establish also 2-point videoconferences. 
   
-\begin{ResourceExample}{}{terminal1}{Example of terminal for H.323 and/or SIP}
+\begin{ResourceExample}{DeviceResource}{terminal1}%
+      {Example of terminal for H.323 and/or SIP}
 technologies: [H323, SIP],
+ipAddress: 147.251.99.1,
 capabilities: [
-  {type: Standalone, technologies: *},
-  {type: Receive, channels: {count: 1}}, // "technologies: *" is by default
-  {type: Send, channels: {count: 1}}
+  StandaloneTerminalCapability,
+  ReceiveCapability,
+  SendCapability, 
 ]
 \end{ResourceExample}
 
-\begin{ResourceExample}{}{terminal2}%
+\begin{ResourceExample}{DeviceResource}{terminal2}%
       {Example of terminal (client) for Adobe Connect}
 technologies: [AdobeConnect],
+identity: srom@cesnet.cz,
 capabilities: [
-  {type: [Receive, Send], channels: {count: 1}},
+  TerminalCapability,
+  ReceiveCapability,
+  SendCapability
 ]
 \end{ResourceExample}
 
-\begin{ResourceExample}{}{terminal3}{Example of H323 terminal}
-// It can process arbitrary audio, but video only in H.264 (CIF -- 720p)
-// It cannot process content
+\begin{ResourceExample}{DeviceResource}{terminal3}{Example of H323 terminal}
+// It can process arbitrary audio, but video only in H.264. The video
+// can be sent only in CIF - 720p resolution. It cannot process content.
 technologies: [H323],
+ipAddress: 147.251.99.3,
 capabilities: [
-  {type: [Receive, Send], channels: {
-    count: 1, 
-    template: {
+  TerminalCapability {
+    format: {
       audio: *,
-      video: {codecs: [H264], resolutions: [CIF..720p]}
-    }  
-  }}
+      video: {codecs: [H264]}
+    }
+  },
+  ReceiveCapability,
+  SendCapability {
+    format: {
+      video: {resolutions: [CIF..720p]}
+    }
+  }
 ]
 \end{ResourceExample}
 
 \item \textbf{Terminal device with virtual room} \\
-  Terminal device with a single embedded virtual room is extension of terminal 
-  device that allows user to host a single multipoint videoconference. The 
-  device has \textbf{Receive} capability with limited number of input channels 
-  to number of allowed participants in the provided single virtual room. It 
-  also has \textbf{Send} capability but limited to 1 channel. The last 
-  provided capability is \textbf{Mix} which combines input channels to a 
-  single output channel and through it mediates the multipoint 
-  videoconference. It is worth to note that the terminal device with embedded 
-  virtual room itself is part of 
-  the hosted videoconference.
+  Terminal device with a single embedded virtual room is an extension of 
+  terminal device that allows user to host a single multipoint 
+  videoconference. The  device has \textbf{Receive}, \textbf{Send} and
+  \textbf{Terminal} capability. It also has the \textbf{Mix} capability
+  which provides a single virtual room in which the terminal device itself is 
+  always participating.
   
 \begin{ResourceExample}{}{terminal4}%
       {Example of terminal with one virtual room for H.323 and/or SIP}
 technologies: [H323, SIP],
+ipAddress: 147.251.99.4,
 capabilities: [
-  {type: Receive, channels: {count: 9}}, // max 9 other participants
-  {type: Send, channels: {count: 1}},
-  {type: Mix}
+  TerminalCapability,
+  ReceiveCapability,
+  SendCapability
+  MixCapability
 ]
 \end{ResourceExample}
 
@@ -184,49 +198,47 @@ capabilities: [
   device is that the multipoint device can host more than one videoconference 
   and the multipoint device isn't part of these videoconferences, it only 
   manages them. The multipoint device has \textbf{Receive}, \textbf{Send}
-  and \textbf{Virtual Rooms} capabilities. Number of input 
-  channels for \textbf{Receive} capability is limited to a maximum number of 
-  participants in all hosted videoconferences in the device. Number of output 
-  channels for \textbf{Send} capability is limited to a maximum number of 
-  virtual rooms (=~videoconferences) in the device. \textbf{Virtual Rooms} 
-  capability provides the ability to mix input channels to one output channel 
-  that is routed to all participants in each virtual room.
+  and \textbf{Virtual Rooms} capabilities.
 
 \begin{ResourceExample}{}{mcu1}{Example of H.323 and/or SIP multipoint device}
 technologies: [H323, SIP],
+ipAddress: 147.251.99.100,
 capabilities: [
-  {type: Receive, channels: {count: 99}}, // max 99 participants
-  {type: Send, channels: {count: 9}},     // max 9 virtual rooms
-  {type: VirtualRooms}
+  ReceiveCapability,
+  SendCapability,
+  VirtualRoomsCapability
 ]
 \end{ResourceExample}
 
 \begin{ResourceExample}{}{server1}{Example of Adobe Connect server}
 technologies: [AdobeConnect],
+uri: obelix.cesnet.cz,
 capabilities: [
-  {type: Receive, channel: {count: 99}}, // max 99 participants
-  {type: Send, channel: {count: *}},     // unlimited virtual rooms
-  {type: VirtualRooms}
+  ReceiveCapability,
+  SendCapability,
+  VirtualRoomsCapability
 ]
 \end{ResourceExample}
 
 \item \textbf{Signaling server device} \\
   Signaling server device is a special type of device that has only 
   \textbf{Signaling Server} capability. All of previous device examples can 
-  also have \textbf{Signaling Client} capability which allows other devices
-  to address them by it's alias.
+  also have \textbf{Signaling Client} capability which for instance allows 
+  other devices to address them by it's alias.
     
 \begin{ResourceExample}{}{gatekeeper}{Example of gatekeeper for H.323}
 technologies: [H323],
+ipAddress: 147.251.99.101,
 capabilities: [
-  {type: SignalingServer, max-connections: 99}
+  SignalingServerCapability
 ]
 \end{ResourceExample}
 
 \begin{ResourceExample}{}{proxy}{Example of proxy for SIP}
 technologies: [SIP],
+ipAddress: 147.251.99.102,
 capabilities: [
-  {type: SignalingServer, max-connections: 55}
+  SignalingServerCapability
 ]
 \end{ResourceExample}
 
@@ -234,12 +246,13 @@ capabilities: [
       {Example of MCU that is registered to H.323 and SIP servers}
 technologies: [H323, SIP],
 capabilities: [
-  {type: [Send, Receive], channels: {count: 99}},
-  {type: VirtualRooms, rooms: [room1, room2]},
-  {type: SignalingClient, technologies: [H323], server: gatekeeper,
-     aliases: {room1: [9500000002], room2: [9500000003]}},
-  {type: SignalingClient, technologies: [SIP], server: proxy,
-     aliases: {room1: [sip:room1@cesnet.cz]}} 
+  ReceiveCapability,
+  SendCapability,
+  VirtualRoomsCapability {rooms: [room1, room2]},
+  SignalingClientCapability {technologies: [H323], server: gatekeeper,
+    aliases: {room1: [9500000002], room2: [9500000003]}},
+  SignalingClientCapability {technologies: [SIP], server: proxy,
+    aliases: {room1: [sip:room1@cesnet.cz]}} 
      // room2 is not registered to SIP Proxy
 ]
 \end{ResourceExample}
@@ -247,12 +260,15 @@ capabilities: [
 \begin{ResourceExample}{}{terminal5}%
       {Example of terminal that is registered to H.323 and SIP servers}
 technologies: [H323, SIP],
+ipAddress: 147.251.99.5,
 capabilities: [
-  {type: [Send, Receive], channels: {count: 1}},
-  {type: SignalingClient, technologies: [H323], server: gatekeeper,
-     aliases: [9500000001]},
-  {type: SignalingClient, technologies: [SIP], server: proxy,
-     aliases: [sip:srom@cesnet.cz]}
+  TerminalCapability,
+  ReceiveCapability,
+  SendCapability,
+  SignalingClientCapability {technologies: [H323], server: gatekeeper,
+    aliases: [9500000001]},
+  SignalingClientCapability {technologies: [SIP], server: proxy,
+    aliases: [sip:srom@cesnet.cz]}
 ]
 \end{ResourceExample}
 
@@ -267,22 +283,22 @@ bidirectional edge tells that either node is reachable to the other node.
 Each edge is bound to a specific \textbf{technology} (e.g., H.323 or SIP) and 
 to a specific \textbf{type} of connection in the technology (e.g., in H.323 
 may be endpoints reachable by IP address or by H.323 alias, if both is 
-available two edges must be present). Each edge also specifies number of 
-\textbf{channels} that are available between the nodes (devices) and for each 
-channel is specified set of \textbf{streams} that can be used.
+available two edges must be present). Each edge also specifies the formats of data that are available.
 
 \begin{ResourceExample}{}{proxy}{}
 technologies: [SIP],
-capabilities: [{type: SignalingServer}]
+capabilities: [SignalingServerCapability]
 \end{ResourceExample}
 
 \begin{ResourceExample}{}{terminal1}{}
 address: 147.251.99.1,
 technologies: [H323, SIP],
 capabilities: [
-  {type: Standalone},
-  {type: [Send, Receive], channels: {count: 1}}, 
-  {type: SignalingClient, technologies: [SIP], server: proxy, aliases: [sip:1]}
+  StandaloneTerminalCapability,
+  ReceiveCapability,
+  SendCapability,
+  SignalingClientCapability {technologies: [SIP], server: proxy, 
+    aliases: [sip:terminal1]}
 ]
 \end{ResourceExample}
 
@@ -290,15 +306,17 @@ capabilities: [
 address: 147.251.99.2,
 technologies: [H323, SIP],
 capabilities: [
-  {type: Standalone},
-  {type: [Send, Receive], channels: {count: 1}}, 
-  {type: SignalingClient, technologies: [SIP], server: proxy, aliases: [sip:2]}
+  StandaloneTerminalCapability,
+  ReceiveCapability,
+  SendCapability,
+  SignalingClientCapability {technologies: [SIP], server: proxy, 
+    aliases: [sip:terminal2]}
 ]
 \end{ResourceExample}
 
 \begin{ResourceExample}{}{edge1}{terminal1 <-> terminal2}
 technology: H323,
-type: Address,
+type: IPAddress,
 format: *
 \end{ResourceExample}
 
@@ -313,17 +331,18 @@ format: *
 Rules in Device Topology are at global level and they are used for modifying 
 the default reachability (determined by nodes capability settings). Each rule 
 must specify a target \textbf{technology}, a \textbf{type} of connection in 
-the technology (\verb|Address| or \verb|Alias|), nodes (or groups of nodes) 
+the technology (\verb|IPAddress|, \verb|URI| or \verb|Alias|), 
+nodes (or groups of nodes) 
 to which the rule is applied and modifier (\verb|Enable| or \verb|Disable|) 
 which tells whether the reachability will be enabled or disabled. The nodes 
-can be specified by pattern for identifier, address or alias. If more than 
+can be specified by pattern for identifier, IP address, URI or alias. If more than 
 one group of nodes is specified then the rule is applied only for edges 
 between the groups and not inside the groups.
 
 \begin{ResourceExample}{}{rule1}%
       {Disable reachability by IP address for all H.323 devices}
 technologies: [H323],
-types: [Address],
+types: [IPAddress],
 nodes: *,
 goals: Disable
 \end{ResourceExample}
@@ -331,17 +350,17 @@ goals: Disable
 \begin{ResourceExample}{}{rule2}%
       {Enable reachability by IP address for all H.323 devices at FI MUNI}
 technologies: [H323],
-types: [Address],
+types: [IPAddress],
 nodes: cz.muni.fi.*,
 goal: Enable
 \end{ResourceExample}
 
 \begin{ResourceExample}{}{rule3}{}
 // Enable reachability by alias of SIP and H.323 devices between two networks.
-// Devices from each network are referenced by the network gatekeeper.
+// Devices from each network are referenced by the network signaling server.
 technologies: [H323, SIP],
 types: [Alias],
-nodes: [gatekeeper1.*, gatekeeper2.*],
+nodes: [signalingServer1.*, signalingServer2.*],
 goal: Enable
 \end{ResourceExample}
 

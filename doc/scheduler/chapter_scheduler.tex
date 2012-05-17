@@ -1,7 +1,7 @@
 \newcommand{\SchedulerInputCode}[1]{
 \CodeStyle{
   Object, Enum, Integer, String, Boolean, List, Set,  
-  IP-Address, URL, URN, 
+  IPAddress, URI, URN, URL, 
   extends, of, or, *
 }
 \vspace{2mm}
@@ -39,11 +39,9 @@ Each resource can be one of the following types:
   \begin{compactenum}
     \item \textbf{Identifier}
     \item \textbf{Virtual Room}
-    \item \textbf{License} \TODO{Should be licenses represented as resource instances?}
   \end{compactenum}
 \item \textbf{Physical Room} -- represent a physical room (e.g., classroom or 
   boardroom).
-\item \textbf{Other} -- \TODO{Examples?}
 \end{compactenum}
 Each resource can be dependent on another resource (e.g., can be located 
 inside it or can be part of it), for instance a H.323 terminal can be located 

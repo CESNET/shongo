@@ -29,23 +29,21 @@ capabilities: [SignalingServerCapability]
   
 \begin{ResourceExample}{DeviceResource}{terminal1}{First H.323 terminal}
 technologies: [H323], 
-address: 147.251.99.1,
+ipAddress: 147.251.99.1,
 dependentResources: [room1],
 capabilities: [
-  StandaloneCapability,
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
   SignalingClientCapability {server: gatekeeper, aliases: [9501]}
 ]
 \end{ResourceExample}
 
 \begin{ResourceExample}{DeviceResource}{terminal2}{Second H.323 terminal}
 technologies: [H323], 
-address: 147.251.99.2,
+ipAddress: 147.251.99.2,
 capabilities: [
-  StandaloneCapability,
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
   SignalingClientCapability {server: gatekeeper, aliases: [9502]}
 ]
 \end{ResourceExample}
@@ -63,22 +61,22 @@ capabilities: [SignalingServerCapability]
   
 \begin{ResourceExample}{DeviceResource}{userAgent1}{First SIP user agent}
 technologies: [SIP],
+uri: sip:a2,
 dependentResources: [room2],
 capabilities: [
-  StandaloneCapability,
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
-  SignalingClientCapability {server: proxy, aliases: [sip:a1]}
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
+  SignalingClientCapability {server: proxy}
 ]
 \end{ResourceExample}
 
 \begin{ResourceExample}{DeviceResource}{userAgent2}{Second SIP user agent}
 technologies: [SIP],
+uri: sip:a2,
 capabilities: [
-  StandaloneCapability,
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
-  SignalingClientCapability {server: proxy, aliases: [sip:a2]}
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
+  SignalingClientCapability {server: proxy}
 ]
 \end{ResourceExample}
 
@@ -87,15 +85,16 @@ capabilities: [
   
 \begin{ResourceExample}{DeviceResource}{mcu}{Multipoint device for H.323 and SIP}
 technologies: [H323, SIP], 
-address: 147.251.99.3,
+ipAddress: 147.251.99.3,
 capabilities: [
-  ReceiveCapability,
-  SendCapability,
-  VirtualRoomsCapability {rooms: [room1, room2]},
+  ReceiveCapability, SendCapability,
+  VirtualRoomsCapability {rooms: [
+    VirtualRoomResource {code: room1, uri: sip:r1},
+    VirtualRoomResource {code: room2, uri: sip:r2}
+  ]},
   SignalingClientCapability {technologies: [H323], server: proxy, 
      aliases: {room1: [9503], room2: [9504]}},
-  SignalingClientCapability {technologies: [SIP], server: proxy, 
-     aliases: {room1: [sip:r1], room2: [sip:r2]}}
+  SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
 \end{ResourceExample}
 
@@ -104,9 +103,11 @@ capabilities: [
 \begin{ResourceExample}{DeviceResource}{server}{Adobe Connect server}
 technologies: [AdobeConnect],
 capabilities: [
-  ReceiveCapability,
-  SendCapability,
-  VirtualRoomsCapability {room: [room1, room2]}
+  ReceiveCapability, SendCapability,
+  VirtualRoomsCapability {rooms: [ 
+    VirtualRoomResource {code: room1}, 
+    VirtualRoomResource {code: room2}
+  ]}
 ]
 \end{ResourceExample}
 
@@ -114,19 +115,17 @@ capabilities: [
 
 \begin{ResourceExample}{DeviceResource}{client1}{First Adobe Connect client}
 technologies: [AdobeConnect], 
-identity: srom@cesnet.cz,
 capabilities: [
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
+  ReceiveCapability, SendCapability,
+  TerminalCapability {identity: srom@cesnet.cz}
 ]
 \end{ResourceExample}
 
 \begin{ResourceExample}{DeviceResource}{client2}{Second Adobe Connect client}
 technologies: [AdobeConnect], 
-identity: bouda@cesnet.cz,
 capabilities: [
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
+  ReceiveCapability, SendCapability,
+  TerminalCapability {identity: bouda@cesnet.cz}
 ]
 \end{ResourceExample}
 
@@ -135,10 +134,9 @@ capabilities: [
     
 \begin{ResourceExample}{DeviceResource}{gateway}{Gateway between H.323 and Adobe Connect}
 technologies: [H323, AdobeConnect], 
-address: 147.251.99.4,
+ipAddress: 147.251.99.4,
 capabilities: [
-  ReceiveCapability {channels: {count: 1}},
-  SendCapability {channels: {count: 1}},
+  ReceiveCapability, SendCapability,
   TranslateCapability,
   SignalingClientCapability {technologies: [H323], server: gatekeeper, 
      aliases: [9505]}
