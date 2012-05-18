@@ -21,8 +21,9 @@
   }
 }
 
-% Resource example (type, name, comment)
-\lstnewenvironment{ResourceExample}[3]{%
+% Entity example (type, name, comment)
+\lstnewenvironment{EntityExample}[3]{%
+    \noindent
     \vspace{0.5mm}
     \minipage{\textwidth}
     \advance\leftmargini -3mm \quote
@@ -36,3 +37,37 @@
     \endminipage
     \vspace{0.5mm}
 } 
+
+% Language keywords
+\newcommand{\CodeStyleAppendLanguage}{\lstset{classoffset=1,morekeywords={
+  Object, Enum, Integer, String, Boolean, List, Set,  
+  IPAddress, URI, URN, URL, 
+  extends, of, or, *,
+}}}
+
+% Implementation keywords
+\newcommand{\CodeStyleAppendImplementation}{\lstset{classoffset=1,morekeywords={
+  % Common
+  URI,
+  DateTime, AbsoluteDateTime, PeriodicDateTime, Period, UserIdentity,
+  % Capabilities
+  ReceiveCapability, SendCapability, TerminalCapability,
+  StandaloneTerminalCapability, MixCapability, VirtualRoomsCapability, 
+  TranslateCapability, SignalingServerCapability, SignalingClientCapability,
+  % Resources
+  DeviceResource, VirtualRoomResource, PhysicalRoom,
+  % Reservations
+  Reservation,  
+}}}
+
+% Enum keywords
+\newcommand{\CodeStyleAppendEnum}{\lstset{classoffset=1,morekeywords={
+  % Technologies
+  H323, SIP, AdobeConnect,
+  % Formats  
+  H264, CIF, 720p,
+  % Type of Topology Edge
+  IPAddress, Alias, 
+  % Rule goal
+  Enable, Disable
+}}}

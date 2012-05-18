@@ -1,10 +1,6 @@
-\CodeStyle{
-  ReceiveCapability, SendCapability, TerminalCapability, 
-  StandaloneTerminalCapability, MixCapability, VirtualRoomsCapability, 
-  SignalingServerCapability, SignalingClientCapability, TranslateCapability,
-  SIP, H323, AdobeConnect, H264, CIF, 720p, IPAddress, URI, Alias, Enable, 
-  Disable
-}     
+\CodeStyle{} 
+\CodeStyleAppendImplementation
+\CodeStyleAppendEnum
 
 \chapter{Device Topology}
 
@@ -128,7 +124,7 @@ same \textbf{format} settings).
   \textbf{Standalone Terminal} capability which allows the terminal devices to  
   establish also 2-point videoconferences. 
   
-\begin{ResourceExample}{DeviceResource}{terminal1}%
+\begin{EntityExample}{DeviceResource}{terminal1}%
       {Example of terminal for H.323 and/or SIP}
 technologies: [H323, SIP],
 ipAddress: 147.251.99.1,
@@ -137,9 +133,9 @@ capabilities: [
   ReceiveCapability,
   SendCapability, 
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{DeviceResource}{terminal2}%
+\begin{EntityExample}{DeviceResource}{terminal2}%
       {Example of terminal (client) for Adobe Connect}
 technologies: [AdobeConnect],
 identity: srom@cesnet.cz,
@@ -148,9 +144,9 @@ capabilities: [
   ReceiveCapability,
   SendCapability
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{DeviceResource}{terminal3}{Example of H323 terminal}
+\begin{EntityExample}{DeviceResource}{terminal3}{Example of H323 terminal}
 // It can process arbitrary audio, but video only in H.264. The video
 // can be sent only in CIF - 720p resolution. It cannot process content.
 technologies: [H323],
@@ -169,7 +165,7 @@ capabilities: [
     }
   }
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
 \item \textbf{Terminal device with virtual room} \\
   Terminal device with a single embedded virtual room is an extension of 
@@ -179,7 +175,7 @@ capabilities: [
   which provides a single virtual room in which the terminal device itself is 
   always participating.
   
-\begin{ResourceExample}{}{terminal4}%
+\begin{EntityExample}{}{terminal4}%
       {Example of terminal with one virtual room for H.323 and/or SIP}
 technologies: [H323, SIP],
 ipAddress: 147.251.99.4,
@@ -189,7 +185,7 @@ capabilities: [
   SendCapability
   MixCapability
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
 \item \textbf{Multipoint device} \\
   Multipoint device is a special type of device that hosts one or more virtual 
@@ -200,7 +196,7 @@ capabilities: [
   manages them. The multipoint device has \textbf{Receive}, \textbf{Send}
   and \textbf{Virtual Rooms} capabilities.
 
-\begin{ResourceExample}{}{mcu1}{Example of H.323 and/or SIP multipoint device}
+\begin{EntityExample}{}{mcu1}{Example of H.323 and/or SIP multipoint device}
 technologies: [H323, SIP],
 ipAddress: 147.251.99.100,
 capabilities: [
@@ -208,9 +204,9 @@ capabilities: [
   SendCapability,
   VirtualRoomsCapability
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{server1}{Example of Adobe Connect server}
+\begin{EntityExample}{}{server1}{Example of Adobe Connect server}
 technologies: [AdobeConnect],
 uri: obelix.cesnet.cz,
 capabilities: [
@@ -218,7 +214,7 @@ capabilities: [
   SendCapability,
   VirtualRoomsCapability
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
 \item \textbf{Signaling server device} \\
   Signaling server device is a special type of device that has only 
@@ -226,23 +222,23 @@ capabilities: [
   also have \textbf{Signaling Client} capability which for instance allows 
   other devices to address them by it's alias.
     
-\begin{ResourceExample}{}{gatekeeper}{Example of gatekeeper for H.323}
+\begin{EntityExample}{}{gatekeeper}{Example of gatekeeper for H.323}
 technologies: [H323],
 ipAddress: 147.251.99.101,
 capabilities: [
   SignalingServerCapability
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{proxy}{Example of proxy for SIP}
+\begin{EntityExample}{}{proxy}{Example of proxy for SIP}
 technologies: [SIP],
 ipAddress: 147.251.99.102,
 capabilities: [
   SignalingServerCapability
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{mcu2}%
+\begin{EntityExample}{}{mcu2}%
       {Example of MCU that is registered to H.323 and SIP servers}
 technologies: [H323, SIP],
 capabilities: [
@@ -255,9 +251,9 @@ capabilities: [
     aliases: {room1: [sip:room1@cesnet.cz]}} 
      // room2 is not registered to SIP Proxy
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{terminal5}%
+\begin{EntityExample}{}{terminal5}%
       {Example of terminal that is registered to H.323 and SIP servers}
 technologies: [H323, SIP],
 ipAddress: 147.251.99.5,
@@ -270,7 +266,7 @@ capabilities: [
   SignalingClientCapability {technologies: [SIP], server: proxy,
     aliases: [sip:srom@cesnet.cz]}
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
 \end{itemize}
  
@@ -285,12 +281,12 @@ to a specific \textbf{type} of connection in the technology (e.g., in H.323
 may be endpoints reachable by IP address or by H.323 alias, if both is 
 available two edges must be present). Each edge also specifies the formats of data that are available.
 
-\begin{ResourceExample}{}{proxy}{}
+\begin{EntityExample}{}{proxy}{}
 technologies: [SIP],
 capabilities: [SignalingServerCapability]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{terminal1}{}
+\begin{EntityExample}{}{terminal1}{}
 address: 147.251.99.1,
 technologies: [H323, SIP],
 capabilities: [
@@ -300,9 +296,9 @@ capabilities: [
   SignalingClientCapability {technologies: [SIP], server: proxy, 
     aliases: [sip:terminal1]}
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{terminal2}{}
+\begin{EntityExample}{}{terminal2}{}
 address: 147.251.99.2,
 technologies: [H323, SIP],
 capabilities: [
@@ -312,19 +308,19 @@ capabilities: [
   SignalingClientCapability {technologies: [SIP], server: proxy, 
     aliases: [sip:terminal2]}
 ]
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{edge1}{terminal1 <-> terminal2}
+\begin{EntityExample}{}{edge1}{terminal1 <-> terminal2}
 technology: H323,
 type: IPAddress,
 format: *
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{edge2}{terminal1 <-> terminal2}
+\begin{EntityExample}{}{edge2}{terminal1 <-> terminal2}
 technology: SIP,
 type: Alias,
 format: *
-\end{ResourceExample} 
+\end{EntityExample} 
   
   
 \section{Rule}
@@ -339,37 +335,37 @@ can be specified by pattern for identifier, IP address, URI or alias. If more th
 one group of nodes is specified then the rule is applied only for edges 
 between the groups and not inside the groups.
 
-\begin{ResourceExample}{}{rule1}%
+\begin{EntityExample}{}{rule1}%
       {Disable reachability by IP address for all H.323 devices}
 technologies: [H323],
 types: [IPAddress],
 nodes: *,
 goals: Disable
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{rule2}%
+\begin{EntityExample}{}{rule2}%
       {Enable reachability by IP address for all H.323 devices at FI MUNI}
 technologies: [H323],
 types: [IPAddress],
 nodes: cz.muni.fi.*,
 goal: Enable
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{rule3}{}
+\begin{EntityExample}{}{rule3}{}
 // Enable reachability by alias of SIP and H.323 devices between two networks.
 // Devices from each network are referenced by the network signaling server.
 technologies: [H323, SIP],
 types: [Alias],
 nodes: [signalingServer1.*, signalingServer2.*],
 goal: Enable
-\end{ResourceExample}
+\end{EntityExample}
 
-\begin{ResourceExample}{}{rule3}{Enable all correct reachability}
+\begin{EntityExample}{}{rule3}{Enable all correct reachability}
 technologies: *,
 types: *,
 nodes: *,
 goal: Enable
-\end{ResourceExample}
+\end{EntityExample}
 
 \section{Operations}
 

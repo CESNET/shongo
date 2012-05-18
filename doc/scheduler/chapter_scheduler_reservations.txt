@@ -1,21 +1,3 @@
-/**
- * Date/Time objects as defined in API document.
- */
-DateTime = Object {
-}
-AbsoluteDateTime = Object extends DateTime {
-}
-PeriodicDateTime = Object extends DateTime {
-}
-Duration = Object {
-}
-
-/** 
- * Represents a user identity.
- */
-UserIdentity = Object {
-}
-
 /** 
  * Holds the specifications of requested resources.
  */

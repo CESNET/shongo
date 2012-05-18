@@ -58,23 +58,7 @@
 
 \input{chapter_topology.tex}
 
-\chapter{Reservation}
-
-Reservations are used for booking devices for videoconference calls between multiple participants. Reservation request can be created by a Shongo user via console or web interface of a domain controller. The user become the reservation owner. Each reservation belongs to a domain controller where it was created and the reservation is stored there. Every domain controller is running a scheduler which process created reservations and tries to schedule them. Through the console or web interface the reservation owner is able to watch the reservation state and also to modify or delete the reservation. The owner and all the reservation participants should be notified about changes in reservation (e.g., by email or SMS). 
-
-Reservation request consists of date/time and duration specifications, specification of requested devices and/or participants that should take part in the videoconference and a set of options that can modify the scheduling process. Reservation request may be used to book multiple videoconference calls (e.g., every Wednesday or two specific dates). Reservation can request following types of entities to take part in the videoconference(s):
-\begin{compactenum}
-\item Person known to Shongo by a user identity.
-\item Person unknown to Shongo.
-\item Resource known to Shongo by a resource identifier.
-\item Resource unknown to Shongo.
-\end{compactenum}
-When a person is requested to participate in a videoconference, the controller should contact him (e.g., by email or by SMS with link to a web page) and ask whether he want to accept the invitation and which device he will use to connect to the videoconference. If the person is known to Shongo the controller can build a list of available devices and the person can select from them. The person can also specify a device that is unknown to Shongo (at least technology). If the person is unknown to Shongo the controller does not provide a list of available devices but the person should describe the device by which he will connect (again at least technology). Known persons are specified by a user identity (e.g., eduID.cz). Unknown persons can be anonymous or can specified by name and contact (e.g., email or cellphone number).
-
-%When a resource is requested to be used in a videoconference, it can get assigned which persons will use it to access the videoconference (which make sense for terminals). \TODO{How will be the persons specified?} Known resources to Shongo are specified by a resource identifier. Unknown resources are specified by a full description.
-
-\TODO{Continue in description of reservations}
-
+\input{chapter_reservation.tex}
 
 \input{chapter_scheduler.tex}
 
@@ -82,15 +66,9 @@ When a person is requested to participate in a videoconference, the controller s
 
 This chapter shows some examples of domain controllers, resource databases and scheduling scenarios.
 
-\CodeStyle{
-  ReceiveCapability, SendCapability, TerminalCapability,
-  StandaloneTerminalCapability, VirtualRoomsCapability, TranslateCapability, 
-  SignalingServerCapability, SignalingClientCapability,
-  SIP, H323, AdobeConnect, H264, CIF, 720p, 
-  DeviceResource, VirtualRoomResource,
-  PhysicalRoom,
-  IPAddress, URI, Alias, Enable, Disable
-}
+\CodeStyle{}
+\CodeStyleAppendImplementation
+\CodeStyleAppendEnum
 
 \input{chapter_example_first.tex}
 

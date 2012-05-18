@@ -41,11 +41,11 @@ are established through it.
 \end{itemize}
 
 Each H.323 element is running on a specific IP address that can be used to 
-connect to the element. An element can have assigned alias, \textbf{H.323 
-phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., 
-email) \TODO{or URI (how it can be used?)}, that can be used to connect to it.
+connect to the element. Each element can get assigned an \textbf{H.323 URI} (e.g., \verb|name@domain|) that can be used to connect to the element.
 
-Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in 
+An element can have assigned alias, \textbf{H.323 
+phone number} (defined by E.164) or \textbf{H.323 identifier} (string, e.g., 
+email), that can be used to connect to it. Alias can be assigned only to \textbf{terminal} or \textbf{virtual room} in 
 MCU. When a terminal has assigned alias it must register to a 
 \textbf{gatekeeper} that will be able to translate the alias to the terminal 
 IP address. Similarly the MCU must register aliases for it's virtual rooms to 
