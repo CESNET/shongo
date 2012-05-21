@@ -55,7 +55,7 @@ can be from the following types:
   Capability tells that the device is able to participate in a 
   videoconference. Terminal devices must have \textbf{Receive} and 
   \textbf{Send} capability. The input/output \textbf{format} can be 
-  specified only once in the \textbf{Terminal} capability and it will be 
+  specified once in the \textbf{Terminal} capability and it will be 
   copied/merged to both \textbf{Send} and \textbf{Received} capability in the 
   same device.
   
@@ -225,17 +225,13 @@ capabilities: [
 \begin{EntityExample}{}{gatekeeper}{Example of gatekeeper for H.323}
 technologies: [H323],
 ipAddress: 147.251.99.101,
-capabilities: [
-  SignalingServerCapability
-]
+capabilities: [SignalingServerCapability]
 \end{EntityExample}
 
 \begin{EntityExample}{}{proxy}{Example of proxy for SIP}
 technologies: [SIP],
 ipAddress: 147.251.99.102,
-capabilities: [
-  SignalingServerCapability
-]
+capabilities: [SignalingServerCapability]
 \end{EntityExample}
 
 \begin{EntityExample}{}{mcu2}%
@@ -244,12 +240,18 @@ technologies: [H323, SIP],
 capabilities: [
   ReceiveCapability,
   SendCapability,
-  VirtualRoomsCapability {rooms: [room1, room2]},
-  SignalingClientCapability {technologies: [H323], server: gatekeeper,
-    aliases: {room1: [9500000002], room2: [9500000003]}},
-  SignalingClientCapability {technologies: [SIP], server: proxy,
-    aliases: {room1: [sip:room1@cesnet.cz]}} 
-     // room2 is not registered to SIP Proxy
+  VirtualRoomsCapability {rooms: [
+    VirtualRoomResource {code: room1, aliases: [
+      {technology: H323, type: E164, value: 9500000002},
+      {technology: SIP, type: URI, value: sip:room1@cesnet.cz}
+    ]}, 
+    VirtualRoomResource {code: room2, aliases: [
+      {technology: H323, type: E164, value: 9500000003}
+      // room2 is not registered to SIP Proxy
+    ]}
+  ]},
+  SignalingClientCapability {technologies: [H323], server: gatekeeper},  
+  SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
 \end{EntityExample}
 
@@ -257,14 +259,16 @@ capabilities: [
       {Example of terminal that is registered to H.323 and SIP servers}
 technologies: [H323, SIP],
 ipAddress: 147.251.99.5,
+aliases: [
+  {technology: H323, type: E164, value: 9500000001},
+  {technology: SIP, type: URI, value: sip:srom@cesnet.cz}
+],
 capabilities: [
   TerminalCapability,
   ReceiveCapability,
   SendCapability,
-  SignalingClientCapability {technologies: [H323], server: gatekeeper,
-    aliases: [9500000001]},
-  SignalingClientCapability {technologies: [SIP], server: proxy,
-    aliases: [sip:srom@cesnet.cz]}
+  SignalingClientCapability {technologies: [H323], server: gatekeeper},
+  SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
 \end{EntityExample}
 
@@ -287,26 +291,24 @@ capabilities: [SignalingServerCapability]
 \end{EntityExample}
 
 \begin{EntityExample}{}{terminal1}{}
-address: 147.251.99.1,
 technologies: [H323, SIP],
+ipAddress: 147.251.99.1,
+aliases: [{technology: SIP, type: URI, value: sip:terminal1}],
 capabilities: [
   StandaloneTerminalCapability,
-  ReceiveCapability,
-  SendCapability,
-  SignalingClientCapability {technologies: [SIP], server: proxy, 
-    aliases: [sip:terminal1]}
+  ReceiveCapability, SendCapability,
+  SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
 \end{EntityExample}
 
 \begin{EntityExample}{}{terminal2}{}
-address: 147.251.99.2,
 technologies: [H323, SIP],
+ipAddress: 147.251.99.2,
+aliases: [{technology: SIP, type: URI, value: sip:terminal2}],
 capabilities: [
   StandaloneTerminalCapability,
-  ReceiveCapability,
-  SendCapability,
-  SignalingClientCapability {technologies: [SIP], server: proxy, 
-    aliases: [sip:terminal2]}
+  ReceiveCapability, SendCapability,
+  SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
 \end{EntityExample}
 
@@ -327,11 +329,11 @@ format: *
 Rules in Device Topology are at global level and they are used for modifying 
 the default reachability (determined by nodes capability settings). Each rule 
 must specify a target \textbf{technology}, a \textbf{type} of connection in 
-the technology (\verb|IPAddress|, \verb|URI| or \verb|Alias|), 
+the technology (\verb|IPAddress| or \verb|Alias|), 
 nodes (or groups of nodes) 
 to which the rule is applied and modifier (\verb|Enable| or \verb|Disable|) 
 which tells whether the reachability will be enabled or disabled. The nodes 
-can be specified by pattern for identifier, IP address, URI or alias. If more than 
+can be specified by pattern for identifier, IP address or alias. If more than 
 one group of nodes is specified then the rule is applied only for edges 
 between the groups and not inside the groups.
 
@@ -367,50 +369,50 @@ nodes: *,
 goal: Enable
 \end{EntityExample}
 
-\section{Operations}
+%\section{Operations}
 
-Device Topology implementation should allow dynamic modification when for 
-instance some device parameters are changed to not force the whole topology 
-reconstruction.      
+%Device Topology implementation should allow dynamic modification when for 
+%instance some device parameters are changed to not force the whole topology 
+%reconstruction.      
       
-\subsection*{Construction}
+%\subsection*{Construction}
 
-Construction is performed when the controller is started. Steps to construct a 
-topology:
+%Construction is performed when the controller is started. Steps to construct 
+%a topology:
 
-\begin{compactenum}
-\item Get the list of all devices in the topology.
-\item For each device: 
-  \begin{compactitem}
-  \item \textbf{Add new device}.
-  \end{compactitem}
-\end{compactenum}     
+%\begin{compactenum}
+%\item Get the list of all devices in the topology.
+%\item For each device: 
+%  \begin{compactitem}
+%  \item \textbf{Add new device}.
+%  \end{compactitem}
+%\end{compactenum}     
 
-\subsection*{Add new device}     
+%\subsection*{Add new device}     
 
-Steps to add new device to the topology:
-\begin{compactenum}
-\item Get device capabilities.
-\item Add a new node to the topology.
-\item Find all other devices that the device is able to take a videoconference 
-  with (based on capabilities):
-  \begin{compactitem}
-  \item Add edge(s) with proper parameters.
-  \end{compactitem}
-\end{compactenum}  
+%Steps to add new device to the topology:
+%\begin{compactenum}
+%\item Get device capabilities.
+%\item Add a new node to the topology.
+%\item Find all other devices that the device is able to take a %
+%  videoconference with (based on capabilities):
+%  \begin{compactitem}
+%  \item Add edge(s) with proper parameters.
+%  \end{compactitem}
+%\end{compactenum}  
 
-\subsection*{Update existing device}     
+%\subsection*{Update existing device}
 
-Steps to update an existing device in a topology for instance when the capabilities for the device are changed:
-\begin{compactenum}
-\item \textbf{Remove existing device}.
-\item \textbf{Add new device}.
-\end{compactenum} 
+%Steps to update an existing device in a topology for instance when the %capabilities for the device are changed:
+%\begin{compactenum}
+%\item \textbf{Remove existing device}.
+%\item \textbf{Add new device}.
+%\end{compactenum} 
      
-\subsection*{Remove existing device}     
+%\subsection*{Remove existing device}     
 
-Steps to remove existing device from a topology:
-\begin{compactenum}
-\item Remove all edges that reference the device.
-\item Remove the node from the topology.
-\end{compactenum}   
+%Steps to remove existing device from a topology:
+%\begin{compactenum}
+%\item Remove all edges that reference the device.
+%\item Remove the node from the topology.
+%\end{compactenum}   

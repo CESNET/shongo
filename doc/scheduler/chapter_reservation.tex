@@ -3,30 +3,57 @@
 Reservations are used for booking devices for videoconference calls between multiple participants. Reservation request can be created by a Shongo user via console or web interface of a domain controller. The user become the reservation owner. Each reservation belongs to a domain controller where it was created and the reservation is stored there. Every domain controller is running a scheduler which process created reservations and tries to schedule them. Through the console or web interface the reservation owner is able to watch the reservation state and also to modify or delete the reservation. The owner and all the reservation participants should be notified about changes in reservation (e.g., by email or SMS). 
 
 Reservation request consists of date/time and duration specifications, specification of requested devices and/or participants that should take part in the videoconference and a set of options that can modify the scheduling process. Reservation request may be used to book multiple videoconference calls (e.g., every Wednesday or two specific dates). Reservation can request following types of entities to take part in the videoconference(s):
-\begin{compactitem}
-\item Person known to Shongo by a user identity.
-\item Person unknown to Shongo.
-\item Resource known to Shongo by a resource identifier.
-\item Resource unknown to Shongo.
-\end{compactitem}
+\begin{compactenum}
+\item \textbf{Resource known to Shongo} \\
+  Resource is stored in the controller database and it has assigned 
+  the resource identifier by which is the resource requested in 
+  the reservation. Known resources can represent two types of resources:
+  \begin{compactenum}
+  \item Specific device in the controlled domain. The device is usually 
+  managed and thus the controller can control and schedule it.
+  \item External device that is often used in reservations. The device is 
+  usually external unmanaged terminal device stored in the controller database
+  to not force the user to describe it every time when he want to use it in 
+  a reservation (actually it is stored version of resource unknown to Shongo).
+  \end{compactenum}
+\item \textbf{Resource unknown to Shongo} \\
+  Resource is described as part of the reservation request. Usually 
+  represents an external device. It must specify at least technology (or a set 
+  of technologies). For instance it is useful for requesting videoconference 
+  of 5 unknown users that can connect via SIP or H.323.
+  
+  To each requested known/unknown resource in a reservation can be assigned a 
+  list of persons, that will use the resource to participate in the 
+  videoconference. Known resources can have the list assigned permanently 
+  and in this case it is automatically filled into all reservations where the 
+  resource is used.  
+\item \textbf{Person} \\
+  Instead of specifying a resource the reservation can request a specific 
+  person to participate in the videoconference and the person himself choose
+  the device that he will use for the videoconference. The person can be 
+  requested in two ways:
+  \begin{compactenum}
+  \item By specifying an user identity in Shongo.
+  \item By specifying a name and contact (e.g., email or cell phone).
+  \end{compactenum}
+\end{compactenum}
+When a person is requested to participate in a videoconference (by a resource or directly), the controller should contact him (e.g., by email or by SMS with link to a web page) and ask whether he want to accept the invitation. If the person was requested directly the controller should also ask the person which device he will use to connect to the videoconference. If the person was specified by a user identity the controller can build a list of available devices to him and the person can select from them. The person can also specify a device that is unknown to Shongo. 
 
-When a person is requested to participate in a videoconference, the controller should contact him (e.g., by email or by SMS with link to a web page) and ask whether he want to accept the invitation. Known persons are specified by a user identity (e.g., eduID.cz). Unknown persons can be anonymous or can be specified by a name and contact (e.g., email or cellphone number). A person specification can also specify a device that the person use to connect the videoconference(s). If a device is not specified the controller should also ask the person which device he will use to connect to the videoconference. If the person is known to Shongo the controller can build a list of available devices and the person can select from them. The person can also specify a device that is unknown to Shongo (at least technology). If the person is unknown to Shongo the controller does not provide a list of available devices but the person should describe the device by which he will connect (again at least technology).  Requested person has always assigned a resource by which the person will connect to the videoconference (even unknown resource with only the technology specified).
-\TODO{How to specify different devices to different events (in case of multiple videoconferences)?}
+The videoconference can be scheduled only when all directly requested persons have selected devices by which they will connect. Until this condition is met the reservation is in creating state.
+\TODO{How to specify different devices to different events (in case of multiple videoconferences)? Perhaps user should choose a device separately for each event...}
 
-A specific resource can be requested as a part of a reservation request. A resource that is known to Shongo is specified by it's identifier. A resource that is unknown to Shongo is specified at least with it's technology type, but also can be specified a URI, alias or every other attribute that can be specified to known resource in Shongo resource database. If the unknown resource has specified only technology it is anonymous resource (e.g., guest in videoconference).
-
-Set of options that can modify the scheduling process can contain one or more options from the following types:
+Set of options that can modify the scheduling process of a reservation can contain one or more options from the following types:
 \begin{compactitem}
 \item inter-domain lookup option tells that the controller is allowed to look for necessary devices also in foreign domains (e.g., for a MCU that is not available in local domain).
 \item preference whether a terminal should dial a MCU or a MCU should dial a terminal. This preference can be specified globally for the whole reservation or separately for each device.
 \end{compactitem}
-
-\TODO{Continue in description of reservations}
+Each device resource should specify whether it is callable from other devices or if it should initiate all calls by itself.
 
 \section{Examples of reservation requests}
 
 \CodeStyle{
-  PersonSpecification, ResourceSpecification, VirtualRoomSpecification,
+  ResourceSpecification, PersonSpecification, TerminalSpecification, 
+  VirtualRoomSpecification,
 }
 \CodeStyleAppendImplementation
 \CodeStyleAppendEnum
@@ -36,42 +63,44 @@ Set of options that can modify the scheduling process can contain one or more op
 
 \begin{EntityExample}{Reservation}{reservation1}{}
 dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
-specifications: [
-  PersonSpecification { // Four guests (unknown H.323 devices)
-    device: {technology: H323},
+requestedResources: [
+  TerminalSpecification { // 4 guests (unknown H.323 devices)
+    technology: H323,
     count: 4
   }
 ]
 \end{EntityExample}
 
-\item Reservation of a single videoconference for 4 persons. The first person  has assigned a device in resource database and thus the reservation owner select it for the reservation. Other two persons don't have assigned device in resource database so the reservation owner specify to them the H.323 phone numbers that the persons owns and must use (and the owner knows it). One H.323 guest can also connect to the videoconference.
+\item Reservation of a single videoconference for 4 persons. The first person  has assigned a device in resource database and thus the reservation owner selected it for the reservation. Other two persons don't have assigned device in resource database so the reservation owner specified that they will connect by specific H.323 phone numbers. One H.323 guest can also connect to the videoconference.
 
 \begin{EntityExample}{DeviceResource}{terminal1}{Mirial for Martin Srom in resource database}
 technologies: [H323], 
-identity: UserIdentity(srom@cesnet.cz),
+aliases: [{type: E164, value: 95001}],
+persons: [UserIdentity(srom@cesnet.cz)],
 capabilities: [
-  ReceiveCapability, SendCapability, StandaloneTerminalCapability,
-  SignalingClientCapability {aliases: [95001]}
+  ReceiveCapability, SendCapability, StandaloneTerminalCapability
 ]
 \end{EntityExample}
 
 \begin{EntityExample}{Reservation}{reservation2}{}
 dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
-specifications: [
-  PersonSpecification { // Martin Srom (known H.323 device)
-    identity: UserIdentity(srom@cesnet.cz), 
-    device: terminal1
+requestedResources: [
+  ResourceSpecification { // Martin Srom (known H.323 device)
+    resource: terminal1,
+    persons: [UserIdentity(srom@cesnet.cz)] 
   },
-  PersonSpecification { // Petr Holub (unknown device by H.323 phone number)
-    identity: UserIdentity(hopet@cesnet.cz), 
-    device: {technology: H323, alias: 95002}
+  TerminalSpecification { // Petr Holub (unknown H.323 device)
+    technology: H323,
+    alias: {type: E164, 95002},
+    persons: [UserIdentity(hopet@cesnet.cz)]
   },
-  PersonSpecification { // Jan Ruzicka (unknown device by H.323 phone number)
-    identity: UserIdentity(janru@cesnet.cz), 
-    device: {technology: H323, alias: 95003}
+  TerminalSpecification { // Jan Ruzicka (unknown H.323 device)
+    technology: H323,
+    alias: {type: E164, 95003},
+    persons: [UserIdentity(janru@cesnet.cz)], 
   },
-  PersonSpecification { // Guest (unknown H.323 device)
-    device: {technology: H323}
+  TerminalSpecification { // Guest (unknown H.323 device)
+    technology: H323
   }
 ]
 \end{EntityExample}
@@ -80,15 +109,16 @@ specifications: [
 
 \begin{EntityExample}{Reservation}{reservation3}{}
 dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
-specifications: [
-  PersonSpecification { // Martin Srom (must choose a device)
-    identity: UserIdentity(srom@cesnet.cz)
+requestedPersons: [
+  Person { // Martin Srom (must choose a device)
+    userIdentity: UserIdentity(srom@cesnet.cz)
   },
-  PersonSpecification { // Petr Holub (must choose a device)
-    identity: UserIdentity(hopet@cesnet.cz)
+  Person { // Petr Holub (must choose a device)
+    userIdentity: UserIdentity(hopet@cesnet.cz)
   },
-  PersonSpecification { // Jan Ruzicka (must choose a device)
-    identity: UserIdentity(janru@cesnet.cz)
+  Person { // Jan Ruzicka (must choose a device)
+    name: Jan Ruzicka,
+    email: janru@cesnet.cz
   }
 ]
 \end{EntityExample}
@@ -109,7 +139,7 @@ specifications: [
 
 \begin{EntityExample}{Reservation}{reservation4}{}
 dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
-specifications: [
+requestedResources: [
   VirtualRoomSpecification {
     device: mcu1,
     size: 4
@@ -123,7 +153,7 @@ specifications: [
 ]
 \end{EntityExample}
 
-\item Reservation requesting a single videoconference of 10 anonymous persons in H.323. Two MCU devices are specified to be used in videoconference.
+\item Reservation requesting a single videoconference for 1 specific person that should choose a device by which he will connect and 10 anonymous persons in H.323. Two MCU devices are specified to be used in videoconference.
 
 \TODO{What does it mean? Both MCU must be used? Or at least one? Or it is only preference and even other MCU may be used?}
 
@@ -133,15 +163,20 @@ specifications: [
 
 \begin{EntityExample}{Reservation}{reservation5}{}
 dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
-specifications: [
+requestedPersons: [
+  Person { // Martin Srom (must choose a device)
+    userIdentity: UserIdentity(srom@cesnet.cz)
+  }
+],
+requestedResources: [
   ResourceSpecification {
     resource: mcu1
   },
   ResourceSpecification {
     resource: mcu2
   },
-  PersonSpecification { // Ten guests (unknown H.323 devices)
-    device: {technology: H323},
+  TerminalSpecification { // 10 guests (unknown H.323 devices)
+    technology: H323,
     count: 10
   }
 ]
@@ -166,13 +201,34 @@ AbsoluteDateTime = Object extends DateTime {
 }
 PeriodicDateTime = Object extends DateTime {
 }
-Duration = Object {
+Period = Object {
+}
+
+/**
+ * Represents a time slot in a schedule defined by a start 
+ * date/time and and a duration.
+ */
+TimeSlot = Object {
+  // Absolute date/time when the event takes place.
+  dateTime: AbsoluteDateTime,
+
+  // Duration which the event takes.
+  duration: Duration
 }
 
 /** 
  * Represents a user identity.
  */
 UserIdentity = Object {
+}
+
+/**
+ * Represents a person for Shongo.
+ */
+Person = Object {
+  name: String,
+  email: String,
+  userIdentity: UserIdentity
 }
 
 TODO: Move some classes from scheduler here and complete this

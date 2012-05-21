@@ -41,7 +41,7 @@
 % Language keywords
 \newcommand{\CodeStyleAppendLanguage}{\lstset{classoffset=1,morekeywords={
   Object, Enum, Integer, String, Boolean, List, Set,  
-  IPAddress, URI, URN, URL, 
+  IPAddress, URN, URL, 
   extends, of, or, *,
 }}}
 
@@ -49,7 +49,7 @@
 \newcommand{\CodeStyleAppendImplementation}{\lstset{classoffset=1,morekeywords={
   % Common
   URI,
-  DateTime, AbsoluteDateTime, PeriodicDateTime, Period, UserIdentity,
+  DateTime, AbsoluteDateTime, PeriodicDateTime, Period, UserIdentity, Person,
   % Capabilities
   ReceiveCapability, SendCapability, TerminalCapability,
   StandaloneTerminalCapability, MixCapability, VirtualRoomsCapability, 
@@ -66,6 +66,8 @@
   H323, SIP, AdobeConnect,
   % Formats  
   H264, CIF, 720p,
+  % Alias types
+  URI, E164, Identifier,
   % Type of Topology Edge
   IPAddress, Alias, 
   % Rule goal
