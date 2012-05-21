@@ -1,0 +1,54 @@
+/**
+ * Abstract date/time object.
+ */
+DateTime = Object {
+}
+
+/**
+ * Represents an absolute date/time.
+ */
+AbsoluteDateTime = Object extends DateTime {
+}
+
+/**
+ * Represents a periodic date/time.
+ */
+PeriodicDateTime = Object extends DateTime {
+}
+
+/**
+ * Represents a period or duration.
+ */
+Period = Object {
+}
+
+/**
+ * Represents a time slot in a schedule defined by a start 
+ * date/time and a duration.
+ */
+TimeSlot = Object {
+  // Absolute date/time when the event takes place.
+  dateTime: AbsoluteDateTime,
+
+  // Duration which the event takes.
+  duration: Duration
+}
+
+/** 
+ * Represents a user identity from authentication server.
+ */
+UserIdentity = Object {
+  TODO: What will be there?
+}
+
+/**
+ * Represents a person that can be contacted.
+ */
+Person = Object {
+  // Full name of person.
+  name: String,
+  // Contact email.
+  email: String,
+  // Reference to user identity.
+  userIdentity: UserIdentity
+}

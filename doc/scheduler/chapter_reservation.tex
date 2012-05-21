@@ -1,4 +1,4 @@
-\chapter{Reservation}
+\chapter{Reservations}
 
 Reservations are used for booking devices for videoconference calls between multiple participants. Reservation request can be created by a Shongo user via console or web interface of a domain controller. The user become the reservation owner. Each reservation belongs to a domain controller where it was created and the reservation is stored there. Every domain controller is running a scheduler which process created reservations and tries to schedule them. Through the console or web interface the reservation owner is able to watch the reservation state and also to modify or delete the reservation. The owner and all the reservation participants should be notified about changes in reservation (e.g., by email or SMS). 
 
@@ -25,8 +25,8 @@ Reservation request consists of date/time and duration specifications, specifica
   To each requested known/unknown resource in a reservation can be assigned a 
   list of persons, that will use the resource to participate in the 
   videoconference. Known resources can have the list assigned permanently 
-  and in this case it is automatically filled into all reservations where the 
-  resource is used.  
+  and in this case it is automatically filled into all reservations in which 
+  the resource is used.  
 \item \textbf{Person} \\
   Instead of specifying a resource the reservation can request a specific 
   person to participate in the videoconference and the person himself choose
@@ -140,14 +140,14 @@ requestedPersons: [
 \begin{EntityExample}{Reservation}{reservation4}{}
 dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
 requestedResources: [
-  VirtualRoomSpecification {
+  VirtualRoomSpecification { TODO: Special request add it to description of reservations
     device: mcu1,
     size: 4
   },
-  ResourceSpecification {
+  ResourceSpecification { // Known H.323 device
     resource: terminal2
   },
-  ResourceSpecification {
+  ResourceSpecification { // Known H.323 device
     resource: terminal3
   }
 ]
@@ -169,10 +169,10 @@ requestedPersons: [
   }
 ],
 requestedResources: [
-  ResourceSpecification {
+  ResourceSpecification { // Known H.323 device
     resource: mcu1
   },
-  ResourceSpecification {
+  ResourceSpecification { // Known H.323 device
     resource: mcu2
   },
   TerminalSpecification { // 10 guests (unknown H.323 devices)
@@ -188,48 +188,4 @@ requestedResources: [
 
 \section{Implementation}
 
-\CodeStyle{}
-\CodeStyleAppendLanguage
-
-\begin{lstlisting}
-/**
- * Date/Time objects as defined in API document.
- */
-DateTime = Object {
-}
-AbsoluteDateTime = Object extends DateTime {
-}
-PeriodicDateTime = Object extends DateTime {
-}
-Period = Object {
-}
-
-/**
- * Represents a time slot in a schedule defined by a start 
- * date/time and and a duration.
- */
-TimeSlot = Object {
-  // Absolute date/time when the event takes place.
-  dateTime: AbsoluteDateTime,
-
-  // Duration which the event takes.
-  duration: Duration
-}
-
-/** 
- * Represents a user identity.
- */
-UserIdentity = Object {
-}
-
-/**
- * Represents a person for Shongo.
- */
-Person = Object {
-  name: String,
-  email: String,
-  userIdentity: UserIdentity
-}
-
-TODO: Move some classes from scheduler here and complete this
-\end{lstlisting}
+\CodeInput{code_reservation.txt}

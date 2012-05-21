@@ -30,17 +30,8 @@ Resource = Object {
   persons: List<0:n> of Person
 }
 
-/** 
- * Technology enumeration. 
- */
-Technology = Enum {
-  H323,
-  SIP,
-  AdobeConnect
-}
-
 /**
- * Alias.
+ * Alias for a videoconference device or virtual room.
  */
 Alias = Object {
   // Technology for which the alias is.
@@ -52,13 +43,34 @@ Alias = Object {
 }
 
 /** 
+ * Identifier for a videoconference device or virtual room. 
+ */
+IdentifierResource = Object extends Resource {
+  // Resource type is always device component.
+  type: DeviceComponent,
+  // Identifier value.
+  value: String or Alias
+
+  TODO: Rename to AliasResource? Remove String value?
+}
+
+/** 
+ * Technology enumeration. 
+ */
+Technology = Enum {
+  H323,
+  SIP,
+  AdobeConnect
+}
+
+/** 
  * Special type of resource that represents videoconference device. 
  */
 DeviceResource = Object extends Resource {
   // Resource type is always device.
   type: Device,
   // IP address of the device.
-  ipAddress: IPAddress,
+  ipAddress: String,
   // Aliases for the device.
   aliases: List<0:n> of (Alias or IdentifierResource),
   // Technologies that the device supports.
@@ -107,6 +119,7 @@ Format = Object {
   content: * or Object {
     TODO: Specify content format
   }
+
   TODO: Fill enums
 }
 
@@ -151,10 +164,10 @@ MixCapability = Object extends DeviceCapability {
 VirtualRoomResource = Object extends Resource {
   // Resource type is always device component.
   type: DeviceComponent,
-  // Room Identification inside the Device.
+  // Room identification inside the Device.
   code: String,
-  // URI of the room (e.g., H.323/SIP URI)
-  uri: URI
+  // Aliases for the device.
+  aliases: List<0:n> of (Alias or IdentifierResource),
 }
 
 /** 
@@ -167,26 +180,12 @@ VirtualRoomsCapability = Object extends MixCapability {
 }
 
 /** 
- * Identifier for a videoconference device or Virtual Room. 
- */
-IdentifierResource = Object extends Resource {
-  // Resource type is always device component.
-  type: DeviceComponent,
-  // Identifier value.
-  value: String
-}
-
-/** 
  * Capability tells that a device can starts videoconference
  * throught a server.
  */
 SignalingClientCapability = Object extends DeviceCapability {  
   // Signaling server identifier.
   server: URN,
-  // Aliases for the device or for virtual rooms in the device.
-  aliases: List<1:n> of (String or IdentifierResource) 
-         or Map<String, List<1:n> of (String or IdentifierResource)> 
-  TODO: Will have VirtualRoomResource also the capability with only alias set?
 }
 
 /** 
@@ -253,7 +252,7 @@ DeviceTopology = Object {
     device: DeviceResource
   },
   /** Type of edge (reachability). */
-  EdgeType: Enum {Address, Alias},
+  EdgeType: Enum {IPAddress, Alias},
   /** Edge in device topology. */
   Edge = Object {
     // Source node.

@@ -31,20 +31,22 @@ capabilities: [SignalingServerCapability]
 technologies: [H323], 
 ipAddress: 147.251.99.1,
 dependentResources: [room1],
+aliases: [{type: E164, value: 95001}],
 capabilities: [
   ReceiveCapability, SendCapability,
   StandaloneTerminalCapability,
-  SignalingClientCapability {server: gatekeeper, aliases: [9501]}
+  SignalingClientCapability {server: gatekeeper}
 ]
 \end{EntityExample}
 
 \begin{EntityExample}{DeviceResource}{terminal2}{Second H.323 terminal}
 technologies: [H323], 
 ipAddress: 147.251.99.2,
+aliases: [{type: E164, value: 95002}],
 capabilities: [
   ReceiveCapability, SendCapability,
   StandaloneTerminalCapability,
-  SignalingClientCapability {server: gatekeeper, aliases: [9502]}
+  SignalingClientCapability {server: gatekeeper}
 ]
 \end{EntityExample}
 
@@ -61,7 +63,7 @@ capabilities: [SignalingServerCapability]
   
 \begin{EntityExample}{DeviceResource}{userAgent1}{First SIP user agent}
 technologies: [SIP],
-uri: sip:a2,
+aliases: [{type: URI, value: sip:a1}],
 dependentResources: [room2],
 capabilities: [
   ReceiveCapability, SendCapability,
@@ -72,7 +74,7 @@ capabilities: [
 
 \begin{EntityExample}{DeviceResource}{userAgent2}{Second SIP user agent}
 technologies: [SIP],
-uri: sip:a2,
+aliases: [{type: URI, value: sip:a2}],
 capabilities: [
   ReceiveCapability, SendCapability,
   StandaloneTerminalCapability,
@@ -89,11 +91,16 @@ ipAddress: 147.251.99.3,
 capabilities: [
   ReceiveCapability, SendCapability,
   VirtualRoomsCapability {rooms: [
-    VirtualRoomResource {code: room1, uri: sip:r1},
-    VirtualRoomResource {code: room2, uri: sip:r2}
+    VirtualRoomResource {code: room1, aliases: [
+      {technology: H323, type: E164, value: 95003},
+      {technology: SIP, type: URI, value: sip:r1}
+    ]},
+    VirtualRoomResource {code: room2, aliases: [
+      {technology: H323, type: E164, value: 95004},
+      {technology: SIP, type: URI, value: sip:r2}
+    ]},
   ]},
-  SignalingClientCapability {technologies: [H323], server: proxy, 
-     aliases: {room1: [9503], room2: [9504]}},
+  SignalingClientCapability {technologies: [H323], server: proxy},
   SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
 \end{EntityExample}
@@ -115,17 +122,17 @@ capabilities: [
 
 \begin{EntityExample}{DeviceResource}{client1}{First Adobe Connect client}
 technologies: [AdobeConnect], 
+persons: [UserIdentity(srom@cesnet.cz)],
 capabilities: [
-  ReceiveCapability, SendCapability,
-  TerminalCapability {identity: srom@cesnet.cz}
+  ReceiveCapability, SendCapability, TerminalCapability
 ]
 \end{EntityExample}
 
 \begin{EntityExample}{DeviceResource}{client2}{Second Adobe Connect client}
 technologies: [AdobeConnect], 
+persons: [UserIdentity(bouda@cesnet.cz)],
 capabilities: [
-  ReceiveCapability, SendCapability,
-  TerminalCapability {identity: bouda@cesnet.cz}
+  ReceiveCapability, SendCapability, TerminalCapability
 ]
 \end{EntityExample}
 
@@ -135,11 +142,11 @@ capabilities: [
 \begin{EntityExample}{DeviceResource}{gateway}{Gateway between H.323 and Adobe Connect}
 technologies: [H323, AdobeConnect], 
 ipAddress: 147.251.99.4,
+aliases: [{technology: H323, type: E164, value: 95005}],
 capabilities: [
   ReceiveCapability, SendCapability,
   TranslateCapability,
-  SignalingClientCapability {technologies: [H323], server: gatekeeper, 
-     aliases: [9505]}
+  SignalingClientCapability {technologies: [H323], server: gatekeeper}
 ]
 \end{EntityExample}
 

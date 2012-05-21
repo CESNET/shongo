@@ -41,7 +41,7 @@
 % Language keywords
 \newcommand{\CodeStyleAppendLanguage}{\lstset{classoffset=1,morekeywords={
   Object, Enum, Integer, String, Boolean, List, Set,  
-  IPAddress, URN, URL, 
+  URN, URL, 
   extends, of, or, *,
 }}}
 
@@ -73,3 +73,10 @@
   % Rule goal
   Enable, Disable
 }}}
+
+\newcommand{\CodeInput}[1]{
+\CodeStyle{}
+\CodeStyleAppendLanguage
+\vspace{2mm}
+\lstinputlisting{#1}
+}

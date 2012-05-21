@@ -1,76 +1,9 @@
-\newcommand{\SchedulerInputCode}[1]{
-\CodeStyle{}
-\CodeStyleAppendLanguage
-\vspace{2mm}
-\lstinputlisting{#1}
-}
-
 \chapter{Scheduler}
 
 Scheduler is a component of a domain controller that has access to a database 
 of domain resources and reservations. Scheduler allocates the requested 
 resources by reservations to specific time slots and specific resources 
 according to requested parameters and optimization criteria.
-
-\section{Resource Database}
-
-Resource is physical or logical entity that can be scheduled by a scheduler. 
-Resources are persistently stored in a relational database. Scheduler has 
-access to that database and should keep the resources in memory in an 
-efficient form for scheduling. Some of resources are created by Shongo users 
-(e.g., videoconference devices or physical rooms), some are created by Shongo 
-scheduler (e.g., virtual rooms or identifiers) and some are created due to a 
-reservation request (e.g., unmanaged devices or resources from foreign 
-domains). Resource database is composed of:
-\begin{compactenum}
-\item List of all known resources.
-\item Device Topology that contains all device resources and represents 
-videoconference reachability between them.
-\end{compactenum}
-Each resource can be one of the following types:
-\begin{compactenum}
-\item \textbf{Device} -- represents a videconference harware or software 
-  element.
-\item \textbf{Device Component} -- represents a resource that is a part of a 
-  device resource. Can be one of the following types:
-  \begin{compactenum}
-    \item \textbf{Identifier}
-    \item \textbf{Virtual Room}
-  \end{compactenum}
-\item \textbf{Physical Room} -- represent a physical room (e.g., classroom or 
-  boardroom).
-\end{compactenum}
-Each resource can be dependent on another resource (e.g., can be located 
-inside it or can be part of it), for instance a H.323 terminal can be located 
-inside a physical room or a H.323 identifier is assigned to a H.323 device. 
-When scheduler allocates resource, it must also allocate a resource to which 
-the requested resource is dependent (recursively).
-
-\subsection{Implementation}
-
-The resource database is implemented as follows:
-
-\SchedulerInputCode{chapter_scheduler_resources.txt}
-
-\subsection{Operations}
-
-Operations that can be performed on resource database:
-
-\begin{description}
-\item[Construct]
-Resource database is constructed when the controller (and thus the scheduler) 
-is started. The scheduler loads all resources from relational database and 
-performs \textbf{Add new resource} for each loaded resource.
-
-\item[Add new resource]
-The scheduler adds the resource to the list of all resources. If the resource 
-is device type then the resource is also added to the Device Topology.
-
-\item[Remove existing resource]
-The scheduler removes the resource from the list of all resources. If the 
-resource is device type then the resource is also removed from the Device 
-Topology.
-\end{description}
 
 \section{Scheduling}
 
@@ -92,7 +25,7 @@ all reservation events. If infinite reservations are allowed the scheduling must
 \end{compactenum}
 }
 
-\SchedulerInputCode{chapter_scheduler_reservations.txt}
+\CodeInput{code_scheduler.txt}
 
 \TODO{Continue in describing scheduler}
 

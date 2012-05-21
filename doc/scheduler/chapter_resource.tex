@@ -2,7 +2,41 @@
 \CodeStyleAppendImplementation
 \CodeStyleAppendEnum
 
-\chapter{Device Topology}
+\chapter{Resource Database}
+
+Resource is physical or logical entity that can be scheduled by a scheduler. 
+Resources are persistently stored in a relational database. Scheduler has 
+access to that database and should keep the resources in memory in an 
+efficient form for scheduling. Some of resources are created by Shongo users 
+(e.g., videoconference devices or physical rooms), some are created by Shongo 
+scheduler (e.g., virtual rooms or identifiers) and some are created due to a 
+reservation request (e.g., unmanaged devices or resources from foreign 
+domains). Resource database is composed of:
+\begin{compactenum}
+\item List of all known resources.
+\item Device Topology that contains all device resources and represents 
+videoconference reachability between them.
+\end{compactenum}
+Each resource can be one of the following types:
+\begin{compactenum}
+\item \textbf{Device} -- represents a videconference harware or software 
+  element.
+\item \textbf{Device Component} -- represents a resource that is a part of a 
+  device resource. Can be one of the following types:
+  \begin{compactenum}
+    \item \textbf{Identifier}
+    \item \textbf{Virtual Room}
+  \end{compactenum}
+\item \textbf{Physical Room} -- represent a physical room (e.g., classroom or 
+  boardroom).
+\end{compactenum}
+Each resource can be dependent on another resource (e.g., can be located 
+inside it or can be part of it), for instance a H.323 terminal can be located 
+inside a physical room or a H.323 identifier is assigned to a H.323 device. 
+When scheduler allocates resource, it must also allocate a resource to which 
+the requested resource is dependent (recursively).
+
+\section{Device Topology}
 
 Device Topology is representation of videoconferencing devices from various 
 technologies and its' mutual reachability in a single domain. Each domain 
@@ -20,7 +54,7 @@ videoconference devices and edges theirs reachability in a specific technology
 devices' capabilities and by list of global rules which defines the additional 
 constraints.
 
-\section{Node}
+\subsection{Node}
 
 Each node in Device Topology represents one videoconference device. Device is 
 able to communicate with one or more \textbf{technologies} (H.323, SIP, Adobe 
@@ -111,8 +145,8 @@ by multiple capability of the same type (one for each technology) or by single
 capability that lists all the technologies (provided that all technologies has 
 same \textbf{format} settings).
 
-\subsection*{Examples of abstract devices (each with technology dependent 
-             examples):}
+\paragraph{Examples of abstract devices (each with technology dependent 
+           examples):}
 
 \begin{itemize}
 
@@ -275,7 +309,7 @@ capabilities: [
 \end{itemize}
  
 
-\section{Edge}
+\subsection{Edge}
 
 The oriented edge is a link between two nodes and it tells that the second 
 node (the node with incoming arrow) is reachable from the first node. A 
@@ -325,7 +359,7 @@ format: *
 \end{EntityExample} 
   
   
-\section{Rule}
+\subsection{Rule}
 Rules in Device Topology are at global level and they are used for modifying 
 the default reachability (determined by nodes capability settings). Each rule 
 must specify a target \textbf{technology}, a \textbf{type} of connection in 
@@ -415,4 +449,30 @@ goal: Enable
 %\begin{compactenum}
 %\item Remove all edges that reference the device.
 %\item Remove the node from the topology.
-%\end{compactenum}   
+%\end{compactenum}  
+
+\section{Implementation}
+
+The resource database is implemented as follows:
+
+\CodeInput{code_resource.txt}
+
+\section{Operations}
+
+Operations that can be performed on resource database:
+
+\begin{description}
+\item[Construct]
+Resource database is constructed when the controller (and thus the scheduler) 
+is started. The scheduler loads all resources from relational database and 
+performs \textbf{Add new resource} for each loaded resource.
+
+\item[Add new resource]
+The scheduler adds the resource to the list of all resources. If the resource 
+is device type then the resource is also added to the Device Topology.
+
+\item[Remove existing resource]
+The scheduler removes the resource from the list of all resources. If the 
+resource is device type then the resource is also removed from the Device 
+Topology.
+\end{description} 
