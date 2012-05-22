@@ -1,38 +1,47 @@
-/** Base resource specification. */
-Specification = Object {
-  // List of persons that will use the resource in videoconference.
-  persons: List<1:n> of Person,
-
-  // Option specifying who should initiate the call.
-  callInitiation: Enum{Default, Terminal, Multipoint},
+/** Requested person for a reservation. */
+PersonRequest = Object {
+  // Specific person.
+  person: Person,
+  // State of person request.
+  state: Enum {NotConfirmed, Confirmed, Rejected}
 }
 
-/** Fully-qualified explicit specification. */
-ResourceSpecification = Object extends Specification {
+/** Resource specification. */
+ResourceSpecification = Object {
+  // List of persons that will use the resource in the videoconference.
+  persons: List<1:n> of PersonRequest,
+  // Option specifying who should initiate the call.
+  callInitiation: Enum{Default, Terminal, Multipoint}
+}
+
+/** Fully-qualified explicit resource specification. */
+DefiniteResourceSpecification = Object extends ResourceSpecification {
   // Specific resource.
-  resource: Resource,
+  resource: Resource
 } 
 
-/** Partially-qualified explicit specification. */
-LookupSpecification = Object extends Specification {
+/** Partially-qualified explicit resource specification. */
+LookupResourceSpecification = Object extends ResourceSpecification {
   // Technology of a resource.
   technology: * or Technology,
   // Type of a resource.
   type: Enum {Terminal, Multipoint}
 }
 
-/** Terminal specification. */
-TerminalSpecification = Object extends Specification {
-  // Technology of a terminal.
-  technology: Technology,
+/** External terminal resource specification. */
+ExternalTerminalResourceSpecification = Object extends ResourceSpecification {
+  // Technologies of a terminal.
+  technologies: Set<1:n> of Technology,
+  // IP address.
+  ipAddress: String,
   // Alias of a terminal.
   alias: Alias or IdentifierResource,
   // Number of terminals with the same definition (default 1).
   count: Integer
 }
 
-/** Virtual room specification. */
-VirtualRoomSpecification = Object extends Specification {
+/** Virtual room resource specification. */
+VirtualRoomSpecification = Object extends ResourceSpecification {
   // Device for the virtual room.
   device: DeviceResource,
   // Number of participants in the virtual room.
@@ -40,23 +49,36 @@ VirtualRoomSpecification = Object extends Specification {
 }    
 
 /** 
- * Single reservation that was requested by an user.
+ * Reservation request that can be created by an user.
  */
-Reservation = Object {
-  // Simple or periodic date.
-  dateTime: DateTime,
+ReservationRequest = Object {
+  // Type of reservation purpose.
+  type: Enum {Science, Education},
+
+  // Requested time slots (each contains absolute or periodic date/time and duration).
+  requestedTimeSlots: List<1:n> of Pair<DateTime, Duration>,
 
   // Requested resources for the reservation.
-  requestedResources: List<0:n> of Specification,
+  requestedResources: List<0:n> of ResourceSpecification,
 
-  // List of persons that should choose resource for the reservation.
-  requestedPersons: List<0:n> of Person,
+  // List of requested persons that should choose resource which they will use.
+  requestedPersons: List<0:n> of PersonRequest,
 
   // Option specifying who should initiate the call.
   callInitiation: Enum{Default, Terminal, Multipoint},
 
   // Option specifying whether inter domain lookup can be performed.
-  interDomain: Boolean
+  interDomain: Boolean,
+  
+  // State of reservation request.
+  state: Enum {
+    // Incomplete request means that some of the requested persons 
+    // have NotConfirmed state.
+    NotComplete, 
+    // Complete request means that all of the requested persons
+    // have Confirmed or Rejected state.
+    Complete
+  }
 }
 
 

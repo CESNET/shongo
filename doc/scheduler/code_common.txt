@@ -19,7 +19,7 @@ PeriodicDateTime = Object extends DateTime {
 /**
  * Represents a period or duration.
  */
-Period = Object {
+Duration = Period = Object {
 }
 
 /**
@@ -49,6 +49,14 @@ Person = Object {
   name: String,
   // Contact email.
   email: String,
+  // Cell phone.
+  cellPhone: String
+}
+
+/**
+ * Represents a person referenced by a user identity.
+ */
+PersonByIdentity = Object extends Person {
   // Reference to user identity.
   userIdentity: UserIdentity
 }
