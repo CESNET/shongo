@@ -1,0 +1,85 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Common
+%
+\newglossaryentry{controller}
+{
+  name=Domain Controller,
+  description={Represents a running application that holds a database of resources and 
+    reservations. Users can access and modify the database through the controller user 
+    interface(s). The controller runs a scheduler that process the database.}
+}
+\newglossaryentry{connector}
+{
+  name=Connector,
+  description={\TODO{}}
+}
+\newglossaryentry{user}
+{
+  name=User,
+  description={\TODO{}}
+}
+\newglossaryentry{person}
+{
+  name=Person,
+  description={\TODO{}}
+}
+\newglossaryentry{date-time-slot}
+{
+  name=Date/Time Slot,
+  description={Represents a time between specific starting and ending moment. Can be 
+    specified by a starting date and time and a duration.}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Resources
+%
+\newglossaryentry{resource}
+{
+  name=Resource,
+  description={An entity that can be scheduled by a scheduler.}
+}
+\newglossaryentry{device}
+{
+  name=Device,
+  description={A special type of resource that represents a videoconference device (e.g., 
+    terminal, gateway or multipoint control unit).}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Reservation
+%
+\newglossaryentry{reservation-request}
+{
+  name=Reservation Request,
+  description={A request made by an user to book given resources for a specific date/time 
+    slot(s). Reservation request can be \textbf{incomplete} or \textbf{complete}. Incomplete 
+    request must be filled in by additional information to become complete.
+    \TODO{Do we break the request also to meetings to be able to schedule complete meeting 
+    request that is part of not complete reservation request?}}
+}
+\newglossaryentry{reservation-meeting}
+{
+  name=Reservation Meeting,
+  description={Represents allocated resources for a single date/time slot based on a 
+  complete reservation request.}
+}
+\newglossaryentry{reservation}
+{
+  name=Reservation,
+  description={Represents a partially or fully scheduled complete reservation request. 
+  Contains one or more reservation meetings.}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Scheduler
+%
+\newglossaryentry{scheduler}
+{
+  name=Scheduler,
+  description={Scheduler is a component of a domain controller that process complete 
+    reservation requests and schedule them to reservations.}
+}

@@ -18,6 +18,10 @@
 \usepackage{geometry}
 \usepackage{tikz}
 
+\usepackage[xindy, nonumberlist]{glossaries}
+\usepackage{glossary-long}
+\makeglossaries
+
 \geometry{paper=a4paper}
 \usetikzlibrary{arrows, shapes, calc, decorations}
 \renewcommand*\ttdefault{txtt}
@@ -46,7 +50,20 @@
         Ondřej Bouda}
 \date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
 \maketitle
-\tableofcontents
+\tableofcontents 
+
+% Print glossaries
+\input{glossaries}
+\renewcommand*{\glossaryname}{List of Terms}  % Changes glossary name
+\renewcommand*{\glspostdescription}{}         % removes dot after description
+\renewcommand*{\glsnamefont}[1]{\textbf{#1}}  % makes name bold
+\renewcommand*{\arraystretch}{1.4}            % makes vertical space between entries
+\setlength\glsdescwidth{0.7\linewidth}        % sets width of descriptions
+\addcontentsline{toc}{chapter}{\glossaryname} % add entry to table of contents
+\glsaddall                                    % add all glossaries
+\glossarystyle{long}                          % sets glossary style to table
+\renewcommand*{\glsgroupskip}{}               % remove vertical space between groups
+\printglossary[type=main]                     % print glossaries
 
 % Technology styles
 \tikzstyle{hxxxAlias}=[color=blue, dashed]

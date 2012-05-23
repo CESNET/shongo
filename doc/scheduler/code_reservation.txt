@@ -28,14 +28,14 @@ LookupResourceSpecification = Object extends ResourceSpecification {
   type: Enum {Terminal, Multipoint}
 }
 
-/** External terminal resource specification. */
-ExternalTerminalResourceSpecification = Object extends ResourceSpecification {
-  // Technologies of a terminal.
+/** External endpoint resource specification. */
+ExternalEndpointSpecification = Object extends ResourceSpecification {
+  // Technologies of a endpoint.
   technologies: Set<1:n> of Technology,
   // IP address.
   ipAddress: String,
   // Alias of a terminal.
-  alias: Alias or IdentifierResource,
+  aliases: List<0:n> of (Alias or IdentifierResource),
   // Number of terminals with the same definition (default 1).
   count: Integer
 }

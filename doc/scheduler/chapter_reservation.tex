@@ -72,7 +72,7 @@ Each device resource should specify whether it is callable from other devices or
 
 \CodeStyle{
   PersonSpecification, ResourceSpecification, DefiniteResourceSpecification, 
-  ExternalTerminalSpecification, VirtualRoomSpecification,
+  ExternalEndpointSpecification, VirtualRoomSpecification,
 }
 \CodeStyleAppendImplementation
 \CodeStyleAppendEnum
@@ -84,7 +84,7 @@ Each device resource should specify whether it is callable from other devices or
 type: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
-  ExternalTerminalSpecification { // 4 guests (unknown H.323 devices)
+  ExternalEndpointSpecification { // 4 guests (unknown H.323 devices)
     technologies: [H323],
     count: 4
   }
@@ -110,18 +110,18 @@ requestedResources: [
     resource: terminal1,
     persons: [UserIdentity(srom@cesnet.cz)] 
   },
-  ExternalTerminalSpecification { // Petr Holub (unknown H.323 device)
+  ExternalEndpointSpecification { // Petr Holub (unknown H.323 device)
     technologies: [H323],
-    alias: {type: E164, 95002},
+    aliases: [{type: E164, 95002}],
     persons: [UserIdentity(hopet@cesnet.cz)]
   },
-  ExternalTerminalSpecification { // Jan Ruzicka (unknown H.323 device)
+  ExternalEndpointSpecification { // Jan Ruzicka (unknown H.323 device)
     technologies: [H323],
-    alias: {type: E164, 95003},
+    aliases: [{type: E164, 95003}],
     persons: [UserIdentity(janru@cesnet.cz)], 
   },
-  ExternalTerminalSpecification { // Guest (unknown H.323 device)
-    technology: H323
+  ExternalEndpointSpecification { // Guest (unknown H.323 device)
+    technologies: [H323]
   }
 ]
 \end{EntityExample}
@@ -193,7 +193,7 @@ requestedResources: [
   DefiniteResourceSpecification { // Known H.323 device
     resource: mcu2
   },
-  ExternalTerminalSpecification { // 10 guests (unknown H.323 devices)
+  ExternalEndpointSpecification { // 10 guests (unknown H.323 devices)
     technologies: [H323],
     count: 10
   }
