@@ -882,7 +882,7 @@ Extension of |DateTimeSlot| that allows only |AbsoluteDateTime| as an instance o
 \end{Api}
 
 
-\section{Reservations and Resources}
+\section{Reservations and Resources} \label{sect:common:reservations-resources}
 
 \begin{Api}
 
@@ -1061,7 +1061,7 @@ Represents an active user in a virtual room on a server.
 \ApiClassAttribute{userId}{String}{\ApiReadOnly}
 User identification in room (technology specific).
 \ApiClassAttribute{roomId}{String}{\ApiReadOnly}
-Room unique identifier. \TODO{The identifier should contain a part denoting the user and a part denoting his/her session -- as requested by use case \ref{UC:ops:room:users-list}.}
+Room unique identifier. \TODO{The identifier should contain a part denoting the user and a part denoting his/her session -- as requested by use case \ref{UC:ops:room:users-list}. resolved on the UserIdentity level}
 \ApiClassAttribute{userIdentity}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
 \ApiClassAttribute{joinTime}{AbsoluteDateTime}{} Date and time when the user joined the room.
@@ -1245,7 +1245,7 @@ Disconnect the user with specified |userId| from the room with given |roomId|.
 
 \section{Communication Protocol}
 
-\TODO{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes.}
+\TODO{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes. Groups of failure codes: Shongo-connections, connections between a connector and its device, failures reported by the devices themselves}
 
 Communication among controllers and connectors is implemented using JADE \cite{jade}. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
 
@@ -1296,9 +1296,22 @@ An example of a complex command is shown in appendix \ref{appendix:jade-command-
 \ApiClass{ConnectorInfo}{}
 Information about connector.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{name}{String}{}
+\ApiClassAttribute{name}{String}{} the connector name
+\ApiClassAttribute{device}{Resource}{} the device managed by this connector (must be a resource of type ManagedDevice -- see chapter \ref{sect:common:reservations-resources})
+\ApiClassAttribute{connectionState}{ConnectionState}{} connection state to the device
+\ApiClassAttribute{deviceState}{DeviceState}{} state of the device, maintained by the connector for performance reasons
 \end{ApiClassAttributes}
-\TODO{Some more attributes?}
+
+\ApiEnum{ConnectionState}
+State of connection between a connector and a device it manages.
+\begin{ApiEnumValues}
+\ApiEnumValue{Connected}{}
+\ApiEnumValue{Disconnected}{}
+\end{ApiEnumValues}
+
+\ApiClass{DeviceState}{}
+State description of a device.
+\TODO{}
 
 \ApiClass{DeviceLoadInfo}{}
 Current device load information. A negative value in any attribute means the value could not be determined.
@@ -1326,12 +1339,27 @@ Usage stats of a given multipoint device.
 \end{ApiClassAttributes}
 
 \ApiClass{RoomInfo}{}
-A brief info about a room at a server.
+A brief info about a virtual room at a server.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
 \ApiClassAttribute{owner}{String}{} Identification of the room owner.
-\ApiClassAttribute{creation}{AbsoluteDateTime}{} Date and time when the room was created. \TODO{Is that what the use case \ref{UC:ops:room:shongo-options} mentions? What does the "on Shongo level" mean?}
-\ApiClassAttribute{type}{String}{} Type of the room. \TODO{Which types of rooms are to be considered? H.323/SIP/Connect/...? Or some other types?}
+\ApiClassAttribute{creation}{AbsoluteDateTime}{} Date and time when the room was created.
+\ApiClassAttribute{reservation}{Reservation}{} Reservation for which this room was created (to satisfy use-case \ref{UC:ops:room:shongo-options}).
+\ApiClassAttribute{type}{Technology}{} Type of the room.
+\end{ApiClassAttributes}
+
+\ApiClass{MediaData}{}
+Custom media data, typically used for uploading or downloading some content (images, documents, etc.).
+\begin{ApiClassAttributes}
+\ApiClassAttribute{contentType}{ContentType}{\ApiRequired} Type of the data.
+\ApiClassAttribute{data}{byte[]}{\ApiRequired} The content. To be interpreted according to the content type.
+\end{ApiClassAttributes}
+
+\ApiClass{ContentType}{}
+Description of a media type. Any MIME Media Type listed by IANA \cite{IANA-MediaTypes}, e.g. \texttt{image/jpeg}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{type}{String}{\ApiRequired} Textual name of the type (e.g., |image| or |text|).
+\ApiClassAttribute{subtype}{String}{\ApiRequired} Textual name of the subtype (e.g., |jpeg| or |html|).
 \end{ApiClassAttributes}
 
 
@@ -1354,26 +1382,19 @@ Unmutes a user in a room.
 \ApiCmd{setMicrophoneLevel(SecurityToken token, String RoomUserId, int level)}
 Sets microphone audio level of a user in a room to a given value.
 
+\ApiCmd{enableUserVideo(SecurityToken token, String RoomUserId)}
+Enables video from a user in a room.
+
 \ApiCmd{disableUserVideo(SecurityToken token, String RoomUserId)}
 Disables video from a user in a room.
-\TODO{enableUserVideo() as well?}
 
-\ApiCmd{Byte[] getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}
-Gets a snapshot of the video stream received by a user in a room. The return value is a byte sequence -- the resulting image.
-\TODO{To be used both with multipoint and endpoint devices, or just one of them?}
-\TODO{Need for differentianing among various image types?}
-
-\ApiCmd{Byte[] getSentVideoSnapshot(SecurityToken token, String RoomUserId)}
-Gets a snapshot of the video stream that a user is sending in a room. The return value is a byte sequence -- the resulting image.
-\TODO{To be used both with multipoint and endpoint devices, or just one of them?}
-\TODO{Need for differentianing among various image types?}
-
-\TODO{How to upload/modify calendars for Endpoint/Multipoint device types?}
+\TODO{How to upload/modify calendars for Endpoint/Multipoint device types? connectors not involved in calendars regarding reservations; this TODO item mentions rather a plan what to do to prevent the need for immediate commands just on time of an event}
 
 \end{Api}
 
 \section{Multipoint Device} \label{sect:connector-api-multipoint}
 
+\subsection{Room Management}
 \begin{Api}
 
 \ApiCmd{RoomInfo getRoomInfo(SecurityToken token, String roomId)}
@@ -1381,9 +1402,26 @@ Gets info about an existing room.
 
 \ApiCmd{String createRoom(SecurityToken token, Room room)}
 Create a new virtual room on a multipoint device that is managed by this connector. The settings are specified in |room| definition.
+\TODO{the value returned is the \texttt{roomId}?}
 
 \ApiCmd{deleteRoom(SecurityToken token, String roomId)}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
+
+\TODO{room layout setup -- specified by use case \ref{UC:ops:room:layout} and \ref{UC:ops:room:user-layout}; see the Tandberg and Polycom specification (API) and design a class for both; layout config: windows positions, voice-switched; a default layout for room, and user-defined - ordered by the user for the multipoint to send to them; in the worst case, define our reasonable set of fixed layouts and offer just them}
+
+\ApiCmd{String exportRoomSettings(SecurityToken token, String RoomId)}
+Gets current settings of a room exported to a textual format.
+\TODO{What format? XML? Should we specify the corresponding XML Schema somewhere? room name, technology (H.323/SIP/Connect...) settings, a need for structure versioning; specify in RelaxNG}
+
+\ApiCmd{importRoomSettings(SecurityToken token, String RoomId, String settings)}
+Sets up a room according to a given configuration previously exported by the |exportRoomSettings| method.
+\TODO{Describe the \texttt{settings} argument according to resolution of \texttt{exportRoomSettings} TODO item}
+
+\end{Api}
+
+
+\subsection{User Management}
+\begin{Api}
 
 \ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
 
@@ -1403,15 +1441,11 @@ Enables a given room user as a content provider in the room. This is typically e
 \ApiCmd{disableContentProvider(SecurityToken token, String roomUserId)}
 Disables a given room user as a content provider in the room. Typically, all users are allowed to fight for being the content provider. Using this method, a user is not allowed to do this.
 
-\TODO{room layout setup -- specified by use case \ref{UC:ops:room:layout} and \ref{UC:ops:room:user-layout}}
+\end{Api}
 
-\ApiCmd{String exportRoomSettings(SecurityToken token, String RoomId)}
-Gets current settings of a room exported to a textual format.
-\TODO{What format? XML? Should we specify the corresponding XML Schema somewhere?}
 
-\ApiCmd{importRoomSettings(SecurityToken token, String RoomId, String settings)}
-Sets up a room according to a given configuration previously exported by the |exportRoomSettings| method.
-\TODO{Describe the \texttt{settings} argument according to resolution of \texttt{exportRoomSettings} TODO item}
+\subsection{Room Content Management}
+\begin{Api}
 
 \ApiCmd{Byte[] getRoomContent(SecurityToken token, String roomId)}
 Gets all room content (e.g., documents, notes, polls, etc.) as a single |tgz| archive.
@@ -1424,12 +1458,64 @@ Adds a data file to room content under a given name.
 
 \ApiCmd{removeRoomContentFile(SecurityToken token, String roomId, String name)}
 Removes a file of a given name from room content.
-\TODO{Is filename enough?}
+\TODO{Is filename enough? yes, typically just a plain storage without directory structure}
 
 \ApiCmd{clearRoomContent(SecurityToken token, String roomId)}
 Clears all room content.
 
-\TODO{Cover use case \ref{UC:ops:recordings-management} -- management of recording archives. Some technology background and several real use cases of what would the administrator want to do will be helpful.}
+\end{Api}
+
+
+\subsection{Monitoring}
+\begin{Api}
+
+\ApiCmd{DeviceLoadInfo getDeviceLoadInfo()}
+Gets info about current load of the device.
+
+\ApiCmd{UsageStats getUsageStats()}
+Gets the multipoint usage stats.
+
+\ApiCmd{RoomInfo[] getRoomList()}
+Gets a list of all rooms at a given server.
+
+\ApiCmd{MediaData getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}
+Gets a snapshot of the video stream received by a user in a room. The return value is a byte sequence -- the resulting image.
+\TODO{(for \texttt{getSentVideoSnapshot}, too) add ability to prefer some image format, or is it determined by the device?}
+
+\ApiCmd{MediaData getSentVideoSnapshot(SecurityToken token, String RoomUserId)}
+Gets a snapshot of the video stream that a user is sending in a room. The return value is a byte sequence -- the resulting image.
+
+\end{Api}
+
+
+\subsection{Recording}
+\TODO{Cover use case \ref{UC:ops:recordings-management} -- management of recording archives. Some technology background and several real use cases of what would the administrator want to do will be helpful; get URL for downloading the recording, ability to delete the recording, ability to start the recording; the recording connector is just a H.323 unit connected to multiple rooms with its connector; format: PIP, side by side, format (Windows media, MPEG-4...); upload it somewhere and delete it on the content server}
+
+\begin{Api}
+
+\ApiCmd{int startRecording(SecurityToken token, String roomId, ContentType format)}
+Immediately starts recording in a given room to a given format. Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
+\TODO{(for \texttt{scheduleRecording}, too) what does "format: PIP, side by side" mean? (answered at the previous meeting) Does it specify the layout using which the room will be recorded?}
+
+\ApiCmd{int scheduleRecording(SecurityToken token, String roomId, ContentType format, DateTimeSlot dateTimeSlot)}
+Schedules recording in a given room to a given format. On the given time, the device should connect to the room and start recording for the given period. Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
+
+\ApiCmd{stopRecording(SecurityToken token, int recordingId)}
+Stops recording. The |recordingId| parameter, specifying what to stop, is an identifier previously returned by |startRecording| or |scheduleRecording|.
+
+\ApiCmd{String getRecordingDownloadURL(SecurityToken token, int recordingId)}
+Returns a URL from where it is possible to download a recording. The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|.
+
+\ApiCmd{notifyParticipants(SecurityToken token, int recordingId)}
+Sends an e-mail to all non-anonymous participants present in the room recorded. If the room is still being recorded, the operation is deferred to the moment when the recording stops.
+\TODO{"...participants present in the room..." -- present when? Any participant present in any time of the reservation? Or any participant present in any moment of the recording? Someone has to manage such an information. Or just the registered users listed within the reservation currently being realized in the room?}
+
+\ApiCmd{uploadRecording(SecurityToken token, int recordingId, String targetURL)}
+Starts uploading a recording to a destination given by a URL (note it may include credentials needed to upload it there). The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|. Returns immediately when the uploading starts. Management of recordings on the destination server is out of scope of this device. \TODO{correct, that "Management of recordings on the destination server is out of scope of this device."?}\\
+\TODO{Resolve the case when an upload fails. Consider the situation when the controller calls \texttt{uploadRecording} and \texttt{deleteRecording} -- the recording could then be unrecoverably deleted if the uploading failed. Maintain a state of the recording (e.g., "being uploaded") and qualify the deletion by such a state? Or return from \texttt{uploadRecording} only when the upload finishes (successively or not)? Or let the device send a message about the uploading result -- then, a reasonable controller would call \texttt{deleteRecording} only upon a successful uploading.}
+
+\ApiCmd{deleteRecording(SecurityToken token, int recordingId)}
+Deletes a given recording. The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
 
 \end{Api}
 
@@ -1439,41 +1525,21 @@ Clears all room content.
 \begin{Api}
 
 \ApiCmd{setPlaybackLevel(SecurityToken token, String RoomUserId, int level)}
-Sets playback audio level of a user in a room to a given value. Typically available only for endpoints controlled by Shongo. \TODO{Is it correct that this method is just in the endpoint API, whereas setMicrophoneLevel is common to endpoint and multipoint devices?}
+Sets playback audio level of a user in a room to a given value. Typically available only for endpoints controlled by Shongo. \TODO{Is it correct that this method is just in the endpoint API, whereas setMicrophoneLevel is common to endpoint and multipoint devices? add it for multipoint as well, even though it is slightly different (the sound is recoded)}
 
 \ApiCmd{dial(SecurityToken token, String server)}
-\TODO{dial should be common to endpoints and multipoints, since even MCU may dial an endpoint -- correct?}
+\TODO{dial should be common to endpoints and multipoints, since even MCU may dial an endpoint -- correct? yes (even it is available only on some technologies, e.g. an H.323/SIP multipoint is able to dial the client, Connect is out of ability -> leave here and copy to 4.7}
 
-\end{Api}
-
-
-\section{Monitoring API}
-
-\begin{Api}
-
-\ApiCmd{DeviceLoadInfo getDeviceLoadInfo()}
-Gets info about current load of the device.
-
-\ApiCmd{UsageStats getUsageStats()}
-Gets the multipoint usage stats.
-\TODO{Just for a multipoint device -- move to section \ref{sect:connector-api-multipoint}?}
-
-\ApiCmd{RoomInfo[] getRoomList()}
-Gets a list of all rooms at a given server.
-\TODO{Just for a multipoint device -- move to section \ref{sect:connector-api-multipoint}? (but requested to be in the monitoring API -- the categories multi/end-point API and monitoring API contain common methods -- like this}
-
-
-
+\TODO{endpoint reset command}
 
 \end{Api}
 
 
 \section{Technology Specific API}
-
+\TODO{Cover use cases \ref{UC:ops:room:room-techspec} and \ref{UC:ops:room:user-techspec}.}
 \begin{Api}
 
 \ApiCmd{}
-\TODO{Cover use cases \ref{UC:ops:room:room-techspec} and \ref{UC:ops:room:user-techspec}.}
 
 \end{Api}
 
