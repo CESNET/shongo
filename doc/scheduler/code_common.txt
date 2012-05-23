@@ -26,13 +26,26 @@ Duration = Period = Object {
  * Represents a time slot in a schedule defined by a start 
  * date/time and a duration.
  */
-TimeSlot = Object {
+DateTimeSlot = Object {
+  // Date/time when the event takes place.
+  dateTime: DateTime,
+
+  // Duration which the event takes.
+  duration: Duration
+}
+
+/**
+ * Represents an absolute date/time slot in a schedule defined
+ * by a start date/time and a duration.
+ */
+AbsoluteDateTimeSlot = Object {
   // Absolute date/time when the event takes place.
   dateTime: AbsoluteDateTime,
 
   // Duration which the event takes.
   duration: Duration
 }
+
 
 /** 
  * Represents a user identity from authentication server.

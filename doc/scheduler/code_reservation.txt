@@ -55,8 +55,11 @@ ReservationRequest = Object {
   // Type of reservation purpose.
   type: Enum {Science, Education},
 
-  // Requested time slots (each contains absolute or periodic date/time and duration).
-  requestedTimeSlots: List<1:n> of Pair<DateTime, Duration>,
+  // Name of the reservation.
+  name: String,
+
+  // Requested date/time slots (absolute or periodic date/time and duration).
+  requestedSlots: List<1:n> of DateTimeSlot,
 
   // Requested resources for the reservation.
   requestedResources: List<0:n> of ResourceSpecification,

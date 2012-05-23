@@ -4,8 +4,8 @@
 AllocatedResource = Object {
   // Resource that is allocated.
   resource: Resource,
-  // Time slot for which the resource is allocated.
-  timeSlot: TimeSlot,
+  // Date/time slot for which the resource is allocated.
+  slot: AbsoluteDateTimeSlot,
   // List of persons.
   persons: List<1:n> of Person,
   // List of aliases that are assigned to resource in a time slot.
@@ -13,18 +13,29 @@ AllocatedResource = Object {
 }
 
 /**
- * Event represents the reservation on specific date/time. If reservation
- * takes place multiple date/times it is scheduled multiple times
- * and the scheduling result (assigned resources) can be different. This
+ * Event represents the scheduled reservation for a specific date/time. 
+ * If reservation takes place multiple date/times it is scheduled 
+ * multiple times and the allocated resources can be different. This
  * object holds the allocated resources. 
  */
 ReservationEvent = Object {
-  // Time slot in which the reservation event takes place.
-  timeSlot: TimeSlot,
+  // Date/time slot in which the reservation event takes place.
+  slot: AbsoluteDateTimeSlot,
 
-  // Requested resources for the reservation.
-  requestedResources: RequestedResources,
+  // Request for the reservation event.
+  request: ReservationRequest,
 
   // Allocated resources for the reservation event. 
   allocatedResources: List<1:n> of AllocatedResource
+}
+
+/**
+ * Represents a scheduled reservation.
+ */
+Reservation = Object {
+  // Request for the reservation.
+  request: ReservationRequest,
+  
+  // List of scheduled events.
+  events: List<1:n> of ReservationEvent
 }

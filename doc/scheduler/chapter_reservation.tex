@@ -19,7 +19,7 @@ A reservation request consists of time slots specifications, specification of re
 \item \textbf{Resource known to Shongo} \\
   A resource that is stored in the controller database and it has assigned 
   a resource identifier by which the resource is requested for 
-  a reservation. Known resources can represent two types of resources:
+  a reservation. Known resources can represent:
   \begin{compactenum}
   \item A specific resource in the controlled domain. It is usually 
   managed device and thus the controller can control and schedule it.
@@ -81,7 +81,8 @@ Each device resource should specify whether it is callable from other devices or
 \item Reservation request of a single videoconference for 4 anonymous persons in H.323.
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest1}{}
-dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
+type: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   ExternalTerminalSpecification { // 4 guests (unknown H.323 devices)
     technologies: [H323],
@@ -102,19 +103,20 @@ capabilities: [
 \end{EntityExample}
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest2}{}
-dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
+type: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   DefiniteResourceSpecification { // Martin Srom (known H.323 device)
     resource: terminal1,
     persons: [UserIdentity(srom@cesnet.cz)] 
   },
   ExternalTerminalSpecification { // Petr Holub (unknown H.323 device)
-    technology: H323,
+    technologies: [H323],
     alias: {type: E164, 95002},
     persons: [UserIdentity(hopet@cesnet.cz)]
   },
   ExternalTerminalSpecification { // Jan Ruzicka (unknown H.323 device)
-    technology: H323,
+    technologies: [H323],
     alias: {type: E164, 95003},
     persons: [UserIdentity(janru@cesnet.cz)], 
   },
@@ -127,7 +129,8 @@ requestedResources: [
 \item Reservation request of a single videoconference for 3 persons. The persons will be asked which devices they will use to connect (e.g., by email with a link to a web page).
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest3}{}
-dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
+type: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedPersons: [
   PersonByIdentity(srom@cesnet.cz),  // Martin Srom (must choose a device)
   PersonByIdentity(hopet@cesnet.cz), // Petr Holub (must choose a device)
@@ -153,7 +156,8 @@ requestedPersons: [
 \end{EntityExample}
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest4}{}
-dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
+type: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   VirtualRoomSpecification {
     device: mcu1,
@@ -177,7 +181,8 @@ requestedResources: [
 \end{EntityExample}
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest5}{}
-dateTime: AbsoluteDateTime(2012-05-18T15:30), duration: Period(P1H),
+type: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedPersons: [
   PersonByIdentity(srom@cesnet.cz) // Martin Srom (must choose a device)
 ],
@@ -189,7 +194,7 @@ requestedResources: [
     resource: mcu2
   },
   ExternalTerminalSpecification { // 10 guests (unknown H.323 devices)
-    technology: H323,
+    technologies: [H323],
     count: 10
   }
 ]
