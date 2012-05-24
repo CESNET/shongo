@@ -16,4 +16,4 @@ $(TARGET).pdf: $(TARGET).gls $(TARGET).tex $(TEXFILES)
 $(TARGET).gls: glossaries.tex	
 	pdflatex $(TARGET).tex
 	makeglossaries $(TARGET)
-	pdflatex $(TARGET).tex
+#	pdflatex $(TARGET).tex
