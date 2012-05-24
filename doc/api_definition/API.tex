@@ -1380,7 +1380,10 @@ Mutes a user in a room.
 Unmutes a user in a room.
 
 \ApiCmd{setMicrophoneLevel(SecurityToken token, String RoomUserId, int level)}
-Sets microphone audio level of a user in a room to a given value.
+Sets microphone audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound).
+
+\ApiCmd{setPlaybackLevel(SecurityToken token, String RoomUserId, int level)}
+Sets playback audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound).
 
 \ApiCmd{enableUserVideo(SecurityToken token, String RoomUserId)}
 Enables video from a user in a room.
@@ -1489,8 +1492,6 @@ Gets a snapshot of the video stream that a user is sending in a room. The return
 
 
 \subsection{Recording}
-\TODO{Cover use case \ref{UC:ops:recordings-management} -- management of recording archives. Some technology background and several real use cases of what would the administrator want to do will be helpful; get URL for downloading the recording, ability to delete the recording, ability to start the recording; the recording connector is just a H.323 unit connected to multiple rooms with its connector; format: PIP, side by side, format (Windows media, MPEG-4...); upload it somewhere and delete it on the content server}
-
 \begin{Api}
 
 \ApiCmd{int startRecording(SecurityToken token, String roomId, ContentType format)}
@@ -1524,22 +1525,24 @@ Deletes a given recording. The |recordingId| parameter is an identifier previous
 
 \begin{Api}
 
-\ApiCmd{setPlaybackLevel(SecurityToken token, String RoomUserId, int level)}
-Sets playback audio level of a user in a room to a given value. Typically available only for endpoints controlled by Shongo. \TODO{Is it correct that this method is just in the endpoint API, whereas setMicrophoneLevel is common to endpoint and multipoint devices? add it for multipoint as well, even though it is slightly different (the sound is recoded)}
-
 \ApiCmd{dial(SecurityToken token, String server)}
+Dials a server.
 \TODO{dial should be common to endpoints and multipoints, since even MCU may dial an endpoint -- correct? yes (even it is available only on some technologies, e.g. an H.323/SIP multipoint is able to dial the client, Connect is out of ability -> leave here and copy to 4.7}
 
-\TODO{endpoint reset command}
+\ApiCmd{resetDevice(SecurityToken token)}
+Resets the device.
 
 \end{Api}
 
 
 \section{Technology Specific API}
 \TODO{Cover use cases \ref{UC:ops:room:room-techspec} and \ref{UC:ops:room:user-techspec}.}
+\\\TODO{How to structure this section? List the supported commands for each technology separately, or list them on a single place, stating the technologies supporting a functionality for each command?}
+
 \begin{Api}
 
-\ApiCmd{}
+\ApiCmd{dial(SecurityToken token, String deviceAddress)}
+Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
 
 \end{Api}
 
