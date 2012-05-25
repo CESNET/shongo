@@ -1,31 +1,27 @@
 \chapter{Scheduler}
 
 Scheduler is a component of a domain controller that has access to a database 
-of domain resources and reservations. Scheduler allocates the requested 
-resources by reservations to specific time slots and specific resources 
-according to requested parameters and optimization criteria.
+of domain resources, requests and reservations. Scheduler allocates resources 
+that are requested by meeting requests according to optimization criteria and 
+given options.
 
 \section{Scheduling}
 
-Scheduler holds the resource database and waits for incoming reservations. When a reservation arise, the scheduler performs scheduling operation. Each reservation can request multiple reservation events. So the first step that
-scheduler should do with a new reservation is to break it (enumerate it) to
-all reservation events. If infinite reservations are allowed the scheduling must run with a set maximum future date to which the planning will be done.
+Scheduler holds the resource database and process complete meetings requests. 
 
-\paragraph{Scheduling of a reservation event}
-{
-\renewcommand{\labelenumi}{\arabic{enumi}.}
-\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}}
-\begin{compactenum}
-\item ...
-  \begin{compactenum}
-  \item ...
-  \item ...
-  \end{compactenum}
-\item ...
-\end{compactenum}
-}
-
-\CodeInput{code_scheduler.txt}
+%\paragraph{Scheduling of a reservation event}
+%{
+%\renewcommand{\labelenumi}{\arabic{enumi}.}
+%\renewcommand{\labelenumii}{\arabic{enumi}.\arabic{enumii}}
+%\begin{compactenum}
+%\item ...
+%  \begin{compactenum}
+%  \item ...
+%  \item ...
+%  \end{compactenum}
+%\item ...
+%\end{compactenum}
+%}
 
 \TODO{Continue in describing scheduler}
 
@@ -35,3 +31,5 @@ all reservation events. If infinite reservations are allowed the scheduling must
 \item Maximize available continuous time slots for resources (minimize 
   fragmentation)
 \end{compactitem}
+
+\CodeInput{code_scheduler.txt}

@@ -46,20 +46,14 @@ VirtualRoomSpecification = Object extends ResourceSpecification {
   device: DeviceResource,
   // Number of participants in the virtual room.
   size: Integer
-}    
+}
 
-/** 
- * Reservation request that can be created by an user.
+/**
+ * Represents a group of resources and/or persons and options for them.
  */
-ReservationRequest = Object {
-  // Type of reservation purpose.
-  type: Enum {Science, Education},
-
-  // Name of the reservation.
-  name: String,
-
-  // Requested date/time slots (absolute or periodic date/time and duration).
-  requestedSlots: List<1:n> of DateTimeSlot,
+GroupRequest = Object {
+  // Usage purpose for resources that will be allocated.
+  purpose: Enum {Science, Education},
 
   // Requested resources for the reservation.
   requestedResources: List<0:n> of ResourceSpecification,
@@ -71,9 +65,39 @@ ReservationRequest = Object {
   callInitiation: Enum{Default, Terminal, Multipoint},
 
   // Option specifying whether inter domain lookup can be performed.
-  interDomain: Boolean,
-  
-  // State of reservation request.
+  interDomain: Boolean
+}
+
+/** 
+ * Reservation request that can be created by an user.
+ * The reservation request also contains a default group 
+ * of resources and/or persons which will be part of all 
+ * other groups.
+ */
+ReservationRequest = Object extends GroupRequest {
+  // Type of reservation (pernament can be created only by resource owner).
+  type: Enum {Pernament, Normal},
+  TODO: Pernament reservations should request only resources and not persons 
+  TODO: Thus maybe create PernamentReservationRequest
+
+  // Name of the reservation.
+  name: String,
+
+  // Requested date/time slots (absolute or periodic date/time and duration).
+  requestedSlots: List<1:n> of DateTimeSlot,
+
+  // Requested groups of resources and/or persons.
+  requestedGroups: List<0:n> of GroupRequest  
+}
+
+/**
+ * Meeting request for a single video/web conference.
+ */
+MeetingRequest = Object extends GroupRequest {
+  // Date/time slot in which the meeting takes place.
+  slot: AbsoluteDateTimeSlot,
+
+  // State of meeting request.
   state: Enum {
     // Incomplete request means that some of the requested persons 
     // have NotConfirmed state.
@@ -83,6 +107,4 @@ ReservationRequest = Object {
     Complete
   }
 }
-
-
 

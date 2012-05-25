@@ -1,7 +1,8 @@
 TARGET=scheduler
 TEXFILES=code.tex \
          graph.tex \
-         chapter*.tex
+         chapter_*.tex \
+         code_*.txt
 
 build: $(TARGET).pdf
 	

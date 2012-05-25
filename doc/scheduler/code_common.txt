@@ -36,7 +36,7 @@ DateTimeSlot = Object {
 
 /**
  * Represents an absolute date/time slot in a schedule defined
- * by a start date/time and a duration.
+ * by an absolute start date/time and a duration.
  */
 AbsoluteDateTimeSlot = Object {
   // Absolute date/time when the event takes place.
@@ -68,6 +68,8 @@ Person = Object {
 
 /**
  * Represents a person referenced by a user identity.
+ * Person attributes (e.g., name or email) are filled
+ * from the user identity.
  */
 PersonByIdentity = Object extends Person {
   // Reference to user identity.

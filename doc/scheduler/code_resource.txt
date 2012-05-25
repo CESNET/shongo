@@ -26,7 +26,7 @@ Resource = Object {
   maxFuture: DateTime,
   // List of administrators.
   administrators: List<0:n> of Person,
-  // List of persons that use the resource in all reservations.
+  // List of persons that use the resource in all meetings.
   persons: List<0:n> of Person
 }
 
