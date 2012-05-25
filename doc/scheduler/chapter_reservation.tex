@@ -86,7 +86,7 @@ Each device resource should specify whether it is callable from other devices or
 \item Reservation request of a single videoconference for 4 anonymous persons in H.323.
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest1}{}
-type: Science,
+purpose: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   ExternalEndpointSpecification { // 4 guests (unknown H.323 devices)
@@ -108,7 +108,7 @@ capabilities: [
 \end{EntityExample}
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest2}{}
-type: Science,
+purpose: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   DefiniteResourceSpecification { // Martin Srom (known H.323 device)
@@ -134,7 +134,7 @@ requestedResources: [
 \item Reservation request of a single videoconference for 3 persons. The persons will be asked which devices they will use to connect (e.g., by email with a link to a web page).
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest3}{}
-type: Science,
+purpose: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedPersons: [
   PersonByIdentity(srom@cesnet.cz),  // Martin Srom (must choose a device)
@@ -149,7 +149,7 @@ requestedPersons: [
 \item Reservation request for two videoconferences at single date/time slot. One person should participate in both of them and should choose a device by which he will connect to each. To the first meeting can connect two more H.323 guests. To the second meeting can connect two more Adobe Connect clients.
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest4}{}
-type: Science,
+purpose: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedPersons: [
   // Martin Srom will participate in both requested groups,
@@ -191,7 +191,7 @@ requestedGroups: [
 \end{EntityExample}
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest5}{}
-type: Science,
+purpose: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   VirtualRoomSpecification {
@@ -216,7 +216,7 @@ requestedResources: [
 \end{EntityExample}
 
 \begin{EntityExample}{ReservationRequest}{reservationRequest6}{}
-type: Science,
+purpose: Science,
 requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedPersons: [
   PersonByIdentity(srom@cesnet.cz) // Martin Srom (must choose a device)

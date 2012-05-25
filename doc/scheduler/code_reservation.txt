@@ -76,7 +76,7 @@ GroupRequest = Object {
  */
 ReservationRequest = Object extends GroupRequest {
   // Type of reservation (pernament can be created only by resource owner).
-  type: Enum {Pernament, Normal},
+  type: Enum {Normal, Pernament},
   TODO: Pernament reservations should request only resources and not persons 
   TODO: Thus maybe create PernamentReservationRequest
 
