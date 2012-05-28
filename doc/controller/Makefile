@@ -1,4 +1,4 @@
-TARGET=scheduler
+TARGET=controller
 TEXFILES=code.tex \
          graph.tex \
          chapter_*.tex \
