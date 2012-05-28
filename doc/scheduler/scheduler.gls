@@ -23,9 +23,9 @@
 \providecommand*\glsXpageXhyperemph[2]{\setentrycounter[#1]{page}\hyperemph{#2}}
 \begin{theglossary}\glossaryheader
 \glsgroupheading{glsnumbers}\relax\glsresetentrylist
-\glossaryentryfield{controller}{\glsnamefont{Controller}}{Represents a running application that holds a database of resources, user requests and scheduled reservations for a single domain. Users can access and modify the database through the controller user interface(s). The controller runs a scheduler that process the database.}{\relax }{\glossaryentrynumbers{\relax 
+\glossaryentryfield{controller}{\glsnamefont{Controller}}{Represents a running application that holds a database of resources, user requests and scheduled meetings (reservations) for a single domain. Users can access and modify the database through the controller user interface(s). The controller runs a scheduler that process the database.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
-\glossaryentryfield{connector}{\glsnamefont{Connector}}{Represents a running application that controls a single video/web conferencing hardware or software equipment and provides an API that allows the controller to access that device.}{\relax }{\glossaryentrynumbers{\relax 
+\glossaryentryfield{connector}{\glsnamefont{Connector}}{Represents a running application that controls a single video/web conferencing hardware or software equipment and provides an API that allows the controller to access that equipment.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{user}{\glsnamefont{User}}{Represents an authenticated person that can access a domain controller through it's user interface(s).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
@@ -39,7 +39,7 @@
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{device}{\glsnamefont{Device}}{A special type of resource that represents a video/web conferencing hardware or software equipment (e.g., H.323 terminal, H.323 MCU, Adobe Connect server, gateway or streaming server).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
-\glossaryentryfield{reservation-request}{\glsnamefont{Reservation Request}}{A request that is made by an user to book resources for one or more meetings. From a single reservation request the domain controller creates one or more meeting requests in dependence on the number of specified date/time slots and the number of specified resource groups in the reservation request. For each group of resources at each date/time slot is created one meeting request. Scheduler should interconnect all resources in a single group of resources.}{\relax }{\glossaryentrynumbers{\relax 
+\glossaryentryfield{reservation-request}{\glsnamefont{Reservation Request}}{A request that is made by an user to book resources for one or more meetings. From a single reservation request the domain controller creates one or more meeting requests in dependence on the number of specified date/time slots and the number of specified resource groups in the reservation request. For each group of resources at each date/time slot is created one meeting request. Scheduler will try to interconnect all resources in a single group of resources.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{meeting-request}{\glsnamefont{Meeting Request}}{A request to book a group of resources for a single meeting at specific date/time slot that is made by a domain controller to fulfill a part of a reservation request. Meeting request can be \textbf {incomplete} or \textbf {complete}. Incomplete meeting request must be filled in by additional information to become complete (e.g., by asking persons for confirmation or to choose a terminal).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist

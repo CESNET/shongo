@@ -58,14 +58,14 @@ A meeting request can be in one of these states:
   A meeting request is considered as complete when each participant 
   confirms or rejects the presence in videoconference. Some of
   requested participants should also choose a device which they will use 
-  to connect to the videoconference (will be described).
+  to connect to the videoconference.
 \end{compactenum}
-Every domain controller is running a scheduler which process complete meeting requests and tries to schedule them. If the scheduling was successful, the result is a allocated meeting.
+Every domain controller is running a scheduler which process complete meeting requests and tries to schedule them. If the scheduling was successful, the result is an allocated meeting.
 Allocated meetings created from a single reservation request are referred to as reservation. Through the console or web interface a reservation request owner is able to watch his request state and also a potential allocated meetings state. The owner can modify or delete his reservation request and thus also a potential allocated meetings. The owner and all the meeting participants should be notified about changes in the allocated meeting (e.g., by email or SMS). 
 
 The meeting can be scheduled only when the request is complete, i.e., all the requested persons have accepted or rejected the invitation and all directly requested persons have selected devices by which they will connect. Until this condition is met the meeting request is in incomplete state.
 
-Set of options is a part of the reservation request and it can modify the scheduling process of a reservation. It can contains one or more options from the following types:
+Set of options is a part of the reservation request and it can modify the scheduling process of a reservation. It can contain one or more options from the following types:
 \begin{compactitem}
 \item inter-domain lookup option tells that the controller is allowed to look for necessary devices also in foreign domains (e.g., for a MCU that is not available in local domain).
 \item preference whether a terminal should dial a MCU or a MCU should dial a terminal. This preference can be specified globally for the whole reservation or separately for each device.
@@ -101,7 +101,7 @@ requestedResources: [
 \begin{EntityExample}{DeviceResource}{terminal1}{Mirial for Martin Srom in resource database}
 technologies: [H323], 
 aliases: [{type: E164, value: 95001}],
-persons: [UserIdentity(srom@cesnet.cz)],
+persons: [PersonByIdentity(srom@cesnet.cz)],
 capabilities: [
   ReceiveCapability, SendCapability, StandaloneTerminalCapability
 ]
@@ -113,17 +113,17 @@ requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
 requestedResources: [
   DefiniteResourceSpecification { // Martin Srom (known H.323 device)
     resource: terminal1,
-    persons: [UserIdentity(srom@cesnet.cz)] 
+    persons: [PersonByIdentity(srom@cesnet.cz)] 
   },
   ExternalEndpointSpecification { // Petr Holub (unknown H.323 device)
     technologies: [H323],
     aliases: [{type: E164, 95002}],
-    persons: [UserIdentity(hopet@cesnet.cz)]
+    persons: [PersonByIdentity(hopet@cesnet.cz)]
   },
   ExternalEndpointSpecification { // Jan Ruzicka (unknown H.323 device)
     technologies: [H323],
     aliases: [{type: E164, 95003}],
-    persons: [UserIdentity(janru@cesnet.cz)], 
+    persons: [PersonByIdentity(janru@cesnet.cz)], 
   },
   ExternalEndpointSpecification { // Guest (unknown H.323 device)
     technologies: [H323]
@@ -155,6 +155,13 @@ requestedPersons: [
   // Martin Srom will participate in both requested groups,
   // but he must choose a device by which he will connect.
   PersonByIdentity(srom@cesnet.cz)
+],
+requestedResources: [
+  // Should be empty. When a resource is specified here, it means
+  // that it should participate in all requested groups. Because endpoint
+  // can be part only of one videoconference call at the time
+  // it interconnects all specified groups.
+  TODO: What to do in described case? Throw an error or merge groups together?
 ],
 requestedGroups: [
   GroupRequest {

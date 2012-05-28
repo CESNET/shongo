@@ -1,0 +1,36 @@
+\chapter{Domain Controller}
+
+Domain controller holds the database of resources, reservation/meeting requests 
+and allocated resources. When user creates/modifies/deletes a reservation 
+request a domain controller should create/modify/delete corresponding meeting 
+request(s). Domain controller should ask requested persons from incomplete 
+meeting requests for a confirmation and/or device selection. When all persons 
+from an incomplete meeting accepts/rejects a meeting request it become the
+complete request. Complete requests are processed by a scheduler.
+
+\section{Scheduler}
+
+Scheduler is a component of a domain controller that has access to a database 
+of domain resources and complete meeting requests. The scheduler watches for
+created/modified/deleted complete meeting requests. When a new request arise
+the scheduler tries to schedule it. When the scheduler finds a modified request
+it tries to reschedule it (\TODO{vyraz pro preplanovani s minimem zmen}). When 
+a deleted request arise, the scheduler free all allocated resources. Scheduling of a meeting request is composed of several steps:
+\begin{compactenum}
+\item Lookup of partially specified devices.
+\item Lookup of local/foreign infrastructure devices to interconnect all requested devices.
+\item Allocating available resources.
+\item Informing request owner about the state.
+\end{compactenum}
+The scheduling is driven by optimization criteria and options specified in the request itself.
+
+\TODO{Continue in describing scheduler}
+
+\paragraph{Scheduler optimization criteria:}
+\begin{compactitem}
+\item Minimize resource utilization
+\item Maximize available continuous time slots for resources (minimize 
+  fragmentation)
+\end{compactitem}
+
+\CodeInput{code_scheduler.txt}

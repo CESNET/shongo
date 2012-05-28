@@ -1,47 +1,49 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Common
 %
 \newglossaryentry{controller}
 {
   name=Controller,
-  description={Represents a running application that holds a database of resources, 
-    user requests and scheduled reservations for a single domain. Users can access and 
-    modify the database through the controller user interface(s). The controller runs a 
-    scheduler that process the database.}
+  description={Represents a running application that holds a database of 
+    resources, user requests and scheduled meetings (reservations) for a single 
+    domain. Users can access and modify the database through the controller 
+    user interface(s). The controller runs a scheduler that process the 
+    database.}
 }
 \newglossaryentry{connector}
 {
   name=Connector,
-  description={Represents a running application that controls a single video/web 
-  conferencing hardware or software equipment and provides an API that allows 
-  the controller to access that device.}
+  description={Represents a running application that controls a single 
+    video/web conferencing hardware or software equipment and provides an API 
+    that allows the controller to access that equipment.}
 }
 \newglossaryentry{user}
 {
   name=User,
-  description={Represents an authenticated person that can access a domain controller
-    through it's user interface(s).}
+  description={Represents an authenticated person that can access a domain 
+    controller through it's user interface(s).}
 }
 \newglossaryentry{date-time-slot}
 {
   name=Date/Time Slot,
-  description={Represents a time between specific starting and ending moment. Can be 
-    specified by a starting date and time and a duration.}
+  description={Represents a time between specific starting and ending moment. 
+    Can be specified by a starting date and time and a duration.}
 }
 \newglossaryentry{technology}
 {
   name=Technology,
-  description={Represents a single video/web conferencing technology (e.g., H.323, SIP,
-  or Adobe Connect).}
+  description={Represents a single video/web conferencing technology (e.g., 
+    H.323, SIP, or Adobe Connect).}
 }
 \newglossaryentry{meeting}
 {
   name=Meeting,
-  description={Represents a single video/web conferencing call in which all participants 
-  are interconnected and thus they are present in the same "virtual room" from audio and 
-  video point of view. In the call many endpoints can participate (even from different 
-  technologies) and thus the meeting can be very complex.}
+  description={Represents a single video/web conferencing call in which all 
+    participants  are interconnected and thus they are present in the same 
+    "virtual room" from audio and video point of view. In the call many 
+    endpoints can participate (even from different technologies) and thus the 
+    meeting can be very complex.}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,14 +53,15 @@
 \newglossaryentry{resource}
 {
   name=Resource,
-  description={An entity that can be requested for a meeting and scheduled by a scheduler.}
+  description={An entity that can be requested for a meeting and scheduled by a 
+    scheduler.}
 }
 \newglossaryentry{device}
 {
   name=Device,
-  description={A special type of resource that represents a video/web conferencing 
-  hardware or software equipment (e.g., H.323 terminal, H.323 MCU, Adobe Connect 
-  server, gateway or streaming server).}
+  description={A special type of resource that represents a video/web 
+    conferencing hardware or software equipment (e.g., H.323 terminal, H.323 
+    MCU, Adobe Connect server, gateway or streaming server).}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,35 +71,37 @@
 \newglossaryentry{reservation-request}
 {
   name=Reservation Request,
-  description={A request that is made by an user to book resources for one or more meetings. 
-    From a single reservation request the domain controller creates one or more meeting 
-    requests in dependence on the number of specified date/time slots and the number of 
-    specified resource groups in the reservation request. For each group of resources
-    at each date/time slot is created one meeting request. Scheduler should interconnect 
-    all resources in a single group of resources.}
+  description={A request that is made by an user to book resources for one or 
+    more meetings.  From a single reservation request the domain controller 
+    creates one or more meeting requests in dependence on the number of 
+    specified date/time slots and the number of specified resource groups in 
+    the reservation request. For each group of resources at each date/time slot 
+    is created one meeting request. Scheduler will try to interconnect all 
+    resources in a single group of resources.}
 }
 \newglossaryentry{meeting-request}
 {
   name=Meeting Request,
-  description={A request to book a group of resources for a single meeting at specific 
-    date/time slot that is made by a domain controller to fulfill a part of a reservation 
-    request. Meeting request can be \textbf{incomplete} or \textbf{complete}. Incomplete 
-    meeting request must be filled in by additional information to become complete 
-    (e.g., by asking persons for confirmation or to choose a terminal).}
+  description={A request to book a group of resources for a single meeting at 
+    specific date/time slot that is made by a domain controller to fulfill a 
+    part of a reservation request. Meeting request can be \textbf{incomplete} 
+    or \textbf{complete}. Incomplete meeting request must be filled in by 
+    additional information to become complete (e.g., by asking persons for 
+    confirmation or to choose a terminal).}
 }
 
 \newglossaryentry{allocated-meeting}
 {
   name=Allocated Meeting,
-  description={Represents a meeting for which the scheduler has allocated resources. 
-    Allocated meeting is a result from scheduling process of complete meeting 
-    request.}
+  description={Represents a meeting for which the scheduler has allocated 
+    resources. Allocated meeting is a result from scheduling process of 
+    complete meeting request.}
 }
 \newglossaryentry{reservation}
 {
   name=Reservation,
-  description={Represents a list of successfully allocated meetings based on a single
-    reservation request.}
+  description={Represents a list of successfully allocated meetings based on a 
+    single reservation request.}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -106,6 +111,7 @@
 \newglossaryentry{scheduler}
 {
   name=Scheduler,
-  description={Scheduler is a component of a domain controller that process complete 
-    meeting requests and schedule them to allocated meetings which forms reservations.}
+  description={Scheduler is a component of a domain controller that process 
+    complete meeting requests and schedule them to allocated meetings which 
+    forms reservations.}
 }

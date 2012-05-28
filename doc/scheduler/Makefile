@@ -10,7 +10,11 @@ clean:
 	rm -f *.pdf *.aux *.log *.out *.toc *.glg *.glo *.xdy
 
 # Build PDF from tex
-$(TARGET).pdf: $(TARGET).gls $(TARGET).tex $(TEXFILES)
+$(TARGET).pdf: $(TARGET).toc $(TARGET).gls $(TARGET).tex $(TEXFILES)
+	pdflatex $(TARGET).tex
+
+# Pre-build PDF for table of contents
+$(TARGET).toc:
 	pdflatex $(TARGET).tex
 	
 # Build glossaries source from tex	

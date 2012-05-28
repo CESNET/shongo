@@ -30,7 +30,7 @@ LookupResourceSpecification = Object extends ResourceSpecification {
 
 /** External endpoint resource specification. */
 ExternalEndpointSpecification = Object extends ResourceSpecification {
-  // Technologies of a endpoint.
+  // Technologies of an endpoint.
   technologies: Set<1:n> of Technology,
   // IP address.
   ipAddress: String,
@@ -94,7 +94,7 @@ ReservationRequest = Object extends GroupRequest {
  * Meeting request for a single video/web conference.
  */
 MeetingRequest = Object extends GroupRequest {
-  // Date/time slot in which the meeting takes place.
+  // Single absolute date/time slot in which the meeting takes place.
   slot: AbsoluteDateTimeSlot,
 
   // State of meeting request.
