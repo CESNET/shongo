@@ -95,7 +95,7 @@ ReservationRequest = Object extends GroupRequest {
  */
 MeetingRequest = Object extends GroupRequest {
   // Single absolute date/time slot in which the meeting takes place.
-  slot: AbsoluteDateTimeSlot,
+  requestedSlot: AbsoluteDateTimeSlot,
 
   // State of meeting request.
   state: Enum {
