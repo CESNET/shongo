@@ -23,9 +23,11 @@
 \providecommand*\glsXpageXhyperemph[2]{\setentrycounter[#1]{page}\hyperemph{#2}}
 \begin{theglossary}\glossaryheader
 \glsgroupheading{glsnumbers}\relax\glsresetentrylist
-\glossaryentryfield{controller}{\glsnamefont{Controller}}{Represents a running application that holds a database of resources, user requests and scheduled meetings (reservations) for a single domain. Users can access and modify the database through the controller user interface(s). The controller runs a scheduler that process the database.}{\relax }{\glossaryentrynumbers{\relax 
+\glossaryentryfield{controller}{\glsnamefont{Controller}}{Represents a running application that holds a database of resources, user requests and scheduled meetings (reservations) for a single domain. Users can access and modify the database through the controller user interface(s). The controller runs a scheduler that processes the database.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{connector}{\glsnamefont{Connector}}{Represents a running application that controls a single video/web conferencing hardware or software equipment and provides an API that allows the controller to access that equipment.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{scheduler}{\glsnamefont{Scheduler}}{Scheduler is a component of a domain controller that processes complete meeting requests and schedule them to allocated meetings which forms reservations.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{user}{\glsnamefont{User}}{Represents an authenticated person that can access a domain controller through it's user interface(s).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
@@ -46,7 +48,5 @@
 \glossaryentryfield{allocated-meeting}{\glsnamefont{Allocated Meeting}}{Represents a meeting for which the scheduler has allocated resources. Allocated meeting is a result from scheduling process of complete meeting request.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{reservation}{\glsnamefont{Reservation}}{Represents a list of successfully allocated meetings based on a single reservation request.}{\relax }{\glossaryentrynumbers{\relax 
-\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
-\glossaryentryfield{scheduler}{\glsnamefont{Scheduler}}{Scheduler is a component of a domain controller that process complete meeting requests and schedule them to allocated meetings which forms reservations.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}%
 \end{theglossary}\glossarypostamble

@@ -1,6 +1,6 @@
 \chapter{Reservations}
 
-A request for a reservation of videoconference devices and other resources can be created by a Shongo user via console or web interface of a domain controller. The user become the request owner. Each reservation request belongs to a domain controller where it was created and the request is stored there. 
+A request for a reservation of videoconference devices and other resources can be created by a Shongo user via user interface (e.g., web interface or command-line interface) of a domain controller. The user becomes the request owner. Each reservation request belongs to a domain controller where it was created and the request is stored for backup purposes, it will be distributed in read-only way to backup controllers. \TODO{How will a backup controller work?} 
 
 A reservation request consists of time slots specifications, specification of requested resources and/or participants that should take part in the videoconference and a set of options that can modify the scheduling process. Reservation request may be used to book videoconference calls at multiple dates/times (e.g., every Wednesday or two specific dates) and for multiple groups of interconnected resources and/or participants (e.g., group of persons in H.323 virtual room and group of persons in Adobe Connect meeting where each group is standalone and not interconnected). A reservation request can specify following types of entities to take part in videoconference call(s):
 \begin{compactenum}
@@ -60,7 +60,7 @@ A meeting request can be in one of these states:
   requested participants should also choose a device which they will use 
   to connect to the videoconference.
 \end{compactenum}
-Every domain controller is running a scheduler which process complete meeting requests and tries to schedule them. If the scheduling was successful, the result is an allocated meeting.
+Every domain controller is running a scheduler which processes complete meeting requests and tries to schedule them. If the scheduling was successful, the result is an allocated meeting.
 Allocated meetings created from a single reservation request are referred to as reservation. Through the console or web interface a reservation request owner is able to watch his request state and also a potential allocated meetings state. The owner can modify or delete his reservation request and thus also a potential allocated meetings. The owner and all the meeting participants should be notified about changes in the allocated meeting (e.g., by email or SMS). 
 
 The meeting can be scheduled only when the request is complete, i.e., all the requested persons have accepted or rejected the invitation and all directly requested persons have selected devices by which they will connect. Until this condition is met the meeting request is in incomplete state.
@@ -72,13 +72,11 @@ Set of options is a part of the reservation request and it can modify the schedu
 \end{compactitem}
 Each device resource should specify whether it is callable from other devices or if it should initiate all calls by itself.
 
+\TODO{Describe dependent reservations}
+
 \section{Examples of reservation requests}
 
-\CodeStyle{
-  PersonSpecification, ResourceSpecification, DefiniteResourceSpecification, 
-  ExternalEndpointSpecification, VirtualRoomSpecification,
-  ReservationRequest, PersonRequest, GroupRequest
-}
+\CodeStyle{}
 \CodeStyleAppendImplementation
 \CodeStyleAppendEnum
 
@@ -183,7 +181,7 @@ requestedGroups: [
 ]
 \end{EntityExample}
 
-\item Reservation request of a single videoconference that specifies virtual room on a MCU for 4 participantsa and 2 specific terminals that will connect to the virtual room. The remaining two "seats" in the virtual room can be used by any guests.
+\item Reservation request of a single videoconference that specifies virtual room on a MCU for 4 participants and 2 specific terminals that will connect to the virtual room. The remaining two "seats" in the virtual room can be used by any guests.
 
 \begin{EntityExample}{DeviceResource}{mcu1}{H.323 MCU in resource database}
 ...

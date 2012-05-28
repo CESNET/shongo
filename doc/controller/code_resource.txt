@@ -75,6 +75,8 @@ DeviceResource = Object extends Resource {
   aliases: List<0:n> of (Alias or IdentifierResource),
   // Technologies that the device supports.
   technologies: Set<1:n> of Technology,
+  // Preferred technology to use when scheduler should decide.
+  preferredTechnology: Auto or Technology,
   // Managed/Unmanaged mode
   mode: (
     /** Device managed mode. */

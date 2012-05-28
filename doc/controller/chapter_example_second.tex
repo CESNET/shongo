@@ -90,16 +90,7 @@ technologies: [H323, SIP],
 ipAddress: 147.251.99.3,
 capabilities: [
   ReceiveCapability, SendCapability,
-  VirtualRoomsCapability {rooms: [
-    VirtualRoomResource {code: room1, aliases: [
-      {technology: H323, type: E164, value: 95003},
-      {technology: SIP, type: URI, value: sip:r1}
-    ]},
-    VirtualRoomResource {code: room2, aliases: [
-      {technology: H323, type: E164, value: 95004},
-      {technology: SIP, type: URI, value: sip:r2}
-    ]},
-  ]},
+  VirtualRoomsCapability,
   SignalingClientCapability {technologies: [H323], server: proxy},
   SignalingClientCapability {technologies: [SIP], server: proxy}
 ]
@@ -115,24 +106,6 @@ capabilities: [
     VirtualRoomResource {code: room1}, 
     VirtualRoomResource {code: room2}
   ]}
-]
-\end{EntityExample}
-
-\item Two Adobe Connect clients (\emph{client1} and \emph{client2}).
-
-\begin{EntityExample}{DeviceResource}{client1}{First Adobe Connect client}
-technologies: [AdobeConnect], 
-persons: [UserIdentity(srom@cesnet.cz)],
-capabilities: [
-  ReceiveCapability, SendCapability, TerminalCapability
-]
-\end{EntityExample}
-
-\begin{EntityExample}{DeviceResource}{client2}{Second Adobe Connect client}
-technologies: [AdobeConnect], 
-persons: [UserIdentity(bouda@cesnet.cz)],
-capabilities: [
-  ReceiveCapability, SendCapability, TerminalCapability
 ]
 \end{EntityExample}
 
@@ -186,6 +159,4 @@ The device resources forms the device topology in fig. \ref{graph:example1}.
 
 \subsection{Reservation Requests}
 
-\TODO{Show a reservation example} \\
-\TODO{Enumerate the reservation to events} \\
-\TODO{Show scheduling of the reservation events}
+\TODO{Show some requests}

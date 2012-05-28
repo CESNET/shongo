@@ -8,7 +8,7 @@
   description={Represents a running application that holds a database of 
     resources, user requests and scheduled meetings (reservations) for a single 
     domain. Users can access and modify the database through the controller 
-    user interface(s). The controller runs a scheduler that process the 
+    user interface(s). The controller runs a scheduler that processes the 
     database.}
 }
 \newglossaryentry{connector}
@@ -17,6 +17,13 @@
   description={Represents a running application that controls a single 
     video/web conferencing hardware or software equipment and provides an API 
     that allows the controller to access that equipment.}
+}
+\newglossaryentry{scheduler}
+{
+  name=Scheduler,
+  description={Scheduler is a component of a domain controller that processes 
+    complete meeting requests and schedule them to allocated meetings which 
+    forms reservations.}
 }
 \newglossaryentry{user}
 {
@@ -108,10 +115,4 @@
 %
 % Scheduler
 %
-\newglossaryentry{scheduler}
-{
-  name=Scheduler,
-  description={Scheduler is a component of a domain controller that process 
-    complete meeting requests and schedule them to allocated meetings which 
-    forms reservations.}
-}
+
