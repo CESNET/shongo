@@ -41,7 +41,7 @@ public class XmlRpcTypeFactory extends TypeFactoryImpl
                     } catch (XmlRpcException exception) {
                         throw new SAXException(exception);
                     }
-                    // Empty struct menas "null" value
+                    // Empty struct means "null" value
                     if ( map != null && map.size() == 0 ) {
                         setResult(null);
                     }

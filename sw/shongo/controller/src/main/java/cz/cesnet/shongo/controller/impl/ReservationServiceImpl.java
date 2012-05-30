@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.impl;
 
 import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.common.api.Period;

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.impl;
 
 import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.RoomService;

@@ -31,7 +31,7 @@
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{user}{\glsnamefont{User}}{Represents an authenticated person that can access a domain controller through it's user interface(s).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
-\glossaryentryfield{date-time-slot}{\glsnamefont{Date/Time Slot}}{Represents a time between specific starting and ending moment. Can be specified by a starting date and time and a duration.}{\relax }{\glossaryentrynumbers{\relax 
+\glossaryentryfield{date-time-slot}{\glsnamefont{Date/Time Slot}}{Represents a time between specific starting and ending moment. Can be specified by a starting date and time and a duration. In case of periodic date/times, the date/time slot is defined by one specific date/time referred to as absolute date/time.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{technology}{\glsnamefont{Technology}}{Represents a single video/web conferencing technology (e.g., H.323, SIP, or Adobe Connect).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist

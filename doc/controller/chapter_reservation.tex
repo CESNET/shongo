@@ -72,7 +72,10 @@ Set of options is a part of the reservation request and it can modify the schedu
 \end{compactitem}
 Each device resource should specify whether it is callable from other devices or if it should initiate all calls by itself.
 
-\TODO{Describe dependent reservations}
+If we have a reservation with allocated resources, we can use it to provide these allocated resources to another new reservation request. This is useful
+when we already have a reservation for an identifier (e.g., H.323 phone number) a we want to use this identifier as an alias for a device in another reservation request. Thus each reservation request can have specified a list of other already allocated reservations.
+
+\TODO{Give an example of reservation request with dependent reservations}
 
 \section{Examples of reservation requests}
 

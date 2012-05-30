@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller;
+package cz.cesnet.shongo.controller.impl;
 
 import cz.cesnet.shongo.controller.api.CommonService;
 import cz.cesnet.shongo.controller.api.ControllerInfo;
