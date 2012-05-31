@@ -86,7 +86,7 @@ public class ResourceDatabase
      *
      * @param resource
      */
-    public void deleteResource(Resource resource)
+    public void removeResource(Resource resource)
     {
         if (resourceMap.containsKey(resource.getIdentifier()) == false) {
             throw new IllegalArgumentException(

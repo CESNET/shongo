@@ -51,7 +51,7 @@ VirtualRoomSpecification = Object extends ResourceSpecification {
 /**
  * Represents a group of resources and/or persons and options for them.
  */
-GroupRequest = Object {
+Compartment = Object {
   // Usage purpose for resources that will be allocated.
   purpose: Enum {Science, Education},
 
@@ -70,11 +70,8 @@ GroupRequest = Object {
 
 /** 
  * Reservation request that can be created by an user.
- * The reservation request also contains a default group 
- * of resources and/or persons which will be part of all 
- * other groups.
  */
-ReservationRequest = Object extends GroupRequest {
+ReservationRequest = Object {
   // Type of reservation (pernament can be created only by resource owner).
   type: Enum {Normal, Pernament},
   TODO: Pernament reservations should request only resources and not persons 
@@ -87,17 +84,17 @@ ReservationRequest = Object extends GroupRequest {
   requestedSlots: List<1:n> of DateTimeSlot,
 
   // Requested groups of resources and/or persons.
-  requestedGroups: List<0:n> of GroupRequest  
+  requestedCompartments: List<0:n> of Compartment  
 }
 
 /**
- * Meeting request for a single video/web conference.
+ * Compartment request for a single video/web conference at specific date/time.
  */
-MeetingRequest = Object extends GroupRequest {
-  // Single absolute date/time slot in which the meeting takes place.
+CompartmentRequest = Object extends Compartment {
+  // Single absolute date/time slot in which the videoconference call takes place.
   requestedSlot: AbsoluteDateTimeSlot,
 
-  // State of meeting request.
+  // State of compartment request.
   state: Enum {
     // Incomplete request means that some of the requested persons 
     // have NotConfirmed state.

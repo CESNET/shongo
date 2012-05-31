@@ -6,7 +6,7 @@
 {
   name=Controller,
   description={Represents a running application that holds a database of 
-    resources, user requests and scheduled meetings (reservations) for a single 
+    resources, user requests and allocated reservations for a single 
     domain. Users can access and modify the database through the controller 
     user interface(s). The controller runs a scheduler that processes the 
     database.}
@@ -22,8 +22,8 @@
 {
   name=Scheduler,
   description={Scheduler is a component of a domain controller that processes 
-    complete meeting requests and schedule them to allocated meetings which 
-    forms reservations.}
+    complete compartment requests and schedule them to allocated compartments 
+    which forms reservations.}
 }
 \newglossaryentry{user}
 {
@@ -36,7 +36,7 @@
   name=Date/Time Slot,
   description={Represents a time between specific starting and ending moment. 
     Can be specified by a starting date and time and a duration. In case of
-    periodic date/times, the date/time slot is defined by one specific 
+    periodic date/times, the date/time slot term represents an one specific 
     date/time referred to as absolute date/time.}
 }
 \newglossaryentry{technology}
@@ -44,15 +44,6 @@
   name=Technology,
   description={Represents a single video/web conferencing technology (e.g., 
     H.323, SIP, or Adobe Connect).}
-}
-\newglossaryentry{meeting}
-{
-  name=Meeting,
-  description={Represents a single video/web conferencing call in which all 
-    participants  are interconnected and thus they are present in the same 
-    "virtual room" from audio and video point of view. In the call many 
-    endpoints can participate (even from different technologies) and thus the 
-    meeting can be very complex.}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,8 +53,8 @@
 \newglossaryentry{resource}
 {
   name=Resource,
-  description={An entity that can be requested for a meeting and scheduled by a 
-    scheduler.}
+  description={An entity that can be requested for a reservation and scheduled 
+  by a scheduler.}
 }
 \newglossaryentry{device}
 {
@@ -81,36 +72,49 @@
 {
   name=Reservation Request,
   description={A request that is made by an user to book resources for one or 
-    more meetings.  From a single reservation request the domain controller 
-    creates one or more meeting requests in dependence on the number of 
-    specified date/time slots and the number of specified resource groups in 
-    the reservation request. For each group of resources at each date/time slot 
-    is created one meeting request. Scheduler will try to interconnect all 
-    resources in a single group of resources.}
+    more videoconference calls. Requested resources and/or persons can be 
+    specified in compartments (by default a single compartment is used). 
+    From a single reservation request the domain controller creates 
+    one or more compartment requests in dependence on the 
+    number of specified date/time slots and the number of specified 
+    compartments in the reservation request. For each compartment at each 
+    date/time slot is created one compartment request.}
 }
-\newglossaryentry{meeting-request}
+\newglossaryentry{compartment}
 {
-  name=Meeting Request,
-  description={A request to book a group of resources for a single meeting at 
-    specific date/time slot that is made by a domain controller to fulfill a 
-    part of a reservation request. Meeting request can be \textbf{incomplete} 
-    or \textbf{complete}. Incomplete meeting request must be filled in by 
+  name=Compartment,
+  description={Represents a specification of a group of resources and/or 
+    persons which should be interconnected by a scheduler. Each reservation 
+    request can specify one or more compartments. The compartment is not
+    bound to a specific date/time slot. The controller automatically expands 
+    each compartment to one or more compartment requests. For each compartment 
+    at each absolute date/time slot specified in the reservation request is 
+    created one compartment request and thus the compartment request is bound 
+    to a specific date/time slot (unlike the compartment).}
+}
+\newglossaryentry{compartment-request}
+{
+  name=Compartment Request,
+  description={Represents a specification for a group of resources and/or
+    persons that should participate in a single videoconference call at 
+    specific date/time slot. Compartment request can be \textbf{incomplete} 
+    or \textbf{complete}. Incomplete compartment request must be filled in by 
     additional information to become complete (e.g., by asking persons for 
     confirmation or to choose a terminal).}
 }
 
-\newglossaryentry{allocated-meeting}
+\newglossaryentry{allocated-compartment}
 {
-  name=Allocated Meeting,
-  description={Represents a meeting for which the scheduler has allocated 
-    resources. Allocated meeting is a result from scheduling process of 
-    complete meeting request.}
+  name=Allocated Compartment,
+  description={Represents a complete compartment request for which the 
+    scheduler has already allocated resources. Allocated compartment 
+    is a result from scheduler.}
 }
 \newglossaryentry{reservation}
 {
   name=Reservation,
-  description={Represents a list of successfully allocated meetings based on a 
-    single reservation request.}
+  description={Represents a list of successfully allocated compartments
+    based on a single reservation request.}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

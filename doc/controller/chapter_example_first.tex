@@ -45,9 +45,9 @@ requestedResources: [
 ]
 \end{EntityExample}
 
-\item A domain controller stores the reservation request and based on it the controller creates a meeting request which is also stored.
+\item A domain controller stores the reservation request and based on it the controller creates a compartment request which is also stored.
 
-\begin{EntityExample}{MeetingRequest}{meetingRequest}{}
+\begin{EntityExample}{CompartmentRequest}{compartmentRequest}{}
 purpose: Science,
 requestedSlot: AbsoluteDateTimeSlot(2012-05-30T14:00, P1H),
 requestedResources: [
@@ -63,19 +63,19 @@ requestedResources: [
 ]
 \end{EntityExample}
 
-\item The meeting request is incomplete because all requested persons must
+\item The compartment request is incomplete because all requested persons must
 confirm theirs attendance. After all persons are confirmed or rejected
 the request become complete.
 
-\item Scheduler watches for complete meeting requests, so the complete 
+\item Scheduler watches for complete compartment requests, so the complete 
 request is now processed by the scheduler. The scheduler knows that he must 
 interconnect 5 unknown H.323 endpoints and thus he searches his resource 
 database and finds the \emph{mcu}. He must setup a virtual room in the 
 \emph{mcu} for the specified date/time and five participants.
 
-\item The scheduler creates allocated meeting entity to which he appends 
+\item The scheduler creates allocated compartment entity to which he appends 
 allocated virtual room resource. The scheduler also creates a reservation
-entity to which he appends the allocated meeting entity.
+entity to which he appends the allocated compartment entity.
 
 \item The reservation is propagated to the reservation request owner.
 
