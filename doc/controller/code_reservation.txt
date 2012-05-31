@@ -63,10 +63,10 @@ Compartment = Object {
  * Reservation request that can be created by an user.
  */
 ReservationRequest = Object {
-  // Type of reservation (pernament can be created only by resource owner).
-  type: Enum {Normal, Pernament},
-  TODO: Pernament reservations should request only resources and not persons 
-  TODO: Thus maybe create PernamentReservationRequest
+  // Type of reservation (permanent can be created only by resource owner).
+  type: Enum {Normal, Permanent},
+  TODO: Permanent reservations should request only resources and not persons 
+  TODO: Thus maybe create PermanentReservationRequest
 
   // Usage purpose for resources that will be allocated.
   purpose: Enum {Science, Education},

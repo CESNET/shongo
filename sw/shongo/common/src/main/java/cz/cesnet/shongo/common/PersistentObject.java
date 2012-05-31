@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.common;
+package cz.cesnet.shongo.common;
 
 import javax.persistence.*;
 

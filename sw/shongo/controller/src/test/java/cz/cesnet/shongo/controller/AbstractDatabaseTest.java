@@ -4,6 +4,8 @@ import org.junit.After;
 import org.junit.Before;
 
 import javax.persistence.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Abstract database test provides the entity manager to extending classes as protected member variable.
@@ -31,7 +33,10 @@ public abstract class AbstractDatabaseTest
     public void setUp() throws Exception
     {
         if ( entityManagerFactory == null ) {
-            entityManagerFactory = Persistence.createEntityManagerFactory("test");
+            // For testing purposes use only in-memory database
+            Map properties = new HashMap();
+            properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:controller; shutdown=true;");
+            entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         }
         entityManager = entityManagerFactory.createEntityManager();
     }

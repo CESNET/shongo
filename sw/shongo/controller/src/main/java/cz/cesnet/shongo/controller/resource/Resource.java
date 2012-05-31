@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.common.DateTime;
 import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.controller.common.PersistentObject;
-import jade.tools.gui.ACLAIDList;
+import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.common.Person;
 
 import javax.persistence.*;
 import java.util.*;
@@ -59,6 +60,33 @@ public class Resource extends PersistentObject
      * List of capabilities.
      */
     private List<Capability> capabilities = new ArrayList<Capability>();
+
+    /**
+     * Parent resource in which is this resource contained (e.g., endpoint can be located
+     * in parent physical room resource).
+     */
+    private Resource parentResource;
+
+    /**
+     * List of child resources (e.g., physical room can contain some videoconferencing equipment).
+     */
+    private List<Resource> childResources;
+
+    /**
+     * List of persons that are contacted when are encountered any technical issues.
+     */
+    private List<Person> administrators;
+
+    /**
+     * List of persons are automatically use the resource in all reservation requests.
+     */
+    private List<Person> permanentPersons;
+
+    /**
+     * Defines a maximum future to which the resource is schedulable (e.g., can be set as relative date/time which
+     * means that resource can be always scheduled only e.g., to four month ahead).
+     */
+    private DateTime maximumFuture;
 
     /**
      * Constructor.
@@ -199,6 +227,107 @@ public class Resource extends PersistentObject
     {
         capability.setResource(this);
         capabilities.add(capability);
+    }
+
+    /**
+     * @return {@link #parentResource}
+     */
+    @ManyToOne
+    public Resource getParentResource()
+    {
+        return parentResource;
+    }
+
+    /**
+     * @param parentResource sets the {@link #parentResource}
+     */
+    public void setParentResource(Resource parentResource)
+    {
+        this.parentResource = parentResource;
+    }
+
+    /**
+     * @return {@link #childResources}
+     */
+    @OneToMany(mappedBy = "parentResource")
+    public List<Resource> getChildResources()
+    {
+        return childResources;
+    }
+
+    /**
+     * @param childResources sets the {@link #childResources}
+     */
+    private void setChildResources(List<Resource> childResources)
+    {
+        this.childResources = childResources;
+    }
+
+    /**
+     * @param resource resource to be added to the list of child resources
+     */
+    public void addChildResource(Resource resource)
+    {
+        childResources.add(resource);
+    }
+
+    /**
+     * @return {@link #administrators}
+     */
+    @OneToMany
+    public List<Person> getAdministrators()
+    {
+        return administrators;
+    }
+
+    /**
+     *  @param administrators sets the {@link #administrators}
+     */
+    private void setAdministrators(List<Person> administrators)
+    {
+        this.administrators = administrators;
+    }
+
+    /**
+     * @param person person to be added to the list of administrators
+     */
+    public void addAdministrator(Person person)
+    {
+        this.administrators.add(person);
+    }
+
+    /**
+     * @return {@link #permanentPersons}
+     */
+    @OneToMany
+    public List<Person> getPermanentPersons()
+    {
+        return permanentPersons;
+    }
+
+    /**
+     * @param permanentPersons sets the {@link #permanentPersons}
+     */
+    private void setPermanentPersons(List<Person> permanentPersons)
+    {
+        this.permanentPersons = permanentPersons;
+    }
+
+    /**
+     * @return {@link #maximumFuture}
+     */
+    @OneToOne
+    public DateTime getMaximumFuture()
+    {
+        return maximumFuture;
+    }
+
+    /**
+     * @param maximumFuture sets the {@link #maximumFuture}
+     */
+    public void setMaximumFuture(DateTime maximumFuture)
+    {
+        this.maximumFuture = maximumFuture;
     }
 
     /**

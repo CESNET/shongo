@@ -1,9 +1,10 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.common.PersistentObject;
+import cz.cesnet.shongo.common.PersistentObject;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
+import java.util.List;
 
 /**
  * Represents a requested resource to a compartment.
@@ -17,6 +18,8 @@ public class ResourceSpecification extends PersistentObject
      * Compartment in which the person request is located.
      */
     private Compartment compartment;
+
+    private List<PersonRequest> personRequestList;
 
     /**
      * @return {@link #compartment}

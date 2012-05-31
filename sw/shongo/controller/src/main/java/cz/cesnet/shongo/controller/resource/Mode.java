@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.controller.common.PersistentObject;
+import cz.cesnet.shongo.common.PersistentObject;
 
 import javax.persistence.*;
 

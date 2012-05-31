@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.common;
 
+import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.Transient;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -8,7 +12,9 @@ import java.util.TimeZone;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class DateTime
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public abstract class DateTime extends PersistentObject
 {
     /**
      * Get the earliest Date/Time since a given datetime (strict inequality).
@@ -16,6 +22,7 @@ public abstract class DateTime
      * @param referenceDateTime the datetime since which to find the earliest occurrence
      * @return absolute Date/Time, or <code>null</code> if the datetime won't take place since referenceDateTime
      */
+    @Transient
     public abstract AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime);
 
     /**
@@ -23,6 +30,7 @@ public abstract class DateTime
      *
      * @return absolute Date/Time, or <code>null</code> if the datetime won't take place
      */
+    @Transient
     public final AbsoluteDateTime getEarliest()
     {
         return getEarliest(now());
