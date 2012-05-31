@@ -49,23 +49,14 @@ VirtualRoomSpecification = Object extends ResourceSpecification {
 }
 
 /**
- * Represents a group of resources and/or persons and options for them.
+ * Represents a group of resources and/or persons.
  */
 Compartment = Object {
-  // Usage purpose for resources that will be allocated.
-  purpose: Enum {Science, Education},
-
   // Requested resources for the reservation.
   requestedResources: List<0:n> of ResourceSpecification,
 
   // List of requested persons that should choose resource which they will use.
   requestedPersons: List<0:n> of PersonRequest,
-
-  // Option specifying who should initiate the call.
-  callInitiation: Enum{Default, Terminal, Multipoint},
-
-  // Option specifying whether inter domain lookup can be performed.
-  interDomain: Boolean
 }
 
 /** 
@@ -77,6 +68,9 @@ ReservationRequest = Object {
   TODO: Pernament reservations should request only resources and not persons 
   TODO: Thus maybe create PernamentReservationRequest
 
+  // Usage purpose for resources that will be allocated.
+  purpose: Enum {Science, Education},
+
   // Name of the reservation.
   name: String,
 
@@ -85,6 +79,12 @@ ReservationRequest = Object {
 
   // Requested groups of resources and/or persons.
   requestedCompartments: List<0:n> of Compartment  
+
+  // Option specifying who should initiate the call.
+  callInitiation: Enum{Default, Terminal, Multipoint},
+
+  // Option specifying whether inter domain lookup can be performed.
+  interDomain: Boolean
 }
 
 /**

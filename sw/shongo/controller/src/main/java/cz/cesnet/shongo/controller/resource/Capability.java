@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.controller.common.PersistentObject;
+
 import javax.persistence.*;
 
 /**
@@ -9,28 +11,12 @@ import javax.persistence.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Capability
+public class Capability extends PersistentObject
 {
-    /**
-     * Unique identifier in a domain controller database.
-     */
-    private Long id;
-
     /**
      * Resource to which the capability is applied.
      */
     private Resource resource;
-
-    /**
-     * @return {@link #id}
-     */
-    @Id
-    @GeneratedValue
-    @Access(AccessType.FIELD)
-    public Long getId()
-    {
-        return id;
-    }
 
     /**
      * @return {@link #resource}

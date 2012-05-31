@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.Identifier;
+import cz.cesnet.shongo.controller.common.PersistentObject;
 import jade.tools.gui.ACLAIDList;
 
 import javax.persistence.*;
@@ -13,7 +14,7 @@ import java.util.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Resource
+public class Resource extends PersistentObject
 {
     /**
      * Represents a type of a resource.
@@ -33,11 +34,6 @@ public class Resource
          */
         PHYSICAL_ROOM
     }
-
-    /**
-     * Unique identifier in a domain controller database.
-     */
-    private Long id;
 
     /**
      * Unique identifier in whole Shongo.
@@ -69,17 +65,6 @@ public class Resource
      */
     Resource()
     {
-    }
-
-    /**
-     * @return {@link #id}
-     */
-    @Id
-    @GeneratedValue
-    @Access(AccessType.FIELD)
-    public Long getId()
-    {
-        return id;
     }
 
     /**

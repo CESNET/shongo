@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.controller.common.PersistentObject;
+
 import javax.persistence.*;
 
 /**
@@ -9,21 +11,6 @@ import javax.persistence.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Mode
+public abstract class Mode extends PersistentObject
 {
-    /**
-     * Unique identifier in a domain controller database.
-     */
-    private Long id;
-
-    /**
-     * @return {@link #id}
-     */
-    @Id
-    @GeneratedValue
-    @Access(AccessType.FIELD)
-    public Long getId()
-    {
-        return id;
-    }
 }
