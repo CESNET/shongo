@@ -23,4 +23,6 @@ public class ReservationRequest
          */
         PERMANENT
     }
+
+    // TODO:
 }
