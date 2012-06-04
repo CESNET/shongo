@@ -2,17 +2,20 @@ package cz.cesnet.shongo.controller.util;
 
 import org.hibernate.AssertionFailure;
 import org.hibernate.cfg.ImprovedNamingStrategy;
+import org.hibernate.internal.util.StringHelper;
 
 /**
  * A modified improved naming strategy for hibernate.
- * It uses rather table names instead of property names and it also appends
- * the referenced column name for foreign key column names
  *
  * @author Martin Srom
  * @see org.hibernate.cfg.ImprovedNamingStrategy the original improved naming strategy
  */
 public class NamingStrategy extends ImprovedNamingStrategy
 {
+    /**
+     * Use rather table names instead of property names and it also appends
+     * the referenced column name for foreign key column names.
+     */
     @Override
     public String foreignKeyColumnName(String propertyName, String propertyEntityName, String propertyTableName,
             String referencedColumnName)
@@ -23,7 +26,27 @@ public class NamingStrategy extends ImprovedNamingStrategy
         }
         return columnName(header) + "_" + referencedColumnName;
     }
+
+    /**
+     * Column name should be whole name not unqualified. (e.g., to keep embeddable name in column name)
+     */
+    @Override
+    public String propertyToColumnName(String propertyName)
+    {
+        return addUnderscores(propertyName);
+    }
+
+    /**
+     * Property name should be "undescored".
+     */
+    @Override
+    public String logicalColumnName(String columnName, String propertyName)
+    {
+        return StringHelper.isNotEmpty(columnName) ? columnName : addUnderscores(propertyName);
+    }
 }
+
+
 
 
 

@@ -3,7 +3,9 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.common.PersistentObject;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a requested resource to a compartment.
@@ -21,12 +23,12 @@ public class ResourceSpecification extends PersistentObject
     /**
      * Persons that are requested to use the device to connect into compartment.
      */
-    private List<PersonRequest> requestedPersons;
+    private List<PersonRequest> requestedPersons = new ArrayList<PersonRequest>();
 
     /**
      * Defines who should initiate the call to this device.
      */
-    private Initiation initiation;
+    private CallInitiation callInitiation;
 
     /**
      * @return {@link #compartment}
@@ -71,20 +73,31 @@ public class ResourceSpecification extends PersistentObject
     }
 
     /**
-     * @return {@link #initiation}
+     * @return {@link #callInitiation}
      */
     @Column
     @Enumerated(EnumType.STRING)
-    public Initiation getInitiation()
+    public CallInitiation getCallInitiation()
     {
-        return initiation;
+        return callInitiation;
     }
 
     /**
-     * @param initiation sets the {@link #initiation}
+     * @param callInitiation sets the {@link #callInitiation}
      */
-    public void setInitiation(Initiation initiation)
+    public void setCallInitiation(CallInitiation callInitiation)
     {
-        this.initiation = initiation;
+        this.callInitiation = callInitiation;
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        addCollectionToMap(map, "requestedPersons", requestedPersons);
+        if ( callInitiation != null && callInitiation != CallInitiation.DEFAULT ) {
+            map.put("callInitiation", callInitiation.toString());
+        }
     }
 }

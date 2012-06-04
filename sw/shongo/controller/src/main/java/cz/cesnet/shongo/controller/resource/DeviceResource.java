@@ -65,7 +65,6 @@ public class DeviceResource extends Resource
      * @return {@link #technologies}
      */
     @ElementCollection
-    @Access(AccessType.FIELD)
     @Enumerated(EnumType.STRING)
     public Set<Technology> getTechnologies()
     {
@@ -75,10 +74,10 @@ public class DeviceResource extends Resource
     /**
      * @param technologies set the {@link #technologies}
      */
-    public void setTechnologies(Set<Technology> technologies)
+    private void setTechnologies(Set<Technology> technologies)
     {
         clearTechnologies();
-        for ( Technology technology : technologies ) {
+        for (Technology technology : technologies) {
             addTechnology(technology);
         }
     }
@@ -112,6 +111,7 @@ public class DeviceResource extends Resource
      * @return {@link #preferredTechnology}
      */
     @Column
+    @Enumerated(EnumType.STRING)
     public Technology getPreferredTechnology()
     {
         return preferredTechnology;
@@ -161,14 +161,16 @@ public class DeviceResource extends Resource
     {
         super.fillDescriptionMap(map);
 
-        StringBuilder technologies = new StringBuilder();
-        for ( Technology technology : this.technologies) {
-            if ( technologies.length() > 0 ) {
-                technologies.append(",");
+        if ( technologies.size() > 0 ) {
+            StringBuilder builder = new StringBuilder();
+            for (Technology technology : technologies) {
+                if (builder.length() > 0) {
+                    builder.append(",");
+                }
+                builder.append(technology.toString());
             }
-            technologies.append(technology.toString());
+            map.put("technologies", "[" + builder.toString() + "]");
         }
-        map.put("technologies", "[" + technologies.toString() + "]");
         map.put("callable", (isCallable() ? "true" : "false"));
         map.put("mode", (isManaged() ? "managed" : "unmanaged"));
     }

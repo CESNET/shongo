@@ -43,4 +43,16 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
         assert (dateTime instanceof AbsoluteDateTime) : "Absolute date/time slot should contain absolute date/time.";
         return (AbsoluteDateTime) dateTime;
     }
+
+    @Override
+    public String toString()
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append("(");
+        builder.append(getStart().toString());
+        builder.append(", ");
+        builder.append(getDuration().toString());
+        builder.append(")");
+        return builder.toString();
+    }
 }

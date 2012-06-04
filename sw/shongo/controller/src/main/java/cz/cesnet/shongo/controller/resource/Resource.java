@@ -128,6 +128,7 @@ public class Resource extends PersistentObject
 
     /**
      * Create a new identifier for the resource.
+     *
      * @param domain domain to which the resource belongs.
      */
     public void createNewIdentifier(String domain)
@@ -140,6 +141,7 @@ public class Resource extends PersistentObject
 
     /**
      * Change the identifier for the resource.
+     *
      * @param domain
      */
     public void changeIdentifier(String domain)
@@ -281,7 +283,7 @@ public class Resource extends PersistentObject
     }
 
     /**
-     *  @param administrators sets the {@link #administrators}
+     * @param administrators sets the {@link #administrators}
      */
     private void setAdministrators(List<Person> administrators)
     {
@@ -330,36 +332,14 @@ public class Resource extends PersistentObject
         this.maximumFuture = maximumFuture;
     }
 
-    /**
-     * @param map map to which should be filled all parameters
-     *            that {@link #toString()} should print.
-     */
+    @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {
+        super.fillDescriptionMap(map);
+
         map.put("identifier", getIdentifierAsString());
         map.put("type", getType().toString());
         map.put("name", getName());
         map.put("description", getDescription());
-    }
-
-    @Override
-    public String toString()
-    {
-        Map<String, String> map = new LinkedHashMap<String, String>();
-        fillDescriptionMap(map);
-
-        StringBuilder builder = new StringBuilder();
-
-        for ( Map.Entry<String, String> entry : map.entrySet() ) {
-            if ( builder.length() > 0 ) {
-                builder.append(", ");
-            }
-            builder.append(entry.getKey());
-            builder.append("=");
-            builder.append(entry.getValue());
-        }
-        builder.insert(0, "Resource [");
-        builder.append("]");
-        return builder.toString();
     }
 }

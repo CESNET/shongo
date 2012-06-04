@@ -3,7 +3,7 @@ PersonRequest = Object {
   // Specific person.
   person: Person,
   // State of person request.
-  state: Enum {NotConfirmed, Confirmed, Rejected}
+  state: Enum {NotAsked, Asked, Accepted, Rejected}
 }
 
 /** Resource specification. */

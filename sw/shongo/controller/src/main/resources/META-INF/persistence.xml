@@ -10,6 +10,9 @@
 
         <!-- Include entities from other modules -->
         <class>cz.cesnet.shongo.common.DateTime</class>
+        <class>cz.cesnet.shongo.common.AbsoluteDateTime</class>
+        <class>cz.cesnet.shongo.common.RelativeDateTime</class>
+        <class>cz.cesnet.shongo.common.DateTimeSlot</class>
         <class>cz.cesnet.shongo.common.Person</class>
 
         <!-- Hibernate configuration -->

@@ -54,7 +54,7 @@ public class ResourceDatabase
         }
         if (resourceMap.containsKey(resource.getIdentifier())) {
             throw new IllegalArgumentException(
-                    "Resource (" + resource.getIdentifier() + ") is already in resource database!");
+                    "Resource (" + resource.getIdentifier() + ") is already in the database!");
         }
 
         // Save resource to database
@@ -75,7 +75,7 @@ public class ResourceDatabase
     {
         if (resourceMap.containsKey(resource.getIdentifier()) == false) {
             throw new IllegalArgumentException(
-                    "Resource (" + resource.getIdentifier() + ") is not in resource database!");
+                    "Resource (" + resource.getIdentifier() + ") is not in the database!");
         }
 
         throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
@@ -90,7 +90,7 @@ public class ResourceDatabase
     {
         if (resourceMap.containsKey(resource.getIdentifier()) == false) {
             throw new IllegalArgumentException(
-                    "Resource (" + resource.getIdentifier() + ") is not in resource database!");
+                    "Resource (" + resource.getIdentifier() + ") is not in the database!");
         }
 
         // Delete resource from database

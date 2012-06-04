@@ -6,6 +6,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a group of requested resources and/or persons.
@@ -44,6 +45,14 @@ public class Compartment extends PersistentObject
     }
 
     /**
+     * @param requestedResource resource to be added to the list of requested resources
+     */
+    public void addRequestedResource(ResourceSpecification requestedResource)
+    {
+        this.requestedResources.add(requestedResource);
+    }
+
+    /**
      * @return {@link #requestedPersons}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "compartment")
@@ -58,5 +67,22 @@ public class Compartment extends PersistentObject
     private void setRequestedPersons(List<PersonRequest> requestedPersons)
     {
         this.requestedPersons = requestedPersons;
+    }
+
+    /**
+     * @param requestedPerson person to be added to the list of requested persons
+     */
+    public void addRequestedPerson(PersonRequest requestedPerson)
+    {
+        this.requestedPersons.add(requestedPerson);
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        addCollectionToMap(map, "persons", requestedPersons);
+        addCollectionToMap(map, "resources", requestedResources);
     }
 }

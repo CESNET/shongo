@@ -6,7 +6,7 @@ import java.util.UUID;
 
 /**
  * Represents an unique identifier across whole Shongo.
- *
+ * <p/>
  * <identifier> = "shongo:" <type> ":" <domain> ":" <uuid>
  * <type>       = "reservation" | "resource"
  * <domain>     = <STRING> ("." <STRING>)*
@@ -21,9 +21,13 @@ public final class Identifier
      */
     public static enum Type
     {
-        /** Identifier for a resource. */
+        /**
+         * Identifier for a resource.
+         */
         RESOURCE("resource"),
-        /** Identifier for a reservation. */
+        /**
+         * Identifier for a reservation.
+         */
         RESERVATION("reservation");
 
         /**
@@ -33,6 +37,7 @@ public final class Identifier
 
         /**
          * Construct identifier type.
+         *
          * @param code
          */
         private Type(String code)
@@ -54,11 +59,13 @@ public final class Identifier
          */
         public static Type fromString(String type)
         {
-            if ( type.equals(RESOURCE.toString()) ) {
+            if (type.equals(RESOURCE.toString())) {
                 return RESOURCE;
-            } else if ( type.equals(RESERVATION.toString()) ) {
+            }
+            else if (type.equals(RESERVATION.toString())) {
                 return RESERVATION;
-            } else {
+            }
+            else {
                 throw new RuntimeException("Failed to convert '" + type + "' to " + Type.class.getName() + "!");
             }
         }
@@ -81,6 +88,7 @@ public final class Identifier
 
     /**
      * Construct a identifier parsed from string.
+     *
      * @param identifier
      */
     public Identifier(String identifier)
@@ -101,6 +109,7 @@ public final class Identifier
 
     /**
      * Construct a new identifier with a random UUID.
+     *
      * @param type
      * @param domain
      */

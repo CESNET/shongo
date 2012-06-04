@@ -1,21 +1,24 @@
 package cz.cesnet.shongo.common;
 
+import javax.persistence.*;
+
 /**
  * Represents an relative Date/Time. The relative date/time can be evaluated
  * only when concrete absolute date/time is given in getEarliest method.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Entity
 public class RelativeDateTime extends DateTime
 {
-    private Period duration;
+    private final Period duration;
 
     /**
      * Construct zero relative date/time.
      */
     public RelativeDateTime()
     {
-        this(new Period());
+        duration = new Period();
     }
 
     /**
@@ -25,7 +28,7 @@ public class RelativeDateTime extends DateTime
      */
     public RelativeDateTime(Period duration)
     {
-        setDuration(duration);
+        this.duration = duration;
     }
 
     /**
@@ -33,19 +36,11 @@ public class RelativeDateTime extends DateTime
      *
      * @return duration
      */
+    @Column
+    @Access(AccessType.FIELD)
     public Period getDuration()
     {
         return duration;
-    }
-
-    /**
-     * Set duration for relative date/time.
-     *
-     * @param duration
-     */
-    public void setDuration(Period duration)
-    {
-        this.duration = duration;
     }
 
     @Override

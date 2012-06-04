@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
 
 /**
  * Represents a compartment that is requested for a specific date/time slot.

@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.PersistentObject;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
 /**
  * Represents a mode of a device.

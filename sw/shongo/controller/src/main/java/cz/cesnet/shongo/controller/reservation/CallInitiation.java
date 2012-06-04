@@ -5,10 +5,10 @@ package cz.cesnet.shongo.controller.reservation;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum Initiation
+public enum CallInitiation
 {
     /**
-     * Tells that scheduler can decide by itself.
+     * A scheduler can decide who will initiate the call.
      */
     DEFAULT,
 

@@ -1,14 +1,17 @@
 package cz.cesnet.shongo.common;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a time slot.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class DateTimeSlot
+@Entity
+public class DateTimeSlot extends PersistentObject
 {
     /**
      * Start date/time.
@@ -42,6 +45,8 @@ public class DateTimeSlot
      *
      * @return date/time
      */
+    @OneToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public DateTime getStart()
     {
         return start;
@@ -52,6 +57,8 @@ public class DateTimeSlot
      *
      * @return duration
      */
+    @Column
+    @Access(AccessType.FIELD)
     public Period getDuration()
     {
         return duration;
@@ -63,6 +70,7 @@ public class DateTimeSlot
      * @return true if time slot is taking place now,
      *         false otherwise
      */
+    @Transient
     public final boolean isActive()
     {
         return isActive(AbsoluteDateTime.now());
@@ -75,6 +83,7 @@ public class DateTimeSlot
      * @return true if referenced date/time is inside time slot interval,
      *         false otherwise
      */
+    @Transient
     public boolean isActive(AbsoluteDateTime referenceDateTime)
     {
         for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
@@ -90,6 +99,7 @@ public class DateTimeSlot
      *
      * @return list of absolute date/time slots
      */
+    @Transient
     private List<AbsoluteDateTimeSlot> getEvaluatedSlots()
     {
         if (slots == null) {
@@ -151,6 +161,7 @@ public class DateTimeSlot
      *
      * @return a time slot with absolute date/time
      */
+    @Transient
     final public DateTimeSlot getEarliest()
     {
         return getEarliest(AbsoluteDateTime.now());
@@ -162,6 +173,7 @@ public class DateTimeSlot
      * @param referenceDateTime the datetime since which to find the earliest occurrence
      * @return a time slot with absolute date/time
      */
+    @Transient
     public AbsoluteDateTimeSlot getEarliest(AbsoluteDateTime referenceDateTime)
     {
         AbsoluteDateTime dateTime = this.start.getEarliest(referenceDateTime);
@@ -210,20 +222,14 @@ public class DateTimeSlot
     }
 
     @Override
-    public String toString()
+    protected void fillDescriptionMap(Map<String, String> map)
     {
+        super.fillDescriptionMap(map);
+
+        map.put("start", start.toString());
+        map.put("duration", duration.toString());
+
         List<AbsoluteDateTimeSlot> slots = enumerate();
-        StringBuilder result = new StringBuilder();
-        for (DateTimeSlot slot : slots) {
-            if (result.length() > 0) {
-                result.append(", ");
-            }
-            result.append("(");
-            result.append(slot.start.toString());
-            result.append(",");
-            result.append(slot.duration.toString());
-            result.append(")");
-        }
-        return "DateTimeSlot [" + result.toString() + "]";
+        addCollectionToMap(map, "enumerated", slots);
     }
 }

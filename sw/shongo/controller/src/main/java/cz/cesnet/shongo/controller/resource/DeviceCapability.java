@@ -40,7 +40,7 @@ public class DeviceCapability extends Capability
     @Override
     public void setResource(Resource resource)
     {
-        if ( resource != null && (resource instanceof DeviceResource) == false ) {
+        if (resource != null && (resource instanceof DeviceResource) == false) {
             throw new IllegalArgumentException("Device capability can be inserted only to device resource!");
         }
         super.setResource(resource);
