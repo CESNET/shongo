@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.common.DateTimeSlot;
-import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.common.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -25,7 +23,7 @@ public class ReservationRequest extends PersistentObject
         /**
          * Reservation that can be created by any user.
          */
-        DEFAULT,
+        NORMAL,
 
         /**
          * Reservation that can be created only by owner of resources,
@@ -59,7 +57,7 @@ public class ReservationRequest extends PersistentObject
      * Type of the reservation Permanent reservation are created by resource owners to
      * allocate the resource for theirs activity.
      */
-    private Type type;
+    private Type type = Type.NORMAL;
 
     /**
      * Purpose for the reservation (science/education).
@@ -134,7 +132,7 @@ public class ReservationRequest extends PersistentObject
         if (identifier != null) {
             throw new IllegalStateException("Reservation request has already created identifier!");
         }
-        identifier = new Identifier(Identifier.Type.RESOURCE, domain);
+        identifier = new Identifier(Identifier.Type.RESERVATION, domain);
     }
 
     /**
@@ -216,6 +214,16 @@ public class ReservationRequest extends PersistentObject
     }
 
     /**
+     * Add slot to the list of requested slots
+     * @param dateTime slot date/time
+     * @param duration slot duration
+     */
+    public void addRequestedSlot(DateTime dateTime, Period duration)
+    {
+        this.requestedSlots.add(new DateTimeSlot(dateTime, duration));
+    }
+
+    /**
      * @return {@link #requestedCompartments}
      */
     @OneToMany(cascade = CascadeType.ALL)
@@ -291,8 +299,9 @@ public class ReservationRequest extends PersistentObject
         super.fillDescriptionMap(map);
 
         map.put("identifier", getIdentifierAsString());
-        if ( getType() != null ) {
-            map.put("type", getType().toString());
+        map.put("type", getType().toString());
+        if ( getPurpose() != null ) {
+            map.put("purpose", getPurpose().toString());
         }
         addCollectionToMap(map, "slots", requestedSlots);
         addCollectionToMap(map, "compartments", requestedCompartments);

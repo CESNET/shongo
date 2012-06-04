@@ -26,7 +26,7 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Evaluated slot to absolute date/time slots.
      */
-    private ArrayList<AbsoluteDateTimeSlot> slots = null;
+    private List<AbsoluteDateTimeSlot> slots = null;
 
     /**
      * Construct time slot.
@@ -116,7 +116,7 @@ public class DateTimeSlot extends PersistentObject
                     dateTime = (AbsoluteDateTime) this.start;
                 }
                 else {
-                    assert (false) : "Date/time slot can contains only periodic or absolute date/time.";
+                    throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
                 }
                 if (dateTime != null) {
                     slots.add(new AbsoluteDateTimeSlot(dateTime, getDuration()));
@@ -229,7 +229,16 @@ public class DateTimeSlot extends PersistentObject
         map.put("start", start.toString());
         map.put("duration", duration.toString());
 
-        List<AbsoluteDateTimeSlot> slots = enumerate();
+        List<String> slots = new ArrayList<String>();
+        for ( AbsoluteDateTimeSlot slot : enumerate() ) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("(");
+            builder.append(slot.getStart().toString());
+            builder.append(", ");
+            builder.append(slot.getDuration().toString());
+            builder.append(")");
+            slots.add(builder.toString());
+        }
         addCollectionToMap(map, "enumerated", slots);
     }
 }

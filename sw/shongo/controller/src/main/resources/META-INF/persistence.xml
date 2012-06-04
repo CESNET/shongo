@@ -12,6 +12,8 @@
         <class>cz.cesnet.shongo.common.DateTime</class>
         <class>cz.cesnet.shongo.common.AbsoluteDateTime</class>
         <class>cz.cesnet.shongo.common.RelativeDateTime</class>
+        <class>cz.cesnet.shongo.common.PeriodicDateTime</class>
+        <class>cz.cesnet.shongo.common.PeriodicDateTime$Rule</class>
         <class>cz.cesnet.shongo.common.DateTimeSlot</class>
         <class>cz.cesnet.shongo.common.Person</class>
 

@@ -13,18 +13,19 @@ import org.hibernate.internal.util.StringHelper;
 public class NamingStrategy extends ImprovedNamingStrategy
 {
     /**
-     * Use rather table names instead of property names and it also appends
-     * the referenced column name for foreign key column names.
+     * Replace also $ signs
      */
     @Override
-    public String foreignKeyColumnName(String propertyName, String propertyEntityName, String propertyTableName,
-            String referencedColumnName)
-    {
-        String header = propertyTableName;
-        if (header == null) {
-            throw new AssertionFailure("NamingStrategy not properly filled");
-        }
-        return columnName(header) + "_" + referencedColumnName;
+    public String classToTableName(String className) {
+        return super.classToTableName(className.replace("$", "_"));
+    }
+    @Override
+    public String tableName(String tableName) {
+        return addUnderscores(tableName.replace("$", "_"));
+    }
+    @Override
+    public String columnName(String columnName) {
+        return addUnderscores(columnName.replace("$", "_"));
     }
 
     /**
@@ -43,6 +44,21 @@ public class NamingStrategy extends ImprovedNamingStrategy
     public String logicalColumnName(String columnName, String propertyName)
     {
         return StringHelper.isNotEmpty(columnName) ? columnName : addUnderscores(propertyName);
+    }
+
+    /**
+     * Use rather table names instead of property names and it also appends
+     * the referenced column name for foreign key column names.
+     */
+    @Override
+    public String foreignKeyColumnName(String propertyName, String propertyEntityName, String propertyTableName,
+            String referencedColumnName)
+    {
+        String header = propertyTableName;
+        if (header == null) {
+            throw new AssertionFailure("NamingStrategy not properly filled");
+        }
+        return columnName(header) + "_" + referencedColumnName;
     }
 }
 

@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.common;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.Calendar;
 import java.util.TimeZone;
 

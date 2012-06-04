@@ -188,8 +188,10 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         }
 
         // Fields should be both empty or nonempty
-        assert ((year == NullValue && date.year == NullValue) || (year != NullValue && date.year != NullValue)) :
-                "Can't compare dates with empty year in only one of them.";
+        if( (year == NullValue && date.year != NullValue) || (year != NullValue && date.year == NullValue)) {
+            throw new AssertionError("Can't compare dates with empty year in only one of them ["
+                    + toString() + ", " + date.toString() + "].");
+        }
         assert ((month == NullValue && date.month == NullValue) || (month != NullValue && date.month != NullValue)) :
                 "Can't compare dates with empty month in only one of them.";
         assert ((day == NullValue && date.day == NullValue) || (day != NullValue && date.day != NullValue)) :

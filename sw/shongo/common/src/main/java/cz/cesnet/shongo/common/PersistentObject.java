@@ -44,7 +44,9 @@ public abstract class PersistentObject
      */
     protected void fillDescriptionMap(Map<String, String> map)
     {
-        map.put("id", getId().toString());
+        if ( getId() != null ) {
+            map.put("id", getId().toString());
+        }
     }
 
     /**
@@ -57,13 +59,24 @@ public abstract class PersistentObject
     {
         if ( collection.size() > 0 ) {
             StringBuilder builder = new StringBuilder();
+            boolean multiline = false;
             for ( Object object : collection ) {
                 if ( builder.length() > 0 ) {
                     builder.append(", ");
+                    if ( multiline ) {
+                        builder.append("\n");
+                    }
                 }
-                builder.append(object.toString());
+                String objectString = object.toString();
+                builder.append(objectString);
+                multiline = multiline || (objectString.indexOf("\n") != -1);
             }
-            map.put(name, "[\n    " + builder.toString().replace("\n", "\n    ") + "\n  ]");
+            if ( multiline ) {
+                map.put(name, "[\n    " + builder.toString().replace("\n", "\n    ") + "\n  ]");
+            }
+            else {
+                map.put(name, "[" + builder.toString() + "]");
+            }
         }
     }
 
@@ -82,7 +95,11 @@ public abstract class PersistentObject
             builder.append("  ");
             builder.append(entry.getKey());
             builder.append("=");
-            builder.append(entry.getValue());
+            if ( entry.getValue() == null ) {
+                builder.append("null");
+            } else {
+                builder.append(entry.getValue().replace("\n", "\n  "));
+            }
         }
         builder.insert(0, getClass().getSimpleName() + " {\n");
         builder.append("\n}");
