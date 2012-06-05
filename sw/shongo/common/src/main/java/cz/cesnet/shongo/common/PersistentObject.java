@@ -72,7 +72,7 @@ public abstract class PersistentObject
                 multiline = multiline || (objectString.indexOf("\n") != -1);
             }
             if ( multiline ) {
-                map.put(name, "[\n    " + builder.toString().replace("\n", "\n    ") + "\n  ]");
+                map.put(name, "[\n  " + builder.toString().replace("\n", "\n  ") + "\n]");
             }
             else {
                 map.put(name, "[" + builder.toString() + "]");

@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.common.AbsoluteDateTime;
-import cz.cesnet.shongo.common.Period;
-import cz.cesnet.shongo.common.PeriodicDateTime;
+import cz.cesnet.shongo.common.*;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.resource.Technology;
 import org.junit.Test;

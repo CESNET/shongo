@@ -1,10 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.common.Person;
+
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a special type of resource a video/web conferencing equipment.
@@ -28,6 +27,11 @@ public class DeviceResource extends Resource
      * Technology that is used when a multiple technologies are available.
      */
     private Technology preferredTechnology;
+
+    /**
+     * List of persons which automatically use the resource in all reservation requests.
+     */
+    private List<Person> permanentPersons;
 
     /**
      * Option telling whether the device can be called by another device.
@@ -123,6 +127,31 @@ public class DeviceResource extends Resource
     public void setPreferredTechnology(Technology preferredTechnology)
     {
         this.preferredTechnology = preferredTechnology;
+    }
+
+    /**
+     * @return {@link #permanentPersons}
+     */
+    @OneToMany
+    public List<Person> getPermanentPersons()
+    {
+        return permanentPersons;
+    }
+
+    /**
+     * @param permanentPersons sets the {@link #permanentPersons}
+     */
+    private void setPermanentPersons(List<Person> permanentPersons)
+    {
+        this.permanentPersons = permanentPersons;
+    }
+
+    /**
+     * @param person person to be aded to the {@link #permanentPersons}
+     */
+    public void addPermanentPerson(Person person)
+    {
+        this.permanentPersons.add(person);
     }
 
     /**

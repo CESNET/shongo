@@ -11,6 +11,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class DateTimeSlot extends PersistentObject
 {
     /**

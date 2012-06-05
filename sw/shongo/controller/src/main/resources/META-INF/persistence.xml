@@ -15,6 +15,7 @@
         <class>cz.cesnet.shongo.common.PeriodicDateTime</class>
         <class>cz.cesnet.shongo.common.PeriodicDateTime$Rule</class>
         <class>cz.cesnet.shongo.common.DateTimeSlot</class>
+        <class>cz.cesnet.shongo.common.AbsoluteDateTimeSlot</class>
         <class>cz.cesnet.shongo.common.Person</class>
 
         <!-- Hibernate configuration -->

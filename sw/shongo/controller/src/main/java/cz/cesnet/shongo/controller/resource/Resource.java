@@ -78,11 +78,6 @@ public class Resource extends PersistentObject
     private List<Person> administrators;
 
     /**
-     * List of persons are automatically use the resource in all reservation requests.
-     */
-    private List<Person> permanentPersons;
-
-    /**
      * Defines a maximum future to which the resource is schedulable (e.g., can be set as relative date/time which
      * means that resource can be always scheduled only e.g., to four month ahead).
      */
@@ -296,23 +291,6 @@ public class Resource extends PersistentObject
     public void addAdministrator(Person person)
     {
         this.administrators.add(person);
-    }
-
-    /**
-     * @return {@link #permanentPersons}
-     */
-    @OneToMany
-    public List<Person> getPermanentPersons()
-    {
-        return permanentPersons;
-    }
-
-    /**
-     * @param permanentPersons sets the {@link #permanentPersons}
-     */
-    private void setPermanentPersons(List<Person> permanentPersons)
-    {
-        this.permanentPersons = permanentPersons;
     }
 
     /**
