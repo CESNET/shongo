@@ -645,6 +645,7 @@ able to get video snapshot of:
 
 
 \UseCase{Set layout specific for a user}{ops:room:user-layout}
+\TODO{How does this use-case differ from use-case \ref{UC:ops:room:layout}? Is this use-case a subset of use-case \ref{UC:ops:room:layout}, which mentions also user-specific layout?}
 
 \UseCase{Download and upload room settings}{ops:room:settings-down-up}
 
@@ -1071,6 +1072,8 @@ Is the user muted?
 Microphone level.
 \ApiClassAttribute{playbackLevel}{int}{}
 Playback level (speakers volume)
+\ApiClassAttribute{layout}{RoomLayout}{\ApiOptional}
+User layout, overriding the room default layout.
 \end{ApiClassAttributes}
 
 \end{Api}
@@ -1326,8 +1329,10 @@ Current device load information. A negative value in any attribute means the val
 \ApiClass{Room}{}
 Represents a virtual room on a multipoint server device.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{users}{RoomUser[]}{\ApiRequired} List of allowed users. There should be option to also allow guests.
+\ApiClassAttribute{users}{RoomUser[]}{\ApiRequired} List of allowed users.
+\ApiClassAttribute{allowGuests}{boolean}{\ApiRequired} A flag indicating whether to allow guest users to join the room.
 \ApiClassAttribute{licenseCount}{int}{\ApiRequired} Number of licenses that multipoint server can utilize for this room.
+\ApiClassAttribute{layout}{RoomLayout}{\ApiRequired} The default room layout (used for all participants who did not specify a layout of their own choice).
 \ApiClassAttribute{configuration}{String[]}{\ApiOptional} Platform specific configuration.
 \end{ApiClassAttributes}
 \TODO{Room settings should be auto-modified in time be uploaded calendar}
@@ -1348,11 +1353,22 @@ A brief info about a virtual room at a server.
 \ApiClassAttribute{type}{Technology}{} Type of the room.
 \end{ApiClassAttributes}
 
+\ApiEnum{RoomLayout}{}
+Layout of a virtual room.
+\begin{ApiEnumValues}
+\ApiEnumValue{SingleParticipant}{only a single, fixed participant is viewed}
+\ApiEnumValue{VoiceSwitchedSingleParticipant}{only a single, currently speaking participant is viewed}
+\ApiEnumValue{SpeakerCorner}{a fixed participant is in the upper-left corner, other participants around}
+\ApiEnumValue{VoiceSwitchedSpeakerCorner}{the currently speaking participant is in the upper-left corner, other participants around}
+\ApiEnumValue{Grid}{all participants are spread in a regular grid}
+\end{ApiEnumValues}
+
 \ApiClass{MediaData}{}
 Custom media data, typically used for uploading or downloading some content (images, documents, etc.).
 \begin{ApiClassAttributes}
 \ApiClassAttribute{contentType}{ContentType}{\ApiRequired} Type of the data.
 \ApiClassAttribute{data}{byte[]}{\ApiRequired} The content. To be interpreted according to the content type.
+\ApiClassAttribute{compression}{CompressionAlgorithm}{\ApiOptional} Algorithm used to compress |data|.
 \end{ApiClassAttributes}
 
 \ApiClass{ContentType}{}
@@ -1362,11 +1378,22 @@ Description of a media type. Any MIME Media Type listed by IANA \cite{IANA-Media
 \ApiClassAttribute{subtype}{String}{\ApiRequired} Textual name of the subtype (e.g., |jpeg| or |html|).
 \end{ApiClassAttributes}
 
+\ApiEnum{CompressionAlgorithm}{}
+A compression algorithm used to compress data files.
+\begin{ApiEnumValues}
+\ApiEnumValue{ZIP}{zip compression, as specified by the \texttt{application/zip} MIME type}
+\ApiEnumValue{RAR}{rar archive}
+\ApiEnumValue{TAR_GZIP}{a gzip-compressed tar archive}
+\ApiEnumValue{TAR_BZIP2}{a bzip2-compressed tar archive}
+\end{ApiEnumValues}
+
 
 \end{Api}
 
 
 \section{Common API}
+
+\TODO{How to upload/modify calendars for Endpoint/Multipoint device types? connectors not involved in calendars regarding reservations; this TODO item mentions rather a plan what to do to prevent the need for immediate commands just on time of an event; resolve handling of errors, e.g. when a recording upload fails, the following delete command should not be executed\ldots}
 
 \begin{Api}
 
@@ -1391,8 +1418,6 @@ Enables video from a user in a room.
 \ApiCmd{disableUserVideo(SecurityToken token, String RoomUserId)}
 Disables video from a user in a room.
 
-\TODO{How to upload/modify calendars for Endpoint/Multipoint device types? connectors not involved in calendars regarding reservations; this TODO item mentions rather a plan what to do to prevent the need for immediate commands just on time of an event}
-
 \end{Api}
 
 \section{Multipoint Device} \label{sect:connector-api-multipoint}
@@ -1404,21 +1429,20 @@ Disables video from a user in a room.
 Gets info about an existing room.
 
 \ApiCmd{String createRoom(SecurityToken token, Room room)}
-Create a new virtual room on a multipoint device that is managed by this connector. The settings are specified in |room| definition.
-\TODO{the value returned is the \texttt{roomId}?}
+Create a new virtual room on a multipoint device that is managed by this connector. The |room| parameter specifies the room settings, see the |Room| definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the |roomId| parameter.
+
+\ApiCmd{modifyRoom(SecurityToken token, String roomId, Map attributes)}
+Modifies a room identified by |roomId|. The |attributes| map specifies |Room| attribute names mapped to new values.
 
 \ApiCmd{deleteRoom(SecurityToken token, String roomId)}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
 
-\TODO{room layout setup -- specified by use case \ref{UC:ops:room:layout} and \ref{UC:ops:room:user-layout}; see the Tandberg and Polycom specification (API) and design a class for both; layout config: windows positions, voice-switched; a default layout for room, and user-defined - ordered by the user for the multipoint to send to them; in the worst case, define our reasonable set of fixed layouts and offer just them}
-
 \ApiCmd{String exportRoomSettings(SecurityToken token, String RoomId)}
-Gets current settings of a room exported to a textual format.
-\TODO{What format? XML? Should we specify the corresponding XML Schema somewhere? room name, technology (H.323/SIP/Connect...) settings, a need for structure versioning; specify in RelaxNG}
+Gets current settings of a room exported to XML.
+\\\TODO{Specify schema of the exported XML document in RelaxNG. It should contain at least room name, technology (H.323/SIP/Connect\ldots) settings, and version of the format of the exported document (for further extensions).}
 
 \ApiCmd{importRoomSettings(SecurityToken token, String RoomId, String settings)}
-Sets up a room according to a given configuration previously exported by the |exportRoomSettings| method.
-\TODO{Describe the \texttt{settings} argument according to resolution of \texttt{exportRoomSettings} TODO item}
+Sets up a room according to given |settings| previously exported by the |exportRoomSettings| method.
 
 \end{Api}
 
@@ -1429,11 +1453,11 @@ Sets up a room according to a given configuration previously exported by the |ex
 \ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
 
 \ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String roomUserId)}
-Get user information and settings in a room.
+Gets user information and settings in a room.
 
 \ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String roomUserId, Map attributes)}
-Modify user settings in the room (suitable for setting
-microphone/playback level, muting/unmuting...)
+Modifies user settings in the room (suitable for setting
+microphone/playback level, muting/unmuting, user layout\ldots).
 
 \ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String roomUserId)}
 Disconnect user from the room.
@@ -1450,18 +1474,14 @@ Disables a given room user as a content provider in the room. Typically, all use
 \subsection{Room Content Management}
 \begin{Api}
 
-\ApiCmd{Byte[] getRoomContent(SecurityToken token, String roomId)}
-Gets all room content (e.g., documents, notes, polls, etc.) as a single |tgz| archive.
-\TODO{Use a \texttt{tgz} archive? Is the room content in form of plain files just accessible to room members, or are there some special kinds of content?}
+\ApiCmd{MediaData getRoomContent(SecurityToken token, String roomId)}
+Gets all room content (e.g., documents, notes, polls, etc.) as a single archive (see the |compression| attribute of the returned object).
 
-\ApiCmd{addRoomContent(SecurityToken token, String roomId, String name, Byte[] data)}
+\ApiCmd{addRoomContent(SecurityToken token, String roomId, String name, MediaData data)}
 Adds a data file to room content under a given name.
-\TODO{Are there some special kinds of content?}
-\TODO{Use compression?}
 
 \ApiCmd{removeRoomContentFile(SecurityToken token, String roomId, String name)}
 Removes a file of a given name from room content.
-\TODO{Is filename enough? yes, typically just a plain storage without directory structure}
 
 \ApiCmd{clearRoomContent(SecurityToken token, String roomId)}
 Clears all room content.
@@ -1482,11 +1502,10 @@ Gets the multipoint usage stats.
 Gets a list of all rooms at a given server.
 
 \ApiCmd{MediaData getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}
-Gets a snapshot of the video stream received by a user in a room. The return value is a byte sequence -- the resulting image.
-\TODO{(for \texttt{getSentVideoSnapshot}, too) add ability to prefer some image format, or is it determined by the device?}
+Gets a snapshot of the video stream received by a user in a room. See the |contentType| of the returned object to get the image format returned.
 
 \ApiCmd{MediaData getSentVideoSnapshot(SecurityToken token, String RoomUserId)}
-Gets a snapshot of the video stream that a user is sending in a room. The return value is a byte sequence -- the resulting image.
+Gets a snapshot of the video stream that a user is sending in a room. See the |contentType| of the returned object to get the image format returned.
 
 \end{Api}
 
@@ -1494,12 +1513,8 @@ Gets a snapshot of the video stream that a user is sending in a room. The return
 \subsection{Recording}
 \begin{Api}
 
-\ApiCmd{int startRecording(SecurityToken token, String roomId, ContentType format)}
-Immediately starts recording in a given room to a given format. Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
-\TODO{(for \texttt{scheduleRecording}, too) what does "format: PIP, side by side" mean? (answered at the previous meeting) Does it specify the layout using which the room will be recorded?}
-
-\ApiCmd{int scheduleRecording(SecurityToken token, String roomId, ContentType format, DateTimeSlot dateTimeSlot)}
-Schedules recording in a given room to a given format. On the given time, the device should connect to the room and start recording for the given period. Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
+\ApiCmd{int startRecording(SecurityToken token, String roomId, ContentType format, RoomLayout layout)}
+Immediately starts recording in a room to format |format| using a given |layout| (or the default room layout, if |layout| is not specified). Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
 
 \ApiCmd{stopRecording(SecurityToken token, int recordingId)}
 Stops recording. The |recordingId| parameter, specifying what to stop, is an identifier previously returned by |startRecording| or |scheduleRecording|.
@@ -1508,12 +1523,10 @@ Stops recording. The |recordingId| parameter, specifying what to stop, is an ide
 Returns a URL from where it is possible to download a recording. The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|.
 
 \ApiCmd{notifyParticipants(SecurityToken token, int recordingId)}
-Sends an e-mail to all non-anonymous participants present in the room recorded. If the room is still being recorded, the operation is deferred to the moment when the recording stops.
-\TODO{"...participants present in the room..." -- present when? Any participant present in any time of the reservation? Or any participant present in any moment of the recording? Someone has to manage such an information. Or just the registered users listed within the reservation currently being realized in the room?}
+Sends an e-mail to all non-anonymous participants present in the room recorded. Participants present in any moment of the recording must be notified, not just the registered users.
 
-\ApiCmd{uploadRecording(SecurityToken token, int recordingId, String targetURL)}
-Starts uploading a recording to a destination given by a URL (note it may include credentials needed to upload it there). The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|. Returns immediately when the uploading starts. Management of recordings on the destination server is out of scope of this device. \TODO{correct, that "Management of recordings on the destination server is out of scope of this device."?}\\
-\TODO{Resolve the case when an upload fails. Consider the situation when the controller calls \texttt{uploadRecording} and \texttt{deleteRecording} -- the recording could then be unrecoverably deleted if the uploading failed. Maintain a state of the recording (e.g., "being uploaded") and qualify the deletion by such a state? Or return from \texttt{uploadRecording} only when the upload finishes (successively or not)? Or let the device send a message about the uploading result -- then, a reasonable controller would call \texttt{deleteRecording} only upon a successful uploading.}
+\ApiCmd{downloadRecording(SecurityToken token, String downloadURL, String targetPath)}
+Starts downloading a recording from |downloadURL|. The recording is stored on the server under |targetPath|.
 
 \ApiCmd{deleteRecording(SecurityToken token, int recordingId)}
 Deletes a given recording. The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
@@ -1527,7 +1540,6 @@ Deletes a given recording. The |recordingId| parameter is an identifier previous
 
 \ApiCmd{dial(SecurityToken token, String server)}
 Dials a server.
-\TODO{dial should be common to endpoints and multipoints, since even MCU may dial an endpoint -- correct? yes (even it is available only on some technologies, e.g. an H.323/SIP multipoint is able to dial the client, Connect is out of ability -> leave here and copy to 4.7}
 
 \ApiCmd{resetDevice(SecurityToken token)}
 Resets the device.
