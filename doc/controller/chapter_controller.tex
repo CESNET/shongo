@@ -1,0 +1,37 @@
+\chapter{Domain Controller}
+
+Domain controller holds the database of resources, reservation/compartment 
+requests and allocated resources. When user creates/modifies/deletes a 
+reservation request a domain controller should create/modify/delete 
+corresponding compartment request(s). Domain controller should ask requested 
+persons from incomplete compartment requests for a confirmation and/or device 
+selection. When all persons from an incomplete compartment request 
+accepts/rejects it, the request become complete. Complete compartment requests 
+are processed by a scheduler.
+
+\section{Scheduler}
+
+Scheduler is a component of a domain controller that has access to a database 
+of domain resources and complete compartment requests. The scheduler watches for
+created/modified/deleted complete compartment requests. When a new request arise
+the scheduler tries to schedule it. When the scheduler finds a modified request
+it tries to reschedule it with minimum perturbation. When 
+a deleted request arise, the scheduler free all allocated resources. Scheduling of a compartment request is composed of several steps:
+\begin{compactenum}
+\item Lookup of partially specified devices.
+\item Lookup of local/foreign infrastructure devices to interconnect all requested devices.
+\item Allocating available resources.
+\item Informing request owner about the state.
+\end{compactenum}
+The scheduling is driven by optimization criteria and options specified in the request itself.
+
+\TODO{Continue with scheduler description}
+
+\paragraph{Scheduler optimization criteria:}
+\begin{compactitem}
+\item Minimize resource utilization
+\item Maximize available continuous time slots for resources (minimize 
+  fragmentation)
+\end{compactitem}
+
+\CodeInput{code_scheduler.txt}

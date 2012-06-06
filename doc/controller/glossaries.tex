@@ -1,0 +1,124 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Common
+%
+\newglossaryentry{controller}
+{
+  name=Controller,
+  description={Represents a running application that holds a database of 
+    resources, user requests and allocated reservations for a single 
+    domain. Users can access and modify the database through the controller 
+    user interface(s). The controller runs a scheduler that processes the 
+    database.}
+}
+\newglossaryentry{connector}
+{
+  name=Connector,
+  description={Represents a running application that controls a single 
+    video/web conferencing hardware or software equipment and provides an API 
+    that allows the controller to access that equipment.}
+}
+\newglossaryentry{scheduler}
+{
+  name=Scheduler,
+  description={Scheduler is a component of a domain controller that processes 
+    complete compartment requests and schedule them to allocated compartments 
+    which forms reservations.}
+}
+\newglossaryentry{user}
+{
+  name=User,
+  description={Represents an authenticated person that can access a domain 
+    controller through it's user interface(s).}
+}
+\newglossaryentry{date-time-slot}
+{
+  name=Date/Time Slot,
+  description={Represents a time between specific starting and ending moment. 
+    Can be specified by a starting date and time and a duration. In case of
+    periodic date/times, the date/time slot term represents an one specific 
+    date/time referred to as absolute date/time.}
+}
+\newglossaryentry{technology}
+{
+  name=Technology,
+  description={Represents a single video/web conferencing technology (e.g., 
+    H.323, SIP, or Adobe Connect).}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Resources
+%
+\newglossaryentry{resource}
+{
+  name=Resource,
+  description={An entity that can be requested for a reservation and scheduled 
+  by a scheduler.}
+}
+\newglossaryentry{device}
+{
+  name=Device,
+  description={A special type of resource that represents a video/web 
+    conferencing hardware or software equipment (e.g., H.323 terminal, H.323 
+    MCU, Adobe Connect server, gateway or streaming server).}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Reservation
+%
+\newglossaryentry{reservation-request}
+{
+  name=Reservation Request,
+  description={A request that is made by an user to book resources for one or 
+    more videoconference calls. Requested resources and/or persons can be 
+    specified in compartments (by default a single compartment is used). 
+    From a single reservation request the domain controller creates 
+    one or more compartment requests in dependence on the 
+    number of specified date/time slots and the number of specified 
+    compartments in the reservation request. For each compartment at each 
+    date/time slot is created one compartment request.}
+}
+\newglossaryentry{compartment}
+{
+  name=Compartment,
+  description={Represents a specification of a group of resources and/or 
+    persons which should be interconnected by a scheduler. Each reservation 
+    request can specify one or more compartments. The compartment is not
+    bound to a specific date/time slot. The controller automatically expands 
+    each compartment to one or more compartment requests. For each compartment 
+    at each absolute date/time slot specified in the reservation request is 
+    created one compartment request and thus the compartment request is bound 
+    to a specific date/time slot (unlike the compartment).}
+}
+\newglossaryentry{compartment-request}
+{
+  name=Compartment Request,
+  description={Represents a specification for a group of resources and/or
+    persons that should participate in a single videoconference call at 
+    specific date/time slot. Compartment request can be \textbf{incomplete} 
+    or \textbf{complete}. Incomplete compartment request must be filled in by 
+    additional information to become complete (e.g., by asking persons for 
+    confirmation or to choose a terminal).}
+}
+
+\newglossaryentry{allocated-compartment}
+{
+  name=Allocated Compartment,
+  description={Represents a complete compartment request for which the 
+    scheduler has already allocated resources. Allocated compartment 
+    is a result from scheduler.}
+}
+\newglossaryentry{reservation}
+{
+  name=Reservation,
+  description={Represents a list of successfully allocated compartments
+    based on a single reservation request.}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Scheduler
+%
+

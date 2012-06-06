@@ -1,0 +1,260 @@
+\chapter{Reservations}
+
+A request for a reservation of videoconference devices and other resources can be created by a Shongo user via user interface (e.g., web interface or command-line interface) of a domain controller. The user becomes the request owner. Each reservation request belongs to a domain controller where it was created and the request is stored for backup purposes, it will be distributed in read-only way to backup controllers. \TODO{How will a backup controller work?} 
+
+A reservation request consists of time slots specifications, specification of requested resources and/or participants that should take part in the videoconference and a set of options that can modify the scheduling process. Reservation request may be used to book videoconference calls at multiple dates/times (e.g., every Wednesday or two specific dates) and for multiple compartments -- groups of interconnected resources and/or participants (e.g., group of persons in H.323 virtual room and group of persons in Adobe Connect meeting where each group is standalone and not interconnected). A reservation request can specify following types of entities to take part in videoconference call(s):
+\begin{compactenum}
+\item \textbf{Resource known to Shongo} \\
+  A resource that is stored in the controller database and it has assigned 
+  a resource identifier by which the resource is requested for 
+  a reservation. Known resources can represent:
+  \begin{compactenum}
+  \item A specific resource in the controlled domain. It is usually 
+  managed device and thus the controller can control and schedule it.
+  \item An external resource that is often used in reservations. It is 
+  usually external unmanaged terminal device stored in the controller database
+  to not force the user to describe it every time when he want to use it in 
+  a reservation (actually it is stored version of resource unknown to Shongo).
+  \end{compactenum}
+\item \textbf{Resource unknown to Shongo} \\
+  A resource that is described as part of the reservation request. Usually 
+  represents an external terminal device. It must specify at least technology 
+  (or technologies). It is useful, e.g., for requesting videoconference 
+  of 5 unknown users that can connect via SIP or H.323.
+  
+  \vspace{1mm} To each requested known/unknown resource can be assigned a 
+  list of persons, that will use the resource to participate in the 
+  videoconference(s). Known resources can have the list assigned permanently 
+  and in this case it is automatically filled into all reservations requests 
+  in which  the resource is specified. 
+\item \textbf{Virtual Room} \\
+  A virtual room can be requested for a videoconference reservation. A device
+  in which the virtual room should be allocated may be specified. The size
+  of the virtual room should be specified (number of allowed participants).
+  Virtual rooms allocated in this way are used at first to connect 
+  requested endpoints.
+\item \textbf{Person} \\
+  Instead of specifying a resource the reservation request can specify a 
+  specific  person to participate in the videoconference(s) and the person 
+  himself choose the device that he will use for connecting to the 
+  videoconference(s). The person can be requested in two ways:
+  \begin{compactenum}
+  \item By specifying an user identity in Shongo.
+  \item By specifying a name and contact (e.g., email or cell phone).
+  \end{compactenum}
+\end{compactenum}
+A reservation request is made by an user in a domain controller. The domain 
+controller then expands the reservation request into one or more compartment 
+requests. For each compartment at each date/time slot is created one 
+compartment request. The compartment request thus represents a booking request 
+for a videoconference call at specific single date/time slot and for a single 
+group of resources/participants.
+
+When a person is requested in a compartment request (by a resource or directly), the controller should contact him (e.g., by email or by SMS with link to a web page) and ask whether he want to accept the invitation. If the person was requested directly the controller should also ask the person which device he will use to connect to the videoconference call. If the person was specified by an user identity the controller can build a list of available devices to him and the person can select from them. The person can also specify a device that is unknown to Shongo. 
+
+A compartment request can be in one of these states:
+\begin{compactenum}
+\item \textbf{Not-Complete} \\
+  When a compartment request is created it is considered as incomplete 
+  because all requested participants should confirm presence in
+  the videoconference first.
+\item \textbf{Complete} \\
+  A compartment request is considered as complete when each participant 
+  confirms or rejects the presence in videoconference. Some of
+  requested participants should also choose a device which they will use 
+  to connect to the videoconference.
+\end{compactenum}
+Every domain controller is running a scheduler which processes complete compartment requests and tries to schedule them. If the scheduling was successful, the result is an allocated compartment.
+Allocated compartment created from a single reservation request are referred to as reservation. Through the console or web interface a reservation request owner is able to watch his request state and also a potential allocated compartment requests state. The owner can modify or delete his reservation request and thus also a potential allocated compartments. The owner and all the participants should be notified about changes in the allocated compartments (e.g., by email or SMS). 
+
+The compartment request can be scheduled only when it is complete, i.e., all the requested persons have accepted or rejected the invitation and all directly requested persons have selected devices by which they will connect. Until this condition is met the compartment request is in the incomplete state.
+
+Set of options is a part of the reservation request and it can modify the scheduling process of a reservation. It can contain one or more options from the following types:
+\begin{compactitem}
+\item inter-domain lookup option tells that the controller is allowed to look for necessary devices also in foreign domains (e.g., for a MCU that is not available in local domain).
+\item preference whether a terminal should dial a MCU or a MCU should dial a terminal. This preference can be specified globally for the whole reservation or separately for each device.
+\end{compactitem}
+Each device resource should specify whether it is callable from other devices or if it should initiate all calls by itself.
+
+If we have a reservation with allocated resources, we can use it to provide these allocated resources to another new reservation request. This is useful
+when we already have a reservation for an identifier (e.g., H.323 phone number) a we want to use this identifier as an alias for a device in another reservation request. Thus each reservation request can have specified a list of other already allocated reservations.
+
+\TODO{Give an example of reservation request with dependent reservations}
+
+\section{Examples of reservation requests}
+
+\CodeStyle{}
+\CodeStyleAppendImplementation
+\CodeStyleAppendEnum
+
+\begin{enumerate}
+\item Reservation request of a single videoconference for 4 anonymous persons in H.323.
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest1}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
+requestedCompartments: [Compartment {
+  requestedResources: [
+    ExternalEndpointSpecification { // 4 guests (unknown H.323 devices)
+      technologies: [H323],
+      count: 4
+    }  
+  ]
+}]
+\end{EntityExample}
+
+\item Reservation request of a single videoconference for 4 persons. The first person  has assigned a device in resource database and thus the request owner selected it. Other two persons don't have assigned device in resource database so the request owner specified that they will connect by specific H.323 phone numbers. One H.323 guest can also connect to the videoconference.
+
+\begin{EntityExample}{DeviceResource}{terminal1}{Mirial for Martin Srom in resource database}
+technologies: [H323], 
+aliases: [{type: E164, value: 95001}],
+persons: [PersonByIdentity(srom@cesnet.cz)],
+capabilities: [
+  ReceiveCapability, SendCapability, StandaloneTerminalCapability
+]
+\end{EntityExample}
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest2}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
+requestedCompartments: [Compartment {
+  requestedResources: [
+    DefiniteResourceSpecification { // Martin Srom (known H.323 device)
+      resource: terminal1,
+      persons: [PersonByIdentity(srom@cesnet.cz)] 
+    },
+    ExternalEndpointSpecification { // Petr Holub (unknown H.323 device)
+      technologies: [H323],
+      aliases: [{type: E164, 95002}],
+      persons: [PersonByIdentity(hopet@cesnet.cz)]
+    },
+    ExternalEndpointSpecification { // Jan Ruzicka (unknown H.323 device)
+      technologies: [H323],
+      aliases: [{type: E164, 95003}],
+      persons: [PersonByIdentity(janru@cesnet.cz)], 
+    },
+    ExternalEndpointSpecification { // Guest (unknown H.323 device)
+      technologies: [H323]
+    }
+  ]
+}]
+\end{EntityExample}
+
+\item Reservation request of a single videoconference for 3 persons. The persons will be asked which devices they will use to connect (e.g., by email with a link to a web page).
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest3}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
+requestedCompartments: [Compartment {
+  requestedPersons: [
+    PersonByIdentity(srom@cesnet.cz),  // Martin Srom (must choose a device)
+    PersonByIdentity(hopet@cesnet.cz), // Petr Holub (must choose a device)
+    Person { // Jan Ruzicka (must choose a device)
+      name: Jan Ruzicka,
+      email: janru@cesnet.cz
+    }
+  ]
+}]
+\end{EntityExample}
+
+\item Reservation request for two videoconferences at single date/time slot. One person should participate in both of them and should choose a device by which he will connect to each. To the first compartment can connect two more H.323 guests. To the second compartment can connect two more Adobe Connect clients.
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest4}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
+requestedCompartments: [
+  Compartment {
+    requestedPersons: [
+      PersonByIdentity(srom@cesnet.cz) // Martin Srom (must choose a device)
+    ],
+    requestedResources: [
+      ExternalEndpointSpecification { // 2 guests (unknown H.323 devices)
+        technologies: [H323],
+        count: 2
+      }
+    ]
+  },
+  Compartment {
+    requestedPersons: [
+      PersonByIdentity(srom@cesnet.cz) // Martin Srom (must choose a device)
+    ],
+    requestedResources: [
+      ExternalEndpointSpecification { // 2 guests (in Adobe Connect)
+        technologies: [AdobeConnect],
+        count: 2
+      }
+    ]
+  }
+]
+\end{EntityExample}
+
+\item Reservation request of a single videoconference that specifies virtual room on a MCU for 4 participants and 2 specific terminals that will connect to the virtual room. The remaining two "seats" in the virtual room can be used by any guests.
+
+\begin{EntityExample}{DeviceResource}{mcu1}{H.323 MCU in resource database}
+...
+\end{EntityExample}
+
+\begin{EntityExample}{DeviceResource}{terminal2}{H.323 terminal in resource database}
+...
+\end{EntityExample}
+
+\begin{EntityExample}{DeviceResource}{terminal3}{Another H.323 terminal in resource database}
+...
+\end{EntityExample}
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest5}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
+requestedCompartments: [Compartment {
+  requestedResources: [
+    VirtualRoomSpecification {
+      device: mcu1,
+      size: 4
+    },
+    DefiniteResourceSpecification { // Known H.323 device
+      resource: terminal2
+    },
+    DefiniteResourceSpecification { // Known H.323 device
+      resource: terminal3
+    }
+  ]
+}]
+\end{EntityExample}
+
+\item Reservation request of a single videoconference for 1 specific person that should choose a device by which he will connect and 10 anonymous persons in H.323. Two MCU devices are specified to be used in the videoconference.
+
+\TODO{What does it mean? Both MCU must be used? Or at least one? Or it is only preference and even other MCU may be used?}
+
+\begin{EntityExample}{DeviceResource}{mcu2}{H.323 MCU in resource database}
+...
+\end{EntityExample}
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest6}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-18T15:30, P1H)],
+requestedCompartments: [Compartment {
+  requestedPersons: [
+    PersonByIdentity(srom@cesnet.cz) // Martin Srom (must choose a device)
+  ],
+  requestedResources: [
+    DefiniteResourceSpecification { // Known H.323 device
+      resource: mcu1
+    },
+    DefiniteResourceSpecification { // Known H.323 device
+      resource: mcu2
+    },
+    ExternalEndpointSpecification { // 10 guests (unknown H.323 devices)
+      technologies: [H323],
+      count: 10
+    }
+  ]
+}]
+\end{EntityExample}
+
+\end{enumerate}
+
+\TODO{Add more examples of reservation requests}
+
+\section{Implementation}
+
+\CodeInput{code_reservation.txt}

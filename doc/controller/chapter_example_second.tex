@@ -1,0 +1,162 @@
+\section{Example 2}
+
+This example describes a scenario of a single domain controller which manages various resources and a reservation request is placed.
+
+\subsection{Resource Database}
+
+Resource database is composed of the following resources:
+\begin{itemize}
+\item Two physical rooms (\emph{room1} and \emph{room2}).
+
+\begin{EntityExample}{Resource}{room1}{First physical room}
+type: PhysicalRoom
+\end{EntityExample}
+
+\begin{EntityExample}{Resource}{room2}{Second physical room}
+type: PhysicalRoom
+\end{EntityExample}
+
+\item H.323 gatekeeper (\emph{gatekeeper}).
+
+\begin{EntityExample}{DeviceResource}{gatekeeper}{H.323 gatekeeper}
+technologies: [H323], 
+capabilities: [SignalingServerCapability]
+\end{EntityExample}
+
+\item Two H.323 terminals (\emph{terminal1} and \emph{terminal2}) that are
+  registered to H.323 gatekeeper (\emph{gatekeeper}). The \emph{terminal1} is
+  located in the \emph{room1}.
+  
+\begin{EntityExample}{DeviceResource}{terminal1}{First H.323 terminal}
+technologies: [H323], 
+ipAddress: 147.251.99.1,
+dependentResources: [room1],
+aliases: [{type: E164, value: 95001}],
+capabilities: [
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
+  SignalingClientCapability {server: gatekeeper}
+]
+\end{EntityExample}
+
+\begin{EntityExample}{DeviceResource}{terminal2}{Second H.323 terminal}
+technologies: [H323], 
+ipAddress: 147.251.99.2,
+aliases: [{type: E164, value: 95002}],
+capabilities: [
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
+  SignalingClientCapability {server: gatekeeper}
+]
+\end{EntityExample}
+
+\item SIP proxy (\emph{proxy}).
+
+\begin{EntityExample}{DeviceResource}{proxy}{SIP proxy}
+technologies: [SIP], 
+capabilities: [SignalingServerCapability]
+\end{EntityExample}
+
+\item Two SIP user agents (\emph{userAgent1} and \emph{userAgent2}) that are
+  registered to SIP Proxy (\emph{proxy}). The \emph{userAgent1} is located in
+  the \emph{room2}.
+  
+\begin{EntityExample}{DeviceResource}{userAgent1}{First SIP user agent}
+technologies: [SIP],
+aliases: [{type: URI, value: sip:a1}],
+dependentResources: [room2],
+capabilities: [
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
+  SignalingClientCapability {server: proxy}
+]
+\end{EntityExample}
+
+\begin{EntityExample}{DeviceResource}{userAgent2}{Second SIP user agent}
+technologies: [SIP],
+aliases: [{type: URI, value: sip:a2}],
+capabilities: [
+  ReceiveCapability, SendCapability,
+  StandaloneTerminalCapability,
+  SignalingClientCapability {server: proxy}
+]
+\end{EntityExample}
+
+\item Multipoint device (\emph{mcu}) that supports both H.323 and SIP 
+  technologies.
+  
+\begin{EntityExample}{DeviceResource}{mcu}{Multipoint device for H.323 and SIP}
+technologies: [H323, SIP], 
+ipAddress: 147.251.99.3,
+capabilities: [
+  ReceiveCapability, SendCapability,
+  VirtualRoomsCapability,
+  SignalingClientCapability {technologies: [H323], server: proxy},
+  SignalingClientCapability {technologies: [SIP], server: proxy}
+]
+\end{EntityExample}
+
+\item Adobe Connect server (\emph{server}).
+
+\begin{EntityExample}{DeviceResource}{server}{Adobe Connect server}
+technologies: [AdobeConnect],
+capabilities: [
+  ReceiveCapability, SendCapability,
+  VirtualRoomsCapability {rooms: [ 
+    VirtualRoomResource {code: room1}, 
+    VirtualRoomResource {code: room2}
+  ]}
+]
+\end{EntityExample}
+
+\item Gateway (\emph{gateway}) that allows H.323 endpoints to connect to
+  the Adobe Connect server.
+    
+\begin{EntityExample}{DeviceResource}{gateway}{Gateway between H.323 and Adobe Connect}
+technologies: [H323, AdobeConnect], 
+ipAddress: 147.251.99.4,
+aliases: [{technology: H323, type: E164, value: 95005}],
+capabilities: [
+  ReceiveCapability, SendCapability,
+  TranslateCapability,
+  SignalingClientCapability {technologies: [H323], server: gatekeeper}
+]
+\end{EntityExample}
+
+\end{itemize}
+
+The device resources forms the device topology in fig. \ref{graph:example1}. 
+
+\begin{Graph}{graph:example1}{Device topology for Example 1}  
+  \begin{SubGraph}{-3,3}{}
+  \Vertex{1.5,0}{gw1}{gateway}
+  \Vertex{-1.5,0}{m1}{mcu}  
+  \Vertex{-1.5,-2}{t1}{terminal1}
+  \Vertex{1.5,-2}{t2}{terminal2}
+  \Vertex{-1.5,2}{a1}{userAgent1}
+  \Vertex{1.5,2}{a2}{userAgent2}
+  \EdgeAllToAll{<->}{hxxxIp, hxxxAlias}{m1, t1, t2}  
+  \EdgeAllToAll{<->}{sipUri}{m1, a1, a2}  
+  \end{SubGraph}
+  
+  \begin{SubGraph}{3,3}{}
+  \Vertex{0,0}{s1}{server}  
+  \Vertex{-1.5,-2}{c1}{client1}
+  \Vertex{1.5,-2}{c2}{client2}
+  \EdgeOneToAll{<-}{connectUrl}{s1}{c1, c2}
+  \end{SubGraph}
+  
+  \Edge{<-}{connectUrl}{s1}{gw1}
+  \EdgeOneToAll{<->}{hxxxIp, hxxxAlias}{gw1}{m1, t1, t2}            
+  
+  \begin{GraphLegend}{1, 5.5}
+    \GraphLegendItem{hxxxIp}{Accessible by IP Address in H.323}
+    \GraphLegendItem{hxxxAlias}{Accessible by H.323 Alias}
+    \GraphLegendItem{sipUri}{Accessible by SIP URI}
+    \GraphLegendItem{connectUrl}{Accessible by Adobe Connect URL}
+  \end{GraphLegend}
+\end{Graph}
+
+\subsection{Reservation Requests}
+
+\TODO{Show some requests}

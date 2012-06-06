@@ -1,13 +1,28 @@
 package cz.cesnet.shongo.common;
 
 import cz.cesnet.shongo.common.util.Parser;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.type.DateType;
+import org.hibernate.type.StringType;
+import org.hibernate.type.TimeType;
+import org.hibernate.usertype.UserType;
+
+import javax.persistence.*;
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * Represents absolute time
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public final class Time implements Comparable<Time>, Cloneable
+public final class Time implements Comparable<Time>, Cloneable, UserType
 {
     /**
      * Null field value.
@@ -428,5 +443,90 @@ public final class Time implements Comparable<Time>, Cloneable
         int resultMinute = (time.minute != NullValue ? time.minute : minute);
         int resultSecond = (time.second != NullValue ? time.second : second);
         return new Time(resultHour, resultMinute, resultSecond);
+    }
+
+    @Override
+    public int[] sqlTypes()
+    {
+        return new int[] { Types.VARCHAR };
+    }
+
+    @Override
+    public Class returnedClass()
+    {
+        return Time.class;
+    }
+
+    @Override
+    public boolean equals(Object x, Object y) throws HibernateException
+    {
+        if (x == null || y == null) {
+            return false;
+        }
+        return x.equals(y);
+    }
+
+    @Override
+    public int hashCode(Object x) throws HibernateException
+    {
+        if (x != null) {
+            return x.hashCode();
+        }
+        return 0;
+    }
+
+    @Override
+    public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner)
+            throws HibernateException, SQLException
+    {
+        Object value = StringType.INSTANCE.nullSafeGet(rs, names, session, owner);
+        if ( value == null ) {
+            return null;
+        }
+        else {
+            return new Time((String)value);
+        }
+    }
+
+    @Override
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session)
+            throws HibernateException, SQLException
+    {
+        if ( value == null ) {
+            st.setNull(index, Types.TIME);
+        }
+        else {
+            st.setString(index, value.toString());
+        }
+    }
+
+    @Override
+    public Object deepCopy(Object value) throws HibernateException
+    {
+        return value;
+    }
+
+    @Override
+    public boolean isMutable()
+    {
+        return false;
+    }
+
+    @Override
+    public Serializable disassemble(Object value) throws HibernateException
+    {
+        return (Serializable) value;
+    }
+
+    @Override
+    public Object assemble(Serializable cached, Object owner) throws HibernateException
+    {
+        return cached;
+    }
+
+    @Override
+    public Object replace(Object original, Object target, Object owner) throws HibernateException
+    {
+        return original;
     }
 }

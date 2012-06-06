@@ -1,0 +1,84 @@
+\section{Example 1}
+
+This example describes the simplest scenario in which the resource database contains only one MCU that support H.323 and SIP. Some simple reservation requests are listed.
+
+\subsection{Resource Database}
+
+Resource database is composed of the following resources:
+\begin{itemize}
+
+\item Multipoint device (\emph{mcu}) that supports H.323 and SIP 
+  technologies.
+  
+\begin{EntityExample}{DeviceResource}{mcu}{Multipoint device for H.323 and SIP}
+technologies: [H323, SIP], 
+ipAddress: 147.251.99.3,
+capabilities: [
+  ReceiveCapability, SendCapability,
+  VirtualRoomsCapability,
+  SignalingClientCapability {technologies: [H323], server: proxy},
+  SignalingClientCapability {technologies: [SIP], server: proxy}
+]
+\end{EntityExample}
+
+\end{itemize}
+
+\subsection{Reservation Requests}
+
+\paragraph{Request 1}
+\begin{enumerate}
+\item An user creates a reservation request.
+
+\begin{EntityExample}{ReservationRequest}{reservationRequest}{}
+purpose: Science,
+requestedSlots: [DateTimeSlot(2012-05-30T14:00, P1H)],
+requestedResources: [
+  ExternalEndpointSpecification {
+    technologies: [H323],
+    count: 5,
+    persons: [
+      PersonByIdentity(srom@cesnet.cz),
+      PersonByIdentity(hopet@cesnet.cz),
+      PersonByIdentity(janru@cesnet.cz)
+    ]
+  }
+]
+\end{EntityExample}
+
+\item A domain controller stores the reservation request and based on it the controller creates a compartment request which is also stored.
+
+\begin{EntityExample}{CompartmentRequest}{compartmentRequest}{}
+purpose: Science,
+requestedSlot: AbsoluteDateTimeSlot(2012-05-30T14:00, P1H),
+requestedResources: [
+  ExternalEndpointSpecification {
+    technologies: [H323],
+    count: 5,
+    persons: [
+      PersonByIdentity(srom@cesnet.cz),
+      PersonByIdentity(hopet@cesnet.cz),
+      PersonByIdentity(janru@cesnet.cz)
+    ]
+  }
+]
+\end{EntityExample}
+
+\item The compartment request is incomplete because all requested persons must
+confirm theirs attendance. After all persons are confirmed or rejected
+the request become complete.
+
+\item Scheduler watches for complete compartment requests, so the complete 
+request is now processed by the scheduler. The scheduler knows that he must 
+interconnect 5 unknown H.323 endpoints and thus he searches his resource 
+database and finds the \emph{mcu}. He must setup a virtual room in the 
+\emph{mcu} for the specified date/time and five participants.
+
+\item The scheduler creates allocated compartment entity to which he appends 
+allocated virtual room resource. The scheduler also creates a reservation
+entity to which he appends the allocated compartment entity.
+
+\item The reservation is propagated to the reservation request owner.
+
+\TODO{Complete the example} 
+
+\end{enumerate}

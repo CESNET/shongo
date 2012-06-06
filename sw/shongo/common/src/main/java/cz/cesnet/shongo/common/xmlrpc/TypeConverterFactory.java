@@ -4,7 +4,7 @@ import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 
 /**
- * TypeConverterFactory that allows classes that extends from Type as method parameters.
+ * TypeConverterFactory that allows AtomicType, StructType and enums as method parameters.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

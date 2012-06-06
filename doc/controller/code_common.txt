@@ -1,0 +1,115 @@
+/**
+ * Represents a period or duration.
+ */
+Duration = Period = Object {
+  // ISO8601 period (e.g., P3Y6M4DT12H30M5S, P4W or PT0S).
+  period: String
+}
+
+/**
+ * Abstract date/time object.
+ */
+DateTime = Object {
+}
+
+/**
+ * Represents an absolute date/time.
+ */
+AbsoluteDateTime = Object extends DateTime {
+  // ISO8601 date/time (e.g., 2012-01-30T10:09:55)
+  dateTime: String
+}
+
+/**
+ * Represents an relative date/time.
+ */
+RelativeDateTime = Object extends DateTime {
+  // Relative date/time is defined by a duration.
+  duration: Duration
+}
+
+/**
+ * Represents a periodic date/time that is defined by
+ * first occurence (start date/time), period and the 
+ * ending date/time.
+ */
+PeriodicDateTime = Object extends DateTime {
+  // Date/time for the first occurence.
+  start: AbsoluteDateTime,
+  // Period for repeating occurences.
+  period: Period,
+  // Ending date/time.
+  end: AbsoluteDateTime,
+  // Rules for modification of specified occurences.
+  rules: List<0:n> of (
+    /** Extra date/time specification. */
+    Object {
+      dateTime: AbsoluteDateTime
+    } or
+    /** Enable/disable date/time(s) specification. */
+    Object {
+      // Interval start.
+      start: AbsoluteDateTime,
+      // Interval end.
+      end: AbsoluteDateTime
+      // Goal of rule.
+      goal: Enum {Enable, Disable},
+    }    
+  )
+}
+
+/**
+ * Represents a time slot(s) in a schedule defined by a start 
+ * date/time and a duration. Date/time can be specified as
+ * absolute, relative or periodic. When periodic date/time 
+ * is specified it may represent multiple time slots.
+ */
+DateTimeSlot = Object {
+  // Date/time when the event takes place.
+  dateTime: DateTime,
+
+  // Duration which the event takes.
+  duration: Duration
+}
+
+/**
+ * Represents an absolute date/time slot in a schedule defined
+ * by an absolute start date/time and a duration.
+ */
+AbsoluteDateTimeSlot = Object {
+  // Absolute date/time when the event takes place.
+  dateTime: AbsoluteDateTime,
+
+  // Duration which the event takes.
+  duration: Duration
+}
+
+/** 
+ * Represents a user identity from authentication server.
+ */
+UserIdentity = Object {
+  TODO: What will be there?
+}
+
+/**
+ * Represents a person that can be contacted.
+ */
+Person = Object {
+  // Full name of person.
+  name: String,
+  // Contact email.
+  email: String,
+  // Cell phone.
+  cellPhone: String
+  TODO: What info about person do we want?
+}
+
+/**
+ * Represents a person referenced by a user identity.
+ * Person attributes (e.g., name or email) are filled
+ * from the user identity.
+ */
+PersonByIdentity = Object extends Person {
+  // Reference to user identity.
+  userIdentity: UserIdentity
+}

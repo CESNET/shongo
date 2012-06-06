@@ -1,0 +1,87 @@
+% Listing style
+\lstdefinestyle{Scheduler}{
+    basicstyle=\footnotesize\ttfamily,
+    aboveskip=0pt,
+    belowskip=0pt,           
+    xleftmargin=8pt,
+    classoffset=0,
+    alsoletter={7-*},
+    morecomment=[l][\color{gray}]{//},
+    morecomment=[s][\color{green!50!black}]{/*}{*/},     
+    morecomment=[l][\color{red}]{TODO},
+}
+
+% Use code style (keywords)
+\newcommand{\CodeStyle}[1]{
+  \lstset{
+    style=Scheduler,
+    classoffset=1,
+    keywords={#1},
+    keywordstyle=\color{black}\textbf,
+  }
+}
+
+% Entity example (type, name, comment)
+\lstnewenvironment{EntityExample}[3]{%
+    \noindent
+    \vspace{0.5mm}
+    \minipage{\textwidth}
+    \advance\leftmargini -3mm \quote
+    \footnotesize\ttfamily #2 = \ifx&#1&\else\textbf{#1} \fi{}\{
+    \ifx&#3& \else {\color{gray}// #3} \fi
+}{%
+    %
+    \vspace*{-4pt}
+    \footnotesize\ttfamily \}
+    \endquote
+    \endminipage
+    \vspace{0.5mm}
+} 
+
+% Language keywords
+\newcommand{\CodeStyleAppendLanguage}{\lstset{classoffset=1,morekeywords={
+  Object, Enum, Integer, String, Boolean, List, Set, Pair, 
+  URN, URL, 
+  extends, of, or, *,
+}}}
+
+% Implementation keywords
+\newcommand{\CodeStyleAppendImplementation}{\lstset{classoffset=1,morekeywords={
+  % Common
+  URI,
+  DateTime, AbsoluteDateTime, PeriodicDateTime, Period, Duration,
+  DateTimeSlot, AbsoluteDateTimeSlot, 
+  UserIdentity, Person, PersonByIdentity,
+  % Capabilities
+  ReceiveCapability, SendCapability, TerminalCapability,
+  StandaloneTerminalCapability, MixCapability, VirtualRoomsCapability, 
+  TranslateCapability, SignalingServerCapability, SignalingClientCapability,
+  % Resources
+  DeviceResource, VirtualRoomResource, PhysicalRoom,
+  % Reservations
+  Reservation, PersonSpecification, ResourceSpecification, 
+  DefiniteResourceSpecification, ExternalEndpointSpecification, 
+  VirtualRoomSpecification, ReservationRequest, PersonRequest, 
+  Compartment, CompartmentInstance
+}}}
+
+% Enum keywords
+\newcommand{\CodeStyleAppendEnum}{\lstset{classoffset=1,morekeywords={
+  % Technologies
+  H323, SIP, AdobeConnect,
+  % Formats  
+  H264, CIF, 720p,
+  % Alias types
+  URI, E164, Identifier,
+  % Type of Topology Edge
+  IPAddress, Alias, 
+  % Rule goal
+  Enable, Disable
+}}}
+
+\newcommand{\CodeInput}[1]{
+\CodeStyle{}
+\CodeStyleAppendLanguage
+\vspace{2mm}
+\lstinputlisting{#1}
+}

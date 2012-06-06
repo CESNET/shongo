@@ -11,17 +11,17 @@
     <bean id="controller" class="cz.cesnet.shongo.controller.Controller"/>
 
     <!-- Services -->
-    <bean id="commonService" class="cz.cesnet.shongo.controller.CommonServiceImpl"/>
-    <bean id="resourceService" class="cz.cesnet.shongo.controller.ResourceServiceImpl"/>
-    <bean id="reservationService" class="cz.cesnet.shongo.controller.ReservationServiceImpl"/>
-    <bean id="roomService" class="cz.cesnet.shongo.controller.RoomServiceImpl"/>
+    <bean id="commonService" class="cz.cesnet.shongo.controller.impl.CommonServiceImpl"/>
+    <bean id="resourceService" class="cz.cesnet.shongo.controller.impl.ResourceServiceImpl"/>
+    <bean id="reservationService" class="cz.cesnet.shongo.controller.impl.ReservationServiceImpl"/>
+    <bean id="roomService" class="cz.cesnet.shongo.controller.impl.RoomServiceImpl"/>
 
     <!-- Entity Manager Factory -->
     <bean id="entityManagerFactory"
           class="javax.persistence.Persistence"
           factory-method="createEntityManagerFactory">
         <constructor-arg>
-            <value>production</value>
+            <value>controller</value>
         </constructor-arg>
     </bean>
 

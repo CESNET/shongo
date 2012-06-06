@@ -29,8 +29,7 @@ public class RelativeDateTimeTest
     @Test
     public void testSetters() throws Exception
     {
-        RelativeDateTime relativeDateTime = new RelativeDateTime();
-        relativeDateTime.setDuration(new Period("P2W"));
+        RelativeDateTime relativeDateTime = new RelativeDateTime(new Period("P2W"));
         assertEquals(relativeDateTime.getDuration(), new Period("P2W"));
     }
 

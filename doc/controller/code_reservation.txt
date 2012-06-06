@@ -1,0 +1,107 @@
+/** Requested person for a reservation. */
+PersonRequest = Object {
+  // Specific person.
+  person: Person,
+  // State of person request.
+  state: Enum {NotAsked, Asked, Accepted, Rejected}
+}
+
+/** Resource specification. */
+ResourceSpecification = Object {
+  // List of persons that will use the resource in the videoconference.
+  persons: List<1:n> of PersonRequest,
+  // Option specifying who should initiate the call.
+  callInitiation: Enum{Default, Terminal, Multipoint}
+}
+
+/** Fully-qualified explicit resource specification. */
+DefiniteResourceSpecification = Object extends ResourceSpecification {
+  // Specific resource.
+  resource: Resource
+} 
+
+/** Partially-qualified explicit resource specification. */
+LookupResourceSpecification = Object extends ResourceSpecification {
+  // Technology of a resource.
+  technology: * or Technology,
+  // Type of a resource.
+  type: Enum {Terminal, Multipoint}
+}
+
+/** External endpoint resource specification. */
+ExternalEndpointSpecification = Object extends ResourceSpecification {
+  // Technologies of an endpoint.
+  technologies: Set<1:n> of Technology,
+  // IP address.
+  ipAddress: String,
+  // Alias of a terminal.
+  aliases: List<0:n> of (Alias or IdentifierResource),
+  // Number of terminals with the same definition (default 1).
+  count: Integer
+}
+
+/** Virtual room resource specification. */
+VirtualRoomSpecification = Object extends ResourceSpecification {
+  // Device for the virtual room.
+  device: DeviceResource,
+  // Number of participants in the virtual room.
+  size: Integer
+}
+
+/**
+ * Represents a group of resources and/or persons.
+ */
+Compartment = Object {
+  // Requested resources for the reservation.
+  requestedResources: List<0:n> of ResourceSpecification,
+
+  // List of requested persons that should choose resource which they will use.
+  requestedPersons: List<0:n> of PersonRequest,
+}
+
+/** 
+ * Reservation request that can be created by an user.
+ */
+ReservationRequest = Object {
+  // Type of reservation (permanent can be created only by resource owner).
+  type: Enum {Normal, Permanent},
+  TODO: Permanent reservations should request only resources and not persons 
+  TODO: Thus maybe create PermanentReservationRequest
+
+  // Usage purpose for resources that will be allocated.
+  purpose: Enum {Science, Education},
+
+  // Name of the reservation.
+  name: String,
+
+  // Requested date/time slots (absolute or periodic date/time and duration).
+  requestedSlots: List<1:n> of DateTimeSlot,
+
+  // Requested groups of resources and/or persons.
+  requestedCompartments: List<0:n> of Compartment  
+
+  // Option specifying who should initiate the call.
+  callInitiation: Enum{Default, Terminal, Multipoint},
+
+  // Option specifying whether inter domain lookup can be performed.
+  interDomain: Boolean
+}
+
+/**
+ * Compartment request for a single video/web conference at specific date/time.
+ */
+CompartmentRequest = Object extends Compartment {
+  // Single absolute date/time slot in which the videoconference call takes place.
+  requestedSlot: AbsoluteDateTimeSlot,
+
+  // State of compartment request.
+  state: Enum {
+    // Incomplete request means that some of the requested persons 
+    // have NotConfirmed state.
+    NotComplete, 
+    // Complete request means that all of the requested persons
+    // have Confirmed or Rejected state.
+    Complete
+  }
+}
+

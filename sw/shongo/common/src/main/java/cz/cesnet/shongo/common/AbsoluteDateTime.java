@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.common;
 
+import javax.persistence.*;
+
 /**
  * Represents an absolute Date/Time.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Entity
 public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDateTime>, Cloneable
 {
     /**
@@ -60,6 +63,8 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return date
      */
+    @Column
+    @Access(AccessType.FIELD)
     public Date getDate()
     {
         return date;
@@ -70,6 +75,8 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return time.
      */
+    @Column
+    @Access(AccessType.FIELD)
     public Time getTime()
     {
         return time;
@@ -80,6 +87,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return year
      */
+    @Transient
     public int getYear()
     {
         return getDate().getYear();
@@ -90,6 +98,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return month
      */
+    @Transient
     public int getMonth()
     {
         return getDate().getMonth();
@@ -100,6 +109,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return day
      */
+    @Transient
     public int getDay()
     {
         return getDate().getDay();
@@ -110,6 +120,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return hour
      */
+    @Transient
     public int getHour()
     {
         return getTime().getHour();
@@ -120,6 +131,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return minute
      */
+    @Transient
     public int getMinute()
     {
         return getTime().getMinute();
@@ -130,6 +142,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      *
      * @return second
      */
+    @Transient
     public int getSecond()
     {
         return getTime().getSecond();

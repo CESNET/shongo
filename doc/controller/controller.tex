@@ -1,0 +1,96 @@
+\documentclass[a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenx}
+\usepackage[czech,english]{babel}
+\usepackage[numbers]{natbib}
+\usepackage[pdftex]{graphicx}
+\usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
+\usepackage{palatino}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\usepackage{paralist} 
+\usepackage{multicol}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{tikz}
+
+\usepackage[sort=def, xindy, nonumberlist]{glossaries}
+\usepackage{glossary-long}
+\makeglossaries
+
+\geometry{paper=a4paper}
+\usetikzlibrary{arrows, shapes, calc, decorations}
+\renewcommand*\ttdefault{txtt}
+
+% TODO command
+\newcommand{\TODO}[1]{%
+\def\empty{}%
+\def\prvniparametr{#1}%
+\ifx\prvniparametr\empty%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
+\else%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
+\fi%
+}
+
+% Graph commands
+\input{graph.tex}
+
+% Listings commands
+\input{code.tex}
+
+\begin{document}
+
+\title{Domain Controller for Shongo}
+\author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, 
+        Ondřej Bouda}
+\date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
+\maketitle
+\tableofcontents 
+
+% Print glossaries
+\input{glossaries}
+\renewcommand*{\glossaryname}{List of Terms}  % Changes glossary name
+\renewcommand*{\glspostdescription}{}         % removes dot after description
+\renewcommand*{\glsnamefont}[1]{\textbf{#1}}  % makes name bold
+\renewcommand*{\arraystretch}{1.4}            % makes vertical space between entries
+\setlength{\glspagelistwidth}{0.1\linewidth}
+\setlength\glsdescwidth{0.7\linewidth}        % sets width of descriptions
+\addcontentsline{toc}{chapter}{\glossaryname} % add entry to table of contents
+\glsaddall                                    % add all glossaries
+\glossarystyle{long}                          % sets glossary style to table
+\renewcommand*{\glsgroupskip}{}               % remove vertical space between groups
+\printglossary[type=main]                     % print glossaries
+
+% Technology styles
+\tikzstyle{hxxxAlias}=[color=blue, dashed]
+\tikzstyle{hxxxIp}=[color=green, dashed]
+\tikzstyle{sipUri}=[color=red, dashed]
+\tikzstyle{connectUrl}=[color=violet, dashed]
+
+\input{chapter_technology.tex}
+
+\input{chapter_common.tex}
+
+\input{chapter_resource.tex}
+
+\input{chapter_reservation.tex}
+
+\input{chapter_controller.tex}
+
+\chapter{Examples}
+
+This chapter shows some examples of domain controllers, resource databases and scheduling scenarios.
+
+\CodeStyle{}
+\CodeStyleAppendImplementation
+\CodeStyleAppendEnum
+
+\input{chapter_example_first.tex}
+\input{chapter_example_second.tex}
+
+\end{document}

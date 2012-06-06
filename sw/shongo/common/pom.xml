@@ -69,6 +69,19 @@
             <artifactId>jade</artifactId>
             <version>4.1.1</version>
         </dependency>
+
+        <!-- Hibernate is used for accessing database -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>4.1.1.Final</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>

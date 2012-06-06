@@ -1,14 +1,18 @@
 package cz.cesnet.shongo.common;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a time slot.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class DateTimeSlot
+@Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public class DateTimeSlot extends PersistentObject
 {
     /**
      * Start date/time.
@@ -23,7 +27,7 @@ public class DateTimeSlot
     /**
      * Evaluated slot to absolute date/time slots.
      */
-    private ArrayList<AbsoluteDateTimeSlot> slots = null;
+    private List<AbsoluteDateTimeSlot> slots = null;
 
     /**
      * Construct time slot.
@@ -42,6 +46,8 @@ public class DateTimeSlot
      *
      * @return date/time
      */
+    @OneToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public DateTime getStart()
     {
         return start;
@@ -52,6 +58,8 @@ public class DateTimeSlot
      *
      * @return duration
      */
+    @Column
+    @Access(AccessType.FIELD)
     public Period getDuration()
     {
         return duration;
@@ -63,6 +71,7 @@ public class DateTimeSlot
      * @return true if time slot is taking place now,
      *         false otherwise
      */
+    @Transient
     public final boolean isActive()
     {
         return isActive(AbsoluteDateTime.now());
@@ -75,6 +84,7 @@ public class DateTimeSlot
      * @return true if referenced date/time is inside time slot interval,
      *         false otherwise
      */
+    @Transient
     public boolean isActive(AbsoluteDateTime referenceDateTime)
     {
         for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
@@ -90,6 +100,7 @@ public class DateTimeSlot
      *
      * @return list of absolute date/time slots
      */
+    @Transient
     private List<AbsoluteDateTimeSlot> getEvaluatedSlots()
     {
         if (slots == null) {
@@ -106,7 +117,7 @@ public class DateTimeSlot
                     dateTime = (AbsoluteDateTime) this.start;
                 }
                 else {
-                    assert (false) : "Date/time slot can contains only periodic or absolute date/time.";
+                    throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
                 }
                 if (dateTime != null) {
                     slots.add(new AbsoluteDateTimeSlot(dateTime, getDuration()));
@@ -151,6 +162,7 @@ public class DateTimeSlot
      *
      * @return a time slot with absolute date/time
      */
+    @Transient
     final public DateTimeSlot getEarliest()
     {
         return getEarliest(AbsoluteDateTime.now());
@@ -162,6 +174,7 @@ public class DateTimeSlot
      * @param referenceDateTime the datetime since which to find the earliest occurrence
      * @return a time slot with absolute date/time
      */
+    @Transient
     public AbsoluteDateTimeSlot getEarliest(AbsoluteDateTime referenceDateTime)
     {
         AbsoluteDateTime dateTime = this.start.getEarliest(referenceDateTime);
@@ -210,20 +223,23 @@ public class DateTimeSlot
     }
 
     @Override
-    public String toString()
+    protected void fillDescriptionMap(Map<String, String> map)
     {
-        List<AbsoluteDateTimeSlot> slots = enumerate();
-        StringBuilder result = new StringBuilder();
-        for (DateTimeSlot slot : slots) {
-            if (result.length() > 0) {
-                result.append(", ");
-            }
-            result.append("(");
-            result.append(slot.start.toString());
-            result.append(",");
-            result.append(slot.duration.toString());
-            result.append(")");
+        super.fillDescriptionMap(map);
+
+        map.put("start", start.toString());
+        map.put("duration", duration.toString());
+
+        List<String> slots = new ArrayList<String>();
+        for ( AbsoluteDateTimeSlot slot : enumerate() ) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("(");
+            builder.append(slot.getStart().toString());
+            builder.append(", ");
+            builder.append(slot.getDuration().toString());
+            builder.append(")");
+            slots.add(builder.toString());
         }
-        return "DateTimeSlot [" + result.toString() + "]";
+        addCollectionToMap(map, "enumerated", slots);
     }
 }

@@ -1,0 +1,295 @@
+/** 
+ * Capability of a resource. 
+ */
+Capability = Object {
+}
+
+/** 
+ * Resource that can be scheduled. 
+ */
+Resource = Object {  
+  // Type of the resource.
+  type: Enum {
+    Device,
+    DeviceComponent,
+    PhysicalRoom
+  },  
+  // Unique identifier as defined in API document.
+  identifier: URN,
+  // Name of the resource.
+  name: String,
+  // Capabilities that the resource has.
+  capabilities: List<1:n> of Capability
+  // List of dependent resources (e.g., devices in physical room).
+  dependentResources: List<0:n> of Resource,
+  // Maximum future for scheduling the resource.
+  maxFuture: DateTime,
+  // List of administrators.
+  administrators: List<0:n> of Person,
+  // List of persons that use the resource in all reservations.
+  persons: List<0:n> of Person
+}
+
+/**
+ * Alias for a videoconference device or virtual room.
+ */
+Alias = Object {
+  // Technology for which the alias is.
+  technology: Technology,
+  // Type of alias.
+  type: Enum {E164, Identifier, URI},
+  // Alias value.
+  value: String
+}
+
+/** 
+ * Identifier for a videoconference device or virtual room. 
+ */
+IdentifierResource = Object extends Resource {
+  // Resource type is always device component.
+  type: DeviceComponent,
+  // Identifier value.
+  value: String or Alias
+
+  TODO: Rename to AliasResource? Remove String value?
+}
+
+/** 
+ * Technology enumeration. 
+ */
+Technology = Enum {
+  H323,
+  SIP,
+  AdobeConnect
+}
+
+/** 
+ * Special type of resource that represents videoconference device. 
+ */
+DeviceResource = Object extends Resource {
+  // Resource type is always device.
+  type: Device,
+  // IP address of the device.
+  ipAddress: String,
+  // Aliases for the device.
+  aliases: List<0:n> of (Alias or IdentifierResource),
+  // Technologies that the device supports.
+  technologies: Set<1:n> of Technology,
+  // Preferred technology to use when scheduler should decide.
+  preferredTechnology: Auto or Technology,
+  // Managed/Unmanaged mode
+  mode: (
+    /** Device managed mode. */
+    ManagedMode = Object {
+      // URL to a device connector.
+      connectorUrl: URL
+    }
+    /** Device unmanaged mode. */
+    or UnmanagedMode = Object {
+      // Email for contacting admin of unmanaged resource.
+      email: String
+    }
+  ),
+  // Option whether the device can be called from other devices.
+  callable: Boolean
+}
+
+/** 
+ * Capability of a device resource. 
+ */
+DeviceCapability = Object {
+  // List of device technologies for which the capability is applied.
+  technologies: * or Set<1:n> of Technology
+}
+
+/** 
+ * Format represents an input/output format by which
+ * a device is able to communicate.
+ */
+Format = Object {
+  // Available audio format.
+  audio: * or Object {
+    codecs: * or Set<1:n> of Enum {AC3, ...},
+    bitrates: * or Set<1:n> of Enum {128Kb, ...}
+  }
+  // Available video format.
+  video: * or Object {
+    codecs: * or Set<1:n> of Enum {H264, ...},
+    resolutions: * or Set<1:n> of Enum {CIF, ...}
+  }
+  // Available content format.
+  content: * or Object {
+    TODO: Specify content format
+  }
+
+  TODO: Fill enums
+}
+
+/** 
+ * Receive/Send capability allows a device to process a videoconference data. 
+ */
+ReceiveCapability = SendCapability = Object extends DeviceCapability {
+  // Input/Output format.
+  format: Format
+}
+
+/** 
+ * Capability tells that device can participate in a videconference call.
+ *
+ * @RequireCapability(ReceiveCapability, SendCapability)
+ */
+TerminalCapability = Object extends DeviceCapability {
+  // Input/Output format that is copied/merged to Send and Receive capabilities.
+  format: Format
+}
+
+/** 
+ * Capability allows a device to participate in a 2-point videoconference
+ * (even without a device with Mix or VirtualRooms capability).
+ */
+StandaloneTerminalCapability = Object extends DeviceCapability {  
+}
+
+/** 
+ * Mix capability allows a device to host a single multipoint videoconference. 
+ *
+ * @RequireCapability(ReceiveCapability, SendCapability)
+ */
+MixCapability = Object extends DeviceCapability {  
+}
+
+/** 
+ * Virtual room in a videoconference device. 
+ */
+VirtualRoomResource = Object extends Resource {
+  // Resource type is always device component.
+  type: DeviceComponent,
+  // Room identification inside the Device.
+  code: String,
+  // Aliases for the device.
+  aliases: List<0:n> of (Alias or IdentifierResource),
+}
+
+/** 
+ * Rooming capability allows a device to manage virtual rooms 
+ * and thus to host multiple videoconferences.
+ */
+VirtualRoomsCapability = Object extends MixCapability {
+  // List of virtual rooms.  
+  rooms: List<0:n> of VirtualRoomResource
+}
+
+/** 
+ * Capability tells that a device can starts videoconference
+ * throught a server.
+ */
+SignalingClientCapability = Object extends DeviceCapability {  
+  // Signaling server identifier.
+  server: URN,
+}
+
+/** 
+ * Capability tells that a device is signaling server through
+ * which videoconference can be started/routed.
+ */
+SignalingServerCapability = Object extends DeviceCapability {  
+}
+
+/** 
+ * Capability tells that a device is able to perform translation
+ * between technologies that are specified for the capability.
+ * By default all translations are allowed. Rules can be used 
+ * to modify allowed translations. 
+ *
+ * @RequireCapability(ReceiveCapability, SendCapability)
+ * @RequireTechnologyCount(2)
+ */
+TranslateCapability = Object extends DeviceCapability {  
+  // Rules can modify allowed translations (last-match policy).
+  rules: List<0:n> of Object {
+    // Translation source specification.
+    source: Object {
+      // Source technology.
+      technologies: * or List<1:n> of Technology,
+      // Source format.
+      format: Format
+    },
+    // Translation target specification.
+    target: Object {
+      // Target technology.
+      technologies: * or List<1:n> of Technology,
+      // Target format.
+      format: Format
+    },
+    // Rule goal (enable or disable specified translation).
+    goal: Enum {Enable, Disable}    
+  }
+}
+
+/** 
+ * Stream capability tells that a device is able to perform streaming.
+ *
+ * @RequireCapability(ReceiveCapability)
+ */
+StreamCapability = Object extends DeviceCapability {  
+}
+
+/** 
+ * Record capability tells that a device is able to perform recording.
+ *
+ * @RequireCapability(ReceiveCapability)
+ */
+RecordCapability = Object extends DeviceCapability {  
+}
+
+/**
+ * Device topology.
+ */
+DeviceTopology = Object {
+  /** Node in device topology. */
+  Node = Object {
+    // Each node represents one Device.
+    device: DeviceResource
+  },
+  /** Type of edge (reachability). */
+  EdgeType: Enum {IPAddress, Alias},
+  /** Edge in device topology. */
+  Edge = Object {
+    // Source node.
+    source: Node,
+    // Target node.
+    target: Node,
+    // Technology in which the target is reachable from the source.
+    technology: Technology,
+    // Type of reachability.
+    type: EdgeType,
+    // Format that can be sent from source to target.
+    format: Format    
+  },
+  // List of nodes.
+  nodes: List<0:n> of Node,
+  // List of edges.
+  edges: List<0:n> of Edge,
+  // List of rules for changing the reachability of Devices (last-match policy).
+  rules: List<0:n> of Object {
+    // List of technologies to which the rule is applied.
+    technologies: List<1:n> of Technology,
+    // List of reachability types to which the rule is applied.
+    types: List<1:n> of EdgeType,
+    // List of nodes or groups of nodes between which the rule is applied.
+    nodes: List<1:n> of (Node or List<1:n> of Node),
+    // Tells whether the reachability should be allowed or forbidden.
+    goal: Enum{Enable, Disable}
+  }
+}
+
+/**
+ * Resource Database.
+ */
+ResourceDatabase = Object {
+  // List of all Resources.
+  resources: List<0:n> of Resource,
+  // Device topology.
+  deviceTopology: DeviceTopology
+}
+

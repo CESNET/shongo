@@ -1,0 +1,39 @@
+/**
+ * Represents an allocated resource.
+ */
+AllocatedResource = Object {
+  // Resource that is allocated.
+  resource: Resource,
+  // Date/time slot for which the resource is allocated.
+  slot: AbsoluteDateTimeSlot,
+  // List of persons which use the resource in the time slot.
+  persons: List<1:n> of Person,
+}
+
+/**
+ * Represents a special type of allocated resource a device.
+ */
+AllocatedDevice = Object extends AllocatedResource {
+  // List of aliases that are assigned to resource in a time slot.
+  aliases: List<1:n> of (Alias or IdentifierResource)
+}
+
+/**
+ * Represents the scheduled compartment for a specific date/time. 
+ */
+AllocatedCompartment = Object {
+  // Compartment request for which the resources are allocated.
+  request: CompartmentRequest,
+  // Allocated resources. 
+  allocatedResources: List<1:n> of AllocatedResource
+}
+
+/**
+ * Represents a scheduled reservation (allocated compartments).
+ */
+Reservation = Object {
+  // Request for the reservation.
+  request: ReservationRequest,
+  // List of allocated compartments.
+  allocatedCompartments: List<0:n> of AllocatedCompartme
+}

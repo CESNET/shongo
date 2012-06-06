@@ -3,6 +3,8 @@ package cz.cesnet.shongo.common;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.List;
+
 import static junit.framework.Assert.assertEquals;
 
 /**
@@ -38,9 +40,9 @@ public class PeriodicDateTimeTest
         assertEquals(new AbsoluteDateTime("2012-03-01 T12:00"), periodicDateTime.getStart());
         assertEquals(new Period("P1W"), periodicDateTime.getPeriod());
         assertEquals(new AbsoluteDateTime("2012-03-31"), periodicDateTime.getEnd());
-        assertEquals(2, periodicDateTime.getRules().length);
-        assertEquals(PeriodicDateTime.RuleType.Disable, periodicDateTime.getRules()[0].getType());
-        assertEquals(PeriodicDateTime.RuleType.Extra, periodicDateTime.getRules()[1].getType());
+        assertEquals(2, periodicDateTime.getRules().size());
+        assertEquals(PeriodicDateTime.RuleType.Disable, periodicDateTime.getRules().get(0).getType());
+        assertEquals(PeriodicDateTime.RuleType.Extra, periodicDateTime.getRules().get(1).getType());
     }
 
     @Test
@@ -62,9 +64,9 @@ public class PeriodicDateTimeTest
     public void testAddRule() throws Exception
     {
         PeriodicDateTime periodicDateTime = new PeriodicDateTime();
-        assertEquals(0, periodicDateTime.getRules().length);
+        assertEquals(0, periodicDateTime.getRules().size());
         periodicDateTime.addRule(PeriodicDateTime.RuleType.Extra, new AbsoluteDateTime());
-        assertEquals(1, periodicDateTime.getRules().length);
+        assertEquals(1, periodicDateTime.getRules().size());
     }
 
     @Test
@@ -72,9 +74,9 @@ public class PeriodicDateTimeTest
     {
         PeriodicDateTime periodicDateTime = new PeriodicDateTime();
         periodicDateTime.addRule(PeriodicDateTime.RuleType.Extra, new AbsoluteDateTime());
-        assertEquals(1, periodicDateTime.getRules().length);
+        assertEquals(1, periodicDateTime.getRules().size());
         periodicDateTime.clearRules();
-        assertEquals(0, periodicDateTime.getRules().length);
+        assertEquals(0, periodicDateTime.getRules().size());
     }
 
     @Test
@@ -87,10 +89,10 @@ public class PeriodicDateTimeTest
                 new AbsoluteDateTime("2012-03-29 T12:00"),
                 new AbsoluteDateTime("2012-03-30 T12:00")
         };
-        AbsoluteDateTime[] dateTimes = periodicDateTime.enumerate();
-        assertEquals(correctDateTimes.length, dateTimes.length);
+        List<AbsoluteDateTime> dateTimes = periodicDateTime.enumerate();
+        assertEquals(correctDateTimes.length, dateTimes.size());
         for (int index = 0; index < correctDateTimes.length; index++) {
-            assertEquals(correctDateTimes[index], dateTimes[index]);
+            assertEquals(correctDateTimes[index], dateTimes.get(index));
         }
     }
 
@@ -101,11 +103,11 @@ public class PeriodicDateTimeTest
                 new AbsoluteDateTime("2012-03-08 T12:00"),
                 new AbsoluteDateTime("2012-03-22 T12:00"),
         };
-        AbsoluteDateTime[] dateTimes = periodicDateTime.enumerate(
+        List<AbsoluteDateTime> dateTimes = periodicDateTime.enumerate(
                 new AbsoluteDateTime("2012-03-02"), new AbsoluteDateTime("2012-03-23"));
-        assertEquals(correctDateTimes.length, dateTimes.length);
-        for (int index = 0; index < dateTimes.length; index++) {
-            assertEquals(correctDateTimes[index], dateTimes[index]);
+        assertEquals(correctDateTimes.length, dateTimes.size());
+        for (int index = 0; index < dateTimes.size(); index++) {
+            assertEquals(correctDateTimes[index], dateTimes.get(index));
         }
     }
 

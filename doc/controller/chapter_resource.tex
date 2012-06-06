@@ -1,0 +1,483 @@
+\CodeStyle{} 
+\CodeStyleAppendImplementation
+\CodeStyleAppendEnum
+
+\chapter{Resource Database}
+
+Resource is physical or logical entity that can be scheduled by a scheduler. 
+Resources are persistently stored in a relational database. Scheduler has 
+access to that database and should keep the resources in memory in an 
+efficient form for scheduling. Some of resources are created by Shongo users 
+(e.g., videoconference devices or physical rooms), some are created by Shongo 
+scheduler (e.g., virtual rooms or identifiers) and some are created due to a 
+reservation request (e.g., unmanaged devices or resources from foreign 
+domains). Resource database is composed of:
+\begin{compactenum}
+\item List of all known resources.
+\item Device Topology that contains all device resources and represents 
+videoconference reachability between them.
+\end{compactenum}
+Each resource can be one of the following types:
+\begin{compactenum}
+\item \textbf{Device} -- represents a videconference harware or software 
+  element.
+\item \textbf{Device Component} -- represents a resource that is a part of a 
+  device resource. Can be one of the following types:
+  \begin{compactenum}
+    \item \textbf{Identifier}
+    \item \textbf{Virtual Room}
+  \end{compactenum}
+\item \textbf{Physical Room} -- represent a physical room (e.g., classroom or 
+  boardroom).
+\end{compactenum}
+Each resource can be dependent on another resource (e.g., can be located 
+inside it or can be part of it), for instance a H.323 terminal can be located 
+inside a physical room or a H.323 identifier is assigned to a H.323 device. 
+When scheduler allocates resource, it must also allocate a resource to which 
+the requested resource is dependent (recursively).
+
+\section{Device Topology}
+
+Device Topology is representation of videoconferencing devices from various 
+technologies and its' mutual reachability in a single domain. Each domain 
+controller in Shongo will keep in memory the local topology of all devices 
+which the controller manages and which are part of controller reservations 
+(unmanaged or foreign devices but only as single nodes without theirs 
+topology).
+Controller will not know topologies from foreign domains. Every time when the 
+controller needs some information about foreign devices it send request to 
+foreign domain controller.
+
+Device Topology is composed of nodes and edges. Nodes represents 
+videoconference devices and edges theirs reachability in a specific technology 
+(e.g., ability to communicate in H.323). The reachability is determined by 
+devices' capabilities and by list of global rules which defines the additional 
+constraints.
+
+\subsection{Node}
+
+Each node in Device Topology represents one videoconference device. Device is 
+able to communicate with one or more \textbf{technologies} (H.323, SIP, Adobe 
+Connect, etc.).
+\\
+Device can have one or more \textbf{capabilities}. Each capability can specify 
+one or more device \textbf{technologies} to which it is provided. By default a capability is provided to all device technologies. Capabilities 
+can be from the following types:
+
+\begin{itemize}
+\newcommand{\RequireCapability}[1]{(requires #1)}
+\newcommand{\ExtendCapability}[1]{(extends #1)}
+  
+\item \textbf{Receive}/\textbf{Send} \\
+  Capability allows the device for receiving/sending videoconference data in
+  input/output \textbf{format} that can specify:
+  \begin{compactitem}
+    \item \textbf{audio} in a specific \textbf{audio codecs} and 
+      \textbf{bitrates}.
+    \item \textbf{video} in a specific \textbf{video codecs} and 
+      \textbf{resolutions}.
+    \item \textbf{content} in a specific \textbf{content formats}.
+  \end{compactitem}
+  By default (if format is not specified) the device can receive/send all 
+  streams (audio, video and content) in all codecs and resolutions.
+  If format is specified the device can receive/send only
+  given streams (audio, video and/or content) in specified 
+  codecs and resolutions.
+  
+\item \textbf{Terminal} %
+  \RequireCapability{\textbf{Send} and \textbf{Receive}} \\
+  Capability tells that the device is able to participate in a 
+  videoconference. Terminal devices must have \textbf{Receive} and 
+  \textbf{Send} capability. The input/output \textbf{format} can be 
+  specified once in the \textbf{Terminal} capability and it will be 
+  copied/merged to both \textbf{Send} and \textbf{Received} capability in the 
+  same device.
+  
+\item \textbf{Standalone Terminal} \ExtendCapability{\textbf{Terminal}} \\
+  Capability tells that the device is a terminal which is able to communicate 
+  to other standalone terminal directly without \textbf{Mix} or 
+  \textbf{Virtual Rooms} device (e.g., H.323 and SIP terminals are generally 
+  standalone terminal devices but Adobe Connect client is not standalone 
+  terminal because it always needs the Adobe Connect server to start a 
+  videoconference).
+  
+  \TODO{Technology can have specified that it can have only not-standalone devices,
+  and persons can't select a device by which they will connect (e.g., Adobe Connect). 
+  Or do we allow the person to select by which identity he will connect?}
+  \\ \TODO{Each technology should have specified which types of devices it allows.}
+  
+\item \textbf{Mix} \RequireCapability{\textbf{Receive} and \textbf{Send}} \\
+  Capability allows for mixing videoconference data from multiple 
+  \textbf{Terminals} and send them back the combined result.
+  
+\item \textbf{Virtual Rooms} \ExtendCapability{\textbf{Mix}} \\
+  Capability allows the device to host multiple virtual 
+  rooms. \textbf{Terminal} devices will connect to these virtual rooms. 
+  \textbf{Mixing} is applied per virtual room.
+
+\item \textbf{Signaling Client} \\
+  Capability makes the device to have set an address of a signaling server 
+  which is used for initiating and/or routing the call. The device can
+  also have set a list of aliases which identifies the device inside
+  the signaling server zone and the server is able to translate the alias
+  to URI or IP address.
+
+\item \textbf{Signaling Server} \\
+  Capability tells that the device is signaling server that can be used
+  by other devices for initiating and/or routing the calls.
+
+\item \textbf{Translate} \RequireCapability{\textbf{Receive} and \textbf{Send} 
+  and at least 2 \textbf{technologies}} \\
+  Capability allows for translation from one input format to another output 
+  format where the first format is from one specified technology and the 
+  second is from another specified technology. By default all translations 
+  from input to output formats are allowed. The list of \textbf{rules} can be 
+  used to restrict the allowed translations (e.g., for specific codecs, 
+  resolutions, etc.).
+
+\item \textbf{Stream} \RequireCapability{\textbf{Receive}} \\
+  Capability tells that the device is able to perform streaming from an input 
+  format.
+
+\item \textbf{Record} \RequireCapability{\textbf{Receive}} \\
+  Capability tells that the device is able to perform recording from an input 
+  format.
+\end{itemize}
+
+Each device can have one or more described capabilities. If device supports 
+for instance receiving/sending in multiple technologies, it can be implemented 
+by multiple capability of the same type (one for each technology) or by single 
+capability that lists all the technologies (provided that all technologies has 
+same \textbf{format} settings).
+
+\paragraph{Examples of abstract devices (each with technology dependent 
+           examples):}
+
+\begin{itemize}
+
+\item \textbf{Terminal device} \\
+  Terminal device is hardware or software client that is used by an user to 
+  connect to a videoconference. The device allow an user to participate only 
+  in one videoconference at the time. It has \textbf{Receive}, \textbf{Send} 
+  and \textbf{Terminal} capability. It can have also the 
+  \textbf{Standalone Terminal} capability which allows the terminal devices to  
+  establish also 2-point videoconferences. 
+  
+\begin{EntityExample}{DeviceResource}{terminal1}%
+      {Example of terminal for H.323 and/or SIP}
+technologies: [H323, SIP],
+ipAddress: 147.251.99.1,
+capabilities: [
+  StandaloneTerminalCapability,
+  ReceiveCapability,
+  SendCapability, 
+]
+\end{EntityExample}
+
+\begin{EntityExample}{DeviceResource}{terminal2}%
+      {Example of terminal (client) for Adobe Connect}
+technologies: [AdobeConnect],
+identity: srom@cesnet.cz,
+capabilities: [
+  TerminalCapability,
+  ReceiveCapability,
+  SendCapability
+]
+\end{EntityExample}
+
+\begin{EntityExample}{DeviceResource}{terminal3}{Example of H323 terminal}
+// It can process arbitrary audio, but video only in H.264. The video
+// can be sent only in CIF - 720p resolution. It cannot process content.
+technologies: [H323],
+ipAddress: 147.251.99.3,
+capabilities: [
+  TerminalCapability {
+    format: {
+      audio: *,
+      video: {codecs: [H264]}
+    }
+  },
+  ReceiveCapability,
+  SendCapability {
+    format: {
+      video: {resolutions: [CIF..720p]}
+    }
+  }
+]
+\end{EntityExample}
+
+\item \textbf{Terminal device with virtual room} \\
+  Terminal device with a single embedded virtual room is an extension of 
+  terminal device that allows user to host a single multipoint 
+  videoconference. The  device has \textbf{Receive}, \textbf{Send} and
+  \textbf{Terminal} capability. It also has the \textbf{Mix} capability
+  which provides a single virtual room in which the terminal device itself is 
+  always participating.
+  
+\begin{EntityExample}{}{terminal4}%
+      {Example of terminal with one virtual room for H.323 and/or SIP}
+technologies: [H323, SIP],
+ipAddress: 147.251.99.4,
+capabilities: [
+  TerminalCapability,
+  ReceiveCapability,
+  SendCapability
+  MixCapability
+]
+\end{EntityExample}
+
+\item \textbf{Multipoint device} \\
+  Multipoint device is a special type of device that hosts one or more virtual 
+  rooms and an arbitrary device can connect to a hosted virtual room and take 
+  a videoconference there. The difference between multipoint and the previous 
+  device is that the multipoint device can host more than one videoconference 
+  and the multipoint device isn't part of these videoconferences, it only 
+  manages them. The multipoint device has \textbf{Receive}, \textbf{Send}
+  and \textbf{Virtual Rooms} capabilities.
+
+\begin{EntityExample}{}{mcu1}{Example of H.323 and/or SIP multipoint device}
+technologies: [H323, SIP],
+ipAddress: 147.251.99.100,
+capabilities: [
+  ReceiveCapability,
+  SendCapability,
+  VirtualRoomsCapability
+]
+\end{EntityExample}
+
+\begin{EntityExample}{}{server1}{Example of Adobe Connect server}
+technologies: [AdobeConnect],
+uri: obelix.cesnet.cz,
+capabilities: [
+  ReceiveCapability,
+  SendCapability,
+  VirtualRoomsCapability
+]
+\end{EntityExample}
+
+\item \textbf{Signaling server device} \\
+  Signaling server device is a special type of device that has only 
+  \textbf{Signaling Server} capability. All of previous device examples can 
+  also have \textbf{Signaling Client} capability which for instance allows 
+  other devices to address them by it's alias.
+    
+\begin{EntityExample}{}{gatekeeper}{Example of gatekeeper for H.323}
+technologies: [H323],
+ipAddress: 147.251.99.101,
+capabilities: [SignalingServerCapability]
+\end{EntityExample}
+
+\begin{EntityExample}{}{proxy}{Example of proxy for SIP}
+technologies: [SIP],
+ipAddress: 147.251.99.102,
+capabilities: [SignalingServerCapability]
+\end{EntityExample}
+
+\begin{EntityExample}{}{mcu2}%
+      {Example of MCU that is registered to H.323 and SIP servers}
+technologies: [H323, SIP],
+capabilities: [
+  ReceiveCapability,
+  SendCapability,
+  VirtualRoomsCapability {rooms: [
+    VirtualRoomResource {code: room1, aliases: [
+      {technology: H323, type: E164, value: 9500000002},
+      {technology: SIP, type: URI, value: sip:room1@cesnet.cz}
+    ]}, 
+    VirtualRoomResource {code: room2, aliases: [
+      {technology: H323, type: E164, value: 9500000003}
+      // room2 is not registered to SIP Proxy
+    ]}
+  ]},
+  SignalingClientCapability {technologies: [H323], server: gatekeeper},  
+  SignalingClientCapability {technologies: [SIP], server: proxy}
+]
+\end{EntityExample}
+
+\begin{EntityExample}{}{terminal5}%
+      {Example of terminal that is registered to H.323 and SIP servers}
+technologies: [H323, SIP],
+ipAddress: 147.251.99.5,
+aliases: [
+  {technology: H323, type: E164, value: 9500000001},
+  {technology: SIP, type: URI, value: sip:srom@cesnet.cz}
+],
+capabilities: [
+  TerminalCapability,
+  ReceiveCapability,
+  SendCapability,
+  SignalingClientCapability {technologies: [H323], server: gatekeeper},
+  SignalingClientCapability {technologies: [SIP], server: proxy}
+]
+\end{EntityExample}
+
+\end{itemize}
+ 
+
+\subsection{Edge}
+
+The oriented edge is a link between two nodes and it tells that the second 
+node (the node with incoming arrow) is reachable from the first node. A 
+bidirectional edge tells that either node is reachable to the other node. 
+Each edge is bound to a specific \textbf{technology} (e.g., H.323 or SIP) and 
+to a specific \textbf{type} of connection in the technology (e.g., in H.323 
+may be endpoints reachable by IP address or by H.323 alias, if both is 
+available two edges must be present). Each edge also specifies the formats of data that are available.
+
+\begin{EntityExample}{}{proxy}{}
+technologies: [SIP],
+capabilities: [SignalingServerCapability]
+\end{EntityExample}
+
+\begin{EntityExample}{}{terminal1}{}
+technologies: [H323, SIP],
+ipAddress: 147.251.99.1,
+aliases: [{technology: SIP, type: URI, value: sip:terminal1}],
+capabilities: [
+  StandaloneTerminalCapability,
+  ReceiveCapability, SendCapability,
+  SignalingClientCapability {technologies: [SIP], server: proxy}
+]
+\end{EntityExample}
+
+\begin{EntityExample}{}{terminal2}{}
+technologies: [H323, SIP],
+ipAddress: 147.251.99.2,
+aliases: [{technology: SIP, type: URI, value: sip:terminal2}],
+capabilities: [
+  StandaloneTerminalCapability,
+  ReceiveCapability, SendCapability,
+  SignalingClientCapability {technologies: [SIP], server: proxy}
+]
+\end{EntityExample}
+
+\begin{EntityExample}{}{edge1}{terminal1 <-> terminal2}
+technology: H323,
+type: IPAddress,
+format: *
+\end{EntityExample}
+
+\begin{EntityExample}{}{edge2}{terminal1 <-> terminal2}
+technology: SIP,
+type: Alias,
+format: *
+\end{EntityExample} 
+  
+  
+\subsection{Rule}
+Rules in Device Topology are at global level and they are used for modifying 
+the default reachability (determined by nodes capability settings). Each rule 
+must specify a target \textbf{technology}, a \textbf{type} of connection in 
+the technology (\verb|IPAddress| or \verb|Alias|), 
+nodes (or groups of nodes) 
+to which the rule is applied and modifier (\verb|Enable| or \verb|Disable|) 
+which tells whether the reachability will be enabled or disabled. The nodes 
+can be specified by pattern for identifier, IP address or alias. If more than 
+one group of nodes is specified then the rule is applied only for edges 
+between the groups and not inside the groups.
+
+\begin{EntityExample}{}{rule1}%
+      {Disable reachability by IP address for all H.323 devices}
+technologies: [H323],
+types: [IPAddress],
+nodes: *,
+goals: Disable
+\end{EntityExample}
+
+\begin{EntityExample}{}{rule2}%
+      {Enable reachability by IP address for all H.323 devices at FI MUNI}
+technologies: [H323],
+types: [IPAddress],
+nodes: cz.muni.fi.*,
+goal: Enable
+\end{EntityExample}
+
+\begin{EntityExample}{}{rule3}{}
+// Enable reachability by alias of SIP and H.323 devices between two networks.
+// Devices from each network are referenced by the network signaling server.
+technologies: [H323, SIP],
+types: [Alias],
+nodes: [signalingServer1.*, signalingServer2.*],
+goal: Enable
+\end{EntityExample}
+
+\begin{EntityExample}{}{rule3}{Enable all correct reachability}
+technologies: *,
+types: *,
+nodes: *,
+goal: Enable
+\end{EntityExample}
+
+%\section{Operations}
+
+%Device Topology implementation should allow dynamic modification when for 
+%instance some device parameters are changed to not force the whole topology 
+%reconstruction.      
+      
+%\subsection*{Construction}
+
+%Construction is performed when the controller is started. Steps to construct 
+%a topology:
+
+%\begin{compactenum}
+%\item Get the list of all devices in the topology.
+%\item For each device: 
+%  \begin{compactitem}
+%  \item \textbf{Add new device}.
+%  \end{compactitem}
+%\end{compactenum}     
+
+%\subsection*{Add new device}     
+
+%Steps to add new device to the topology:
+%\begin{compactenum}
+%\item Get device capabilities.
+%\item Add a new node to the topology.
+%\item Find all other devices that the device is able to take a %
+%  videoconference with (based on capabilities):
+%  \begin{compactitem}
+%  \item Add edge(s) with proper parameters.
+%  \end{compactitem}
+%\end{compactenum}  
+
+%\subsection*{Update existing device}
+
+%Steps to update an existing device in a topology for instance when the %capabilities for the device are changed:
+%\begin{compactenum}
+%\item \textbf{Remove existing device}.
+%\item \textbf{Add new device}.
+%\end{compactenum} 
+     
+%\subsection*{Remove existing device}     
+
+%Steps to remove existing device from a topology:
+%\begin{compactenum}
+%\item Remove all edges that reference the device.
+%\item Remove the node from the topology.
+%\end{compactenum}  
+
+\section{Implementation}
+
+The resource database is implemented as follows:
+
+\CodeInput{code_resource.txt}
+
+\section{Operations}
+
+Operations that can be performed on resource database:
+
+\begin{description}
+\item[Construct]
+Resource database is constructed when the controller (and thus the scheduler) 
+is started. The scheduler loads all resources from relational database and 
+performs \textbf{Add new resource} for each loaded resource.
+
+\item[Add new resource]
+The scheduler adds the resource to the list of all resources. If the resource 
+is device type then the resource is also added to the Device Topology.
+
+\item[Remove existing resource]
+The scheduler removes the resource from the list of all resources. If the 
+resource is device type then the resource is also removed from the Device 
+Topology.
+\end{description} 

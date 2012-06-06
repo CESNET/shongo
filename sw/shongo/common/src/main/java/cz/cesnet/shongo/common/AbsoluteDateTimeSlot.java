@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.common;
 
+import javax.persistence.*;
+
 /**
  * Represents an absolute date/time slot.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Entity
 public class AbsoluteDateTimeSlot extends DateTimeSlot
 {
     /**
@@ -28,6 +31,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
      *
      * @return end date/time
      */
+    @Transient
     public AbsoluteDateTime getEnd()
     {
         if (end == null) {
@@ -36,11 +40,14 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
         return end;
     }
 
+    @Transient
     @Override
     public AbsoluteDateTime getStart()
     {
         DateTime dateTime = super.getStart();
-        assert (dateTime instanceof AbsoluteDateTime) : "Absolute date/time slot should contain absolute date/time.";
+        if ( (dateTime instanceof AbsoluteDateTime) == false ) {
+            throw new IllegalStateException("Absolute date/time slot should contain absolute date/time.");
+        }
         return (AbsoluteDateTime) dateTime;
     }
 }

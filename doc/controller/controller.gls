@@ -1,0 +1,52 @@
+\glossarysection[\glossarytoctitle]{\glossarytitle}\glossarypreamble
+\providecommand*\glsXpageXglsnumberformat[2]{\setentrycounter[#1]{page}\glsnumberformat{#2}}
+\providecommand*\glsXpageXtextrm[2]{\setentrycounter[#1]{page}\textrm{#2}}
+\providecommand*\glsXpageXtextsf[2]{\setentrycounter[#1]{page}\textsf{#2}}
+\providecommand*\glsXpageXtexttt[2]{\setentrycounter[#1]{page}\texttt{#2}}
+\providecommand*\glsXpageXtextbf[2]{\setentrycounter[#1]{page}\textbf{#2}}
+\providecommand*\glsXpageXtextmd[2]{\setentrycounter[#1]{page}\textmd{#2}}
+\providecommand*\glsXpageXtextit[2]{\setentrycounter[#1]{page}\textit{#2}}
+\providecommand*\glsXpageXtextup[2]{\setentrycounter[#1]{page}\textup{#2}}
+\providecommand*\glsXpageXtextsl[2]{\setentrycounter[#1]{page}\textsl{#2}}
+\providecommand*\glsXpageXtextsc[2]{\setentrycounter[#1]{page}\textsc{#2}}
+\providecommand*\glsXpageXemph[2]{\setentrycounter[#1]{page}\emph{#2}}
+\providecommand*\glsXpageXglshypernumber[2]{\setentrycounter[#1]{page}\glshypernumber{#2}}
+\providecommand*\glsXpageXhyperrm[2]{\setentrycounter[#1]{page}\hyperrm{#2}}
+\providecommand*\glsXpageXhypersf[2]{\setentrycounter[#1]{page}\hypersf{#2}}
+\providecommand*\glsXpageXhypertt[2]{\setentrycounter[#1]{page}\hypertt{#2}}
+\providecommand*\glsXpageXhyperbf[2]{\setentrycounter[#1]{page}\hyperbf{#2}}
+\providecommand*\glsXpageXhypermd[2]{\setentrycounter[#1]{page}\hypermd{#2}}
+\providecommand*\glsXpageXhyperit[2]{\setentrycounter[#1]{page}\hyperit{#2}}
+\providecommand*\glsXpageXhyperup[2]{\setentrycounter[#1]{page}\hyperup{#2}}
+\providecommand*\glsXpageXhypersl[2]{\setentrycounter[#1]{page}\hypersl{#2}}
+\providecommand*\glsXpageXhypersc[2]{\setentrycounter[#1]{page}\hypersc{#2}}
+\providecommand*\glsXpageXhyperemph[2]{\setentrycounter[#1]{page}\hyperemph{#2}}
+\begin{theglossary}\glossaryheader
+\glsgroupheading{glsnumbers}\relax\glsresetentrylist
+\glossaryentryfield{controller}{\glsnamefont{Controller}}{Represents a running application that holds a database of resources, user requests and allocated reservations for a single domain. Users can access and modify the database through the controller user interface(s). The controller runs a scheduler that processes the database.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{connector}{\glsnamefont{Connector}}{Represents a running application that controls a single video/web conferencing hardware or software equipment and provides an API that allows the controller to access that equipment.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{scheduler}{\glsnamefont{Scheduler}}{Scheduler is a component of a domain controller that processes complete compartment requests and schedule them to allocated compartments which forms reservations.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{user}{\glsnamefont{User}}{Represents an authenticated person that can access a domain controller through it's user interface(s).}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{date-time-slot}{\glsnamefont{Date/Time Slot}}{Represents a time between specific starting and ending moment. Can be specified by a starting date and time and a duration. In case of periodic date/times, the date/time slot term represents an one specific date/time referred to as absolute date/time.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{technology}{\glsnamefont{Technology}}{Represents a single video/web conferencing technology (e.g., H.323, SIP, or Adobe Connect).}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{resource}{\glsnamefont{Resource}}{An entity that can be requested for a reservation and scheduled by a scheduler.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{device}{\glsnamefont{Device}}{A special type of resource that represents a video/web conferencing hardware or software equipment (e.g., H.323 terminal, H.323 MCU, Adobe Connect server, gateway or streaming server).}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{reservation-request}{\glsnamefont{Reservation Request}}{A request that is made by an user to book resources for one or more videoconference calls. Requested resources and/or persons can be specified in compartments (by default a single compartment is used). From a single reservation request the domain controller creates one or more compartment requests in dependence on the number of specified date/time slots and the number of specified compartments in the reservation request. For each compartment at each date/time slot is created one compartment request.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{compartment}{\glsnamefont{Compartment}}{Represents a specification of a group of resources and/or persons which should be interconnected by a scheduler. Each reservation request can specify one or more compartments. The compartment is not bound to a specific date/time slot. The controller automatically expands each compartment to one or more compartment requests. For each compartment at each absolute date/time slot specified in the reservation request is created one compartment request and thus the compartment request is bound to a specific date/time slot (unlike the compartment).}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{compartment-request}{\glsnamefont{Compartment Request}}{Represents a specification for a group of resources and/or persons that should participate in a single videoconference call at specific date/time slot. Compartment request can be \textbf {incomplete} or \textbf {complete}. Incomplete compartment request must be filled in by additional information to become complete (e.g., by asking persons for confirmation or to choose a terminal).}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{allocated-compartment}{\glsnamefont{Allocated Compartment}}{Represents a complete compartment request for which the scheduler has already allocated resources. Allocated compartment is a result from scheduler.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glossaryentryfield{reservation}{\glsnamefont{Reservation}}{Represents a list of successfully allocated compartments based on a single reservation request.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}%
+\end{theglossary}\glossarypostamble

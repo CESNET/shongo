@@ -173,11 +173,11 @@ breakautoindent=true,
 
 \UseCase{Entity identification}{com:identification}
 Each entity in Shongo (e.g., resource, or reservation) is identified by an unique identifier.
-The identifier follows the URN standard \cite{rfc2141}:
+The identifier follows the URI standard \cite{rfc3986}:
 \begin{verbatim}
-urn:shongo:<type>:<domain>(.<subdomain>)*:(<section>.)*<name>
+shongo:<type>:<domain>(.<subdomain>)*:<uuid>
 \end{verbatim}
-The \ApiValue{<type>} component represents |type| of an entity (e.g., \ApiValue{resource}, or \ApiValue{reservation}). The \ApiValue{<domain>(.<subdomain>)*} component represents the full name of a |domain| to which the entity belongs (or where it was created in case of reservation). Each |domain| will run it's own controller platform. The \ApiValue{(<section>.)*<name>} component represents entity identification inside the |domain|.
+The \ApiValue{<type>} component represents |type| of an entity (e.g., \ApiValue{resource}, or \ApiValue{reservation}). The \ApiValue{<domain>} component represents the full name of a |domain| to which the entity belongs (or where it was created in case of reservation). Each |domain| will run it's own controller platform. The \ApiValue{<uuid>} component represents represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination.
 
 \end{UseCases}
 
@@ -257,9 +257,11 @@ The resource owner should be able to create new resources that will be managed b
 Each resource is identified by an unique identifier as defined in \UCref{com:identification}. The identifier will be
 assigned to the resource by it's owner when the resource is being created. The format is:
 \begin{verbatim}
-urn:shongo:resource:<domain>:<name>
+shongo:resource:<domain>(.<subdomain>)*:<uuid>
 \end{verbatim}
-Each resource has own |name| and belongs to some main |domain| that runs controller platform. The |domain| name can be structured to any number of subdomains by "|.|" sign. The resource |name| can be also structured by "|.|" sign (e.g., to specify sections, or buildings). For unmanaged resources that don’t belong to any domain there is a default \ApiValue{unmanaged} domain.
+Each resource belongs to some main |domain| that runs controller platform. The domain can be structured to any number of |<subdomains>| by "|.|" sign. The <uuid> represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination. For unmanaged resources that don’t belong to any domain there is a default \ApiValue{unmanaged} domain.
+
+\TODO{Modify examples to use UUID}
 
 Examples of managed resources:
 \begin{compactitem}
@@ -347,10 +349,10 @@ The roles can be delegated, which is important especially in case of owner/admin
 
 Each reservation is identified by an unique identifier as defined in \UCref{com:identification}. The identifier is assigned to reservation automatically by the controller platform. The format is:
 \begin{verbatim}
-urn:shongo:reservation:<domain>:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+shongo:reservation:<domain>:<uuid>
 \end{verbatim}
 Each reservation is created in a |domain| that runs it's own controller platform.
-The |xx...xx| represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination.
+The <uuid> represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination.
 
 
 \UseCase{One time reservation}{rsv:reservation:one}

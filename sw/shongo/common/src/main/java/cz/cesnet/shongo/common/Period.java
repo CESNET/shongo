@@ -1,13 +1,27 @@
 package cz.cesnet.shongo.common;
 
 import cz.cesnet.shongo.common.util.Parser;
+import org.hibernate.Hibernate;
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SessionImplementor;
+import org.hibernate.type.StringType;
+import org.hibernate.usertype.UserType;
+
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.print.DocFlavor;
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 
 /**
  * Represents a duration or period.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Period implements Comparable<Period>
+public class Period implements Comparable<Period>, UserType
 {
     private int year = 0;
     private int month = 0;
@@ -319,5 +333,90 @@ public class Period implements Comparable<Period>
         resultPeriod.setSecond(getSecond() + period.getSecond());
         resultPeriod.normalize();
         return resultPeriod;
+    }
+
+    @Override
+    public int[] sqlTypes()
+    {
+        return new int[] { Types.VARCHAR };
+    }
+
+    @Override
+    public Class returnedClass()
+    {
+        return Period.class;
+    }
+
+    @Override
+    public boolean equals(Object x, Object y) throws HibernateException
+    {
+        if (x == null || y == null) {
+            return false;
+        }
+        return x.equals(y);
+    }
+
+    @Override
+    public int hashCode(Object x) throws HibernateException
+    {
+        if (x != null) {
+            return x.hashCode();
+        }
+        return 0;
+    }
+
+    @Override
+    public Object nullSafeGet(ResultSet rs, String[] names, SessionImplementor session, Object owner)
+            throws HibernateException, SQLException
+    {
+        String value = (String) StringType.INSTANCE.nullSafeGet(rs, names, session, owner);
+        if ( value == null ) {
+            return null;
+        }
+        else {
+            return new Period(value);
+        }
+    }
+
+    @Override
+    public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session)
+            throws HibernateException, SQLException
+    {
+        if ( value == null ) {
+            st.setNull(index, Types.VARCHAR);
+        }
+        else {
+            st.setString(index, value.toString());
+        }
+    }
+
+    @Override
+    public Object deepCopy(Object value) throws HibernateException
+    {
+        return value;
+    }
+
+    @Override
+    public boolean isMutable()
+    {
+        return false;
+    }
+
+    @Override
+    public Serializable disassemble(Object value) throws HibernateException
+    {
+        return (Serializable) value;
+    }
+
+    @Override
+    public Object assemble(Serializable cached, Object owner) throws HibernateException
+    {
+        return cached;
+    }
+
+    @Override
+    public Object replace(Object original, Object target, Object owner) throws HibernateException
+    {
+        return original;
     }
 }
