@@ -1252,7 +1252,7 @@ Disconnect the user with specified |userId| from the room with given |roomId|.
 
 \TODO{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes. Groups of failure codes: Shongo-connections, connections between a connector and its device, failures reported by the devices themselves}
 
-Communication among controllers and connectors is implemented using JADE \cite{jade}. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
+Communication among controllers and connectors is implemented using JADE \cite{jade}. The communication is \textbf{synchronous}, i.e., the controller sends a command to a connector and waits until the connector replies. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
 
 The ontology used by all agents consists of concepts, predicates, and agent actions.
 \begin{description}
@@ -1394,8 +1394,6 @@ A compression algorithm used to compress data files.
 
 
 \section{Common API}
-
-\TODO{How to upload/modify calendars for Endpoint/Multipoint device types? connectors not involved in calendars regarding reservations; this TODO item mentions rather a plan what to do to prevent the need for immediate commands just on time of an event; resolve handling of errors, e.g. when a recording upload fails, the following delete command should not be executed\ldots}
 
 \begin{Api}
 
