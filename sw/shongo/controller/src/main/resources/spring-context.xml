@@ -10,6 +10,23 @@
     <!-- Application -->
     <bean id="controller" class="cz.cesnet.shongo.controller.Controller"/>
 
+    <!-- Components -->
+    <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.resource.ResourceDatabase" destroy-method="destroy">
+        <constructor-arg>
+            <ref bean="entityManager"/>
+        </constructor-arg>
+    </bean>
+    <bean id="reservationDatabase" class="cz.cesnet.shongo.controller.reservation.ReservationDatabase" destroy-method="destroy">
+        <constructor-arg>
+            <ref bean="entityManager"/>
+        </constructor-arg>
+    </bean>
+    <bean id="scheduler" class="cz.cesnet.shongo.controller.scheduler.Scheduler" destroy-method="destroy">
+        <constructor-arg>
+            <ref bean="entityManager"/>
+        </constructor-arg>
+    </bean>
+
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.impl.CommonServiceImpl"/>
     <bean id="resourceService" class="cz.cesnet.shongo.controller.impl.ResourceServiceImpl"/>

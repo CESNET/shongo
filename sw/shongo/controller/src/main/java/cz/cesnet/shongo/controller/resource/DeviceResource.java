@@ -19,6 +19,16 @@ public class DeviceResource extends Resource
     private Mode mode;
 
     /**
+     * IP address on which the device is running.
+     */
+    private String ipAddress;
+
+    /**
+     * List of aliases that are permanently assigned to device.
+     */
+    private List<Alias> aliases = new ArrayList<Alias>();
+
+    /**
      * Set of technologies for which the device capability is applied.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
@@ -31,7 +41,7 @@ public class DeviceResource extends Resource
     /**
      * List of persons which automatically use the resource in all reservation requests.
      */
-    private List<Person> permanentPersons;
+    private List<Person> permanentPersons = new ArrayList<Person>();
 
     /**
      * Option telling whether the device can be called by another device.
@@ -53,6 +63,48 @@ public class DeviceResource extends Resource
     public void setMode(Mode mode)
     {
         this.mode = mode;
+    }
+
+    /**
+     * @return {@link #ipAddress}
+     */
+    @Column
+    public String getIpAddress()
+    {
+        return ipAddress;
+    }
+
+    /**
+     * @param ipAddress sets the {@link #ipAddress}
+     */
+    public void setIpAddress(String ipAddress)
+    {
+        this.ipAddress = ipAddress;
+    }
+
+    /**
+     * @return {@link #aliases}
+     */
+    @OneToMany
+    public List<Alias> getAliases()
+    {
+        return aliases;
+    }
+
+    /**
+     * @param aliases sets the {@link #aliases}
+     */
+    private void setAliases(List<Alias> aliases)
+    {
+        this.aliases = aliases;
+    }
+
+    /**
+     * @param alias alias to be added to the {@link #aliases}
+     */
+    public void addAlias(Alias alias)
+    {
+        this.aliases.add(alias);
     }
 
     /**

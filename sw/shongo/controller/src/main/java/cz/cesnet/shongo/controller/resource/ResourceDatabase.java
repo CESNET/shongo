@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import java.util.Map;
  */
 public class ResourceDatabase
 {
+    private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
+
     /**
      * Entity manager that is used for loading/saving resources.
      */
@@ -34,12 +38,23 @@ public class ResourceDatabase
     {
         this.entityManager = entityManager;
 
+        logger.debug("Loading resource database...");
+
         // Load all resources from db
         List<Resource> resourceList = entityManager
                 .createQuery("SELECT resource FROM Resource resource", Resource.class).getResultList();
         for (Resource resource : resourceList) {
             addResource(resource);
         }
+    }
+
+    /**
+     * Destroy resource database.
+     */
+    public void destroy()
+    {
+        logger.debug("Closing resource database...");
+        resourceMap.clear();
     }
 
     /**

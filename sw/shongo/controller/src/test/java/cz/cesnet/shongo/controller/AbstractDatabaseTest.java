@@ -34,7 +34,7 @@ public abstract class AbstractDatabaseTest
     {
         if ( entityManagerFactory == null ) {
             // For testing purposes use only in-memory database
-            Map properties = new HashMap();
+            Map<String, String> properties = new HashMap<String, String>();
             properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:controller; shutdown=true;");
             entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         }

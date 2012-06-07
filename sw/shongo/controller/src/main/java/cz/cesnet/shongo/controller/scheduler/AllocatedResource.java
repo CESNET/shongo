@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import javax.persistence.*;
 
 /**
- * Represents an allocated resource in an {@link AllocatedCompartment}
+ * Represents an allocated {@link Resource} in an {@link AllocatedCompartment}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

@@ -6,6 +6,9 @@ import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
+import cz.cesnet.shongo.controller.reservation.ReservationDatabase;
+import cz.cesnet.shongo.controller.resource.ResourceDatabase;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +18,10 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.persistence.EntityManager;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,6 +56,54 @@ public class Controller implements ApplicationContextAware
      * Jade agent.
      */
     ControllerAgent jadeAgent;
+
+    /**
+     * Entity manager.
+     */
+    @Resource
+    EntityManager entityManager;
+
+    /**
+     * Database of resources.
+     */
+    @Resource
+    ResourceDatabase resourceDatabase;
+
+    /**
+     * Database of reservation requests.
+     */
+    @Resource
+    ReservationDatabase reservationDatabase;
+
+    /**
+     * Scheduler of the domain controller.
+     */
+    @Resource
+    Scheduler scheduler;
+
+    /**
+     * @return {@link #reservationDatabase}
+     */
+    public ResourceDatabase getResourceDatabase()
+    {
+        return resourceDatabase;
+    }
+
+    /**
+     * @return {@link #reservationDatabase}
+     */
+    public ReservationDatabase getReservationDatabase()
+    {
+        return reservationDatabase;
+    }
+
+    /**
+     * @return {@link #scheduler}
+     */
+    public Scheduler getScheduler()
+    {
+        return scheduler;
+    }
 
     /**
      * Init controller.
@@ -204,13 +258,16 @@ public class Controller implements ApplicationContextAware
         }
 
         // Run application by spring application context
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-context.xml");
+        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-context.xml");
 
         logger.info("Controller successfully started.");
 
         // Run controller
         Controller controller = (Controller) applicationContext.getBean("controller");
         controller.run();
+
+        // Close spring application context
+        applicationContext.close();
 
         logger.info("Controller exiting...");
     }

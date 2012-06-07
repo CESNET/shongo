@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.common.Identifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
@@ -15,6 +17,8 @@ import java.util.Map;
  */
 public class ReservationDatabase
 {
+    private static Logger logger = LoggerFactory.getLogger(ReservationDatabase.class);
+
     /**
      * Entity manager that is used for loading/saving reservation requests.
      */
@@ -34,6 +38,8 @@ public class ReservationDatabase
     {
         this.entityManager = entityManager;
 
+        logger.debug("Loading reservation database...");
+
         // Load all reservation requests from the db
         List<ReservationRequest> reservationRequestList = entityManager
                 .createQuery("SELECT request FROM ReservationRequest request", ReservationRequest.class)
@@ -41,6 +47,15 @@ public class ReservationDatabase
         for (ReservationRequest reservationRequest : reservationRequestList) {
             addReservationRequest(reservationRequest);
         }
+    }
+
+    /**
+     * Destroy reservation database.
+     */
+    public void destroy()
+    {
+        logger.debug("Closing reservation database...");
+        reservationRequestMap.clear();
     }
 
     /**

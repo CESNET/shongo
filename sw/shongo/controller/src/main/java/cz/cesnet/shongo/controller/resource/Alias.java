@@ -1,11 +1,16 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.common.PersistentObject;
+
+import javax.persistence.*;
+
 /**
  * Represents an alias for a single device and a single technology.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public interface Alias
+@Entity
+public class Alias extends PersistentObject
 {
     /**
      * Enumeration for alias type.
@@ -29,17 +34,83 @@ public interface Alias
     }
 
     /**
-     * @return technology of alias
+     * Technology of alias.
      */
-    public Technology getTechnology();
+    private Technology technology;
 
     /**
-     * @return type of alias
+     * Type of alias.
      */
-    public Type getType();
+    private Type type;
 
     /**
-     * @return value of alias
+     * Value of alias.
      */
-    public String getValue();
+    private String value;
+
+    /**
+     * Constructor.
+     * @param technology
+     * @param type
+     * @param value
+     */
+    public Alias(Technology technology, Type type, String value)
+    {
+        this.technology = technology;
+        this.type = type;
+        this.value = value;
+    }
+
+    /**
+     * @return {@link #technology}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public Technology getTechnology()
+    {
+        return technology;
+    }
+
+    /**
+     * @param technology sets the {@link #technology}
+     */
+    private void setTechnology(Technology technology)
+    {
+        this.technology = technology;
+    }
+
+    /**
+     * @return {@link #type}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public Type getType()
+    {
+        return type;
+    }
+
+    /**
+     * @param type sets the {@link #type}
+     */
+    private void setType(Type type)
+    {
+        this.type = type;
+    }
+
+    /**
+     * @return {@link #value}
+     */
+    @Column
+    public String getValue()
+    {
+        return value;
+    }
+
+    /**
+     * @param value sets the {@link #value}
+     */
+    private void setValue(String value)
+    {
+        this.value = value;
+    }
 }
