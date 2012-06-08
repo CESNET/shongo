@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.common.Person;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,9 +15,13 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
 public class Compartment extends PersistentObject
 {
+    /**
+     * Reservation request for which is the compartment request created.
+     */
+    private ReservationRequest reservationRequest;
+
     /**
      * List of specification for resources which are requested to participate in compartment.
      */
@@ -25,7 +30,24 @@ public class Compartment extends PersistentObject
     /**
      * List of persons which are requested to participate in compartment.
      */
-    private List<PersonRequest> requestedPersons = new ArrayList<PersonRequest>();
+    private List<Person> requestedPersons = new ArrayList<Person>();
+
+    /**
+     * @return {@link #reservationRequest}
+     */
+    @ManyToOne
+    public ReservationRequest getReservationRequest()
+    {
+        return reservationRequest;
+    }
+
+    /**
+     * @param reservationRequest sets the {@link #reservationRequest}
+     */
+    public void setReservationRequest(ReservationRequest reservationRequest)
+    {
+        this.reservationRequest = reservationRequest;
+    }
 
     /**
      * @return {@link #requestedResources}
@@ -55,8 +77,8 @@ public class Compartment extends PersistentObject
     /**
      * @return {@link #requestedPersons}
      */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "compartment")
-    public List<PersonRequest> getRequestedPersons()
+    @OneToMany(cascade = CascadeType.ALL)
+    public List<Person> getRequestedPersons()
     {
         return Collections.unmodifiableList(requestedPersons);
     }
@@ -64,7 +86,7 @@ public class Compartment extends PersistentObject
     /**
      * @param requestedPersons sets the {@link #requestedPersons}
      */
-    private void setRequestedPersons(List<PersonRequest> requestedPersons)
+    private void setRequestedPersons(List<Person> requestedPersons)
     {
         this.requestedPersons = requestedPersons;
     }
@@ -72,7 +94,7 @@ public class Compartment extends PersistentObject
     /**
      * @param requestedPerson person to be added to the list of requested persons
      */
-    public void addRequestedPerson(PersonRequest requestedPerson)
+    public void addRequestedPerson(Person requestedPerson)
     {
         this.requestedPersons.add(requestedPerson);
     }

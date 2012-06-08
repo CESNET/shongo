@@ -185,7 +185,7 @@ public class PeriodicDateTime extends DateTime
      *
      * @return array of absolute Date/Times
      */
-    public List<AbsoluteDateTime> enumerate()
+    public final List<AbsoluteDateTime> enumerate()
     {
         return enumerate(null, null);
     }
@@ -405,7 +405,7 @@ public class PeriodicDateTime extends DateTime
         @Transient
         public AbsoluteDateTime getDateTime()
         {
-            if ( dateTimeFrom == null || dateTimeTo != null ) {
+            if (dateTimeFrom == null || dateTimeTo != null) {
                 throw new IllegalStateException("Periodic date/time rule should have only single date/time set.");
             }
             return dateTimeFrom;
@@ -418,7 +418,7 @@ public class PeriodicDateTime extends DateTime
         @Access(AccessType.FIELD)
         public AbsoluteDateTime getDateTimeFrom()
         {
-            if ( dateTimeFrom == null ) {
+            if (dateTimeFrom == null) {
                 throw new IllegalStateException("Periodic date/time rule should have interval from set.");
             }
             return dateTimeFrom;
@@ -431,7 +431,7 @@ public class PeriodicDateTime extends DateTime
         @Access(AccessType.FIELD)
         public AbsoluteDateTime getDateTimeTo()
         {
-            if ( dateTimeTo == null ) {
+            if (dateTimeTo == null) {
                 throw new IllegalStateException("Periodic date/time rule should have interval to set.");
             }
             return dateTimeTo;
@@ -439,13 +439,14 @@ public class PeriodicDateTime extends DateTime
 
         /**
          * Checks whether rule has interval set or single date/time.
+         *
          * @return true if rule has interval set (pair of date/times),
          *         false otherwise
          */
         @Transient
         public boolean isInterval()
         {
-            if ( dateTimeTo == null ) {
+            if (dateTimeTo == null) {
                 throw new IllegalStateException("Periodic date/time rule should have set at least one date/time.");
             }
             return dateTimeTo != null;
@@ -459,12 +460,12 @@ public class PeriodicDateTime extends DateTime
 
         map.put("start", start.toString());
         map.put("period", period.toString());
-        if ( end != null ) {
+        if (end != null) {
             map.put("end", end.toString());
         }
 
         List<String> dateTimes = new ArrayList<String>();
-        for ( AbsoluteDateTime dateTime : enumerate() ) {
+        for (AbsoluteDateTime dateTime : enumerate()) {
             dateTimes.add(dateTime.toString());
         }
         addCollectionToMap(map, "enumerated", dateTimes);

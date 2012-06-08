@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.common;
 
-import javax.persistence.*;
+import javax.persistence.Access;
+import javax.persistence.AccessType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
 /**
  * Represents an relative Date/Time. The relative date/time can be evaluated

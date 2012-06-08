@@ -43,6 +43,23 @@ public class Controller implements ApplicationContextAware
     public static String jadePlatformId = "Shongo";
 
     /**
+     * Single instance of controller that is created by spring context.
+     */
+    private static Controller instance;
+
+    /**
+     * @return {@link #instance}
+     */
+    public static Controller getInstance()
+    {
+        if ( instance == null ) {
+            throw new IllegalStateException("Cannot get instance of a domain controller, "
+                    + "because no controller has been created by spring context yet.");
+        }
+        return instance;
+    }
+
+    /**
      * XML-RPC server.
      */
     WebServer rpcServer;
@@ -82,6 +99,13 @@ public class Controller implements ApplicationContextAware
     Scheduler scheduler;
 
     /**
+     * Constructor.
+     */
+    private Controller()
+    {
+    }
+
+    /**
      * @return {@link #reservationDatabase}
      */
     public ResourceDatabase getResourceDatabase()
@@ -111,6 +135,12 @@ public class Controller implements ApplicationContextAware
     @PostConstruct
     public void start() throws Exception
     {
+        // Set single instance of domain controller.
+        if ( instance != null ) {
+            throw new IllegalStateException("A domain controller has already been created, cannot create second one!");
+        }
+        instance = this;
+
         logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost == null ? "*" : rpcHost), rpcPort);
 
         rpcServer = new WebServer(rpcHost, rpcPort);

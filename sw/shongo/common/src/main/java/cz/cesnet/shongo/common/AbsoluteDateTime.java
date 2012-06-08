@@ -216,7 +216,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     @Override
-    public Object clone()
+    public AbsoluteDateTime clone()
     {
         return new AbsoluteDateTime(date, time);
     }

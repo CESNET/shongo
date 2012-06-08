@@ -226,7 +226,7 @@ public class ReservationRequest extends PersistentObject
     /**
      * @return {@link #requestedCompartments}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservationRequest")
     public List<Compartment> getRequestedCompartments()
     {
         return requestedCompartments;
@@ -305,5 +305,20 @@ public class ReservationRequest extends PersistentObject
         }
         addCollectionToMap(map, "slots", requestedSlots);
         addCollectionToMap(map, "compartments", requestedCompartments);
+    }
+
+    /**
+     * Enumerate requested date/time slots in a specific interval.
+     * @param from interval start
+     * @param to   interval end
+     * @return list of all requested absolute date/time slots for given interval
+     */
+    public List<AbsoluteDateTimeSlot> enumerateRequestedSlots(AbsoluteDateTime from, AbsoluteDateTime to)
+    {
+        List<AbsoluteDateTimeSlot> enumeratedSlots = new ArrayList<AbsoluteDateTimeSlot>();
+        for ( DateTimeSlot slot : requestedSlots ) {
+            enumeratedSlots.addAll(slot.enumerate(from, to));
+        }
+        return enumeratedSlots;
     }
 }

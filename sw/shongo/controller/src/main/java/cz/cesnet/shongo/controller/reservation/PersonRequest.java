@@ -7,9 +7,9 @@ import cz.cesnet.shongo.common.Person;
 import javax.persistence.*;
 
 /**
- * Represents a person that is requested to participate in a compartment/compartment request.
+ * Represents a person that is requested to participate in a compartment request.
  * A requested person will be contacted and the person must express
- * if he/she will participate in the compartment.
+ * if he/she will participate in the compartment request.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -45,7 +45,7 @@ public class PersonRequest extends PersistentObject
     /**
      * Compartment in which the person request is located.
      */
-    private Compartment compartment;
+    private CompartmentRequest compartmentRequest;
 
     /**
      * Requested person.
@@ -53,25 +53,30 @@ public class PersonRequest extends PersistentObject
     private Person person;
 
     /**
+     * Specified resource by which the person connects to compartment.
+     */
+    private ResourceSpecification resourceSpecification;
+
+    /**
      * Current state of contacting the requested person.
      */
     private State state;
 
     /**
-     * @return {@link #compartment}
+     * @return {@link #compartmentRequest}
      */
     @ManyToOne
-    public Compartment getCompartment()
+    public CompartmentRequest getCompartmentRequest()
     {
-        return compartment;
+        return compartmentRequest;
     }
 
     /**
-     * @param compartment sets the {@link #compartment}
+     * @param compartmentRequest sets the {@link #compartmentRequest}
      */
-    public void setCompartment(Compartment compartment)
+    public void setCompartmentRequest(CompartmentRequest compartmentRequest)
     {
-        this.compartment = compartment;
+        this.compartmentRequest = compartmentRequest;
     }
 
     /**
@@ -89,6 +94,23 @@ public class PersonRequest extends PersistentObject
     public void setPerson(Person person)
     {
         this.person = person;
+    }
+
+    /**
+     * @return {@link #resourceSpecification}
+     */
+    @OneToOne
+    public ResourceSpecification getResourceSpecification()
+    {
+        return resourceSpecification;
+    }
+
+    /**
+     * @param resourceSpecification sets the {@link #resourceSpecification}
+     */
+    public void setResourceSpecification(ResourceSpecification resourceSpecification)
+    {
+        this.resourceSpecification = resourceSpecification;
     }
 
     /**

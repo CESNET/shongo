@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.common;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Represents an absolute date/time slot.
@@ -45,7 +46,7 @@ public class AbsoluteDateTimeSlot extends DateTimeSlot
     public AbsoluteDateTime getStart()
     {
         DateTime dateTime = super.getStart();
-        if ( (dateTime instanceof AbsoluteDateTime) == false ) {
+        if ((dateTime instanceof AbsoluteDateTime) == false) {
             throw new IllegalStateException("Absolute date/time slot should contain absolute date/time.");
         }
         return (AbsoluteDateTime) dateTime;

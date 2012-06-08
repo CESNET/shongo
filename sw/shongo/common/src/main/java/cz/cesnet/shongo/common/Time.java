@@ -3,19 +3,14 @@ package cz.cesnet.shongo.common;
 import cz.cesnet.shongo.common.util.Parser;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.type.DateType;
 import org.hibernate.type.StringType;
-import org.hibernate.type.TimeType;
 import org.hibernate.usertype.UserType;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.Calendar;
-import java.util.TimeZone;
 
 /**
  * Represents absolute time
@@ -448,7 +443,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     @Override
     public int[] sqlTypes()
     {
-        return new int[] { Types.VARCHAR };
+        return new int[]{Types.VARCHAR};
     }
 
     @Override
@@ -480,11 +475,11 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             throws HibernateException, SQLException
     {
         Object value = StringType.INSTANCE.nullSafeGet(rs, names, session, owner);
-        if ( value == null ) {
+        if (value == null) {
             return null;
         }
         else {
-            return new Time((String)value);
+            return new Time((String) value);
         }
     }
 
@@ -492,7 +487,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session)
             throws HibernateException, SQLException
     {
-        if ( value == null ) {
+        if (value == null) {
             st.setNull(index, Types.TIME);
         }
         else {

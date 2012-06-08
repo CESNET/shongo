@@ -1,15 +1,11 @@
 package cz.cesnet.shongo.common;
 
 import cz.cesnet.shongo.common.util.Parser;
-import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
 
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.print.DocFlavor;
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -338,7 +334,7 @@ public class Period implements Comparable<Period>, UserType
     @Override
     public int[] sqlTypes()
     {
-        return new int[] { Types.VARCHAR };
+        return new int[]{Types.VARCHAR};
     }
 
     @Override
@@ -370,7 +366,7 @@ public class Period implements Comparable<Period>, UserType
             throws HibernateException, SQLException
     {
         String value = (String) StringType.INSTANCE.nullSafeGet(rs, names, session, owner);
-        if ( value == null ) {
+        if (value == null) {
             return null;
         }
         else {
@@ -382,7 +378,7 @@ public class Period implements Comparable<Period>, UserType
     public void nullSafeSet(PreparedStatement st, Object value, int index, SessionImplementor session)
             throws HibernateException, SQLException
     {
-        if ( value == null ) {
+        if (value == null) {
             st.setNull(index, Types.VARCHAR);
         }
         else {

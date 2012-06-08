@@ -2,6 +2,7 @@ package cz.cesnet.shongo.common;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import java.util.Map;
 
 /**
  * Person that can be contacted.
@@ -75,5 +76,15 @@ public class Person extends PersistentObject
     public void setPhoneNumber(String phoneNumber)
     {
         this.phoneNumber = phoneNumber;
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("name", getName());
+        map.put("email", getEmail());
+        map.put("phoneNumber", getPhoneNumber());
     }
 }

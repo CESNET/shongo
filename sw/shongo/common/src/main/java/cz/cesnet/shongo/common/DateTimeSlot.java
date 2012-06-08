@@ -114,7 +114,7 @@ public class DateTimeSlot extends PersistentObject
             else {
                 AbsoluteDateTime dateTime = null;
                 if (this.start instanceof AbsoluteDateTime) {
-                    dateTime = (AbsoluteDateTime) this.start;
+                    dateTime = ((AbsoluteDateTime)this.start).clone();
                 }
                 else {
                     throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
@@ -133,7 +133,7 @@ public class DateTimeSlot extends PersistentObject
      *
      * @return array of time slots with absolute date/times
      */
-    public List<AbsoluteDateTimeSlot> enumerate()
+    public final List<AbsoluteDateTimeSlot> enumerate()
     {
         return enumerate(null, null);
     }
@@ -147,6 +147,10 @@ public class DateTimeSlot extends PersistentObject
      */
     public List<AbsoluteDateTimeSlot> enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
+        if ( from != null || to != null ) {
+            // TODO: now DateTimeSlot.getEvaluatedSlots() can never end
+            throw new RuntimeException("TODO: Implement DateTimeSlot.getEvaluatedSlots with respect to interval!");
+        }
         ArrayList<AbsoluteDateTimeSlot> slots = new ArrayList<AbsoluteDateTimeSlot>();
         for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
             if ((from == null || slot.getStart().afterOrEqual(from))
@@ -231,7 +235,7 @@ public class DateTimeSlot extends PersistentObject
         map.put("duration", duration.toString());
 
         List<String> slots = new ArrayList<String>();
-        for ( AbsoluteDateTimeSlot slot : enumerate() ) {
+        for (AbsoluteDateTimeSlot slot : enumerate()) {
             StringBuilder builder = new StringBuilder();
             builder.append("(");
             builder.append(slot.getStart().toString());

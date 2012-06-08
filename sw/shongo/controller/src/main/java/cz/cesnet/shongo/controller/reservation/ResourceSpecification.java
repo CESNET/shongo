@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.common.Person;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -13,7 +14,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceSpecification extends PersistentObject
+public class ResourceSpecification extends PersistentObject implements Cloneable
 {
     /**
      * Compartment in which the person request is located.
@@ -23,7 +24,7 @@ public class ResourceSpecification extends PersistentObject
     /**
      * Persons that are requested to use the device to connect into compartment.
      */
-    private List<PersonRequest> requestedPersons = new ArrayList<PersonRequest>();
+    private List<Person> requestedPersons = new ArrayList<Person>();
 
     /**
      * Defines who should initiate the call to this device.
@@ -51,7 +52,7 @@ public class ResourceSpecification extends PersistentObject
      * @return {@link #requestedPersons}
      */
     @OneToMany
-    public List<PersonRequest> getRequestedPersons()
+    public List<Person> getRequestedPersons()
     {
         return requestedPersons;
     }
@@ -59,7 +60,7 @@ public class ResourceSpecification extends PersistentObject
     /**
      * @param requestedPersons sets the {@link #requestedPersons}
      */
-    private void setRequestedPersons(List<PersonRequest> requestedPersons)
+    private void setRequestedPersons(List<Person> requestedPersons)
     {
         this.requestedPersons = requestedPersons;
     }
@@ -67,7 +68,7 @@ public class ResourceSpecification extends PersistentObject
     /**
      * @param personRequest person to be added to the list of requested persons for the resource
      */
-    public void addRequestedPerson(PersonRequest personRequest)
+    public void addRequestedPerson(Person personRequest)
     {
         this.requestedPersons.add(personRequest);
     }
