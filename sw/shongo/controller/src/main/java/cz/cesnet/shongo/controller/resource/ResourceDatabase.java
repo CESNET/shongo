@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.Identifier;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.reservation.ReservationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +22,11 @@ public class ResourceDatabase
     private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
 
     /**
+     * Domain for which the reservation database is used.
+     */
+    private Domain domain;
+
+    /**
      * Entity manager that is used for loading/saving resources.
      */
     private EntityManager entityManager;
@@ -30,13 +37,52 @@ public class ResourceDatabase
     private Map<Identifier, Resource> resourceMap = new HashMap<Identifier, Resource>();
 
     /**
+     * Constructor of reservation database.
+     */
+    public ResourceDatabase()
+    {
+    }
+
+    /**
      * Constructor of resource database.
      *
-     * @param entityManager Sets the {@link #entityManager}
+     * @param domain        sets the {@link #domain}
+     * @param entityManager sets the {@link #entityManager}
      */
-    public ResourceDatabase(EntityManager entityManager)
+    public ResourceDatabase(Domain domain, EntityManager entityManager)
+    {
+        setDomain(domain);
+        setEntityManager(entityManager);
+        init();
+    }
+
+    /**
+     * @param domain sets the {@link #domain}
+     */
+    public void setDomain(Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    /**
+     * @param entityManager sets the {@link #entityManager}
+     */
+    public void setEntityManager(EntityManager entityManager)
     {
         this.entityManager = entityManager;
+    }
+
+    /**
+     * Initialize reservation database.
+     */
+    public void init()
+    {
+        if (domain == null) {
+            throw new IllegalStateException("Resource database doesn't have the domain set!");
+        }
+        if (entityManager == null) {
+            throw new IllegalStateException("Resource database doesn't have the entity manager set!");
+        }
 
         logger.debug("Loading resource database...");
 

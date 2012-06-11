@@ -20,12 +20,38 @@ public class Scheduler
     private EntityManager entityManager;
 
     /**
+     * Constructor.
+     */
+    public Scheduler()
+    {
+    }
+
+    /**
      * Constructor of scheduler.
      * @param entityManager sets the {@link #entityManager}
      */
     public Scheduler(EntityManager entityManager)
     {
+        setEntityManager(entityManager);
+        init();
+    }
+
+    /**
+     * @param entityManager sets the {@link #entityManager}
+     */
+    public void setEntityManager(EntityManager entityManager)
+    {
         this.entityManager = entityManager;
+    }
+
+    /**
+     * Initialize reservation database.
+     */
+    public void init()
+    {
+        if (entityManager == null) {
+            throw new IllegalStateException("Scheduler doesn't have the entity manager set!");
+        }
 
         logger.debug("Starting scheduler...");
     }

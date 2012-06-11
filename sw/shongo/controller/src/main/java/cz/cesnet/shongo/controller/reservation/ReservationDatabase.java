@@ -3,11 +3,12 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.controller.Domain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
+import javax.persistence.NoResultException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,31 +23,73 @@ public class ReservationDatabase
     private static Logger logger = LoggerFactory.getLogger(ReservationDatabase.class);
 
     /**
-     * Entity manager that is used for loading/saving reservation requests.
+     * Domain for which the reservation database is used.
+     */
+    private Domain domain;
+
+    /**
+     * Entity manager that is used for accessing database.
      */
     private EntityManager entityManager;
 
     /**
-     * List of all reservation requests in the database by theirs id.
+     * Constructor of reservation database.
      */
-    private Map<Identifier, ReservationRequest> reservationRequestMap = new HashMap<Identifier, ReservationRequest>();
+    public ReservationDatabase()
+    {
+    }
 
     /**
      * Constructor of reservation database.
+     *
+     * @param domain        sets the {@link #domain}
      * @param entityManager Sets the {@link #entityManager}
      */
-    public ReservationDatabase(EntityManager entityManager)
+    public ReservationDatabase(Domain domain, EntityManager entityManager)
+    {
+        setDomain(domain);
+        setEntityManager(entityManager);
+        init();
+    }
+
+    /**
+     * @param domain sets the {@link #domain}
+     */
+    public void setDomain(Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    /**
+     * @param entityManager sets the {@link #entityManager}
+     */
+    public void setEntityManager(EntityManager entityManager)
     {
         this.entityManager = entityManager;
+    }
 
-        logger.debug("Loading reservation database...");
+    /**
+     * Initialize reservation database.
+     */
+    public void init()
+    {
+        if (domain == null) {
+            throw new IllegalStateException("Reservation database doesn't have the domain set!");
+        }
+        if (entityManager == null) {
+            throw new IllegalStateException("Reservation database doesn't have the entity manager set!");
+        }
 
-        // Load all reservation requests from the db
+        logger.debug("Checking reservation database...");
+
         List<ReservationRequest> reservationRequestList = entityManager
                 .createQuery("SELECT request FROM ReservationRequest request", ReservationRequest.class)
                 .getResultList();
-        for (ReservationRequest reservationRequest : reservationRequestList) {
-            addReservationRequest(reservationRequest);
+        for ( ReservationRequest reservationRequest : reservationRequestList) {
+            if(reservationRequest.getIdentifier().getDomain() != domain.getCodeName()) {
+                throw new IllegalStateException("Reservation request has wrong domain '" +
+                        reservationRequest.getIdentifier().getDomain() + "' (should be '" + domain.getCodeName() + "')!");
+            }
         }
     }
 
@@ -56,18 +99,27 @@ public class ReservationDatabase
     public void destroy()
     {
         logger.debug("Closing reservation database...");
-        reservationRequestMap.clear();
     }
 
     /**
      * Add new reservation request to the database.
+     *
      * @param reservationRequest
      */
     public void addReservationRequest(ReservationRequest reservationRequest)
     {
+        // Create new identifier for the reservation request
+        if (reservationRequest.getIdentifier() != null) {
+            throw new IllegalArgumentException("New reservation request should not have identifier filled ("
+                    + reservationRequest.getIdentifier() + ")!");
+        }
+        reservationRequest.createNewIdentifier(domain.getCodeName());
+
+        // Validate request
         validateReservationRequest(reservationRequest);
 
-        if (reservationRequestMap.containsKey(reservationRequest.getIdentifier())) {
+        // Check the non-existence
+        if (getReservationRequest(reservationRequest.getIdentifier()) != null) {
             throw new IllegalArgumentException(
                     "Reservation request (" + reservationRequest.getIdentifier() + ") is already in the database!");
         }
@@ -77,23 +129,17 @@ public class ReservationDatabase
         entityManager.persist(reservationRequest);
         entityManager.getTransaction().commit();
 
-        // Add reservation request to list of all requests
-        reservationRequestMap.put(reservationRequest.getIdentifier(), reservationRequest);
-
         // Create compartment requests from reservation request
         synchronizeCompartmentRequests(reservationRequest);
     }
 
     /**
      * Update reservation request in the database.
+     *
      * @param reservationRequest
      */
     public void updateReservationRequest(ReservationRequest reservationRequest)
     {
-        if (reservationRequestMap.containsKey(reservationRequest.getIdentifier()) == false) {
-            throw new IllegalArgumentException(
-                    "Reservation request (" + reservationRequest.getIdentifier() + ") is not in the database!");
-        }
         reservationRequest.checkPersisted();
 
         throw new RuntimeException("TODO: Implement ReservationDatabase.updateReservationRequest");
@@ -101,23 +147,17 @@ public class ReservationDatabase
 
     /**
      * Delete reservation request in the database
+     *
      * @param reservationRequest
      */
     public void removeReservationRequest(ReservationRequest reservationRequest)
     {
-        if (reservationRequestMap.containsKey(reservationRequest.getIdentifier()) == false) {
-            throw new IllegalArgumentException(
-                    "Reservation request (" + reservationRequest.getIdentifier() + ") is not in the database!");
-        }
         reservationRequest.checkPersisted();
 
         // Delete reservation request from database
         entityManager.getTransaction().begin();
         entityManager.remove(reservationRequest);
         entityManager.getTransaction().commit();
-
-        // Delete reservation request from the list of all requests
-        reservationRequestMap.remove(reservationRequest.getIdentifier());
     }
 
     /**
@@ -125,11 +165,48 @@ public class ReservationDatabase
      */
     public List<ReservationRequest> listReservationRequests()
     {
-        return new ArrayList<ReservationRequest>(reservationRequestMap.values());
+        List<ReservationRequest> reservationRequestList = entityManager
+                .createQuery("SELECT request FROM ReservationRequest request", ReservationRequest.class)
+                .getResultList();
+        return reservationRequestList;
+    }
+
+    /**
+     * @param identifier
+     * @return {@link ReservationRequest} with given identifier or null if the request not exists
+     */
+    public ReservationRequest getReservationRequest(Identifier identifier)
+    {
+        try {
+            ReservationRequest reservationRequest = entityManager.createQuery(
+                    "SELECT request FROM ReservationRequest request WHERE request.identifierAsString = :identifier",
+                    ReservationRequest.class).setParameter("identifier", identifier.toString())
+                    .getSingleResult();
+            return reservationRequest;
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
+    }
+
+    /**
+     * @param reservationRequestIdentifier
+     * @return list of existing compartment requests for a {@link ReservationRequest} with the given identifier
+     */
+    public List<CompartmentRequest> listCompartmentRequests(Identifier reservationRequestIdentifier)
+    {
+        // Get existing compartment requests for compartment
+        List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
+                "SELECT request FROM CompartmentRequest request " +
+                        ""/*"WHERE request.compartment.reservationRequest.identifierAsString = :identifier"*/,
+                CompartmentRequest.class)/*.setParameter("identifier", reservationRequestIdentifier.toString())*/
+                .getResultList();
+        return compartmentRequestList;
     }
 
     /**
      * Validate state of reservation request
+     *
      * @param reservationRequest request to be validated
      */
     private void validateReservationRequest(ReservationRequest reservationRequest)
@@ -137,16 +214,18 @@ public class ReservationDatabase
         if (reservationRequest.getIdentifier() == null) {
             throw new IllegalArgumentException("Reservation request must have the identifier filled!");
         }
+
+        // TODO: Do some further validation
     }
 
     /**
-     * Synchronize persisted reservation request with corresponding compartment requests.
+     * Synchronize (create/modify/delete) compartment requests from a single persisted reservation request.
      */
     private void synchronizeCompartmentRequests(ReservationRequest reservationRequest)
     {
         reservationRequest.checkPersisted();
 
-        // TODO: Do it for specific interval
+        // TODO: Do it for a specific interval
         // Get list of date/time slots
         List<AbsoluteDateTimeSlot> slots = reservationRequest.enumerateRequestedSlots(null, null);
 
@@ -154,7 +233,7 @@ public class ReservationDatabase
         entityManager.getTransaction().begin();
 
         // Compartment requests are synchronized per compartment from reservation request
-        for ( Compartment compartment : reservationRequest.getRequestedCompartments()) {
+        for (Compartment compartment : reservationRequest.getRequestedCompartments()) {
             // Get existing compartment requests for compartment
             List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
                     "SELECT request FROM CompartmentRequest request WHERE request.compartment = :compartment",
@@ -162,7 +241,7 @@ public class ReservationDatabase
 
             // Create map of compartment requests with date/time slot as key
             Map<AbsoluteDateTimeSlot, CompartmentRequest> map = new HashMap<AbsoluteDateTimeSlot, CompartmentRequest>();
-            for ( CompartmentRequest compartmentRequest : compartmentRequestList) {
+            for (CompartmentRequest compartmentRequest : compartmentRequestList) {
                 map.put(compartmentRequest.getRequestedSlot(), compartmentRequest);
             }
 
@@ -171,7 +250,7 @@ public class ReservationDatabase
             // and remove it from map, otherwise we create a new compartment request.
             for (AbsoluteDateTimeSlot slot : slots) {
                 // Modify existing compartment request
-                if ( map.containsKey(slot) ) {
+                if (map.containsKey(slot)) {
                     CompartmentRequest compartmentRequest = map.get(slot);
                     modifyCompartmentRequest(compartmentRequest, compartment);
                 }
@@ -182,8 +261,8 @@ public class ReservationDatabase
                 }
             }
 
-            // All compartment requests that remains in map must be deletedne
-            for ( CompartmentRequest compartmentRequest : map.values()) {
+            // All compartment requests that remains in map must be deleted
+            for (CompartmentRequest compartmentRequest : map.values()) {
                 entityManager.remove(compartmentRequest);
             }
         }
@@ -194,8 +273,9 @@ public class ReservationDatabase
 
     /**
      * Create a new compartment request for a reservation request.
-     * @param compartment        compartment which will be requested in the compartment request
-     * @param requestedSlot      date/time slot for which the compartment request will be created
+     *
+     * @param compartment   compartment which will be requested in the compartment request
+     * @param requestedSlot date/time slot for which the compartment request will be created
      * @return created compartment request
      */
     private CompartmentRequest createCompartmentRequest(Compartment compartment, AbsoluteDateTimeSlot requestedSlot)
@@ -206,15 +286,16 @@ public class ReservationDatabase
         compartmentRequest.setRequestedSlot(requestedSlot);
 
         // Add requested persons by requested resources
-        for ( ResourceSpecification resourceSpecification : compartment.getRequestedResources()) {
-            for ( Person person : resourceSpecification.getRequestedPersons()) {
+        for (ResourceSpecification resourceSpecification : compartment.getRequestedResources()) {
+            for (Person person : resourceSpecification.getRequestedPersons()) {
+                // TODO: Check whether person isn't already in compartment (may be do the check in reservation request)
                 PersonRequest personRequest = createPersonRequest(person, resourceSpecification);
                 compartmentRequest.addRequestedPerson(personRequest);
             }
         }
 
         // Add directly requested persons
-        for ( Person person : compartment.getRequestedPersons()) {
+        for (Person person : compartment.getRequestedPersons()) {
             PersonRequest personRequest = createPersonRequest(person, null);
             compartmentRequest.addRequestedPerson(personRequest);
         }
@@ -227,6 +308,7 @@ public class ReservationDatabase
 
     /**
      * Modify compartment request.
+     *
      * @param compartmentRequest
      * @param compartment
      */
@@ -237,6 +319,7 @@ public class ReservationDatabase
 
     /**
      * Create a new person request for compartment request.
+     *
      * @param person
      * @param resourceSpecification
      * @return

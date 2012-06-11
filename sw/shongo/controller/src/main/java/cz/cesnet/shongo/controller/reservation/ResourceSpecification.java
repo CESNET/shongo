@@ -51,7 +51,7 @@ public class ResourceSpecification extends PersistentObject implements Cloneable
     /**
      * @return {@link #requestedPersons}
      */
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     public List<Person> getRequestedPersons()
     {
         return requestedPersons;

@@ -28,6 +28,17 @@ public class Person extends PersistentObject
     private String phoneNumber;
 
     /**
+     * Constructor.
+     * @param name sets the {@link #name}
+     * @param email sets the {@link #email}
+     */
+    public Person(String name, String email)
+    {
+        setName(name);
+        setEmail(email);
+    }
+
+    /**
      * @return {@link #name}
      */
     @Column

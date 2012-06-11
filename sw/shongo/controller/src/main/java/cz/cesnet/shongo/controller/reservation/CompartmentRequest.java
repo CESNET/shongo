@@ -152,7 +152,9 @@ public class CompartmentRequest extends PersistentObject
     {
         super.fillDescriptionMap(map);
 
-        //addCollectionToMap(map, "persons", requestedPersons);
-        //addCollectionToMap(map, "resources", requestedResources);
+        map.put("compartment", compartment.toString());
+        map.put("slot", requestedSlot.toString());
+        map.put("state", state.toString());
+        addCollectionToMap(map, "persons", requestedPersons);
     }
 }

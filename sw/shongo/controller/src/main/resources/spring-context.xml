@@ -7,24 +7,26 @@
 
     <context:annotation-config/>
 
+    <!-- Domain configuration -->
+    <bean id="domain" class="cz.cesnet.shongo.controller.Domain">
+        <property name="codeName"><value>cz.cesnet</value></property>
+        <property name="name"><value>CESNET, z.s.p.o.</value></property>
+    </bean>
+
     <!-- Application -->
     <bean id="controller" class="cz.cesnet.shongo.controller.Controller"/>
 
     <!-- Components -->
-    <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.resource.ResourceDatabase" destroy-method="destroy">
-        <constructor-arg>
-            <ref bean="entityManager"/>
-        </constructor-arg>
+    <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.resource.ResourceDatabase" init-method="init" destroy-method="destroy">
+        <property name="domain"><ref bean="domain"/></property>
+        <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
-    <bean id="reservationDatabase" class="cz.cesnet.shongo.controller.reservation.ReservationDatabase" destroy-method="destroy">
-        <constructor-arg>
-            <ref bean="entityManager"/>
-        </constructor-arg>
+    <bean id="reservationDatabase" class="cz.cesnet.shongo.controller.reservation.ReservationDatabase" init-method="init" destroy-method="destroy">
+        <property name="domain"><ref bean="domain"/></property>
+        <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
     <bean id="scheduler" class="cz.cesnet.shongo.controller.scheduler.Scheduler" destroy-method="destroy">
-        <constructor-arg>
-            <ref bean="entityManager"/>
-        </constructor-arg>
+        <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
 
     <!-- Services -->

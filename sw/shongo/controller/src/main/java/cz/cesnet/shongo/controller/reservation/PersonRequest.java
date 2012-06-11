@@ -5,6 +5,7 @@ import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.common.Person;
 
 import javax.persistence.*;
+import java.util.Map;
 
 /**
  * Represents a person that is requested to participate in a compartment request.
@@ -129,5 +130,15 @@ public class PersonRequest extends PersistentObject
     public void setState(State state)
     {
         this.state = state;
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("person", person.toString());
+        map.put("resource", resourceSpecification.getId().toString());
+        map.put("state", state.toString());
     }
 }
