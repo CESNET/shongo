@@ -5,7 +5,7 @@ import cz.cesnet.shongo.common.PersistentObject;
 import javax.persistence.*;
 
 /**
- * Represents an alias for a single device and a single technology.
+ * Represents a specific alias for a single device and a single technology.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

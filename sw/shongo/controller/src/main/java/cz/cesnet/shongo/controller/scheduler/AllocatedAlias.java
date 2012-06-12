@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasResource;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
@@ -23,6 +25,7 @@ public class AllocatedAlias extends AllocatedResource
      * @return {@link #alias}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public Alias getAlias()
     {
         return alias;

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.controller.resource.Technology;
 
 import javax.persistence.*;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -76,17 +77,10 @@ public class ExternalEndpointSpecification extends ResourceSpecification
      */
     @ElementCollection
     @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
     {
-        return technologies;
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    private void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies = technologies;
+        return Collections.unmodifiableSet(technologies);
     }
 
     /**
@@ -94,7 +88,15 @@ public class ExternalEndpointSpecification extends ResourceSpecification
      */
     public void addTechnology(Technology technology)
     {
-        this.technologies.add(technology);
+        technologies.add(technology);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #technologies}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        technologies.remove(technology);
     }
 
     @Override

@@ -52,6 +52,7 @@ public class DeviceResource extends Resource
      * @return mode for device (managed/unmanaged).
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public Mode getMode()
     {
         return mode;
@@ -86,17 +87,10 @@ public class DeviceResource extends Resource
      * @return {@link #aliases}
      */
     @OneToMany
+    @Access(AccessType.FIELD)
     public List<Alias> getAliases()
     {
         return aliases;
-    }
-
-    /**
-     * @param aliases sets the {@link #aliases}
-     */
-    private void setAliases(List<Alias> aliases)
-    {
-        this.aliases = aliases;
     }
 
     /**
@@ -104,7 +98,15 @@ public class DeviceResource extends Resource
      */
     public void addAlias(Alias alias)
     {
-        this.aliases.add(alias);
+        aliases.add(alias);
+    }
+
+    /**
+     * @param alias alias to be removed from the {@link #aliases}
+     */
+    public void removeAlias(Alias alias)
+    {
+        aliases.remove(alias);
     }
 
     /**
@@ -185,25 +187,26 @@ public class DeviceResource extends Resource
      * @return {@link #permanentPersons}
      */
     @OneToMany
+    @Access(AccessType.FIELD)
     public List<Person> getPermanentPersons()
     {
         return permanentPersons;
     }
 
     /**
-     * @param permanentPersons sets the {@link #permanentPersons}
-     */
-    private void setPermanentPersons(List<Person> permanentPersons)
-    {
-        this.permanentPersons = permanentPersons;
-    }
-
-    /**
-     * @param person person to be aded to the {@link #permanentPersons}
+     * @param person person to be added to the {@link #permanentPersons}
      */
     public void addPermanentPerson(Person person)
     {
-        this.permanentPersons.add(person);
+        permanentPersons.add(person);
+    }
+
+    /**
+     * @param person person to be removed from the {@link #permanentPersons}
+     */
+    public void removePermanentPerson(Person person)
+    {
+        permanentPersons.remove(person);
     }
 
     /**

@@ -70,12 +70,12 @@ public class Resource extends PersistentObject
     /**
      * List of child resources (e.g., physical room can contain some videoconferencing equipment).
      */
-    private List<Resource> childResources;
+    private List<Resource> childResources = new ArrayList<Resource>();
 
     /**
      * List of persons that are contacted when are encountered any technical issues.
      */
-    private List<Person> administrators;
+    private List<Person> administrators = new ArrayList<Person>();
 
     /**
      * Defines a maximum future to which the resource is schedulable (e.g., can be set as relative date/time which
@@ -210,26 +210,34 @@ public class Resource extends PersistentObject
     }
 
     /**
-     * @param capabilities sets the {@link #capabilities}
-     */
-    private void setCapabilities(List<Capability> capabilities)
-    {
-        this.capabilities = capabilities;
-    }
-
-    /**
-     * @param capability capability to be added to the list of resource capabilities
+     * @param capability capability to be added to the {@link #capabilities}
      */
     public void addCapability(Capability capability)
     {
-        capability.setResource(this);
-        capabilities.add(capability);
+        // Manage bidirectional association
+        if (capabilities.contains(capability) == false) {
+            capabilities.add(capability);
+            capability.setResource(this);
+        }
+    }
+
+    /**
+     * @param capability capability to be removed from the {@link #capabilities}
+     */
+    public void removeCapability(Capability capability)
+    {
+        // Manage bidirectional association
+        if (capabilities.contains(capability)) {
+            capabilities.remove(capability);
+            capability.setResource(null);
+        }
     }
 
     /**
      * @return {@link #parentResource}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public Resource getParentResource()
     {
         return parentResource;
@@ -240,63 +248,85 @@ public class Resource extends PersistentObject
      */
     public void setParentResource(Resource parentResource)
     {
-        this.parentResource = parentResource;
+        // Manage bidirectional association
+        if ( parentResource != this.parentResource) {
+            if ( this.parentResource != null ) {
+                Resource oldParentResource = this.parentResource;
+                this.parentResource = null;
+                oldParentResource.removeChildResource(this);
+            }
+            if ( parentResource != null ) {
+                this.parentResource = parentResource;
+                this.parentResource.addChildResource(this);
+            }
+        }
     }
 
     /**
      * @return {@link #childResources}
      */
     @OneToMany(mappedBy = "parentResource")
+    @Access(AccessType.FIELD)
     public List<Resource> getChildResources()
     {
         return childResources;
     }
 
     /**
-     * @param childResources sets the {@link #childResources}
-     */
-    private void setChildResources(List<Resource> childResources)
-    {
-        this.childResources = childResources;
-    }
-
-    /**
-     * @param resource resource to be added to the list of child resources
+     * @param resource resource to be added to the {@link #childResources}
      */
     public void addChildResource(Resource resource)
     {
-        childResources.add(resource);
+        // Manage bidirectional association
+        if (childResources.contains(resource) == false) {
+            childResources.add(resource);
+            resource.setParentResource(this);
+        }
+    }
+
+    /**
+     * @param resource resource to be removed from the {@link #childResources}
+     */
+    public void removeChildResource(Resource resource)
+    {
+        // Manage bidirectional association
+        if (childResources.contains(resource)) {
+            childResources.remove(resource);
+            resource.setParentResource(null);
+        }
     }
 
     /**
      * @return {@link #administrators}
      */
     @OneToMany
+    @Access(AccessType.FIELD)
     public List<Person> getAdministrators()
     {
         return administrators;
     }
 
     /**
-     * @param administrators sets the {@link #administrators}
-     */
-    private void setAdministrators(List<Person> administrators)
-    {
-        this.administrators = administrators;
-    }
-
-    /**
-     * @param person person to be added to the list of administrators
+     * @param person person to be added to the {@link #administrators}
      */
     public void addAdministrator(Person person)
     {
-        this.administrators.add(person);
+        administrators.add(person);
+    }
+
+    /**
+     * @param person person to be removed from the {@link #administrators}
+     */
+    public void removeAdministrator(Person person)
+    {
+        administrators.remove(person);
     }
 
     /**
      * @return {@link #maximumFuture}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public DateTime getMaximumFuture()
     {
         return maximumFuture;

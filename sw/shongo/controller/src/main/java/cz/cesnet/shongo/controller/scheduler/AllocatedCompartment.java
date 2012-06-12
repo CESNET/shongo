@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.controller.reservation.CompartmentRequest;
+import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class AllocatedCompartment extends PersistentObject
      * @return {@link #reservation}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public Reservation getReservation()
     {
         return reservation;
@@ -44,6 +46,18 @@ public class AllocatedCompartment extends PersistentObject
      */
     public void setReservation(Reservation reservation)
     {
+        // Manage bidirectional association
+        if ( reservation != this.reservation) {
+            if ( this.reservation != null ) {
+                Reservation oldReservation = this.reservation;
+                this.reservation = null;
+                oldReservation.removeAllocatedCompartment(this);
+            }
+            if ( reservation != null ) {
+                this.reservation = reservation;
+                this.reservation.addAllocatedCompartment(this);
+            }
+        }
         this.reservation = reservation;
     }
 
@@ -51,13 +65,14 @@ public class AllocatedCompartment extends PersistentObject
      * @return {@link #compartmentRequest}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public CompartmentRequest getCompartmentRequest()
     {
         return compartmentRequest;
     }
 
     /**
-     * @param compartmentRequest  sets the {@link #compartmentRequest}
+     * @param compartmentRequest sets the {@link #compartmentRequest}
      */
     public void setCompartmentRequest(CompartmentRequest compartmentRequest)
     {
@@ -68,17 +83,10 @@ public class AllocatedCompartment extends PersistentObject
      * @return {@link #allocatedResources}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "allocatedCompartment")
+    @Access(AccessType.FIELD)
     public List<AllocatedResource> getAllocatedResources()
     {
         return allocatedResources;
-    }
-
-    /**
-     * @param allocatedResources sets the {@link #allocatedResources}
-     */
-    private void setAllocatedResources(List<AllocatedResource> allocatedResources)
-    {
-        this.allocatedResources = allocatedResources;
     }
 
     /**
@@ -86,6 +94,22 @@ public class AllocatedCompartment extends PersistentObject
      */
     public void addAllocatedResource(AllocatedResource allocatedResource)
     {
-        this.allocatedResources.add(allocatedResource);
+        // Manage bidirectional association
+        if (allocatedResources.contains(allocatedResource) == false) {
+            allocatedResources.add(allocatedResource);
+            allocatedResource.setAllocatedCompartment(this);
+        }
+    }
+
+    /**
+     * @param allocatedResource allocated resource to be removed from the {@link #allocatedResources}
+     */
+    public void removeAllocatedResource(AllocatedResource allocatedResource)
+    {
+        // Manage bidirectional association
+        if (allocatedResources.contains(allocatedResource)) {
+            allocatedResources.remove(allocatedResource);
+            allocatedResource.setAllocatedCompartment(null);
+        }
     }
 }

@@ -36,6 +36,7 @@ public class Compartment extends PersistentObject
      * @return {@link #reservationRequest}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public ReservationRequest getReservationRequest()
     {
         return reservationRequest;
@@ -46,57 +47,79 @@ public class Compartment extends PersistentObject
      */
     public void setReservationRequest(ReservationRequest reservationRequest)
     {
-        this.reservationRequest = reservationRequest;
+        // Manage bidirectional association
+        if (reservationRequest != this.reservationRequest) {
+            if (this.reservationRequest != null) {
+                ReservationRequest oldReservationRequest = this.reservationRequest;
+                this.reservationRequest = null;
+                oldReservationRequest.removeRequestedCompartment(this);
+            }
+            if (reservationRequest != null) {
+                this.reservationRequest = reservationRequest;
+                this.reservationRequest.addRequestedCompartment(this);
+            }
+        }
     }
 
     /**
      * @return {@link #requestedResources}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "compartment")
+    @Access(AccessType.FIELD)
     public List<ResourceSpecification> getRequestedResources()
     {
         return Collections.unmodifiableList(requestedResources);
     }
 
     /**
-     * @param requestedResources sets the {@link #requestedResources}
-     */
-    private void setRequestedResources(List<ResourceSpecification> requestedResources)
-    {
-        this.requestedResources = requestedResources;
-    }
-
-    /**
-     * @param requestedResource resource to be added to the list of requested resources
+     * @param requestedResource resource to be added to the {@link #requestedResources}
      */
     public void addRequestedResource(ResourceSpecification requestedResource)
     {
-        this.requestedResources.add(requestedResource);
+        // Manage bidirectional association
+        if (requestedResources.contains(requestedResource) == false) {
+            requestedResources.add(requestedResource);
+            requestedResource.setCompartment(this);
+        }
+    }
+
+    /**
+     * @param requestedResource resource to be removed from the {@link #requestedResources}
+     */
+    public void removeRequestedResource(ResourceSpecification requestedResource)
+    {
+        // Manage bidirectional association
+        if (requestedResources.contains(requestedResource)) {
+            requestedResources.remove(requestedResource);
+            requestedResource.setCompartment(null);
+        }
+
     }
 
     /**
      * @return {@link #requestedPersons}
      */
     @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public List<Person> getRequestedPersons()
     {
         return Collections.unmodifiableList(requestedPersons);
     }
 
     /**
-     * @param requestedPersons sets the {@link #requestedPersons}
-     */
-    private void setRequestedPersons(List<Person> requestedPersons)
-    {
-        this.requestedPersons = requestedPersons;
-    }
-
-    /**
-     * @param requestedPerson person to be added to the list of requested persons
+     * @param requestedPerson person to be added to the {@link #requestedPersons}
      */
     public void addRequestedPerson(Person requestedPerson)
     {
-        this.requestedPersons.add(requestedPerson);
+        requestedPersons.add(requestedPerson);
+    }
+
+    /**
+     * @param requestedPerson person to be removed from the {@link #requestedPersons}
+     */
+    public void removeRequestedPerson(Person requestedPerson)
+    {
+        requestedPersons.remove(requestedPerson);
     }
 
     @Override

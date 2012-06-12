@@ -4,6 +4,7 @@ import cz.cesnet.shongo.common.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -191,26 +192,19 @@ public class ReservationRequest extends PersistentObject
     /**
      * @return {@link #requestedSlots}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public List<DateTimeSlot> getRequestedSlots()
     {
-        return requestedSlots;
+        return Collections.unmodifiableList(requestedSlots);
     }
 
     /**
-     * @param requestedSlots sets the {@link #requestedSlots}
+     * @param requestedSlot slot to be added to the list of requested slots
      */
-    private void setRequestedSlots(List<DateTimeSlot> requestedSlots)
+    public void addRequestedSlot(DateTimeSlot requestedSlot)
     {
-        this.requestedSlots = requestedSlots;
-    }
-
-    /**
-     * @param slot slot to be added to the list of requested slots
-     */
-    public void addRequestedSlot(DateTimeSlot slot)
-    {
-        this.requestedSlots.add(slot);
+        requestedSlots.add(requestedSlot);
     }
 
     /**
@@ -220,32 +214,49 @@ public class ReservationRequest extends PersistentObject
      */
     public void addRequestedSlot(DateTime dateTime, Period duration)
     {
-        this.requestedSlots.add(new DateTimeSlot(dateTime, duration));
+        requestedSlots.add(new DateTimeSlot(dateTime, duration));
+    }
+
+    /**
+     * @param requestedSlot slot to be removed from the {@link #requestedSlots}
+     */
+    public void removeRequestedSlot(DateTimeSlot requestedSlot)
+    {
+        requestedSlots.remove(requestedSlot);
     }
 
     /**
      * @return {@link #requestedCompartments}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservationRequest")
+    @Access(AccessType.FIELD)
     public List<Compartment> getRequestedCompartments()
     {
-        return requestedCompartments;
+        return Collections.unmodifiableList(requestedCompartments);
     }
 
     /**
-     * @param requestedCompartments sets the {@link #requestedCompartments}
-     */
-    private void setRequestedCompartments(List<Compartment> requestedCompartments)
-    {
-        this.requestedCompartments = requestedCompartments;
-    }
-
-    /**
-     * @param compartment compartment to be added to the list of requested compartments
+     * @param compartment compartment to be added to the {@link #requestedCompartments}
      */
     public void addRequestedCompartment(Compartment compartment)
     {
-        this.requestedCompartments.add(compartment);
+        // Manage bidirectional association
+        if (requestedCompartments.contains(compartment) == false) {
+            requestedCompartments.add(compartment);
+            compartment.setReservationRequest(this);
+        }
+    }
+
+    /**
+     * @param compartment compartment to be removed from the {@link #requestedCompartments}
+     */
+    public void removeRequestedCompartment(Compartment compartment)
+    {
+        // Manage bidirectional association
+        if (requestedCompartments.contains(compartment)) {
+            requestedCompartments.remove(compartment);
+            compartment.setReservationRequest(null);
+        }
     }
 
     /**

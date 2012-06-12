@@ -1,11 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.controller.reservation.ReservationRequest;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 /**
  * Represents a capability that a resource can have.
@@ -25,6 +23,7 @@ public class Capability extends PersistentObject
      * @return {@link #resource}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public Resource getResource()
     {
         return resource;
@@ -35,6 +34,17 @@ public class Capability extends PersistentObject
      */
     public void setResource(Resource resource)
     {
-        this.resource = resource;
+        // Manage bidirectional association
+        if ( resource != this.resource) {
+            if ( this.resource != null ) {
+                Resource oldResource = this.resource;
+                this.resource = null;
+                oldResource.removeCapability(this);
+            }
+            if ( resource != null ) {
+                this.resource = resource;
+                this.resource.addCapability(this);
+            }
+        }
     }
 }

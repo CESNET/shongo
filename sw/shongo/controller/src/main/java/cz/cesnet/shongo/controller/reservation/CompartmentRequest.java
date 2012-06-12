@@ -62,6 +62,7 @@ public class CompartmentRequest extends PersistentObject
      * @return {@link #compartment}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public Compartment getCompartment()
     {
         return compartment;
@@ -79,6 +80,7 @@ public class CompartmentRequest extends PersistentObject
      * @return {@link #requestedSlot}
      */
     @OneToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public AbsoluteDateTimeSlot getRequestedSlot()
     {
         return requestedSlot;
@@ -96,27 +98,35 @@ public class CompartmentRequest extends PersistentObject
      * @return {@link #requestedPersons}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "compartmentRequest")
+    @Access(AccessType.FIELD)
     public List<PersonRequest> getRequestedPersons()
     {
         return Collections.unmodifiableList(requestedPersons);
     }
 
     /**
-     * @param requestedPersons sets the {@link #requestedPersons}
-     */
-    private void setRequestedPersons(List<PersonRequest> requestedPersons)
-    {
-        this.requestedPersons = requestedPersons;
-    }
-
-    /**
-     * @param requestedPerson person to be added to the list of requested persons
+     * @param requestedPerson person to be added to the {@link #requestedPersons}
      */
     public void addRequestedPerson(PersonRequest requestedPerson)
     {
-        this.requestedPersons.add(requestedPerson);
+        // Manage bidirectional association
+        if (requestedPersons.contains(requestedPerson) == false) {
+            requestedPersons.add(requestedPerson);
+            requestedPerson.setCompartmentRequest(this);
+        }
     }
 
+    /**
+     * @param requestedPerson person to be removed from the {@link #requestedPersons}
+     */
+    public void removeRequestedPerson(PersonRequest requestedPerson)
+    {
+        // Manage bidirectional association
+        if (requestedPersons.contains(requestedPerson)) {
+            requestedPersons.remove(requestedPerson);
+            requestedPerson.setCompartmentRequest(null);
+        }
+    }
 
     /**
      * @return {@link #state}
@@ -142,9 +152,15 @@ public class CompartmentRequest extends PersistentObject
      */
     public void updateState()
     {
-        //throw new RuntimeException("TODO: Implement CompartmentRequest.updateState");
-
-        setState(State.NOT_COMPLETE);
+        State state = State.COMPLETE;
+        for ( PersonRequest personRequest : requestedPersons ) {
+            PersonRequest.State personRequestState = personRequest.getState();
+            if ( personRequestState == PersonRequest.State.NOT_ASKED
+                    || personRequestState == PersonRequest.State.ASKED ) {
+                state = State.NOT_COMPLETE;
+            }
+        }
+        setState(state);
     }
 
     @Override

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Technology;
 import org.junit.Test;
 
+import java.nio.charset.CoderMalfunctionError;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -23,7 +24,7 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
         // Load reservation database
         ReservationDatabase reservationDatabase = new ReservationDatabase(new Domain("cz.cesnet"), entityManager);
 
-        // Create request
+        // Create reservation request
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
         reservationRequest.addRequestedSlot(new AbsoluteDateTime("2012-06-01T15:00"), new Period("PT1H"));
@@ -47,6 +48,14 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
                 compartmentRequestList.get(0).getRequestedSlot());
         assertEquals(new AbsoluteDateTimeSlot(new AbsoluteDateTime("2012-07-22T14:00"), new Period("PT2H")),
                 compartmentRequestList.get(4).getRequestedSlot());
+
+        // Modify reservation request
+        reservationRequest.setPurpose(ReservationRequest.Purpose.EDUCATION);
+        reservationRequest.removeRequestedSlot(reservationRequest.getRequestedSlots().get(0));
+        //reservationRequest.removeRequestedCompartment(reservationRequest.getRequestedCompartments().get(0));
+
+        // Update request
+        reservationDatabase.updateReservationRequest(reservationRequest);
 
         // List all reservation requests and theirs compartment requests
         List<ReservationRequest> rrList = reservationDatabase.listReservationRequests();

@@ -28,3 +28,18 @@ To install java on Ubuntu/Debian system type
 the following command:
 
     sudo apt-get install sun-java6-jdk
+
+HIBERNATE NOTES
+
+1) If OneToMany association without mappedBy attribute is declared as java.util.List, deletion of one item
+   cause delete all items and insert all that should not be deleted.
+
+   http://assarconsulting.blogspot.cz/2009/08/why-hibernate-does-delete-all-then-re.html
+
+2) Associations should by mapped by field access. Getter should return unmodifiableList or unmodifiableSet, setter
+   should not be present and addXXX/removeXXX methods should be present.
+
+   http://vard-lokkur.blogspot.cz/2011/04/jpa-and-unmodifiable-collections.html
+   http://www.javacodegeeks.com/2012/03/hibernate-performance-tips-dirty.html
+
+3) If association is bidirectional we must take care of sync of both sides.

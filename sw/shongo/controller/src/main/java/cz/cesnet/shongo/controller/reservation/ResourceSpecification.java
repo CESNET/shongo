@@ -35,6 +35,7 @@ public class ResourceSpecification extends PersistentObject implements Cloneable
      * @return {@link #compartment}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public Compartment getCompartment()
     {
         return compartment;
@@ -45,32 +46,44 @@ public class ResourceSpecification extends PersistentObject implements Cloneable
      */
     public void setCompartment(Compartment compartment)
     {
-        this.compartment = compartment;
+        // Manage bidirectional association
+        if ( compartment != this.compartment) {
+            if ( this.compartment != null ) {
+                Compartment oldCompartment = this.compartment;
+                this.compartment = null;
+                oldCompartment.removeRequestedResource(this);
+            }
+            if ( compartment != null ) {
+                this.compartment = compartment;
+                this.compartment.addRequestedResource(this);
+            }
+        }
     }
 
     /**
      * @return {@link #requestedPersons}
      */
     @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public List<Person> getRequestedPersons()
     {
         return requestedPersons;
     }
 
     /**
-     * @param requestedPersons sets the {@link #requestedPersons}
+     * @param person person to be added to the {@link #requestedPersons}
      */
-    private void setRequestedPersons(List<Person> requestedPersons)
+    public void addRequestedPerson(Person person)
     {
-        this.requestedPersons = requestedPersons;
+        requestedPersons.add(person);
     }
 
     /**
-     * @param personRequest person to be added to the list of requested persons for the resource
+     * @param person person to be removed from the {@link #requestedPersons}
      */
-    public void addRequestedPerson(Person personRequest)
+    public void removeRequestedPerson(Person person)
     {
-        this.requestedPersons.add(personRequest);
+        requestedPersons.remove(person);
     }
 
     /**

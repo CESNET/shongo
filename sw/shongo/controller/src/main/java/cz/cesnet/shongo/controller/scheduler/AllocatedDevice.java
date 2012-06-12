@@ -4,6 +4,8 @@ import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,42 +30,37 @@ public class AllocatedDevice extends AllocatedResource
     /**
      * @return {@link #persons}
      */
+    @OneToMany
+    @Access(AccessType.FIELD)
     public List<Person> getPersons()
     {
         return persons;
     }
 
     /**
-     * @param persons sets the {@link #persons}
+     * @param person person to be added to the {@link #persons}
      */
-    private void setPersons(List<Person> persons)
+    public void addPerson(Person person)
     {
-        this.persons = persons;
+        persons.add(person);
     }
 
     /**
-     * @param person person to be added to the {@link #persons}
+     * @param person person to be removed from the {@link #persons}
      */
-    public void addPeson(Person person)
+    public void removePerson(Person person)
     {
-        this.persons.add(person);
+        persons.remove(person);
     }
 
     /**
      * @return {@link #aliases}
      */
     @OneToMany
+    @Access(AccessType.FIELD)
     public List<Alias> getAliases()
     {
         return aliases;
-    }
-
-    /**
-     * @param aliases sets the {@link #aliases}
-     */
-    private void setAliases(List<Alias> aliases)
-    {
-        this.aliases = aliases;
     }
 
     /**
@@ -71,6 +68,14 @@ public class AllocatedDevice extends AllocatedResource
      */
     public void addAlias(Alias alias)
     {
-        this.aliases.add(alias);
+        aliases.add(alias);
+    }
+
+    /**
+     * @param alias alias to be removed from the {@link #aliases}
+     */
+    public void removeAlias(Alias alias)
+    {
+        aliases.remove(alias);
     }
 }

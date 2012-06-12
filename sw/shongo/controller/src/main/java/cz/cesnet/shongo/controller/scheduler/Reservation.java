@@ -3,10 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.controller.reservation.ReservationRequest;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +29,7 @@ public class Reservation extends PersistentObject
      * @return {@link #reservationRequest}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public ReservationRequest getReservationRequest()
     {
         return reservationRequest;
@@ -49,17 +47,10 @@ public class Reservation extends PersistentObject
      * @return {@link #allocatedCompartments}
      */
     @OneToMany(cascade = CascadeType.ALL,mappedBy = "reservation")
+    @Access(AccessType.FIELD)
     public List<AllocatedCompartment> getAllocatedCompartments()
     {
         return allocatedCompartments;
-    }
-
-    /**
-     * @param allocatedCompartments sets the {@link #allocatedCompartments}
-     */
-    private void setAllocatedCompartments(List<AllocatedCompartment> allocatedCompartments)
-    {
-        this.allocatedCompartments = allocatedCompartments;
     }
 
     /**
@@ -67,6 +58,22 @@ public class Reservation extends PersistentObject
      */
     public void addAllocatedCompartment(AllocatedCompartment allocatedCompartment)
     {
-        this.allocatedCompartments.add(allocatedCompartment);
+        // Manage bidirectional association
+        if (allocatedCompartments.contains(allocatedCompartment) == false) {
+            allocatedCompartments.add(allocatedCompartment);
+            allocatedCompartment.setReservation(this);
+        }
+    }
+
+    /**
+     * @param allocatedCompartment allocated compartment to be removed from the {@link #allocatedCompartments}
+     */
+    public void removeAllocatedCompartment(AllocatedCompartment allocatedCompartment)
+    {
+        // Manage bidirectional association
+        if (allocatedCompartments.contains(allocatedCompartment)) {
+            allocatedCompartments.remove(allocatedCompartment);
+            allocatedCompartment.setReservation(null);
+        }
     }
 }

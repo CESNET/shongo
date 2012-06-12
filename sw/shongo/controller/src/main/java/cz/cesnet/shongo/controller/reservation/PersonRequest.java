@@ -67,6 +67,7 @@ public class PersonRequest extends PersistentObject
      * @return {@link #compartmentRequest}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public CompartmentRequest getCompartmentRequest()
     {
         return compartmentRequest;
@@ -77,7 +78,18 @@ public class PersonRequest extends PersistentObject
      */
     public void setCompartmentRequest(CompartmentRequest compartmentRequest)
     {
-        this.compartmentRequest = compartmentRequest;
+        // Manage bidirectional association
+        if ( compartmentRequest != this.compartmentRequest) {
+            if ( this.compartmentRequest != null ) {
+                CompartmentRequest oldCompartmentRequest = this.compartmentRequest;
+                this.compartmentRequest = null;
+                oldCompartmentRequest.removeRequestedPerson(this);
+            }
+            if ( compartmentRequest != null ) {
+                this.compartmentRequest = compartmentRequest;
+                this.compartmentRequest.addRequestedPerson(this);
+            }
+        }
     }
 
     /**

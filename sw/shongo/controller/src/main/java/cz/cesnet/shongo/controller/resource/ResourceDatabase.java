@@ -90,6 +90,10 @@ public class ResourceDatabase
         List<Resource> resourceList = entityManager
                 .createQuery("SELECT resource FROM Resource resource", Resource.class).getResultList();
         for (Resource resource : resourceList) {
+            if(resource.getIdentifier().getDomain().equals(domain.getCodeName()) == false) {
+                throw new IllegalStateException("Resource has wrong domain in identifier '" +
+                        resource.getIdentifier().getDomain() + "' (should be '" + domain.getCodeName() + "')!");
+            }
             addResource(resource);
         }
     }

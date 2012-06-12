@@ -34,6 +34,7 @@ public class AllocatedResource extends PersistentObject
      * @return {@link #allocatedCompartment}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public AllocatedCompartment getAllocatedCompartment()
     {
         return allocatedCompartment;
@@ -44,13 +45,25 @@ public class AllocatedResource extends PersistentObject
      */
     public void setAllocatedCompartment(AllocatedCompartment allocatedCompartment)
     {
-        this.allocatedCompartment = allocatedCompartment;
+        // Manage bidirectional association
+        if ( allocatedCompartment != this.allocatedCompartment) {
+            if ( this.allocatedCompartment != null ) {
+                AllocatedCompartment oldAllocatedCompartment = this.allocatedCompartment;
+                this.allocatedCompartment = null;
+                oldAllocatedCompartment.removeAllocatedResource(this);
+            }
+            if ( allocatedCompartment != null ) {
+                this.allocatedCompartment = allocatedCompartment;
+                this.allocatedCompartment.addAllocatedResource(this);
+            }
+        }
     }
 
     /**
      * @return {@link #resource}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public Resource getResource()
     {
         return resource;
@@ -68,6 +81,7 @@ public class AllocatedResource extends PersistentObject
      * @return {@link #slot}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public AbsoluteDateTimeSlot getSlot()
     {
         return slot;
