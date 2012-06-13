@@ -190,8 +190,10 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         // Fields should be both empty or nonempty
-        assert ((hour == NullValue && time.hour == NullValue) || (hour != NullValue && time.hour != NullValue)) :
-                "Can't compare times with empty hour in only one of them.";
+        if ( hour == NullValue && time.hour != NullValue || hour != NullValue && time.hour == NullValue) {
+            throw new IllegalStateException("Can't compare times with empty hour in only one of them ("
+                    + toString() + ", " + time.toString() + ").");
+        }
         assert ((minute == NullValue && time.minute == NullValue) || (minute != NullValue && time.minute != NullValue)) :
                 "Can't compare times with empty minute in only one of them.";
         assert ((second == NullValue && time.second == NullValue) || (second != NullValue && time.second != NullValue)) :

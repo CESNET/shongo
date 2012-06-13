@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.reservation.ReservationRequest;
+import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,13 +33,23 @@ public class ResourceDatabase
     private EntityManager entityManager;
 
     /**
+     * @see ResourceManager
+     */
+    private ResourceManager resourceManager;
+
+    /**
      * List of all resources in resource database by theirs id.
      */
     private Map<Identifier, Resource> resourceMap = new HashMap<Identifier, Resource>();
 
     /**
-     * Constructor of reservation database.
+     * Topology of device resources.
      */
+    private DeviceTopology deviceTopology = new DeviceTopology();
+
+    /**
+    * Constructor of reservation database.
+    */
     public ResourceDatabase()
     {
     }
@@ -83,17 +94,17 @@ public class ResourceDatabase
         if (entityManager == null) {
             throw new IllegalStateException("Resource database doesn't have the entity manager set!");
         }
+        resourceManager = ResourceManager.createInstance(entityManager);
+
+        logger.debug("Checking resource database...");
+
+        resourceManager.checkDomain(domain.getCodeName());
 
         logger.debug("Loading resource database...");
 
         // Load all resources from db
-        List<Resource> resourceList = entityManager
-                .createQuery("SELECT resource FROM Resource resource", Resource.class).getResultList();
+        List<Resource> resourceList = resourceManager.list();
         for (Resource resource : resourceList) {
-            if(resource.getIdentifier().getDomain().equals(domain.getCodeName()) == false) {
-                throw new IllegalStateException("Resource has wrong domain in identifier '" +
-                        resource.getIdentifier().getDomain() + "' (should be '" + domain.getCodeName() + "')!");
-            }
             addResource(resource);
         }
     }
@@ -122,13 +133,17 @@ public class ResourceDatabase
                     "Resource (" + resource.getIdentifier() + ") is already in the database!");
         }
 
-        // Save resource to database
         entityManager.getTransaction().begin();
-        entityManager.persist(resource);
+        resourceManager.create(resource);
         entityManager.getTransaction().commit();
 
         // Add resource to list of all resources
         resourceMap.put(resource.getIdentifier(), resource);
+
+        // If resource is device add it to the device topology
+        if ( resource instanceof DeviceResource ) {
+            deviceTopology.addDeviceResource((DeviceResource)resource);
+        }
     }
 
     /**
@@ -143,7 +158,18 @@ public class ResourceDatabase
                     "Resource (" + resource.getIdentifier() + ") is not in the database!");
         }
 
-        throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
+        if ( true ) {
+            throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
+        }
+
+        entityManager.getTransaction().begin();
+        resourceManager.update(resource);
+        entityManager.getTransaction().commit();
+
+        // If resource is device update it in the device topology
+        if ( resource instanceof DeviceResource ) {
+            deviceTopology.addDeviceResource((DeviceResource)resource);
+        }
     }
 
     /**
@@ -158,13 +184,17 @@ public class ResourceDatabase
                     "Resource (" + resource.getIdentifier() + ") is not in the database!");
         }
 
-        // Delete resource from database
-        entityManager.getTransaction().begin();
-        entityManager.remove(resource);
-        entityManager.getTransaction().commit();
+        // If resource is device remove it from the device topology
+        if ( resource instanceof DeviceResource ) {
+            deviceTopology.addDeviceResource((DeviceResource)resource);
+        }
 
         // Add resource to list of all resources
         resourceMap.remove(resource.getIdentifier());
+
+        entityManager.getTransaction().begin();
+        resourceManager.delete(resource);
+        entityManager.getTransaction().commit();
     }
 
     /**
