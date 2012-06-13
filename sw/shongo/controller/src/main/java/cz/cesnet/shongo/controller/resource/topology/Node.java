@@ -1,16 +1,18 @@
 package cz.cesnet.shongo.controller.resource.topology;
 
+import cz.cesnet.shongo.common.PrintableObject;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a node in a device topology.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Node
+public class Node extends PrintableObject
 {
     /**
      * Device resource.
@@ -29,6 +31,7 @@ public class Node
 
     /**
      * Constructor.
+     *
      * @param deviceResource sets the {@link #deviceResource}
      */
     public Node(DeviceResource deviceResource)
@@ -69,10 +72,34 @@ public class Node
     }
 
     /**
+     * @param edge edge to be removed from the {@link #incomingEdges}
+     */
+    public void removeIncomingEdge(Edge edge)
+    {
+        incomingEdges.remove(edge);
+    }
+
+    /**
      * @param edge edge to be added to the {@link #outgoingEdges}
      */
     void addOutgoingEdge(Edge edge)
     {
         outgoingEdges.add(edge);
+    }
+
+    /**
+     * @param edge edge to be removed from the {@link #outgoingEdges}
+     */
+    public void removeOutgoingEdge(Edge edge)
+    {
+        outgoingEdges.remove(edge);
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("device", getDeviceResource().getId().toString());
     }
 }

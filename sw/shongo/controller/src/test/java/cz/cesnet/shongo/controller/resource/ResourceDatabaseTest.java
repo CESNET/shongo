@@ -20,7 +20,7 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
         ResourceDatabase resourceDatabase = new ResourceDatabase(new Domain("cz.cesnet"), entityManager);
 
         DeviceResource terminal = new DeviceResource();
-        terminal.createNewIdentifier("cz.cesnet");
+        terminal.createNewIdentifier("cz.cesnet.external");
         terminal.setTechnology(Technology.H323);
         terminal.setDescription("Software Mirial endpoint of Martin Srom");
         terminal.addCapability(new StandaloneTerminalCapability());
@@ -32,11 +32,14 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
         mcu.addCapability(new VirtualRoomsCapability());
         resourceDatabase.addResource(mcu);
 
+        resourceDatabase.destroy();
+
         // Load stored resource database and list resources
         resourceDatabase = new ResourceDatabase(new Domain("cz.cesnet"), entityManager);
         List<Resource> resourceList = resourceDatabase.listResources();
         for ( Resource resource : resourceList ) {
             System.err.println(resource.toString());
         }
+        System.err.println(resourceDatabase.getDeviceTopology().toString());
     }
 }

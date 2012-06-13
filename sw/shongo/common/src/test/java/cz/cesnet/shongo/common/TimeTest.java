@@ -74,16 +74,16 @@ public class TimeTest
 
         try {
             assertEquals(0, time1.compareTo(time2));
-            fail("AssertionError should be thrown.");
+            fail("Exception should be thrown.");
         }
-        catch (AssertionError error) {
+        catch (Exception error) {
         }
 
         try {
             assertEquals(0, time2.compareTo(time1));
-            fail("AssertionError should be thrown.");
+            fail("Exception should be thrown.");
         }
-        catch (AssertionError error) {
+        catch (Exception error) {
         }
 
         assertEquals(0, time2.compareTo(time3));

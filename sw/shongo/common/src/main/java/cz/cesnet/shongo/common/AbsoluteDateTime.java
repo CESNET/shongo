@@ -207,7 +207,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
             return dateResult;
         }
 
-        if ( getTime().isEmpty() || absoluteDateTime.getTime().isEmpty() ) {
+        if (getTime().isEmpty() || absoluteDateTime.getTime().isEmpty()) {
             return 0;
         }
 

@@ -29,7 +29,8 @@ public class Person extends PersistentObject
 
     /**
      * Constructor.
-     * @param name sets the {@link #name}
+     *
+     * @param name  sets the {@link #name}
      * @param email sets the {@link #email}
      */
     public Person(String name, String email)

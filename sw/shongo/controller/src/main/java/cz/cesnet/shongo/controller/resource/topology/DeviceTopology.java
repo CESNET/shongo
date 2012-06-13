@@ -1,16 +1,20 @@
 package cz.cesnet.shongo.controller.resource.topology;
 
+import cz.cesnet.shongo.common.PrintableObject;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Technology;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a topology of device resources and their reachability.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class DeviceTopology
+public class DeviceTopology extends PrintableObject
 {
     /**
      * List of {@link Node}s in device topology.
@@ -27,7 +31,12 @@ public class DeviceTopology
      */
     public void addDeviceResource(DeviceResource deviceResource)
     {
-        throw new RuntimeException("TODO: Implement DeviceTopology.addDeviceResource");
+        Node newNode = new Node(deviceResource);
+        for (Node node : nodes) {
+            createEdgesBetweenNodes(newNode, node);
+            createEdgesBetweenNodes(node, newNode);
+        }
+        nodes.add(newNode);
     }
 
     /**
@@ -35,15 +44,93 @@ public class DeviceTopology
      */
     public void updateDeviceResource(DeviceResource deviceResource)
     {
-        throw new RuntimeException("TODO: Implement DeviceTopology.updateDeviceResource");
+        removeDeviceResource(deviceResource);
+        addDeviceResource(deviceResource);
     }
 
     /**
      * @param deviceResource device to be removed from the device topology
      */
-
     public void removeDeviceResource(DeviceResource deviceResource)
     {
-        throw new RuntimeException("TODO: Implement DeviceTopology.removeDeviceResource");
+        Node node = null;
+        for (Node possibleNode : nodes) {
+            if (possibleNode.getDeviceResource() == deviceResource) {
+                node = possibleNode;
+                break;
+            }
+        }
+        if (node == null) {
+            throw new IllegalArgumentException("Device resource with identifier '"
+                    + deviceResource.getIdentifierAsString() + "' is not in device topology.");
+        }
+        for (Edge edge : node.getIncomingEdges()) {
+            removeEdge(edge);
+        }
+        for (Edge edge : node.getOutgoingEdges()) {
+            removeEdge(edge);
+        }
+        nodes.remove(node);
+    }
+
+    /**
+     * Create edges between nodes
+     *
+     * @param nodeFrom
+     * @param nodeTo
+     */
+    private void createEdgesBetweenNodes(Node nodeFrom, Node nodeTo)
+    {
+        DeviceResource deviceFrom = nodeFrom.getDeviceResource();
+        DeviceResource deviceTo = nodeTo.getDeviceResource();
+        Set<Technology> technologiesFrom = deviceFrom.getTechnologies();
+        Set<Technology> technologiesTo = deviceFrom.getTechnologies();
+        for (Technology technology : technologiesFrom) {
+            if (technologiesTo.contains(technology)) {
+                if (deviceFrom.hasIpAddress() && deviceTo.hasIpAddress()) {
+                    addEdge(nodeFrom, nodeTo, technology, Edge.Type.IP_ADDRESS);
+                }
+                addEdge(nodeFrom, nodeTo, technology, Edge.Type.ALIAS);
+            }
+        }
+    }
+
+    /**
+     * Add a new edge to the device topology
+     *
+     * @param nodeFrom
+     * @param nodeTo
+     * @param technology
+     * @param type
+     */
+    private void addEdge(Node nodeFrom, Node nodeTo, Technology technology, Edge.Type type)
+    {
+        Edge edge = new Edge(nodeFrom, nodeTo, technology, type);
+        nodeFrom.addOutgoingEdge(edge);
+        nodeTo.addIncomingEdge(edge);
+        edges.add(edge);
+    }
+
+    /**
+     * Remove edge from the device topology
+     *
+     * @param edge
+     */
+    private void removeEdge(Edge edge)
+    {
+        Node nodeFrom = edge.getNodeFrom();
+        Node nodeTo = edge.getNodeTo();
+        nodeFrom.removeOutgoingEdge(edge);
+        nodeTo.removeIncomingEdge(edge);
+        edges.remove(edge);
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        addCollectionToMap(map, "nodes", nodes);
+        addCollectionToMap(map, "edges", edges);
     }
 }

@@ -349,5 +349,6 @@ public class Resource extends PersistentObject
         map.put("type", getType().toString());
         map.put("name", getName());
         map.put("description", getDescription());
+        addCollectionToMap(map, "capabilities", capabilities);
     }
 }

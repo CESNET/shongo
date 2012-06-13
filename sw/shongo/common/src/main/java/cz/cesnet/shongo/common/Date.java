@@ -39,9 +39,15 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
      */
     public Date(int year, int month, int day)
     {
-        assert (year == NullValue || (year >= 0 && year <= 9999)) : "Year should be in range 1 to 9999 or empty.";
-        assert (month == NullValue || (month >= 0 && month <= 12)) : "Month should be in range 1 to 12 or empty.";
-        assert (day == NullValue || (day >= 0 && day <= 31)) : "Day should be in range 1 to 31 or empty.";
+        if (year != NullValue && (year < 0 || year > 9999)) {
+            throw new IllegalArgumentException("Year should be in range 1 to 9999 or empty(" + year + ").");
+        }
+        if (month != NullValue && (month < 0 || month > 12)) {
+            throw new IllegalArgumentException("Month should be in range 1 to 12 or empty(" + month + ").");
+        }
+        if (day != NullValue && (day < 0 || day > 31)) {
+            throw new IllegalArgumentException("Day should be in range 1 to 31 or empty(" + day + ").");
+        }
 
         this.year = (year == 0 ? NullValue : year);
         this.month = (month == 0 ? NullValue : month);
@@ -74,12 +80,12 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             DateParser parser = new DateParser(Parser.getTokenStream(date, DateLexer.class));
             parser.parse();
 
-            year = parser.year;
-            month = parser.month;
-            day = parser.day;
+            year = (parser.year == 0 ? NullValue : parser.year);
+            month = (parser.month == 0 ? NullValue : parser.month);
+            day = (parser.day == 0 ? NullValue : parser.day);
         }
         catch (Exception exception) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     String.format("Failed to parse date '%s': %s", date, exception.getMessage()));
         }
     }
@@ -190,10 +196,14 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             throw new AssertionError("Can't compare dates with empty year in only one of them ["
                     + toString() + ", " + date.toString() + "].");
         }
-        assert ((month == NullValue && date.month == NullValue) || (month != NullValue && date.month != NullValue)) :
-                "Can't compare dates with empty month in only one of them.";
-        assert ((day == NullValue && date.day == NullValue) || (day != NullValue && date.day != NullValue)) :
-                "Can't compare dates with empty day in only one of them.";
+        if ((month == NullValue && date.month != NullValue) || (month != NullValue && date.month == NullValue)) {
+            throw new AssertionError("Can't compare dates with empty month in only one of them ["
+                    + toString() + ", " + date.toString() + "].");
+        }
+        if ((day == NullValue && date.day != NullValue) || (day != NullValue && date.day == NullValue)) {
+            throw new AssertionError("Can't compare dates with empty day in only one of them ["
+                    + toString() + ", " + date.toString() + "].");
+        }
 
         // Compare years
         if (year != NullValue && date.year != NullValue) {
@@ -205,8 +215,14 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             }
         }
         else {
-            assert (month == NullValue && date.month == NullValue) : "Can't compare months with empty year.";
-            assert (day == NullValue && date.day == NullValue) : "Can't compare days with empty year.";
+            if (month != NullValue || date.month != NullValue) {
+                throw new IllegalStateException("Can't compare month with empty year. ("
+                        + toString() + ", " + date.toString() + ").");
+            }
+            if (day != NullValue || date.day != NullValue) {
+                throw new IllegalStateException("Can't compare day with empty year. ("
+                        + toString() + ", " + date.toString() + ").");
+            }
         }
 
         // Compare months
@@ -219,7 +235,10 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             }
         }
         else {
-            assert (day == NullValue && date.day == NullValue) : "Can't compare days with empty year.";
+            if (day != NullValue || date.day != NullValue) {
+                throw new IllegalStateException("Can't compare day with empty month. ("
+                        + toString() + ", " + date.toString() + ").");
+            }
         }
 
         // Compare days
@@ -298,7 +317,9 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         int resultDay = this.day;
 
         if (month > 0) {
-            assert (resultMonth != NullValue) : "Can't add to month because it is empty.";
+            if (resultMonth == NullValue) {
+                throw new IllegalStateException("Can't add to month because it is empty.");
+            }
             resultMonth += month;
             resultMonth -= 1;
             if (resultMonth >= 12) {
@@ -309,14 +330,22 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         }
 
         if (year > 0) {
-            assert (resultYear != NullValue) : "Can't add to year because it is empty.";
+            if (resultYear == NullValue) {
+                throw new IllegalStateException("Can't add to year because it is empty.");
+            }
             resultYear += year;
         }
 
         if (day > 0) {
-            assert (resultDay != NullValue) : "Can't add to day because it is empty.";
-            assert (resultDay != NullValue) : "Can't add to day because month is empty.";
-            assert (resultDay != NullValue) : "Can't add to day because year is empty.";
+            if (resultDay == NullValue) {
+                throw new IllegalStateException("Can't add to day because it is empty.");
+            }
+            if (resultMonth == NullValue) {
+                throw new IllegalStateException("Can't add to day because month is empty.");
+            }
+            if (resultYear == NullValue) {
+                throw new IllegalStateException("Can't add to day because year is empty.");
+            }
 
             // Add days by Calendar in UTC timezone
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -359,7 +388,9 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         int resultDay = this.day;
 
         if (month > 0) {
-            assert (resultMonth != NullValue) : "Can't add to month because it is empty.";
+            if (resultMonth == NullValue) {
+                throw new IllegalStateException("Can't subtract from month because it is empty.");
+            }
             resultMonth -= month;
             resultMonth -= 1;
             if (resultMonth < 0) {
@@ -374,14 +405,22 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         }
 
         if (year > 0) {
-            assert (resultYear != NullValue) : "Can't add to year because it is empty.";
+            if (resultYear == NullValue) {
+                throw new IllegalStateException("Can't subtract from year because it is empty.");
+            }
             resultYear -= year;
         }
 
         if (day > 0) {
-            assert (resultDay != NullValue) : "Can't add to day because it is empty.";
-            assert (resultMonth != NullValue) : "Can't add to day because month is empty.";
-            assert (resultYear != NullValue) : "Can't add to day because year is empty.";
+            if (resultDay == NullValue) {
+                throw new IllegalStateException("Can't subtract from day because it is empty.");
+            }
+            if (resultMonth == NullValue) {
+                throw new IllegalStateException("Can't subtract from day because month is empty.");
+            }
+            if (resultYear == NullValue) {
+                throw new IllegalStateException("Can't subtract from day because year is empty.");
+            }
 
             // Add days by Calendar in UTC timezone
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));

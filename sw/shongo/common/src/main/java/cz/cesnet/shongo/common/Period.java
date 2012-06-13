@@ -127,7 +127,7 @@ public class Period implements Comparable<Period>, UserType
             parser.parse();
         }
         catch (Exception exception) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     String.format("Failed to parse period '%s': %s", period, exception.getMessage()));
         }
         normalize();

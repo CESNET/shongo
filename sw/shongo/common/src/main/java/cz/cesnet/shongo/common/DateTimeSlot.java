@@ -114,7 +114,7 @@ public class DateTimeSlot extends PersistentObject
             else {
                 AbsoluteDateTime dateTime = null;
                 if (this.start instanceof AbsoluteDateTime) {
-                    dateTime = ((AbsoluteDateTime)this.start).clone();
+                    dateTime = ((AbsoluteDateTime) this.start).clone();
                 }
                 else {
                     throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
@@ -147,7 +147,7 @@ public class DateTimeSlot extends PersistentObject
      */
     public List<AbsoluteDateTimeSlot> enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
     {
-        if ( from != null || to != null ) {
+        if (from != null || to != null) {
             // TODO: now DateTimeSlot.getEvaluatedSlots() can never end
             throw new RuntimeException("TODO: Implement DateTimeSlot.getEvaluatedSlots with respect to interval!");
         }

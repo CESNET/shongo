@@ -72,16 +72,16 @@ public class DateTest
         try {
 
             assertEquals(0, date1.compareTo(date2));
-            fail("AssertionError should be thrown.");
+            fail("Exception should be thrown.");
         }
-        catch (AssertionError error) {
+        catch (Exception error) {
         }
 
         try {
             assertEquals(0, date2.compareTo(date1));
-            fail("AssertionError should be thrown.");
+            fail("Exception should be thrown.");
         }
-        catch (AssertionError error) {
+        catch (Exception error) {
         }
 
         assertEquals(0, date2.compareTo(date3));

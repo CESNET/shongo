@@ -76,6 +76,14 @@ public class DeviceResource extends Resource
     }
 
     /**
+     * @return true if device resource has IP address filled, otherwise false
+     */
+    public boolean hasIpAddress()
+    {
+        return ipAddress != null;
+    }
+
+    /**
      * @param ipAddress sets the {@link #ipAddress}
      */
     public void setIpAddress(String ipAddress)
@@ -124,20 +132,10 @@ public class DeviceResource extends Resource
      */
     @ElementCollection
     @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
     {
         return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies set the {@link #technologies}
-     */
-    private void setTechnologies(Set<Technology> technologies)
-    {
-        clearTechnologies();
-        for (Technology technology : technologies) {
-            addTechnology(technology);
-        }
     }
 
     /**
@@ -245,17 +243,8 @@ public class DeviceResource extends Resource
     {
         super.fillDescriptionMap(map);
 
-        if ( technologies.size() > 0 ) {
-            StringBuilder builder = new StringBuilder();
-            for (Technology technology : technologies) {
-                if (builder.length() > 0) {
-                    builder.append(",");
-                }
-                builder.append(technology.toString());
-            }
-            map.put("technologies", "[" + builder.toString() + "]");
-        }
         map.put("callable", (isCallable() ? "true" : "false"));
         map.put("mode", (isManaged() ? "managed" : "unmanaged"));
+        addCollectionToMap(map, "technologies", technologies);
     }
 }

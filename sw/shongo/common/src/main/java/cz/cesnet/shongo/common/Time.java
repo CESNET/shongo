@@ -38,9 +38,15 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      */
     public Time(int hour, int minute, int second, int overflow)
     {
-        assert (hour == NullValue || (hour >= 0 && hour <= 23)) : "Hour should be in range 0 to 23.";
-        assert (minute == NullValue || (minute >= 0 && minute <= 59)) : "Minute should be in range 0 to 59.";
-        assert (second == NullValue || (second >= 0 && second <= 59)) : "Second should be in range 0 to 59.";
+        if (hour != NullValue && (hour < 0 || hour > 23)) {
+            throw new IllegalArgumentException("Hour should be in range 0 to 23 (" + hour + ").");
+        }
+        if (minute != NullValue && (minute < 0 || minute > 59)) {
+            throw new IllegalArgumentException("Minute should be in range 0 to 59 (" + minute + ").");
+        }
+        if (second != NullValue && (second < 0 || second > 59)) {
+            throw new IllegalArgumentException("Second should be in range 0 to 59 (" + second + ").");
+        }
 
         this.hour = hour;
         this.minute = minute;
@@ -85,7 +91,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             overflow = 0;
         }
         catch (Exception exception) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     String.format("Failed to parse time '%s': %s", time, exception.getMessage()));
         }
     }
@@ -190,14 +196,18 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         // Fields should be both empty or nonempty
-        if ( hour == NullValue && time.hour != NullValue || hour != NullValue && time.hour == NullValue) {
+        if (hour == NullValue && time.hour != NullValue || hour != NullValue && time.hour == NullValue) {
             throw new IllegalStateException("Can't compare times with empty hour in only one of them ("
                     + toString() + ", " + time.toString() + ").");
         }
-        assert ((minute == NullValue && time.minute == NullValue) || (minute != NullValue && time.minute != NullValue)) :
-                "Can't compare times with empty minute in only one of them.";
-        assert ((second == NullValue && time.second == NullValue) || (second != NullValue && time.second != NullValue)) :
-                "Can't compare times with empty hour in only one of them.";
+        if (minute == NullValue && time.minute != NullValue || minute != NullValue && time.minute == NullValue) {
+            throw new IllegalStateException("Can't compare times with empty minute in only one of them ("
+                    + toString() + ", " + time.toString() + ").");
+        }
+        if (second == NullValue && time.second != NullValue || second != NullValue && time.second == NullValue) {
+            throw new IllegalStateException("Can't compare times with empty second in only one of them ("
+                    + toString() + ", " + time.toString() + ").");
+        }
 
         // Compare hours
         if (hour != NullValue && time.hour != NullValue) {
@@ -209,8 +219,14 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             }
         }
         else {
-            assert (minute == NullValue && time.minute == NullValue) : "Can't compare minutes with empty hours.";
-            assert (second == NullValue && time.second == NullValue) : "Can't compare seconds with empty hours.";
+            if (minute != NullValue || time.minute != NullValue) {
+                throw new IllegalStateException("Can't compare minutes with empty hours. ("
+                        + toString() + ", " + time.toString() + ").");
+            }
+            if (second != NullValue || time.second != NullValue) {
+                throw new IllegalStateException("Can't compare seconds with empty hours. ("
+                        + toString() + ", " + time.toString() + ").");
+            }
         }
 
         // Compare minutes
@@ -223,7 +239,10 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             }
         }
         else {
-            assert (second == NullValue && time.second == NullValue) : "Can't compare seconds with empty hours.";
+            if (second != NullValue || time.second != NullValue) {
+                throw new IllegalStateException("Can't compare seconds with empty minutes. ("
+                        + toString() + ", " + time.toString() + ").");
+            }
         }
 
         // Compare seconds
@@ -303,7 +322,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         int resultOverflow = 0;
 
         if (second > 0) {
-            assert (resultSecond != NullValue) : "Can't add to seconds because it is empty.";
+            if (resultSecond == NullValue) {
+                throw new IllegalStateException("Can't add to seconds because it is empty.");
+            }
             resultSecond += second;
             if (resultSecond >= 60) {
                 minute += resultSecond / 60;
@@ -312,7 +333,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (minute > 0) {
-            assert (resultMinute != NullValue) : "Can't add to minutes because it is empty.";
+            if (resultMinute == NullValue) {
+                throw new IllegalStateException("Can't add to minutes because it is empty.");
+            }
             resultMinute += minute;
             if (resultMinute >= 60) {
                 hour += resultMinute / 60;
@@ -321,7 +344,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (hour > 0) {
-            assert (resultHour != NullValue) : "Can't add to hours because it is empty.";
+            if (resultHour == NullValue) {
+                throw new IllegalStateException("Can't add to hours because it is empty.");
+            }
             resultHour += hour;
             if (resultHour >= 24) {
                 resultOverflow = resultHour / 24;
@@ -362,7 +387,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         int resultOverflow = 0;
 
         if (second > 0) {
-            assert (resultSecond != NullValue) : "Can't subtract from seconds because it is empty.";
+            if (resultSecond == NullValue) {
+                throw new IllegalStateException("Can't subtract from seconds because it is empty.");
+            }
             resultSecond -= second;
             if (resultSecond < 0) {
                 minute += -resultSecond / 60;
@@ -375,7 +402,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (minute > 0) {
-            assert (resultMinute != NullValue) : "Can't subtract from minutes because it is empty.";
+            if (resultMinute == NullValue) {
+                throw new IllegalStateException("Can't subtract from minutes because it is empty.");
+            }
             resultMinute -= minute;
             if (resultMinute < 0) {
                 hour += -resultMinute / 60;
@@ -388,7 +417,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (hour > 0) {
-            assert (resultHour != NullValue) : "Can't subtract from hours because it is empty.";
+            if (resultHour == NullValue) {
+                throw new IllegalStateException("Can't subtract from hours because it is empty.");
+            }
             resultHour -= hour;
             if (resultHour < 0) {
                 resultOverflow = resultHour / 24;
@@ -410,7 +441,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      */
     public int getOverflow()
     {
-        assert (overflow >= 0) : "Overflow should be positive.";
+        if (overflow < 0) {
+            throw new IllegalStateException("Overflow should be positive.");
+        }
         return overflow;
     }
 
@@ -421,7 +454,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      */
     public int getUnderflow()
     {
-        assert (overflow <= 0) : "Underflow should be negative.";
+        if (overflow > 0) {
+            throw new IllegalStateException("Underflow should be negative.");
+        }
         return -overflow;
     }
 

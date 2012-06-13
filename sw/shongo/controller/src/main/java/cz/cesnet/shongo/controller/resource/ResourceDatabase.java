@@ -84,6 +84,14 @@ public class ResourceDatabase
     }
 
     /**
+     * @return {@link #deviceTopology}
+     */
+    public DeviceTopology getDeviceTopology()
+    {
+        return deviceTopology;
+    }
+
+    /**
      * Initialize reservation database.
      */
     public void init()
@@ -132,6 +140,7 @@ public class ResourceDatabase
             throw new IllegalArgumentException(
                     "Resource (" + resource.getIdentifier() + ") is already in the database!");
         }
+        resourceManager.checkDomain(domain.getCodeName(), resource);
 
         entityManager.getTransaction().begin();
         resourceManager.create(resource);

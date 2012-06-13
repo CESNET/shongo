@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.resource.topology;
 
+import cz.cesnet.shongo.common.PrintableObject;
 import cz.cesnet.shongo.controller.resource.Technology;
+
+import java.util.Map;
 
 /**
  * Represents an edge between two nodes in a device topology. Edge means that
@@ -8,7 +11,7 @@ import cz.cesnet.shongo.controller.resource.Technology;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Edge
+public class Edge extends PrintableObject
 {
     /**
      * Type of edge.
@@ -41,32 +44,18 @@ public class Edge
 
     /**
      * Constructor.
+     *
      * @param nodeFrom   sets the {@link #nodeFrom}
      * @param nodeTo     sets the {@link #nodeTo}
      * @param technology sets the {@link #technology}
      * @param type       sets the {@link #type}
      */
-    private Edge(Node nodeFrom, Node nodeTo, Technology technology, Type type)
+    public Edge(Node nodeFrom, Node nodeTo, Technology technology, Type type)
     {
         this.nodeFrom = nodeFrom;
         this.nodeTo = nodeTo;
         this.technology = technology;
         this.type = type;
-    }
-
-    /**
-     * @param nodeFrom   sets the {@link #nodeFrom}
-     * @param nodeTo     sets the {@link #nodeTo}
-     * @param technology sets the {@link #technology}
-     * @param type       sets the {@link #type}
-     * @return a new instance of {@link Edge}
-     */
-    public static Edge createInstance(Node nodeFrom, Node nodeTo, Technology technology, Type type)
-    {
-        Edge edge = new Edge(nodeFrom, nodeTo, technology, type);
-        nodeFrom.addOutgoingEdge(edge);
-        nodeTo.addIncomingEdge(edge);
-        return edge;
     }
 
     /**
@@ -99,5 +88,16 @@ public class Edge
     public Type getType()
     {
         return type;
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("from", getNodeFrom().getDeviceResource().getId().toString());
+        map.put("to", getNodeTo().getDeviceResource().getId().toString());
+        map.put("technology", getTechnology().toString());
+        map.put("type", getType().toString());
     }
 }
