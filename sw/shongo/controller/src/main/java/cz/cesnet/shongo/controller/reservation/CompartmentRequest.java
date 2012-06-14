@@ -39,6 +39,11 @@ public class CompartmentRequest extends PersistentObject
     }
 
     /**
+     * Reservation request for which the request is made.
+     */
+    private ReservationRequest reservationRequest;
+
+    /**
      * Compartment for which the request is made.
      */
     private Compartment compartment;
@@ -74,6 +79,24 @@ public class CompartmentRequest extends PersistentObject
     public void setCompartment(Compartment compartment)
     {
         this.compartment = compartment;
+    }
+
+    /**
+     * @return {@link #reservationRequest}
+     */
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public ReservationRequest getReservationRequest()
+    {
+        return reservationRequest;
+    }
+
+    /**
+     * @param reservationRequest sets the {@link #reservationRequest}
+     */
+    public void setReservationRequest(ReservationRequest reservationRequest)
+    {
+        this.reservationRequest = reservationRequest;
     }
 
     /**

@@ -4,50 +4,49 @@ import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.AbstractManager;
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 
 import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * A reservation database for domain controller.
+ * Manager for {@link CompartmentRequest}.
  *
+ * @see AbstractManager
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class CompartmentRequestManager extends AbstractManager
 {
     /**
+     * @see Scheduler
+     */
+    private Scheduler scheduler;
+
+    /**
      * @see PersonRequestManager
      */
-    PersonRequestManager personRequestManager;
+    private PersonRequestManager personRequestManager;
+
+    /**
+     * Constructor.
+     * @param entityManager
+     */
+    public CompartmentRequestManager(EntityManager entityManager, Scheduler scheduler)
+    {
+        this(entityManager, scheduler, new PersonRequestManager(entityManager));
+    }
 
     /**
      * Constructor.
      * @param entityManager
      * @param personRequestManager
      */
-    private CompartmentRequestManager(EntityManager entityManager, PersonRequestManager personRequestManager)
+    public CompartmentRequestManager(EntityManager entityManager, Scheduler scheduler,
+            PersonRequestManager personRequestManager)
     {
         super(entityManager);
+        this.scheduler = scheduler;
         this.personRequestManager = personRequestManager;
-    }
-
-    /**
-     * @param entityManager
-     * @return new instance of {@link CompartmentRequestManager}
-     */
-    public static CompartmentRequestManager createInstance(EntityManager entityManager)
-    {
-        return createInstance(entityManager, PersonRequestManager.createInstance(entityManager));
-    }
-
-    /**
-     * @param entityManager
-     * @param personRequestManager
-     * @return new instance of {@link CompartmentRequestManager}
-     */
-    public static CompartmentRequestManager createInstance(EntityManager entityManager, PersonRequestManager personRequestManager)
-    {
-        return new CompartmentRequestManager(entityManager, personRequestManager);
     }
 
     /**
@@ -61,6 +60,7 @@ public class CompartmentRequestManager extends AbstractManager
     {
         // Create compartment request
         CompartmentRequest compartmentRequest = new CompartmentRequest();
+        compartmentRequest.setReservationRequest(compartment.getReservationRequest());
         compartmentRequest.setCompartment(compartment);
         compartmentRequest.setRequestedSlot(requestedSlot);
 
@@ -84,7 +84,7 @@ public class CompartmentRequestManager extends AbstractManager
 
         super.create(compartmentRequest);
 
-        // TODO: Notify scheduler about compartment request creation
+        scheduler.onNewCompartmentRequest(compartmentRequest);
 
         return compartmentRequest;
     }
@@ -99,7 +99,9 @@ public class CompartmentRequestManager extends AbstractManager
     {
         //throw new RuntimeException("TODO: Implement compartment request check");
 
-        // TODO: Notify scheduler about compartment request modification
+        super.update(compartmentRequest);
+
+        scheduler.onUpdateCompartmentRequest(compartmentRequest);
     }
 
     /**
@@ -109,22 +111,22 @@ public class CompartmentRequestManager extends AbstractManager
      */
     public void delete(CompartmentRequest compartmentRequest)
     {
-        super.delete(compartmentRequest);
+        scheduler.onDeleteCompartmentRequest(compartmentRequest);
 
-        // TODO: Notify scheduler about compartment request removal
+        super.delete(compartmentRequest);
     }
 
     /**
-     * @param reservationRequestIdentifier
-     * @return list of existing compartment requests for a {@link ReservationRequest} with the given identifier
+     * @param reservationRequest
+     * @return list of existing compartment requests for a {@link ReservationRequest}
      */
-    public List<CompartmentRequest> list(Identifier reservationRequestIdentifier)
+    public List<CompartmentRequest> list(ReservationRequest reservationRequest)
     {
         // Get existing compartment requests for compartment
         List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT request FROM CompartmentRequest request " +
-                        "WHERE request.compartment.reservationRequest.identifierAsString = :identifier",
-                CompartmentRequest.class).setParameter("identifier", reservationRequestIdentifier.toString())
+                        "WHERE request.reservationRequest.identifierAsString = :identifier",
+                CompartmentRequest.class).setParameter("identifier", reservationRequest.getIdentifierAsString())
                 .getResultList();
         return compartmentRequestList;
     }

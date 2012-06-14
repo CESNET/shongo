@@ -60,6 +60,18 @@ public abstract class PersistentObject extends PrintableObject
         }
     }
 
+    /**
+     * Checks whether object has not been persisted yet.
+     *
+     * @throws IllegalStateException
+     */
+    public void checkNotPersisted() throws IllegalStateException
+    {
+        if (isPersisted()) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " has already been persisted!");
+        }
+    }
+
     @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {

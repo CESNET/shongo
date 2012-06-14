@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A resource database for domain controller.
+ * Represents an object that holds all resources for a domain controller in memory in efficient form.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -23,7 +23,7 @@ public class ResourceDatabase
     private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
 
     /**
-     * Domain for which the reservation database is used.
+     * Domain to which all resources belongs.
      */
     private Domain domain;
 
@@ -142,14 +142,15 @@ public class ResourceDatabase
         }
         resourceManager.checkDomain(domain.getCodeName(), resource);
 
-        entityManager.getTransaction().begin();
-        resourceManager.create(resource);
-        entityManager.getTransaction().commit();
+        // Save only resource that has not been saved yet
+        if ( resource.isPersisted() == false ) {
+            resourceManager.create(resource);
+        }
 
         // Add resource to list of all resources
         resourceMap.put(resource.getIdentifier(), resource);
 
-        // If resource is device add it to the device topology
+        // If resource is a device add it to the device topology
         if ( resource instanceof DeviceResource ) {
             deviceTopology.addDeviceResource((DeviceResource)resource);
         }
@@ -171,11 +172,10 @@ public class ResourceDatabase
             throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
         }
 
-        entityManager.getTransaction().begin();
+        // Update it
         resourceManager.update(resource);
-        entityManager.getTransaction().commit();
 
-        // If resource is device update it in the device topology
+        // If resource is a device update it in the device topology
         if ( resource instanceof DeviceResource ) {
             deviceTopology.addDeviceResource((DeviceResource)resource);
         }
@@ -193,17 +193,16 @@ public class ResourceDatabase
                     "Resource (" + resource.getIdentifier() + ") is not in the database!");
         }
 
-        // If resource is device remove it from the device topology
+        // If resource is a device remove it from the device topology
         if ( resource instanceof DeviceResource ) {
             deviceTopology.addDeviceResource((DeviceResource)resource);
         }
 
-        // Add resource to list of all resources
+        // Remove resource from the list of all resources
         resourceMap.remove(resource.getIdentifier());
 
-        entityManager.getTransaction().begin();
+        // Delete it
         resourceManager.delete(resource);
-        entityManager.getTransaction().commit();
     }
 
     /**

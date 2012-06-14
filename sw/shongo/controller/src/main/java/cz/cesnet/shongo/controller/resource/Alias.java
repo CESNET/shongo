@@ -25,7 +25,7 @@ public class Alias extends PersistentObject
         /**
          * e.g., H.323 ID
          */
-        Identifier,
+        IDENTIFIER,
 
         /**
          * e.g., H.323 or SIP URI

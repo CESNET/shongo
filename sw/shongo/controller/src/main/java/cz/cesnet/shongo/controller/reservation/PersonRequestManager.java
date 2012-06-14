@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 /**
  * Manager for {@link PersonRequest}.
  *
+ * @see AbstractManager
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class PersonRequestManager extends AbstractManager
@@ -17,18 +18,9 @@ public class PersonRequestManager extends AbstractManager
      *
      * @param entityManager
      */
-    private PersonRequestManager(EntityManager entityManager)
+    public PersonRequestManager(EntityManager entityManager)
     {
         super(entityManager);
-    }
-
-    /**
-     * @param entityManager
-     * @return new instance of {@link PersonRequestManager}
-     */
-    public static PersonRequestManager createInstance(EntityManager entityManager)
-    {
-        return new PersonRequestManager(entityManager);
     }
 
     /**

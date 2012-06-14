@@ -8,8 +8,9 @@ import javax.persistence.NoResultException;
 import java.util.List;
 
 /**
- * A reservation database for domain controller.
+ * Manager for {@link Resource}.
  *
+ * @see AbstractManager
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ResourceManager extends AbstractManager

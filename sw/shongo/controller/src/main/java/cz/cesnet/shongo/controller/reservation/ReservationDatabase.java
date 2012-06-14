@@ -4,6 +4,7 @@ import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +35,14 @@ public class ReservationDatabase
     private EntityManager entityManager;
 
     /**
+     * Scheduler.
+     */
+    private Scheduler scheduler;
+
+    /**
      * @see ReservationRequestManager
      */
     private ReservationRequestManager reservationRequestManager;
-
-    /**
-     * @see CompartmentRequestManager
-     */
-    private CompartmentRequestManager compartmentRequestManager;
 
     /**
      * Constructor of reservation database.
@@ -53,13 +54,15 @@ public class ReservationDatabase
     /**
      * Constructor of reservation database.
      *
+     * @param entityManager sets the {@link #entityManager}
      * @param domain        sets the {@link #domain}
-     * @param entityManager Sets the {@link #entityManager}
+     * @param scheduler     sets the {@link #scheduler}
      */
-    public ReservationDatabase(Domain domain, EntityManager entityManager)
+    public ReservationDatabase(EntityManager entityManager, Domain domain, Scheduler scheduler)
     {
-        setDomain(domain);
         setEntityManager(entityManager);
+        setDomain(domain);
+        setScheduler(scheduler);
         init();
     }
 
@@ -80,6 +83,14 @@ public class ReservationDatabase
     }
 
     /**
+     * @param scheduler sets the {@link #scheduler}
+     */
+    public void setScheduler(Scheduler scheduler)
+    {
+        this.scheduler = scheduler;
+    }
+
+    /**
      * Initialize reservation database.
      */
     public void init()
@@ -90,8 +101,10 @@ public class ReservationDatabase
         if (entityManager == null) {
             throw new IllegalStateException("Reservation database doesn't have the entity manager set!");
         }
-        reservationRequestManager = ReservationRequestManager.createInstance(entityManager);
-        compartmentRequestManager = CompartmentRequestManager.createInstance(entityManager);
+        if (scheduler == null) {
+            throw new IllegalStateException("Reservation database doesn't have the scheduler set!");
+        }
+        reservationRequestManager = new ReservationRequestManager(entityManager, scheduler);
 
         logger.debug("Checking reservation database...");
 
@@ -120,9 +133,7 @@ public class ReservationDatabase
         }
         reservationRequest.createNewIdentifier(domain.getCodeName());
 
-        entityManager.getTransaction().begin();
         reservationRequestManager.create(reservationRequest);
-        entityManager.getTransaction().commit();
     }
 
     /**
@@ -132,9 +143,7 @@ public class ReservationDatabase
      */
     public void updateReservationRequest(ReservationRequest reservationRequest)
     {
-        entityManager.getTransaction().begin();
         reservationRequestManager.update(reservationRequest);
-        entityManager.getTransaction().commit();
     }
 
     /**
@@ -144,9 +153,7 @@ public class ReservationDatabase
      */
     public void removeReservationRequest(ReservationRequest reservationRequest)
     {
-        entityManager.getTransaction().begin();
         reservationRequestManager.delete(reservationRequest);
-        entityManager.getTransaction().commit();
     }
 
     /**
@@ -155,23 +162,5 @@ public class ReservationDatabase
     public List<ReservationRequest> listReservationRequests()
     {
         return reservationRequestManager.list();
-    }
-
-    /**
-     * @param identifier
-     * @return {@link ReservationRequest} with given identifier or null if the request not exists
-     */
-    public ReservationRequest getReservationRequest(Identifier identifier)
-    {
-        return reservationRequestManager.get(identifier);
-    }
-
-    /**
-     * @param reservationRequestIdentifier
-     * @return list of existing compartment requests for a {@link ReservationRequest} with the given identifier
-     */
-    public List<CompartmentRequest> listCompartmentRequests(Identifier reservationRequestIdentifier)
-    {
-        return compartmentRequestManager.list(reservationRequestIdentifier);
     }
 }
