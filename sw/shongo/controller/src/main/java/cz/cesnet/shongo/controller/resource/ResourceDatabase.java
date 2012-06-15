@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.reservation.ReservationRequest;
 import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

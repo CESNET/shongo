@@ -235,7 +235,9 @@ public class PeriodicDateTime extends DateTime
 
             // Enable/disable rule
             RuleType type = rule.getType();
-            assert (type == RuleType.Enable || type == RuleType.Disable) : "Rule type should be enable or disable.";
+            if (type != RuleType.Enable && type != RuleType.Disable) {
+                throw new IllegalStateException("Rule type should be enable or disable.");
+            }
             // Interval
             if (rule.isInterval()) {
                 AbsoluteDateTime ruleFrom = rule.getDateTimeFrom();
@@ -257,7 +259,7 @@ public class PeriodicDateTime extends DateTime
                 AbsoluteDateTime ruleDateTime = rule.getDateTime();
                 for (int index = 0; index < dateTimeList.size(); index++) {
                     AbsoluteDateTime dateTime = dateTimeList.get(index);
-                    if (dateTime.match(ruleDateTime)) {
+                    if (dateTime.equals(ruleDateTime)) {
                         if (type == RuleType.Enable) {
                             disabledSet.remove(index);
                         }

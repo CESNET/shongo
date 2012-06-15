@@ -1,19 +1,12 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
-import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.scheduler.Scheduler;
+import cz.cesnet.shongo.controller.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.NoResultException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A reservation database for domain controller.

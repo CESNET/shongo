@@ -9,9 +9,9 @@ package cz.cesnet.shongo.common;
 }
 
 @members {
-    int year = Date.NullValue;
-    int month = Date.NullValue;
-    int day = Date.NullValue;
+    public Integer year;
+    public Integer month;
+    public Integer day;
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e)

@@ -1,8 +1,7 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.PersistentObject;
-import cz.cesnet.shongo.common.Person;
 
 import javax.persistence.*;
 import java.util.ArrayList;

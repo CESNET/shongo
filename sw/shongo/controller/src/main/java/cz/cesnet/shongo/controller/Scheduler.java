@@ -1,11 +1,11 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.AbsoluteDateTime;
 import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
-import cz.cesnet.shongo.controller.reservation.Compartment;
-import cz.cesnet.shongo.controller.reservation.CompartmentRequest;
-import cz.cesnet.shongo.controller.reservation.CompartmentRequestManager;
-import cz.cesnet.shongo.controller.reservation.ReservationRequest;
+import cz.cesnet.shongo.controller.request.Compartment;
+import cz.cesnet.shongo.controller.request.CompartmentRequest;
+import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,47 +27,6 @@ import java.util.Map;
 public class Scheduler
 {
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
-
-    public static final class Epoch
-    {
-        /**
-         * Scheduler time span start.
-         */
-        private final AbsoluteDateTime from;
-
-        /**
-         * Scheduler time span end
-         */
-        private final AbsoluteDateTime to;
-
-        /**
-         * Constructor.
-         *
-         * @param from sets the {@link #from}
-         * @param to   sets the {@link #to}
-         */
-        public Epoch(AbsoluteDateTime from, AbsoluteDateTime to)
-        {
-            this.from = from;
-            this.to = to;
-        }
-
-        /**
-         * @return {@link #from}
-         */
-        public AbsoluteDateTime getFrom()
-        {
-            return from;
-        }
-
-        /**
-         * @return {@link #to}
-         */
-        public AbsoluteDateTime getTo()
-        {
-            return to;
-        }
-    }
 
     /**
      * Entity manager that is used for loading/saving reservation requests.
@@ -103,6 +62,36 @@ public class Scheduler
     }
 
     /**
+     * Initialize reservation database.
+     */
+    public void init()
+    {
+        if (entityManager == null) {
+            throw new IllegalStateException("Scheduler doesn't have the entity manager set!");
+        }
+        compartmentRequestManager = new CompartmentRequestManager(entityManager, this);
+
+        logger.debug("Starting scheduler...");
+    }
+
+    /**
+     * Destroy scheduler.
+     */
+    public void destroy()
+    {
+        logger.debug("Closing scheduler...");
+    }
+
+    /**
+     * Run scheduler for a given epoch.
+     * @param epoch
+     */
+    public void run(Epoch epoch)
+    {
+        // TODO: Refactor scheduler to be able to run it periodically even for different epochs
+    }
+
+    /**
      * @param entityManager sets the {@link #entityManager}
      */
     public void setEntityManager(EntityManager entityManager)
@@ -129,27 +118,6 @@ public class Scheduler
     public synchronized void setCurrentEpoch(AbsoluteDateTime from, AbsoluteDateTime to)
     {
         currentEpoch = new Epoch(from, to);
-    }
-
-    /**
-     * Initialize reservation database.
-     */
-    public void init()
-    {
-        if (entityManager == null) {
-            throw new IllegalStateException("Scheduler doesn't have the entity manager set!");
-        }
-        compartmentRequestManager = new CompartmentRequestManager(entityManager, this);
-
-        logger.debug("Starting scheduler...");
-    }
-
-    /**
-     * Destroy scheduler.
-     */
-    public void destroy()
-    {
-        logger.debug("Closing scheduler...");
     }
 
     public void onNewReservationRequest(ReservationRequest reservationRequest)

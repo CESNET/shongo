@@ -19,16 +19,30 @@ import java.util.TimeZone;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public final class Date implements Comparable<Date>, Cloneable, UserType
+public class Date implements Comparable<Date>, Cloneable, UserType
 {
     /**
-     * Null field value.
+     * Year of date.
      */
-    public static final int NullValue = Integer.MAX_VALUE;
+    protected int year;
 
-    private final int year;
-    private final int month;
-    private final int day;
+    /**
+     * Month of date.
+     */
+    protected int month;
+
+    /**
+     * Day of date.
+     */
+    protected int day;
+
+    /**
+     * Constructor.
+     */
+    public Date()
+    {
+        clear();
+    }
 
     /**
      * Construct date by field values.
@@ -39,34 +53,9 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
      */
     public Date(int year, int month, int day)
     {
-        if (year != NullValue && (year < 0 || year > 9999)) {
-            throw new IllegalArgumentException("Year should be in range 1 to 9999 or empty(" + year + ").");
-        }
-        if (month != NullValue && (month < 0 || month > 12)) {
-            throw new IllegalArgumentException("Month should be in range 1 to 12 or empty(" + month + ").");
-        }
-        if (day != NullValue && (day < 0 || day > 31)) {
-            throw new IllegalArgumentException("Day should be in range 1 to 31 or empty(" + day + ").");
-        }
-
-        this.year = (year == 0 ? NullValue : year);
-        this.month = (month == 0 ? NullValue : month);
-        this.day = (day == 0 ? NullValue : day);
-    }
-
-    public Date()
-    {
-        this(NullValue, NullValue, NullValue);
-    }
-
-    public Date(int year)
-    {
-        this(year, NullValue, NullValue);
-    }
-
-    public Date(int year, int month)
-    {
-        this(year, month, NullValue);
+        setYear(year);
+        setMonth(month);
+        setDay(day);
     }
 
     /**
@@ -76,13 +65,39 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
      */
     public Date(String date)
     {
+        fromString(date);
+    }
+
+    /**
+     * Clear all fields
+     */
+    protected void clear()
+    {
+        year = 1;
+        month = 1;
+        day = 1;
+    }
+
+    /**
+     * Parse date from string
+     *
+     * @param date
+     */
+    public void fromString(String date)
+    {
+        clear();
         try {
             DateParser parser = new DateParser(Parser.getTokenStream(date, DateLexer.class));
             parser.parse();
-
-            year = (parser.year == 0 ? NullValue : parser.year);
-            month = (parser.month == 0 ? NullValue : parser.month);
-            day = (parser.day == 0 ? NullValue : parser.day);
+            if (parser.year != null) {
+                setYear(parser.year);
+            }
+            if (parser.month != null) {
+                setMonth(parser.month);
+            }
+            if (parser.day != null) {
+                setDay(parser.day);
+            }
         }
         catch (Exception exception) {
             throw new IllegalArgumentException(
@@ -91,9 +106,7 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
     }
 
     /**
-     * Get date year.
-     *
-     * @return year
+     * @return {@link #year}
      */
     public int getYear()
     {
@@ -101,9 +114,18 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
     }
 
     /**
-     * Get date month.
-     *
-     * @return month
+     * @param year sets the {@link #year}
+     */
+    public void setYear(int year)
+    {
+        if (year <= 0 || year > 9999) {
+            throw new IllegalArgumentException("Year should be in range 1 to 9999 (" + year + ").");
+        }
+        this.year = year;
+    }
+
+    /**
+     * @return {@link #month}
      */
     public int getMonth()
     {
@@ -111,9 +133,18 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
     }
 
     /**
-     * Get date day.
-     *
-     * @return day
+     * @param month sets the {@link #month}
+     */
+    public void setMonth(int month)
+    {
+        if (month <= 0 || month > 12) {
+            throw new IllegalArgumentException("Month should be in range 1 to 12 (" + month + ").");
+        }
+        this.month = month;
+    }
+
+    /**
+     * @return {@link #day}
      */
     public int getDay()
     {
@@ -121,13 +152,15 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
     }
 
     /**
-     * Check whether all fields have NullValue.
-     *
-     * @return boolean
+     * @param day sets the {@link #day}
      */
-    public boolean isEmpty()
+    public void setDay(int day)
     {
-        return getYear() == NullValue && getMonth() == NullValue && getDay() == NullValue;
+        if (day <= 0 || day > 31) {
+            throw new IllegalArgumentException("Day should be in range 1 to 31 (" + day + ").");
+        }
+
+        this.day = day;
     }
 
     /**
@@ -137,19 +170,7 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
      */
     public String toString()
     {
-        int year = this.year;
-        if (year == NullValue) {
-            year = 0;
-        }
-        int month = this.month;
-        if (month == NullValue) {
-            month = 0;
-        }
-        int day = this.day;
-        if (day == NullValue) {
-            day = 0;
-        }
-        return String.format("%04d-%02d-%02d", year, month, day);
+        return String.format("%04d-%02d-%02d", getYear(), getMonth(), getDay());
     }
 
     @Override
@@ -178,9 +199,9 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
     public int hashCode()
     {
         int result = 13;
-        result = 37 * result + (year != NullValue ? year : 0);
-        result = 37 * result + (month != NullValue ? month : 0);
-        result = 37 * result + (day != NullValue ? day : 0);
+        result = 37 * result + getYear();
+        result = 37 * result + getMonth();
+        result = 37 * result + getDay();
         return result;
     }
 
@@ -191,101 +212,37 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             return 0;
         }
 
-        // Fields should be both empty or nonempty
-        if ((year == NullValue && date.year != NullValue) || (year != NullValue && date.year == NullValue)) {
-            throw new AssertionError("Can't compare dates with empty year in only one of them ["
-                    + toString() + ", " + date.toString() + "].");
-        }
-        if ((month == NullValue && date.month != NullValue) || (month != NullValue && date.month == NullValue)) {
-            throw new AssertionError("Can't compare dates with empty month in only one of them ["
-                    + toString() + ", " + date.toString() + "].");
-        }
-        if ((day == NullValue && date.day != NullValue) || (day != NullValue && date.day == NullValue)) {
-            throw new AssertionError("Can't compare dates with empty day in only one of them ["
-                    + toString() + ", " + date.toString() + "].");
-        }
-
         // Compare years
-        if (year != NullValue && date.year != NullValue) {
-            if (year < date.year) {
-                return -1;
-            }
-            else if (year > date.year) {
-                return 1;
-            }
+        if (year < date.year) {
+            return -1;
         }
-        else {
-            if (month != NullValue || date.month != NullValue) {
-                throw new IllegalStateException("Can't compare month with empty year. ("
-                        + toString() + ", " + date.toString() + ").");
-            }
-            if (day != NullValue || date.day != NullValue) {
-                throw new IllegalStateException("Can't compare day with empty year. ("
-                        + toString() + ", " + date.toString() + ").");
-            }
+        else if (year > date.year) {
+            return 1;
         }
 
         // Compare months
-        if (month != NullValue && date.month != NullValue) {
-            if (month < date.month) {
-                return -1;
-            }
-            else if (month > date.month) {
-                return 1;
-            }
+        if (month < date.month) {
+            return -1;
         }
-        else {
-            if (day != NullValue || date.day != NullValue) {
-                throw new IllegalStateException("Can't compare day with empty month. ("
-                        + toString() + ", " + date.toString() + ").");
-            }
+        else if (month > date.month) {
+            return 1;
         }
 
         // Compare days
-        if (day != NullValue && date.day != NullValue) {
-            if (day < date.day) {
-                return -1;
-            }
-            else if (day > date.day) {
-                return 1;
-            }
+        if (day < date.day) {
+            return -1;
+        }
+        else if (day > date.day) {
+            return 1;
         }
 
         return 0;
     }
 
     @Override
-    public Object clone()
+    public Date clone()
     {
         return new Date(year, month, day);
-    }
-
-    /**
-     * Checks whether this date equals the given date by skipping
-     * all empty fields (in this or given date).
-     *
-     * @param date
-     * @return true if this date matches the given date,
-     *         false otherwise
-     */
-    public boolean match(Date date)
-    {
-        if (this == date) {
-            return true;
-        }
-        if (date == null) {
-            return false;
-        }
-        if (year != NullValue && date.year != NullValue && year != date.year) {
-            return false;
-        }
-        if (month != NullValue && date.month != NullValue && month != date.month) {
-            return false;
-        }
-        if (day != NullValue && date.day != NullValue && day != date.day) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -296,10 +253,7 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
      */
     public Date add(Date date)
     {
-        int year = (date.year != NullValue ? date.year : 0);
-        int month = (date.month != NullValue ? date.month : 0);
-        int day = (date.day != NullValue ? date.day : 0);
-        return add(year, month, day);
+        return add(date.getYear(), date.getMonth(), date.getDay());
     }
 
     /**
@@ -317,9 +271,6 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         int resultDay = this.day;
 
         if (month > 0) {
-            if (resultMonth == NullValue) {
-                throw new IllegalStateException("Can't add to month because it is empty.");
-            }
             resultMonth += month;
             resultMonth -= 1;
             if (resultMonth >= 12) {
@@ -330,23 +281,10 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         }
 
         if (year > 0) {
-            if (resultYear == NullValue) {
-                throw new IllegalStateException("Can't add to year because it is empty.");
-            }
             resultYear += year;
         }
 
         if (day > 0) {
-            if (resultDay == NullValue) {
-                throw new IllegalStateException("Can't add to day because it is empty.");
-            }
-            if (resultMonth == NullValue) {
-                throw new IllegalStateException("Can't add to day because month is empty.");
-            }
-            if (resultYear == NullValue) {
-                throw new IllegalStateException("Can't add to day because year is empty.");
-            }
-
             // Add days by Calendar in UTC timezone
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             calendar.set(resultYear, resultMonth - 1, resultDay);
@@ -356,7 +294,11 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             resultDay = calendar.get(Calendar.DAY_OF_MONTH);
         }
 
-        return new Date(resultYear, resultMonth, resultDay);
+        Date date = this.clone();
+        date.year = resultYear;
+        date.month = resultMonth;
+        date.day = resultDay;
+        return date;
     }
 
     /**
@@ -367,10 +309,7 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
      */
     public Date subtract(Date date)
     {
-        int year = (date.year != NullValue ? date.year : 0);
-        int month = (date.month != NullValue ? date.month : 0);
-        int day = (date.day != NullValue ? date.day : 0);
-        return subtract(year, month, day);
+        return subtract(date.getYear(), date.getMonth(), date.getDay());
     }
 
     /**
@@ -388,9 +327,6 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         int resultDay = this.day;
 
         if (month > 0) {
-            if (resultMonth == NullValue) {
-                throw new IllegalStateException("Can't subtract from month because it is empty.");
-            }
             resultMonth -= month;
             resultMonth -= 1;
             if (resultMonth < 0) {
@@ -405,23 +341,10 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
         }
 
         if (year > 0) {
-            if (resultYear == NullValue) {
-                throw new IllegalStateException("Can't subtract from year because it is empty.");
-            }
             resultYear -= year;
         }
 
         if (day > 0) {
-            if (resultDay == NullValue) {
-                throw new IllegalStateException("Can't subtract from day because it is empty.");
-            }
-            if (resultMonth == NullValue) {
-                throw new IllegalStateException("Can't subtract from day because month is empty.");
-            }
-            if (resultYear == NullValue) {
-                throw new IllegalStateException("Can't subtract from day because year is empty.");
-            }
-
             // Add days by Calendar in UTC timezone
             Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
             calendar.set(resultYear, resultMonth - 1, resultDay);
@@ -431,30 +354,17 @@ public final class Date implements Comparable<Date>, Cloneable, UserType
             resultDay = calendar.get(Calendar.DAY_OF_MONTH);
         }
 
-        return new Date(resultYear, resultMonth, resultDay);
-    }
-
-    /**
-     * Merge this date with given date and return
-     * result. This and given date stay unchanged.
-     * <p/>
-     * The returned date contains values from this date
-     * replaced by non-empty values from given date.
-     *
-     * @param date Date to merge
-     */
-    public Date merge(Date date)
-    {
-        int resultYear = (date.year != NullValue ? date.year : year);
-        int resultMonth = (date.month != NullValue ? date.month : month);
-        int resultDay = (date.day != NullValue ? date.day : day);
-        return new Date(resultYear, resultMonth, resultDay);
+        Date date = this.clone();
+        date.year = resultYear;
+        date.month = resultMonth;
+        date.day = resultDay;
+        return date;
     }
 
     @Override
     public int[] sqlTypes()
     {
-        return new int[]{Types.VARCHAR};
+        return new int[]{Types.DATE};
     }
 
     @Override

@@ -20,13 +20,6 @@ public class DateTest
     }
 
     @Test
-    public void testIsEmpty() throws Exception
-    {
-        assertTrue(new Date().isEmpty());
-        assertFalse(new Date("2012-01-01").isEmpty());
-    }
-
-    @Test
     public void testFromString() throws Exception
     {
         assertEquals(new Date("2012-01-02"), new Date("20120102"));
@@ -38,8 +31,8 @@ public class DateTest
     public void testToString() throws Exception
     {
         assertEquals("2012-01-02", new Date("20120102").toString());
-        assertEquals("2012-01-00", new Date("201201").toString());
-        assertEquals("2012-00-00", new Date("2012").toString());
+        assertEquals("2012-01-01", new Date("201201").toString());
+        assertEquals("2012-01-01", new Date("2012").toString());
     }
 
     @Test
@@ -51,42 +44,16 @@ public class DateTest
     }
 
     @Test
-    public void testMatch() throws Exception
-    {
-        assertTrue(new Date("2012-01-02").match(new Date("20120102")));
-        assertTrue(new Date("2012-01").match(new Date("20120102")));
-        assertTrue(new Date("2012-01").match(new Date("20120103")));
-        assertTrue(new Date("2012").match(new Date("20120101")));
-        assertTrue(new Date("2012").match(new Date("20120201")));
-    }
-
-    @Test
     public void testCompareTo() throws Exception
     {
-        Date date1 = new Date("2012-01-01");
-        Date date2 = new Date("2012-01");
-        Date date3 = new Date("201201");
-        Date date4 = new Date("2011-01-01");
-        Date date5 = new Date("2012-01-02");
+        Date date1 = new Date("2012-05-01");
+        Date date2 = new Date("20120501");
+        Date date3 = new Date("2011-01-01");
+        Date date4 = new Date("2012-01-02");
 
-        try {
-
-            assertEquals(0, date1.compareTo(date2));
-            fail("Exception should be thrown.");
-        }
-        catch (Exception error) {
-        }
-
-        try {
-            assertEquals(0, date2.compareTo(date1));
-            fail("Exception should be thrown.");
-        }
-        catch (Exception error) {
-        }
-
-        assertEquals(0, date2.compareTo(date3));
-        assertEquals(-1, date4.compareTo(date5));
-        assertEquals(1, date5.compareTo(date4));
+        assertEquals(0, date1.compareTo(date2));
+        assertEquals(-1, date3.compareTo(date4));
+        assertEquals(1, date4.compareTo(date3));
     }
 
     @Test
@@ -95,7 +62,7 @@ public class DateTest
         assertEquals(new Date("2015-01-31"), new Date("2012-12-31").add(2, 1, 0));
         assertEquals(new Date("2013-12-31"), new Date("2012-12-31").add(0, 12, 0));
         assertEquals(new Date("2015-01-31"), new Date("2012-12-31").add(0, 25, 0));
-        assertEquals(new Date("2012-02-29"), new Date("2011-01-28").add(1, 1, 1));
+        assertEquals(new Date("2012-02-29"), new Date("2011-01-28").add(new Date("0001-01-01")));
         assertEquals(new Date("2013-03-01"), new Date("2011-01-28").add(2, 1, 1));
         assertEquals(new Date("2014-03-01"), new Date("2011-01-28").add(3, 1, 1));
         assertEquals(new Date("2015-03-01"), new Date("2011-01-28").add(4, 1, 1));

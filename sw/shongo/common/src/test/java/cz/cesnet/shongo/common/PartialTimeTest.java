@@ -5,20 +5,29 @@ import org.junit.Test;
 import static junit.framework.Assert.*;
 import static junitx.framework.Assert.assertNotEquals;
 
+// TODO: Check all PartialTime tests
+
 /**
  * Time tests
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TimeTest
+public class PartialTimeTest
 {
     @Test
     public void testGetters() throws Exception
     {
-        Time time = new Time("12:01:02");
+        PartialTime time = new PartialTime("12:01:02");
         assertEquals(12, time.getHour());
         assertEquals(01, time.getMinute());
         assertEquals(02, time.getSecond());
+    }
+
+    @Test
+    public void testIsEmpty() throws Exception
+    {
+        assertTrue(new PartialTime().isEmpty());
+        assertFalse(new PartialTime("12:01:01").isEmpty());
     }
 
     @Test
@@ -32,9 +41,9 @@ public class TimeTest
     @Test
     public void testToString() throws Exception
     {
-        assertEquals("12:01:02", new Time("120102").toString());
-        assertEquals("12:01:00", new Time("1201").toString());
-        assertEquals("12:00:00", new Time("12").toString());
+        assertEquals("12:01:02", new PartialTime("120102").toString());
+        assertEquals("12:01", new PartialTime("1201").toString());
+        assertEquals("12", new PartialTime("12").toString());
     }
 
     @Test
@@ -44,20 +53,27 @@ public class TimeTest
         assertEquals(new Time("12:01"), new Time("1201"));
         assertNotEquals(new Time("12:01"), new Time("120102"));
         assertNotEquals(new Time("12"), new Time("120101"));
+        assertEquals(new PartialTime("12:01:02"), new Time("120102"));
+        assertEquals(new PartialTime("12:01"), new Time("120101"));
+        assertEquals(new PartialTime("12:01"), new Time("120102"));
+        assertEquals(new PartialTime("12"), new Time("120101"));
+        assertEquals(new PartialTime("12"), new Time("120201"));
     }
 
     @Test
     public void testCompareTo() throws Exception
     {
-        Time time1 = new Time("12:01");
-        Time time2 = new Time("1201");
-        Time time3 = new Time("11:01:01");
-        Time time4 = new Time("12:01:02");
+        PartialTime time1 = new PartialTime("12:01:01");
+        PartialTime time2 = new PartialTime("12:01");
+        PartialTime time3 = new PartialTime("1201");
+        PartialTime time4 = new PartialTime("11:01:01");
+        PartialTime time5 = new PartialTime("12:01:02");
 
-        assertEquals(-1, time1.compareTo(time4));
         assertEquals(0, time1.compareTo(time2));
-        assertEquals(-1, time3.compareTo(time4));
-        assertEquals(1, time4.compareTo(time3));
+        assertEquals(0, time2.compareTo(time1));
+        assertEquals(0, time2.compareTo(time3));
+        assertEquals(-1, time4.compareTo(time5));
+        assertEquals(1, time5.compareTo(time4));
     }
 
     @Test

@@ -1,8 +1,8 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbstractManager;
 import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.controller.scheduler.Scheduler;
+import cz.cesnet.shongo.controller.Scheduler;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -100,7 +100,7 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param identifier
-     * @return {@link cz.cesnet.shongo.controller.reservation.ReservationRequest} with given identifier or null if the request not exists
+     * @return {@link cz.cesnet.shongo.controller.request.ReservationRequest} with given identifier or null if the request not exists
      */
     public ReservationRequest get(Identifier identifier)
     {

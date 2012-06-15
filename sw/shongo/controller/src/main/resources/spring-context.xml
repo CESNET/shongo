@@ -21,11 +21,11 @@
         <property name="domain"><ref bean="domain"/></property>
         <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
-    <bean id="reservationDatabase" class="cz.cesnet.shongo.controller.reservation.ReservationDatabase" init-method="init" destroy-method="destroy">
+    <bean id="reservationDatabase" class="cz.cesnet.shongo.controller.request.ReservationDatabase" init-method="init" destroy-method="destroy">
         <property name="domain"><ref bean="domain"/></property>
         <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
-    <bean id="scheduler" class="cz.cesnet.shongo.controller.scheduler.Scheduler" destroy-method="destroy">
+    <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler" destroy-method="destroy">
         <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
 

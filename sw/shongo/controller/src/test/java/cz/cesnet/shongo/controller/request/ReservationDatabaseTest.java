@@ -1,13 +1,12 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.*;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.resource.Technology;
-import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.junit.Test;
 
-import java.nio.charset.CoderMalfunctionError;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;

@@ -1,10 +1,9 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.AbstractManager;
-import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.Person;
-import cz.cesnet.shongo.controller.scheduler.Scheduler;
+import cz.cesnet.shongo.controller.Scheduler;
 
 import javax.persistence.EntityManager;
 import java.util.List;

@@ -234,7 +234,7 @@ public class DeviceResource extends Resource
     public void setType(Type type)
     {
         if (type != Type.DEVICE) {
-            throw new RuntimeException("Device resource must be always of resource type device.");
+            throw new IllegalArgumentException("Device resource must be always of resource type device.");
         }
     }
 

@@ -1,8 +1,7 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.common.PersistentObject;
-import cz.cesnet.shongo.controller.reservation.CompartmentRequest;
-import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.request.CompartmentRequest;
 
 import javax.persistence.*;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 /**
  * Represents enumeration of who will initiate a videoconference call.

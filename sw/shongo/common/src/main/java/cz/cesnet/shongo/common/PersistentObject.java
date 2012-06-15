@@ -4,8 +4,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
-import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**

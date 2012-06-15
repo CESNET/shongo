@@ -10,7 +10,7 @@ import java.util.UUID;
  * <identifier> = "shongo:" <type> ":" <domain> ":" <uuid>
  * <type>       = "reservation" | "resource"
  * <domain>     = <STRING> ("." <STRING>)*
- * <uuid>       = <HEXDIGIT>{32}
+ * <uuid>       = <HEX_DIGIT>{36}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -66,7 +66,7 @@ public final class Identifier
                 return RESERVATION;
             }
             else {
-                throw new RuntimeException("Failed to convert '" + type + "' to " + Type.class.getName() + "!");
+                throw new IllegalArgumentException("Failed to convert '" + type + "' to " + Type.class.getName() + "!");
             }
         }
     }
@@ -102,7 +102,7 @@ public final class Identifier
             uuid = UUID.fromString(parser.uuid);
         }
         catch (Exception exception) {
-            throw new RuntimeException(
+            throw new IllegalArgumentException(
                     String.format("Failed to parse identifier '%s': %s", identifier, exception.getMessage()));
         }
     }
@@ -149,13 +149,6 @@ public final class Identifier
      */
     public String toString()
     {
-        StringBuilder builder = new StringBuilder();
-        builder.append("shongo:");
-        builder.append(type);
-        builder.append(":");
-        builder.append(domain);
-        builder.append(":");
-        builder.append(uuid.toString());
-        return builder.toString();
+        return String.format("shongo:%s:%s:%s", type, domain, uuid.toString());
     }
 }

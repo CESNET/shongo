@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.*;
 
@@ -55,7 +55,7 @@ public class ReservationRequest extends PersistentObject
     private Identifier identifier;
 
     /**
-     * Type of the reservation Permanent reservation are created by resource owners to
+     * Type of the reservation. Permanent reservation are created by resource owners to
      * allocate the resource for theirs activity.
      */
     private Type type = Type.NORMAL;
@@ -83,7 +83,7 @@ public class ReservationRequest extends PersistentObject
     private List<Compartment> requestedCompartments = new ArrayList<Compartment>();
 
     /**
-     * Specify the default option who should initiate the call for all requested resources.
+     * Specifies the default option who should initiate the call for all requested resources.
      */
     private CallInitiation callInitiation;
 

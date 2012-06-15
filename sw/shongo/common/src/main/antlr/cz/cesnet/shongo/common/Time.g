@@ -9,9 +9,9 @@ package cz.cesnet.shongo.common;
 }
 
 @members {
-    public int hour = Time.NullValue;
-    public int minute = Time.NullValue;
-    public int second = Time.NullValue;
+    public Integer hour;
+    public Integer minute;
+    public Integer second;
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e)

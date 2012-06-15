@@ -11,19 +11,20 @@ import javax.persistence.*;
 public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDateTime>, Cloneable
 {
     /**
-     * Null field value.
+     * Date of absolute date/time.
      */
-    public final int NullValue = Integer.MAX_VALUE;
-
-    private final Date date;
-    private final Time time;
+    protected Date date;
 
     /**
-     * Construct zero date/time.
+     * Time of absolute date/time.
      */
-    public AbsoluteDateTime()
+    protected Time time;
+
+    /**
+     * Constructor
+     */
+    protected AbsoluteDateTime()
     {
-        this(new Date(), new Time());
     }
 
     /**
@@ -35,13 +36,23 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     {
         int index = dateTime.indexOf("T");
         if (index == -1) {
-            date = new Date(dateTime);
-            time = new Time();
+            setDate(dateTime);
         }
         else {
-            date = new Date(dateTime.substring(0, index));
-            time = new Time(dateTime.substring(index + 1, dateTime.length()));
+            setDate(dateTime.substring(0, index));
+            setTime(dateTime.substring(index + 1, dateTime.length()));
         }
+    }
+
+    /**
+     * Construct date/time from an date object. Date object became part
+     * of date/time so when date is modified date become modified too.
+     *
+     * @param date Date object
+     */
+    public AbsoluteDateTime(Date date)
+    {
+        setDate(date);
     }
 
     /**
@@ -54,8 +65,8 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public AbsoluteDateTime(Date date, Time time)
     {
-        this.date = date;
-        this.time = time;
+        setDate(date);
+        setTime(time);
     }
 
     /**
@@ -71,6 +82,30 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     }
 
     /**
+     * @param date sets the {@link #date}
+     */
+    protected void setDate(Date date)
+    {
+        this.date = date;
+    }
+
+    /**
+     * @param date sets the {@link #date} from string
+     */
+    protected void setDate(String date)
+    {
+        this.date = new Date(date);
+    }
+
+    /**
+     * @return true if {@link #date} is not null, otherwise false
+     */
+    public boolean hasDate()
+    {
+        return date != null;
+    }
+
+    /**
      * Get date/time time.
      *
      * @return time.
@@ -80,6 +115,30 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     public Time getTime()
     {
         return time;
+    }
+
+    /**
+     * @param time sets the {@link #time}
+     */
+    protected void setTime(Time time)
+    {
+        this.time = time;
+    }
+
+    /**
+     * @param time sets the {@link #time} from string
+     */
+    protected void setTime(String time)
+    {
+        this.time = new Time(time);
+    }
+
+    /**
+     * @return true if {@link #time} is not null, otherwise false
+     */
+    public boolean hasTime()
+    {
+        return time != null;
     }
 
     /**
@@ -123,6 +182,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     @Transient
     public int getHour()
     {
+        if (hasTime() == false) {
+            throw new IllegalStateException("Time is not set!");
+        }
         return getTime().getHour();
     }
 
@@ -134,6 +196,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     @Transient
     public int getMinute()
     {
+        if (hasTime() == false) {
+            throw new IllegalStateException("Time is not set!");
+        }
         return getTime().getMinute();
     }
 
@@ -145,6 +210,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     @Transient
     public int getSecond()
     {
+        if (hasTime() == false) {
+            throw new IllegalStateException("Time is not set!");
+        }
         return getTime().getSecond();
     }
 
@@ -156,8 +224,10 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     public String toString()
     {
         StringBuilder dateTime = new StringBuilder();
-        dateTime.append(getDate().toString());
-        if (getTime().isEmpty() == false) {
+        if (hasDate()) {
+            dateTime.append(getDate().toString());
+        }
+        if (hasTime()) {
             dateTime.append("T");
             dateTime.append(getTime().toString());
         }
@@ -183,15 +253,25 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
             return false;
         }
         AbsoluteDateTime dateTime = (AbsoluteDateTime) object;
-        return getDate().equals(dateTime.getDate()) && getTime().equals(dateTime.getTime());
+
+        if (getDate().equals(dateTime.getDate()) == false) {
+            return false;
+        }
+        if (hasTime() == false && dateTime.hasTime() == false) {
+            return true;
+        }
+        if ((hasTime() == false && dateTime.hasTime()) || (hasTime() && dateTime.hasTime() == false)) {
+            return false;
+        }
+        return getTime().equals(dateTime.getTime());
     }
 
     @Override
     public int hashCode()
     {
         int result = 19;
-        result = 37 * result + date.hashCode();
-        result = 37 * result + time.hashCode();
+        result = 37 * result + getDate().hashCode();
+        result = 37 * result + getTime().hashCode();
         return result;
     }
 
@@ -207,7 +287,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
             return dateResult;
         }
 
-        if (getTime().isEmpty() || absoluteDateTime.getTime().isEmpty()) {
+        if (hasTime() == false || absoluteDateTime.hasTime() == false) {
             return 0;
         }
 
@@ -223,25 +303,6 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
     public AbsoluteDateTime clone()
     {
         return new AbsoluteDateTime(date, time);
-    }
-
-    /**
-     * Checks whether this date/time equals the given date/time by skipping
-     * all empty fields (in this or given date/time).
-     *
-     * @param dateTime
-     * @return true if this date/time matches the given date/time,
-     *         false otherwise
-     */
-    public boolean match(AbsoluteDateTime dateTime)
-    {
-        if (this == dateTime) {
-            return true;
-        }
-        if (dateTime == null) {
-            return false;
-        }
-        return getDate().match(dateTime.getDate()) && getTime().match(dateTime.getTime());
     }
 
     /**
@@ -301,7 +362,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         period.normalize();
 
         Time time = getTime();
-        time = time.add(period.getHour(), period.getMinute(), period.getSecond());
+        if (time != null) {
+            time = time.add(period.getHour(), period.getMinute(), period.getSecond());
+        }
 
         Date date = getDate();
         date = date.add(period.getYear(), period.getMonth(), period.getDay() + time.getOverflow());
@@ -322,7 +385,9 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
         period.normalize();
 
         Time time = getTime();
-        time = time.subtract(period.getHour(), period.getMinute(), period.getSecond());
+        if (time != null) {
+            time = time.subtract(period.getHour(), period.getMinute(), period.getSecond());
+        }
 
         Date date = getDate();
         date = date.subtract(period.getYear(), period.getMonth(), period.getDay() + time.getUnderflow());
@@ -341,6 +406,7 @@ public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDat
      */
     public AbsoluteDateTime merge(AbsoluteDateTime dateTime)
     {
-        return new AbsoluteDateTime(date.merge(dateTime.getDate()), time.merge(dateTime.getTime()));
+        return new AbsoluteDateTime(dateTime.hasDate() ? dateTime.getDate() : getDate(),
+                dateTime.hasTime() ? dateTime.getTime() : getTime());
     }
 }

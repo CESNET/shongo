@@ -47,6 +47,8 @@ public abstract class AbstractDatabaseTest
     @After
     public void tearDown()
     {
-        entityManager.close();
+        if ( entityManager != null ) {
+            entityManager.close();
+        }
     }
 }

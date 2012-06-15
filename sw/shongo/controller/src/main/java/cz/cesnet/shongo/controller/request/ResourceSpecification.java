@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.reservation;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.common.Person;

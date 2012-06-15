@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler;
+package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.PersistentObject;

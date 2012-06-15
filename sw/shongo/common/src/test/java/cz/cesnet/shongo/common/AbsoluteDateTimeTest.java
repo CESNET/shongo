@@ -21,7 +21,7 @@ public class AbsoluteDateTimeTest
     @Test
     public void testToString() throws Exception
     {
-        assertEquals("0000-00-00", new AbsoluteDateTime().toString());
+        assertEquals("", new AbsoluteDateTime().toString());
         assertEquals("2007-04-05T14:30:00", new AbsoluteDateTime("2007-04-05T14:30:00").toString());
     }
 
@@ -29,17 +29,17 @@ public class AbsoluteDateTimeTest
     public void testFromString() throws Exception
     {
         assertEquals("Omitting some date/time parts should work",
-                "2007-04-00T14:30", new AbsoluteDateTime("2007-04T14:30").toString());
+                "2007-04-01T14:30:00", new AbsoluteDateTime("2007-04T14:30").toString());
         assertEquals("Omitting some date/time parts should work",
-                "2007-00-00T14", new AbsoluteDateTime("2007T14").toString());
+                "2007-01-01T14:00:00", new AbsoluteDateTime("2007T14").toString());
 
         assertEquals("ISO short time format should be supported",
-                "2007-04-05T14:30", new AbsoluteDateTime("20070405T1430").toString());
+                "2007-04-05T14:30:00", new AbsoluteDateTime("20070405T1430").toString());
         assertEquals("ISO short date/time format should be supported",
                 "2007-04-05T14:30:00", new AbsoluteDateTime("20070405T143000").toString());
 
         assertEquals("Extra whitespace in the datetime string should be accepted as an extension to ISO 8601",
-                "2007-04-05T14:30", new AbsoluteDateTime("2007-04-05 T14:30").toString());
+                "2007-04-05T14:30:00", new AbsoluteDateTime("2007-04-05 T14:30").toString());
     }
 
     @Test
@@ -47,15 +47,7 @@ public class AbsoluteDateTimeTest
     {
         assertEquals(absoluteDateTime, absoluteDateTime);
         assertEquals(new AbsoluteDateTime("20070405T1430"), new AbsoluteDateTime("2007-04-05 T14:30"));
-        assertEquals(new AbsoluteDateTime("20070400T14"), new AbsoluteDateTime("2007-04-00T14"));
-    }
-
-    @Test
-    public void testMatch() throws Exception
-    {
-        assertTrue(absoluteDateTime.match(absoluteDateTime));
-        assertTrue(new AbsoluteDateTime("20070405T143000").match(new AbsoluteDateTime("2007-04-05 T14:30")));
-        assertTrue(new AbsoluteDateTime("20070400T14").match(new AbsoluteDateTime("2007-04-00T14:00:00")));
+        assertEquals(new AbsoluteDateTime("20070401T14"), new AbsoluteDateTime("2007-04-01T14"));
     }
 
     @Test

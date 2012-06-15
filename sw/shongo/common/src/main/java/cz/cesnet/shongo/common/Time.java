@@ -17,17 +17,36 @@ import java.sql.Types;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public final class Time implements Comparable<Time>, Cloneable, UserType
+public class Time implements Comparable<Time>, Cloneable, UserType
 {
     /**
-     * Null field value.
+     * Hour of time.
      */
-    public static final int NullValue = Integer.MAX_VALUE;
+    protected int hour;
 
-    private final int hour;
-    private final int minute;
-    private final int second;
-    private final int overflow;
+    /**
+     * Minute of time.
+     */
+    protected int minute;
+
+    /**
+     * Second of time.
+     */
+    protected int second;
+
+    /**
+     * Positive number means overflow, negative number means underflow which
+     * was made in add or subtract operation.
+     */
+    protected int overflow;
+
+    /**
+     * Constructor.
+     */
+    public Time()
+    {
+        clear();
+    }
 
     /**
      * Construct time by field values.
@@ -36,42 +55,27 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      * @param minute
      * @param second
      */
-    public Time(int hour, int minute, int second, int overflow)
-    {
-        if (hour != NullValue && (hour < 0 || hour > 23)) {
-            throw new IllegalArgumentException("Hour should be in range 0 to 23 (" + hour + ").");
-        }
-        if (minute != NullValue && (minute < 0 || minute > 59)) {
-            throw new IllegalArgumentException("Minute should be in range 0 to 59 (" + minute + ").");
-        }
-        if (second != NullValue && (second < 0 || second > 59)) {
-            throw new IllegalArgumentException("Second should be in range 0 to 59 (" + second + ").");
-        }
-
-        this.hour = hour;
-        this.minute = minute;
-        this.second = second;
-        this.overflow = overflow;
-    }
-
-    public Time()
-    {
-        this(NullValue, NullValue, NullValue, 0);
-    }
-
-    public Time(int hour)
-    {
-        this(hour, NullValue, NullValue, 0);
-    }
-
-    public Time(int hour, int minute)
-    {
-        this(hour, minute, NullValue, 0);
-    }
-
     public Time(int hour, int minute, int second)
     {
-        this(hour, minute, second, 0);
+        setHour(hour);
+        setMinute(minute);
+        setSecond(second);
+    }
+
+    /**
+     * Construct time by field values.
+     *
+     * @param hour
+     * @param minute
+     * @param second
+     * @param overflow
+     */
+    public Time(int hour, int minute, int second, int overflow)
+    {
+        setHour(hour);
+        setMinute(minute);
+        setSecond(second);
+        this.overflow = overflow;
     }
 
     /**
@@ -81,14 +85,41 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      */
     public Time(String time)
     {
+        fromString(time);
+    }
+
+    /**
+     * Clear all fields
+     */
+    public void clear()
+    {
+        hour = 0;
+        minute = 0;
+        second = 0;
+        overflow = 0;
+    }
+
+    /**
+     * Parse time from string
+     *
+     * @param time
+     */
+    public void fromString(String time)
+    {
+        clear();
         try {
             TimeParser parser = new TimeParser(Parser.getTokenStream(time, TimeLexer.class));
             parser.parse();
 
-            hour = parser.hour;
-            minute = parser.minute;
-            second = parser.second;
-            overflow = 0;
+            if (parser.hour != null) {
+                setHour(parser.hour);
+            }
+            if (parser.minute != null) {
+                setMinute(parser.minute);
+            }
+            if (parser.second != null) {
+                setSecond(parser.second);
+            }
         }
         catch (Exception exception) {
             throw new IllegalArgumentException(
@@ -97,9 +128,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     }
 
     /**
-     * Get time hour.
-     *
-     * @return hour
+     * @return {@link #hour}
      */
     public int getHour()
     {
@@ -107,9 +136,19 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     }
 
     /**
-     * Get time minute.
-     *
-     * @return minute
+     * @param hour sets the {@link #hour}
+     */
+    public void setHour(int hour)
+    {
+        if (hour < 0 || hour > 23) {
+            throw new IllegalArgumentException("Hour should be in range 0 to 23 (" + hour + ").");
+        }
+        this.hour = hour;
+        this.overflow = 0;
+    }
+
+    /**
+     * @return {@link #minute}
      */
     public int getMinute()
     {
@@ -117,9 +156,19 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     }
 
     /**
-     * Get time second.
-     *
-     * @return second
+     * @param minute sets the {@link #minute}
+     */
+    public void setMinute(int minute)
+    {
+        if (minute < 0 || minute > 59) {
+            throw new IllegalArgumentException("Minute should be in range 0 to 59 (" + minute + ").");
+        }
+        this.minute = minute;
+        this.overflow = 0;
+    }
+
+    /**
+     * @return {@link #second}
      */
     public int getSecond()
     {
@@ -127,13 +176,15 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     }
 
     /**
-     * Check whether all fields have NullValue.
-     *
-     * @return boolean
+     * @param second sets the {@link #second}
      */
-    public boolean isEmpty()
+    public void setSecond(int second)
     {
-        return hour == NullValue && minute == NullValue && second == NullValue;
+        if (second < 0 || second > 59) {
+            throw new IllegalArgumentException("Second should be in range 0 to 59 (" + second + ").");
+        }
+        this.second = second;
+        this.overflow = 0;
     }
 
     /**
@@ -144,15 +195,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     public String toString()
     {
         StringBuilder time = new StringBuilder();
-        if (hour != NullValue) {
-            time.append(String.format("%02d", hour));
-            if (minute != NullValue) {
-                time.append(String.format(":%02d", minute));
-                if (second != NullValue) {
-                    time.append(String.format(":%02d", second));
-                }
-            }
-        }
+        time.append(String.format("%02d:%02d:%02d", getHour(), getMinute(), getSecond()));
         return time.toString();
     }
 
@@ -182,9 +225,9 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
     public int hashCode()
     {
         int result = 13;
-        result = 37 * result + (hour != NullValue ? hour : 0);
-        result = 37 * result + (minute != NullValue ? minute : 0);
-        result = 37 * result + (second != NullValue ? second : 0);
+        result = 37 * result + getHour();
+        result = 37 * result + getMinute();
+        result = 37 * result + getSecond();
         return result;
     }
 
@@ -195,101 +238,37 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             return 0;
         }
 
-        // Fields should be both empty or nonempty
-        if (hour == NullValue && time.hour != NullValue || hour != NullValue && time.hour == NullValue) {
-            throw new IllegalStateException("Can't compare times with empty hour in only one of them ("
-                    + toString() + ", " + time.toString() + ").");
-        }
-        if (minute == NullValue && time.minute != NullValue || minute != NullValue && time.minute == NullValue) {
-            throw new IllegalStateException("Can't compare times with empty minute in only one of them ("
-                    + toString() + ", " + time.toString() + ").");
-        }
-        if (second == NullValue && time.second != NullValue || second != NullValue && time.second == NullValue) {
-            throw new IllegalStateException("Can't compare times with empty second in only one of them ("
-                    + toString() + ", " + time.toString() + ").");
-        }
-
         // Compare hours
-        if (hour != NullValue && time.hour != NullValue) {
-            if (hour < time.hour) {
-                return -1;
-            }
-            else if (hour > time.hour) {
-                return 1;
-            }
+        if (hour < time.hour) {
+            return -1;
         }
-        else {
-            if (minute != NullValue || time.minute != NullValue) {
-                throw new IllegalStateException("Can't compare minutes with empty hours. ("
-                        + toString() + ", " + time.toString() + ").");
-            }
-            if (second != NullValue || time.second != NullValue) {
-                throw new IllegalStateException("Can't compare seconds with empty hours. ("
-                        + toString() + ", " + time.toString() + ").");
-            }
+        else if (hour > time.hour) {
+            return 1;
         }
 
         // Compare minutes
-        if (minute != NullValue && this.minute != NullValue) {
-            if (minute < time.minute) {
-                return -1;
-            }
-            else if (minute > time.minute) {
-                return 1;
-            }
+        if (minute < time.minute) {
+            return -1;
         }
-        else {
-            if (second != NullValue || time.second != NullValue) {
-                throw new IllegalStateException("Can't compare seconds with empty minutes. ("
-                        + toString() + ", " + time.toString() + ").");
-            }
+        else if (minute > time.minute) {
+            return 1;
         }
 
         // Compare seconds
-        if (second != NullValue && time.second != NullValue) {
-            if (second < time.second) {
-                return -1;
-            }
-            else if (second > this.second) {
-                return 0;
-            }
+        if (second < time.second) {
+            return -1;
+        }
+        else if (second > this.second) {
+            return 0;
         }
 
         return 0;
     }
 
     @Override
-    public Object clone()
+    public Time clone()
     {
         return new Time(hour, minute, second);
-    }
-
-    /**
-     * Checks whether this time equals the given time by skipping
-     * all empty fields (in this or given time).
-     *
-     * @param time
-     * @return true if this time matches the given time,
-     *         false otherwise
-     */
-    public boolean match(Time time)
-    {
-        if (this == time) {
-            return true;
-        }
-        if (time == null) {
-            return false;
-        }
-        if (hour != NullValue && time.hour != NullValue && hour != time.hour) {
-            return false;
-        }
-        if (minute != NullValue && time.minute != NullValue && minute != time.minute) {
-            return false;
-        }
-        if (second != NullValue && time.second != NullValue && second != time.second) {
-            return false;
-        }
-        return true;
     }
 
     /**
@@ -300,10 +279,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      */
     public Time add(Time time)
     {
-        int hour = (time.hour != NullValue ? time.hour : 0);
-        int minute = (time.minute != NullValue ? time.minute : 0);
-        int second = (time.second != NullValue ? time.second : 0);
-        return add(hour, minute, second);
+        return add(time.getHour(), time.getMinute(), time.getSecond());
     }
 
     /**
@@ -322,9 +298,6 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         int resultOverflow = 0;
 
         if (second > 0) {
-            if (resultSecond == NullValue) {
-                throw new IllegalStateException("Can't add to seconds because it is empty.");
-            }
             resultSecond += second;
             if (resultSecond >= 60) {
                 minute += resultSecond / 60;
@@ -333,9 +306,6 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (minute > 0) {
-            if (resultMinute == NullValue) {
-                throw new IllegalStateException("Can't add to minutes because it is empty.");
-            }
             resultMinute += minute;
             if (resultMinute >= 60) {
                 hour += resultMinute / 60;
@@ -344,9 +314,6 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (hour > 0) {
-            if (resultHour == NullValue) {
-                throw new IllegalStateException("Can't add to hours because it is empty.");
-            }
             resultHour += hour;
             if (resultHour >= 24) {
                 resultOverflow = resultHour / 24;
@@ -354,7 +321,12 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             }
         }
 
-        return new Time(resultHour, resultMinute, resultSecond, resultOverflow);
+        Time time = this.clone();
+        time.hour = resultHour;
+        time.minute = resultMinute;
+        time.second = resultSecond;
+        time.overflow = resultOverflow;
+        return time;
     }
 
     /**
@@ -365,10 +337,7 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
      */
     public Time subtract(Time time)
     {
-        int hour = (time.hour != NullValue ? time.hour : 0);
-        int minute = (time.minute != NullValue ? time.minute : 0);
-        int second = (time.second != NullValue ? time.second : 0);
-        return subtract(hour, minute, second);
+        return subtract(time.getHour(), time.getMinute(), time.getSecond());
     }
 
     /**
@@ -387,9 +356,6 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         int resultOverflow = 0;
 
         if (second > 0) {
-            if (resultSecond == NullValue) {
-                throw new IllegalStateException("Can't subtract from seconds because it is empty.");
-            }
             resultSecond -= second;
             if (resultSecond < 0) {
                 minute += -resultSecond / 60;
@@ -402,9 +368,6 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (minute > 0) {
-            if (resultMinute == NullValue) {
-                throw new IllegalStateException("Can't subtract from minutes because it is empty.");
-            }
             resultMinute -= minute;
             if (resultMinute < 0) {
                 hour += -resultMinute / 60;
@@ -417,9 +380,6 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         }
 
         if (hour > 0) {
-            if (resultHour == NullValue) {
-                throw new IllegalStateException("Can't subtract from hours because it is empty.");
-            }
             resultHour -= hour;
             if (resultHour < 0) {
                 resultOverflow = resultHour / 24;
@@ -431,7 +391,12 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
             }
         }
 
-        return new Time(resultHour, resultMinute, resultSecond, resultOverflow);
+        Time time = this.clone();
+        time.hour = resultHour;
+        time.minute = resultMinute;
+        time.second = resultSecond;
+        time.overflow = resultOverflow;
+        return time;
     }
 
     /**
@@ -460,27 +425,10 @@ public final class Time implements Comparable<Time>, Cloneable, UserType
         return -overflow;
     }
 
-    /**
-     * Merge this time with given time and return
-     * result. This and given time stay unchanged.
-     * <p/>
-     * The returned time contains values from this time
-     * replaced by non-empty values from given time.
-     *
-     * @param time Time to merge
-     */
-    public Time merge(Time time)
-    {
-        int resultHour = (time.hour != NullValue ? time.hour : hour);
-        int resultMinute = (time.minute != NullValue ? time.minute : minute);
-        int resultSecond = (time.second != NullValue ? time.second : second);
-        return new Time(resultHour, resultMinute, resultSecond);
-    }
-
     @Override
     public int[] sqlTypes()
     {
-        return new int[]{Types.VARCHAR};
+        return new int[]{Types.TIME};
     }
 
     @Override

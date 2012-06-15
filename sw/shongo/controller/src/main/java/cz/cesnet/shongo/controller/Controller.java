@@ -6,9 +6,8 @@ import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
-import cz.cesnet.shongo.controller.reservation.ReservationDatabase;
+import cz.cesnet.shongo.controller.request.ReservationDatabase;
 import cz.cesnet.shongo.controller.resource.ResourceDatabase;
-import cz.cesnet.shongo.controller.scheduler.Scheduler;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Map;
 
 /**

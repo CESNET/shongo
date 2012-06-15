@@ -32,12 +32,13 @@ public abstract class AbstractManager
 
         /**
          * Constructor.
+         *
          * @param entityTransaction
          */
         private Transaction(EntityTransaction entityTransaction)
         {
             this.entityTransaction = entityTransaction;
-            if ( this.entityTransaction != null ) {
+            if (this.entityTransaction != null) {
                 this.entityTransaction.begin();
             }
         }
@@ -47,11 +48,12 @@ public abstract class AbstractManager
          */
         public void commit()
         {
-            if ( entityTransaction != null ) {
+            if (entityTransaction != null) {
                 entityTransaction.commit();
             }
         }
     }
+
     private static Transaction transactionNone = new Transaction(null);
 
     /**
@@ -105,7 +107,7 @@ public abstract class AbstractManager
     protected Transaction beginTransaction()
     {
         EntityTransaction entityTransaction = entityManager.getTransaction();
-        if ( entityTransaction.isActive() ) {
+        if (entityTransaction.isActive()) {
             return transactionNone;
         }
         return new Transaction(entityTransaction);
