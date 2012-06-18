@@ -93,6 +93,13 @@ public class ReservationRequest extends PersistentObject
     private boolean interDomain;
 
     /**
+     * State of reservation request that varies in time.
+     */
+    @Embedded
+    @Access(AccessType.FIELD)
+    private ReservationRequestState state;
+
+    /**
      * @return {@link #identifier} as string
      */
     @Column(name = "identifier")

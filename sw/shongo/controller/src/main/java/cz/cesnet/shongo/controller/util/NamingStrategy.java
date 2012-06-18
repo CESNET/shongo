@@ -34,6 +34,8 @@ public class NamingStrategy extends ImprovedNamingStrategy
     @Override
     public String propertyToColumnName(String propertyName)
     {
+        // Fix for [https://hibernate.onjira.com/browse/HHH-6005]
+        propertyName = propertyName.replace(".collection&&element.", ".");
         return addUnderscores(propertyName);
     }
 

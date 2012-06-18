@@ -11,6 +11,16 @@ import javax.persistence.*;
 public class AbsoluteDateTime extends DateTime implements Comparable<AbsoluteDateTime>, Cloneable
 {
     /**
+     * Minimum absolute date/time.
+     */
+    public static final AbsoluteDateTime MIN = new AbsoluteDateTime("0001-01-01T00:00:00");
+
+    /**
+     * Maximum absolute date/time.
+     */
+    public static final AbsoluteDateTime MAX = new AbsoluteDateTime("9999-12-31T23:59:59");
+
+    /**
      * Date of absolute date/time.
      */
     protected Date date;
