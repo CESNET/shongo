@@ -29,6 +29,13 @@ public class Person extends PersistentObject
 
     /**
      * Constructor.
+     */
+    public Person()
+    {
+    }
+
+    /**
+     * Constructor.
      *
      * @param name  sets the {@link #name}
      * @param email sets the {@link #email}

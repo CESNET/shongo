@@ -21,6 +21,13 @@ public class AbsoluteDateTimeSpecification extends DateTimeSpecification
     protected DateTime dateTime;
 
     /**
+     * Constructor.
+     */
+    private AbsoluteDateTimeSpecification()
+    {
+    }
+
+    /**
      * Construct date/time from an ISO8601 string, e.g. "2007-04-05T14:30:00".
      *
      * @param dateTime ISO8601 Date/Time;

@@ -35,7 +35,7 @@ public class PersistentReadablePartial extends PersistentStringType
     protected String toNonNullString(Object value) throws HibernateException
     {
         if (value instanceof LocalDate) {
-            return ((LocalDate) value).toDateTimeAtStartOfDay().toDate().toString();
+            return ((LocalDate) value).toString();
         }
         else {
             throw new HibernateException("Cannot save " + value.getClass().getName() + " as " +

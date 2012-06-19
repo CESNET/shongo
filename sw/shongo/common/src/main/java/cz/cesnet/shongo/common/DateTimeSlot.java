@@ -22,17 +22,19 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Start date/time.
      */
-    private final DateTimeSpecification start;
+    private DateTimeSpecification start;
 
     /**
      * Slot duration.
      */
-    private final Period duration;
+    private Period duration;
 
     /**
-     * Evaluated slot to absolute date/time slots.
+     * Constructor.
      */
-    private List<Interval> slots = null;
+    private DateTimeSlot()
+    {
+    }
 
     /**
      * Construct time slot.
@@ -93,41 +95,12 @@ public class DateTimeSlot extends PersistentObject
     @Transient
     public boolean isActive(DateTime referenceDateTime)
     {
-        for (Interval slot : getEvaluatedSlots()) {
+        for (Interval slot : enumerate(referenceDateTime.minus(duration), referenceDateTime.plus(duration))) {
             if (slot.contains(referenceDateTime)) {
                 return true;
             }
         }
         return false;
-    }
-
-    /**
-     * Get list of absolute date/time slots from this slot.
-     *
-     * @return list of absolute date/time slots
-     */
-    @Transient
-    private List<Interval> getEvaluatedSlots()
-    {
-        if (slots == null) {
-            slots = new ArrayList<Interval>();
-            if (start instanceof PeriodicDateTimeSpecification) {
-                PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) start;
-                for (DateTime dateTime : periodicDateTime.enumerate()) {
-                    slots.add(new Interval(dateTime, getDuration()));
-                }
-            }
-            else {
-                DateTime dateTime = null;
-                if (this.start instanceof AbsoluteDateTimeSpecification) {
-                    slots.add(new Interval(((AbsoluteDateTimeSpecification) this.start).getDateTime(), getDuration()));
-                }
-                else {
-                    throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
-                }
-            }
-        }
-        return slots;
     }
 
     /**
@@ -138,27 +111,56 @@ public class DateTimeSlot extends PersistentObject
      */
     public final List<Interval> enumerate()
     {
-        return enumerate(null, null);
+        return enumerate(null);
     }
 
     /**
      * Enumerate list of time slots from single time slot. Time slot can contain for instance
      * periodic date, that can represents multiple absolute date/times.
-     * Return only time slots that take place inside interval defined by from - to.
+     * Return only time slots that take place (whole or intersects) inside interval.
      *
+     * @param from
+     * @param to
      * @return array of time slots with absolute date/times
      */
-    public List<Interval> enumerate(DateTime from, DateTime to)
+    public final List<Interval> enumerate(DateTime from, DateTime to)
     {
-        if (from != null || to != null) {
-            // TODO: now DateTimeSlot.getEvaluatedSlots() can never end
-            throw new RuntimeException("TODO: Implement DateTimeSlot.getEvaluatedSlots with respect to interval!");
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("Date/time 'from' and 'to' must not be null!");
         }
-        ArrayList<Interval> slots = new ArrayList<Interval>();
-        for (Interval slot : getEvaluatedSlots()) {
-            if ((from == null || !slot.getStart().isBefore(from))
-                    && (to == null || !slot.getEnd().isAfter(to))) {
-                slots.add(slot);
+        return enumerate(new Interval(from, to));
+    }
+
+    /**
+     * Enumerate list of time slots from single time slot. Time slot can contain for instance
+     * periodic date, that can represents multiple absolute date/times.
+     * Return only time slots that take place (whole or intersects) inside interval.
+     *
+     * @param interval
+     * @return array of time slots with absolute date/times
+     */
+    public List<Interval> enumerate(Interval interval)
+    {
+        List<Interval> slots = new ArrayList<Interval>();
+        if (start instanceof PeriodicDateTimeSpecification) {
+            PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) start;
+            for (DateTime dateTime : periodicDateTime.enumerate(interval)) {
+                Interval slot = new Interval(dateTime, getDuration());
+                if (interval == null || slot.overlaps(interval)) {
+                    slots.add(slot);
+                }
+            }
+        }
+        else {
+            DateTime dateTime = null;
+            if (this.start instanceof AbsoluteDateTimeSpecification) {
+                Interval slot = new Interval(((AbsoluteDateTimeSpecification) this.start).getDateTime(), getDuration());
+                if (interval == null || slot.overlaps(interval)) {
+                    slots.add(slot);
+                }
+            }
+            else {
+                throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
             }
         }
         return slots;

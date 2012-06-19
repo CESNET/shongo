@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbstractManager;
 import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.controller.Scheduler;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -17,20 +17,13 @@ import java.util.List;
 public class ReservationRequestManager extends AbstractManager
 {
     /**
-     * Scheduler which methods are invoked for reservation request events.
-     */
-    private Scheduler scheduler;
-
-    /**
      * Constructor.
      *
      * @param entityManager
-     * @param scheduler
      */
-    public ReservationRequestManager(EntityManager entityManager, Scheduler scheduler)
+    public ReservationRequestManager(EntityManager entityManager)
     {
         super(entityManager);
-        this.scheduler = scheduler;
     }
 
     /**
@@ -45,8 +38,6 @@ public class ReservationRequestManager extends AbstractManager
         Transaction transaction = beginTransaction();
 
         super.create(reservationRequest);
-
-        scheduler.onNewReservationRequest(reservationRequest);
 
         transaction.commit();
     }
@@ -64,8 +55,6 @@ public class ReservationRequestManager extends AbstractManager
 
         super.update(reservationRequest);
 
-        scheduler.onUpdateReservationRequest(reservationRequest);
-
         transaction.commit();
     }
 
@@ -80,20 +69,33 @@ public class ReservationRequestManager extends AbstractManager
 
         Transaction transaction = beginTransaction();
 
-        scheduler.onDeleteReservationRequest(reservationRequest);
-
         super.delete(reservationRequest);
 
         transaction.commit();
     }
 
     /**
-     * @return list of all reservation requests in the database.
+     * @return list all reservation requests in the database.
      */
     public List<ReservationRequest> list()
     {
         List<ReservationRequest> reservationRequestList = entityManager
                 .createQuery("SELECT request FROM ReservationRequest request", ReservationRequest.class)
+                .getResultList();
+        return reservationRequestList;
+    }
+
+    /**
+     * @return list all reservation requests in the database which aren't preprocessed in given interval.
+     */
+    public List<ReservationRequest> listNotPreprocessed(Interval interval)
+    {
+        List<ReservationRequest> reservationRequestList = entityManager
+                .createQuery("SELECT request FROM ReservationRequest request WHERE request NOT IN (" +
+                        "SELECT request FROM ReservationRequest request LEFT JOIN request.state.records record "
+                        + "WHERE record.from <= :from AND record.to >= :to)",
+                        ReservationRequest.class).setParameter("from", interval.getStart())
+                .setParameter("to", interval.getEnd())
                 .getResultList();
         return reservationRequestList;
     }

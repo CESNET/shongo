@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbstractManager;
 import cz.cesnet.shongo.common.Person;
-import cz.cesnet.shongo.controller.Scheduler;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -17,11 +16,6 @@ import java.util.List;
 public class CompartmentRequestManager extends AbstractManager
 {
     /**
-     * @see Scheduler
-     */
-    private Scheduler scheduler;
-
-    /**
      * @see PersonRequestManager
      */
     private PersonRequestManager personRequestManager;
@@ -31,9 +25,9 @@ public class CompartmentRequestManager extends AbstractManager
      *
      * @param entityManager
      */
-    public CompartmentRequestManager(EntityManager entityManager, Scheduler scheduler)
+    public CompartmentRequestManager(EntityManager entityManager)
     {
-        this(entityManager, scheduler, new PersonRequestManager(entityManager));
+        this(entityManager, new PersonRequestManager(entityManager));
     }
 
     /**
@@ -42,11 +36,9 @@ public class CompartmentRequestManager extends AbstractManager
      * @param entityManager
      * @param personRequestManager
      */
-    public CompartmentRequestManager(EntityManager entityManager, Scheduler scheduler,
-            PersonRequestManager personRequestManager)
+    public CompartmentRequestManager(EntityManager entityManager, PersonRequestManager personRequestManager)
     {
         super(entityManager);
-        this.scheduler = scheduler;
         this.personRequestManager = personRequestManager;
     }
 
@@ -85,8 +77,6 @@ public class CompartmentRequestManager extends AbstractManager
 
         super.create(compartmentRequest);
 
-        scheduler.onNewCompartmentRequest(compartmentRequest);
-
         return compartmentRequest;
     }
 
@@ -98,11 +88,9 @@ public class CompartmentRequestManager extends AbstractManager
      */
     public void update(CompartmentRequest compartmentRequest, Compartment compartment)
     {
-        //throw new RuntimeException("TODO: Implement compartment request check");
-
         super.update(compartmentRequest);
 
-        scheduler.onUpdateCompartmentRequest(compartmentRequest);
+        throw new RuntimeException("TODO: Implement compartment request check");
     }
 
     /**
@@ -112,8 +100,6 @@ public class CompartmentRequestManager extends AbstractManager
      */
     public void delete(CompartmentRequest compartmentRequest)
     {
-        scheduler.onDeleteCompartmentRequest(compartmentRequest);
-
         super.delete(compartmentRequest);
     }
 

@@ -22,9 +22,20 @@ public abstract class AbstractDatabaseTest
     private static EntityManagerFactory entityManagerFactory;
 
     /**
-     * Entity manager factory for current database test.
+     * @return entity manager factory
      */
-    protected EntityManager entityManager;
+    protected EntityManagerFactory getEntityManagerFactory()
+    {
+        return entityManagerFactory;
+    }
+
+    /**
+     * @return entity manager
+     */
+    protected EntityManager getEntityManager()
+    {
+        return entityManagerFactory.createEntityManager();
+    }
 
     /**
      * Initialize test.
@@ -40,7 +51,6 @@ public abstract class AbstractDatabaseTest
             properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:controller; shutdown=true;");
             entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         }
-        entityManager = entityManagerFactory.createEntityManager();
     }
 
     /**
@@ -49,8 +59,5 @@ public abstract class AbstractDatabaseTest
     @After
     public void tearDown()
     {
-        if (entityManager != null) {
-            entityManager.close();
-        }
     }
 }

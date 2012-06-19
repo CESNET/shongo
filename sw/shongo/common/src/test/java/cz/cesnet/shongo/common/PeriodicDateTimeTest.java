@@ -10,6 +10,7 @@ import org.junit.Test;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 
 /**
  * Periodic date/time tests
@@ -97,6 +98,13 @@ public class PeriodicDateTimeTest
         assertEquals(correctDateTimes.length, dateTimes.size());
         for (int index = 0; index < correctDateTimes.length; index++) {
             assertEquals(correctDateTimes[index], dateTimes.get(index));
+        }
+
+        try {
+            new PeriodicDateTimeSpecification(DateTime.parse("2012-01-01T12:00"), Period.parse("P1W")).enumerate();
+            fail("Should fail due to infinity.");
+        }
+        catch (Exception exception) {
         }
     }
 

@@ -6,8 +6,6 @@ import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
 import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
-import cz.cesnet.shongo.controller.request.ReservationDatabase;
-import cz.cesnet.shongo.controller.resource.ResourceDatabase;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +16,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.Comparator;
 import java.util.Map;
 
@@ -73,58 +71,16 @@ public class Controller implements ApplicationContextAware
     ControllerAgent jadeAgent;
 
     /**
-     * Entity manager.
+     * Entity manager factory.
      */
     @Resource
-    EntityManager entityManager;
-
-    /**
-     * Database of resources.
-     */
-    @Resource
-    ResourceDatabase resourceDatabase;
-
-    /**
-     * Database of reservation requests.
-     */
-    @Resource
-    ReservationDatabase reservationDatabase;
-
-    /**
-     * Scheduler of the domain controller.
-     */
-    @Resource
-    Scheduler scheduler;
+    EntityManagerFactory entityManagerFactory;
 
     /**
      * Constructor.
      */
     private Controller()
     {
-    }
-
-    /**
-     * @return {@link #reservationDatabase}
-     */
-    public ResourceDatabase getResourceDatabase()
-    {
-        return resourceDatabase;
-    }
-
-    /**
-     * @return {@link #reservationDatabase}
-     */
-    public ReservationDatabase getReservationDatabase()
-    {
-        return reservationDatabase;
-    }
-
-    /**
-     * @return {@link #scheduler}
-     */
-    public Scheduler getScheduler()
-    {
-        return scheduler;
     }
 
     /**
@@ -138,6 +94,13 @@ public class Controller implements ApplicationContextAware
             throw new IllegalStateException("A domain controller has already been created, cannot create second one!");
         }
         instance = this;
+
+        // Inititialize components
+        Map<String, Component> components = applicationContext.getBeansOfType(Component.class);
+        for (Component component : components.values()) {
+            component.setEntityManagerFactory(entityManagerFactory);
+            component.init();
+        }
 
         logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost == null ? "*" : rpcHost), rpcPort);
 
@@ -184,6 +147,12 @@ public class Controller implements ApplicationContextAware
 
         logger.info("Stopping Controller JADE container...");
         jadeContainer.stop();
+
+        // Destroy components
+        Map<String, Component> components = applicationContext.getBeansOfType(Component.class);
+        for (Component component : components.values()) {
+            component.destroy();
+        }
     }
 
     /**

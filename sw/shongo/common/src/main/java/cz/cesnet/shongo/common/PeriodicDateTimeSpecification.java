@@ -2,6 +2,7 @@ package cz.cesnet.shongo.common;
 
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.joda.time.ReadablePartial;
 
@@ -193,36 +194,67 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
      */
     public final List<DateTime> enumerate()
     {
-        return enumerate(null, null);
+        return enumerate(null);
     }
 
     /**
      * Enumerate all periodic Date/Time events to array of absolute Date/Times.
-     * Return only events that take place inside interval defined by from - to.
+     * Return only events that take place inside interval.
      *
      * @param from
      * @param to
      * @return array of absolute Date/Times
      */
-    public List<DateTime> enumerate(DateTime from, DateTime to)
+    public final List<DateTime> enumerate(DateTime from, DateTime to)
+    {
+        if (from == null || to == null) {
+            throw new IllegalArgumentException("Date/time 'from' and 'to' must not be null!");
+        }
+        return enumerate(new Interval(from, to));
+    }
+
+    /**
+     * Default interval 'from' and 'to'.
+     */
+    private final DateTime DEFAULT_INTERVAL_FROM = new DateTime(0, 1, 1, 0, 0, 0);
+    private final DateTime DEFAULT_INTERVAL_TO = new DateTime(0, 12, 31, 23, 59, 59);
+
+    /**
+     * Maximum number of enumerated date/times.
+     */
+    private final int MAX_ENUMERATED_COUNT = 1000;
+
+    /**
+     * Enumerate all periodic Date/Time events to array of absolute Date/Times.
+     * Return only events that take place inside interval.
+     *
+     * @param interval
+     * @return array of absolute Date/Times
+     */
+    public List<DateTime> enumerate(Interval interval)
     {
         DateTime start = this.start;
         DateTime end = (this.end != null ? this.end.toDateTime(start) : null);
 
         // Find all events in range from-to
         List<DateTime> dateTimeList = new ArrayList<DateTime>();
-        while (start != null && start.isAfter(end) == false) {
-            if (to != null && start.isAfter(to)) {
-                break;
-            }
-            if (from == null || start.isBefore(from) == false) {
-                dateTimeList.add(start);
-            }
-            start = start.plus(period);
-        }
+        if (start != null) {
+            while (end == null || !start.isAfter(end)) {
+                if (interval != null && start.isAfter(interval.getEnd())) {
+                    break;
+                }
+                if (interval == null || interval.contains(start)) {
+                    dateTimeList.add(start);
+                }
+                start = start.plus(period);
 
-        DateTime defaultIntervalFrom = new DateTime(0, 1, 1, 0, 0, 0);
-        DateTime defaultIntervalTo = new DateTime(0, 1, 31, 23, 59, 59);
+                if (dateTimeList.size() > MAX_ENUMERATED_COUNT) {
+                    throw new IllegalArgumentException("Cannot enumerate periodic date/time for interval '"
+                            + (interval != null ? interval.toString() : "null")
+                            + "' because maximum number of date/times " + MAX_ENUMERATED_COUNT + " was reached!");
+                }
+            }
+        }
 
         // Build set of indexes for disabled date/times from the list
         Set<Integer> disabledSet = new HashSet<Integer>();
@@ -230,10 +262,9 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
             // Extra rule
             if (rule.getType() == RuleType.Extra) {
                 DateTime ruleDateTime = rule.getDateTime().toDateTime(start);
-                if ((from != null && ruleDateTime.isBefore(from)) || (to != null && ruleDateTime.isAfter(to))) {
-                    continue;
+                if (interval == null || interval.contains(ruleDateTime)) {
+                    dateTimeList.add(ruleDateTime);
                 }
-                dateTimeList.add(ruleDateTime);
                 continue;
             }
 
@@ -244,8 +275,8 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
             }
             // Interval
             if (rule.isInterval()) {
-                DateTime ruleFrom = rule.getDateTimeFrom().toDateTime(defaultIntervalFrom);
-                DateTime ruleTo = rule.getDateTimeTo().toDateTime(defaultIntervalTo);
+                DateTime ruleFrom = rule.getDateTimeFrom().toDateTime(DEFAULT_INTERVAL_FROM);
+                DateTime ruleTo = rule.getDateTimeTo().toDateTime(DEFAULT_INTERVAL_TO);
                 for (int index = 0; index < dateTimeList.size(); index++) {
                     DateTime dateTime = dateTimeList.get(index);
                     if (dateTime.isBefore(ruleFrom) == false && dateTime.isAfter(ruleTo) == false) {

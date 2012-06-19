@@ -2,8 +2,10 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.ResourceDatabase;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
@@ -16,8 +18,13 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
+        EntityManager entityManager = getEntityManager();
+
         // Fill resource database
-        ResourceDatabase resourceDatabase = new ResourceDatabase(new Domain("cz.cesnet"), entityManager);
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.setDomain(new Domain("cz.cesnet"));
+        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+        resourceDatabase.init();
 
         DeviceResource terminal = new DeviceResource();
         terminal.createNewIdentifier("cz.cesnet.external");
@@ -34,8 +41,13 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
 
         resourceDatabase.destroy();
 
-        // Load stored resource database and list resources
-        resourceDatabase = new ResourceDatabase(new Domain("cz.cesnet"), entityManager);
+        // Load stored resource database
+        resourceDatabase = new ResourceDatabase();
+        resourceDatabase.setDomain(new Domain("cz.cesnet"));
+        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+        resourceDatabase.init();
+
+        // List resources
         List<Resource> resourceList = resourceDatabase.listResources();
         for (Resource resource : resourceList) {
             System.err.println(resource.toString());

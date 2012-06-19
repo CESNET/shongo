@@ -4,7 +4,6 @@ import cz.cesnet.shongo.common.DateTimeSlot;
 import cz.cesnet.shongo.common.DateTimeSpecification;
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.PersistentObject;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -335,15 +334,14 @@ public class ReservationRequest extends PersistentObject
     /**
      * Enumerate requested date/time slots in a specific interval.
      *
-     * @param from interval start
-     * @param to   interval end
+     * @param interval
      * @return list of all requested absolute date/time slots for given interval
      */
-    public List<Interval> enumerateRequestedSlots(DateTime from, DateTime to)
+    public List<Interval> enumerateRequestedSlots(Interval interval)
     {
         List<Interval> enumeratedSlots = new ArrayList<Interval>();
         for (DateTimeSlot slot : requestedSlots) {
-            enumeratedSlots.addAll(slot.enumerate(from, to));
+            enumeratedSlots.addAll(slot.enumerate(interval));
         }
         return enumeratedSlots;
     }

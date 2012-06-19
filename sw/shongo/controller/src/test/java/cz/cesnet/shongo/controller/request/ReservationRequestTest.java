@@ -4,7 +4,7 @@ import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Preprocessor;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.resource.Technology;
 import org.joda.time.DateTime;
@@ -13,6 +13,7 @@ import org.joda.time.LocalDate;
 import org.joda.time.Period;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -22,19 +23,19 @@ import static junit.framework.Assert.assertEquals;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationDatabaseTest extends AbstractDatabaseTest
+public class ReservationRequestTest extends AbstractDatabaseTest
 {
     @Test
     public void test() throws Exception
     {
-        Scheduler scheduler = new Scheduler(entityManager);
+        EntityManager entityManager = getEntityManager();
 
-        // Load reservation database
-        ReservationDatabase reservationDatabase = new ReservationDatabase(entityManager, new Domain("cz.cesnet"),
-                scheduler);
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
 
         // Create reservation request
         ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.createNewIdentifier("cz.cesnet");
         reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));
         reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(
@@ -50,18 +51,21 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
         requestCompartment = reservationRequest.addRequestedCompartment();
         requestCompartment.addRequestedResource(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
 
-        // Add request to database
-        reservationDatabase.addReservationRequest(reservationRequest);
+        // Save it
+        reservationRequestManager.create(reservationRequest);
+
+        // Run preprocessor
+        Preprocessor.run(getEntityManagerFactory(),
+                new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
 
         // Check created compartments
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager, scheduler);
         List<CompartmentRequest> compartmentRequestList =
                 compartmentRequestManager.list(reservationRequest);
-        assertEquals(8, compartmentRequestList.size());
+        assertEquals(6, compartmentRequestList.size());
         assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
                 compartmentRequestList.get(0).getRequestedSlot());
-        assertEquals(new Interval(DateTime.parse("2012-07-15T14:00"), Period.parse("PT2H")),
-                compartmentRequestList.get(3).getRequestedSlot());
+        assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
+                compartmentRequestList.get(2).getRequestedSlot());
 
         // Modify reservation request
         reservationRequest.setPurpose(ReservationRequest.Purpose.EDUCATION);
@@ -69,18 +73,22 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
         reservationRequest.removeRequestedCompartment(reservationRequest.getRequestedCompartments().get(1));
 
         // Update request
-        reservationDatabase.updateReservationRequest(reservationRequest);
+        reservationRequestManager.update(reservationRequest);
+
+        // Run preprocessor
+        Preprocessor.run(getEntityManagerFactory(),
+                new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
 
         // Check modified compartments
         compartmentRequestList = compartmentRequestManager.list(reservationRequest);
-        assertEquals(3, compartmentRequestList.size());
+        assertEquals(2, compartmentRequestList.size());
         assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
                 compartmentRequestList.get(0).getRequestedSlot());
-        assertEquals(new Interval(DateTime.parse("2012-07-15T14:00"), Period.parse("PT2H")),
-                compartmentRequestList.get(2).getRequestedSlot());
+        assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
+                compartmentRequestList.get(1).getRequestedSlot());
 
         // List all reservation requests and theirs compartment requests
-        List<ReservationRequest> rrList = reservationDatabase.listReservationRequests();
+        List<ReservationRequest> rrList = reservationRequestManager.list();
         for (ReservationRequest rr : rrList) {
             System.err.println(rr.toString());
 

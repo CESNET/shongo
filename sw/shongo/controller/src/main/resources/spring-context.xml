@@ -17,17 +17,11 @@
     <bean id="controller" class="cz.cesnet.shongo.controller.Controller"/>
 
     <!-- Components -->
-    <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.resource.ResourceDatabase" init-method="init" destroy-method="destroy">
+    <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.ResourceDatabase">
         <property name="domain"><ref bean="domain"/></property>
-        <property name="entityManager"><ref bean="entityManager"/></property>
     </bean>
-    <bean id="reservationDatabase" class="cz.cesnet.shongo.controller.request.ReservationDatabase" init-method="init" destroy-method="destroy">
-        <property name="domain"><ref bean="domain"/></property>
-        <property name="entityManager"><ref bean="entityManager"/></property>
-    </bean>
-    <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler" destroy-method="destroy">
-        <property name="entityManager"><ref bean="entityManager"/></property>
-    </bean>
+    <bean id="preprocessor" class="cz.cesnet.shongo.controller.Preprocessor"/>
+    <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler"/>
 
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.impl.CommonServiceImpl"/>

@@ -1,7 +1,9 @@
-package cz.cesnet.shongo.controller.resource;
+package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +15,11 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents an object that holds all resources for a domain controller in memory in efficient form.
+ * Represents a component for a domain controller that holds all resources in memory in efficient form.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceDatabase
+public class ResourceDatabase extends Component
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
 
@@ -32,7 +34,7 @@ public class ResourceDatabase
     private EntityManager entityManager;
 
     /**
-     * @see ResourceManager
+     * @see cz.cesnet.shongo.controller.resource.ResourceManager
      */
     private ResourceManager resourceManager;
 
@@ -47,39 +49,11 @@ public class ResourceDatabase
     private DeviceTopology deviceTopology = new DeviceTopology();
 
     /**
-     * Constructor of reservation database.
-     */
-    public ResourceDatabase()
-    {
-    }
-
-    /**
-     * Constructor of resource database.
-     *
-     * @param domain        sets the {@link #domain}
-     * @param entityManager sets the {@link #entityManager}
-     */
-    public ResourceDatabase(Domain domain, EntityManager entityManager)
-    {
-        setDomain(domain);
-        setEntityManager(entityManager);
-        init();
-    }
-
-    /**
      * @param domain sets the {@link #domain}
      */
     public void setDomain(Domain domain)
     {
         this.domain = domain;
-    }
-
-    /**
-     * @param entityManager sets the {@link #entityManager}
-     */
-    public void setEntityManager(EntityManager entityManager)
-    {
-        this.entityManager = entityManager;
     }
 
     /**
@@ -90,17 +64,15 @@ public class ResourceDatabase
         return deviceTopology;
     }
 
-    /**
-     * Initialize reservation database.
-     */
+    @Override
     public void init()
     {
+        super.init();
+
         if (domain == null) {
             throw new IllegalStateException("Resource database doesn't have the domain set!");
         }
-        if (entityManager == null) {
-            throw new IllegalStateException("Resource database doesn't have the entity manager set!");
-        }
+        entityManager = getEntityManager();
         resourceManager = ResourceManager.createInstance(entityManager);
 
         logger.debug("Checking resource database...");
@@ -116,13 +88,14 @@ public class ResourceDatabase
         }
     }
 
-    /**
-     * Destroy resource database.
-     */
+    @Override
     public void destroy()
     {
         logger.debug("Closing resource database...");
+
         resourceMap.clear();
+
+        super.init();
     }
 
     /**
@@ -132,6 +105,8 @@ public class ResourceDatabase
      */
     public void addResource(Resource resource)
     {
+        checkInitialized();
+
         if (resource.getIdentifier() == null) {
             throw new IllegalArgumentException("Resource must have the identifier filled!");
         }
@@ -162,6 +137,8 @@ public class ResourceDatabase
      */
     public void updateResource(Resource resource)
     {
+        checkInitialized();
+
         if (resourceMap.containsKey(resource.getIdentifier()) == false) {
             throw new IllegalArgumentException(
                     "Resource (" + resource.getIdentifier() + ") is not in the database!");
@@ -187,6 +164,8 @@ public class ResourceDatabase
      */
     public void removeResource(Resource resource)
     {
+        checkInitialized();
+
         if (resourceMap.containsKey(resource.getIdentifier()) == false) {
             throw new IllegalArgumentException(
                     "Resource (" + resource.getIdentifier() + ") is not in the database!");
@@ -209,6 +188,8 @@ public class ResourceDatabase
      */
     public List<Resource> listResources()
     {
+        checkInitialized();
+
         return new ArrayList<Resource>(resourceMap.values());
     }
 }
