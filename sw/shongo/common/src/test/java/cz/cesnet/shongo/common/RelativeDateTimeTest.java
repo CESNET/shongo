@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.common;
 
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,38 +14,38 @@ import static junit.framework.Assert.assertEquals;
  */
 public class RelativeDateTimeTest
 {
-    private RelativeDateTime relativeDateTime;
+    private RelativeDateTimeSpecification relativeDateTime;
 
     @Before
     public void setUp() throws Exception
     {
-        relativeDateTime = new RelativeDateTime(new Period("P1Y2M3DT4H5M6S"));
+        relativeDateTime = new RelativeDateTimeSpecification("P1Y2M3DT4H5M6S");
     }
 
     @Test
     public void testGetters() throws Exception
     {
-        assertEquals(relativeDateTime.getDuration(), new Period("P1Y2M3DT4H5M6S"));
+        assertEquals(Period.parse("P1Y2M3DT4H5M6S"), relativeDateTime.getDuration());
     }
 
     @Test
     public void testSetters() throws Exception
     {
-        RelativeDateTime relativeDateTime = new RelativeDateTime(new Period("P2W"));
-        assertEquals(relativeDateTime.getDuration(), new Period("P2W"));
+        RelativeDateTimeSpecification relativeDateTime = new RelativeDateTimeSpecification("P2W");
+        assertEquals(Period.parse("P2W"), relativeDateTime.getDuration());
     }
 
     @Test
     public void testGetEarliest() throws Exception
     {
-        AbsoluteDateTime referenceDateTime = new AbsoluteDateTime("2012-01-01 T12:00:00");
-        assertEquals(relativeDateTime.getEarliest(referenceDateTime), new AbsoluteDateTime("2013-03-04 T16:05:06"));
+        DateTime referenceDateTime = DateTime.parse("2012-01-01T12:00:00");
+        assertEquals(DateTime.parse("2013-03-04T16:05:06"), relativeDateTime.getEarliest(referenceDateTime));
     }
 
     @Test
     public void testEquals() throws Exception
     {
         assertEquals(relativeDateTime, relativeDateTime);
-        assertEquals(new RelativeDateTime(new Period("P1W")), new RelativeDateTime(new Period("P7D")));
+        assertEquals(new RelativeDateTimeSpecification("P1W"), new RelativeDateTimeSpecification("P7D"));
     }
 }

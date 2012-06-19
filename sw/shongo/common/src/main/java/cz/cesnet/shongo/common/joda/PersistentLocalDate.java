@@ -2,9 +2,9 @@ package cz.cesnet.shongo.common.joda;
 
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
-import org.hibernate.type.TimestampType;
+import org.hibernate.type.DateType;
 import org.hibernate.usertype.EnhancedUserType;
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -13,15 +13,15 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 /**
- * Persist {@link org.joda.time.DateTime} via hibernate.
+ * Persist {@link org.joda.time.LocalDate} via hibernate.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersistentDateTime implements EnhancedUserType, Serializable
+public class PersistentLocalDate implements EnhancedUserType, Serializable
 {
-    public static final PersistentDateTime INSTANCE = new PersistentDateTime();
+    public static final PersistentLocalDate INSTANCE = new PersistentLocalDate();
 
-    private static final int[] SQL_TYPES = new int[]{Types.TIMESTAMP,};
+    private static final int[] SQL_TYPES = new int[]{Types.DATE,};
 
     @Override
     public int[] sqlTypes()
@@ -32,7 +32,7 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
     @Override
     public Class returnedClass()
     {
-        return DateTime.class;
+        return LocalDate.class;
     }
 
     @Override
@@ -44,9 +44,8 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
         if (x == null || y == null) {
             return false;
         }
-        DateTime dtx = (DateTime) x;
-        DateTime dty = (DateTime) y;
-
+        LocalDate dtx = (LocalDate) x;
+        LocalDate dty = (LocalDate) y;
         return dtx.equals(dty);
     }
 
@@ -60,11 +59,12 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
     public Object nullSafeGet(ResultSet resultSet, String[] names, SessionImplementor session, Object owner)
             throws HibernateException, SQLException
     {
-        Object timestamp = TimestampType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
-        if (timestamp == null) {
+
+        Object date = DateType.INSTANCE.nullSafeGet(resultSet, names, session, owner);
+        if (date == null) {
             return null;
         }
-        return new DateTime(timestamp);
+        return new LocalDate(date);
     }
 
     @Override
@@ -72,10 +72,11 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
             throws HibernateException, SQLException
     {
         if (value == null) {
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
+            DateType.INSTANCE.nullSafeSet(preparedStatement, null, index, session);
         }
         else {
-            TimestampType.INSTANCE.nullSafeSet(preparedStatement, ((DateTime) value).toDate(), index, session);
+            DateType.INSTANCE.nullSafeSet(preparedStatement, ((LocalDate) value).toDateTimeAtStartOfDay().toDate(),
+                    index, session);
         }
     }
 
@@ -124,8 +125,6 @@ public class PersistentDateTime implements EnhancedUserType, Serializable
     @Override
     public Object fromXMLString(String string)
     {
-        return new DateTime(string);
+        return new LocalDate(string);
     }
-
 }
-

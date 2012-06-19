@@ -2,7 +2,10 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.PersistentObject;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 /**
  * Represents a specific alias for a single device and a single technology.
@@ -50,6 +53,7 @@ public class Alias extends PersistentObject
 
     /**
      * Constructor.
+     *
      * @param technology
      * @param type
      * @param value

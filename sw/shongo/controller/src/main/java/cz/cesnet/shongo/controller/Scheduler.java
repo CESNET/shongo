@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.AbsoluteDateTime;
-import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
+import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.Compartment;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,6 +84,7 @@ public class Scheduler
 
     /**
      * Run scheduler for a given epoch.
+     *
      * @param epoch
      */
     public void run(Epoch epoch)
@@ -104,7 +105,7 @@ public class Scheduler
      */
     public synchronized Epoch getCurrentEpoch()
     {
-        if ( currentEpoch == null ) {
+        if (currentEpoch == null) {
             throw new IllegalStateException("Cannot get current epoch because it is not set!");
         }
         return currentEpoch;
@@ -112,10 +113,11 @@ public class Scheduler
 
     /**
      * Set current epoch.
+     *
      * @param from
      * @param to
      */
-    public synchronized void setCurrentEpoch(AbsoluteDateTime from, AbsoluteDateTime to)
+    public synchronized void setCurrentEpoch(AbsoluteDateTimeSpecification from, AbsoluteDateTimeSpecification to)
     {
         currentEpoch = new Epoch(from, to);
     }
@@ -157,7 +159,7 @@ public class Scheduler
         Epoch epoch = getCurrentEpoch();
 
         // Get list of date/time slots
-        List<AbsoluteDateTimeSlot> slots = reservationRequest.enumerateRequestedSlots(epoch.getFrom(), epoch.getTo());
+        List<Interval> slots = reservationRequest.enumerateRequestedSlots(/*epoch.getFrom(), epoch.getTo()*/null, null);
 
         // Start transaction if is no active
         EntityTransaction transaction = null;
@@ -176,7 +178,7 @@ public class Scheduler
 
             // Create map of compartment requests with date/time slot as key
             // and remove compartment request from list of all compartment request
-            Map<AbsoluteDateTimeSlot, CompartmentRequest> map = new HashMap<AbsoluteDateTimeSlot, CompartmentRequest>();
+            Map<Interval, CompartmentRequest> map = new HashMap<Interval, CompartmentRequest>();
             for (CompartmentRequest compartmentRequest : requestListForCompartment) {
                 map.put(compartmentRequest.getRequestedSlot(), compartmentRequest);
                 compartmentRequestList.remove(compartmentRequest);
@@ -185,7 +187,7 @@ public class Scheduler
             // For each requested slot we must create or modify compartment request.
             // If we find date/time slot in prepared map we modify the corresponding request
             // and remove it from map, otherwise we create a new compartment request.
-            for (AbsoluteDateTimeSlot slot : slots) {
+            for (Interval slot : slots) {
                 // Modify existing compartment request
                 if (map.containsKey(slot)) {
                     CompartmentRequest compartmentRequest = map.get(slot);

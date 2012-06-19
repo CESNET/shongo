@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

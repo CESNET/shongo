@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.PersistentObject;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Type;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ public class CompartmentRequest extends PersistentObject
         /**
          * Some of requested persons has {@link PersonRequest.State#NOT_ASKED}
          * or {@link PersonRequest.State#ASKED} state.
-          */
+         */
         NOT_COMPLETE,
 
         /**
@@ -50,7 +52,7 @@ public class CompartmentRequest extends PersistentObject
     /**
      * Date/time slot for which the compartment is requested.
      */
-    private AbsoluteDateTimeSlot requestedSlot;
+    private Interval requestedSlot;
 
     /**
      * List of persons which are requested to participate in compartment.
@@ -101,9 +103,9 @@ public class CompartmentRequest extends PersistentObject
     /**
      * @return {@link #requestedSlot}
      */
-    @OneToOne(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public AbsoluteDateTimeSlot getRequestedSlot()
+    @Columns(columns = {@Column(name = "slot_start"), @Column(name = "slot_end")})
+    @Type(type = "Interval")
+    public Interval getRequestedSlot()
     {
         return requestedSlot;
     }
@@ -111,7 +113,7 @@ public class CompartmentRequest extends PersistentObject
     /**
      * @param requestedSlot sets the {@link #requestedSlot}
      */
-    public void setRequestedSlot(AbsoluteDateTimeSlot requestedSlot)
+    public void setRequestedSlot(Interval requestedSlot)
     {
         this.requestedSlot = requestedSlot;
     }
@@ -170,15 +172,16 @@ public class CompartmentRequest extends PersistentObject
 
     /**
      * Update state of the compartment request based on requested persons.
+     *
      * @see State
      */
     public void updateState()
     {
         State state = State.COMPLETE;
-        for ( PersonRequest personRequest : requestedPersons ) {
+        for (PersonRequest personRequest : requestedPersons) {
             PersonRequest.State personRequestState = personRequest.getState();
-            if ( personRequestState == PersonRequest.State.NOT_ASKED
-                    || personRequestState == PersonRequest.State.ASKED ) {
+            if (personRequestState == PersonRequest.State.NOT_ASKED
+                    || personRequestState == PersonRequest.State.ASKED) {
                 state = State.NOT_COMPLETE;
             }
         }

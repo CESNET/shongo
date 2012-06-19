@@ -8,8 +8,8 @@ import javax.persistence.EntityManager;
 /**
  * Manager for {@link PersonRequest}.
  *
- * @see AbstractManager
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see AbstractManager
  */
 public class PersonRequestManager extends AbstractManager
 {

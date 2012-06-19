@@ -79,13 +79,13 @@ public class PersonRequest extends PersistentObject
     public void setCompartmentRequest(CompartmentRequest compartmentRequest)
     {
         // Manage bidirectional association
-        if ( compartmentRequest != this.compartmentRequest) {
-            if ( this.compartmentRequest != null ) {
+        if (compartmentRequest != this.compartmentRequest) {
+            if (this.compartmentRequest != null) {
                 CompartmentRequest oldCompartmentRequest = this.compartmentRequest;
                 this.compartmentRequest = null;
                 oldCompartmentRequest.removeRequestedPerson(this);
             }
-            if ( compartmentRequest != null ) {
+            if (compartmentRequest != null) {
                 this.compartmentRequest = compartmentRequest;
                 this.compartmentRequest.addRequestedPerson(this);
             }

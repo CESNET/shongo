@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.AbsoluteDateTime;
+import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 
 /**
  * Represents a single epoch.
@@ -12,12 +12,12 @@ public class Epoch
     /**
      * Scheduler time span start.
      */
-    private final AbsoluteDateTime from;
+    private final AbsoluteDateTimeSpecification from;
 
     /**
      * Scheduler time span end
      */
-    private final AbsoluteDateTime to;
+    private final AbsoluteDateTimeSpecification to;
 
     /**
      * Constructor.
@@ -25,7 +25,7 @@ public class Epoch
      * @param from sets the {@link #from}
      * @param to   sets the {@link #to}
      */
-    public Epoch(AbsoluteDateTime from, AbsoluteDateTime to)
+    public Epoch(AbsoluteDateTimeSpecification from, AbsoluteDateTimeSpecification to)
     {
         this.from = from;
         this.to = to;
@@ -34,7 +34,7 @@ public class Epoch
     /**
      * @return {@link #from}
      */
-    public AbsoluteDateTime getFrom()
+    public AbsoluteDateTimeSpecification getFrom()
     {
         return from;
     }
@@ -42,7 +42,7 @@ public class Epoch
     /**
      * @return {@link #to}
      */
-    public AbsoluteDateTime getTo()
+    public AbsoluteDateTimeSpecification getTo()
     {
         return to;
     }

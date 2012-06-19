@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.AbstractManager;
 import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.Scheduler;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -11,8 +11,8 @@ import java.util.List;
 /**
  * Manager for {@link CompartmentRequest}.
  *
- * @see AbstractManager
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see AbstractManager
  */
 public class CompartmentRequestManager extends AbstractManager
 {
@@ -28,6 +28,7 @@ public class CompartmentRequestManager extends AbstractManager
 
     /**
      * Constructor.
+     *
      * @param entityManager
      */
     public CompartmentRequestManager(EntityManager entityManager, Scheduler scheduler)
@@ -37,6 +38,7 @@ public class CompartmentRequestManager extends AbstractManager
 
     /**
      * Constructor.
+     *
      * @param entityManager
      * @param personRequestManager
      */
@@ -55,7 +57,7 @@ public class CompartmentRequestManager extends AbstractManager
      * @param requestedSlot date/time slot for which the compartment request will be created
      * @return created compartment request
      */
-    public CompartmentRequest create(Compartment compartment, AbsoluteDateTimeSlot requestedSlot)
+    public CompartmentRequest create(Compartment compartment, Interval requestedSlot)
     {
         // Create compartment request
         CompartmentRequest compartmentRequest = new CompartmentRequest();

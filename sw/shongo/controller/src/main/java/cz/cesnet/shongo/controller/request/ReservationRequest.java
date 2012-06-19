@@ -1,6 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.*;
+import cz.cesnet.shongo.common.DateTimeSlot;
+import cz.cesnet.shongo.common.DateTimeSpecification;
+import cz.cesnet.shongo.common.Identifier;
+import cz.cesnet.shongo.common.PersistentObject;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -216,10 +222,11 @@ public class ReservationRequest extends PersistentObject
 
     /**
      * Add slot to the list of requested slots
+     *
      * @param dateTime slot date/time
      * @param duration slot duration
      */
-    public void addRequestedSlot(DateTime dateTime, Period duration)
+    public void addRequestedSlot(DateTimeSpecification dateTime, Period duration)
     {
         requestedSlots.add(new DateTimeSlot(dateTime, duration));
     }
@@ -318,7 +325,7 @@ public class ReservationRequest extends PersistentObject
 
         map.put("identifier", getIdentifierAsString());
         map.put("type", getType().toString());
-        if ( getPurpose() != null ) {
+        if (getPurpose() != null) {
             map.put("purpose", getPurpose().toString());
         }
         addCollectionToMap(map, "slots", requestedSlots);
@@ -327,14 +334,15 @@ public class ReservationRequest extends PersistentObject
 
     /**
      * Enumerate requested date/time slots in a specific interval.
+     *
      * @param from interval start
      * @param to   interval end
      * @return list of all requested absolute date/time slots for given interval
      */
-    public List<AbsoluteDateTimeSlot> enumerateRequestedSlots(AbsoluteDateTime from, AbsoluteDateTime to)
+    public List<Interval> enumerateRequestedSlots(DateTime from, DateTime to)
     {
-        List<AbsoluteDateTimeSlot> enumeratedSlots = new ArrayList<AbsoluteDateTimeSlot>();
-        for ( DateTimeSlot slot : requestedSlots ) {
+        List<Interval> enumeratedSlots = new ArrayList<Interval>();
+        for (DateTimeSlot slot : requestedSlots) {
             enumeratedSlots.addAll(slot.enumerate(from, to));
         }
         return enumeratedSlots;

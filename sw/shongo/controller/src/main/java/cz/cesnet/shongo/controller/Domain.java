@@ -26,6 +26,7 @@ public class Domain
 
     /**
      * Constructor.
+     *
      * @param codeName sets the {@link #codeName}
      */
     public Domain(String codeName)
@@ -35,6 +36,7 @@ public class Domain
 
     /**
      * Constructor.
+     *
      * @param codeName sets the {@link #codeName}
      * @param name     sets the {@link #name}
      */

@@ -47,13 +47,13 @@ public class ResourceSpecification extends PersistentObject implements Cloneable
     public void setCompartment(Compartment compartment)
     {
         // Manage bidirectional association
-        if ( compartment != this.compartment) {
-            if ( this.compartment != null ) {
+        if (compartment != this.compartment) {
+            if (this.compartment != null) {
                 Compartment oldCompartment = this.compartment;
                 this.compartment = null;
                 oldCompartment.removeRequestedResource(this);
             }
-            if ( compartment != null ) {
+            if (compartment != null) {
                 this.compartment = compartment;
                 this.compartment.addRequestedResource(this);
             }
@@ -110,7 +110,7 @@ public class ResourceSpecification extends PersistentObject implements Cloneable
         super.fillDescriptionMap(map);
 
         addCollectionToMap(map, "requestedPersons", requestedPersons);
-        if ( callInitiation != null && callInitiation != CallInitiation.DEFAULT ) {
+        if (callInitiation != null && callInitiation != CallInitiation.DEFAULT) {
             map.put("callInitiation", callInitiation.toString());
         }
     }

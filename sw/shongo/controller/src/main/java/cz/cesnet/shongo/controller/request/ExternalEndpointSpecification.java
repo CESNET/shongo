@@ -105,7 +105,7 @@ public class ExternalEndpointSpecification extends ResourceSpecification
         super.fillDescriptionMap(map);
 
         addCollectionToMap(map, "technologies", technologies);
-        if ( count != 1 ) {
+        if (count != 1) {
             map.put("count", Integer.toString(count));
         }
     }

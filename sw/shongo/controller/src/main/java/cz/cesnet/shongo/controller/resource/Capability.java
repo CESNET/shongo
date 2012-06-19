@@ -34,13 +34,13 @@ public class Capability extends PersistentObject
     public void setResource(Resource resource)
     {
         // Manage bidirectional association
-        if ( resource != this.resource) {
-            if ( this.resource != null ) {
+        if (resource != this.resource) {
+            if (this.resource != null) {
                 Resource oldResource = this.resource;
                 this.resource = null;
                 oldResource.removeCapability(this);
             }
-            if ( resource != null ) {
+            if (resource != null) {
                 this.resource = resource;
                 this.resource.addCapability(this);
             }

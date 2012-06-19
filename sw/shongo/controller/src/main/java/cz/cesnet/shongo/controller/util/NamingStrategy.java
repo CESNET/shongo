@@ -16,15 +16,20 @@ public class NamingStrategy extends ImprovedNamingStrategy
      * Replace also $ signs
      */
     @Override
-    public String classToTableName(String className) {
+    public String classToTableName(String className)
+    {
         return super.classToTableName(className.replace("$", "_"));
     }
+
     @Override
-    public String tableName(String tableName) {
+    public String tableName(String tableName)
+    {
         return addUnderscores(tableName.replace("$", "_"));
     }
+
     @Override
-    public String columnName(String columnName) {
+    public String columnName(String columnName)
+    {
         return addUnderscores(columnName.replace("$", "_"));
     }
 

@@ -47,8 +47,8 @@ public class ResourceDatabase
     private DeviceTopology deviceTopology = new DeviceTopology();
 
     /**
-    * Constructor of reservation database.
-    */
+     * Constructor of reservation database.
+     */
     public ResourceDatabase()
     {
     }
@@ -142,7 +142,7 @@ public class ResourceDatabase
         resourceManager.checkDomain(domain.getCodeName(), resource);
 
         // Save only resource that has not been saved yet
-        if ( resource.isPersisted() == false ) {
+        if (resource.isPersisted() == false) {
             resourceManager.create(resource);
         }
 
@@ -150,8 +150,8 @@ public class ResourceDatabase
         resourceMap.put(resource.getIdentifier(), resource);
 
         // If resource is a device add it to the device topology
-        if ( resource instanceof DeviceResource ) {
-            deviceTopology.addDeviceResource((DeviceResource)resource);
+        if (resource instanceof DeviceResource) {
+            deviceTopology.addDeviceResource((DeviceResource) resource);
         }
     }
 
@@ -167,7 +167,7 @@ public class ResourceDatabase
                     "Resource (" + resource.getIdentifier() + ") is not in the database!");
         }
 
-        if ( true ) {
+        if (true) {
             throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
         }
 
@@ -175,8 +175,8 @@ public class ResourceDatabase
         resourceManager.update(resource);
 
         // If resource is a device update it in the device topology
-        if ( resource instanceof DeviceResource ) {
-            deviceTopology.addDeviceResource((DeviceResource)resource);
+        if (resource instanceof DeviceResource) {
+            deviceTopology.addDeviceResource((DeviceResource) resource);
         }
     }
 
@@ -193,8 +193,8 @@ public class ResourceDatabase
         }
 
         // If resource is a device remove it from the device topology
-        if ( resource instanceof DeviceResource ) {
-            deviceTopology.addDeviceResource((DeviceResource)resource);
+        if (resource instanceof DeviceResource) {
+            deviceTopology.addDeviceResource((DeviceResource) resource);
         }
 
         // Remove resource from the list of all resources

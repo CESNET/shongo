@@ -1,10 +1,16 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.*;
+import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
+import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.resource.Technology;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.LocalDate;
+import org.joda.time.Period;
 import org.junit.Test;
 
 import java.util.List;
@@ -30,10 +36,10 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
         // Create reservation request
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
-        reservationRequest.addRequestedSlot(new AbsoluteDateTime("2012-06-01T15:00"), new Period("PT1H"));
-        reservationRequest.addRequestedSlot(new PeriodicDateTime(
-                new AbsoluteDateTime("2012-07-01T14:00"), new Period("P1W"), new AbsoluteDateTime("2012-07-15")),
-                new Period("PT2H"));
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));
+        reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(
+                DateTime.parse("2012-07-01T14:00"), Period.parse("P1W"), LocalDate.parse("2012-07-15")),
+                Period.parse("PT2H"));
         // First compartment
         Compartment requestCompartment = reservationRequest.addRequestedCompartment();
         requestCompartment.addRequestedResource(new ExternalEndpointSpecification(Technology.SIP));
@@ -52,9 +58,9 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
         List<CompartmentRequest> compartmentRequestList =
                 compartmentRequestManager.list(reservationRequest);
         assertEquals(8, compartmentRequestList.size());
-        assertEquals(new AbsoluteDateTimeSlot(new AbsoluteDateTime("2012-06-01T15:00"), new Period("PT1H")),
+        assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
                 compartmentRequestList.get(0).getRequestedSlot());
-        assertEquals(new AbsoluteDateTimeSlot(new AbsoluteDateTime("2012-07-15T14:00"), new Period("PT2H")),
+        assertEquals(new Interval(DateTime.parse("2012-07-15T14:00"), Period.parse("PT2H")),
                 compartmentRequestList.get(3).getRequestedSlot());
 
         // Modify reservation request
@@ -68,9 +74,9 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
         // Check modified compartments
         compartmentRequestList = compartmentRequestManager.list(reservationRequest);
         assertEquals(3, compartmentRequestList.size());
-        assertEquals(new AbsoluteDateTimeSlot(new AbsoluteDateTime("2012-07-01T14:00"), new Period("PT2H")),
+        assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
                 compartmentRequestList.get(0).getRequestedSlot());
-        assertEquals(new AbsoluteDateTimeSlot(new AbsoluteDateTime("2012-07-15T14:00"), new Period("PT2H")),
+        assertEquals(new Interval(DateTime.parse("2012-07-15T14:00"), Period.parse("PT2H")),
                 compartmentRequestList.get(2).getRequestedSlot());
 
         // List all reservation requests and theirs compartment requests
@@ -79,7 +85,7 @@ public class ReservationDatabaseTest extends AbstractDatabaseTest
             System.err.println(rr.toString());
 
             List<CompartmentRequest> crList = compartmentRequestManager.list(rr);
-            for (CompartmentRequest cr : crList ) {
+            for (CompartmentRequest cr : crList) {
                 System.err.println(cr.toString());
             }
         }

@@ -46,7 +46,7 @@ public class Reservation extends PersistentObject
     /**
      * @return {@link #allocatedCompartments}
      */
-    @OneToMany(cascade = CascadeType.ALL,mappedBy = "reservation")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservation")
     @Access(AccessType.FIELD)
     public List<AllocatedCompartment> getAllocatedCompartments()
     {

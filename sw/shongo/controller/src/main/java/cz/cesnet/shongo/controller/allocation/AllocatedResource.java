@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.allocation;
 
-import cz.cesnet.shongo.common.AbsoluteDateTimeSlot;
 import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.controller.resource.Resource;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Type;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 
@@ -28,7 +30,7 @@ public class AllocatedResource extends PersistentObject
     /**
      * Date/time slot for which is the resource allocated.
      */
-    private AbsoluteDateTimeSlot slot;
+    private Interval slot;
 
     /**
      * @return {@link #allocatedCompartment}
@@ -46,13 +48,13 @@ public class AllocatedResource extends PersistentObject
     public void setAllocatedCompartment(AllocatedCompartment allocatedCompartment)
     {
         // Manage bidirectional association
-        if ( allocatedCompartment != this.allocatedCompartment) {
-            if ( this.allocatedCompartment != null ) {
+        if (allocatedCompartment != this.allocatedCompartment) {
+            if (this.allocatedCompartment != null) {
                 AllocatedCompartment oldAllocatedCompartment = this.allocatedCompartment;
                 this.allocatedCompartment = null;
                 oldAllocatedCompartment.removeAllocatedResource(this);
             }
-            if ( allocatedCompartment != null ) {
+            if (allocatedCompartment != null) {
                 this.allocatedCompartment = allocatedCompartment;
                 this.allocatedCompartment.addAllocatedResource(this);
             }
@@ -80,9 +82,9 @@ public class AllocatedResource extends PersistentObject
     /**
      * @return {@link #slot}
      */
-    @OneToOne
-    @Access(AccessType.FIELD)
-    public AbsoluteDateTimeSlot getSlot()
+    @Columns(columns = {@Column(name = "slot_start"), @Column(name = "slot_end")})
+    @Type(type = "Interval")
+    public Interval getSlot()
     {
         return slot;
     }
@@ -90,7 +92,7 @@ public class AllocatedResource extends PersistentObject
     /**
      * @param slot sets the {@link #slot}
      */
-    public void setSlot(AbsoluteDateTimeSlot slot)
+    public void setSlot(Interval slot)
     {
         this.slot = slot;
     }

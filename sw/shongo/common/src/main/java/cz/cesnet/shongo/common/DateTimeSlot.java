@@ -1,5 +1,10 @@
 package cz.cesnet.shongo.common;
 
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
+
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +22,7 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Start date/time.
      */
-    private final DateTime start;
+    private final DateTimeSpecification start;
 
     /**
      * Slot duration.
@@ -27,7 +32,7 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Evaluated slot to absolute date/time slots.
      */
-    private List<AbsoluteDateTimeSlot> slots = null;
+    private List<Interval> slots = null;
 
     /**
      * Construct time slot.
@@ -35,7 +40,7 @@ public class DateTimeSlot extends PersistentObject
      * @param dateTime Time slot date/time, can be absolute or relative date/time
      * @param duration Time slot duration (e.g., two hours)
      */
-    public DateTimeSlot(DateTime dateTime, Period duration)
+    public DateTimeSlot(DateTimeSpecification dateTime, Period duration)
     {
         this.start = dateTime;
         this.duration = duration;
@@ -48,7 +53,7 @@ public class DateTimeSlot extends PersistentObject
      */
     @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public DateTime getStart()
+    public DateTimeSpecification getStart()
     {
         return start;
     }
@@ -59,6 +64,7 @@ public class DateTimeSlot extends PersistentObject
      * @return duration
      */
     @Column
+    @Type(type = "Period")
     @Access(AccessType.FIELD)
     public Period getDuration()
     {
@@ -74,7 +80,7 @@ public class DateTimeSlot extends PersistentObject
     @Transient
     public final boolean isActive()
     {
-        return isActive(AbsoluteDateTime.now());
+        return isActive(DateTime.now());
     }
 
     /**
@@ -85,10 +91,10 @@ public class DateTimeSlot extends PersistentObject
      *         false otherwise
      */
     @Transient
-    public boolean isActive(AbsoluteDateTime referenceDateTime)
+    public boolean isActive(DateTime referenceDateTime)
     {
-        for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
-            if (slot.getStart().beforeOrEqual(referenceDateTime) && slot.getEnd().afterOrEqual(referenceDateTime)) {
+        for (Interval slot : getEvaluatedSlots()) {
+            if (slot.contains(referenceDateTime)) {
                 return true;
             }
         }
@@ -101,26 +107,23 @@ public class DateTimeSlot extends PersistentObject
      * @return list of absolute date/time slots
      */
     @Transient
-    private List<AbsoluteDateTimeSlot> getEvaluatedSlots()
+    private List<Interval> getEvaluatedSlots()
     {
         if (slots == null) {
-            slots = new ArrayList<AbsoluteDateTimeSlot>();
-            if (start instanceof PeriodicDateTime) {
-                PeriodicDateTime periodicDateTime = (PeriodicDateTime) start;
-                for (AbsoluteDateTime dateTime : periodicDateTime.enumerate()) {
-                    slots.add(new AbsoluteDateTimeSlot(dateTime, getDuration()));
+            slots = new ArrayList<Interval>();
+            if (start instanceof PeriodicDateTimeSpecification) {
+                PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) start;
+                for (DateTime dateTime : periodicDateTime.enumerate()) {
+                    slots.add(new Interval(dateTime, getDuration()));
                 }
             }
             else {
-                AbsoluteDateTime dateTime = null;
-                if (this.start instanceof AbsoluteDateTime) {
-                    dateTime = ((AbsoluteDateTime) this.start).clone();
+                DateTime dateTime = null;
+                if (this.start instanceof AbsoluteDateTimeSpecification) {
+                    slots.add(new Interval(((AbsoluteDateTimeSpecification) this.start).getDateTime(), getDuration()));
                 }
                 else {
                     throw new IllegalStateException("Date/time slot can contains only periodic or absolute date/time.");
-                }
-                if (dateTime != null) {
-                    slots.add(new AbsoluteDateTimeSlot(dateTime, getDuration()));
                 }
             }
         }
@@ -133,7 +136,7 @@ public class DateTimeSlot extends PersistentObject
      *
      * @return array of time slots with absolute date/times
      */
-    public final List<AbsoluteDateTimeSlot> enumerate()
+    public final List<Interval> enumerate()
     {
         return enumerate(null, null);
     }
@@ -145,16 +148,16 @@ public class DateTimeSlot extends PersistentObject
      *
      * @return array of time slots with absolute date/times
      */
-    public List<AbsoluteDateTimeSlot> enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
+    public List<Interval> enumerate(DateTime from, DateTime to)
     {
         if (from != null || to != null) {
             // TODO: now DateTimeSlot.getEvaluatedSlots() can never end
             throw new RuntimeException("TODO: Implement DateTimeSlot.getEvaluatedSlots with respect to interval!");
         }
-        ArrayList<AbsoluteDateTimeSlot> slots = new ArrayList<AbsoluteDateTimeSlot>();
-        for (AbsoluteDateTimeSlot slot : getEvaluatedSlots()) {
-            if ((from == null || slot.getStart().afterOrEqual(from))
-                    && (to == null || slot.getEnd().beforeOrEqual(to))) {
+        ArrayList<Interval> slots = new ArrayList<Interval>();
+        for (Interval slot : getEvaluatedSlots()) {
+            if ((from == null || !slot.getStart().isBefore(from))
+                    && (to == null || !slot.getEnd().isAfter(to))) {
                 slots.add(slot);
             }
         }
@@ -167,9 +170,9 @@ public class DateTimeSlot extends PersistentObject
      * @return a time slot with absolute date/time
      */
     @Transient
-    final public DateTimeSlot getEarliest()
+    final public Interval getEarliest()
     {
-        return getEarliest(AbsoluteDateTime.now());
+        return getEarliest(DateTime.now());
     }
 
     /**
@@ -179,13 +182,13 @@ public class DateTimeSlot extends PersistentObject
      * @return a time slot with absolute date/time
      */
     @Transient
-    public AbsoluteDateTimeSlot getEarliest(AbsoluteDateTime referenceDateTime)
+    public Interval getEarliest(DateTime referenceDateTime)
     {
-        AbsoluteDateTime dateTime = this.start.getEarliest(referenceDateTime);
+        DateTime dateTime = this.start.getEarliest(referenceDateTime);
         if (dateTime == null) {
             return null;
         }
-        return new AbsoluteDateTimeSlot(dateTime, getDuration());
+        return new Interval(dateTime, getDuration());
     }
 
     @Override
@@ -199,18 +202,15 @@ public class DateTimeSlot extends PersistentObject
         }
 
         DateTimeSlot slot = (DateTimeSlot) object;
-        List<AbsoluteDateTimeSlot> slots1 = enumerate();
-        List<AbsoluteDateTimeSlot> slots2 = slot.enumerate();
+        List<Interval> slots1 = enumerate();
+        List<Interval> slots2 = slot.enumerate();
         if (slots1.size() != slots2.size()) {
             return false;
         }
         for (int index = 0; index < slots1.size(); index++) {
-            DateTimeSlot slot1 = slots1.get(index);
-            DateTimeSlot slot2 = slots2.get(index);
-            if (slot1.start.equals(slot2.start) == false) {
-                return false;
-            }
-            if (slot1.duration.equals(slot2.duration) == false) {
+            Interval slot1 = slots1.get(index);
+            Interval slot2 = slots2.get(index);
+            if (slot1.equals(slot2) == false) {
                 return false;
             }
         }
@@ -235,12 +235,12 @@ public class DateTimeSlot extends PersistentObject
         map.put("duration", duration.toString());
 
         List<String> slots = new ArrayList<String>();
-        for (AbsoluteDateTimeSlot slot : enumerate()) {
+        for (Interval slot : enumerate()) {
             StringBuilder builder = new StringBuilder();
             builder.append("(");
             builder.append(slot.getStart().toString());
             builder.append(", ");
-            builder.append(slot.getDuration().toString());
+            builder.append(new Period(slot.getStart(), slot.getEnd()).toString());
             builder.append(")");
             slots.add(builder.toString());
         }

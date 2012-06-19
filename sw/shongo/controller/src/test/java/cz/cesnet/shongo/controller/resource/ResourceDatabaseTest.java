@@ -37,7 +37,7 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
         // Load stored resource database and list resources
         resourceDatabase = new ResourceDatabase(new Domain("cz.cesnet"), entityManager);
         List<Resource> resourceList = resourceDatabase.listResources();
-        for ( Resource resource : resourceList ) {
+        for (Resource resource : resourceList) {
             System.err.println(resource.toString());
         }
         System.err.println(resourceDatabase.getDeviceTopology().toString());

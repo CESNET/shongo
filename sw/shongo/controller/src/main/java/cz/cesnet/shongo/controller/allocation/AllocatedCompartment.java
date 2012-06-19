@@ -46,13 +46,13 @@ public class AllocatedCompartment extends PersistentObject
     public void setReservation(Reservation reservation)
     {
         // Manage bidirectional association
-        if ( reservation != this.reservation) {
-            if ( this.reservation != null ) {
+        if (reservation != this.reservation) {
+            if (this.reservation != null) {
                 Reservation oldReservation = this.reservation;
                 this.reservation = null;
                 oldReservation.removeAllocatedCompartment(this);
             }
-            if ( reservation != null ) {
+            if (reservation != null) {
                 this.reservation = reservation;
                 this.reservation.addAllocatedCompartment(this);
             }

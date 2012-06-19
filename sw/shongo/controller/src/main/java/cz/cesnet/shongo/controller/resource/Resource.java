@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.common.DateTime;
+import cz.cesnet.shongo.common.DateTimeSpecification;
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.common.Person;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents an entity that can be scheduled.
@@ -81,7 +84,7 @@ public class Resource extends PersistentObject
      * Defines a maximum future to which the resource is schedulable (e.g., can be set as relative date/time which
      * means that resource can be always scheduled only e.g., to four month ahead).
      */
-    private DateTime maximumFuture;
+    private DateTimeSpecification maximumFuture;
 
     /**
      * Constructor.
@@ -249,13 +252,13 @@ public class Resource extends PersistentObject
     public void setParentResource(Resource parentResource)
     {
         // Manage bidirectional association
-        if ( parentResource != this.parentResource) {
-            if ( this.parentResource != null ) {
+        if (parentResource != this.parentResource) {
+            if (this.parentResource != null) {
                 Resource oldParentResource = this.parentResource;
                 this.parentResource = null;
                 oldParentResource.removeChildResource(this);
             }
-            if ( parentResource != null ) {
+            if (parentResource != null) {
                 this.parentResource = parentResource;
                 this.parentResource.addChildResource(this);
             }
@@ -327,7 +330,7 @@ public class Resource extends PersistentObject
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public DateTime getMaximumFuture()
+    public DateTimeSpecification getMaximumFuture()
     {
         return maximumFuture;
     }
@@ -335,7 +338,7 @@ public class Resource extends PersistentObject
     /**
      * @param maximumFuture sets the {@link #maximumFuture}
      */
-    public void setMaximumFuture(DateTime maximumFuture)
+    public void setMaximumFuture(DateTimeSpecification maximumFuture)
     {
         this.maximumFuture = maximumFuture;
     }

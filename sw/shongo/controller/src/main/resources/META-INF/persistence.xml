@@ -8,14 +8,16 @@
 
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
 
+        <!-- Include hibernate typedefs from joda package -->
+        <class>cz.cesnet.shongo.common.joda</class>
+
         <!-- Include entities from other modules -->
-        <class>cz.cesnet.shongo.common.DateTime</class>
-        <class>cz.cesnet.shongo.common.AbsoluteDateTime</class>
-        <class>cz.cesnet.shongo.common.RelativeDateTime</class>
-        <class>cz.cesnet.shongo.common.PeriodicDateTime</class>
-        <class>cz.cesnet.shongo.common.PeriodicDateTime$Rule</class>
+        <class>cz.cesnet.shongo.common.DateTimeSpecification</class>
+        <class>cz.cesnet.shongo.common.AbsoluteDateTimeSpecification</class>
+        <class>cz.cesnet.shongo.common.RelativeDateTimeSpecification</class>
+        <class>cz.cesnet.shongo.common.PeriodicDateTimeSpecification</class>
+        <class>cz.cesnet.shongo.common.PeriodicDateTimeSpecification$Rule</class>
         <class>cz.cesnet.shongo.common.DateTimeSlot</class>
-        <class>cz.cesnet.shongo.common.AbsoluteDateTimeSlot</class>
         <class>cz.cesnet.shongo.common.Person</class>
 
         <!-- Hibernate configuration -->

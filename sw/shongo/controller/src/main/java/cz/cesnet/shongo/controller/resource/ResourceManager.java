@@ -10,8 +10,8 @@ import java.util.List;
 /**
  * Manager for {@link Resource}.
  *
- * @see AbstractManager
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see AbstractManager
  */
 public class ResourceManager extends AbstractManager
 {

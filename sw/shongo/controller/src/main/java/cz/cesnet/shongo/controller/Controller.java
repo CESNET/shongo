@@ -21,7 +21,6 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.TimeZone;
 
 /**
  * Represents a domain controller.
@@ -51,7 +50,7 @@ public class Controller implements ApplicationContextAware
      */
     public static Controller getInstance()
     {
-        if ( instance == null ) {
+        if (instance == null) {
             throw new IllegalStateException("Cannot get instance of a domain controller, "
                     + "because no controller has been created by spring context yet.");
         }
@@ -135,7 +134,7 @@ public class Controller implements ApplicationContextAware
     public void start() throws Exception
     {
         // Set single instance of domain controller.
-        if ( instance != null ) {
+        if (instance != null) {
             throw new IllegalStateException("A domain controller has already been created, cannot create second one!");
         }
         instance = this;

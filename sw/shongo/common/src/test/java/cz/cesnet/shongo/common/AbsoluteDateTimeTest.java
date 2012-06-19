@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common;
 
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -10,74 +11,77 @@ import static junit.framework.Assert.*;
  */
 public class AbsoluteDateTimeTest
 {
-    AbsoluteDateTime absoluteDateTime;
+    AbsoluteDateTimeSpecification absoluteDateTime;
 
     @Before
     public void setUp()
     {
-        absoluteDateTime = new AbsoluteDateTime("2012-01-02 T13:04:05");
+        absoluteDateTime = new AbsoluteDateTimeSpecification("2012-01-02T13:04:05");
     }
 
     @Test
     public void testToString() throws Exception
     {
-        assertEquals("", new AbsoluteDateTime().toString());
-        assertEquals("2007-04-05T14:30:00", new AbsoluteDateTime("2007-04-05T14:30:00").toString());
+        assertTrue(new AbsoluteDateTimeSpecification("2007-04-05T14:30:00").toString()
+                .startsWith("2007-04-05T14:30:00"));
     }
 
     @Test
     public void testFromString() throws Exception
     {
-        assertEquals("Omitting some date/time parts should work",
-                "2007-04-01T14:30:00", new AbsoluteDateTime("2007-04T14:30").toString());
-        assertEquals("Omitting some date/time parts should work",
-                "2007-01-01T14:00:00", new AbsoluteDateTime("2007T14").toString());
-
-        assertEquals("ISO short time format should be supported",
-                "2007-04-05T14:30:00", new AbsoluteDateTime("20070405T1430").toString());
+        // Not supported by now
+        /*assertEquals("Omitting some date/time parts should work",
+                "2007-04-01T14:30:00", new AbsoluteDateTimeSpecification("2007-04T14:30").toString());
         assertEquals("ISO short date/time format should be supported",
-                "2007-04-05T14:30:00", new AbsoluteDateTime("20070405T143000").toString());
-
+                new AbsoluteDateTimeSpecification("2007-04-05T14:30:00"),
+                new AbsoluteDateTimeSpecification("20070405T1430"));
+        assertEquals("Omitting some date/time parts should work",
+                "2007-01-01T14:00:00", new AbsoluteDateTimeSpecification("2007T14").toString());
+        assertEquals("ISO short time format should be supported",
+                "2007-04-05T14:30:00", new AbsoluteDateTimeSpecification("20070405T143000").toString());
         assertEquals("Extra whitespace in the datetime string should be accepted as an extension to ISO 8601",
-                "2007-04-05T14:30:00", new AbsoluteDateTime("2007-04-05 T14:30").toString());
+                new AbsoluteDateTimeSpecification("20070405T14:30:00"),
+                new AbsoluteDateTimeSpecification("2007-04-05 T14:30"));*/
     }
 
     @Test
     public void testEquals() throws Exception
     {
         assertEquals(absoluteDateTime, absoluteDateTime);
-        assertEquals(new AbsoluteDateTime("20070405T1430"), new AbsoluteDateTime("2007-04-05 T14:30"));
-        assertEquals(new AbsoluteDateTime("20070401T14"), new AbsoluteDateTime("2007-04-01T14"));
+        assertEquals(new AbsoluteDateTimeSpecification("2007-04-05T14:30"),
+                new AbsoluteDateTimeSpecification("2007-04-05T14:30:00"));
+        assertEquals(new AbsoluteDateTimeSpecification("2007-04-01T14"),
+                new AbsoluteDateTimeSpecification("2007-04-01T14:00"));
     }
 
     @Test
     public void testGetEarliest() throws Exception
     {
-        assertEquals(new AbsoluteDateTime("1234-04-05T14:30"),
-                new AbsoluteDateTime("1234-04-05T14:30").getEarliest(new AbsoluteDateTime("1234-04-05T14:29")));
+        assertEquals(DateTime.parse("1234-04-05T14:30"),
+                new AbsoluteDateTimeSpecification("1234-04-05T14:30").getEarliest(DateTime.parse("1234-04-05T14:29")));
 
         assertNull("A datetime which will not occur since given datetime",
-                new AbsoluteDateTime("9876-04-05T14:30").getEarliest(new AbsoluteDateTime("9876-04-05T14:31")));
+                new AbsoluteDateTimeSpecification("9876-04-05T14:30").getEarliest(DateTime.parse("9876-04-05T14:31")));
 
         assertNull("The comparison should work with strict inequality",
-                new AbsoluteDateTime("1234-04-05T14:30").getEarliest(new AbsoluteDateTime("1234-04-05T14:30")));
+                new AbsoluteDateTimeSpecification("1234-04-05T14:30").getEarliest(DateTime.parse("1234-04-05T14:30")));
 
         // NOTE: requires correctly set system clock (at least with precision to centuries)
-        assertEquals(new AbsoluteDateTime("9876-04-05T14:30"),
-                new AbsoluteDateTime("9876-04-05T14:30").getEarliest());
+        assertEquals(DateTime.parse("9876-04-05T14:30"),
+                new AbsoluteDateTimeSpecification("9876-04-05T14:30").getEarliest());
 
         assertNull("A datetime which will never occur",
-                new AbsoluteDateTime("1234-04-05T14:30").getEarliest());
+                new AbsoluteDateTimeSpecification("1234-04-05T14:30").getEarliest());
     }
 
     @Test
     public void testCompareTo() throws Exception
     {
-        AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12 T00");
-        AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
+        AbsoluteDateTimeSpecification dt1 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt2 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt3 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt4 = new AbsoluteDateTimeSpecification("2010-01-12T00");
+        AbsoluteDateTimeSpecification dt5 = new AbsoluteDateTimeSpecification("2010-01-12T13");
 
         assertEquals(0, dt1.compareTo(dt2));
         assertEquals(0, dt2.compareTo(dt1));
@@ -91,11 +95,11 @@ public class AbsoluteDateTimeTest
     @Test
     public void testBefore() throws Exception
     {
-        AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:31");
-        AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12 T00");
-        AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
+        AbsoluteDateTimeSpecification dt1 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt2 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt3 = new AbsoluteDateTimeSpecification("1234-04-5T14:31");
+        AbsoluteDateTimeSpecification dt4 = new AbsoluteDateTimeSpecification("2010-01-12T00");
+        AbsoluteDateTimeSpecification dt5 = new AbsoluteDateTimeSpecification("2010-01-12T13");
 
         assertFalse(dt1.before(dt2));
         assertFalse(dt2.before(dt1));
@@ -119,11 +123,11 @@ public class AbsoluteDateTimeTest
     @Test
     public void testAfter() throws Exception
     {
-        AbsoluteDateTime dt1 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("1234-04-05 T14:30");
-        AbsoluteDateTime dt3 = new AbsoluteDateTime("1234-04-05 T14:31");
-        AbsoluteDateTime dt4 = new AbsoluteDateTime("2010-01-12 T00");
-        AbsoluteDateTime dt5 = new AbsoluteDateTime("2010-01-12 T13");
+        AbsoluteDateTimeSpecification dt1 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt2 = new AbsoluteDateTimeSpecification("1234-04-05T14:30");
+        AbsoluteDateTimeSpecification dt3 = new AbsoluteDateTimeSpecification("1234-04-5T14:31");
+        AbsoluteDateTimeSpecification dt4 = new AbsoluteDateTimeSpecification("2010-01-12T00");
+        AbsoluteDateTimeSpecification dt5 = new AbsoluteDateTimeSpecification("2010-01-12T13");
 
         assertFalse(dt1.after(dt2));
         assertFalse(dt2.after(dt1));
@@ -142,33 +146,5 @@ public class AbsoluteDateTimeTest
         assertTrue(dt4.afterOrEqual(dt3));
         assertFalse(dt4.afterOrEqual(dt5));
         assertTrue(dt5.afterOrEqual(dt4));
-    }
-
-    @Test
-    public void testAdd() throws Exception
-    {
-        AbsoluteDateTime dt = new AbsoluteDateTime("2012-02-28 T12:00");
-        AbsoluteDateTime result = dt.add(new Period("P1DT1H"));
-        assertEquals("The original datetime object should not be modified",
-                new AbsoluteDateTime("2012-02-28 T12:00"), dt);
-        assertEquals(new AbsoluteDateTime("2012-02-29 T13:00"), result);
-
-        AbsoluteDateTime dt2 = new AbsoluteDateTime("2012-02-28 T12:00");
-        AbsoluteDateTime result2 = dt2.add(new Period("PT13H"));
-        assertEquals(new AbsoluteDateTime("2012-02-29 T01:00"), result2);
-    }
-
-    @Test
-    public void testSubtract() throws Exception
-    {
-        AbsoluteDateTime dt = new AbsoluteDateTime("2012-02-28 T12:00");
-        AbsoluteDateTime result = dt.subtract(new Period("PT13H"));
-        assertEquals("The original datetime object should not be modified",
-                new AbsoluteDateTime("2012-02-28 T12:00"), dt);
-        assertEquals(new AbsoluteDateTime("2012-02-27 T23:00"), result);
-
-        assertEquals(new AbsoluteDateTime("1234-12-12 T12:34:56"),
-                new AbsoluteDateTime("1234-12-12 T12:34:56").
-                        add(new Period("P8Y1DT8M1S")).subtract(new Period("P8Y1DT8M1S")));
     }
 }

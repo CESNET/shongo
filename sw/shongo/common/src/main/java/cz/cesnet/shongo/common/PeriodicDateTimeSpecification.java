@@ -1,20 +1,25 @@
 package cz.cesnet.shongo.common;
 
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
+
 import javax.persistence.*;
 import java.util.*;
 
 /**
- * Represents a Date/Time of events that takes place periodically.
+ * Represents a date/time of events that takes place periodically.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PeriodicDateTime extends DateTime
+public class PeriodicDateTimeSpecification extends DateTimeSpecification
 {
     /**
-     * Date/time of the first periodic event.
+     * Date and time of the first periodic event.
      */
-    private AbsoluteDateTime start;
+    private DateTime start;
 
     /**
      * Period of periodic events.
@@ -22,11 +27,9 @@ public class PeriodicDateTime extends DateTime
     private Period period;
 
     /**
-     * Ending date/time after which the periodic events are not considered.
-     * The ending date/time can be nice e.g., 31.12.2012, and for periodic events
-     * on every Thursday the last will take place on 29.12.2012.
+     * Ending date and/or time after which the periodic events are not considered.
      */
-    private AbsoluteDateTime end;
+    private ReadablePartial end;
 
     /**
      * List of rules for periodic date/time.
@@ -36,7 +39,7 @@ public class PeriodicDateTime extends DateTime
     /**
      * Constructs empty periodical date/time events.
      */
-    public PeriodicDateTime()
+    public PeriodicDateTimeSpecification()
     {
         this(null, null, null);
     }
@@ -48,7 +51,7 @@ public class PeriodicDateTime extends DateTime
      * @param start
      * @param period
      */
-    public PeriodicDateTime(AbsoluteDateTime start, Period period)
+    public PeriodicDateTimeSpecification(DateTime start, Period period)
     {
         this(start, period, null);
     }
@@ -60,8 +63,9 @@ public class PeriodicDateTime extends DateTime
      *
      * @param start
      * @param period
+     * @param end
      */
-    public PeriodicDateTime(AbsoluteDateTime start, Period period, AbsoluteDateTime end)
+    public PeriodicDateTimeSpecification(DateTime start, Period period, ReadablePartial end)
     {
         setStart(start);
         setPeriod(period);
@@ -71,8 +75,9 @@ public class PeriodicDateTime extends DateTime
     /**
      * @return {@link #start}
      */
-    @Embedded
-    public AbsoluteDateTime getStart()
+    @Column
+    @Type(type = "DateTime")
+    public DateTime getStart()
     {
         return start;
     }
@@ -80,7 +85,7 @@ public class PeriodicDateTime extends DateTime
     /**
      * @param start sets the {@link #start}
      */
-    public void setStart(AbsoluteDateTime start)
+    public void setStart(DateTime start)
     {
         this.start = start;
     }
@@ -89,7 +94,7 @@ public class PeriodicDateTime extends DateTime
      * @return {@link #period}
      */
     @Column
-    @Access(AccessType.FIELD)
+    @Type(type = "Period")
     public Period getPeriod()
     {
         return period;
@@ -106,8 +111,9 @@ public class PeriodicDateTime extends DateTime
     /**
      * @return {@link #end}
      */
-    @Embedded
-    public AbsoluteDateTime getEnd()
+    @Column(name = "ending")
+    @Type(type = "ReadablePartial")
+    public ReadablePartial getEnd()
     {
         return end;
     }
@@ -115,7 +121,7 @@ public class PeriodicDateTime extends DateTime
     /**
      * @param end sets the {@link #end}
      */
-    public void setEnd(AbsoluteDateTime end)
+    public void setEnd(ReadablePartial end)
     {
         this.end = end;
     }
@@ -155,7 +161,7 @@ public class PeriodicDateTime extends DateTime
      * @param type     Type of rule
      * @param dateTime Concrete date/time
      */
-    public void addRule(RuleType type, AbsoluteDateTime dateTime)
+    public void addRule(RuleType type, ReadablePartial dateTime)
     {
         addRule(new Rule(type, dateTime));
     }
@@ -167,7 +173,7 @@ public class PeriodicDateTime extends DateTime
      * @param dateTimeFrom Start of interval
      * @param dateTimeTo   End of interval
      */
-    public void addRule(RuleType type, AbsoluteDateTime dateTimeFrom, AbsoluteDateTime dateTimeTo)
+    public void addRule(RuleType type, ReadablePartial dateTimeFrom, ReadablePartial dateTimeTo)
     {
         addRule(new Rule(type, dateTimeFrom, dateTimeTo));
     }
@@ -185,7 +191,7 @@ public class PeriodicDateTime extends DateTime
      *
      * @return array of absolute Date/Times
      */
-    public final List<AbsoluteDateTime> enumerate()
+    public final List<DateTime> enumerate()
     {
         return enumerate(null, null);
     }
@@ -198,38 +204,36 @@ public class PeriodicDateTime extends DateTime
      * @param to
      * @return array of absolute Date/Times
      */
-    public List<AbsoluteDateTime> enumerate(AbsoluteDateTime from, AbsoluteDateTime to)
+    public List<DateTime> enumerate(DateTime from, DateTime to)
     {
+        DateTime start = this.start;
+        DateTime end = (this.end != null ? this.end.toDateTime(start) : null);
+
         // Find all events in range from-to
-        List<AbsoluteDateTime> dateTimeList = new ArrayList<AbsoluteDateTime>();
-        if (this.start != null) {
-            AbsoluteDateTime start = (AbsoluteDateTime) this.start.clone();
-            while (start.after(this.end) == false) {
-                if (to != null && start.after(to)) {
-                    break;
-                }
-                if (from == null || start.before(from) == false) {
-                    dateTimeList.add(start);
-                }
-                start = start.add(period);
+        List<DateTime> dateTimeList = new ArrayList<DateTime>();
+        while (start != null && start.isAfter(end) == false) {
+            if (to != null && start.isAfter(to)) {
+                break;
             }
+            if (from == null || start.isBefore(from) == false) {
+                dateTimeList.add(start);
+            }
+            start = start.plus(period);
         }
+
+        DateTime defaultIntervalFrom = new DateTime(0, 1, 1, 0, 0, 0);
+        DateTime defaultIntervalTo = new DateTime(0, 1, 31, 23, 59, 59);
 
         // Build set of indexes for disabled date/times from the list
         Set<Integer> disabledSet = new HashSet<Integer>();
         for (Rule rule : rules) {
             // Extra rule
             if (rule.getType() == RuleType.Extra) {
-                AbsoluteDateTime ruleDateTime = rule.getDateTime();
-                if ((from != null && ruleDateTime.before(from)) || (to != null && ruleDateTime.after(to))) {
+                DateTime ruleDateTime = rule.getDateTime().toDateTime(start);
+                if ((from != null && ruleDateTime.isBefore(from)) || (to != null && ruleDateTime.isAfter(to))) {
                     continue;
                 }
-                if (this.start != null) {
-                    dateTimeList.add(this.start.merge(ruleDateTime));
-                }
-                else {
-                    dateTimeList.add(ruleDateTime);
-                }
+                dateTimeList.add(ruleDateTime);
                 continue;
             }
 
@@ -240,11 +244,11 @@ public class PeriodicDateTime extends DateTime
             }
             // Interval
             if (rule.isInterval()) {
-                AbsoluteDateTime ruleFrom = rule.getDateTimeFrom();
-                AbsoluteDateTime ruleTo = rule.getDateTimeTo();
+                DateTime ruleFrom = rule.getDateTimeFrom().toDateTime(defaultIntervalFrom);
+                DateTime ruleTo = rule.getDateTimeTo().toDateTime(defaultIntervalTo);
                 for (int index = 0; index < dateTimeList.size(); index++) {
-                    AbsoluteDateTime dateTime = dateTimeList.get(index);
-                    if (dateTime.before(ruleFrom) == false && dateTime.after(ruleTo) == false) {
+                    DateTime dateTime = dateTimeList.get(index);
+                    if (dateTime.isBefore(ruleFrom) == false && dateTime.isAfter(ruleTo) == false) {
                         if (type == RuleType.Enable) {
                             disabledSet.remove(index);
                         }
@@ -256,10 +260,10 @@ public class PeriodicDateTime extends DateTime
             }
             // Single date/time
             else {
-                AbsoluteDateTime ruleDateTime = rule.getDateTime();
+                ReadablePartial ruleDateTime = rule.getDateTime();
                 for (int index = 0; index < dateTimeList.size(); index++) {
-                    AbsoluteDateTime dateTime = dateTimeList.get(index);
-                    if (dateTime.equals(ruleDateTime)) {
+                    DateTime dateTime = dateTimeList.get(index);
+                    if (dateTime.equals(ruleDateTime.toDateTime(dateTime))) {
                         if (type == RuleType.Enable) {
                             disabledSet.remove(index);
                         }
@@ -283,11 +287,11 @@ public class PeriodicDateTime extends DateTime
     }
 
     @Override
-    public AbsoluteDateTime getEarliest(AbsoluteDateTime referenceDateTime)
+    public DateTime getEarliest(DateTime referenceDateTime)
     {
-        List<AbsoluteDateTime> dateTimes = enumerate();
-        for (AbsoluteDateTime dateTime : dateTimes) {
-            if (dateTime.before(referenceDateTime) == false) {
+        List<DateTime> dateTimes = enumerate();
+        for (DateTime dateTime : dateTimes) {
+            if (dateTime.isBefore(referenceDateTime) == false) {
                 return dateTime;
             }
         }
@@ -304,9 +308,9 @@ public class PeriodicDateTime extends DateTime
             return false;
         }
 
-        PeriodicDateTime periodicDateTime = (PeriodicDateTime) object;
-        List<AbsoluteDateTime> dateTimes1 = enumerate();
-        List<AbsoluteDateTime> dateTimes2 = periodicDateTime.enumerate();
+        PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) object;
+        List<DateTime> dateTimes1 = enumerate();
+        List<DateTime> dateTimes2 = periodicDateTime.enumerate();
         if (dateTimes1.size() != dateTimes2.size()) {
             return false;
         }
@@ -358,12 +362,12 @@ public class PeriodicDateTime extends DateTime
         /**
          * Rule interval "from" date/time.
          */
-        private AbsoluteDateTime dateTimeFrom;
+        private ReadablePartial dateTimeFrom;
 
         /**
          * Rule interval "to" date/time.
          */
-        private AbsoluteDateTime dateTimeTo;
+        private ReadablePartial dateTimeTo;
 
         /**
          * Construct rule that performs it's effect for concrete date/time.
@@ -371,7 +375,7 @@ public class PeriodicDateTime extends DateTime
          * @param type     Type of rule
          * @param dateTime Concrete date/time
          */
-        public Rule(RuleType type, AbsoluteDateTime dateTime)
+        public Rule(RuleType type, ReadablePartial dateTime)
         {
             this.type = type;
             this.dateTimeFrom = dateTime;
@@ -384,7 +388,7 @@ public class PeriodicDateTime extends DateTime
          * @param dateTimeFrom Start of date/time interval
          * @param dateTimeTo   End of date/time interval
          */
-        public Rule(RuleType type, AbsoluteDateTime dateTimeFrom, AbsoluteDateTime dateTimeTo)
+        public Rule(RuleType type, ReadablePartial dateTimeFrom, ReadablePartial dateTimeTo)
         {
             this.type = type;
             this.dateTimeFrom = dateTimeFrom;
@@ -405,7 +409,7 @@ public class PeriodicDateTime extends DateTime
          * @return single date/time for rule
          */
         @Transient
-        public AbsoluteDateTime getDateTime()
+        public ReadablePartial getDateTime()
         {
             if (dateTimeFrom == null || dateTimeTo != null) {
                 throw new IllegalStateException("Periodic date/time rule should have only single date/time set.");
@@ -416,9 +420,10 @@ public class PeriodicDateTime extends DateTime
         /**
          * @return {@link #dateTimeFrom}
          */
-        @Embedded
+        @Column
+        @Type(type = "ReadablePartial")
         @Access(AccessType.FIELD)
-        public AbsoluteDateTime getDateTimeFrom()
+        public ReadablePartial getDateTimeFrom()
         {
             if (dateTimeFrom == null) {
                 throw new IllegalStateException("Periodic date/time rule should have interval from set.");
@@ -429,9 +434,10 @@ public class PeriodicDateTime extends DateTime
         /**
          * @return {@link #dateTimeTo}
          */
-        @Embedded
+        @Column
+        @Type(type = "ReadablePartial")
         @Access(AccessType.FIELD)
-        public AbsoluteDateTime getDateTimeTo()
+        public ReadablePartial getDateTimeTo()
         {
             if (dateTimeTo == null) {
                 throw new IllegalStateException("Periodic date/time rule should have interval to set.");
@@ -467,7 +473,7 @@ public class PeriodicDateTime extends DateTime
         }
 
         List<String> dateTimes = new ArrayList<String>();
-        for (AbsoluteDateTime dateTime : enumerate()) {
+        for (DateTime dateTime : enumerate()) {
             dateTimes.add(dateTime.toString());
         }
         addCollectionToMap(map, "enumerated", dateTimes);

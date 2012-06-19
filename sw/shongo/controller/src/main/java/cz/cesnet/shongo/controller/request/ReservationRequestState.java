@@ -76,7 +76,7 @@ public class ReservationRequestState
          * @return {@link #from}
          */
         @Column
-        @Type(type = "cz.cesnet.shongo.common.joda.PersistentDateTime")
+        @Type(type = "DateTime")
         public DateTime getFrom()
         {
             return from;
@@ -94,7 +94,7 @@ public class ReservationRequestState
          * @return {@link #to}
          */
         @Column
-        @Type(type = "cz.cesnet.shongo.common.joda.PersistentDateTime")
+        @Type(type = "DateTime")
         public DateTime getTo()
         {
             return to;
@@ -187,8 +187,8 @@ public class ReservationRequestState
                     boolean toIsInside = !to.isBefore(record.getFrom()) && !to.isAfter(record.getTo());
 
                     // If the interval overlaps the entire record, merge or delete the record
-                    if ( fromIsBeforeOrEqual && toIsAfterOrEqual ) {
-                        if ( newRecord == null ) {
+                    if (fromIsBeforeOrEqual && toIsAfterOrEqual) {
+                        if (newRecord == null) {
                             newRecord = record;
                             newRecord.setFrom(from);
                             newRecord.setTo(to);
@@ -199,11 +199,12 @@ public class ReservationRequestState
                         }
                     }
                     // If the interval overlaps the beginning of the record, merge or delete the record
-                    else if (fromIsBeforeOrEqual && toIsInside ) {
-                        if ( newRecord == null ) {
+                    else if (fromIsBeforeOrEqual && toIsInside) {
+                        if (newRecord == null) {
                             newRecord = record;
                             newRecord.setFrom(from);
-                        } else {
+                        }
+                        else {
                             newRecord.setTo(record.getTo());
                             records.remove(index);
                             index--;
@@ -211,15 +212,15 @@ public class ReservationRequestState
                         break;
                     }
                     // If the interval overlaps the end of the record, update the record
-                    else if (fromIsInside && toIsAfterOrEqual ) {
-                        if ( newRecord != null ) {
+                    else if (fromIsInside && toIsAfterOrEqual) {
+                        if (newRecord != null) {
                             throw new IllegalStateException("Should never happen!");
                         }
                         newRecord = record;
                         newRecord.setTo(to);
                     }
                     // If the interval is inside the record, do nothing
-                    else if ( fromIsInside && toIsInside ) {
+                    else if (fromIsInside && toIsInside) {
                         break;
                     }
                 }
@@ -236,21 +237,21 @@ public class ReservationRequestState
                     boolean toIsInside = !to.isBefore(record.getFrom()) && !to.isAfter(record.getTo());
 
                     // If the interval overlaps the entire record, delete the record
-                    if ( fromIsBeforeOrEqual && toIsAfterOrEqual ) {
+                    if (fromIsBeforeOrEqual && toIsAfterOrEqual) {
                         records.remove(index);
                         index--;
                     }
                     // If the interval overlaps the beginning of the record, update the record
-                    else if (fromIsBeforeOrEqual && toIsInside ) {
+                    else if (fromIsBeforeOrEqual && toIsInside) {
                         record.setFrom(to);
                         break;
                     }
                     // If the interval overlaps the end of the record, update the record
-                    else if (fromIsInside && toIsAfterOrEqual ) {
+                    else if (fromIsInside && toIsAfterOrEqual) {
                         record.setTo(from);
                     }
                     // If the interval is inside the record, split the record
-                    else if ( fromIsInside && toIsInside ) {
+                    else if (fromIsInside && toIsInside) {
                         index++;
                         records.add(index, new Record(to, record.getTo()));
                         record.setTo(from);
@@ -302,18 +303,21 @@ public class ReservationRequestState
     {
         DateTime intervalFrom = null;
         DateTime intervalTo = null;
-        
-        if ( state == State.NOT_PREPROCESSED ) {
+
+        if (state == State.NOT_PREPROCESSED) {
             intervalFrom = from;
             intervalTo = to;
-            for ( Record record : records ) {
-                boolean fromIsInside = !intervalFrom.isBefore(record.getFrom()) && intervalFrom.isBefore(record.getTo());
+            for (Record record : records) {
+                boolean fromIsInside = !intervalFrom.isBefore(record.getFrom()) && intervalFrom
+                        .isBefore(record.getTo());
                 boolean toIsInside = intervalTo.isAfter(record.getFrom()) && !intervalTo.isAfter(record.getTo());
-                if ( fromIsInside && toIsInside ) {
+                if (fromIsInside && toIsInside) {
                     return null;
-                } else if ( fromIsInside ) {
+                }
+                else if (fromIsInside) {
                     intervalFrom = record.getTo().plusSeconds(1);
-                } else if ( toIsInside ) {
+                }
+                else if (toIsInside) {
                     intervalTo = record.getFrom().minusSeconds(1);
                 }
             }
@@ -321,10 +325,11 @@ public class ReservationRequestState
         else {
             throw new RuntimeException("TODO: Implement");
         }
-        
-        if ( intervalFrom != null && intervalTo != null ) {
+
+        if (intervalFrom != null && intervalTo != null) {
             return new Interval(intervalFrom, intervalTo);
-        } else {
+        }
+        else {
             return null;
         }
     }

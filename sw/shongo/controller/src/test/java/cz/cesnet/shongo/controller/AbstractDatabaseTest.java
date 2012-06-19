@@ -3,7 +3,9 @@ package cz.cesnet.shongo.controller;
 import org.junit.After;
 import org.junit.Before;
 
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +34,7 @@ public abstract class AbstractDatabaseTest
     @Before
     public void setUp() throws Exception
     {
-        if ( entityManagerFactory == null ) {
+        if (entityManagerFactory == null) {
             // For testing purposes use only in-memory database
             Map<String, String> properties = new HashMap<String, String>();
             properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:controller; shutdown=true;");
@@ -47,7 +49,7 @@ public abstract class AbstractDatabaseTest
     @After
     public void tearDown()
     {
-        if ( entityManager != null ) {
+        if (entityManager != null) {
             entityManager.close();
         }
     }
