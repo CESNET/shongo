@@ -1,0 +1,106 @@
+package cz.cesnet.shongo.controller.request;
+
+import cz.cesnet.shongo.common.PersistentObject;
+import org.hibernate.annotations.Columns;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Represents a {@link ReservationRequest.State#PREPROCESSED} state of a reservation request for a specific interval.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+@Entity
+public class ReservationRequestPreprocessedState extends PersistentObject
+{
+    /**
+     * Reservation request to which the state belongs.
+     */
+    private ReservationRequest reservationRequest;
+
+    /**
+     * Interval start date/time.
+     */
+    private DateTime start;
+
+    /**
+     * Interval end date/time.
+     */
+    private DateTime end;
+
+    /**
+     * @return {@link #reservationRequest}
+     */
+    @OneToOne
+    public ReservationRequest getReservationRequest()
+    {
+        return reservationRequest;
+    }
+
+    /**
+     * @param reservationRequest sets the {@link #reservationRequest}
+     */
+    public void setReservationRequest(ReservationRequest reservationRequest)
+    {
+        this.reservationRequest = reservationRequest;
+    }
+
+    /**
+     * @return interval ({@link #start}, {@link #end})
+     */
+    @Transient
+    public Interval getInterval()
+    {
+        return new Interval(start, end);
+    }
+
+    /**
+     * @param interval sets the interval ({@link #start}, {@link #end})
+     */
+    public void setInterval(Interval interval)
+    {
+        setStart(interval.getStart());
+        setEnd(interval.getEnd());
+    }
+
+    /**
+     * @return {@link #start}
+     */
+    @Column(name = "interval_start")
+    @Type(type = "DateTime")
+    public DateTime getStart()
+    {
+        return start;
+    }
+
+    /**
+     * @param start sets the {@link #start}
+     */
+    public void setStart(DateTime start)
+    {
+        this.start = start;
+    }
+
+    /**
+     * @return {@link #end}
+     */
+    @Column(name = "interval_end")
+    @Type(type = "DateTime")
+    public DateTime getEnd()
+    {
+        return end;
+    }
+
+    /**
+     * @param end sets the {@link #end}
+     */
+    public void setEnd(DateTime end)
+    {
+        this.end = end;
+    }
+}

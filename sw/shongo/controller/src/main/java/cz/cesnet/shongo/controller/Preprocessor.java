@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -13,10 +14,10 @@ import java.util.Map;
 
 /**
  * Represents a component for a domain controller that is started before scheduler.
- * The component process "not-preprocessed" reservation request and enumerate it
- * to compartment request that are scheduled by a scheduler.
+ * The component process "not-preprocessed" reservation requests and enumerate them
+ * to compartment requests that are scheduled by a scheduler.
  * <p/>
- * Without preprocessor, the scheduler doesn't have any input compartment request.
+ * Without preprocessor, the scheduler doesn't have any input compartment requests.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -54,22 +55,62 @@ public class Preprocessor extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         List<ReservationRequest> reservationRequests = reservationRequestManager.listNotPreprocessed(interval);
 
+        // Process all reservation requests
         for (ReservationRequest reservationRequest : reservationRequests) {
-            synchronizeCompartmentRequests(reservationRequest, interval, entityManager);
+            processReservationRequest(reservationRequest, interval, entityManager);
         }
 
         entityManager.getTransaction().commit();
+        entityManager.close();
+    }
+
+    /**
+     * Run preprocessor only for single reservation request with given identifier for a given interval.
+     *
+     * @param reservationRequestIdentifier
+     * @param interval
+     */
+    public void run(Identifier reservationRequestIdentifier, Interval interval)
+    {
+        checkInitialized();
+
+        logger.debug("Running preprocessor for a single reservation request '{}'...", reservationRequestIdentifier);
+
+        EntityManager entityManager = getEntityManager();
+        entityManager.getTransaction().begin();
+
+        // Get reservation request by identifier
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestIdentifier);
+
+        if ( reservationRequest == null ) {
+            throw new IllegalArgumentException(String.format("Reservation request '%s' doesn't exist!",
+                    reservationRequestIdentifier));
+        }
+        ReservationRequestStateManager reservationRequestStateManager =
+                new ReservationRequestStateManager(entityManager, reservationRequest);
+        if ( reservationRequestStateManager.getState(interval) != ReservationRequest.State.NOT_PREPROCESSED) {
+            throw new IllegalStateException(String.format("Reservation request '%s' is already preprocessed in %s!",
+                    reservationRequestIdentifier, interval));
+        }
+        processReservationRequest(reservationRequest, interval, entityManager);
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
     }
 
     /**
      * Synchronize (create/modify/delete) compartment requests from a single persisted reservation request.
      */
-    private void synchronizeCompartmentRequests(ReservationRequest reservationRequest, Interval interval,
+    private void processReservationRequest(ReservationRequest reservationRequest, Interval interval,
             EntityManager entityManager)
     {
         reservationRequest.checkPersisted();
 
+        logger.debug("Processing reservation request '{}' by a preprocessor...", reservationRequest.getIdentifier());
+
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // Get list of date/time slots
         List<Interval> slots = reservationRequest.enumerateRequestedSlots(interval);
@@ -117,7 +158,9 @@ public class Preprocessor extends Component
             compartmentRequestManager.delete(compartmentRequest);
         }
 
-        throw new RuntimeException("TODO: Modify reservation request state");
+        // Set state preprocessed state for the interval to reservation request
+        ReservationRequestStateManager.setState(entityManager, reservationRequest,
+                ReservationRequest.State.PREPROCESSED, interval);
     }
 
     /**
@@ -132,6 +175,23 @@ public class Preprocessor extends Component
         preprocessor.setEntityManagerFactory(entityManagerFactory);
         preprocessor.init();
         preprocessor.run(interval);
+        preprocessor.destroy();
+    }
+
+    /**
+     * Run preprocessor on given entityManagerFactory, for a single reservation request and given interval.
+     *
+     * @param entityManagerFactory
+     * @param reservationRequestIdentifier
+     * @param interval
+     */
+    public static void run(EntityManagerFactory entityManagerFactory, Identifier reservationRequestIdentifier,
+            Interval interval)
+    {
+        Preprocessor preprocessor = new Preprocessor();
+        preprocessor.setEntityManagerFactory(entityManagerFactory);
+        preprocessor.init();
+        preprocessor.run(reservationRequestIdentifier, interval);
         preprocessor.destroy();
     }
 }

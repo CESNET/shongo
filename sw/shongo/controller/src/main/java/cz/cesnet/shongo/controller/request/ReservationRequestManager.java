@@ -55,6 +55,9 @@ public class ReservationRequestManager extends AbstractManager
 
         super.update(reservationRequest);
 
+        ReservationRequestStateManager.setState(entityManager, reservationRequest,
+                ReservationRequest.State.NOT_PREPROCESSED);
+
         transaction.commit();
     }
 
@@ -92,8 +95,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         List<ReservationRequest> reservationRequestList = entityManager
                 .createQuery("SELECT request FROM ReservationRequest request WHERE request NOT IN (" +
-                        "SELECT request FROM ReservationRequest request LEFT JOIN request.state.records record "
-                        + "WHERE record.from <= :from AND record.to >= :to)",
+                        "SELECT state.reservationRequest FROM ReservationRequestPreprocessedState state "
+                        + "WHERE state.start <= :from AND state.end >= :to)",
                         ReservationRequest.class).setParameter("from", interval.getStart())
                 .setParameter("to", interval.getEnd())
                 .getResultList();

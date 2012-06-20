@@ -82,7 +82,12 @@ public abstract class AbstractManager
     {
         persistentObject.checkPersisted();
         Transaction transaction = beginTransaction();
-        entityManager.persist(persistentObject);
+        if (!entityManager.contains(persistentObject)) {
+            entityManager.merge(persistentObject);
+        }
+        else {
+            entityManager.flush();
+        }
         transaction.commit();
     }
 

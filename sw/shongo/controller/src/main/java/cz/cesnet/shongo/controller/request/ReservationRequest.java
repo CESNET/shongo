@@ -55,6 +55,23 @@ public class ReservationRequest extends PersistentObject
     }
 
     /**
+     * State of reservation request.
+     */
+    public static enum State
+    {
+        /**
+         * State tells that reservation request hasn't corresponding compartment requests created
+         * or the reservation request has changed they are out-of-sync.
+         */
+        NOT_PREPROCESSED,
+
+        /**
+         * State tells that reservation request has corresponding compartment requests synced.
+         */
+        PREPROCESSED
+    }
+
+    /**
      * Unique identifier in whole Shongo.
      */
     private Identifier identifier;
@@ -96,13 +113,6 @@ public class ReservationRequest extends PersistentObject
      * Option that specifies whether inter-domain resource lookup can be performed.
      */
     private boolean interDomain;
-
-    /**
-     * State of reservation request that varies in time.
-     */
-    @Embedded
-    @Access(AccessType.FIELD)
-    private ReservationRequestState state;
 
     /**
      * @return {@link #identifier} as string
