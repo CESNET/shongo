@@ -27,14 +27,12 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
         resourceDatabase.init();
 
         DeviceResource terminal = new DeviceResource();
-        terminal.createNewIdentifier("cz.cesnet.external");
         terminal.setTechnology(Technology.H323);
         terminal.setDescription("Software Mirial endpoint of Martin Srom");
         terminal.addCapability(new StandaloneTerminalCapability());
         resourceDatabase.addResource(terminal);
 
         DeviceResource mcu = new DeviceResource();
-        mcu.createNewIdentifier("cz.cesnet");
         mcu.setTechnology(Technology.H323);
         mcu.addCapability(new VirtualRoomsCapability());
         resourceDatabase.addResource(mcu);

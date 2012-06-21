@@ -18,15 +18,13 @@ public class IdentifierTest
     {
         Identifier identifier = null;
 
-        identifier = new Identifier("shongo:resource:cz.cesnet:8f460144-eefb-4b7c-a4f9-9c74c08a2158");
-        assertEquals(Identifier.Type.RESOURCE, identifier.getType());
+        identifier = new Identifier("shongo:cz.cesnet:11");
         assertEquals("cz.cesnet", identifier.getDomain());
-        assertEquals(UUID.fromString("8f460144-eefb-4b7c-a4f9-9c74c08a2158"), identifier.getUUID());
+        assertEquals(11, identifier.getId());
 
-        identifier = new Identifier("shongo:reservation:cz.muni.fi:55560144-eefb-4b7c-a4f9-9c74c08a2158");
-        assertEquals(Identifier.Type.RESERVATION, identifier.getType());
+        identifier = new Identifier("shongo:cz.muni.fi:22");
         assertEquals("cz.muni.fi", identifier.getDomain());
-        assertEquals(UUID.fromString("55560144-eefb-4b7c-a4f9-9c74c08a2158"), identifier.getUUID());
+        assertEquals(22, identifier.getId());
     }
 
     @Test
@@ -34,10 +32,10 @@ public class IdentifierTest
     {
         Identifier identifier = null;
 
-        identifier = new Identifier(Identifier.Type.RESOURCE, "cz.cesnet");
-        assertEquals("shongo:resource:cz.cesnet:", identifier.toString().substring(0, 26));
+        identifier = new Identifier("cz.cesnet", 11);
+        assertEquals("shongo:cz.cesnet:11", identifier.toString());
 
-        identifier = new Identifier(Identifier.Type.RESERVATION, "cz.muni.fi");
-        assertEquals("shongo:reservation:cz.muni.fi:", identifier.toString().substring(0, 30));
+        identifier = new Identifier("cz.muni.fi", 22);
+        assertEquals("shongo:cz.muni.fi:22", identifier.toString());
     }
 }

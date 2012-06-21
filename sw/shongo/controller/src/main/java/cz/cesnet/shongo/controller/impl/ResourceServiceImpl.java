@@ -48,6 +48,7 @@ public class ResourceServiceImpl implements ResourceService
     @Override
     public ResourceSummary[] listResources(SecurityToken token, Map filter)
     {
+        // TODO: resource identifier should be computed only here
         throw new RuntimeException("TODO: Implement ResourceServiceImpl.listResources");
     }
 

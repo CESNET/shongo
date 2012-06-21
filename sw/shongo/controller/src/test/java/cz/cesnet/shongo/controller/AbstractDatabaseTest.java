@@ -19,7 +19,7 @@ public abstract class AbstractDatabaseTest
     /**
      * Single instance of entity manager factory.
      */
-    private static EntityManagerFactory entityManagerFactory;
+    private EntityManagerFactory entityManagerFactory;
 
     /**
      * @return entity manager factory
@@ -45,12 +45,11 @@ public abstract class AbstractDatabaseTest
     @Before
     public void setUp() throws Exception
     {
-        if (entityManagerFactory == null) {
-            // For testing purposes use only in-memory database
-            Map<String, String> properties = new HashMap<String, String>();
-            properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:controller; shutdown=true;");
-            entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
-        }
+        // For testing purposes use only in-memory database
+        Map<String, String> properties = new HashMap<String, String>();
+        String schema = getClass().getName().replace(".", "_");
+        properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:" + schema + "; shutdown=true;");
+        entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
     }
 
     /**
@@ -59,5 +58,6 @@ public abstract class AbstractDatabaseTest
     @After
     public void tearDown()
     {
+        entityManagerFactory.close();
     }
 }

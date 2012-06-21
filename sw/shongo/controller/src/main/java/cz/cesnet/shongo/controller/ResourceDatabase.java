@@ -41,7 +41,7 @@ public class ResourceDatabase extends Component
     /**
      * List of all resources in resource database by theirs id.
      */
-    private Map<Identifier, Resource> resourceMap = new HashMap<Identifier, Resource>();
+    private Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
     /**
      * Topology of device resources.
@@ -75,10 +75,6 @@ public class ResourceDatabase extends Component
         entityManager = getEntityManager();
         resourceManager = ResourceManager.createInstance(entityManager);
 
-        logger.debug("Checking resource database...");
-
-        resourceManager.checkDomain(domain.getCodeName());
-
         logger.debug("Loading resource database...");
 
         // Load all resources from db
@@ -107,14 +103,10 @@ public class ResourceDatabase extends Component
     {
         checkInitialized();
 
-        if (resource.getIdentifier() == null) {
-            throw new IllegalArgumentException("Resource must have the identifier filled!");
-        }
-        if (resourceMap.containsKey(resource.getIdentifier())) {
+        if (resourceMap.containsKey(resource.getId())) {
             throw new IllegalArgumentException(
-                    "Resource (" + resource.getIdentifier() + ") is already in the database!");
+                    "Resource '" + resource.getId() + "' is already in the database!");
         }
-        resourceManager.checkDomain(domain.getCodeName(), resource);
 
         // Save only resource that has not been saved yet
         if (resource.isPersisted() == false) {
@@ -122,7 +114,7 @@ public class ResourceDatabase extends Component
         }
 
         // Add resource to list of all resources
-        resourceMap.put(resource.getIdentifier(), resource);
+        resourceMap.put(resource.getId(), resource);
 
         // If resource is a device add it to the device topology
         if (resource instanceof DeviceResource) {
@@ -139,9 +131,9 @@ public class ResourceDatabase extends Component
     {
         checkInitialized();
 
-        if (resourceMap.containsKey(resource.getIdentifier()) == false) {
+        if (resourceMap.containsKey(resource.getId()) == false) {
             throw new IllegalArgumentException(
-                    "Resource (" + resource.getIdentifier() + ") is not in the database!");
+                    "Resource '" + resource.getId() + "' is not in the database!");
         }
 
         if (true) {
@@ -153,7 +145,7 @@ public class ResourceDatabase extends Component
 
         // If resource is a device update it in the device topology
         if (resource instanceof DeviceResource) {
-            deviceTopology.addDeviceResource((DeviceResource) resource);
+            deviceTopology.updateDeviceResource((DeviceResource) resource);
         }
     }
 
@@ -166,18 +158,18 @@ public class ResourceDatabase extends Component
     {
         checkInitialized();
 
-        if (resourceMap.containsKey(resource.getIdentifier()) == false) {
+        if (resourceMap.containsKey(resource.getId()) == false) {
             throw new IllegalArgumentException(
-                    "Resource (" + resource.getIdentifier() + ") is not in the database!");
+                    "Resource '" + resource.getId() + "' is not in the database!");
         }
 
         // If resource is a device remove it from the device topology
         if (resource instanceof DeviceResource) {
-            deviceTopology.addDeviceResource((DeviceResource) resource);
+            deviceTopology.removeDeviceResource((DeviceResource) resource);
         }
 
         // Remove resource from the list of all resources
-        resourceMap.remove(resource.getIdentifier());
+        resourceMap.remove(resource.getId());
 
         // Delete it
         resourceManager.delete(resource);

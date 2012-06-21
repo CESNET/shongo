@@ -64,7 +64,7 @@ public class Compartment extends PersistentObject
     /**
      * @return {@link #requestedResources}
      */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "compartment")
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public List<ResourceSpecification> getRequestedResources()
     {
@@ -76,11 +76,7 @@ public class Compartment extends PersistentObject
      */
     public void addRequestedResource(ResourceSpecification requestedResource)
     {
-        // Manage bidirectional association
-        if (requestedResources.contains(requestedResource) == false) {
-            requestedResources.add(requestedResource);
-            requestedResource.setCompartment(this);
-        }
+        requestedResources.add(requestedResource);
     }
 
     /**
@@ -88,12 +84,7 @@ public class Compartment extends PersistentObject
      */
     public void removeRequestedResource(ResourceSpecification requestedResource)
     {
-        // Manage bidirectional association
-        if (requestedResources.contains(requestedResource)) {
-            requestedResources.remove(requestedResource);
-            requestedResource.setCompartment(null);
-        }
-
+        requestedResources.remove(requestedResource);
     }
 
     /**

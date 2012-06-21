@@ -150,7 +150,7 @@ public class PersonRequest extends PersistentObject
         super.fillDescriptionMap(map);
 
         map.put("person", person.toString());
-        map.put("resource", resourceSpecification.getId().toString());
+        map.put("resource", (resourceSpecification != null ? resourceSpecification.getId().toString() : null));
         map.put("state", state.toString());
     }
 }

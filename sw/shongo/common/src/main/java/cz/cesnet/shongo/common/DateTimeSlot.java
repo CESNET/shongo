@@ -20,6 +20,17 @@ import java.util.Map;
 public class DateTimeSlot extends PersistentObject
 {
     /**
+     * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
+     * an exception is thrown.
+     */
+    public final int MAX_ENUMERATED_COUNT = PeriodicDateTimeSpecification.MAX_ENUMERATED_COUNT;
+
+    /**
+     * Maximum number of enumerated date/times to display by {@link #toString()}.
+     */
+    public static final int MAX_PRINT_COUNT =PeriodicDateTimeSpecification.MAX_PRINT_COUNT;
+
+    /**
      * Start date/time.
      */
     private DateTimeSpecification start;
@@ -111,24 +122,19 @@ public class DateTimeSlot extends PersistentObject
      */
     public final List<Interval> enumerate()
     {
-        return enumerate(null);
+        return enumerate(null, null);
     }
 
     /**
      * Enumerate list of time slots from single time slot. Time slot can contain for instance
      * periodic date, that can represents multiple absolute date/times.
-     * Return only time slots that take place (whole or intersects) inside interval.
      *
-     * @param from
-     * @param to
+     * @param maxCount
      * @return array of time slots with absolute date/times
      */
-    public final List<Interval> enumerate(DateTime from, DateTime to)
+    public final List<Interval> enumerate(int maxCount)
     {
-        if (from == null || to == null) {
-            throw new IllegalArgumentException("Date/time 'from' and 'to' must not be null!");
-        }
-        return enumerate(new Interval(from, to));
+        return enumerate(null, null, maxCount);
     }
 
     /**
@@ -141,21 +147,64 @@ public class DateTimeSlot extends PersistentObject
      */
     public List<Interval> enumerate(Interval interval)
     {
+        return enumerate(interval.getStart(), interval.getEnd());
+    }
+
+    /**
+     * Enumerate list of time slots from single time slot. Time slot can contain for instance
+     * periodic date, that can represents multiple absolute date/times.
+     * Return only time slots that take place (whole or intersects) inside interval.
+     *
+     * @param intervalStart
+     * @param intervalEnd
+     * @return array of time slots with absolute date/times
+     */
+    public final List<Interval> enumerate(DateTime intervalStart, DateTime intervalEnd)
+    {
+        List<Interval> slotList = enumerate(intervalStart, intervalEnd, MAX_ENUMERATED_COUNT);
+        if (slotList.size() >= MAX_ENUMERATED_COUNT) {
+            throw new IllegalArgumentException("Cannot enumerate slots for interval '"
+                    + (intervalStart != null ? intervalStart.toString() : "null") + "'-'" + (intervalEnd != null ? intervalEnd.toString() : "null")
+                    + "' because maximum number " + MAX_ENUMERATED_COUNT + " was reached!");
+        }
+        return slotList;
+    }
+
+    /**
+     * Enumerate list of time slots from single time slot. Time slot can contain for instance
+     * periodic date, that can represents multiple absolute date/times.
+     * Return only time slots that take place (whole or intersects) inside interval.
+     *
+     * @param intervalStart
+     * @param intervalEnd
+     * @return array of time slots with absolute date/times
+     */
+    public final List<Interval> enumerate(DateTime intervalStart, DateTime intervalEnd, int maxCount)
+    {
+        Interval interval = null;
+        if ( intervalStart != null && intervalEnd != null ) {
+            interval = new Interval(intervalStart, intervalEnd);
+        }
         List<Interval> slots = new ArrayList<Interval>();
         if (start instanceof PeriodicDateTimeSpecification) {
             PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) start;
-            for (DateTime dateTime : periodicDateTime.enumerate(interval)) {
+            for (DateTime dateTime : periodicDateTime.enumerate(intervalStart, intervalEnd, maxCount - slots.size())) {
                 Interval slot = new Interval(dateTime, getDuration());
-                if (interval == null || slot.overlaps(interval)) {
+                if ((intervalStart == null && intervalEnd == null)
+                        || (interval != null && slot.overlaps(interval))
+                        || (intervalStart != null && intervalEnd == null && slot.getEnd().isAfter(intervalStart))
+                        || (intervalStart == null && intervalEnd != null && slot.getStart().isBefore(intervalEnd))) {
                     slots.add(slot);
                 }
             }
         }
         else {
-            DateTime dateTime = null;
             if (this.start instanceof AbsoluteDateTimeSpecification) {
                 Interval slot = new Interval(((AbsoluteDateTimeSpecification) this.start).getDateTime(), getDuration());
-                if (interval == null || slot.overlaps(interval)) {
+                if ((intervalStart == null && intervalEnd == null)
+                        || (interval != null && slot.overlaps(interval))
+                        || (intervalStart != null && intervalEnd == null && slot.getEnd().isAfter(intervalStart))
+                        || (intervalStart == null && intervalEnd != null && slot.getStart().isBefore(intervalEnd))) {
                     slots.add(slot);
                 }
             }
@@ -237,7 +286,8 @@ public class DateTimeSlot extends PersistentObject
         map.put("duration", duration.toString());
 
         List<String> slots = new ArrayList<String>();
-        for (Interval slot : enumerate()) {
+        int index = 0;
+        for (Interval slot : enumerate(MAX_PRINT_COUNT)) {
             StringBuilder builder = new StringBuilder();
             builder.append("(");
             builder.append(slot.getStart().toString());
@@ -245,6 +295,11 @@ public class DateTimeSlot extends PersistentObject
             builder.append(new Period(slot.getStart(), slot.getEnd()).toString());
             builder.append(")");
             slots.add(builder.toString());
+            index++;
+            if ( index >= (MAX_PRINT_COUNT - 1) ) {
+                slots.add("...");
+                break;
+            }
         }
         addCollectionToMap(map, "enumerated", slots);
     }

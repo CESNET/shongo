@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.PersistentObject;
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.Type;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -52,12 +50,27 @@ public class CompartmentRequest extends PersistentObject
     /**
      * Date/time slot for which the compartment is requested.
      */
-    private Interval requestedSlot;
+    @Embedded
+    @Access(AccessType.FIELD)
+    private Slot requestedSlot = new Slot();
 
     /**
      * List of persons which are requested to participate in compartment.
+     * <p/>
+     * Content of this list comes from {@link #compartment} requested resources and persons.
      */
     private List<PersonRequest> requestedPersons = new ArrayList<PersonRequest>();
+
+    /**
+     * List of specifications for resources which are requested to participate in compartment.
+     * <p/>
+     * One resource specification can be referenced from multiple compartment requests so
+     * {@link ManyToMany} association must be used. It happens when resource is specified
+     * in {@link Compartment} and multiple {@link cz.cesnet.shongo.common.DateTimeSlot} are requested.
+     * Resource specification can be added by user which selects a device resource which he will use
+     * for connecting to compartment.
+     */
+    private List<ResourceSpecification> requestedResources = new ArrayList<ResourceSpecification>();
 
     /**
      * State of the compartment request.
@@ -101,21 +114,21 @@ public class CompartmentRequest extends PersistentObject
     }
 
     /**
-     * @return {@link #requestedSlot}
+     * @return interval from {@link #requestedSlot}
      */
-    @Columns(columns = {@Column(name = "slot_start"), @Column(name = "slot_end")})
-    @Type(type = "Interval")
+    @Transient
     public Interval getRequestedSlot()
     {
-        return requestedSlot;
+        return requestedSlot.getInterval();
     }
 
     /**
-     * @param requestedSlot sets the {@link #requestedSlot}
+     * @param requestedSlot sets the interval for {@link #requestedSlot}
      */
     public void setRequestedSlot(Interval requestedSlot)
     {
-        this.requestedSlot = requestedSlot;
+        this.requestedSlot.setInterval(requestedSlot);
+        ;
     }
 
     /**
@@ -150,6 +163,32 @@ public class CompartmentRequest extends PersistentObject
             requestedPersons.remove(requestedPerson);
             requestedPerson.setCompartmentRequest(null);
         }
+    }
+
+    /**
+     * @return {@link #requestedResources}
+     */
+    @ManyToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<ResourceSpecification> getRequestedResources()
+    {
+        return Collections.unmodifiableList(requestedResources);
+    }
+
+    /**
+     * @param requestedResource resource to be added to the {@link #requestedResources}
+     */
+    public void addRequestedResource(ResourceSpecification requestedResource)
+    {
+        requestedResources.add(requestedResource);
+    }
+
+    /**
+     * @param requestedResource resource to be removed from the {@link #requestedResources}
+     */
+    public void removeRequestedResource(ResourceSpecification requestedResource)
+    {
+        requestedResources.remove(requestedResource);
     }
 
     /**
@@ -193,7 +232,7 @@ public class CompartmentRequest extends PersistentObject
     {
         super.fillDescriptionMap(map);
 
-        map.put("compartment", compartment.toString());
+        map.put("compartment", compartment.getId().toString());
         map.put("slot", requestedSlot.toString());
         map.put("state", state.toString());
         addCollectionToMap(map, "persons", requestedPersons);

@@ -1,28 +1,19 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.PersistentObject;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
- * Represents a {@link ReservationRequest.State#PREPROCESSED} state of a reservation request for a specific interval.
+ * Represents a interval (time slot).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-@Entity
-public class ReservationRequestPreprocessedState extends PersistentObject
+@Embeddable
+public class Slot
 {
-    /**
-     * Reservation request to which the state belongs.
-     */
-    private ReservationRequest reservationRequest;
-
     /**
      * Interval start date/time.
      */
@@ -32,23 +23,6 @@ public class ReservationRequestPreprocessedState extends PersistentObject
      * Interval end date/time.
      */
     private DateTime end;
-
-    /**
-     * @return {@link #reservationRequest}
-     */
-    @OneToOne
-    public ReservationRequest getReservationRequest()
-    {
-        return reservationRequest;
-    }
-
-    /**
-     * @param reservationRequest sets the {@link #reservationRequest}
-     */
-    public void setReservationRequest(ReservationRequest reservationRequest)
-    {
-        this.reservationRequest = reservationRequest;
-    }
 
     /**
      * @return interval ({@link #start}, {@link #end})
@@ -73,6 +47,7 @@ public class ReservationRequestPreprocessedState extends PersistentObject
      */
     @Column(name = "interval_start")
     @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
     public DateTime getStart()
     {
         return start;
@@ -91,6 +66,7 @@ public class ReservationRequestPreprocessedState extends PersistentObject
      */
     @Column(name = "interval_end")
     @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
     public DateTime getEnd()
     {
         return end;
@@ -102,5 +78,11 @@ public class ReservationRequestPreprocessedState extends PersistentObject
     public void setEnd(DateTime end)
     {
         this.end = end;
+    }
+
+    @Override
+    public String toString()
+    {
+        return getInterval().toString();
     }
 }

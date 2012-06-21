@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.DateTimeSlot;
 import cz.cesnet.shongo.common.DateTimeSpecification;
-import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.common.PersistentObject;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
@@ -72,11 +72,6 @@ public class ReservationRequest extends PersistentObject
     }
 
     /**
-     * Unique identifier in whole Shongo.
-     */
-    private Identifier identifier;
-
-    /**
      * Type of the reservation. Permanent reservation are created by resource owners to
      * allocate the resource for theirs activity.
      */
@@ -113,50 +108,6 @@ public class ReservationRequest extends PersistentObject
      * Option that specifies whether inter-domain resource lookup can be performed.
      */
     private boolean interDomain;
-
-    /**
-     * @return {@link #identifier} as string
-     */
-    @Column(name = "identifier")
-    public String getIdentifierAsString()
-    {
-        return (identifier != null ? identifier.toString() : null);
-    }
-
-    /**
-     * @param identifier Sets the {@link #identifier} from string
-     */
-    private void setIdentifierAsString(String identifier)
-    {
-        if (identifier != null) {
-            this.identifier = new Identifier(identifier);
-        }
-        else {
-            this.identifier = null;
-        }
-    }
-
-    /**
-     * @return {@link #identifier} object (stored in db as string by IdentifierAsString methods)
-     */
-    @Transient
-    public Identifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * Create a new identifier for the resource.
-     *
-     * @param domain domain to which the resource belongs.
-     */
-    public void createNewIdentifier(String domain)
-    {
-        if (identifier != null) {
-            throw new IllegalStateException("Reservation request has already created identifier!");
-        }
-        identifier = new Identifier(Identifier.Type.RESERVATION, domain);
-    }
 
     /**
      * @return {@link #type}
@@ -332,7 +283,6 @@ public class ReservationRequest extends PersistentObject
     {
         super.fillDescriptionMap(map);
 
-        map.put("identifier", getIdentifierAsString());
         map.put("type", getType().toString());
         if (getPurpose() != null) {
             map.put("purpose", getPurpose().toString());
@@ -354,5 +304,20 @@ public class ReservationRequest extends PersistentObject
             enumeratedSlots.addAll(slot.enumerate(interval));
         }
         return enumeratedSlots;
+    }
+
+    /**
+     * @param referenceDateTime
+     * @return true whether reservation request has any requested slot after given reference date/time,
+     *         false otherwise
+     */
+    public boolean hasRequestedSlotAfter(DateTime referenceDateTime)
+    {
+        for (DateTimeSlot slot : requestedSlots) {
+            if (slot.getStart().willOccur(referenceDateTime)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

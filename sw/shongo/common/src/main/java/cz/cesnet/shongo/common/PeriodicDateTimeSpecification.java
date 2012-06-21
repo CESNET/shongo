@@ -18,6 +18,17 @@ import java.util.*;
 public class PeriodicDateTimeSpecification extends DateTimeSpecification
 {
     /**
+     * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
+     * an exception is thrown.
+     */
+    public static final int MAX_ENUMERATED_COUNT = 1000;
+
+    /**
+     * Maximum number of enumerated date/times to display by {@link #toString()}.
+     */
+    public static final int MAX_PRINT_COUNT = 10;
+    
+    /**
      * Date and time of the first periodic event.
      */
     private DateTime start;
@@ -198,31 +209,15 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
     }
 
     /**
-     * Enumerate all periodic Date/Time events to array of absolute Date/Times.
-     * Return only events that take place inside interval.
+     * Enumerate all periodic Date/Time events to array of absolute Date/Times. Do not exceed maximum count.
      *
-     * @param from
-     * @param to
+     * @param maxCount
      * @return array of absolute Date/Times
      */
-    public final List<DateTime> enumerate(DateTime from, DateTime to)
+    public final List<DateTime> enumerate(int maxCount)
     {
-        if (from == null || to == null) {
-            throw new IllegalArgumentException("Date/time 'from' and 'to' must not be null!");
-        }
-        return enumerate(new Interval(from, to));
+        return enumerate(null, null, maxCount);
     }
-
-    /**
-     * Default interval 'from' and 'to'.
-     */
-    private final DateTime DEFAULT_INTERVAL_FROM = new DateTime(0, 1, 1, 0, 0, 0);
-    private final DateTime DEFAULT_INTERVAL_TO = new DateTime(0, 12, 31, 23, 59, 59);
-
-    /**
-     * Maximum number of enumerated date/times.
-     */
-    private final int MAX_ENUMERATED_COUNT = 1000;
 
     /**
      * Enumerate all periodic Date/Time events to array of absolute Date/Times.
@@ -233,6 +228,50 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
      */
     public List<DateTime> enumerate(Interval interval)
     {
+        if ( interval == null ) {
+            return enumerate(null, null);
+        }
+        else {
+            return enumerate(interval.getStart(), interval.getEnd());
+        }
+    }
+
+    /**
+     * Enumerate all periodic Date/Time events to array of absolute Date/Times.
+     * Return only events that take place inside interval.
+     *
+     * @param intervalStart
+     * @param intervalEnd
+     * @return array of absolute Date/Times
+     */
+    public final List<DateTime> enumerate(DateTime intervalStart, DateTime intervalEnd)
+    {
+        List<DateTime> dateTimeList = enumerate(intervalStart, intervalEnd, MAX_ENUMERATED_COUNT);
+        if (dateTimeList.size() >= MAX_ENUMERATED_COUNT) {
+            throw new IllegalArgumentException("Cannot enumerate periodic date/time for interval '"
+                    + (intervalStart != null ? intervalStart.toString() : "null") + "'-'" + (intervalEnd != null ? intervalEnd.toString() : "null")
+                    + "' because maximum number of date/times " + MAX_ENUMERATED_COUNT + " was reached!");
+        }
+        return dateTimeList;
+    }
+
+    /**
+     * Default interval 'from' and 'to'.
+     */
+    private final DateTime DEFAULT_INTERVAL_FROM = new DateTime(0, 1, 1, 0, 0, 0);
+    private final DateTime DEFAULT_INTERVAL_TO = new DateTime(0, 12, 31, 23, 59, 59);
+
+    /**
+     * Enumerate all periodic Date/Time events to array of absolute Date/Times.
+     * Return only events that take place inside interval and not exceed maximum count.
+     *
+     * @param intervalStart
+     * @param intervalTo
+     * @param maxCount
+     * @return array of absolute Date/Times
+     */
+    public final List<DateTime> enumerate(DateTime intervalStart, DateTime intervalTo, int maxCount)
+    {
         DateTime start = this.start;
         DateTime end = (this.end != null ? this.end.toDateTime(start) : null);
 
@@ -240,18 +279,16 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         List<DateTime> dateTimeList = new ArrayList<DateTime>();
         if (start != null) {
             while (end == null || !start.isAfter(end)) {
-                if (interval != null && start.isAfter(interval.getEnd())) {
+                if (intervalTo != null && start.isAfter(intervalTo)) {
                     break;
                 }
-                if (interval == null || interval.contains(start)) {
+                if (intervalStart == null || !intervalStart.isAfter(start)) {
                     dateTimeList.add(start);
                 }
                 start = start.plus(period);
 
-                if (dateTimeList.size() > MAX_ENUMERATED_COUNT) {
-                    throw new IllegalArgumentException("Cannot enumerate periodic date/time for interval '"
-                            + (interval != null ? interval.toString() : "null")
-                            + "' because maximum number of date/times " + MAX_ENUMERATED_COUNT + " was reached!");
+                if (dateTimeList.size() >= maxCount ) {
+                    break;
                 }
             }
         }
@@ -262,8 +299,12 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
             // Extra rule
             if (rule.getType() == RuleType.Extra) {
                 DateTime ruleDateTime = rule.getDateTime().toDateTime(start);
-                if (interval == null || interval.contains(ruleDateTime)) {
+                if ((intervalStart == null || !intervalStart.isAfter(ruleDateTime))
+                        && (intervalTo == null || !intervalTo.isBefore(ruleDateTime))) {
                     dateTimeList.add(ruleDateTime);
+                }
+                if (dateTimeList.size() >= maxCount ) {
+                    break;
                 }
                 continue;
             }
@@ -320,7 +361,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
     @Override
     public DateTime getEarliest(DateTime referenceDateTime)
     {
-        List<DateTime> dateTimes = enumerate();
+        List<DateTime> dateTimes = enumerate(referenceDateTime, null, 2);
         for (DateTime dateTime : dateTimes) {
             if (dateTime.isBefore(referenceDateTime) == false) {
                 return dateTime;
@@ -504,8 +545,14 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         }
 
         List<String> dateTimes = new ArrayList<String>();
-        for (DateTime dateTime : enumerate()) {
+        int index = 0;
+        for (DateTime dateTime : enumerate(MAX_PRINT_COUNT)) {
             dateTimes.add(dateTime.toString());
+            index++;
+            if ( index >= (MAX_PRINT_COUNT - 1) ) {
+                dateTimes.add("...");
+                break;
+            }
         }
         addCollectionToMap(map, "enumerated", dateTimes);
     }

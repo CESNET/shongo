@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbstractManager;
-import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
-import javax.persistence.*;
+import javax.persistence.Embeddable;
+import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +18,12 @@ import java.util.List;
 @Embeddable
 public class ReservationRequestStateManager extends AbstractManager
 {
+    /**
+     * Date/time value that represents "infinite". Is used for preprocessed state's interval end
+     * when a reservation request hasn't got any requested slot in future.
+     */
+    public static final DateTime MAXIMUM_INTERVAL_END = DateTime.parse("9999-12-31T23:59:59");
+
     /**
      * {@link ReservationRequest} for which the states are managed.
      */
@@ -66,8 +72,10 @@ public class ReservationRequestStateManager extends AbstractManager
             if (index >= 1) {
                 ReservationRequestPreprocessedState previousPreprocessedState = preprocessedStates.get(index - 1);
                 if (!recordStart.isAfter(previousPreprocessedState.getEnd())) {
-                    throw new IllegalArgumentException("Interval 'start' should be after previous interval 'end' (start="
-                            + recordStart.toString() + ", end=" + previousPreprocessedState.getEnd().toString() + ")!");
+                    throw new IllegalArgumentException(
+                            "Interval 'start' should be after previous interval 'end' (start="
+                                    + recordStart.toString() + ", end=" + previousPreprocessedState.getEnd()
+                                    .toString() + ")!");
                 }
             }
         }
@@ -78,7 +86,7 @@ public class ReservationRequestStateManager extends AbstractManager
      */
     public void refresh()
     {
-        if ( entityManager.getTransaction().isActive() ) {
+        if (entityManager.getTransaction().isActive()) {
             entityManager.flush();
         }
         loadStates();
@@ -98,7 +106,7 @@ public class ReservationRequestStateManager extends AbstractManager
     public void setState(ReservationRequest.State state)
     {
         if (state == ReservationRequest.State.NOT_PREPROCESSED) {
-            for ( ReservationRequestPreprocessedState preprocessedState : preprocessedStates ) {
+            for (ReservationRequestPreprocessedState preprocessedState : preprocessedStates) {
                 delete(preprocessedState);
             }
             preprocessedStates.clear();

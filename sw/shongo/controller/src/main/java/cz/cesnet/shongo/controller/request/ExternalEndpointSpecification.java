@@ -1,12 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.resource.Technology;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an external endpoint(s) that is/are specified to compartment.
@@ -41,6 +39,18 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     public ExternalEndpointSpecification(Technology technology)
     {
         addTechnology(technology);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology
+     * @param requestedPerson
+     */
+    public ExternalEndpointSpecification(Technology technology, Person requestedPerson)
+    {
+        addTechnology(technology);
+        addRequestedPerson(requestedPerson);
     }
 
     /**

@@ -94,63 +94,6 @@ public class Resource extends PersistentObject
     }
 
     /**
-     * @return {@link #identifier} as string
-     */
-    @Column(name = "identifier")
-    public String getIdentifierAsString()
-    {
-        return (identifier != null ? identifier.toString() : null);
-    }
-
-    /**
-     * @param identifier Sets the {@link #identifier} from string
-     */
-    private void setIdentifierAsString(String identifier)
-    {
-        if (identifier != null) {
-            this.identifier = new Identifier(identifier);
-        }
-        else {
-            this.identifier = null;
-        }
-    }
-
-    /**
-     * @return {@link #identifier} object (stored in db as string by IdentifierAsString methods)
-     */
-    @Transient
-    public Identifier getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * Create a new identifier for the resource.
-     *
-     * @param domain domain to which the resource belongs.
-     */
-    public void createNewIdentifier(String domain)
-    {
-        if (identifier != null) {
-            throw new IllegalStateException("Resource has already created identifier!");
-        }
-        identifier = new Identifier(Identifier.Type.RESOURCE, domain);
-    }
-
-    /**
-     * Change the identifier for the resource.
-     *
-     * @param domain
-     */
-    public void changeIdentifier(String domain)
-    {
-        if (identifier == null) {
-            throw new IllegalStateException("Resource hasn't created identifier yet!");
-        }
-        throw new RuntimeException("TODO: Implement identifier change!");
-    }
-
-    /**
      * @return {@link #type}
      */
     @Column
@@ -348,7 +291,6 @@ public class Resource extends PersistentObject
     {
         super.fillDescriptionMap(map);
 
-        map.put("identifier", getIdentifierAsString());
         map.put("type", getType().toString());
         map.put("name", getName());
         map.put("description", getDescription());

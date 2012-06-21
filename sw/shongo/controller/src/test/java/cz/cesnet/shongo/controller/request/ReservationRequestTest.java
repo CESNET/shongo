@@ -35,7 +35,6 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
         // Create reservation request
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.createNewIdentifier("cz.cesnet");
         reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));
         reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(
@@ -52,11 +51,18 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         requestCompartment.addRequestedResource(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
 
         // Save it
-        reservationRequestManager.create(reservationRequest);
+        reservationRequestManager.create(reservationRequest, "cz.cesnet");
 
         // Run preprocessor
         Preprocessor.run(getEntityManagerFactory(),
+                new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")));
+        assertEquals(2, compartmentRequestManager.list(reservationRequest).size());
+        Preprocessor.run(getEntityManagerFactory(),
+                new Interval(DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
+        assertEquals(4, compartmentRequestManager.list(reservationRequest).size());
+        Preprocessor.run(getEntityManagerFactory(),
                 new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
+        assertEquals(6, compartmentRequestManager.list(reservationRequest).size());
 
         // Check created compartments
         List<CompartmentRequest> compartmentRequestList =
@@ -64,8 +70,10 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         assertEquals(6, compartmentRequestList.size());
         assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
                 compartmentRequestList.get(0).getRequestedSlot());
-        assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
+        assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
                 compartmentRequestList.get(2).getRequestedSlot());
+        assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
+                compartmentRequestList.get(4).getRequestedSlot());
 
         // Modify reservation request
         reservationRequest.setPurpose(ReservationRequest.Purpose.EDUCATION);

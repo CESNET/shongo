@@ -2,15 +2,14 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.controller.request.*;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a component for a domain controller that is started before scheduler.
@@ -67,31 +66,31 @@ public class Preprocessor extends Component
     /**
      * Run preprocessor only for single reservation request with given identifier for a given interval.
      *
-     * @param reservationRequestIdentifier
+     * @param reservationRequestId
      * @param interval
      */
-    public void run(Identifier reservationRequestIdentifier, Interval interval)
+    public void run(long reservationRequestId, Interval interval)
     {
         checkInitialized();
 
-        logger.debug("Running preprocessor for a single reservation request '{}'...", reservationRequestIdentifier);
+        logger.debug("Running preprocessor for a single reservation request '{}'...", reservationRequestId);
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
         // Get reservation request by identifier
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestIdentifier);
+        ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
 
         if ( reservationRequest == null ) {
             throw new IllegalArgumentException(String.format("Reservation request '%s' doesn't exist!",
-                    reservationRequestIdentifier));
+                    reservationRequestId));
         }
         ReservationRequestStateManager reservationRequestStateManager =
                 new ReservationRequestStateManager(entityManager, reservationRequest);
         if ( reservationRequestStateManager.getState(interval) != ReservationRequest.State.NOT_PREPROCESSED) {
             throw new IllegalStateException(String.format("Reservation request '%s' is already preprocessed in %s!",
-                    reservationRequestIdentifier, interval));
+                    reservationRequestId, interval));
         }
         processReservationRequest(reservationRequest, interval, entityManager);
 
@@ -107,21 +106,23 @@ public class Preprocessor extends Component
     {
         reservationRequest.checkPersisted();
 
-        logger.debug("Processing reservation request '{}' by a preprocessor...", reservationRequest.getIdentifier());
+        logger.debug("Processing reservation request '{}' by a preprocessor...", reservationRequest.getId());
 
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // Get list of date/time slots
         List<Interval> slots = reservationRequest.enumerateRequestedSlots(interval);
 
         // List all compartment requests for the reservation request
-        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.list(reservationRequest);
+        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.list(reservationRequest, interval);
+
+        // Build set of existing compartments for the reservation request
+        Set<Long> compartmentSet = new HashSet<Long>();
 
         // Compartment requests are synchronized per compartment from reservation request
         for (Compartment compartment : reservationRequest.getRequestedCompartments()) {
-            // List existing compartment requests for reservation request
-            List<CompartmentRequest> requestListForCompartment = compartmentRequestManager.list(compartment);
+            // List existing compartment requests for reservation request in the interval
+            List<CompartmentRequest> requestListForCompartment = compartmentRequestManager.list(compartment, interval);
 
             // Create map of compartment requests with date/time slot as key
             // and remove compartment request from list of all compartment request
@@ -151,11 +152,26 @@ public class Preprocessor extends Component
             for (CompartmentRequest compartmentRequest : map.values()) {
                 compartmentRequestManager.delete(compartmentRequest);
             }
+
+            compartmentSet.add(compartment.getId());
         }
 
         // All compartment requests that remains in list of all must be deleted
         for (CompartmentRequest compartmentRequest : compartmentRequestList) {
             compartmentRequestManager.delete(compartmentRequest);
+
+            // If referenced compartment isn't in reservation request any more
+            Compartment compartment = compartmentRequest.getCompartment();
+            if (!compartmentSet.contains(compartment)) {
+                // Remove the compartment too
+                entityManager.remove(compartment);
+            }
+        }
+
+        // When the reservation request hasn't got any future requested slot, the preprocessed state
+        // is until "infinite".
+        if ( !reservationRequest.hasRequestedSlotAfter(interval.getEnd()) ) {
+            interval = new Interval(interval.getStart(), ReservationRequestStateManager.MAXIMUM_INTERVAL_END);
         }
 
         // Set state preprocessed state for the interval to reservation request
@@ -182,16 +198,16 @@ public class Preprocessor extends Component
      * Run preprocessor on given entityManagerFactory, for a single reservation request and given interval.
      *
      * @param entityManagerFactory
-     * @param reservationRequestIdentifier
+     * @param reservationRequestId
      * @param interval
      */
-    public static void run(EntityManagerFactory entityManagerFactory, Identifier reservationRequestIdentifier,
+    public static void run(EntityManagerFactory entityManagerFactory, long reservationRequestId,
             Interval interval)
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setEntityManagerFactory(entityManagerFactory);
         preprocessor.init();
-        preprocessor.run(reservationRequestIdentifier, interval);
+        preprocessor.run(reservationRequestId, interval);
         preprocessor.destroy();
     }
 }

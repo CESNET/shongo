@@ -9,9 +9,8 @@ package cz.cesnet.shongo.common;
 }
 
 @members {
-    String type;
     String domain;
-    String uuid;
+    String id;
 
     @Override
     public void displayRecognitionError(String[] tokenNames, RecognitionException e)
@@ -29,19 +28,13 @@ package cz.cesnet.shongo.common;
 }
 
 parse
-    :   'shongo:' type { type = $type.text; }
+    :   'shongo'
         ':' domain     { domain = $domain.text; }
-        ':' uuid       { uuid = $uuid.text; }
+        ':' id         { id = $id.text; }
     ;
 
-type
-    :   'resource' | 'reservation'
-    ;
-
-
-uuid
-    :   fourHexDigits fourHexDigits '-' fourHexDigits '-' fourHexDigits '-'
-        fourHexDigits '-' fourHexDigits fourHexDigits fourHexDigits
+id
+    :   DIGIT+
     ;
 
 domain
@@ -49,17 +42,17 @@ domain
     ;
 
 domainPart
-    :   (HEX_DIGIT | OTHER_LETTER)+
+    :   LETTER (DIGIT | LETTER)*
     ;
 
-fourHexDigits
-    :   HEX_DIGIT HEX_DIGIT HEX_DIGIT HEX_DIGIT
+number
+    :
     ;
 
-HEX_DIGIT
-    :   'a'..'f' | 'A'..'F' | '0'..'9'
+DIGIT
+    :   '0'..'9'
     ;
 
-OTHER_LETTER
-    :   'g'..'z' | 'G'..'Z' | '-' | '_'
+LETTER
+    :   'a'..'z' | 'A'..'Z' | '-' | '_'
     ;

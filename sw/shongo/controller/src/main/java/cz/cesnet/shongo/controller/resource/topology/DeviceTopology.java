@@ -61,8 +61,8 @@ public class DeviceTopology extends PrintableObject
             }
         }
         if (node == null) {
-            throw new IllegalArgumentException("Device resource with identifier '"
-                    + deviceResource.getIdentifierAsString() + "' is not in device topology.");
+            throw new IllegalArgumentException("Device resource '"
+                    + deviceResource.getId() + "' is not in device topology.");
         }
         for (Edge edge : node.getIncomingEdges()) {
             removeEdge(edge);

@@ -92,35 +92,4 @@ public class ResourceManager extends AbstractManager
             return null;
         }
     }
-
-    /**
-     * Check domain in all existing resources identifiers
-     *
-     * @param domain
-     * @throws IllegalStateException
-     */
-    public void checkDomain(String domain) throws IllegalStateException
-    {
-        List<Resource> resourceList = entityManager
-                .createQuery("SELECT resource FROM Resource resource", Resource.class)
-                .getResultList();
-        for (Resource resource : resourceList) {
-            checkDomain(domain, resource);
-        }
-    }
-
-    /**
-     * Check domain in given resource identifier.
-     *
-     * @param domain
-     * @param resource
-     * @throws IllegalStateException
-     */
-    public void checkDomain(String domain, Resource resource) throws IllegalStateException
-    {
-        if (resource.getIdentifier().getDomain().startsWith(domain) == false) {
-            throw new IllegalStateException("Resource has wrong domain in identifier '" +
-                    resource.getIdentifier().getDomain() + "' (should start with '" + domain + "')!");
-        }
-    }
 }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.common.api.DateTimeSlot;
 import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 
 import java.util.Map;
 
@@ -60,6 +61,7 @@ public class ReservationServiceImpl implements ReservationService
     @Override
     public ReservationSummary[] listReservations(SecurityToken token, Map filter)
     {
+        // TODO: reservation identifier should be computed only here
         throw new RuntimeException("TODO: Implement ReservationServiceImpl.listReservations");
     }
 

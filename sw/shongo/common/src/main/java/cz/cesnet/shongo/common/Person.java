@@ -98,6 +98,57 @@ public class Person extends PersistentObject
     }
 
     @Override
+    public boolean equals(Object object)
+    {
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof Person)) {
+            return false;
+        }
+        Person person = (Person) object;
+
+        if (email != null && person.email != null) {
+            return email.equals(person.email);
+        }
+        if ( email != null || person.email != null ) {
+            return false;
+        }
+
+        if (phoneNumber != null && person.phoneNumber != null) {
+            return phoneNumber.equals(person.phoneNumber);
+        }
+        if ( phoneNumber != null || person.phoneNumber != null ) {
+            return false;
+        }
+
+        if (name != null && person.name != null) {
+            return name.equals(person.name);
+        }
+        if ( name != null || person.name != null ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        if ( email != null ) {
+            return 31 * hash + email.hashCode();
+        }
+        if ( phoneNumber != null ) {
+            return 31 * hash + phoneNumber.hashCode();
+        }
+        if ( name != null ) {
+            return 31 * hash + name.hashCode();
+        }
+        return hash;
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {
         super.fillDescriptionMap(map);

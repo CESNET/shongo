@@ -14,13 +14,8 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceSpecification extends PersistentObject implements Cloneable
+public abstract class ResourceSpecification extends PersistentObject
 {
-    /**
-     * Compartment in which the person request is located.
-     */
-    private Compartment compartment;
-
     /**
      * Persons that are requested to use the device to connect into compartment.
      */
@@ -30,35 +25,6 @@ public class ResourceSpecification extends PersistentObject implements Cloneable
      * Defines who should initiate the call to this device.
      */
     private CallInitiation callInitiation;
-
-    /**
-     * @return {@link #compartment}
-     */
-    @ManyToOne
-    @Access(AccessType.FIELD)
-    public Compartment getCompartment()
-    {
-        return compartment;
-    }
-
-    /**
-     * @param compartment sets the {@link #compartment}
-     */
-    public void setCompartment(Compartment compartment)
-    {
-        // Manage bidirectional association
-        if (compartment != this.compartment) {
-            if (this.compartment != null) {
-                Compartment oldCompartment = this.compartment;
-                this.compartment = null;
-                oldCompartment.removeRequestedResource(this);
-            }
-            if (compartment != null) {
-                this.compartment = compartment;
-                this.compartment.addRequestedResource(this);
-            }
-        }
-    }
 
     /**
      * @return {@link #requestedPersons}

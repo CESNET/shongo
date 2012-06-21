@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbstractManager;
-import cz.cesnet.shongo.common.Identifier;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -31,13 +30,13 @@ public class ReservationRequestManager extends AbstractManager
      *
      * @param reservationRequest
      */
-    public void create(ReservationRequest reservationRequest)
+    public void create(ReservationRequest reservationRequest, String domain)
     {
-        validateReservationRequest(reservationRequest);
-
         Transaction transaction = beginTransaction();
 
         super.create(reservationRequest);
+
+        entityManager.flush();
 
         transaction.commit();
     }
@@ -49,8 +48,6 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void update(ReservationRequest reservationRequest)
     {
-        validateReservationRequest(reservationRequest);
-
         Transaction transaction = beginTransaction();
 
         super.update(reservationRequest);
@@ -68,8 +65,6 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void delete(ReservationRequest reservationRequest)
     {
-        validateReservationRequest(reservationRequest);
-
         Transaction transaction = beginTransaction();
 
         super.delete(reservationRequest);
@@ -104,50 +99,21 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param identifier
-     * @return {@link cz.cesnet.shongo.controller.request.ReservationRequest} with given identifier or null if the request not exists
+     * @param id
+     * @return {@link cz.cesnet.shongo.controller.request.ReservationRequest} with given identifier
+     *         or null if the request not exists
      */
-    public ReservationRequest get(Identifier identifier)
+    public ReservationRequest get(long id)
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT request FROM ReservationRequest request WHERE request.identifierAsString = :identifier",
-                    ReservationRequest.class).setParameter("identifier", identifier.toString())
+                    "SELECT request FROM ReservationRequest request WHERE request.id = :id",
+                    ReservationRequest.class).setParameter("id", id)
                     .getSingleResult();
             return reservationRequest;
         }
         catch (NoResultException exception) {
             return null;
-        }
-    }
-
-    /**
-     * Check domain in all existing reservation requests identifiers
-     *
-     * @param domain
-     */
-    public void checkDomain(String domain)
-    {
-        List<ReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT request FROM ReservationRequest request", ReservationRequest.class)
-                .getResultList();
-        for (ReservationRequest reservationRequest : reservationRequestList) {
-            if (reservationRequest.getIdentifier().getDomain().equals(domain) == false) {
-                throw new IllegalStateException("Reservation request has wrong domain in identifier '" +
-                        reservationRequest.getIdentifier().getDomain() + "' (should be '" + domain + "')!");
-            }
-        }
-    }
-
-    /**
-     * Validate state of reservation request
-     *
-     * @param reservationRequest request to be validated
-     */
-    private void validateReservationRequest(ReservationRequest reservationRequest)
-    {
-        if (reservationRequest.getIdentifier() == null) {
-            throw new IllegalArgumentException("Reservation request must have the identifier filled!");
         }
     }
 }
