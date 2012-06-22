@@ -86,6 +86,7 @@ public abstract class AbstractManager
             entityManager.merge(persistentObject);
         }
         else {
+            entityManager.persist(persistentObject);
             entityManager.flush();
         }
         transaction.commit();

@@ -11,7 +11,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
- * Test for state of {@link ReservationRequest}.
+ * Tests for changing state of a {@link ReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

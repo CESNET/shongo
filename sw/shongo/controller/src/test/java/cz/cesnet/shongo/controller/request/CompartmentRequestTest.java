@@ -14,7 +14,8 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests for {@link CompartmentRequest}
+ * Tests for creating/updating {@link CompartmentRequest}(s) based on {@link Compartment}
+ * from {@link ReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -49,11 +50,13 @@ public class CompartmentRequestTest extends AbstractDatabaseTest
         Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
         Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
 
+        // Create compartment
         Compartment compartment = new Compartment();
-        compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, person1));
+        compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323), person1);
         compartment.addRequestedPerson(person2);
         entityManager.persist(compartment);
 
+        // Create compartment request from the compartment
         CompartmentRequest compartmentRequest = compartmentRequestManager.create(compartment,
                 new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H")));
         assertEquals(2, compartmentRequest.getRequestedPersons().size());
@@ -66,8 +69,8 @@ public class CompartmentRequestTest extends AbstractDatabaseTest
     {
         Compartment compartment = new Compartment();
         compartment.addRequestedPerson(new Person("Martin Srom", "srom@cesnet.cz"));
-        compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323,
-               new Person("Martin", "srom@cesnet.cz")));
+        compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323),
+                new Person("Martin", "srom@cesnet.cz"));
         entityManager.persist(compartment);
 
         try {
@@ -85,17 +88,17 @@ public class CompartmentRequestTest extends AbstractDatabaseTest
         Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
         Person person3 = new Person("Petr Holub", "hopet@cesnet.cz");
         Person person4 = new Person("Jan Ruzicka", "janru@cesnet.cz");
-        ResourceSpecification resource1 = new ExternalEndpointSpecification(Technology.H323, person1);
-        ResourceSpecification resource2 = new ExternalEndpointSpecification(Technology.H323, person2);
+        ResourceSpecification resource1 = new ExternalEndpointSpecification(Technology.H323);
+        ResourceSpecification resource2 = new ExternalEndpointSpecification(Technology.H323);
 
         // Create compartment
         Compartment compartment = new Compartment();
-        compartment.addRequestedResource(resource1);
-        compartment.addRequestedResource(resource2);
+        compartment.addRequestedResource(resource1, person1);
+        compartment.addRequestedResource(resource2, person2);
         compartment.addRequestedPerson(person3);
         compartment.addRequestedPerson(person4);
 
-        // Create compartment request
+        // Create compartment request from the compartment
         entityManager.persist(compartment);
         CompartmentRequest compartmentRequest = compartmentRequestManager.create(compartment,
                 new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H")));

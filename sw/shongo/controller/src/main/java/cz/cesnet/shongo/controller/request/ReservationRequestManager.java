@@ -30,13 +30,11 @@ public class ReservationRequestManager extends AbstractManager
      *
      * @param reservationRequest
      */
-    public void create(ReservationRequest reservationRequest, String domain)
+    public void create(ReservationRequest reservationRequest)
     {
         Transaction transaction = beginTransaction();
 
         super.create(reservationRequest);
-
-        entityManager.flush();
 
         transaction.commit();
     }
@@ -73,6 +71,24 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservationRequestId
+     * @return {@link ReservationRequest} with given identifier or null if the request doesn't exist
+     */
+    public ReservationRequest get(long reservationRequestId)
+    {
+        try {
+            ReservationRequest reservationRequest = entityManager.createQuery(
+                    "SELECT request FROM ReservationRequest request WHERE request.id = :id",
+                    ReservationRequest.class).setParameter("id", reservationRequestId)
+                    .getSingleResult();
+            return reservationRequest;
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
+    }
+
+    /**
      * @return list all reservation requests in the database.
      */
     public List<ReservationRequest> list()
@@ -96,24 +112,5 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("to", interval.getEnd())
                 .getResultList();
         return reservationRequestList;
-    }
-
-    /**
-     * @param id
-     * @return {@link cz.cesnet.shongo.controller.request.ReservationRequest} with given identifier
-     *         or null if the request not exists
-     */
-    public ReservationRequest get(long id)
-    {
-        try {
-            ReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT request FROM ReservationRequest request WHERE request.id = :id",
-                    ReservationRequest.class).setParameter("id", id)
-                    .getSingleResult();
-            return reservationRequest;
-        }
-        catch (NoResultException exception) {
-            return null;
-        }
     }
 }

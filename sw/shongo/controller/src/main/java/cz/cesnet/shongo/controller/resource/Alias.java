@@ -8,7 +8,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 /**
- * Represents a specific alias for a single device and a single technology.
+ * Represents a specific technology alias.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -66,6 +66,18 @@ public class Alias extends PersistentObject
     }
 
     /**
+     * Constructor.
+     *
+     * @param type
+     * @param value
+     */
+    public Alias(Type type, String value)
+    {
+        this.type = type;
+        this.value = value;
+    }
+
+    /**
      * @return {@link #technology}
      */
     @Column
@@ -78,7 +90,7 @@ public class Alias extends PersistentObject
     /**
      * @param technology sets the {@link #technology}
      */
-    private void setTechnology(Technology technology)
+    public void setTechnology(Technology technology)
     {
         this.technology = technology;
     }
@@ -96,7 +108,7 @@ public class Alias extends PersistentObject
     /**
      * @param type sets the {@link #type}
      */
-    private void setType(Type type)
+    public void setType(Type type)
     {
         this.type = type;
     }
@@ -113,7 +125,7 @@ public class Alias extends PersistentObject
     /**
      * @param value sets the {@link #value}
      */
-    private void setValue(String value)
+    public void setValue(String value)
     {
         this.value = value;
     }

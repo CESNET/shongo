@@ -80,6 +80,16 @@ public class Compartment extends PersistentObject
     }
 
     /**
+     * @param requestedResource resource to be added to the {@link #requestedResources}
+     * @param requestedPerson   person to be requested for the given resource
+     */
+    public void addRequestedResource(ResourceSpecification requestedResource, Person requestedPerson)
+    {
+        requestedResources.add(requestedResource);
+        requestedResource.addRequestedPerson(requestedPerson);
+    }
+
+    /**
      * @param requestedResource resource to be removed from the {@link #requestedResources}
      */
     public void removeRequestedResource(ResourceSpecification requestedResource)
@@ -103,6 +113,21 @@ public class Compartment extends PersistentObject
     public void addRequestedPerson(Person requestedPerson)
     {
         requestedPersons.add(requestedPerson);
+    }
+
+    /**
+     * Request person to the compartment by requesting him for the given resource and add the given resource
+     * to {@link #requestedResources}.
+     *
+     * @param requestedPerson       person to be requested to the given resource
+     * @param resourceSpecification resource to be added to the {@link #requestedResources} (if not exists)
+     */
+    public void addRequestedPerson(Person requestedPerson, ResourceSpecification resourceSpecification)
+    {
+        if (!requestedResources.contains(resourceSpecification)) {
+            addRequestedResource(resourceSpecification);
+        }
+        resourceSpecification.addRequestedPerson(requestedPerson);
     }
 
     /**

@@ -192,6 +192,15 @@ public class CompartmentRequest extends PersistentObject
     }
 
     /**
+     * @param resourceSpecification
+     * @return true if given resource is present in the {@link #requestedResources}, false otherwise
+     */
+    public boolean containsRequestedResource(ResourceSpecification resourceSpecification)
+    {
+        return requestedResources.contains(resourceSpecification);
+    }
+
+    /**
      * @return {@link #state}
      */
     @Column

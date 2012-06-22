@@ -5,6 +5,7 @@ import cz.cesnet.shongo.common.Person;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import java.util.*;
 
 /**
@@ -308,17 +309,59 @@ public class CompartmentRequestManager extends AbstractManager
     }
 
     /**
+     * @param compartmentRequestId identifier for {@link CompartmentRequest}
+     * @return {@link CompartmentRequest} with given identifier or null if the request doesn't exist
+     */
+    public CompartmentRequest get(Long compartmentRequestId)
+    {
+        try {
+            CompartmentRequest compartmentRequest = entityManager.createQuery(
+                    "SELECT request FROM CompartmentRequest request WHERE request.id = :id",
+                    CompartmentRequest.class).setParameter("id", compartmentRequestId)
+                    .getSingleResult();
+            return compartmentRequest;
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
+    }
+
+
+    /**
+     * @param compartmentRequestId identifier for {@link CompartmentRequest}
+     * @return {@link CompartmentRequest} with given identifier
+     * @throws IllegalArgumentException when the compartment doesn't exist
+     */
+    public CompartmentRequest getNotNull(Long compartmentRequestId) throws IllegalArgumentException
+    {
+        CompartmentRequest compartmentRequest = get(compartmentRequestId);
+        if ( compartmentRequest == null ) {
+            throw new IllegalArgumentException("Compartment request '" + compartmentRequestId + "' doesn't exist!");
+        }
+        return compartmentRequest;
+    }
+
+    /**
      * @param reservationRequest
      * @return list of existing compartment requests for a {@link ReservationRequest}
      */
-    public List<CompartmentRequest> list(ReservationRequest reservationRequest)
+    public List<CompartmentRequest> listByReservationRequest(ReservationRequest reservationRequest)
+    {
+        return listByReservationRequest(reservationRequest.getId());
+    }
+
+    /**
+     * @param reservationRequestId
+     * @return list of existing compartment requests for a {@link ReservationRequest}
+     */
+    public List<CompartmentRequest> listByReservationRequest(Long reservationRequestId)
     {
         // Get existing compartment requests for compartment
         List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT request FROM CompartmentRequest request "
-                        + "WHERE request.reservationRequest = :reservationRequest "
+                        + "WHERE request.reservationRequest.id = :id "
                         + "ORDER BY request.requestedSlot.start", CompartmentRequest.class)
-                .setParameter("reservationRequest", reservationRequest)
+                .setParameter("id", reservationRequestId)
                 .getResultList();
         return compartmentRequestList;
     }
@@ -326,16 +369,26 @@ public class CompartmentRequestManager extends AbstractManager
     /**
      * @param reservationRequest
      * @param interval
-     * @return list of existing compartment requests for a {@link ReservationRequest}
+     * @return list of existing compartment requests for a {@link ReservationRequest} taking place in given interval
      */
-    public List<CompartmentRequest> list(ReservationRequest reservationRequest, Interval interval)
+    public List<CompartmentRequest> listByReservationRequest(ReservationRequest reservationRequest, Interval interval)
+    {
+        return listByReservationRequest(reservationRequest.getId(), interval);
+    }
+
+    /**
+     * @param reservationRequestId
+     * @param interval
+     * @return list of existing compartment requests for a {@link ReservationRequest} taking place in given interval
+     */
+    public List<CompartmentRequest> listByReservationRequest(Long reservationRequestId, Interval interval)
     {
         // Get existing compartment requests for compartment
         List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT request FROM CompartmentRequest request "
-                        + "WHERE request.reservationRequest = :reservationRequest "
+                        + "WHERE request.reservationRequest.id = :id "
                         + "AND request.requestedSlot.start BETWEEN :start AND :end", CompartmentRequest.class)
-                .setParameter("reservationRequest", reservationRequest)
+                .setParameter("id", reservationRequestId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
@@ -344,18 +397,118 @@ public class CompartmentRequestManager extends AbstractManager
 
     /**
      * @param compartment
-     * @return list of existing compartments request from a given compartment
+     * @param interval
+     * @return list of existing compartments request from a given compartment taking place in given interval
      */
-    public List<CompartmentRequest> list(Compartment compartment, Interval interval)
+    public List<CompartmentRequest> listByCompartment(Compartment compartment, Interval interval)
+    {
+        return listByCompartment(compartment.getId(), interval);
+    }
+
+    /**
+     * @param compartmentId
+     * @param interval
+     * @return list of existing compartments request from a given compartment taking place in given interval
+     */
+    public List<CompartmentRequest> listByCompartment(Long compartmentId, Interval interval)
     {
         List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT request FROM CompartmentRequest request "
-                        + "WHERE request.compartment = :compartment "
+                        + "WHERE request.compartment.id = :id "
                         + "AND request.requestedSlot.start BETWEEN :start AND :end", CompartmentRequest.class)
-                .setParameter("compartment", compartment)
+                .setParameter("id", compartmentId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
         return compartmentRequestList;
+    }
+
+    /**
+     * @param interval
+     * @return list of existing complete compartments request taking place in given interval
+     */
+    public List<CompartmentRequest> listCompleted(Interval interval)
+    {
+        List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
+                "SELECT request FROM CompartmentRequest request "
+                        + "WHERE request.state = :state "
+                        + "AND request.requestedSlot.start BETWEEN :start AND :end", CompartmentRequest.class)
+                .setParameter("state", CompartmentRequest.State.COMPLETE)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return compartmentRequestList;
+    }
+
+    /**
+     *
+     * @param compartmentRequestId
+     * @param personId
+     * @param resourceSpecification
+     */
+    public void selectResourceForPersonRequest(Long compartmentRequestId, Long personId,
+            ResourceSpecification resourceSpecification)
+    {
+        CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
+        PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
+        if (!compartmentRequest.containsRequestedResource(resourceSpecification)) {
+            compartmentRequest.addRequestedResource(resourceSpecification);
+        }
+        personRequest.setResourceSpecification(resourceSpecification);
+        update(compartmentRequest);
+    }
+
+    /**
+     * Accept the invitation for specified person to participate in the specified compartment.
+     *
+     * @param compartmentRequestId identifier for {@link CompartmentRequest}
+     * @param personId             identifier for {@link Person}
+     * @throws IllegalStateException when person hasn't selected resource by he will connect to the compartment yet
+     */
+    public void acceptPersonRequest(Long compartmentRequestId, Long personId) throws IllegalStateException
+    {
+        CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
+        PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
+        if ( personRequest.getResourceSpecification() == null) {
+            throw new IllegalStateException("Cannot accept person '" + personId + "' to compartment request '"
+                    + compartmentRequestId + "' because person hasn't selected the device be which he will connect "
+                    + "to the compartment yet!");
+        }
+        personRequest.setState(PersonRequest.State.ACCEPTED);
+        compartmentRequest.updateState();
+        update(compartmentRequest);
+    }
+
+    /**
+     * Reject the invitation for specified person to participate in the specified compartment.
+     *
+     * @param compartmentRequestId identifier for {@link CompartmentRequest}
+     * @param personId             identifier for {@link Person}
+     */
+    public void rejectPersonRequest(Long compartmentRequestId, Long personId)
+    {
+        CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
+        PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
+        personRequest.setState(PersonRequest.State.REJECTED);
+        compartmentRequest.updateState();
+        update(compartmentRequest);
+    }
+
+    /**
+     * @param compartmentRequest {@link CompartmentRequest} which is searched
+     * @param personId           identifier for {@link Person} for which the search is performed
+     * @return {@link PersonRequest} from given {@link CompartmentRequest} that references person with given identifier
+     * @throws IllegalArgumentException when {@link PersonRequest} is not found
+     */
+    private PersonRequest getPersonRequest(CompartmentRequest compartmentRequest, Long personId)
+            throws IllegalArgumentException
+    {
+        for ( PersonRequest personRequest : compartmentRequest.getRequestedPersons() ) {
+            if ( personRequest.getPerson().getId().equals(personId)) {
+                return personRequest;
+            }
+        }
+        throw new IllegalArgumentException("Requested person '" + personId + "' doesn't exist in compartment request '"
+                + compartmentRequest.getId() + "'!");
     }
 }

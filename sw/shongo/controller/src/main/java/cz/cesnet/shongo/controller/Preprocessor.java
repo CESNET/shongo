@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.Identifier;
 import cz.cesnet.shongo.controller.request.*;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +43,7 @@ public class Preprocessor extends Component
     {
         checkInitialized();
 
-        logger.debug("Running preprocessor...");
+        logger.info("Running preprocessor...");
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
@@ -73,7 +71,7 @@ public class Preprocessor extends Component
     {
         checkInitialized();
 
-        logger.debug("Running preprocessor for a single reservation request '{}'...", reservationRequestId);
+        logger.info("Running preprocessor for a single reservation request '{}'...", reservationRequestId);
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
@@ -106,7 +104,7 @@ public class Preprocessor extends Component
     {
         reservationRequest.checkPersisted();
 
-        logger.debug("Processing reservation request '{}' by a preprocessor...", reservationRequest.getId());
+        logger.info("Preprocessing reservation request '{}'...", reservationRequest.getId());
 
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
 
@@ -114,7 +112,8 @@ public class Preprocessor extends Component
         List<Interval> slots = reservationRequest.enumerateRequestedSlots(interval);
 
         // List all compartment requests for the reservation request
-        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.list(reservationRequest, interval);
+        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(
+                reservationRequest, interval);
 
         // Build set of existing compartments for the reservation request
         Set<Long> compartmentSet = new HashSet<Long>();
@@ -122,7 +121,8 @@ public class Preprocessor extends Component
         // Compartment requests are synchronized per compartment from reservation request
         for (Compartment compartment : reservationRequest.getRequestedCompartments()) {
             // List existing compartment requests for reservation request in the interval
-            List<CompartmentRequest> requestListForCompartment = compartmentRequestManager.list(compartment, interval);
+            List<CompartmentRequest> requestListForCompartment = compartmentRequestManager.listByCompartment(
+                    compartment, interval);
 
             // Create map of compartment requests with date/time slot as key
             // and remove compartment request from list of all compartment request
