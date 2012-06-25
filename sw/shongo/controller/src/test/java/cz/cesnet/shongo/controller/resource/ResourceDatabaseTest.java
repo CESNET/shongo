@@ -22,7 +22,6 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
 
         // Fill resource database
         ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.setDomain(new Domain("cz.cesnet"));
         resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
         resourceDatabase.init();
 
@@ -41,7 +40,6 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
 
         // Load stored resource database
         resourceDatabase = new ResourceDatabase();
-        resourceDatabase.setDomain(new Domain("cz.cesnet"));
         resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
         resourceDatabase.init();
 

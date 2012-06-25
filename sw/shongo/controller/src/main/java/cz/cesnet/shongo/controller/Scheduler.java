@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.common.PrintableObject;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a component of a domain controller that is responsible for scheduling resources for compartment requests.
@@ -54,7 +57,7 @@ public class Scheduler extends Component
 
         // TODO: Apply some priority
 
-        for ( CompartmentRequest compartmentRequest : compartmentRequests) {
+        for (CompartmentRequest compartmentRequest : compartmentRequests) {
             allocateCompartmentRequest(compartmentRequest, entityManager);
         }
 
@@ -77,21 +80,36 @@ public class Scheduler extends Component
         AllocatedCompartment allocatedCompartment =
                 allocatedCompartmentManager.getByCompartmentRequest(compartmentRequest);
         // If doesn't exists create a new
-        if (allocatedCompartment == null ) {
+        if (allocatedCompartment == null) {
             allocatedCompartment = new AllocatedCompartment();
             allocatedCompartment.setCompartmentRequest(compartmentRequest);
             allocatedCompartmentManager.create(allocatedCompartment);
         }
 
         // Get list of requested resources
-        List<ResourceSpecification> requestedResources = compartmentRequest.getRequestedResources();
+        Map<ResourceSpecification, List<Person>> requestedResourcesWithPersons =
+                compartmentRequest.getRequestedResourcesWithPersons();
 
         // Get list of already allocated resources
         List<AllocatedResource> allocatedResources = allocatedCompartment.getAllocatedResources();
 
-        // TODO: Modify allocation
-        if ( true ) {
+        // Schedule a new allocation
+        if (allocatedResources.size() == 0) {
+            System.err.println(PrintableObject.toString(requestedResourcesWithPersons));
+
+            // TODO: Allocate endpoints
+
+            // TODO: Allocate aliases for endpoint (if needed)
+
+            // TODO: Allocate virtual rooms and gateways for connecting endpoints
+
             throw new RuntimeException("TODO: Implement");
+        }
+        // Reschedule existing allocation
+        else {
+            if (true) {
+                throw new RuntimeException("TODO: Implement");
+            }
         }
 
         allocatedCompartmentManager.update(allocatedCompartment);

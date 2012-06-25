@@ -23,11 +23,6 @@ public class ResourceDatabase extends Component
     private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
 
     /**
-     * Domain to which all resources belongs.
-     */
-    private Domain domain;
-
-    /**
      * Entity manager that is used for loading/saving resources.
      */
     private EntityManager entityManager;
@@ -48,14 +43,6 @@ public class ResourceDatabase extends Component
     private DeviceTopology deviceTopology = new DeviceTopology();
 
     /**
-     * @param domain sets the {@link #domain}
-     */
-    public void setDomain(Domain domain)
-    {
-        this.domain = domain;
-    }
-
-    /**
      * @return {@link #deviceTopology}
      */
     public DeviceTopology getDeviceTopology()
@@ -68,9 +55,6 @@ public class ResourceDatabase extends Component
     {
         super.init();
 
-        if (domain == null) {
-            throw new IllegalStateException("Resource database doesn't have the domain set!");
-        }
         entityManager = getEntityManager();
         resourceManager = ResourceManager.createInstance(entityManager);
 

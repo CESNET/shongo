@@ -2,11 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.common.Person;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Preprocessor;
-import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.Technology;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -26,6 +23,8 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
+        //
+        ResourceDatabase resourceDatabase = null;
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
         Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
@@ -36,6 +35,20 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         Long reservationRequestId = null;
         // Identifier for compartment request which is created from reservation request
         Long compartmentRequestId = null;
+
+        // ------------------------
+        // Setup resource database
+        // ------------------------
+        {
+            resourceDatabase = new ResourceDatabase();
+            resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+            resourceDatabase.init();
+
+            DeviceResource deviceResource = new DeviceResource();
+            deviceResource.addTechnology(Technology.H323);
+            deviceResource.addCapability(new VirtualRoomsCapability());
+            resourceDatabase.addResource(deviceResource);
+        }
 
         // ---------------------------
         // Create reservation request
@@ -142,6 +155,13 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             Scheduler.run(getEntityManagerFactory(), interval);
 
             entityManager.close();
+        }
+
+        // ------------------------
+        // Clean-up
+        // ------------------------
+        {
+            resourceDatabase.destroy();
         }
     }
 }
