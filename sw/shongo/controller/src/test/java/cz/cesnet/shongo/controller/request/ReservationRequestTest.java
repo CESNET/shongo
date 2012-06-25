@@ -4,6 +4,7 @@ import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Preprocessor;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Technology;
 import org.joda.time.Interval;
@@ -11,12 +12,9 @@ import org.joda.time.Period;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-
 import java.util.List;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.fail;
+import static junit.framework.Assert.*;
 
 /**
  * Test for processing {@link ReservationRequest} by controller.
@@ -119,7 +117,8 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             try {
                 compartmentRequestManager.acceptPersonRequest(compartmentRequestId, personId2);
                 fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
-            } catch (IllegalStateException exception) {
+            }
+            catch (IllegalStateException exception) {
             }
 
             // Second person accepts
@@ -137,7 +136,12 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Schedule complete compartment request(s)
         // -----------------------------------------
         {
-            throw new RuntimeException("TODO: Implement scheduler");
+            EntityManager entityManager = getEntityManager();
+            entityManager.getTransaction().begin();
+
+            Scheduler.run(getEntityManagerFactory(), interval);
+
+            entityManager.close();
         }
     }
 }

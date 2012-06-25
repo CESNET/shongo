@@ -2,8 +2,6 @@ package cz.cesnet.shongo.common;
 
 import cz.cesnet.shongo.common.util.Parser;
 
-import java.util.UUID;
-
 /**
  * Represents an unique identifier across whole Shongo.
  * <p/>

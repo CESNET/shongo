@@ -80,13 +80,13 @@ public class Preprocessor extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
 
-        if ( reservationRequest == null ) {
+        if (reservationRequest == null) {
             throw new IllegalArgumentException(String.format("Reservation request '%s' doesn't exist!",
                     reservationRequestId));
         }
         ReservationRequestStateManager reservationRequestStateManager =
                 new ReservationRequestStateManager(entityManager, reservationRequest);
-        if ( reservationRequestStateManager.getState(interval) != ReservationRequest.State.NOT_PREPROCESSED) {
+        if (reservationRequestStateManager.getState(interval) != ReservationRequest.State.NOT_PREPROCESSED) {
             throw new IllegalStateException(String.format("Reservation request '%s' is already preprocessed in %s!",
                     reservationRequestId, interval));
         }
@@ -170,7 +170,7 @@ public class Preprocessor extends Component
 
         // When the reservation request hasn't got any future requested slot, the preprocessed state
         // is until "infinite".
-        if ( !reservationRequest.hasRequestedSlotAfter(interval.getEnd()) ) {
+        if (!reservationRequest.hasRequestedSlotAfter(interval.getEnd())) {
             interval = new Interval(interval.getStart(), ReservationRequestStateManager.MAXIMUM_INTERVAL_END);
         }
 

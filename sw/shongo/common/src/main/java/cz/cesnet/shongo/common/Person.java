@@ -111,21 +111,21 @@ public class Person extends PersistentObject
         if (email != null && person.email != null) {
             return email.equals(person.email);
         }
-        if ( email != null || person.email != null ) {
+        if (email != null || person.email != null) {
             return false;
         }
 
         if (phoneNumber != null && person.phoneNumber != null) {
             return phoneNumber.equals(person.phoneNumber);
         }
-        if ( phoneNumber != null || person.phoneNumber != null ) {
+        if (phoneNumber != null || person.phoneNumber != null) {
             return false;
         }
 
         if (name != null && person.name != null) {
             return name.equals(person.name);
         }
-        if ( name != null || person.name != null ) {
+        if (name != null || person.name != null) {
             return false;
         }
 
@@ -136,13 +136,13 @@ public class Person extends PersistentObject
     public int hashCode()
     {
         int hash = 7;
-        if ( email != null ) {
+        if (email != null) {
             return 31 * hash + email.hashCode();
         }
-        if ( phoneNumber != null ) {
+        if (phoneNumber != null) {
             return 31 * hash + phoneNumber.hashCode();
         }
-        if ( name != null ) {
+        if (name != null) {
             return 31 * hash + name.hashCode();
         }
         return hash;

@@ -27,14 +27,27 @@ public class CompartmentRequest extends PersistentObject
         /**
          * Some of requested persons has {@link PersonRequest.State#NOT_ASKED}
          * or {@link PersonRequest.State#ASKED} state.
+         * <p/>
+         * A compartment request in {@link #NOT_COMPLETE} state become {@link #COMPLETE}
+         * when all requested person accepts or rejects the invitation.
          */
         NOT_COMPLETE,
 
         /**
          * All of the requested persons have {@link PersonRequest.State#ACCEPTED}
-         * or {@link PersonRequest.State#REJECTED} state.
+         * or {@link PersonRequest.State#REJECTED} state. The compartment request
+         * hasn't been allocated by a scheduler yet or the request has been modified so
+         * the scheduler must reallocate it.
+         * <p/>
+         * A scheduler processes only {@link #COMPLETE} compartment requests.
          */
-        COMPLETE
+        COMPLETE,
+
+        /**
+         * All requested resources by compartment request has been allocated. If the compartment
+         * request becomes modified, it's state changes back to {@link #COMPLETE}.
+         */
+        ALLOCATED
     }
 
     /**
@@ -219,13 +232,32 @@ public class CompartmentRequest extends PersistentObject
     }
 
     /**
+     * Clear the state of the compartment request (set it to null). Should be followed by
+     * calling {@link #updateStateByRequestedPersons()} to restore proper state.
+     * <p/>
+     * It is useful for removing {@link State#ALLOCATED} state of the compartment request.
+     */
+    public void clearState()
+    {
+        state = null;
+    }
+
+    /**
      * Update state of the compartment request based on requested persons.
+     * <p/>
+     * If any requested person has {@link PersonRequest.State#NOT_ASKED} or
+     * {@link PersonRequest.State#ASKED} state the state of compartment request
+     * is set to {@link State#NOT_COMPLETE}. Otherwise the state is not changed
+     * or forced to {@link State#COMPLETE} in incorrect cases.
      *
      * @see State
      */
-    public void updateState()
+    public void updateStateByRequestedPersons()
     {
-        State state = State.COMPLETE;
+        State state = getState();
+        if (state == null || state == State.NOT_COMPLETE) {
+            state = State.COMPLETE;
+        }
         for (PersonRequest personRequest : requestedPersons) {
             PersonRequest.State personRequestState = personRequest.getState();
             if (personRequestState == PersonRequest.State.NOT_ASKED

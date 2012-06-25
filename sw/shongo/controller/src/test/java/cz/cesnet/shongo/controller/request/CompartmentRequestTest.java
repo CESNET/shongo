@@ -75,9 +75,10 @@ public class CompartmentRequestTest extends AbstractDatabaseTest
 
         try {
             compartmentRequestManager.create(compartment,
-                new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H")));
+                    new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H")));
             fail("Creating compartment request should throw an exception that same persons are present!");
-        } catch (IllegalStateException exception) {
+        }
+        catch (IllegalStateException exception) {
         }
     }
 

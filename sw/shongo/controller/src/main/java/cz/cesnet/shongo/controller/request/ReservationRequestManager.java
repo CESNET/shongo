@@ -26,17 +26,13 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * Create new reservation in the database.
+     * Create a new reservation in the database.
      *
      * @param reservationRequest
      */
     public void create(ReservationRequest reservationRequest)
     {
-        Transaction transaction = beginTransaction();
-
         super.create(reservationRequest);
-
-        transaction.commit();
     }
 
     /**
@@ -63,11 +59,7 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void delete(ReservationRequest reservationRequest)
     {
-        Transaction transaction = beginTransaction();
-
         super.delete(reservationRequest);
-
-        transaction.commit();
     }
 
     /**

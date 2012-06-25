@@ -17,30 +17,13 @@ import java.util.*;
 public class CompartmentRequestManager extends AbstractManager
 {
     /**
-     * @see PersonRequestManager
-     */
-    private PersonRequestManager personRequestManager;
-
-    /**
      * Constructor.
      *
      * @param entityManager
      */
     public CompartmentRequestManager(EntityManager entityManager)
     {
-        this(entityManager, new PersonRequestManager(entityManager));
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param entityManager
-     * @param personRequestManager
-     */
-    public CompartmentRequestManager(EntityManager entityManager, PersonRequestManager personRequestManager)
-    {
         super(entityManager);
-        this.personRequestManager = personRequestManager;
     }
 
     /**
@@ -72,7 +55,7 @@ public class CompartmentRequestManager extends AbstractManager
         }
 
         // Set proper compartment request state
-        compartmentRequest.updateState();
+        compartmentRequest.updateStateByRequestedPersons();
 
         super.create(compartmentRequest);
 
@@ -158,9 +141,14 @@ public class CompartmentRequestManager extends AbstractManager
      *
      * @param compartmentRequest
      * @param compartment
+     * @return true if some change(s) were made in the compartment request,
+     *         false otherwise
      */
-    public void update(CompartmentRequest compartmentRequest, Compartment compartment)
+    public boolean update(CompartmentRequest compartmentRequest, Compartment compartment)
     {
+        // Tracks whether the compartment request was modified
+        boolean modified = false;
+
         // Build set of requested persons that is used to not allow same persons to be requested for a single
         // compartment request
         Set<Person> personSet = new HashSet<Person>();
@@ -196,7 +184,7 @@ public class CompartmentRequestManager extends AbstractManager
             resourceSpecificationMap.put(resourceSpecification.getId(), resourceSpecification);
         }
 
-        // Check all requested resource from the compartment
+        // Check all requested resources from the compartment
         for (ResourceSpecification resourceSpecification : compartment.getRequestedResources()) {
             if (resourceSpecificationMap.containsKey(resourceSpecification.getId())) {
                 // Resource specification exists so check it's requested persons
@@ -224,18 +212,24 @@ public class CompartmentRequestManager extends AbstractManager
                             // Existing person request references wrong resource specification
                             if (personRequest.getState() == PersonRequest.State.NOT_ASKED) {
                                 personRequest.setResourceSpecification(resourceSpecification);
+                                modified = true;
                                 // TODO: If old resource spec. doesn't has any requested persons consider to remove it
                             }
                             else if (personRequest.getState() == PersonRequest.State.ASKED) {
+                                modified = true;
                                 throw new IllegalStateException("Cannot change requested person resource "
                                         + "in compartment request because the person has already been asked "
                                         + "whether he will accepts the invitation.");
                             }
-                            else if (personRequest.getState() == PersonRequest.State.REJECTED) {
+                            else if (personRequest.getState() == PersonRequest.State.ACCEPTED) {
                                 // Do nothing he selected other resource
                             }
                             else if (personRequest.getState() == PersonRequest.State.REJECTED) {
                                 // Do nothing he don't want to collaborate
+                            }
+                            else {
+                                throw new IllegalStateException(
+                                        "Unknown state " + personRequest.getState().toString() + "!");
                             }
                         }
                     }
@@ -243,12 +237,14 @@ public class CompartmentRequestManager extends AbstractManager
                         // Requested person doesn't exist so add new requested person
                         addRequestedPerson(compartmentRequest, person, resourceSpecification, personSet,
                                 personRequestMap);
+                        modified = true;
                     }
                 }
             }
             else {
                 // Resource specification doesn't exists so add it
                 addRequestedResource(compartmentRequest, resourceSpecification, personSet, personRequestMap);
+                modified = true;
             }
 
             // Remove resource specification from map
@@ -260,6 +256,7 @@ public class CompartmentRequestManager extends AbstractManager
             if (!personSet.contains(person)) {
                 // Requested person doesn't exist so add new requested person
                 addRequestedPerson(compartmentRequest, person, null, personSet, personRequestMap);
+                modified = true;
                 personRequestMap.remove(person.getId());
             }
 
@@ -278,8 +275,10 @@ public class CompartmentRequestManager extends AbstractManager
         // in the compartment any more
         for (PersonRequest personRequest : personRequestMap.values()) {
             removeRequestedPerson(compartmentRequest, personRequest);
+            modified = true;
         }
 
+        // Remove some resources from the map to not be deleted
         for (PersonRequest personRequest : compartmentRequest.getRequestedPersons()) {
             // Requested person could selected resources that wasn't
             // specified in compartment so we must remove them from map to not be deleted
@@ -293,9 +292,19 @@ public class CompartmentRequestManager extends AbstractManager
         // in the compartment any more or they aren't specified by any not deleted person requests
         for (ResourceSpecification resourceSpecification : resourceSpecificationMap.values()) {
             compartmentRequest.removeRequestedResource(resourceSpecification);
+            modified = true;
+        }
+
+        // If the compartment request was modified, we must remove the allocated state from it
+        // and set the new state based on requested persons
+        if ( modified ) {
+            compartmentRequest.clearState();
+            compartmentRequest.updateStateByRequestedPersons();
         }
 
         super.update(compartmentRequest);
+
+        return modified;
     }
 
     /**
@@ -335,7 +344,7 @@ public class CompartmentRequestManager extends AbstractManager
     public CompartmentRequest getNotNull(Long compartmentRequestId) throws IllegalArgumentException
     {
         CompartmentRequest compartmentRequest = get(compartmentRequestId);
-        if ( compartmentRequest == null ) {
+        if (compartmentRequest == null) {
             throw new IllegalArgumentException("Compartment request '" + compartmentRequestId + "' doesn't exist!");
         }
         return compartmentRequest;
@@ -441,7 +450,6 @@ public class CompartmentRequestManager extends AbstractManager
     }
 
     /**
-     *
      * @param compartmentRequestId
      * @param personId
      * @param resourceSpecification
@@ -469,13 +477,13 @@ public class CompartmentRequestManager extends AbstractManager
     {
         CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
         PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
-        if ( personRequest.getResourceSpecification() == null) {
+        if (personRequest.getResourceSpecification() == null) {
             throw new IllegalStateException("Cannot accept person '" + personId + "' to compartment request '"
                     + compartmentRequestId + "' because person hasn't selected the device be which he will connect "
                     + "to the compartment yet!");
         }
         personRequest.setState(PersonRequest.State.ACCEPTED);
-        compartmentRequest.updateState();
+        compartmentRequest.updateStateByRequestedPersons();
         update(compartmentRequest);
     }
 
@@ -490,7 +498,7 @@ public class CompartmentRequestManager extends AbstractManager
         CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
         PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
         personRequest.setState(PersonRequest.State.REJECTED);
-        compartmentRequest.updateState();
+        compartmentRequest.updateStateByRequestedPersons();
         update(compartmentRequest);
     }
 
@@ -503,8 +511,8 @@ public class CompartmentRequestManager extends AbstractManager
     private PersonRequest getPersonRequest(CompartmentRequest compartmentRequest, Long personId)
             throws IllegalArgumentException
     {
-        for ( PersonRequest personRequest : compartmentRequest.getRequestedPersons() ) {
-            if ( personRequest.getPerson().getId().equals(personId)) {
+        for (PersonRequest personRequest : compartmentRequest.getRequestedPersons()) {
+            if (personRequest.getPerson().getId().equals(personId)) {
                 return personRequest;
             }
         }

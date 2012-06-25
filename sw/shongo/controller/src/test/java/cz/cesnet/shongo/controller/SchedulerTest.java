@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.request.ReservationRequest;
 import org.junit.Test;
 
 /**

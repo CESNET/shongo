@@ -28,7 +28,7 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Maximum number of enumerated date/times to display by {@link #toString()}.
      */
-    public static final int MAX_PRINT_COUNT =PeriodicDateTimeSpecification.MAX_PRINT_COUNT;
+    public static final int MAX_PRINT_COUNT = PeriodicDateTimeSpecification.MAX_PRINT_COUNT;
 
     /**
      * Start date/time.
@@ -164,7 +164,8 @@ public class DateTimeSlot extends PersistentObject
         List<Interval> slotList = enumerate(intervalStart, intervalEnd, MAX_ENUMERATED_COUNT);
         if (slotList.size() >= MAX_ENUMERATED_COUNT) {
             throw new IllegalArgumentException("Cannot enumerate slots for interval '"
-                    + (intervalStart != null ? intervalStart.toString() : "null") + "'-'" + (intervalEnd != null ? intervalEnd.toString() : "null")
+                    + (intervalStart != null ? intervalStart
+                    .toString() : "null") + "'-'" + (intervalEnd != null ? intervalEnd.toString() : "null")
                     + "' because maximum number " + MAX_ENUMERATED_COUNT + " was reached!");
         }
         return slotList;
@@ -182,7 +183,7 @@ public class DateTimeSlot extends PersistentObject
     public final List<Interval> enumerate(DateTime intervalStart, DateTime intervalEnd, int maxCount)
     {
         Interval interval = null;
-        if ( intervalStart != null && intervalEnd != null ) {
+        if (intervalStart != null && intervalEnd != null) {
             interval = new Interval(intervalStart, intervalEnd);
         }
         List<Interval> slots = new ArrayList<Interval>();
@@ -296,7 +297,7 @@ public class DateTimeSlot extends PersistentObject
             builder.append(")");
             slots.add(builder.toString());
             index++;
-            if ( index >= (MAX_PRINT_COUNT - 1) ) {
+            if (index >= (MAX_PRINT_COUNT - 1)) {
                 slots.add("...");
                 break;
             }

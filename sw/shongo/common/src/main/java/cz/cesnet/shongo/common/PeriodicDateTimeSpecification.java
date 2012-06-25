@@ -27,7 +27,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
      * Maximum number of enumerated date/times to display by {@link #toString()}.
      */
     public static final int MAX_PRINT_COUNT = 10;
-    
+
     /**
      * Date and time of the first periodic event.
      */
@@ -228,7 +228,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
      */
     public List<DateTime> enumerate(Interval interval)
     {
-        if ( interval == null ) {
+        if (interval == null) {
             return enumerate(null, null);
         }
         else {
@@ -249,7 +249,8 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         List<DateTime> dateTimeList = enumerate(intervalStart, intervalEnd, MAX_ENUMERATED_COUNT);
         if (dateTimeList.size() >= MAX_ENUMERATED_COUNT) {
             throw new IllegalArgumentException("Cannot enumerate periodic date/time for interval '"
-                    + (intervalStart != null ? intervalStart.toString() : "null") + "'-'" + (intervalEnd != null ? intervalEnd.toString() : "null")
+                    + (intervalStart != null ? intervalStart
+                    .toString() : "null") + "'-'" + (intervalEnd != null ? intervalEnd.toString() : "null")
                     + "' because maximum number of date/times " + MAX_ENUMERATED_COUNT + " was reached!");
         }
         return dateTimeList;
@@ -287,7 +288,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
                 }
                 start = start.plus(period);
 
-                if (dateTimeList.size() >= maxCount ) {
+                if (dateTimeList.size() >= maxCount) {
                     break;
                 }
             }
@@ -303,7 +304,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
                         && (intervalTo == null || !intervalTo.isBefore(ruleDateTime))) {
                     dateTimeList.add(ruleDateTime);
                 }
-                if (dateTimeList.size() >= maxCount ) {
+                if (dateTimeList.size() >= maxCount) {
                     break;
                 }
                 continue;
@@ -549,7 +550,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         for (DateTime dateTime : enumerate(MAX_PRINT_COUNT)) {
             dateTimes.add(dateTime.toString());
             index++;
-            if ( index >= (MAX_PRINT_COUNT - 1) ) {
+            if (index >= (MAX_PRINT_COUNT - 1)) {
                 dateTimes.add("...");
                 break;
             }
