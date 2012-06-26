@@ -62,10 +62,10 @@ public class TypeFactory extends TypeFactoryImpl
                             object = objectClass.newInstance();
                         }
                         catch (ClassNotFoundException exception) {
-                            throw new SAXException(new FaultException(Fault.Common.ClassNotDefined, className));
+                            throw new SAXException(new FaultException(Fault.Common.CLASS_NOT_DEFINED, className));
                         }
                         catch (Exception exception) {
-                            throw new SAXException(new FaultException(Fault.Common.ClassCannotBeInstanced, className));
+                            throw new SAXException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, className));
                         }
                         try {
                             BeanUtils.getInstance().populateRecursive(object, map);
@@ -90,7 +90,10 @@ public class TypeFactory extends TypeFactoryImpl
     }
 
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
-    {
+    {                
+        if ( pObject.getClass().isEnum() ) {
+            pObject = pObject.toString();
+        }
         TypeSerializer serializer = super.getSerializer(pConfig, pObject);
         // If none serializer was found, serialize by object attributes
         if (serializer == null) {

@@ -75,7 +75,7 @@ public class ReservationRequest extends PersistentObject
      * Type of the reservation. Permanent reservation are created by resource owners to
      * allocate the resource for theirs activity.
      */
-    private Type type = Type.NORMAL;
+    private Type type;
 
     /**
      * Purpose for the reservation (science/education).
@@ -112,7 +112,7 @@ public class ReservationRequest extends PersistentObject
     /**
      * @return {@link #type}
      */
-    @Column
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     public Type getType()
     {

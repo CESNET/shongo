@@ -8,7 +8,7 @@ import cz.cesnet.shongo.common.api.UserIdentity;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Reservation
+public class ReservationRequest
 {
     /**
      * Unique identifier
@@ -18,7 +18,7 @@ public class Reservation
     /**
      * Type of a reservation
      */
-    private ReservationType type;
+    private ReservationRequestType type;
 
     /**
      * Specifies whether resources from other domain can be allocated
@@ -55,7 +55,7 @@ public class Reservation
      *
      * @param type
      */
-    public Reservation(ReservationType type)
+    public ReservationRequest(ReservationRequestType type)
     {
         this.type = type;
     }
@@ -65,7 +65,7 @@ public class Reservation
         return id;
     }
 
-    public ReservationType getType()
+    public ReservationRequestType getType()
     {
         return type;
     }

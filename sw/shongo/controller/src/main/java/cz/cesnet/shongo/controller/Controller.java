@@ -9,51 +9,72 @@ import cz.cesnet.shongo.common.xmlrpc.WebServer;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.persistence.EntityManagerFactory;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Map;
+import java.util.List;
 
 /**
  * Represents a domain controller.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Controller implements ApplicationContextAware
+public class Controller
 {
     private static Logger logger = LoggerFactory.getLogger(Controller.class);
 
     /**
-     * Controller parameters.
+     * Default controller parameters values.
      */
-    public static String rpcHost = null; // All interfaces
-    public static int rpcPort = 8181;
-    public static String jadeHost = "127.0.0.1";
-    public static int jadePort = 8282;
-    public static String jadePlatformId = "Shongo";
+    public static final String  DEFAULT_RPC_HOST  = ""; // All interfaces
+    public static final Integer DEFAULT_RPC_PORT  = 8181;
+    public static final String  DEFAULT_JADE_HOST = "127.0.0.1";
+    public static final Integer DEFAULT_JADE_PORT = 8282;
+    public static final String  DEFAULT_JADE_PLATFORM_ID = "Shongo";
 
     /**
-     * Single instance of controller that is created by spring context.
+     * Host to run XML-RPC web server.
      */
-    private static Controller instance;
+    private String rpcHost;
 
     /**
-     * @return {@link #instance}
+     * Port to run XML-RPC web server.
      */
-    public static Controller getInstance()
-    {
-        if (instance == null) {
-            throw new IllegalStateException("Cannot get instance of a domain controller, "
-                    + "because no controller has been created by spring context yet.");
-        }
-        return instance;
-    }
+    private Integer rpcPort;
+
+    /**
+     * Host to run JADE container.
+     */
+    private String jadeHost;
+
+    /**
+     * Port to run JADE container.
+     */
+    private Integer jadePort;
+
+    /**
+     * JADE platform identifier.
+     */
+    private String jadePlatformId;
+
+    /**
+     * Entity manager factory.
+     */
+    EntityManagerFactory entityManagerFactory;
+
+    /**
+     * List of services of the domain controller.
+     */
+    private List<Service> services = new ArrayList<Service>();
+
+    /**
+     * List of components of the domain controller.
+     */
+    private List<Component> components = new ArrayList<Component>();
 
     /**
      * XML-RPC server.
@@ -71,23 +92,122 @@ public class Controller implements ApplicationContextAware
     ControllerAgent jadeAgent;
 
     /**
-     * Entity manager factory.
-     */
-    @Resource
-    EntityManagerFactory entityManagerFactory;
-
-    /**
      * Constructor.
      */
-    private Controller()
+    public Controller()
     {
     }
 
     /**
-     * Init controller.
+     * @return {@link #rpcHost}
      */
-    @PostConstruct
-    public void start() throws Exception
+    public String getRpcHost()
+    {
+        return rpcHost;
+    }
+
+    /**
+     * @param rpcHost sets the {@link #rpcHost}
+     */
+    public void setRpcHost(String rpcHost)
+    {
+        this.rpcHost = rpcHost;
+    }
+
+    /**
+     * @return {@link #rpcPort}
+     */
+    public Integer getRpcPort()
+    {
+        return rpcPort;
+    }
+
+    /**
+     * @param rpcPort sets the {@link #rpcPort}
+     */
+    public void setRpcPort(int rpcPort)
+    {
+        this.rpcPort = rpcPort;
+    }
+
+    /**
+     * @param jadeHost sets the {@link #jadeHost}
+     */
+    public void setJadeHost(String jadeHost)
+    {
+        this.jadeHost = jadeHost;
+    }
+
+    /**
+     * @param jadePort sets the {@link #jadePort}
+     */
+    public void setJadePort(int jadePort)
+    {
+        this.jadePort = jadePort;
+    }
+
+    /**
+     * @param jadePlatformId sets the {@link #jadePlatformId}
+     */
+    public void setJadePlatformId(String jadePlatformId)
+    {
+        this.jadePlatformId = jadePlatformId;
+    }
+
+    /**
+     * @param entityManagerFactory sets the {@link #entityManagerFactory}
+     */
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    /**
+     * @param services sets the {@link #services}
+     */
+    public void setServices(List<Service> services)
+    {
+        this.services = services;
+    }
+
+    /**
+     * @param service service to be added the {@link #services}
+     */
+    public synchronized void addService(Service service)
+    {
+        if (!services.contains(service)) {
+            services.add(service);
+            if ( service instanceof Component) {
+                addComponent((Component)service);
+            }
+        }
+    }
+
+    /**
+     * @param components sets the {@link #components}
+     */
+    public void setComponents(List<Component> components)
+    {
+        this.components = components;
+    }
+
+    /**
+     * @param component component to be added to the {@link #components}
+     */
+    public synchronized void addComponent(Component component)
+    {
+        if (!components.contains(component)) {
+            components.add(component);
+            if ( component instanceof Service) {
+                addService((Service)component);
+            }
+        }
+    }
+
+    /**
+     * Start the domain controller.
+     */
+    public void start() throws IllegalStateException
     {
         // Set single instance of domain controller.
         if (instance != null) {
@@ -95,21 +215,67 @@ public class Controller implements ApplicationContextAware
         }
         instance = this;
 
+        logger.info("Controller is starting...");
+
         // Inititialize components
-        Map<String, Component> components = applicationContext.getBeansOfType(Component.class);
-        for (Component component : components.values()) {
+        for (Component component : components) {
             component.setEntityManagerFactory(entityManagerFactory);
             component.init();
         }
+    }
 
-        logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost == null ? "*" : rpcHost), rpcPort);
+    /**
+     * Start the domain controller and also the rpc web server and jade container.
+     *
+     * @throws Exception
+     */
+    public void startAll() throws Exception
+    {
+        start();
+        startRpc();
+        startJade();
+    }
 
-        rpcServer = new WebServer(rpcHost, rpcPort);
-        Map<String, Service> services = applicationContext.getBeansOfType(Service.class);
-        for (Service service : services.values()) {
+    /**
+     * Start XML-RPC web server.
+     *
+     * @throws IOException
+     */
+    public void startRpc() throws IOException
+    {
+        if ( rpcHost == null ) {
+            rpcHost = DEFAULT_RPC_HOST;
+        }
+        if ( rpcPort == null ) {
+            rpcPort = DEFAULT_RPC_PORT;
+        }
+
+        logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost.isEmpty() ? "*" : rpcHost), rpcPort);
+
+        rpcServer = new WebServer(rpcHost.isEmpty() ? null : rpcHost, rpcPort);
+        for (Service service : services) {
+            logger.debug("Adding XML-RPC service '" + service.getServiceName() + "'...");
             rpcServer.addHandler(service.getServiceName(), service);
         }
         rpcServer.start();
+    }
+
+    /**
+     * Start JADE container.
+     *
+     * @throws IllegalStateException
+     */
+    public void startJade() throws IllegalStateException
+    {
+        if ( jadeHost == null ) {
+            jadeHost = DEFAULT_JADE_HOST;
+        }
+        if ( jadePort == null ) {
+            jadePort = DEFAULT_JADE_PORT;
+        }
+        if ( jadePlatformId == null ) {
+            jadePlatformId = DEFAULT_JADE_PLATFORM_ID;
+        }
 
         logger.info("Starting Controller JADE container on {}:{}...", jadeHost, jadePort);
 
@@ -117,7 +283,7 @@ public class Controller implements ApplicationContextAware
         jadeContainer = Container.createMainContainer(jadeHost, jadePort, jadePlatformId);
         jadeContainer.addAgent("Controller", jadeAgent);
         if (jadeContainer.start() == false) {
-            throw new Exception("Failed to start JADE container.");
+            throw new IllegalStateException("Failed to start JADE container.");
         }
     }
 
@@ -133,8 +299,6 @@ public class Controller implements ApplicationContextAware
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.addCommands(jadeAgent.createCommandSet());
         shell.run();
-
-        stop();
     }
 
     /**
@@ -142,28 +306,39 @@ public class Controller implements ApplicationContextAware
      */
     public void stop()
     {
-        logger.info("Stopping Controller XML-RPC server...");
-        rpcServer.stop();
+        if ( jadeContainer != null ) {
+            logger.info("Stopping Controller JADE container...");
+            jadeContainer.stop();
+        }
 
-        logger.info("Stopping Controller JADE container...");
-        jadeContainer.stop();
+        if ( rpcServer != null ) {
+            logger.info("Stopping Controller XML-RPC server...");
+            rpcServer.stop();
+        }
 
         // Destroy components
-        Map<String, Component> components = applicationContext.getBeansOfType(Component.class);
-        for (Component component : components.values()) {
+        for (Component component : components) {
             component.destroy();
         }
+
+        logger.info("Controller exiting...");
     }
 
     /**
-     * Application context
+     * Single instance of controller that is created by spring context.
      */
-    private ApplicationContext applicationContext;
+    private static Controller instance;
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException
+    /**
+     * @return {@link #instance}
+     */
+    public static Controller getInstance()
     {
-        this.applicationContext = applicationContext;
+        if (instance == null) {
+            throw new IllegalStateException("Cannot get instance of a domain controller, "
+                    + "because no controller has been created yet.");
+        }
+        return instance;
     }
 
     /**
@@ -238,26 +413,30 @@ public class Controller implements ApplicationContextAware
             System.exit(0);
         }
 
+        System.setProperty("rpc-host", DEFAULT_RPC_HOST);
+        System.setProperty("rpc-port", DEFAULT_RPC_PORT.toString());
+        System.setProperty("jade-host", DEFAULT_JADE_HOST);
+        System.setProperty("jade-port", DEFAULT_JADE_PORT.toString());
+        System.setProperty("jade-platform-id", DEFAULT_JADE_PLATFORM_ID);
+
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
             String host = commandLine.getOptionValue(optionHost.getOpt());
-            rpcHost = host;
-            jadeHost = host;
+            System.setProperty("rpc-host", host);
+            System.setProperty("jade-host", host);
         }
         if (commandLine.hasOption(optionRpcPort.getOpt())) {
-            rpcPort = Integer.parseInt(commandLine.getOptionValue(optionRpcPort.getOpt()));
+            System.setProperty("rpc-port", commandLine.getOptionValue(optionRpcPort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePort.getOpt())) {
-            jadePort = Integer.parseInt(commandLine.getOptionValue(optionJadePort.getOpt()));
+            System.setProperty("jade-port", commandLine.getOptionValue(optionJadePort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePlatform.getOpt())) {
-            jadePlatformId = commandLine.getOptionValue(optionJadePlatform.getOpt());
+            System.setProperty("jade-platform-id", commandLine.getOptionValue(optionJadePlatform.getOpt()));
         }
 
         // Run application by spring application context
         ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-context.xml");
-
-        logger.info("Controller successfully started.");
 
         // Run controller
         Controller controller = (Controller) applicationContext.getBean("controller");
@@ -265,7 +444,5 @@ public class Controller implements ApplicationContextAware
 
         // Close spring application context
         applicationContext.close();
-
-        logger.info("Controller exiting...");
     }
 }

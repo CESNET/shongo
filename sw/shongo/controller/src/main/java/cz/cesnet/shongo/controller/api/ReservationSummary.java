@@ -17,7 +17,7 @@ public class ReservationSummary
     /**
      * Type of a reservation
      */
-    private ReservationType type;
+    private ReservationRequestType type;
 
     /**
      * Long description
@@ -34,7 +34,7 @@ public class ReservationSummary
         return id;
     }
 
-    public ReservationType getType()
+    public ReservationRequestType getType()
     {
         return type;
     }

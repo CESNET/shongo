@@ -58,6 +58,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             entityManager.getTransaction().begin();
 
             ReservationRequest reservationRequest = new ReservationRequest();
+            reservationRequest.setType(ReservationRequest.Type.NORMAL);
             reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
             reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"),
                     new Period("PT2H"));

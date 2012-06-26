@@ -41,7 +41,7 @@ public class BeanUtils extends BeanUtilsBean
                     }
                     catch (IllegalArgumentException exception) {
                         throw new RuntimeException(
-                                new FaultException(Fault.Common.EnumNotDefined, value, getShortClassName(
+                                new FaultException(Fault.Common.ENUM_NOT_DEFINED, value, getShortClassName(
                                         clazz.getCanonicalName()))
                         );
                     }
@@ -52,7 +52,7 @@ public class BeanUtils extends BeanUtilsBean
                         atomicType = (AtomicType) clazz.newInstance();
                     }
                     catch (java.lang.Exception exception) {
-                        throw new RuntimeException(new FaultException(Fault.Common.ClassCannotBeInstanced,
+                        throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
                                 BeanUtils.getShortClassName(clazz.getCanonicalName())));
                     }
                     atomicType.fromString(value);

@@ -77,4 +77,16 @@ public class Domain
     {
         this.name = name;
     }
+
+    /**
+     * @param id
+     * @return formatted identifier from given database id
+     */
+    public String formatIdentifier(Long id)
+    {
+        if ( id == null ) {
+            throw new IllegalArgumentException("Cannot format identifier because id is null!");
+        }
+        return String.format("shongo:%s:%d", getCodeName(), id.longValue());
+    }
 }

@@ -6,6 +6,7 @@
                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
     <context:annotation-config/>
+    <context:property-placeholder/>
 
     <!-- Domain configuration -->
     <bean id="domain" class="cz.cesnet.shongo.controller.Domain">
@@ -14,7 +15,24 @@
     </bean>
 
     <!-- Application -->
-    <bean id="controller" class="cz.cesnet.shongo.controller.Controller"/>
+    <bean id="controller" class="cz.cesnet.shongo.controller.Controller" init-method="startAll" destroy-method="stop">
+        <property name="rpcHost" value="${rpc-host}"/>
+        <property name="rpcPort" value="${rpc-port}"/>
+        <property name="jadeHost" value="${jade-host}"/>
+        <property name="jadePort" value="${jade-port}"/>
+        <property name="jadePlatformId" value="${jade-platform-id}"/>
+        <property name="entityManagerFactory"><ref bean="entityManagerFactory"/></property>
+        <property name="services">
+            <bean class="cz.cesnet.shongo.controller.spring.BeanListFactoryBean">
+                <property name="beanType" value="cz.cesnet.shongo.common.xmlrpc.Service"/>
+            </bean>
+        </property>
+        <property name="components">
+            <bean class="cz.cesnet.shongo.controller.spring.BeanListFactoryBean">
+                <property name="beanType" value="cz.cesnet.shongo.controller.Component"/>
+            </bean>
+        </property>
+    </bean>
 
     <!-- Components -->
     <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.ResourceDatabase"/>

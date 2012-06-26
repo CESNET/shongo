@@ -13,5 +13,5 @@ public interface Service
      *
      * @return service name
      */
-    public String getServiceName();
+    public abstract String getServiceName();
 }

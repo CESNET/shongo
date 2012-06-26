@@ -29,12 +29,12 @@ public interface Fault
      */
     public static enum Common implements Fault
     {
-        UnknownFault(0, "Unknown fault: %s"),
-        ClassNotDefined(1, "Class '%s' is not defined."),
-        AttributeNotDefined(2, "Attribute '%s' in class '%s' is not defined."),
-        AttributeTypeMismatch(3, "Attribute '%s' in class '%s' has type '%s' but '%s' was presented."),
-        EnumNotDefined(4, "Enum value '%s' is not defined in enum '%s'."),
-        ClassCannotBeInstanced(5, "Class '%s' cannot be instancied without arguments.");
+        UNKNOWN_FAULT(0, "Unknown fault: %s"),
+        CLASS_NOT_DEFINED(1, "Class '%s' is not defined."),
+        ATTRIBUTE_NOT_DEFINED(2, "Attribute '%s' in class '%s' is not defined."),
+        ATTRIBUTE_TYPE_MISMATCH(3, "Attribute '%s' in class '%s' has type '%s' but '%s' was presented."),
+        ENUM_NOT_DEFINED(4, "Enum value '%s' is not defined in enum '%s'."),
+        CLASS_CANNOT_BE_INSTANCED(5, "Class '%s' cannot be instancied without arguments.");
 
         private int code;
         private String string;
