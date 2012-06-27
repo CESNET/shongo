@@ -297,7 +297,7 @@ public class CompartmentRequestManager extends AbstractManager
 
         // If the compartment request was modified, we must remove the allocated state from it
         // and set the new state based on requested persons
-        if ( modified ) {
+        if (modified) {
             compartmentRequest.clearState();
             compartmentRequest.updateStateByRequestedPersons();
         }

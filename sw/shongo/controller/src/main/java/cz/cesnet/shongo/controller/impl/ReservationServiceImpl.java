@@ -1,18 +1,17 @@
 package cz.cesnet.shongo.controller.impl;
 
 import cz.cesnet.shongo.common.api.SecurityToken;
+import cz.cesnet.shongo.common.util.Converter;
+import cz.cesnet.shongo.common.util.EntityMap;
 import cz.cesnet.shongo.common.xmlrpc.FaultException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.Fault;
-import cz.cesnet.shongo.controller.api.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.ReservationService;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.util.Map;
 
 /**
@@ -57,7 +56,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     public void init()
     {
         super.init();
-        if ( domain == null ) {
+        if (domain == null) {
             throw new IllegalStateException(getClass().getName() + " doesn't have the domain  set!");
         }
     }
@@ -69,30 +68,22 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     }
 
     @Override
-    public String createReservationRequest(SecurityToken token, ReservationRequestType type, Map attributes)
+    public String createReservationRequest(SecurityToken token, String type, Map attributes)
             throws FaultException
     {
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
+        EntityMap entityMap = new EntityMap(attributes, ReservationRequest.class);
+
         ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(Converter.convertStringToEnum(type, ReservationRequest.Type.class));
+        reservationRequest.setPurpose(entityMap.getEnumRequired("purpose", ReservationRequest.Purpose.class));
 
         // TODO: Continue implementing this
 
         // TODO: May be change types to map, list, basic types
 
-        // Attribute Type
-        switch (type) {
-            case NORMAL:
-                reservationRequest.setType(ReservationRequest.Type.NORMAL);
-                break;
-            case PERMANENT:
-                reservationRequest.setType(ReservationRequest.Type.NORMAL);
-                break;
-            default:
-                throw new FaultException(Fault.OTHER, "Reservation request type should be normal or permanent, "
-                        + "but '" + type + "' was present!");
-        }
 
         // Attribute Purpose
         /*ReservationRequestPurpose purpose =

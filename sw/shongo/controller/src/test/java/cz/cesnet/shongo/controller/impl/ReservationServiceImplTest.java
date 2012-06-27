@@ -5,8 +5,6 @@ import cz.cesnet.shongo.common.xmlrpc.TypeFactory;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.api.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.ReservationService;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -58,13 +56,68 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         XmlRpcClient client = new XmlRpcClient();
         client.setConfig(config);
         client.setTypeFactory(new TypeFactory(client));
-        
+
         Map attributes = new HashMap();
-        attributes.put("purpose", ReservationRequestPurpose.SCIENCE);
+        attributes.put("purpose", "SCIENCE");
+        attributes.put("slots", new ArrayList()
+        {{
+                add(new HashMap()
+                {{
+                        put("dateTime", "2012-06-01T15:00");
+                        put("duration", "PT2H");
+                    }});
+                add(new HashMap()
+                {{
+                        put("dateTime", new HashMap()
+                        {{
+                                put("start", "2012-07-01T14:00");
+                                put("period", "P1W");
+                            }});
+                        put("duration", "PT2H");
+                    }});
+            }});
+        attributes.put("compartments", new ArrayList()
+        {{
+                add(new HashMap()
+                {{
+                        put("persons", new ArrayList()
+                        {{
+                                add(new HashMap()
+                                {{
+                                        put("name", "Martin Srom");
+                                        put("email", "srom@cesnet.cz");
+                                    }});
+                            }});
+                        put("resources", new ArrayList()
+                        {{
+                                add(new HashMap()
+                                {{
+                                        put("technology", "H323");
+                                        put("count", 2);
+                                        put("persons", new ArrayList()
+                                        {{
+                                                add(new HashMap()
+                                                {{
+                                                        put("name", "Ondrej Bouda");
+                                                        put("email", "bouda@cesnet.cz");
+                                                    }});
+                                                add(new HashMap()
+                                                {{
+                                                        put("name", "Petr Holub");
+                                                        put("email", "hopet@cesnet.cz");
+                                                    }});
+                                            }});
+                                    }});
+
+                            }});
+                    }});
+            }});
 
         List params = new ArrayList();
-        params.add(new SecurityToken());
-        params.add(ReservationRequestType.NORMAL);
+        params.add(new HashMap(){{
+            put("test", "Test value");
+        }});
+        params.add("NORMAL");
         params.add(attributes);
 
         String identifier = (String) client.execute("Reservation.createReservationRequest", params);

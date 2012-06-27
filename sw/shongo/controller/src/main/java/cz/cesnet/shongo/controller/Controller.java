@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,11 +29,11 @@ public class Controller
     /**
      * Default controller parameters values.
      */
-    public static final String  DEFAULT_RPC_HOST  = ""; // All interfaces
-    public static final Integer DEFAULT_RPC_PORT  = 8181;
-    public static final String  DEFAULT_JADE_HOST = "127.0.0.1";
+    public static final String DEFAULT_RPC_HOST = ""; // All interfaces
+    public static final Integer DEFAULT_RPC_PORT = 8181;
+    public static final String DEFAULT_JADE_HOST = "127.0.0.1";
     public static final Integer DEFAULT_JADE_PORT = 8282;
-    public static final String  DEFAULT_JADE_PLATFORM_ID = "Shongo";
+    public static final String DEFAULT_JADE_PLATFORM_ID = "Shongo";
 
     /**
      * Host to run XML-RPC web server.
@@ -177,8 +176,8 @@ public class Controller
     {
         if (!services.contains(service)) {
             services.add(service);
-            if ( service instanceof Component) {
-                addComponent((Component)service);
+            if (service instanceof Component) {
+                addComponent((Component) service);
             }
         }
     }
@@ -198,8 +197,8 @@ public class Controller
     {
         if (!components.contains(component)) {
             components.add(component);
-            if ( component instanceof Service) {
-                addService((Service)component);
+            if (component instanceof Service) {
+                addService((Service) component);
             }
         }
     }
@@ -243,10 +242,10 @@ public class Controller
      */
     public void startRpc() throws IOException
     {
-        if ( rpcHost == null ) {
+        if (rpcHost == null) {
             rpcHost = DEFAULT_RPC_HOST;
         }
-        if ( rpcPort == null ) {
+        if (rpcPort == null) {
             rpcPort = DEFAULT_RPC_PORT;
         }
 
@@ -267,13 +266,13 @@ public class Controller
      */
     public void startJade() throws IllegalStateException
     {
-        if ( jadeHost == null ) {
+        if (jadeHost == null) {
             jadeHost = DEFAULT_JADE_HOST;
         }
-        if ( jadePort == null ) {
+        if (jadePort == null) {
             jadePort = DEFAULT_JADE_PORT;
         }
-        if ( jadePlatformId == null ) {
+        if (jadePlatformId == null) {
             jadePlatformId = DEFAULT_JADE_PLATFORM_ID;
         }
 
@@ -306,12 +305,12 @@ public class Controller
      */
     public void stop()
     {
-        if ( jadeContainer != null ) {
+        if (jadeContainer != null) {
             logger.info("Stopping Controller JADE container...");
             jadeContainer.stop();
         }
 
-        if ( rpcServer != null ) {
+        if (rpcServer != null) {
             logger.info("Stopping Controller XML-RPC server...");
             rpcServer.stop();
         }

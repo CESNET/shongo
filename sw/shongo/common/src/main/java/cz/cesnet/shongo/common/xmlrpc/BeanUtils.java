@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.common.util.Converter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.DynaBean;
@@ -9,7 +10,10 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Bean utils that are able to populate a bean from a Map and
@@ -29,7 +33,7 @@ public class BeanUtils extends BeanUtilsBean
      */
     public BeanUtils()
     {
-        // Set convert utils that are able to convert String to Enum
+        // Set convert utils that are able to convert String to Enum and AtomicType
         super(new ConvertUtilsBean()
         {
             @Override
@@ -37,13 +41,10 @@ public class BeanUtils extends BeanUtilsBean
             {
                 if (clazz.isEnum()) {
                     try {
-                        return Enum.valueOf(clazz, value);
+                        return Converter.convertStringToEnum(value, clazz);
                     }
-                    catch (IllegalArgumentException exception) {
-                        throw new RuntimeException(
-                                new FaultException(Fault.Common.ENUM_NOT_DEFINED, value, getShortClassName(
-                                        clazz.getCanonicalName()))
-                        );
+                    catch (FaultException exception) {
+                        throw new RuntimeException(exception);
                     }
                 }
                 else if (AtomicType.class.isAssignableFrom(clazz)) {
@@ -53,7 +54,7 @@ public class BeanUtils extends BeanUtilsBean
                     }
                     catch (java.lang.Exception exception) {
                         throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                                BeanUtils.getShortClassName(clazz.getCanonicalName())));
+                                Converter.getShortClassName(clazz.getCanonicalName())));
                     }
                     atomicType.fromString(value);
                     return atomicType;
@@ -63,56 +64,6 @@ public class BeanUtils extends BeanUtilsBean
                 }
             }
         });
-    }
-
-    /**
-     * Get short class name from full class name
-     *
-     * @param fullClassName
-     * @return full class name
-     */
-    public static String getShortClassName(String fullClassName)
-    {
-        int position = fullClassName.lastIndexOf(".");
-        if (position != -1) {
-            return fullClassName.substring(position + 1, fullClassName.length());
-        }
-        return fullClassName;
-    }
-
-    /**
-     * List of packages
-     */
-    static String[] packages;
-
-    /**
-     * Get full class name from short class name
-     *
-     * @param shortClassName
-     * @return short class name
-     */
-    public static String getFullClassName(String shortClassName)
-    {
-        if (packages == null) {
-            ArrayList<String> list = new ArrayList<String>();
-            for (Package item : Package.getPackages()) {
-                String name = item.getName();
-                if (name.startsWith("cz.cesnet.shongo.") && name.endsWith(".api")) {
-                    list.add(name);
-                }
-            }
-            packages = list.toArray(new String[list.size()]);
-        }
-
-        for (String item : packages) {
-            try {
-                Class clazz = Class.forName(item + "." + shortClassName);
-                return clazz.getCanonicalName();
-            }
-            catch (ClassNotFoundException exception) {
-            }
-        }
-        return "cz.cesnet.shongo." + shortClassName;
     }
 
     /**
@@ -158,7 +109,6 @@ public class BeanUtils extends BeanUtilsBean
                 }
             }
 
-            System.out.printf("%s '%s'\n", name, value);
             // Perform the assignment for this property
             setProperty(bean, name, value);
         }
@@ -218,7 +168,7 @@ public class BeanUtils extends BeanUtilsBean
 
         // Update class
         String className = (String) map.get("class");
-        map.put("class", getShortClassName(className.replace("class ", "")));
+        map.put("class", Converter.getShortClassName(className.replace("class ", "")));
 
         return (map);
 

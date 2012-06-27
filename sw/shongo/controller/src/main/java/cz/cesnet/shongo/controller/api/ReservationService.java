@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.DateTimeSlot;
-import cz.cesnet.shongo.common.api.Period;
 import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.common.xmlrpc.FaultException;
 import cz.cesnet.shongo.common.xmlrpc.Service;
@@ -26,7 +24,7 @@ public interface ReservationService extends Service
      *                   {@link ReservationRequest} class while all the attributes marked as required must be present
      * @return the created reservation request auto-generated identifier
      */
-    public String createReservationRequest(SecurityToken token, ReservationRequestType type, Map attributes)
+    public String createReservationRequest(SecurityToken token, String type, Map attributes)
             throws FaultException;
 
     /**

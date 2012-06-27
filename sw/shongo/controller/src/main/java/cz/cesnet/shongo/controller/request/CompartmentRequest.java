@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.request;
 
-import com.sun.org.apache.bcel.internal.generic.ALOAD;
 import cz.cesnet.shongo.common.PersistentObject;
 import cz.cesnet.shongo.common.Person;
 import org.joda.time.Interval;
@@ -220,19 +219,19 @@ public class CompartmentRequest extends PersistentObject
     {
         HashMap<ResourceSpecification, List<Person>> mapRequestedResourcesWithPersons =
                 new HashMap<ResourceSpecification, List<Person>>();
-        for ( ResourceSpecification resourceSpecification : requestedResources) {
+        for (ResourceSpecification resourceSpecification : requestedResources) {
             mapRequestedResourcesWithPersons.put(resourceSpecification, new ArrayList<Person>());
         }
-        for ( PersonRequest personRequest : requestedPersons) {
-            if ( personRequest.getState() == PersonRequest.State.ACCEPTED) {
-                if ( personRequest.getResourceSpecification() == null ) {
-                    throw new IllegalStateException("Person request '" +  personRequest.getId()
+        for (PersonRequest personRequest : requestedPersons) {
+            if (personRequest.getState() == PersonRequest.State.ACCEPTED) {
+                if (personRequest.getResourceSpecification() == null) {
+                    throw new IllegalStateException("Person request '" + personRequest.getId()
                             + "' in compartment request '" + getId() + "' should have resource specified!");
                 }
                 List<Person> persons = mapRequestedResourcesWithPersons.get(personRequest.getResourceSpecification());
-                if ( persons == null ) {
+                if (persons == null) {
                     throw new IllegalStateException("Resource '" + personRequest.getResourceSpecification().getId()
-                            +"' specified in person request '" + personRequest.getId()
+                            + "' specified in person request '" + personRequest.getId()
                             + "' doesn't exists in compartment request '" + getId() + "'!");
                 }
                 persons.add(personRequest.getPerson());
@@ -242,10 +241,9 @@ public class CompartmentRequest extends PersistentObject
         // Remove all resources that were requested with a list of persons and the list is empty
         Iterator<Map.Entry<ResourceSpecification, List<Person>>> iterator =
                 mapRequestedResourcesWithPersons.entrySet().iterator();
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             Map.Entry<ResourceSpecification, List<Person>> entry = iterator.next();
-            if ( entry.getValue().size() == 0 && entry.getKey().getRequestedPersons().size() > 0) {
+            if (entry.getValue().size() == 0 && entry.getKey().getRequestedPersons().size() > 0) {
                 iterator.remove();
             }
         }

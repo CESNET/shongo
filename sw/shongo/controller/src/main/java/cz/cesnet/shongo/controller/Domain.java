@@ -84,7 +84,7 @@ public class Domain
      */
     public String formatIdentifier(Long id)
     {
-        if ( id == null ) {
+        if (id == null) {
             throw new IllegalArgumentException("Cannot format identifier because id is null!");
         }
         return String.format("shongo:%s:%d", getCodeName(), id.longValue());

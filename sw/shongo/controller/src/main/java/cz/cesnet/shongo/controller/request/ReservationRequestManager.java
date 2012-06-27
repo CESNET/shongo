@@ -115,7 +115,7 @@ public class ReservationRequestManager extends AbstractManager
      */
     private void validate(ReservationRequest reservationRequest) throws IllegalArgumentException
     {
-        if ( reservationRequest.getType() == null ) {
+        if (reservationRequest.getType() == null) {
             throw new IllegalArgumentException("Reservation request must have type set!");
         }
     }

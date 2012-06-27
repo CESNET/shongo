@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.common.util.Converter;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.common.TypeFactoryImpl;
@@ -33,7 +34,7 @@ public class TypeFactory extends TypeFactoryImpl
     public TypeParser getParser(XmlRpcStreamConfig pConfig, NamespaceContextImpl pContext, String pURI,
             String pLocalName)
     {
-        // Convert struct with class attribute to object
+        // Allow for converting struct with class attribute to object
         if (MapSerializer.STRUCT_TAG.equals(pLocalName)) {
             // Create custom map parser that checks class attribute
             return new MapParser(pConfig, pContext, this)
@@ -49,35 +50,24 @@ public class TypeFactory extends TypeFactoryImpl
                     catch (XmlRpcException exception) {
                         throw new SAXException(exception);
                     }
-                    // Empty struct menas "null" value
-                    if (map != null && map.size() == 0) {
-                        setResult(null);
-                    }
-                    // Check class key
-                    else if (map != null && map.containsKey("class")) {
+                    // If the class key is present convert the map to object
+                    if (map != null && map.containsKey("class")) {
                         String className = (String) map.get("class");
-                        Object object = null;
+                        Class objectClass = null;
+
+                        // Get object class
                         try {
-                            Class objectClass = Class.forName(BeanUtils.getFullClassName(className));
-                            object = objectClass.newInstance();
+                            objectClass = Class.forName(Converter.getFullClassName(className));
                         }
                         catch (ClassNotFoundException exception) {
                             throw new SAXException(new FaultException(Fault.Common.CLASS_NOT_DEFINED, className));
                         }
-                        catch (Exception exception) {
-                            throw new SAXException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, className));
-                        }
+
+                        // Convert map to object of the class
                         try {
-                            BeanUtils.getInstance().populateRecursive(object, map);
-                            setResult(object);
+                            setResult(Converter.convertMapToObject(map, objectClass));
                         }
-                        catch (RuntimeException exception) {
-                            if (exception.getCause() instanceof Exception) {
-                                throw new SAXException((Exception) exception.getCause());
-                            }
-                            throw new SAXException(exception);
-                        }
-                        catch (Exception exception) {
+                        catch (FaultException exception) {
                             throw new SAXException(exception);
                         }
                     }
@@ -90,8 +80,8 @@ public class TypeFactory extends TypeFactoryImpl
     }
 
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
-    {                
-        if ( pObject.getClass().isEnum() ) {
+    {
+        if (pObject != null && pObject.getClass().isEnum()) {
             pObject = pObject.toString();
         }
         TypeSerializer serializer = super.getSerializer(pConfig, pObject);
@@ -103,15 +93,13 @@ public class TypeFactory extends TypeFactoryImpl
                 @Override
                 public void write(ContentHandler pHandler, Object pObject) throws SAXException
                 {
-                    Map<String, Object> map = null;
                     try {
-                        // Get map from object instance
-                        map = BeanUtils.getInstance().describeRecursive(pObject);
+                        Map<String, Object> map = Converter.convertObjectToMap(pObject);
+                        super.write(pHandler, map);
                     }
-                    catch (Exception exception) {
-                        logger.error("Failed convert object to map.", exception);
+                    catch (FaultException exception) {
+                        throw new SAXException(exception);
                     }
-                    super.write(pHandler, map);
                 }
             };
         }

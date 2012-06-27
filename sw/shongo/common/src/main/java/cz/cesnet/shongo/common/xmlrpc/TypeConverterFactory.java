@@ -1,17 +1,20 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.common.util.Converter;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 
+import java.util.Map;
+
 /**
- * TypeConverterFactory that allows AtomicType, StructType and enums as method parameters.
+ * TypeConverterFactory that allows {@link AtomicType}, {@link StructType} and enums as method parameters
+ * and return values.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TypeConverterFactory extends TypeConverterFactoryImpl
 {
     private static final TypeConverter atomicTypeConverter = new AtomicTypeConverter(AtomicType.class);
-    private static final TypeConverter structTypeConverter = new IdentityTypeConverter(StructType.class);
 
     @Override
     public TypeConverter getTypeConverter(Class pClass)
@@ -20,7 +23,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             return atomicTypeConverter;
         }
         else if (StructType.class.isAssignableFrom(pClass)) {
-            return structTypeConverter;
+            return new StructTypeConverter(pClass);
         }
         else if (pClass.isEnum()) {
             return EnumTypeConverter.getInstance(pClass);
@@ -59,7 +62,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                 }
                 catch (java.lang.Exception exception) {
                     throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                            BeanUtils.getShortClassName(clazz.getCanonicalName())));
+                            Converter.getShortClassName(clazz.getCanonicalName())));
                 }
                 atomicType.fromString(value);
                 return atomicType;
@@ -79,11 +82,11 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    private static class IdentityTypeConverter implements TypeConverter
+    private static class StructTypeConverter implements TypeConverter
     {
         private final Class clazz;
 
-        IdentityTypeConverter(Class pClass)
+        StructTypeConverter(Class pClass)
         {
             clazz = pClass;
         }
@@ -91,19 +94,27 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return pObject == null || clazz.isAssignableFrom(pObject.getClass());
+            return pObject == null || clazz.isAssignableFrom(pObject.getClass()) || pObject instanceof Map;
         }
 
         @Override
         public Object convert(Object pObject)
         {
+            if (pObject instanceof Map) {
+                try {
+                    return Converter.convertMapToObject((Map) pObject, clazz);
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
             return pObject;
         }
 
         @Override
         public Object backConvert(Object pObject)
         {
-            return pObject;
+            throw new RuntimeException("TODO: Implement");
         }
     }
 
@@ -133,13 +144,10 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
                 String value = (String) pObject;
                 try {
-                    return Enum.valueOf(clazz, value);
+                    return Converter.convertStringToEnum(value, clazz);
                 }
-                catch (IllegalArgumentException exception) {
-                    throw new RuntimeException(
-                            new FaultException(Fault.Common.ENUM_NOT_DEFINED, value, BeanUtils.getShortClassName(
-                                    clazz.getCanonicalName()))
-                    );
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
                 }
             }
             return pObject;
