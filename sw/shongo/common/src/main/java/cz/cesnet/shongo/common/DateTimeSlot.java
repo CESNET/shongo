@@ -55,6 +55,12 @@ public class DateTimeSlot extends PersistentObject
      */
     public DateTimeSlot(DateTimeSpecification dateTime, Period duration)
     {
+        if ( dateTime == null ) {
+            throw new IllegalArgumentException("Date/time must not be null!");
+        }
+        if ( duration == null ) {
+            throw new IllegalArgumentException("Duration must not be null!");
+        }
         this.start = dateTime;
         this.duration = duration;
     }

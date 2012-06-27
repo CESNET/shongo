@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.controller.impl;
 
+import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.common.DateTimeSlot;
+import cz.cesnet.shongo.common.DateTimeSpecification;
+import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.common.util.Converter;
 import cz.cesnet.shongo.common.util.EntityMap;
@@ -10,6 +14,8 @@ import cz.cesnet.shongo.controller.api.Fault;
 import cz.cesnet.shongo.controller.api.ReservationService;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import java.util.Map;
@@ -67,6 +73,34 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         return "Reservation";
     }
 
+    /**
+     * @param dateTime
+     * @return parsed date/time from given string
+     * @throws FaultException
+     */
+    private DateTime parseDateTime(String dateTime) throws FaultException
+    {
+        try {
+            return DateTime.parse(dateTime);
+        } catch (Exception exception) {
+            throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Failed to parse date/time '" + dateTime + "'.");
+        }
+    }
+
+    /**
+     * @param period
+     * @return parsed period from given string
+     * @throws FaultException
+     */
+    private Period parsePeriod(String period) throws FaultException
+    {
+        try {
+            return Period.parse(period);
+        } catch (Exception exception) {
+            throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Failed to parse duration '" + period + "'.");
+        }
+    }
+
     @Override
     public String createReservationRequest(SecurityToken token, String type, Map attributes)
             throws FaultException
@@ -74,34 +108,32 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
-        EntityMap entityMap = new EntityMap(attributes, ReservationRequest.class);
+        EntityMap reservationRequestMap = new EntityMap(attributes, ReservationRequest.class);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(Converter.convertStringToEnum(type, ReservationRequest.Type.class));
-        reservationRequest.setPurpose(entityMap.getEnumRequired("purpose", ReservationRequest.Purpose.class));
+        reservationRequest.setPurpose(reservationRequestMap.getEnumRequired("purpose", ReservationRequest.Purpose.class));
 
-        // TODO: Continue implementing this
-
-        // TODO: May be change types to map, list, basic types
-
-
-        // Attribute Purpose
-        /*ReservationRequestPurpose purpose =
-        switch (type) {
-            case NORMAL:
-                reservationRequest.setType(ReservationRequest.Type.NORMAL);
-                break;
-            case PERMANENT:
-                reservationRequest.setType(ReservationRequest.Type.NORMAL);
-                break;
-            default:
-                throw new FaultException(Fault.OTHER, "Reservation request type should be normal or permanent, "
-                        + "but '" + type + "' was present!");
-        }*/
-
-        /*if ( true ) {
+        for ( Map slot : reservationRequestMap.getCollectionRequired("slots", Map.class)) {
+            EntityMap slotMap = new EntityMap(slot, "DateTimeSlot");
+            Object dateTime = slotMap.getAttribute("dateTime", new Class[]{String.class, Map.class});
+            Period duration = parsePeriod(slotMap.getAttribute("duration", String.class));
+            DateTimeSpecification dateTimeSpecification = null;
+            if ( dateTime instanceof String ) {
+                dateTimeSpecification = new AbsoluteDateTimeSpecification(parseDateTime((String)dateTime));
+            }
+            else if ( dateTime instanceof Map) {
+                EntityMap dateTimeMap = new EntityMap((Map)dateTime, "PeriodicDateTime");
+                PeriodicDateTimeSpecification periodicDateTimeSpecification = new PeriodicDateTimeSpecification();
+                periodicDateTimeSpecification.setStart(parseDateTime(dateTimeMap.getAttribute("start", String.class)));
+                periodicDateTimeSpecification.setPeriod(parsePeriod(dateTimeMap.getAttribute("period", String.class)));
+                dateTimeSpecification = periodicDateTimeSpecification;
+            }
+            reservationRequest.addRequestedSlot(dateTimeSpecification, duration);
+        }
+        for ( Object compartment : reservationRequestMap.getCollectionRequired("compartments", Map.class)) {
             throw new FaultException(Fault.TODO_IMPLEMENT);
-        }*/
+        }
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         reservationRequestManager.create(reservationRequest);

@@ -204,7 +204,7 @@ public class Controller
     }
 
     /**
-     * Start the domain controller.
+     * Start the domain controller (but do not start rpc web server or jade container).
      */
     public void start() throws IllegalStateException
     {
@@ -301,7 +301,7 @@ public class Controller
     }
 
     /**
-     * Stop the controller
+     * Stop the controller and rpc web server or jade container if they are running
      */
     public void stop()
     {

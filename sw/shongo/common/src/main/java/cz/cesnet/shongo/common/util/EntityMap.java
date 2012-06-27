@@ -3,6 +3,9 @@ package cz.cesnet.shongo.common.util;
 import cz.cesnet.shongo.common.xmlrpc.Fault;
 import cz.cesnet.shongo.common.xmlrpc.FaultException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -65,7 +68,44 @@ public class EntityMap
         if (map.containsKey(name) && map.get(name) != null) {
             return;
         }
-        throw new FaultException(Fault.Common.ATTRIBUTE_IS_REQUIRED, name, getEntityClassName());
+        throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_IS_REQUIRED, name, getEntityClassName());
+    }
+
+    /**
+     * @param name
+     * @param valueClass
+     * @return value from attribute with given name
+     * @throws FaultException when attribute type doesn't match the given class
+     */
+    public <T> T getAttribute(String name, Class<T> valueClass) throws FaultException
+    {
+        Object value = map.get(name);
+        if (valueClass.isAssignableFrom(value.getClass())) {
+            return valueClass.cast(value);
+        }
+        else {
+            throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, name, getEntityClassName(),
+                    Converter.getShortClassName(valueClass), Converter.getShortClassName(value.getClass()));
+        }
+    }
+
+    public Object getAttribute(String name, Class[] valueClasses) throws FaultException
+    {
+        Object value = map.get(name);
+        for ( Class valueClass : valueClasses) {
+            if (valueClass.isAssignableFrom(value.getClass())) {
+                return valueClass.cast(value);
+            }
+        }
+        StringBuilder types = new StringBuilder();
+        for ( Class valueClass : valueClasses) {
+            if (types.length() > 0 ) {
+                types.append("|");
+            }
+            types.append(Converter.getShortClassName(valueClass));
+        }
+        throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, name, getEntityClassName(),
+                    types.toString(), Converter.getShortClassName(value.getClass()));
     }
 
     /**
@@ -76,14 +116,8 @@ public class EntityMap
      */
     public <T extends Enum<T>> T getEnum(String name, Class<T> enumClass) throws FaultException
     {
-        Object value = map.get(name);
-        if (value instanceof String) {
-            return Converter.convertStringToEnum((String) value, enumClass);
-        }
-        else {
-            throw new FaultException(Fault.Common.ATTRIBUTE_TYPE_MISMATCH, name, getEntityClassName(),
-                    Converter.getShortClassName(String.class), Converter.getShortClassName(value.getClass()));
-        }
+        String value = getAttribute(name, String.class);
+        return Converter.convertStringToEnum(value, enumClass);
     }
 
     /**
@@ -96,5 +130,39 @@ public class EntityMap
     {
         checkRequired(name);
         return getEnum(name, enumClass);
+    }
+
+    /**
+     * @param name
+     * @param itemClass
+     * @return collection of items of specified type which are present in array attribute with given name
+     * @throws FaultException
+     */
+    public <T> Collection<T> getCollection(String name, Class<T> itemClass) throws FaultException
+    {
+        Object[] value = getAttribute(name, Object[].class);
+        List<T> list = new ArrayList<T>();
+        for (Object item : value) {
+            if (itemClass.isAssignableFrom(item.getClass())) {
+                list.add((T) item);
+            }
+            else {
+                throw new FaultException(Fault.Common.COLLECTION_ITEM_TYPE_MISMATCH, name,
+                        Converter.getShortClassName(itemClass), Converter.getShortClassName(value.getClass()));
+            }
+        }
+        return list;
+    }
+
+    /**
+     * @param name
+     * @param itemClass
+     * @return collection of items of specified type which are present in array attribute with given name
+     * @throws FaultException
+     */
+    public <T> Collection<T> getCollectionRequired(String name, Class<T> itemClass) throws FaultException
+    {
+        checkRequired(name);
+        return getCollection(name, itemClass);
     }
 }

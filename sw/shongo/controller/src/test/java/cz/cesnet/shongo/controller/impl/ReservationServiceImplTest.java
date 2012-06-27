@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.impl;
 
-import cz.cesnet.shongo.common.api.SecurityToken;
 import cz.cesnet.shongo.common.xmlrpc.TypeFactory;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Controller;
@@ -114,9 +113,10 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             }});
 
         List params = new ArrayList();
-        params.add(new HashMap(){{
-            put("test", "Test value");
-        }});
+        params.add(new HashMap()
+        {{
+                put("test", "Test value");
+            }});
         params.add("NORMAL");
         params.add(attributes);
 
