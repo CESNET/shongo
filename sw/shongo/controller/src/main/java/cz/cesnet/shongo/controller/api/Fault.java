@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum Fault implements cz.cesnet.shongo.common.xmlrpc.Fault
+public enum Fault implements cz.cesnet.shongo.common.api.Fault
 {
     OTHER(100, "%s"),
     TODO_IMPLEMENT(999, "TODO: Implement");

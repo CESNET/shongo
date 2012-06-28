@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.DateTimeSlot;
-import cz.cesnet.shongo.common.api.UserIdentity;
-
 /**
  * Represents a single reservation
  *
@@ -38,7 +35,7 @@ public class ReservationRequest
     /**
      * Requested time slots
      */
-    private DateTimeSlot[] slots;
+    //private DateTimeSlot[] slots;
 
     /**
      * Child reservations
@@ -48,7 +45,7 @@ public class ReservationRequest
     /**
      * List of permited users
      */
-    private UserIdentity[] users;
+    //private UserIdentity[] users;
 
     /**
      * Construct reservation
@@ -100,7 +97,7 @@ public class ReservationRequest
         this.resources = resources;
     }
 
-    public DateTimeSlot[] getSlots()
+    /*public DateTimeSlot[] getSlots()
     {
         return slots;
     }
@@ -108,7 +105,7 @@ public class ReservationRequest
     public void setSlots(DateTimeSlot[] slots)
     {
         this.slots = slots;
-    }
+    }*/
 
     public String[] getReservations()
     {
@@ -120,7 +117,7 @@ public class ReservationRequest
         this.reservations = reservations;
     }
 
-    public UserIdentity[] getUsers()
+    /*public UserIdentity[] getUsers()
     {
         return users;
     }
@@ -128,5 +125,5 @@ public class ReservationRequest
     public void setUsers(UserIdentity[] users)
     {
         this.users = users;
-    }
+    }*/
 }

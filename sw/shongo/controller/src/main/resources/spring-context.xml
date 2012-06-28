@@ -24,7 +24,7 @@
         <property name="entityManagerFactory"><ref bean="entityManagerFactory"/></property>
         <property name="services">
             <bean class="cz.cesnet.shongo.controller.spring.BeanListFactoryBean">
-                <property name="beanType" value="cz.cesnet.shongo.common.xmlrpc.Service"/>
+                <property name="beanType" value="cz.cesnet.shongo.common.api.Service"/>
             </bean>
         </property>
         <property name="components">
@@ -42,7 +42,9 @@
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.impl.CommonServiceImpl"/>
     <bean id="resourceService" class="cz.cesnet.shongo.controller.impl.ResourceServiceImpl"/>
-    <bean id="reservationService" class="cz.cesnet.shongo.controller.impl.ReservationServiceImpl"/>
+    <bean id="reservationService" class="cz.cesnet.shongo.controller.impl.ReservationServiceImpl">
+        <property name="domain"><ref bean="domain"/></property>
+    </bean>
     <bean id="roomService" class="cz.cesnet.shongo.controller.impl.RoomServiceImpl"/>
 
     <!-- Entity Manager Factory -->

@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.DateTime;
-
 /**
  * Represents a summary of a resource
  *
@@ -42,7 +40,7 @@ public class ResourceSummary
     /**
      * Specifies maximum future for reservations of the resource
      */
-    private DateTime maxFuture;
+    //private DateTime maxFuture;
 
     public String getId()
     {
@@ -74,8 +72,8 @@ public class ResourceSummary
         return schedulable;
     }
 
-    public DateTime getMaxFuture()
+    /*public DateTime getMaxFuture()
     {
         return maxFuture;
-    }
+    }*/
 }

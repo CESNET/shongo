@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.xmlrpc.Service;
+import cz.cesnet.shongo.common.api.Service;
 
 import java.util.Map;
 
@@ -20,7 +19,7 @@ public interface RoomService extends Service
      * @param roomId Shongo identifier of the room resource
      * @return
      */
-    public RoomUser[] listRoomUsers(SecurityToken token, String roomId);
+    public RoomUser[] listRoomUsers(API.SecurityToken token, String roomId);
 
     /**
      * Gets a concrete room user.
@@ -30,7 +29,7 @@ public interface RoomService extends Service
      * @param userId user identifier within a concrete technology
      * @return
      */
-    public RoomUser getRoomUser(SecurityToken token, String roomId, String userId);
+    public RoomUser getRoomUser(API.SecurityToken token, String roomId, String userId);
 
     /**
      * Modifies a given room user.
@@ -40,7 +39,7 @@ public interface RoomService extends Service
      * @param userId     user identifier within a concrete technology
      * @param attributes map of room user attributes; should only contain attributes specified in the RoomUser class
      */
-    public void modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes);
+    public void modifyRoomUser(API.SecurityToken token, String roomId, String userId, Map attributes);
 
     /**
      * Disconnects a user from a given room.
@@ -49,5 +48,5 @@ public interface RoomService extends Service
      * @param roomId Shongo identifier of the room resource
      * @param userId user identifier within a concrete technology
      */
-    public void disconnectRoomUser(SecurityToken token, String roomId, String userId);
+    public void disconnectRoomUser(API.SecurityToken token, String roomId, String userId);
 }

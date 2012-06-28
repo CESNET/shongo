@@ -25,6 +25,7 @@ public class ReservationRequestStateTest extends AbstractDatabaseTest
 
         // Create reservation request and manager that will manage it's states
         ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(ReservationRequest.Type.NORMAL);
         entityManager.persist(reservationRequest);
         ReservationRequestStateManager stateManager = new ReservationRequestStateManager(entityManager,
                 reservationRequest);

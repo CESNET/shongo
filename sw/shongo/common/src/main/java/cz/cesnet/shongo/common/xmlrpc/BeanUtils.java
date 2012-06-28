@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.common.api.AtomicType;
+import cz.cesnet.shongo.common.api.Fault;
+import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.common.api.ComplexType;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -41,7 +45,7 @@ public class BeanUtils extends BeanUtilsBean
             {
                 if (clazz.isEnum()) {
                     try {
-                        return Converter.convertStringToEnum(value, clazz);
+                        return Converter.stringToEnum(value, clazz);
                     }
                     catch (FaultException exception) {
                         throw new RuntimeException(exception);
@@ -139,7 +143,7 @@ public class BeanUtils extends BeanUtilsBean
                     continue;
                 }
                 // Type attribute must be recursively described
-                else if (value instanceof StructType) {
+                else if (value instanceof ComplexType) {
                     value = describeRecursive(value);
                 }
                 // Array is passed only when not empty
@@ -166,9 +170,7 @@ public class BeanUtils extends BeanUtilsBean
             }
         }
 
-        // Update class
-        String className = (String) map.get("class");
-        map.put("class", Converter.getShortClassName(className.replace("class ", "")));
+
 
         return (map);
 

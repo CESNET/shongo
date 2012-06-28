@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.UserIdentity;
-
 /**
  * Represents an active user in a virtual Room
  *
@@ -22,7 +20,7 @@ public class RoomUser
     /**
      * User identity
      */
-    private UserIdentity user;
+    //private UserIdentity user;
 
     /**
      * Is the user muted?
@@ -50,10 +48,10 @@ public class RoomUser
         return roomId;
     }
 
-    public UserIdentity getUser()
+    /*public UserIdentity getUser()
     {
         return user;
-    }
+    }*/
 
     public boolean isMuted()
     {

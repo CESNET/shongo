@@ -56,18 +56,19 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         client.setConfig(config);
         client.setTypeFactory(new TypeFactory(client));
 
-        Map attributes = new HashMap();
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put("type", "NORMAL");
         attributes.put("purpose", "SCIENCE");
-        attributes.put("slots", new ArrayList()
+        attributes.put("slots", new ArrayList<Object>()
         {{
-                add(new HashMap()
+                add(new HashMap<String, Object>()
                 {{
                         put("dateTime", "2012-06-01T15:00");
                         put("duration", "PT2H");
                     }});
-                add(new HashMap()
+                add(new HashMap<String, Object>()
                 {{
-                        put("dateTime", new HashMap()
+                        put("dateTime", new HashMap<String, Object>()
                         {{
                                 put("start", "2012-07-01T14:00");
                                 put("period", "P1W");
@@ -75,32 +76,32 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                         put("duration", "PT2H");
                     }});
             }});
-        attributes.put("compartments", new ArrayList()
+        /*attributes.put("compartments", new ArrayList<Object>()
         {{
-                add(new HashMap()
+                add(new HashMap<String, Object>()
                 {{
-                        put("persons", new ArrayList()
+                        put("persons", new ArrayList<Object>()
                         {{
-                                add(new HashMap()
+                                add(new HashMap<String, Object>()
                                 {{
                                         put("name", "Martin Srom");
                                         put("email", "srom@cesnet.cz");
                                     }});
                             }});
-                        put("resources", new ArrayList()
+                        put("resources", new ArrayList<Object>()
                         {{
-                                add(new HashMap()
+                                add(new HashMap<String, Object>()
                                 {{
                                         put("technology", "H323");
                                         put("count", 2);
-                                        put("persons", new ArrayList()
+                                        put("persons", new ArrayList<Object>()
                                         {{
-                                                add(new HashMap()
+                                                add(new HashMap<String, Object>()
                                                 {{
                                                         put("name", "Ondrej Bouda");
                                                         put("email", "bouda@cesnet.cz");
                                                     }});
-                                                add(new HashMap()
+                                                add(new HashMap<String, Object>()
                                                 {{
                                                         put("name", "Petr Holub");
                                                         put("email", "hopet@cesnet.cz");
@@ -110,14 +111,13 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
 
                             }});
                     }});
-            }});
+            }});*/
 
-        List params = new ArrayList();
-        params.add(new HashMap()
+        List<Object> params = new ArrayList<Object>();
+        params.add(new HashMap<String, Object>()
         {{
                 put("test", "Test value");
             }});
-        params.add("NORMAL");
         params.add(attributes);
 
         String identifier = (String) client.execute("Reservation.createReservationRequest", params);

@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.xmlrpc.FaultException;
-import cz.cesnet.shongo.common.xmlrpc.Service;
+import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.common.api.Service;
 
 import java.util.Map;
 
@@ -19,12 +18,11 @@ public interface ReservationService extends Service
      * The user with the given token will be the resource owner.
      *
      * @param token      token of the user requesting the operation
-     * @param type
      * @param attributes map of reservation attributes; should only contain attributes specified in the
      *                   {@link ReservationRequest} class while all the attributes marked as required must be present
      * @return the created reservation request auto-generated identifier
      */
-    public String createReservationRequest(SecurityToken token, String type, Map attributes)
+    public String createReservationRequest(API.SecurityToken token, Map attributes)
             throws FaultException;
 
     /**
@@ -34,7 +32,7 @@ public interface ReservationService extends Service
      * @param reservationId Shongo identifier of the reservation to modify
      * @param attributes    map of reservation attributes to change
      */
-    public void modifyReservationRequest(SecurityToken token, String reservationId, Map attributes)
+    public void modifyReservationRequest(API.SecurityToken token, String reservationId, Map attributes)
             throws FaultException;
 
     /**
@@ -43,7 +41,7 @@ public interface ReservationService extends Service
      * @param token         token of the user requesting the operation
      * @param reservationId Shongo identifier of the reservation to modify
      */
-    public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException;
+    public void deleteReservationRequest(API.SecurityToken token, String reservationId) throws FaultException;
 
     /**
      * Gets the complete Reservation object.
@@ -51,7 +49,7 @@ public interface ReservationService extends Service
      * @param token         token of the user requesting the operation
      * @param reservationId Shongo identifier of the reservation to get
      */
-    //public ReservationRequest getReservation(SecurityToken token, String reservationId);
+    //public ReservationRequest getReservation(Common.SecurityToken token, String reservationId);
 
     /**
      * Lists all the time slots with assigned resources that were allocated by the scheduler for the reservation.
@@ -60,7 +58,7 @@ public interface ReservationService extends Service
      * @param reservationId Shongo identifier of the reservation to get
      * @return
      */
-    //public ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId);
+    //public ReservationAllocation getReservationAllocation(Common.SecurityToken token, String reservationId);
 
     /**
      * Lists resources allocated by a given reservation in a given time slot, matching a filter.
@@ -71,7 +69,7 @@ public interface ReservationService extends Service
      * @param filter
      * @return
      */
-    //public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, DateTimeSlot slot,
+    //public ResourceSummary[] listReservationResources(Common.SecurityToken token, String reservationId, DateTimeSlot slot,
     //        Map filter);
 
     /**
@@ -92,6 +90,6 @@ public interface ReservationService extends Service
      * @param interDomain specification whether inter-domain lookup should be performed
      * @return
      */
-    //public DateTimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
+    //public DateTimeSlot[] findReservationAvailableTime(Common.SecurityToken token, Period duration, Resource[] resources,
     //        boolean interDomain);
 }

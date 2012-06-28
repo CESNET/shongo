@@ -1,8 +1,7 @@
-package cz.cesnet.shongo.common.xmlrpc;
+package cz.cesnet.shongo.common.api;
 
 /**
- * Represents a service that can perform
- * XML-RPC requests.
+ * Represents an API service.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

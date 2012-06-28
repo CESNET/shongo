@@ -1,5 +1,9 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.common.api.AtomicType;
+import cz.cesnet.shongo.common.api.Fault;
+import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.common.api.ComplexType;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
@@ -7,7 +11,7 @@ import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import java.util.Map;
 
 /**
- * TypeConverterFactory that allows {@link AtomicType}, {@link StructType} and enums as method parameters
+ * TypeConverterFactory that allows {@link AtomicType}, {@link cz.cesnet.shongo.common.api.ComplexType} and enums as method parameters
  * and return values.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -22,8 +26,8 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         if (AtomicType.class.isAssignableFrom(pClass)) {
             return atomicTypeConverter;
         }
-        else if (StructType.class.isAssignableFrom(pClass)) {
-            return new StructTypeConverter(pClass);
+        else if (ComplexType.class.isAssignableFrom(pClass)) {
+            return ComplexTypeConverter.getInstance(pClass);
         }
         else if (pClass.isEnum()) {
             return EnumTypeConverter.getInstance(pClass);
@@ -82,11 +86,11 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    private static class StructTypeConverter implements TypeConverter
+    private static class ComplexTypeConverter implements TypeConverter
     {
         private final Class clazz;
 
-        StructTypeConverter(Class pClass)
+        ComplexTypeConverter(Class pClass)
         {
             clazz = pClass;
         }
@@ -102,7 +106,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof Map) {
                 try {
-                    return Converter.convertMapToObject((Map) pObject, clazz);
+                    return Converter.mapToObject((Map) pObject, clazz);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -114,7 +118,18 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object pObject)
         {
-            throw new RuntimeException("TODO: Implement");
+            try {
+                return Converter.objectToMap(pObject);
+            }
+            catch (FaultException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+
+        public static ComplexTypeConverter getInstance(Class pClass)
+        {
+            // TODO: Reuse instances for same class
+            return new ComplexTypeConverter(pClass);
         }
     }
 
@@ -144,7 +159,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
                 String value = (String) pObject;
                 try {
-                    return Converter.convertStringToEnum(value, clazz);
+                    return Converter.stringToEnum(value, clazz);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);

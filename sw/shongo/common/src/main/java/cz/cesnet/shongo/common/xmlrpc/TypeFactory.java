@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.common.api.Fault;
+import cz.cesnet.shongo.common.api.FaultException;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
@@ -65,7 +67,7 @@ public class TypeFactory extends TypeFactoryImpl
 
                         // Convert map to object of the class
                         try {
-                            setResult(Converter.convertMapToObject(map, objectClass));
+                            setResult(Converter.mapToObject(map, objectClass));
                         }
                         catch (FaultException exception) {
                             throw new SAXException(exception);
@@ -94,7 +96,7 @@ public class TypeFactory extends TypeFactoryImpl
                 public void write(ContentHandler pHandler, Object pObject) throws SAXException
                 {
                     try {
-                        Map<String, Object> map = Converter.convertObjectToMap(pObject);
+                        Map<String, Object> map = Converter.objectToMap(pObject);
                         super.write(pHandler, map);
                     }
                     catch (FaultException exception) {

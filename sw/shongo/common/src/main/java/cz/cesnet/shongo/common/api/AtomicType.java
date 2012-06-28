@@ -1,15 +1,15 @@
-package cz.cesnet.shongo.common.xmlrpc;
+package cz.cesnet.shongo.common.api;
 
 /**
  * Represents a type that can be serialized
- * to XML-RPC string type.
+ * from/to {@link String} type.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public interface AtomicType
 {
     /**
-     * Load atomic type from string
+     * Load atomic type from {@link String}
      *
      * @param string
      */

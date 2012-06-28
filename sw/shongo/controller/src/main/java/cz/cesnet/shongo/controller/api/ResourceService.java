@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.AbsoluteDateTime;
-import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.xmlrpc.Service;
+import cz.cesnet.shongo.common.api.Service;
 
 import java.util.Map;
 
@@ -24,7 +22,7 @@ public interface ResourceService extends Service
      *                   while all the attributes marked as required must be present
      * @return the created resource identifier
      */
-    public String createResource(SecurityToken token, String domain, Map attributes);
+    public String createResource(API.SecurityToken token, String domain, Map attributes);
 
     /**
      * Modifies a given resource.
@@ -36,7 +34,7 @@ public interface ResourceService extends Service
      * @param resourceId Shongo identifier of the resource to modify
      * @param attributes map of resource attributes to change;
      */
-    public void modifyResource(SecurityToken token, String resourceId, Map attributes);
+    public void modifyResource(API.SecurityToken token, String resourceId, Map attributes);
 
     /**
      * Deletes a given resource from Shongo management.
@@ -47,7 +45,7 @@ public interface ResourceService extends Service
      * @param token      token of the user requesting the operation
      * @param resourceId Shongo identifier of the resource to delete
      */
-    public void deleteResource(SecurityToken token, String resourceId);
+    public void deleteResource(API.SecurityToken token, String resourceId);
 
     /**
      * Gets the complete resource object.
@@ -56,7 +54,7 @@ public interface ResourceService extends Service
      * @param resourceId Shongo identifier of the resource to get
      * @return
      */
-    public Resource getResource(SecurityToken token, String resourceId);
+    public Resource getResource(API.SecurityToken token, String resourceId);
 
     /**
      * Lists all Shongo-managed resources matching the filter.
@@ -65,7 +63,7 @@ public interface ResourceService extends Service
      * @param filter
      * @return
      */
-    ResourceSummary[] listResources(SecurityToken token, Map filter);
+    ResourceSummary[] listResources(API.SecurityToken token, Map filter);
 
     /**
      * Checks whether a given resource is used by any reservation in specified date/time.
@@ -75,5 +73,5 @@ public interface ResourceService extends Service
      * @param dateTime   date/time to check
      * @return
      */
-    boolean isResourceActive(SecurityToken token, String resourceId, AbsoluteDateTime dateTime);
+    boolean isResourceActive(API.SecurityToken token, String resourceId, API.AbsoluteDateTime dateTime);
 }

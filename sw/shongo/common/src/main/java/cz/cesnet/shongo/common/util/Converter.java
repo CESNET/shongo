@@ -1,9 +1,13 @@
 package cz.cesnet.shongo.common.util;
 
-import cz.cesnet.shongo.common.xmlrpc.BeanUtils;
-import cz.cesnet.shongo.common.xmlrpc.Fault;
-import cz.cesnet.shongo.common.xmlrpc.FaultException;
+import cz.cesnet.shongo.common.api.AtomicType;
+import cz.cesnet.shongo.common.api.ComplexType;
+import cz.cesnet.shongo.common.api.Fault;
+import cz.cesnet.shongo.common.api.FaultException;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -14,13 +18,69 @@ import java.util.Map;
  */
 public class Converter
 {
+
+    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, FaultException
+    {
+        // If types are compatible
+        if (targetType.isAssignableFrom(value.getClass())) {
+            // Do nothing
+        }
+        // If enum is required and string is given
+        else if (targetType.isEnum() && value instanceof String) {
+            // Convert it
+            value = Converter.stringToEnum((String) value, (Class<Enum>) targetType);
+        }
+        // If atomic type is required and string is given
+        else if (AtomicType.class.isAssignableFrom(targetType) && value instanceof String) {
+            AtomicType atomicType = null;
+            try {
+                atomicType = (AtomicType) targetType.newInstance();
+            }
+            catch (java.lang.Exception exception) {
+                throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
+                        Converter.getShortClassName(targetType)));
+            }
+            atomicType.fromString((String) value);
+            return atomicType;
+        }
+        // If specific array is required and abstract array is passed
+        else if (targetType.isArray() && value instanceof Object[]) {
+            // Convert array to specific type
+            Class componentType = targetType.getComponentType();
+            Object[] arrayValue = (Object[]) value;
+            Object[] newArray = (Object[]) Array.newInstance(componentType, arrayValue.length);
+            for (int index = 0; index < arrayValue.length; index++) {
+                newArray[index] = convert(arrayValue[index], componentType);
+            }
+            value = newArray;
+        }
+        // If complex type is required and map is given
+        else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
+            ComplexType type = null;
+            try {
+                type = ComplexType.class.cast(targetType.newInstance());
+            }
+            catch (Exception exception) {
+                exception.printStackTrace();
+                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, getShortClassName(targetType));
+            }
+            type.fromMap((Map) value);
+            value = type;
+        }
+        else {
+            throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
+                    value.getClass().getCanonicalName(), targetType.getCanonicalName()));
+        }
+        return value;
+    }
+
     /**
      * @param value
      * @param enumClass
      * @return enum value for given string from specified enum class
      * @throws FaultException
      */
-    public static <T extends java.lang.Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
+    public static <T extends java.lang.Enum<T>> T stringToEnum(String value, Class<T> enumClass)
             throws FaultException
     {
         try {
@@ -33,13 +93,48 @@ public class Converter
     }
 
     /**
+     * @param value
+     * @return parsed date/time from string
+     * @throws FaultException when parsing fails
+     */
+    public static DateTime stringToDateTime(String value) throws FaultException
+    {
+        try {
+            return DateTime.parse(value);
+        }
+        catch (Exception exception) {
+            throw new FaultException(Fault.Common.DATETIME_PARSING_FAILED, value);
+        }
+    }
+
+    /**
+     * @param value
+     * @return parsed period from string
+     * @throws FaultException when parsing fails
+     */
+    public static Period stringToPeriod(String value) throws FaultException
+    {
+        try {
+            return Period.parse(value);
+        }
+        catch (Exception exception) {
+            throw new FaultException(Fault.Common.PERIOD_PARSING_FAILED, value);
+        }
+    }
+
+    /**
      * @param map
      * @param objectClass
      * @return new instance of given object class that is filled by attributes from given map
      * @throws FaultException
      */
-    public static Object convertMapToObject(Map map, Class objectClass) throws FaultException
+    public static Object mapToObject(Map map, Class objectClass) throws FaultException
     {
+        if (!ComplexType.class.isAssignableFrom(objectClass)) {
+            throw new FaultException(Fault.Common.UNKNOWN_FAULT,
+                    String.format("Cannot convert map to '%s' because the target type doesn't support the conversion!",
+                            getShortClassName(objectClass)));
+        }
         // Null or empty map means "null" object
         if (map == null || map.size() == 0) {
             return null;
@@ -54,6 +149,8 @@ public class Converter
                             getShortClassName(objectClass), className);
                 }
             }
+
+            // Create new instance of object
             Object object = null;
             try {
                 object = objectClass.newInstance();
@@ -62,18 +159,10 @@ public class Converter
                 throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
                         objectClass.getCanonicalName());
             }
-            try {
-                BeanUtils.getInstance().populateRecursive(object, map);
-            }
-            catch (Exception exception) {
-                if (exception instanceof FaultException) {
-                    throw (FaultException) exception;
-                }
-                if (exception.getCause() instanceof FaultException) {
-                    throw (FaultException) exception.getCause();
-                }
-                throw new FaultException(Fault.Common.UNKNOWN_FAULT);
-            }
+
+            ComplexType complexType = ComplexType.class.cast(object);
+            complexType.fromMap(map);
+
             return object;
         }
     }
@@ -83,16 +172,15 @@ public class Converter
      * @return map containing attributes of given object
      * @throws FaultException
      */
-    public static Map convertObjectToMap(Object object) throws FaultException
+    public static Map objectToMap(Object object) throws FaultException
     {
-        try {
-            return BeanUtils.getInstance().describeRecursive(object);
+        if (!(object instanceof ComplexType)) {
+            throw new FaultException(Fault.Common.UNKNOWN_FAULT,
+                    String.format("Cannot convert '%s' to map because the object doesn't support the conversion!",
+                            getShortClassName(object.getClass())));
         }
-        catch (Exception exception) {
-            throw new FaultException(Fault.Common.UNKNOWN_FAULT, String.format(
-                    "Failed to convert object of class '%s' to map."),
-                    getShortClassName(object.getClass()));
-        }
+        ComplexType complexType = ComplexType.class.cast(object);
+        return complexType.toMap();
     }
 
     /**

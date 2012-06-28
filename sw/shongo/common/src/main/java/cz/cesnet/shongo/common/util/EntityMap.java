@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.common.util;
 
-import cz.cesnet.shongo.common.xmlrpc.Fault;
-import cz.cesnet.shongo.common.xmlrpc.FaultException;
+import cz.cesnet.shongo.common.api.Fault;
+import cz.cesnet.shongo.common.api.FaultException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +60,7 @@ public class EntityMap
      * Checks whether attribute with given name is present in map and it's value is not null.
      *
      * @param name
-     * @throws cz.cesnet.shongo.common.xmlrpc.FaultException
+     * @throws cz.cesnet.shongo.common.api.FaultException
      *          is thrown when the described condition is not met
      */
     public void checkRequired(String name) throws FaultException
@@ -117,7 +117,7 @@ public class EntityMap
     public <T extends Enum<T>> T getEnum(String name, Class<T> enumClass) throws FaultException
     {
         String value = getAttribute(name, String.class);
-        return Converter.convertStringToEnum(value, enumClass);
+        return Converter.stringToEnum(value, enumClass);
     }
 
     /**

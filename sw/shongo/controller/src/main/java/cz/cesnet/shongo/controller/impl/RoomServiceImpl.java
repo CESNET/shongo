@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.impl;
 
-import cz.cesnet.shongo.common.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.API;
 import cz.cesnet.shongo.controller.api.RoomService;
 import cz.cesnet.shongo.controller.api.RoomUser;
 
@@ -20,25 +20,25 @@ public class RoomServiceImpl implements RoomService
     }
 
     @Override
-    public RoomUser[] listRoomUsers(SecurityToken token, String roomId)
+    public RoomUser[] listRoomUsers(API.SecurityToken token, String roomId)
     {
         throw new RuntimeException("TODO: Implement RoomServiceImpl.listRoomUsers");
     }
 
     @Override
-    public RoomUser getRoomUser(SecurityToken token, String roomId, String userId)
+    public RoomUser getRoomUser(API.SecurityToken token, String roomId, String userId)
     {
         throw new RuntimeException("TODO: Implement RoomServiceImpl.getRoomUser");
     }
 
     @Override
-    public void modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes)
+    public void modifyRoomUser(API.SecurityToken token, String roomId, String userId, Map attributes)
     {
         throw new RuntimeException("TODO: Implement RoomServiceImpl.modifyRoomUser");
     }
 
     @Override
-    public void disconnectRoomUser(SecurityToken token, String roomId, String userId)
+    public void disconnectRoomUser(API.SecurityToken token, String roomId, String userId)
     {
         throw new RuntimeException("TODO: Implement RoomServiceImpl.disconnectRoomUser");
     }

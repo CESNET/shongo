@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.common.api.Service;
 import cz.cesnet.shongo.common.jade.Container;
 import cz.cesnet.shongo.common.jade.ContainerCommandSet;
 import cz.cesnet.shongo.common.shell.Shell;
 import cz.cesnet.shongo.common.util.Logging;
-import cz.cesnet.shongo.common.xmlrpc.Service;
 import cz.cesnet.shongo.common.xmlrpc.WebServer;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -116,7 +116,7 @@ public class Controller
     /**
      * @return {@link #rpcPort}
      */
-    public Integer getRpcPort()
+    public int getRpcPort()
     {
         return rpcPort;
     }

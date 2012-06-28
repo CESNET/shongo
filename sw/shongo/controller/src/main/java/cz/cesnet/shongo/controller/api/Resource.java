@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.DateTime;
-
 /**
  * Represents a single resource
  *
@@ -52,7 +50,7 @@ public class Resource
     /**
      * Specifies maximum future for reservations of the resource
      */
-    private DateTime maxFuture;
+    //private DateTime maxFuture;
 
     /**
      * Child resources
@@ -139,7 +137,7 @@ public class Resource
         this.schedulable = schedulable;
     }
 
-    public DateTime getMaxFuture()
+    /*public DateTime getMaxFuture()
     {
         return maxFuture;
     }
@@ -147,7 +145,7 @@ public class Resource
     public void setMaxFuture(DateTime maxFuture)
     {
         this.maxFuture = maxFuture;
-    }
+    }*/
 
     public String[] getResources()
     {

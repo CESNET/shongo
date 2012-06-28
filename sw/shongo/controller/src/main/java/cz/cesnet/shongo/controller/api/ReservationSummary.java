@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.api.AbsoluteDateTime;
-
 /**
  * Summary of a reservation
  *
@@ -27,7 +25,7 @@ public class ReservationSummary
     /**
      * The first future date/time where the reservation takes place
      */
-    private AbsoluteDateTime dateTime;
+    //private AbsoluteDateTime dateTime;
 
     public String getId()
     {
@@ -44,8 +42,8 @@ public class ReservationSummary
         return description;
     }
 
-    public AbsoluteDateTime getDateTime()
+    /*public AbsoluteDateTime getDateTime()
     {
         return dateTime;
-    }
+    }*/
 }

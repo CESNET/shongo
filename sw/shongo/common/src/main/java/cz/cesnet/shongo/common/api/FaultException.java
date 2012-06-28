@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.common.xmlrpc;
+package cz.cesnet.shongo.common.api;
 
 import org.apache.xmlrpc.XmlRpcException;
 
@@ -17,5 +17,16 @@ public class FaultException extends XmlRpcException
     public FaultException(Fault fault, Object... objects)
     {
         super(fault.getCode(), String.format(fault.getString(), objects));
+    }
+
+    public FaultException(Exception exception, String faultString)
+    {
+        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(), faultString),
+                exception);
+    }
+
+    public FaultException(Exception exception)
+    {
+        this(exception, exception.getMessage());
     }
 }

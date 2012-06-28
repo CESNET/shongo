@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.common.xmlrpc.Service;
+import cz.cesnet.shongo.common.api.Service;
 
 /**
  * Interface to the service handling common operations.

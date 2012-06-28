@@ -1,21 +1,12 @@
 package cz.cesnet.shongo.controller.impl;
 
-import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.common.DateTimeSlot;
-import cz.cesnet.shongo.common.DateTimeSpecification;
-import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
-import cz.cesnet.shongo.common.api.SecurityToken;
-import cz.cesnet.shongo.common.util.Converter;
-import cz.cesnet.shongo.common.util.EntityMap;
-import cz.cesnet.shongo.common.xmlrpc.FaultException;
+import cz.cesnet.shongo.common.api.FaultException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.API;
 import cz.cesnet.shongo.controller.api.Fault;
 import cz.cesnet.shongo.controller.api.ReservationService;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import java.util.Map;
@@ -63,7 +54,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     {
         super.init();
         if (domain == null) {
-            throw new IllegalStateException(getClass().getName() + " doesn't have the domain  set!");
+            throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
         }
     }
 
@@ -73,70 +64,56 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         return "Reservation";
     }
 
-    /**
-     * @param dateTime
-     * @return parsed date/time from given string
-     * @throws FaultException
-     */
-    private DateTime parseDateTime(String dateTime) throws FaultException
-    {
-        try {
-            return DateTime.parse(dateTime);
-        } catch (Exception exception) {
-            throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Failed to parse date/time '" + dateTime + "'.");
-        }
-    }
-
-    /**
-     * @param period
-     * @return parsed period from given string
-     * @throws FaultException
-     */
-    private Period parsePeriod(String period) throws FaultException
-    {
-        try {
-            return Period.parse(period);
-        } catch (Exception exception) {
-            throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Failed to parse duration '" + period + "'.");
-        }
-    }
-
     @Override
-    public String createReservationRequest(SecurityToken token, String type, Map attributes)
+    public String createReservationRequest(API.SecurityToken token, Map attributes)
             throws FaultException
     {
+        API.ReservationRequest apiReservationRequest = new API.ReservationRequest();
+        apiReservationRequest.fromMap(attributes);
+
+        Map xxx = apiReservationRequest.toMap();
+
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
-        EntityMap reservationRequestMap = new EntityMap(attributes, ReservationRequest.class);
-
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setType(Converter.convertStringToEnum(type, ReservationRequest.Type.class));
+
+        if (true) {
+            throw new FaultException(Fault.TODO_IMPLEMENT);
+        }
+
+        /*EntityMap reservationRequestMap = new EntityMap(attributes, ReservationRequest.class);
+
+        reservationRequest.setType(reservationRequestMap.getEnumRequired("type", ReservationRequest.Type.class));
         reservationRequest.setPurpose(reservationRequestMap.getEnumRequired("purpose", ReservationRequest.Purpose.class));
 
         for ( Map slot : reservationRequestMap.getCollectionRequired("slots", Map.class)) {
             EntityMap slotMap = new EntityMap(slot, "DateTimeSlot");
             Object dateTime = slotMap.getAttribute("dateTime", new Class[]{String.class, Map.class});
-            Period duration = parsePeriod(slotMap.getAttribute("duration", String.class));
+            Period duration = Converter.stringToPeriod(slotMap.getAttribute("duration", String.class));
             DateTimeSpecification dateTimeSpecification = null;
             if ( dateTime instanceof String ) {
-                dateTimeSpecification = new AbsoluteDateTimeSpecification(parseDateTime((String)dateTime));
+                dateTimeSpecification = new AbsoluteDateTimeSpecification(
+                        Converter.stringToDateTime((String) dateTime));
             }
             else if ( dateTime instanceof Map) {
                 EntityMap dateTimeMap = new EntityMap((Map)dateTime, "PeriodicDateTime");
                 PeriodicDateTimeSpecification periodicDateTimeSpecification = new PeriodicDateTimeSpecification();
-                periodicDateTimeSpecification.setStart(parseDateTime(dateTimeMap.getAttribute("start", String.class)));
-                periodicDateTimeSpecification.setPeriod(parsePeriod(dateTimeMap.getAttribute("period", String.class)));
+                periodicDateTimeSpecification.setStart(
+                        Converter.stringToDateTime(dateTimeMap.getAttribute("start", String.class)));
+                periodicDateTimeSpecification.setPeriod(
+                        Converter.stringToPeriod(dateTimeMap.getAttribute("period", String.class)));
                 dateTimeSpecification = periodicDateTimeSpecification;
             }
             reservationRequest.addRequestedSlot(dateTimeSpecification, duration);
         }
-        for ( Object compartment : reservationRequestMap.getCollectionRequired("compartments", Map.class)) {
+        for ( Map compartment : reservationRequestMap.getCollectionRequired("compartments", Map.class)) {
+            EntityMap compartmentMap = new EntityMap(compartment, "Compartment");
             throw new FaultException(Fault.TODO_IMPLEMENT);
         }
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        reservationRequestManager.create(reservationRequest);
+        reservationRequestManager.create(reservationRequest);*/
 
         entityManager.getTransaction().commit();
         entityManager.close();
@@ -145,14 +122,14 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     }
 
     @Override
-    public void modifyReservationRequest(SecurityToken token, String reservationId, Map attributes)
+    public void modifyReservationRequest(API.SecurityToken token, String reservationId, Map attributes)
             throws FaultException
     {
         throw new FaultException(Fault.TODO_IMPLEMENT);
     }
 
     @Override
-    public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException
+    public void deleteReservationRequest(API.SecurityToken token, String reservationId) throws FaultException
     {
         throw new FaultException(Fault.TODO_IMPLEMENT);
     }

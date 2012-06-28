@@ -35,6 +35,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         // Create reservation request
         ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(ReservationRequest.Type.NORMAL);
         reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));
         reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(
