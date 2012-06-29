@@ -26,9 +26,9 @@ public class CompartmentRequestTest extends AbstractDatabaseTest
     CompartmentRequestManager compartmentRequestManager;
 
     @Override
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
-        super.setUp();
+        super.before();
 
         entityManager = getEntityManager();
         entityManager.getTransaction().begin();
@@ -37,11 +37,11 @@ public class CompartmentRequestTest extends AbstractDatabaseTest
     }
 
     @Override
-    public void tearDown()
+    public void after()
     {
         entityManager.getTransaction().commit();
 
-        super.tearDown();
+        super.after();
     }
 
     @Test

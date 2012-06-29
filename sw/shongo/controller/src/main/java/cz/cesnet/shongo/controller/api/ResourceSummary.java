@@ -41,7 +41,6 @@ public class ResourceSummary
      * Specifies maximum future for reservations of the resource
      */
     //private DateTime maxFuture;
-
     public String getId()
     {
         return id;

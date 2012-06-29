@@ -26,7 +26,6 @@ public class ReservationSummary
      * The first future date/time where the reservation takes place
      */
     //private AbsoluteDateTime dateTime;
-
     public String getId()
     {
         return id;

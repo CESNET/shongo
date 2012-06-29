@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
-import cz.cesnet.shongo.common.api.Fault;
 import cz.cesnet.shongo.common.api.FaultException;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.ws.commons.util.NamespaceContextImpl;
@@ -54,20 +53,9 @@ public class TypeFactory extends TypeFactoryImpl
                     }
                     // If the class key is present convert the map to object
                     if (map != null && map.containsKey("class")) {
-                        String className = (String) map.get("class");
-                        Class objectClass = null;
-
-                        // Get object class
-                        try {
-                            objectClass = Class.forName(Converter.getFullClassName(className));
-                        }
-                        catch (ClassNotFoundException exception) {
-                            throw new SAXException(new FaultException(Fault.Common.CLASS_NOT_DEFINED, className));
-                        }
-
                         // Convert map to object of the class
                         try {
-                            setResult(Converter.mapToObject(map, objectClass));
+                            setResult(Converter.convertMapToObject(map));
                         }
                         catch (FaultException exception) {
                             throw new SAXException(exception);
@@ -83,7 +71,7 @@ public class TypeFactory extends TypeFactoryImpl
 
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
-        if (pObject != null && pObject.getClass().isEnum()) {
+        if (pObject != null && Converter.isAtomic(pObject)) {
             pObject = pObject.toString();
         }
         TypeSerializer serializer = super.getSerializer(pConfig, pObject);
@@ -96,7 +84,7 @@ public class TypeFactory extends TypeFactoryImpl
                 public void write(ContentHandler pHandler, Object pObject) throws SAXException
                 {
                     try {
-                        Map<String, Object> map = Converter.objectToMap(pObject);
+                        Map<String, Object> map = Converter.convertObjectToMap(pObject);
                         super.write(pHandler, map);
                     }
                     catch (FaultException exception) {

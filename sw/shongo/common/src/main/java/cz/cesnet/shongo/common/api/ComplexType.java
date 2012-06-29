@@ -1,16 +1,12 @@
 package cz.cesnet.shongo.common.api;
 
 import cz.cesnet.shongo.common.util.Converter;
-import org.apache.commons.beanutils.PropertyUtils;
+import cz.cesnet.shongo.common.util.Property;
 
-import java.beans.PropertyDescriptor;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Represents a type that can be serialized
@@ -48,7 +44,7 @@ public abstract class ComplexType
      * @return true if given field was filled during the last invocation of {@link #fromMap(java.util.Map)},
      *         false otherwise
      */
-    public boolean isFilled(String property)
+    public boolean isPropertyFilled(String property)
     {
         return filledProperties.contains(property);
     }
@@ -62,39 +58,30 @@ public abstract class ComplexType
     public Map toMap() throws FaultException
     {
         Map<String, Object> map = new HashMap<String, Object>();
-        PropertyDescriptor[] descriptors = PropertyUtils.getPropertyDescriptors(this);
-        for (PropertyDescriptor propertyDescriptor : descriptors) {
-            String property = propertyDescriptor.getName();
-            try {
-                Object value = PropertyUtils.getProperty(this, property);
-                if ( value == null ) {
-                    continue;
-                }
-                else if ( value instanceof ComplexType ) {
-                    value = ((ComplexType)value).toMap();
-                }
-                else if ( value instanceof Object[] ) {
-                    Object[] oldArray = (Object[])value;
-                    Object[] newArray = new Object[oldArray.length];
-                    for ( int index = 0; index < oldArray.length; index++ ) {
-                        Object object = oldArray[index];
-                        if ( object instanceof ComplexType) {
-                            object = ((ComplexType)object).toMap();
-                        }
-                        newArray[index] = object;
+        String[] propertyNames = Property.getPropertyNames(getClass());
+        for (String property : propertyNames) {
+            Object value = Property.getPropertyValue(this, property);
+            if (value == null) {
+                continue;
+            }
+            else if (value instanceof ComplexType) {
+                value = ((ComplexType) value).toMap();
+            }
+            else if (value instanceof Object[]) {
+                Object[] oldArray = (Object[]) value;
+                Object[] newArray = new Object[oldArray.length];
+                for (int index = 0; index < oldArray.length; index++) {
+                    Object object = oldArray[index];
+                    if (object instanceof ComplexType) {
+                        object = ((ComplexType) object).toMap();
                     }
-                    value = newArray;
+                    newArray[index] = object;
                 }
-                
-                map.put(property, value);
+                value = newArray;
             }
-            catch (Exception exception) {
-                throw new FaultException(exception);
-            }
+            map.put(property, value);
         }
-
-        map.put("class", Converter.getShortClassName(getClass()));
-
+        map.put("class", Converter.getClassShortName(getClass()));
         return map;
     }
 
@@ -117,63 +104,35 @@ public abstract class ComplexType
             String property = (String) key;
             Object value = map.get(key);
 
-            // Get allowed types for property
-            Class[] allowedTypes = getAllowedPropertyTypes(property);
-            // Convert value to single proper type
-            if (allowedTypes.length == 1) {
-                try {
-                    value = Converter.convert(value, allowedTypes[0]);
-                }
-                catch (IllegalArgumentException exception) {
-                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
-                            Converter.getShortClassName(getClass()),
-                            Converter.getShortClassName(allowedTypes[0]),
-                            Converter.getShortClassName(value.getClass()));
-                }
+            // Skip class property
+            if (property.equals("class")) {
+                continue;
             }
-            // Try to convert value to any proper type
-            else if (allowedTypes.length > 1) {
-                Object allowedValue = null;
+
+            // Get property type and allowed types
+            Property propertyDefinition = Property.getPropertyNotNull(getClass(), property);
+            Class type = propertyDefinition.getType();
+            Class[] allowedTypes = propertyDefinition.getAllowedTypes();
+
+            try {
+                value = Converter.convert(value, type, allowedTypes);
+            }
+            catch (IllegalArgumentException exception) {
+                /*StringBuilder builder = new StringBuilder();
                 for (Class allowedType : allowedTypes) {
-                    try {
-                        allowedValue = Converter.convert(value, allowedType);
-                        break;
+                    if (builder.length() > 0) {
+                        builder.append("|");
                     }
-                    catch (Exception exception) {
-                    }
-                }
-                if (allowedValue != null) {
-                    value = allowedValue;
-                }
-                else {
-                    StringBuilder builder = new StringBuilder();
-                    for (Class allowedType : allowedTypes) {
-                        if (builder.length() > 0) {
-                            builder.append("|");
-                        }
-                        builder.append(Converter.getShortClassName(allowedType));
-                    }
-                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
-                            Converter.getShortClassName(getClass()),
-                            builder.toString(),
-                            Converter.getShortClassName(value.getClass()));
-                }
-            }
-            else {
-                throw new FaultException(Fault.Common.UNKNOWN_FAULT,
-                        String.format("Property '%s' in class '%' has none proper type.",
-                                Converter.getShortClassName(getClass())));
+                    builder.append(Converter.getClassShortName(allowedType));
+                }*/
+                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
+                        getClass(),
+                        type,
+                        value.getClass());
             }
 
             // Set the value to property
-            try {
-                PropertyUtils.setProperty(this, property, value);
-            }
-            catch (Exception exception) {
-                throw new FaultException(exception,
-                        String.format("Attribute '%s' in class '%s' cannot be set.", property,
-                                Converter.getShortClassName(getClass())));
-            }
+            Property.setPropertyValue(this, property, value);
 
             // Mark property as filled
             filledProperties.add(property);
@@ -181,28 +140,23 @@ public abstract class ComplexType
     }
 
     /**
-     * @param property
-     * @return array of allowed types for given property
-     * @throws FaultException when property doesn't exist
+     * @param collection
+     * @param componentType
+     * @return array converted from collection
      */
-    private Class[] getAllowedPropertyTypes(String property) throws FaultException
+    public static <T> T[] toArray(Collection<T> collection, Class<T> componentType)
     {
-        try {
-            PropertyDescriptor propertyDescriptor = PropertyUtils.getPropertyDescriptor(this, property);
-            if (propertyDescriptor != null) {
-                Method writeMethod = propertyDescriptor.getWriteMethod();
-                if (writeMethod != null) {
-                    AllowedTypes allowedTypes = writeMethod.getAnnotation(AllowedTypes.class);
-                    if (allowedTypes != null) {
-                        return allowedTypes.value();
-                    }
-                }
-                return new Class[]{propertyDescriptor.getPropertyType()};
-            }
-        }
-        catch (Exception exception) {
-        }
-        throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_NOT_DEFINED, property,
-                Converter.getShortClassName(getClass()));
+        @SuppressWarnings("unchecked")
+        T[] array = (T[]) Array.newInstance(componentType, collection.size());
+        return collection.toArray(array);
+    }
+
+    /**
+     * @param array
+     * @return list converted from array
+     */
+    public static <T> List<T> fromArray(T[] array)
+    {
+        return new ArrayList<T>(Arrays.asList(array));
     }
 }

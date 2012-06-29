@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.spring;
+package cz.cesnet.shongo.controller.util;
 
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;

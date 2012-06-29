@@ -1,6 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.common.api.ComplexType;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Controller API data types.
@@ -11,60 +16,43 @@ public class API extends cz.cesnet.shongo.common.api.API
 {
     public static class PeriodicDateTime extends ComplexType
     {
-        private String start;
+        public DateTime start;
 
-        private String period;
+        public Period period;
 
-        public String getStart()
+        public static PeriodicDateTime create(DateTime start, Period period)
         {
-            return start;
-        }
-
-        @Required
-        public void setStart(String start)
-        {
-            this.start = start;
-        }
-
-        public String getPeriod()
-        {
-            return period;
-        }
-
-        @Required
-        public void setPeriod(String period)
-        {
-            this.period = period;
+            PeriodicDateTime periodicDateTime = new PeriodicDateTime();
+            periodicDateTime.start = start;
+            periodicDateTime.period = period;
+            return periodicDateTime;
         }
     }
 
     public static class DateTimeSlot extends ComplexType
     {
-        private Object dateTime;
+        @AllowedTypes({DateTime.class, PeriodicDateTime.class})
+        public Object dateTime;
 
-        private String duration;
+        public Period duration;
 
-        public Object getDateTime()
+        public static DateTimeSlot create(Object dateTime, Period duration)
         {
-            return dateTime;
+            DateTimeSlot dateTimeSlot = new DateTimeSlot();
+            dateTimeSlot.dateTime = dateTime;
+            dateTimeSlot.duration = duration;
+            return dateTimeSlot;
         }
+    }
 
-        @AllowedTypes({String.class, PeriodicDateTime.class})
-        public void setDateTime(Object dateTime)
-        {
-            this.dateTime = dateTime;
-        }
+    public static class Person extends ComplexType
+    {
+        public String name;
+    }
 
-        public String getDuration()
-        {
-            return duration;
-        }
-
-        @Required
-        public void setDuration(String duration)
-        {
-            this.duration = duration;
-        }
+    public static class Compartment extends ComplexType
+    {
+        public List<Person> persons = new ArrayList<Person>();
     }
 
     public static class ReservationRequest extends ComplexType
@@ -81,43 +69,25 @@ public class API extends cz.cesnet.shongo.common.api.API
             EDUCATION
         }
 
-        private Type type;
+        public Type type;
 
-        private Purpose purpose;
+        public Purpose purpose;
 
-        private DateTimeSlot[] slots;
+        public List<DateTimeSlot> slots = new ArrayList<DateTimeSlot>();
 
-        public Type getType()
+        public List<Compartment> compartments = new ArrayList<Compartment>();
+
+
+        public void addSlot(Object dateTime, Period duration)
         {
-            return type;
+            slots.add(DateTimeSlot.create(dateTime, duration));
         }
 
-        @Required
-        public void setType(Type type)
+        public Compartment addCompartment()
         {
-            this.type = type;
-        }
-
-        public Purpose getPurpose()
-        {
-            return purpose;
-        }
-
-        @Required
-        public void setPurpose(Purpose purpose)
-        {
-            this.purpose = purpose;
-        }
-
-        public DateTimeSlot[] getSlots()
-        {
-            return slots;
-        }
-
-        @Required
-        public void setSlots(DateTimeSlot[] slots)
-        {
-            this.slots = slots;
+            Compartment compartment = new Compartment();
+            compartments.add(compartment);
+            return compartment;
         }
     }
 }

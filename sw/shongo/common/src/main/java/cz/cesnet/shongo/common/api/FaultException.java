@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.common.api;
 
+import cz.cesnet.shongo.common.util.Converter;
 import org.apache.xmlrpc.XmlRpcException;
 
 /**
@@ -11,12 +12,12 @@ public class FaultException extends XmlRpcException
 {
     public FaultException(int faultCode, String faultString, Object... objects)
     {
-        super(faultCode, String.format(faultString, objects));
+        super(faultCode, String.format(faultString, evaluateArguments(objects)));
     }
 
     public FaultException(Fault fault, Object... objects)
     {
-        super(fault.getCode(), String.format(fault.getString(), objects));
+        super(fault.getCode(), String.format(fault.getString(), evaluateArguments(objects)));
     }
 
     public FaultException(Exception exception, String faultString)
@@ -28,5 +29,20 @@ public class FaultException extends XmlRpcException
     public FaultException(Exception exception)
     {
         this(exception, exception.getMessage());
+    }
+
+    private static Object[] evaluateArguments(Object[] objects)
+    {
+        for (int index = 0; index < objects.length; index++) {
+            if (objects[index] instanceof Class) {
+                objects[index] = Converter.getClassShortName((Class) objects[index]);
+            }
+        }
+        return objects;
+    }
+
+    public int getCode()
+    {
+        return code;
     }
 }

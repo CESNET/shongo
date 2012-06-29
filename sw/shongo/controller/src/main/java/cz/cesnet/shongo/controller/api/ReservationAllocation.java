@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import java.util.Map;
-
 /**
  * Reservation allocation
  *

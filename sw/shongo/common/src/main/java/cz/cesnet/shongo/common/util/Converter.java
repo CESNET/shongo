@@ -9,6 +9,8 @@ import org.joda.time.Period;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,41 +20,87 @@ import java.util.Map;
  */
 public class Converter
 {
-
-    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Class targetType, Class[] allowedTypes)
+            throws FaultException, IllegalArgumentException
     {
+        if (allowedTypes != null && allowedTypes.length > 0) {
+            if (allowedTypes.length == 1) {
+                if (!(value instanceof Object[] || value instanceof Collection)) {
+                    targetType = allowedTypes[0];
+                }
+            }
+            else {
+                Object allowedValue = null;
+                for (Class allowedType : allowedTypes) {
+                    try {
+                        allowedValue = Converter.convert(value, allowedType, null);
+                        break;
+                    }
+                    catch (Exception exception) {
+                    }
+                }
+                if (allowedValue != null) {
+                    return allowedValue;
+                }
+                else {
+                    throw new IllegalArgumentException();
+                }
+            }
+        }
+
         // If types are compatible
         if (targetType.isAssignableFrom(value.getClass())) {
             // Do nothing
         }
-        // If enum is required and string is given
-        else if (targetType.isEnum() && value instanceof String) {
-            // Convert it
-            value = Converter.stringToEnum((String) value, (Class<Enum>) targetType);
+        // Convert atomic types
+        else if (value instanceof String) {
+            // If enum is required
+            if (targetType.isEnum() && value instanceof String) {
+                value = Converter.convertStringToEnum((String) value, (Class<Enum>) targetType);
+            }
+            // If atomic type is required
+            else if (AtomicType.class.isAssignableFrom(targetType) && value instanceof String) {
+                AtomicType atomicType = null;
+                try {
+                    atomicType = (AtomicType) targetType.newInstance();
+                }
+                catch (java.lang.Exception exception) {
+                    throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
+                            Converter.getClassShortName(targetType)));
+                }
+                atomicType.fromString((String) value);
+                value = atomicType;
+            }
+            // If period is required
+            else if (Period.class.isAssignableFrom(targetType)) {
+                value = convertStringToPeriod((String) value);
+            }
+            // If date/time is required
+            else if (DateTime.class.isAssignableFrom(targetType)) {
+                value = convertStringToDateTime((String) value);
+            }
         }
-        // If atomic type is required and string is given
-        else if (AtomicType.class.isAssignableFrom(targetType) && value instanceof String) {
-            AtomicType atomicType = null;
-            try {
-                atomicType = (AtomicType) targetType.newInstance();
+        // Convert array types
+        else if (value instanceof Object[]) {
+            if (targetType.isArray()) {
+                // Convert array to specific type
+                Class componentType = targetType.getComponentType();
+                Object[] arrayValue = (Object[]) value;
+                Object[] newArray = (Object[]) Array.newInstance(componentType, arrayValue.length);
+                for (int index = 0; index < arrayValue.length; index++) {
+                    newArray[index] = convert(arrayValue[index], componentType, allowedTypes);
+                }
+                value = newArray;
             }
-            catch (java.lang.Exception exception) {
-                throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                        Converter.getShortClassName(targetType)));
+            else if (Collection.class.isAssignableFrom(targetType)) {
+                // Convert array to specific type
+                Object[] arrayValue = (Object[]) value;
+                List<Object> newList = new ArrayList<Object>(arrayValue.length);
+                for (Object item : arrayValue) {
+                    newList.add(convert(item, Object.class, allowedTypes));
+                }
+                value = newList;
             }
-            atomicType.fromString((String) value);
-            return atomicType;
-        }
-        // If specific array is required and abstract array is passed
-        else if (targetType.isArray() && value instanceof Object[]) {
-            // Convert array to specific type
-            Class componentType = targetType.getComponentType();
-            Object[] arrayValue = (Object[]) value;
-            Object[] newArray = (Object[]) Array.newInstance(componentType, arrayValue.length);
-            for (int index = 0; index < arrayValue.length; index++) {
-                newArray[index] = convert(arrayValue[index], componentType);
-            }
-            value = newArray;
         }
         // If complex type is required and map is given
         else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
@@ -62,7 +110,7 @@ public class Converter
             }
             catch (Exception exception) {
                 exception.printStackTrace();
-                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, getShortClassName(targetType));
+                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, getClassShortName(targetType));
             }
             type.fromMap((Map) value);
             value = type;
@@ -75,12 +123,42 @@ public class Converter
     }
 
     /**
+     * Convert given value to the specified type.
+     *
+     * @param value
+     * @param targetType
+     * @return converted value to specified class
+     * @throws IllegalArgumentException when the value cannot be converted to specified type
+     * @throws FaultException           when the conversion fails
+     */
+    public static Object convert(Object value, Class targetType) throws FaultException
+    {
+        return convert(value, targetType, null);
+    }
+
+    /**
+     * Convert enum value to another enum value.
+     *
+     * @param value     "Enum from" value
+     * @param enumClass "Enum to" class
+     * @return converted enum to value
+     * @throws FaultException when the "enum to" cannot have given "enum from" value
+     */
+    public static <T extends java.lang.Enum<T>, F extends java.lang.Enum<F>> T convert(F value, Class<T> enumClass)
+            throws FaultException
+    {
+        return convertStringToEnum(value.toString(), enumClass);
+    }
+
+    /**
+     * Convert string to enum type.
+     *
      * @param value
      * @param enumClass
      * @return enum value for given string from specified enum class
      * @throws FaultException
      */
-    public static <T extends java.lang.Enum<T>> T stringToEnum(String value, Class<T> enumClass)
+    public static <T extends java.lang.Enum<T>> T convertStringToEnum(String value, Class<T> enumClass)
             throws FaultException
     {
         try {
@@ -88,7 +166,7 @@ public class Converter
         }
         catch (IllegalArgumentException exception) {
             throw new FaultException(Fault.Common.ENUM_VALUE_NOT_DEFINED, value,
-                    getShortClassName(enumClass));
+                    getClassShortName(enumClass));
         }
     }
 
@@ -97,7 +175,7 @@ public class Converter
      * @return parsed date/time from string
      * @throws FaultException when parsing fails
      */
-    public static DateTime stringToDateTime(String value) throws FaultException
+    public static DateTime convertStringToDateTime(String value) throws FaultException
     {
         try {
             return DateTime.parse(value);
@@ -112,7 +190,7 @@ public class Converter
      * @return parsed period from string
      * @throws FaultException when parsing fails
      */
-    public static Period stringToPeriod(String value) throws FaultException
+    public static Period convertStringToPeriod(String value) throws FaultException
     {
         try {
             return Period.parse(value);
@@ -124,16 +202,38 @@ public class Converter
 
     /**
      * @param map
+     * @return new instance of object that is filled by attributes from given map (must contain 'class attribute')
+     * @throws FaultException
+     */
+    public static Object convertMapToObject(Map map) throws FaultException
+    {
+        // Get object class
+        String className = (String) map.get("class");
+        if (className == null) {
+            throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contains 'class' attribute!");
+        }
+        Class objectClass = null;
+        try {
+            objectClass = Converter.getClassFromShortName(className);
+        }
+        catch (ClassNotFoundException exception) {
+            throw new FaultException(Fault.Common.CLASS_NOT_DEFINED, className);
+        }
+        return convertMapToObject(map, objectClass);
+    }
+
+    /**
+     * @param map
      * @param objectClass
      * @return new instance of given object class that is filled by attributes from given map
      * @throws FaultException
      */
-    public static Object mapToObject(Map map, Class objectClass) throws FaultException
+    public static Object convertMapToObject(Map map, Class objectClass) throws FaultException
     {
         if (!ComplexType.class.isAssignableFrom(objectClass)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
                     String.format("Cannot convert map to '%s' because the target type doesn't support the conversion!",
-                            getShortClassName(objectClass)));
+                            getClassShortName(objectClass)));
         }
         // Null or empty map means "null" object
         if (map == null || map.size() == 0) {
@@ -143,10 +243,10 @@ public class Converter
             // Check proper class
             if (map.containsKey("class")) {
                 String className = (String) map.get("class");
-                if (!className.equals(getShortClassName(objectClass))) {
+                if (!className.equals(getClassShortName(objectClass))) {
                     throw new FaultException(Fault.Common.UNKNOWN_FAULT, String.format(
                             "Cannot convert map to object of class '%s' because map specifies different class '%s'."),
-                            getShortClassName(objectClass), className);
+                            getClassShortName(objectClass), className);
                 }
             }
 
@@ -172,39 +272,44 @@ public class Converter
      * @return map containing attributes of given object
      * @throws FaultException
      */
-    public static Map objectToMap(Object object) throws FaultException
+    public static Map convertObjectToMap(Object object) throws FaultException
     {
         if (!(object instanceof ComplexType)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
                     String.format("Cannot convert '%s' to map because the object doesn't support the conversion!",
-                            getShortClassName(object.getClass())));
+                            getClassShortName(object.getClass())));
         }
         ComplexType complexType = ComplexType.class.cast(object);
         return complexType.toMap();
     }
 
     /**
-     * Get short class name from full class name.
-     *
-     * @param fullClassName
-     * @return short class name
+     * @param object
+     * @return true if object is of atomic type (e.g., {@link String}, {@link AtomicType}, {@link Enum},
+     *         {@link Period} or {@link DateTime}),
+     *         false otherwise
      */
-    public static String getShortClassName(String fullClassName)
+    public static boolean isAtomic(Object object)
     {
-        int position = fullClassName.lastIndexOf(".");
-        if (position != -1) {
-            return fullClassName.substring(position + 1, fullClassName.length());
+        if (object instanceof String || object instanceof Enum) {
+            return true;
         }
-        return fullClassName;
+        if (object instanceof AtomicType) {
+            return true;
+        }
+        if (object instanceof Period || object instanceof DateTime) {
+            return true;
+        }
+        return false;
     }
 
     /**
-     * Get short class name from class.
+     * Get short name from class.
      *
      * @param clazz
-     * @return short class name
+     * @return class short name
      */
-    public static String getShortClassName(Class clazz)
+    public static String getClassShortName(Class clazz)
     {
         if (clazz.getEnclosingClass() != null) {
             return clazz.getEnclosingClass().getSimpleName() + "." + clazz.getSimpleName();
@@ -215,7 +320,7 @@ public class Converter
     }
 
     /**
-     * List of packages
+     * List of all API packages in classpath (initialized only once).
      */
     static String[] packages;
 
@@ -225,7 +330,7 @@ public class Converter
      * @param shortClassName
      * @return full class name
      */
-    public static String getFullClassName(String shortClassName)
+    public static Class getClassFromShortName(String shortClassName) throws ClassNotFoundException
     {
         if (packages == null) {
             ArrayList<String> list = new ArrayList<String>();
@@ -237,15 +342,15 @@ public class Converter
             }
             packages = list.toArray(new String[list.size()]);
         }
-
+        shortClassName = shortClassName.replace(".", "$");
         for (String item : packages) {
             try {
                 Class clazz = Class.forName(item + "." + shortClassName);
-                return clazz.getCanonicalName();
+                return clazz;
             }
             catch (ClassNotFoundException exception) {
             }
         }
-        return "cz.cesnet.shongo." + shortClassName;
+        return Class.forName("cz.cesnet.shongo." + shortClassName);
     }
 }

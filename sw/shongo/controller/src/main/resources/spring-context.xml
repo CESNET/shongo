@@ -23,12 +23,12 @@
         <property name="jadePlatformId" value="${jade-platform-id}"/>
         <property name="entityManagerFactory"><ref bean="entityManagerFactory"/></property>
         <property name="services">
-            <bean class="cz.cesnet.shongo.controller.spring.BeanListFactoryBean">
+            <bean class="cz.cesnet.shongo.controller.util.BeanListFactoryBean">
                 <property name="beanType" value="cz.cesnet.shongo.common.api.Service"/>
             </bean>
         </property>
         <property name="components">
-            <bean class="cz.cesnet.shongo.controller.spring.BeanListFactoryBean">
+            <bean class="cz.cesnet.shongo.controller.util.BeanListFactoryBean">
                 <property name="beanType" value="cz.cesnet.shongo.controller.Component"/>
             </bean>
         </property>

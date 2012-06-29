@@ -38,25 +38,26 @@ public abstract class AbstractDatabaseTest
     }
 
     /**
-     * Initialize test.
+     * Perform tests initialization.
      *
      * @throws Exception
      */
     @Before
-    public void setUp() throws Exception
+    public void before() throws Exception
     {
         // For testing purposes use only in-memory database
         Map<String, String> properties = new HashMap<String, String>();
         String schema = getClass().getName().replace(".", "_");
         properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:" + schema + "; shutdown=true;");
+
         entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
     }
 
     /**
-     * Clean-up test
+     * Perform tests clean-up.
      */
     @After
-    public void tearDown()
+    public void after()
     {
         entityManagerFactory.close();
     }

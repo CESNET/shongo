@@ -4,9 +4,12 @@ import cz.cesnet.shongo.common.xmlrpc.TypeFactory;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.API;
 import cz.cesnet.shongo.controller.api.ReservationService;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 import org.junit.Test;
 
 import java.net.URL;
@@ -26,36 +29,61 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
 {
     Controller controller;
 
-    @Override
-    public void setUp() throws Exception
-    {
-        super.setUp();
+    XmlRpcClient client;
 
+    @Override
+    public void before() throws Exception
+    {
+        super.before();
+
+        // Start controller
         controller = new Controller();
         controller.setEntityManagerFactory(getEntityManagerFactory());
         controller.addService(new ReservationServiceImpl(new Domain("cz.cesnet")));
         controller.start();
         controller.startRpc();
+
+        // Start client
+        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+        config.setServerURL(new URL(String.format("http://%s:%d", controller.getRpcHost(), controller.getRpcPort())));
+        client = new XmlRpcClient();
+        client.setConfig(config);
+        client.setTypeFactory(new TypeFactory(client));
     }
 
     @Override
-    public void tearDown()
+    public void after()
     {
-        super.tearDown();
-
         controller.stop();
+
+        super.after();
     }
 
     @Test
-    public void testCreateReservationRequest() throws Exception
+    public void testCreateReservationRequestByService() throws Exception
     {
-        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
-        config.setServerURL(new URL(String.format("http://%s:%d", controller.getRpcHost(), controller.getRpcPort())));
 
-        XmlRpcClient client = new XmlRpcClient();
-        client.setConfig(config);
-        client.setTypeFactory(new TypeFactory(client));
+        API.ReservationRequest reservationRequest = new API.ReservationRequest();
+        reservationRequest.type = API.ReservationRequest.Type.NORMAL;
+        reservationRequest.purpose = API.ReservationRequest.Purpose.SCIENCE;
+        reservationRequest.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
+        reservationRequest.addSlot(API.PeriodicDateTime.create(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
+                Period.parse("PT2H"));
+        //reservationRequest.addCompartment();
 
+        API.SecurityToken securityToken = new API.SecurityToken();
+        securityToken.setTest("Test value");
+
+        String identifier = (String) client.execute("Reservation.createReservationRequest", new Object[]{
+                securityToken,
+                reservationRequest
+        });
+        assertEquals("shongo:cz.cesnet:1", identifier);
+    }
+
+    @Test
+    public void testCreateReservationRequestByRPC() throws Exception
+    {
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put("type", "NORMAL");
         attributes.put("purpose", "SCIENCE");

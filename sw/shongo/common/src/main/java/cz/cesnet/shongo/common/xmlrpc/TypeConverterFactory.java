@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
 import cz.cesnet.shongo.common.api.AtomicType;
+import cz.cesnet.shongo.common.api.ComplexType;
 import cz.cesnet.shongo.common.api.Fault;
 import cz.cesnet.shongo.common.api.FaultException;
-import cz.cesnet.shongo.common.api.ComplexType;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
@@ -19,20 +19,72 @@ import java.util.Map;
 public class TypeConverterFactory extends TypeConverterFactoryImpl
 {
     private static final TypeConverter atomicTypeConverter = new AtomicTypeConverter(AtomicType.class);
+    private static final TypeConverter mapTypeConverter = new MapTypeConverter();
 
     @Override
     public TypeConverter getTypeConverter(Class pClass)
     {
-        if (AtomicType.class.isAssignableFrom(pClass)) {
+        if (pClass.isEnum()) {
+            return EnumTypeConverter.getInstance(pClass);
+        }
+        else if (AtomicType.class.isAssignableFrom(pClass)) {
             return atomicTypeConverter;
         }
         else if (ComplexType.class.isAssignableFrom(pClass)) {
             return ComplexTypeConverter.getInstance(pClass);
         }
-        else if (pClass.isEnum()) {
-            return EnumTypeConverter.getInstance(pClass);
+        else if (Map.class.isAssignableFrom(pClass)) {
+            return mapTypeConverter;
         }
         return super.getTypeConverter(pClass);
+    }
+
+    /**
+     * Converter for enum types.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class EnumTypeConverter implements TypeConverter
+    {
+        private final Class clazz;
+
+        EnumTypeConverter(Class pClass)
+        {
+            clazz = pClass;
+        }
+
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return (pObject instanceof String) || clazz.isAssignableFrom(pObject.getClass());
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+                String value = (String) pObject;
+                try {
+                    return Converter.convertStringToEnum(value, clazz);
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return result.toString();
+        }
+
+        public static EnumTypeConverter getInstance(Class pClass)
+        {
+            // TODO: Reuse instances for same class
+            return new EnumTypeConverter(pClass);
+        }
     }
 
     /**
@@ -66,7 +118,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                 }
                 catch (java.lang.Exception exception) {
                     throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                            Converter.getShortClassName(clazz.getCanonicalName())));
+                            Converter.getClassShortName(clazz)));
                 }
                 atomicType.fromString(value);
                 return atomicType;
@@ -106,7 +158,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof Map) {
                 try {
-                    return Converter.mapToObject((Map) pObject, clazz);
+                    return Converter.convertMapToObject((Map) pObject, clazz);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -119,7 +171,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object pObject)
         {
             try {
-                return Converter.objectToMap(pObject);
+                return Converter.convertObjectToMap(pObject);
             }
             catch (FaultException exception) {
                 throw new RuntimeException(exception);
@@ -133,33 +185,21 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         }
     }
 
-    /**
-     * Converter for enum types.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    private static class EnumTypeConverter implements TypeConverter
+    private static class MapTypeConverter implements TypeConverter
     {
-        private final Class clazz;
-
-        EnumTypeConverter(Class pClass)
-        {
-            clazz = pClass;
-        }
-
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return (pObject instanceof String) || clazz.isAssignableFrom(pObject.getClass());
+            return pObject == null || Map.class.isAssignableFrom(pObject.getClass())
+                    || ComplexType.class.isAssignableFrom(pObject.getClass());
         }
 
         @Override
         public Object convert(Object pObject)
         {
-            if (pObject instanceof String) {
-                String value = (String) pObject;
+            if (pObject instanceof ComplexType) {
                 try {
-                    return Converter.stringToEnum(value, clazz);
+                    return Converter.convertObjectToMap(pObject);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -169,15 +209,9 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         }
 
         @Override
-        public Object backConvert(Object result)
+        public Object backConvert(Object pObject)
         {
-            return result.toString();
-        }
-
-        public static EnumTypeConverter getInstance(Class pClass)
-        {
-            // TODO: Reuse instances for same class
-            return new EnumTypeConverter(pClass);
+            return pObject;
         }
     }
 }

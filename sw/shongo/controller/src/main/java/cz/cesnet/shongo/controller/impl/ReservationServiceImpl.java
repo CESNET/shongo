@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.impl;
 
+import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.common.api.FaultException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
@@ -7,9 +9,13 @@ import cz.cesnet.shongo.controller.api.API;
 import cz.cesnet.shongo.controller.api.Fault;
 import cz.cesnet.shongo.controller.api.ReservationService;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import java.util.Map;
+
+import static cz.cesnet.shongo.common.util.Converter.convert;
 
 /**
  * Reservation service implementation
@@ -71,49 +77,40 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         API.ReservationRequest apiReservationRequest = new API.ReservationRequest();
         apiReservationRequest.fromMap(attributes);
 
-        Map xxx = apiReservationRequest.toMap();
+        Map xx = apiReservationRequest.toMap();
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
         ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(convert(apiReservationRequest.type, ReservationRequest.Type.class));
+        reservationRequest.setPurpose(convert(apiReservationRequest.purpose, ReservationRequest.Purpose.class));
+        for (API.DateTimeSlot dateTimeSlot : apiReservationRequest.slots) {
+            Object dateTime = dateTimeSlot.dateTime;
+            if (dateTime instanceof DateTime) {
+                reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification((DateTime) dateTime),
+                        dateTimeSlot.duration);
+            }
+            else if (dateTime instanceof API.PeriodicDateTime) {
+                API.PeriodicDateTime periodicDateTime = (API.PeriodicDateTime) dateTime;
+                reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(periodicDateTime.start,
+                        periodicDateTime.period), dateTimeSlot.duration);
+            }
+            else {
+                throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Unknown date/time type.");
+            }
+        }
+        for (API.Compartment compartment : apiReservationRequest.compartments) {
+        }
+
+        // TODO: Check required fields
 
         if (true) {
             throw new FaultException(Fault.TODO_IMPLEMENT);
         }
 
-        /*EntityMap reservationRequestMap = new EntityMap(attributes, ReservationRequest.class);
-
-        reservationRequest.setType(reservationRequestMap.getEnumRequired("type", ReservationRequest.Type.class));
-        reservationRequest.setPurpose(reservationRequestMap.getEnumRequired("purpose", ReservationRequest.Purpose.class));
-
-        for ( Map slot : reservationRequestMap.getCollectionRequired("slots", Map.class)) {
-            EntityMap slotMap = new EntityMap(slot, "DateTimeSlot");
-            Object dateTime = slotMap.getAttribute("dateTime", new Class[]{String.class, Map.class});
-            Period duration = Converter.stringToPeriod(slotMap.getAttribute("duration", String.class));
-            DateTimeSpecification dateTimeSpecification = null;
-            if ( dateTime instanceof String ) {
-                dateTimeSpecification = new AbsoluteDateTimeSpecification(
-                        Converter.stringToDateTime((String) dateTime));
-            }
-            else if ( dateTime instanceof Map) {
-                EntityMap dateTimeMap = new EntityMap((Map)dateTime, "PeriodicDateTime");
-                PeriodicDateTimeSpecification periodicDateTimeSpecification = new PeriodicDateTimeSpecification();
-                periodicDateTimeSpecification.setStart(
-                        Converter.stringToDateTime(dateTimeMap.getAttribute("start", String.class)));
-                periodicDateTimeSpecification.setPeriod(
-                        Converter.stringToPeriod(dateTimeMap.getAttribute("period", String.class)));
-                dateTimeSpecification = periodicDateTimeSpecification;
-            }
-            reservationRequest.addRequestedSlot(dateTimeSpecification, duration);
-        }
-        for ( Map compartment : reservationRequestMap.getCollectionRequired("compartments", Map.class)) {
-            EntityMap compartmentMap = new EntityMap(compartment, "Compartment");
-            throw new FaultException(Fault.TODO_IMPLEMENT);
-        }
-
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        reservationRequestManager.create(reservationRequest);*/
+        reservationRequestManager.create(reservationRequest);
 
         entityManager.getTransaction().commit();
         entityManager.close();

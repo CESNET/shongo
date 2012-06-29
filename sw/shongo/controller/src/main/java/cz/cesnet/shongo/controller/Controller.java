@@ -209,10 +209,9 @@ public class Controller
     public void start() throws IllegalStateException
     {
         // Set single instance of domain controller.
-        if (instance != null) {
-            throw new IllegalStateException("A domain controller has already been created, cannot create second one!");
+        if (instance == null) {
+            instance = this;
         }
-        instance = this;
 
         logger.info("Controller is starting...");
 
