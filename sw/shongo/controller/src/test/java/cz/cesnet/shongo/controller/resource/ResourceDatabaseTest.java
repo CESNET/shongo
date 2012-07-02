@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.Technology;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;

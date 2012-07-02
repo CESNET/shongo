@@ -1,17 +1,17 @@
 package cz.cesnet.shongo.common.util;
 
-import cz.cesnet.shongo.common.api.AtomicType;
-import cz.cesnet.shongo.common.api.ComplexType;
-import cz.cesnet.shongo.common.api.Fault;
-import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.ComplexType;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static cz.cesnet.shongo.util.ClassHelper.getClassFromShortName;
+import static cz.cesnet.shongo.util.ClassHelper.getClassShortName;
 
 /**
  * Helper class for converting types.
@@ -20,6 +20,16 @@ import java.util.Map;
  */
 public class Converter
 {
+    /**
+     * Convert given value to target type with list of allowed types.
+     *
+     * @param value
+     * @param targetType
+     * @param allowedTypes
+     * @return converted value
+     * @throws FaultException
+     * @throws IllegalArgumentException
+     */
     public static Object convert(Object value, Class targetType, Class[] allowedTypes)
             throws FaultException, IllegalArgumentException
     {
@@ -66,7 +76,7 @@ public class Converter
                 }
                 catch (java.lang.Exception exception) {
                     throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                            Converter.getClassShortName(targetType)));
+                            targetType));
                 }
                 atomicType.fromString((String) value);
                 value = atomicType;
@@ -104,16 +114,7 @@ public class Converter
         }
         // If complex type is required and map is given
         else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
-            ComplexType type = null;
-            try {
-                type = ComplexType.class.cast(targetType.newInstance());
-            }
-            catch (Exception exception) {
-                exception.printStackTrace();
-                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, getClassShortName(targetType));
-            }
-            type.fromMap((Map) value);
-            value = type;
+            value = convertMapToObject((Map) value, targetType);
         }
         else {
             throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
@@ -214,7 +215,7 @@ public class Converter
         }
         Class objectClass = null;
         try {
-            objectClass = Converter.getClassFromShortName(className);
+            objectClass = getClassFromShortName(className);
         }
         catch (ClassNotFoundException exception) {
             throw new FaultException(Fault.Common.CLASS_NOT_DEFINED, className);
@@ -256,12 +257,11 @@ public class Converter
                 object = objectClass.newInstance();
             }
             catch (Exception exception) {
-                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                        objectClass.getCanonicalName());
+                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, objectClass);
             }
 
             ComplexType complexType = ComplexType.class.cast(object);
-            complexType.fromMap(map);
+            fromMap(complexType, map);
 
             return object;
         }
@@ -280,7 +280,99 @@ public class Converter
                             getClassShortName(object.getClass())));
         }
         ComplexType complexType = ComplexType.class.cast(object);
-        return complexType.toMap();
+        return toMap(complexType);
+    }
+
+    /**
+     * Fill given {@link ComplexType} from the given map.
+     *
+     * @param complexType
+     * @param map
+     * @throws FaultException
+     */
+    public static void fromMap(ComplexType complexType, Map map) throws FaultException
+    {
+        // Clear all filled properties
+        complexType.clearPropertyFilledMarks();
+
+        // Fill each property that is present in map
+        for (Object key : map.keySet()) {
+            if (!(key instanceof String)) {
+                throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contain only string keys.");
+            }
+            String property = (String) key;
+            Object value = map.get(key);
+
+            // Skip class property
+            if (property.equals("class")) {
+                continue;
+            }
+
+            // Get property type and allowed types
+            Property propertyDefinition = Property.getPropertyNotNull(complexType.getClass(), property);
+            Class type = propertyDefinition.getType();
+            Class[] allowedTypes = propertyDefinition.getAllowedTypes();
+
+            try {
+                value = Converter.convert(value, type, allowedTypes);
+            }
+            catch (IllegalArgumentException exception) {
+                /*StringBuilder builder = new StringBuilder();
+                for (Class allowedType : allowedTypes) {
+                    if (builder.length() > 0) {
+                        builder.append("|");
+                    }
+                    builder.append(Converter.getClassShortName(allowedType));
+                }*/
+                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
+                        complexType.getClass(),
+                        type,
+                        value.getClass());
+            }
+
+            // Set the value to property
+            Property.setPropertyValue(complexType, property, value);
+
+            // Mark property as filled
+            complexType.markPropertyFilled(property);
+        }
+    }
+
+    /**
+     * Convert given {@link ComplexType} to a map.
+     *
+     * @param complexType
+     * @return map
+     * @throws FaultException
+     */
+    public static Map toMap(ComplexType complexType) throws FaultException
+    {
+        Map<String, Object> map = new HashMap<String, Object>();
+        String[] propertyNames = Property.getPropertyNames(complexType.getClass());
+        for (String property : propertyNames) {
+            Object value = Property.getPropertyValue(complexType, property);
+            if (value == null) {
+                continue;
+            }
+            else if (value instanceof ComplexType) {
+                value = convertObjectToMap((ComplexType) value);
+            }
+            else if (value instanceof Object[]) {
+                Object[] oldArray = (Object[]) value;
+                Object[] newArray = new Object[oldArray.length];
+                for (int index = 0; index < oldArray.length; index++) {
+                    Object item = oldArray[index];
+                    if (item instanceof ComplexType) {
+                        item = convertObjectToMap((ComplexType) item);
+                    }
+                    newArray[index] = item;
+                }
+                value = newArray;
+            }
+            map.put(property, value);
+        }
+        map.put("class", getClassShortName(complexType.getClass()));
+        return map;
     }
 
     /**
@@ -301,56 +393,5 @@ public class Converter
             return true;
         }
         return false;
-    }
-
-    /**
-     * Get short name from class.
-     *
-     * @param clazz
-     * @return class short name
-     */
-    public static String getClassShortName(Class clazz)
-    {
-        if (clazz.getEnclosingClass() != null) {
-            return clazz.getEnclosingClass().getSimpleName() + "." + clazz.getSimpleName();
-        }
-        else {
-            return clazz.getSimpleName();
-        }
-    }
-
-    /**
-     * List of all API packages in classpath (initialized only once).
-     */
-    static String[] packages;
-
-    /**
-     * Get full class name from short class name
-     *
-     * @param shortClassName
-     * @return full class name
-     */
-    public static Class getClassFromShortName(String shortClassName) throws ClassNotFoundException
-    {
-        if (packages == null) {
-            ArrayList<String> list = new ArrayList<String>();
-            for (Package item : Package.getPackages()) {
-                String name = item.getName();
-                if (name.startsWith("cz.cesnet.shongo.") && name.endsWith(".api")) {
-                    list.add(name);
-                }
-            }
-            packages = list.toArray(new String[list.size()]);
-        }
-        shortClassName = shortClassName.replace(".", "$");
-        for (String item : packages) {
-            try {
-                Class clazz = Class.forName(item + "." + shortClassName);
-                return clazz;
-            }
-            catch (ClassNotFoundException exception) {
-            }
-        }
-        return Class.forName("cz.cesnet.shongo." + shortClassName);
     }
 }

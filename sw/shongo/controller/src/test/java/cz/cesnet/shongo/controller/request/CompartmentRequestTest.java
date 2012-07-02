@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.common.Person;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.resource.Technology;
+import cz.cesnet.shongo.controller.Technology;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;

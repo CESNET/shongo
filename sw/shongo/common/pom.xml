@@ -17,6 +17,12 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>common-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- ANTLR is used for parsing Date, Time and Period from string -->
         <dependency>
             <groupId>org.antlr</groupId>
@@ -68,13 +74,6 @@
             <groupId>com.tilab.jade</groupId>
             <artifactId>jade</artifactId>
             <version>4.1.1</version>
-        </dependency>
-
-        <!-- Joda Time is used as implementation of date/times/intervals -->
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.1</version>
         </dependency>
 
         <!-- Hibernate is used for accessing database -->

@@ -204,8 +204,10 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/client/client.iml" filepath="$PROJECT_DIR$/client/client.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
+      <module fileurl="file://$PROJECT_DIR$/common-api/common-api.iml" filepath="$PROJECT_DIR$/common-api/common-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/connector/connector.iml" filepath="$PROJECT_DIR$/connector/connector.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller/controller.iml" filepath="$PROJECT_DIR$/controller/controller.iml" />
+      <module fileurl="file://$PROJECT_DIR$/controller-api/controller-api.iml" filepath="$PROJECT_DIR$/controller-api/controller-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/shongo.iml" filepath="$PROJECT_DIR$/shongo.iml" />
     </modules>
   </component>

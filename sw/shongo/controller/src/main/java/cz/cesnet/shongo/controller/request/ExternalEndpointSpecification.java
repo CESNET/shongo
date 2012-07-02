@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.Technology;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.Technology;
 
 import javax.persistence.*;
 import java.util.*;

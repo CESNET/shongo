@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
-import cz.cesnet.shongo.common.api.AtomicType;
-import cz.cesnet.shongo.common.api.ComplexType;
-import cz.cesnet.shongo.common.api.Fault;
-import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.ComplexType;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -57,8 +57,7 @@ public class BeanUtils extends BeanUtilsBean
                         atomicType = (AtomicType) clazz.newInstance();
                     }
                     catch (java.lang.Exception exception) {
-                        throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                                Converter.getClassShortName(clazz)));
+                        throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, clazz));
                     }
                     atomicType.fromString(value);
                     return atomicType;

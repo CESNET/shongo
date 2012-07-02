@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.controller.Technology;
 
 import javax.persistence.*;
 import java.util.*;

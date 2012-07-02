@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
-import cz.cesnet.shongo.common.api.AtomicType;
-import cz.cesnet.shongo.common.api.ComplexType;
-import cz.cesnet.shongo.common.api.Fault;
-import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.ComplexType;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.common.util.Converter;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
@@ -11,7 +11,7 @@ import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 import java.util.Map;
 
 /**
- * TypeConverterFactory that allows {@link AtomicType}, {@link cz.cesnet.shongo.common.api.ComplexType} and enums as method parameters
+ * TypeConverterFactory that allows {@link AtomicType}, {@link cz.cesnet.shongo.api.ComplexType} and enums as method parameters
  * and return values.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -117,8 +117,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     atomicType = (AtomicType) clazz.newInstance();
                 }
                 catch (java.lang.Exception exception) {
-                    throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
-                            Converter.getClassShortName(clazz)));
+                    throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, clazz));
                 }
                 atomicType.fromString(value);
                 return atomicType;

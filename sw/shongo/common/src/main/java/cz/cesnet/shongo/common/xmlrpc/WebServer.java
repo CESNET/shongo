@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.common.xmlrpc;
 
+import cz.cesnet.shongo.api.Service;
 import org.apache.xmlrpc.XmlRpcException;
+import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.common.ServerStreamConnection;
 import org.apache.xmlrpc.common.XmlRpcStreamRequestConfig;
@@ -61,7 +63,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     {
         super(pPort, getHostByName(host));
 
-        handlerMapping = new PropertyHandlerMapping();
+        handlerMapping = new HandlerMapping();
         handlerMapping.setTypeConverterFactory(new TypeConverterFactory());
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
 
@@ -120,6 +122,71 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     public void stop()
     {
         shutdown();
+    }
+
+    /**
+     * Handler mapping that is able to translate full class name (which extends {@link Service})
+     * to added handler name.
+     * <p/>
+     * It is required to be able to do: <p/>
+     * <pre>
+     * ClientFactory factory = new ClientFactory(client);
+     * FooService service = (FooService) factory.newInstance(FooService.class);
+     * </pre>
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class HandlerMapping extends PropertyHandlerMapping
+    {
+        /**
+         * Map of handler classes by name.
+         */
+        Map<String, Class> handlerClassMap = new HashMap<String, Class>();
+
+        @Override
+        public void addHandler(String pKey, Class pClass) throws XmlRpcException
+        {
+            handlerClassMap.put(pKey, pClass);
+            super.addHandler(pKey, pClass);
+        }
+
+        @Override
+        public XmlRpcHandler getHandler(String pHandlerName) throws XmlRpcException
+        {
+            XmlRpcHandler result = (XmlRpcHandler) handlerMap.get(pHandlerName);
+            if (result == null) {
+                try {
+                    // When no handler is found try to find it by requested class
+                    int pos = pHandlerName.lastIndexOf(".");
+                    if (pos != -1) {
+                        String requestedClassName = pHandlerName.substring(0, pos);
+                        String requestedMethod = pHandlerName.substring(pos + 1, pHandlerName.length());
+                        Class requestedClass = Class.forName(requestedClassName);
+                        // Lookup only when requested class extends Service
+                        if (Service.class.isAssignableFrom(requestedClass)) {
+                            // Find handler name for requested class
+                            for (String name : handlerClassMap.keySet()) {
+                                Class possibleClass = handlerClassMap.get(name);
+                                if (requestedClass.isAssignableFrom(possibleClass)) {
+                                    // Get proper handler
+                                    pHandlerName = String.format("%s.%s", name, requestedMethod);
+                                    result = (XmlRpcHandler) handlerMap.get(pHandlerName);
+                                    if (result != null) {
+                                        // Cache the handler to not perform the lookup again
+                                        handlerMap.put(pHandlerName, result);
+                                        return result;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception e) {
+                }
+                throw new XmlRpcNoSuchHandlerException("No such handler: " + pHandlerName);
+            }
+            return result;
+        }
     }
 
     /**

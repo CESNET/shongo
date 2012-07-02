@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.impl;
 
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.common.xmlrpc.TypeFactory;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Controller;
-import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.API;
-import cz.cesnet.shongo.controller.api.ReservationService;
+
+import cz.cesnet.shongo.controller.*;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.client.util.ClientFactory;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -60,29 +59,30 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     }
 
     @Test
-    public void testCreateReservationRequestByService() throws Exception
+    public void testCreateReservationRequest() throws Exception
     {
-
-        API.ReservationRequest reservationRequest = new API.ReservationRequest();
-        reservationRequest.type = API.ReservationRequest.Type.NORMAL;
-        reservationRequest.purpose = API.ReservationRequest.Purpose.SCIENCE;
-        reservationRequest.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
-        reservationRequest.addSlot(API.PeriodicDateTime.create(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
-                Period.parse("PT2H"));
-        //reservationRequest.addCompartment();
-
-        API.SecurityToken securityToken = new API.SecurityToken();
+        SecurityToken securityToken = new SecurityToken();
         securityToken.setTest("Test value");
 
-        String identifier = (String) client.execute("Reservation.createReservationRequest", new Object[]{
-                securityToken,
-                reservationRequest
-        });
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.type = ReservationRequestType.NORMAL;
+        reservationRequest.purpose = ReservationRequestPurpose.SCIENCE;
+        reservationRequest.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
+        reservationRequest.addSlot(
+                PeriodicDateTime.create(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
+                Period.parse("PT2H"));
+        Compartment compartment = reservationRequest.addCompartment();
+        compartment.addPerson("Martin Srom", "srom@cesnet.cz");
+
+        ClientFactory factory = new ClientFactory(client);
+        ReservationService reservationService = (ReservationService) factory.newInstance(ReservationService.class);
+
+        String identifier = reservationService.createReservationRequest(securityToken, reservationRequest);
         assertEquals("shongo:cz.cesnet:1", identifier);
     }
 
     @Test
-    public void testCreateReservationRequestByRPC() throws Exception
+    public void testCreateReservationRequestByRawRpcXml() throws Exception
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put("type", "NORMAL");
@@ -104,7 +104,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                         put("duration", "PT2H");
                     }});
             }});
-        /*attributes.put("compartments", new ArrayList<Object>()
+        attributes.put("compartments", new ArrayList<Object>()
         {{
                 add(new HashMap<String, Object>()
                 {{
@@ -116,7 +116,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                                         put("email", "srom@cesnet.cz");
                                     }});
                             }});
-                        put("resources", new ArrayList<Object>()
+                        /*put("resources", new ArrayList<Object>()
                         {{
                                 add(new HashMap<String, Object>()
                                 {{
@@ -137,9 +137,9 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                                             }});
                                     }});
 
-                            }});
+                            }});*/
                     }});
-            }});*/
+            }});
 
         List<Object> params = new ArrayList<Object>();
         params.add(new HashMap<String, Object>()

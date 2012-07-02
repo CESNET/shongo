@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.api.Service;
+import cz.cesnet.shongo.api.Service;
 import cz.cesnet.shongo.common.jade.Container;
 import cz.cesnet.shongo.common.jade.ContainerCommandSet;
 import cz.cesnet.shongo.common.shell.Shell;

@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.impl;
 
+import cz.cesnet.shongo.api.ControllerFault;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.SecurityToken;
 import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
-import cz.cesnet.shongo.common.api.FaultException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.API;
-import cz.cesnet.shongo.controller.api.Fault;
-import cz.cesnet.shongo.controller.api.ReservationService;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.joda.time.DateTime;
@@ -15,14 +14,12 @@ import org.joda.time.DateTime;
 import javax.persistence.EntityManager;
 import java.util.Map;
 
-import static cz.cesnet.shongo.common.util.Converter.convert;
-
 /**
  * Reservation service implementation
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationServiceImpl extends Component implements ReservationService
+public class ReservationServiceImpl extends Component implements cz.cesnet.shongo.api.ReservationService
 {
     /**
      * @see Domain
@@ -71,63 +68,60 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     }
 
     @Override
-    public String createReservationRequest(API.SecurityToken token, Map attributes)
+    public String createReservationRequest(SecurityToken token,
+            cz.cesnet.shongo.api.ReservationRequest reservationRequest)
             throws FaultException
     {
-        API.ReservationRequest apiReservationRequest = new API.ReservationRequest();
-        apiReservationRequest.fromMap(attributes);
-
-        Map xx = apiReservationRequest.toMap();
-
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setType(convert(apiReservationRequest.type, ReservationRequest.Type.class));
-        reservationRequest.setPurpose(convert(apiReservationRequest.purpose, ReservationRequest.Purpose.class));
-        for (API.DateTimeSlot dateTimeSlot : apiReservationRequest.slots) {
+        ReservationRequest reservationRequestImpl = new ReservationRequest();
+        reservationRequestImpl.setType(reservationRequest.type);
+        reservationRequestImpl.setPurpose(reservationRequest.purpose);
+        for (cz.cesnet.shongo.api.DateTimeSlot dateTimeSlot : reservationRequest.slots) {
             Object dateTime = dateTimeSlot.dateTime;
             if (dateTime instanceof DateTime) {
-                reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification((DateTime) dateTime),
+                reservationRequestImpl.addRequestedSlot(new AbsoluteDateTimeSpecification((DateTime) dateTime),
                         dateTimeSlot.duration);
             }
-            else if (dateTime instanceof API.PeriodicDateTime) {
-                API.PeriodicDateTime periodicDateTime = (API.PeriodicDateTime) dateTime;
-                reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(periodicDateTime.start,
-                        periodicDateTime.period), dateTimeSlot.duration);
+            else if (dateTime instanceof cz.cesnet.shongo.api.PeriodicDateTime) {
+                cz.cesnet.shongo.api.PeriodicDateTime periodic = (cz.cesnet.shongo.api.PeriodicDateTime) dateTime;
+                reservationRequestImpl.addRequestedSlot(new PeriodicDateTimeSpecification(periodic.start,
+                        periodic.period), dateTimeSlot.duration);
             }
             else {
-                throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Unknown date/time type.");
+                throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
+                        "Unknown date/time type.");
             }
         }
-        for (API.Compartment compartment : apiReservationRequest.compartments) {
+        for (cz.cesnet.shongo.api.Compartment compartment : reservationRequest.compartments) {
         }
 
         // TODO: Check required fields
 
         if (true) {
-            throw new FaultException(Fault.TODO_IMPLEMENT);
+            throw new FaultException(ControllerFault.TODO_IMPLEMENT);
         }
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        reservationRequestManager.create(reservationRequest);
+        reservationRequestManager.create(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
         entityManager.close();
 
-        return domain.formatIdentifier(reservationRequest.getId());
+        return domain.formatIdentifier(reservationRequestImpl.getId());
     }
 
     @Override
-    public void modifyReservationRequest(API.SecurityToken token, String reservationId, Map attributes)
+    public void modifyReservationRequest(SecurityToken token, String reservationId, Map attributes)
             throws FaultException
     {
-        throw new FaultException(Fault.TODO_IMPLEMENT);
+        throw new FaultException(ControllerFault.TODO_IMPLEMENT);
     }
 
     @Override
-    public void deleteReservationRequest(API.SecurityToken token, String reservationId) throws FaultException
+    public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException
     {
-        throw new FaultException(Fault.TODO_IMPLEMENT);
+        throw new FaultException(ControllerFault.TODO_IMPLEMENT);
     }
 }

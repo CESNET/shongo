@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.impl;
 
-import cz.cesnet.shongo.controller.api.CommonService;
-import cz.cesnet.shongo.controller.api.ControllerInfo;
+import cz.cesnet.shongo.api.CommonService;
+import cz.cesnet.shongo.api.ControllerInfo;
 
 import javax.annotation.Resource;
 import javax.persistence.EntityManager;
@@ -25,10 +25,9 @@ public class CommonServiceImpl implements CommonService
     @Override
     public ControllerInfo getControllerInfo()
     {
-        ControllerInfo controllerInfo = new ControllerInfo(
-                "Debugging Controller",
-                "Controller platform used for debugging purposes"
-        );
+        ControllerInfo controllerInfo = new ControllerInfo();
+        controllerInfo.name = "Debugging Controller";
+        controllerInfo.description = "Controller platform used for debugging purposes";
         return controllerInfo;
     }
 }

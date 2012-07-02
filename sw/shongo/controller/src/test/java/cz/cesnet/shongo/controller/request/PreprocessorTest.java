@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.common.Person;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.Preprocessor;
-import cz.cesnet.shongo.controller.resource.Technology;
+import cz.cesnet.shongo.controller.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -35,8 +33,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         // Create reservation request
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setType(ReservationRequest.Type.NORMAL);
-        reservationRequest.setPurpose(ReservationRequest.Purpose.SCIENCE);
+        reservationRequest.setType(ReservationRequestType.NORMAL);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));
         reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(
                 DateTime.parse("2012-07-01T14:00"), Period.parse("P1W"), LocalDate.parse("2012-07-15")),
@@ -77,7 +75,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 compartmentRequestList.get(4).getRequestedSlot());
 
         // Modify reservation request
-        reservationRequest.setPurpose(ReservationRequest.Purpose.EDUCATION);
+        reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
         reservationRequest.removeRequestedSlot(reservationRequest.getRequestedSlots().get(0));
         reservationRequest.removeRequestedCompartment(reservationRequest.getRequestedCompartments().get(1));
 

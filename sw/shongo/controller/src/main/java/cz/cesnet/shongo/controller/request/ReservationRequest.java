@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.common.DateTimeSlot;
 import cz.cesnet.shongo.common.DateTimeSpecification;
 import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -21,39 +23,6 @@ import java.util.Map;
 @Entity
 public class ReservationRequest extends PersistentObject
 {
-    /**
-     * Type of reservation.
-     */
-    public static enum Type
-    {
-        /**
-         * Reservation that can be created by any user.
-         */
-        NORMAL,
-
-        /**
-         * Reservation that can be created only by owner of resources,
-         * and the reservation can request only owned resources.
-         */
-        PERMANENT
-    }
-
-    /**
-     * A purpose for which the reservation will be used.
-     */
-    public static enum Purpose
-    {
-        /**
-         * Reservation will be used e.g., for research purposes.
-         */
-        SCIENCE,
-
-        /**
-         * Reservation will be used for education purposes (e.g., for a lecture).
-         */
-        EDUCATION
-    }
-
     /**
      * State of reservation request.
      */
@@ -75,12 +44,12 @@ public class ReservationRequest extends PersistentObject
      * Type of the reservation. Permanent reservation are created by resource owners to
      * allocate the resource for theirs activity.
      */
-    private Type type;
+    private ReservationRequestType type;
 
     /**
      * Purpose for the reservation (science/education).
      */
-    private Purpose purpose;
+    private ReservationRequestPurpose purpose;
 
     /**
      * Name of the reservation that is shown to users.
@@ -114,7 +83,7 @@ public class ReservationRequest extends PersistentObject
      */
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    public Type getType()
+    public ReservationRequestType getType()
     {
         return type;
     }
@@ -122,7 +91,7 @@ public class ReservationRequest extends PersistentObject
     /**
      * @param type sets the {@link #type}
      */
-    public void setType(Type type)
+    public void setType(ReservationRequestType type)
     {
         this.type = type;
     }
@@ -132,7 +101,7 @@ public class ReservationRequest extends PersistentObject
      */
     @Column
     @Enumerated(EnumType.STRING)
-    public Purpose getPurpose()
+    public ReservationRequestPurpose getPurpose()
     {
         return purpose;
     }
@@ -140,7 +109,7 @@ public class ReservationRequest extends PersistentObject
     /**
      * @param purpose sets the {@link #purpose}
      */
-    public void setPurpose(Purpose purpose)
+    public void setPurpose(ReservationRequestPurpose purpose)
     {
         this.purpose = purpose;
     }

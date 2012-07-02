@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource.topology;
 
 import cz.cesnet.shongo.common.PrintableObject;
+import cz.cesnet.shongo.controller.Technology;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Technology;
 
 import java.util.ArrayList;
 import java.util.List;

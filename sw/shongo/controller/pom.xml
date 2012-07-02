@@ -22,6 +22,11 @@
             <artifactId>common</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>controller-api</artifactId>
+            <version>1.0</version>
+        </dependency>
 
         <!-- Spring framework is used for singleton classes and its' dependency injection -->
         <dependency>

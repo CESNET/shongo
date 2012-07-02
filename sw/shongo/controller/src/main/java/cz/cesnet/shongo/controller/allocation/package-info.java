@@ -1,5 +1,5 @@
 /**
- * Package contains the implementation of scheduler for a domain controller.
+ * Package contains the implementation of scheduler allocation for a domain controller.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

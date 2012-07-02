@@ -1,14 +1,16 @@
 package cz.cesnet.shongo.common.util;
 
-import cz.cesnet.shongo.common.api.ComplexType;
-import cz.cesnet.shongo.common.api.Fault;
-import cz.cesnet.shongo.common.api.FaultException;
+import cz.cesnet.shongo.api.ComplexType;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import org.apache.commons.beanutils.PropertyUtils;
 
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
+
+import static cz.cesnet.shongo.util.ClassHelper.getClassShortName;
 
 /**
  * Class that represents a declared property in a class.
@@ -109,7 +111,7 @@ public class Property
         }
         catch (Exception exception) {
             throw new FaultException(exception, String.format("Cannot get attribute '%s' from object of type '%s'.",
-                    name, Converter.getClassShortName(classType)));
+                    name, getClassShortName(classType)));
         }
         return null;
     }
@@ -140,7 +142,7 @@ public class Property
             if (builder.length() > 0) {
                 builder.append("|");
             }
-            builder.append(Converter.getClassShortName(allowedType));
+            builder.append(getClassShortName(allowedType));
         }
         return builder.toString();
     }
@@ -178,7 +180,7 @@ public class Property
             if (!this.type.equals(type)) {
                 throw new IllegalStateException(String.format(
                         "Property '%s' in object of class '%s' should have same type in getter and setter.",
-                        name, Converter.getClassShortName(classType)));
+                        name, getClassShortName(classType)));
             }
         }
         else {
@@ -212,7 +214,7 @@ public class Property
                 if (!(this.allowedTypes.length == 1 && this.allowedTypes[0].equals(argumentType))) {
                     throw new IllegalStateException(String.format(
                             "Property '%s' in object of class '%s' should have same generic type.",
-                            name, Converter.getClassShortName(classType)));
+                            name, getClassShortName(classType)));
                 }
             }
             else {
@@ -326,7 +328,7 @@ public class Property
     {
         Property property = getProperty(type, name);
         if (property == null) {
-            throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_NOT_DEFINED, name, Converter.getClassShortName(type));
+            throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_NOT_DEFINED, name, type);
         }
         return property;
     }
