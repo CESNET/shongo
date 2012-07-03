@@ -48,13 +48,6 @@
             </exclusions>
         </dependency>
 
-        <!-- Commons BeanUtils are used to convert between Map and POJOs for XML-RPC mapping -->
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>1.8.3</version>
-        </dependency>
-
         <!-- Commons CLI is used for parsing command line arguments -->
         <dependency>
             <groupId>commons-cli</groupId>

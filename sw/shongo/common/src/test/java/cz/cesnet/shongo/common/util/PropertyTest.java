@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.common.util;
 
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.util.Property;
 import org.junit.Test;
 
 import java.util.Arrays;

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.common.util;
+package cz.cesnet.shongo.util;
 
 import cz.cesnet.shongo.api.ComplexType;
 import cz.cesnet.shongo.api.Fault;
@@ -133,18 +133,33 @@ public class Property
     }
 
     /**
-     * @return {@link #allowedTypes}
+     * @return true if property is of {@link Object[]} type,
+     *         false otherwise
      */
-    public String getAllowedTypesAsString()
+    public boolean isArray()
     {
-        StringBuilder builder = new StringBuilder();
-        for (Class allowedType : allowedTypes) {
-            if (builder.length() > 0) {
-                builder.append("|");
-            }
-            builder.append(getClassShortName(allowedType));
-        }
-        return builder.toString();
+        return type.isArray();
+    }
+
+    /**
+     * @return true if property is of {@link Collection} type,
+     *         false otherwise
+     */
+    public boolean isCollection()
+    {
+        return Collection.class.isAssignableFrom(type);
+    }
+
+    /**
+     * @param object
+     * @return true if property value is null,
+     *         false otherwise
+     * @throws FaultException when the value of the property cannot be retrieved
+     */
+    public boolean isEmpty(Object object) throws FaultException
+    {
+        Object value = getValue(object);
+        return value == null;
     }
 
     /**
@@ -152,7 +167,7 @@ public class Property
      * @return property annotation if exists,
      *         null otherwise
      */
-    private <T extends Annotation> T getAnnotation(Class<T> annotationClass)
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass)
     {
         T annotation = null;
         if (annotation == null && field != null) {
@@ -426,5 +441,18 @@ public class Property
     {
         Property property = getPropertyNotNull(type, name);
         return property.getAllowedTypes();
+    }
+
+    /**
+     * @param type
+     * @param name
+     * @param annotationClass
+     * @return annotation for given type, it's property and annotation class
+     * @throws FaultException
+     */
+    public static <T extends Annotation> T getPropertyAnnotation(Class type, String name, Class<T> annotationClass) throws FaultException
+    {
+        Property property = getPropertyNotNull(type, name);
+        return property.getAnnotation(annotationClass);
     }
 }

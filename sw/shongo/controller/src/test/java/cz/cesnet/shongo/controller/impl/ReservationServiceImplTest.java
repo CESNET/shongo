@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.impl;
 
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.common.xmlrpc.TypeFactory;
-
 import cz.cesnet.shongo.controller.*;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -62,17 +61,19 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     public void testCreateReservationRequest() throws Exception
     {
         SecurityToken securityToken = new SecurityToken();
-        securityToken.setTest("Test value");
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.type = ReservationRequestType.NORMAL;
-        reservationRequest.purpose = ReservationRequestPurpose.SCIENCE;
+        reservationRequest.setType(ReservationRequestType.NORMAL);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
-        reservationRequest.addSlot(
-                PeriodicDateTime.create(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
+        reservationRequest.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
                 Period.parse("PT2H"));
         Compartment compartment = reservationRequest.addCompartment();
         compartment.addPerson("Martin Srom", "srom@cesnet.cz");
+        compartment.addResource(Technology.H323, 2, new Person[]{
+                new Person("Ondrej Bouda", "bouda@cesnet.cz"),
+                new Person("Petr Holub", "hopet@cesnet.cz")
+        });
 
         ClientFactory factory = new ClientFactory(client);
         ReservationService reservationService = (ReservationService) factory.newInstance(ReservationService.class);
@@ -91,12 +92,12 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         {{
                 add(new HashMap<String, Object>()
                 {{
-                        put("dateTime", "2012-06-01T15:00");
+                        put("start", "2012-06-01T15:00");
                         put("duration", "PT2H");
                     }});
                 add(new HashMap<String, Object>()
                 {{
-                        put("dateTime", new HashMap<String, Object>()
+                        put("start", new HashMap<String, Object>()
                         {{
                                 put("start", "2012-07-01T14:00");
                                 put("period", "P1W");
@@ -116,7 +117,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                                         put("email", "srom@cesnet.cz");
                                     }});
                             }});
-                        /*put("resources", new ArrayList<Object>()
+                        put("resources", new ArrayList<Object>()
                         {{
                                 add(new HashMap<String, Object>()
                                 {{
@@ -137,15 +138,12 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                                             }});
                                     }});
 
-                            }});*/
+                            }});
                     }});
             }});
 
         List<Object> params = new ArrayList<Object>();
-        params.add(new HashMap<String, Object>()
-        {{
-                put("test", "Test value");
-            }});
+        params.add(new HashMap<String, Object>());
         params.add(attributes);
 
         String identifier = (String) client.execute("Reservation.createReservationRequest", params);

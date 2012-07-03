@@ -5,10 +5,12 @@ import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.SecurityToken;
 import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
+import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.common.util.Converter;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.Technology;
+import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
@@ -72,35 +74,59 @@ public class ReservationServiceImpl extends Component implements cz.cesnet.shong
             cz.cesnet.shongo.api.ReservationRequest reservationRequest)
             throws FaultException
     {
+        reservationRequest.checkRequiredPropertiesFilled();
+
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
         ReservationRequest reservationRequestImpl = new ReservationRequest();
-        reservationRequestImpl.setType(reservationRequest.type);
-        reservationRequestImpl.setPurpose(reservationRequest.purpose);
-        for (cz.cesnet.shongo.api.DateTimeSlot dateTimeSlot : reservationRequest.slots) {
-            Object dateTime = dateTimeSlot.dateTime;
+        reservationRequestImpl.setType(reservationRequest.getType());
+        reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
+        for (cz.cesnet.shongo.api.DateTimeSlot dateTimeSlot : reservationRequest.getSlots()) {
+            Object dateTime = dateTimeSlot.getStart();
             if (dateTime instanceof DateTime) {
                 reservationRequestImpl.addRequestedSlot(new AbsoluteDateTimeSpecification((DateTime) dateTime),
-                        dateTimeSlot.duration);
+                        dateTimeSlot.getDuration());
             }
             else if (dateTime instanceof cz.cesnet.shongo.api.PeriodicDateTime) {
                 cz.cesnet.shongo.api.PeriodicDateTime periodic = (cz.cesnet.shongo.api.PeriodicDateTime) dateTime;
-                reservationRequestImpl.addRequestedSlot(new PeriodicDateTimeSpecification(periodic.start,
-                        periodic.period), dateTimeSlot.duration);
+                reservationRequestImpl.addRequestedSlot(new PeriodicDateTimeSpecification(periodic.getStart(),
+                        periodic.getPeriod()), dateTimeSlot.getDuration());
             }
             else {
                 throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
                         "Unknown date/time type.");
             }
         }
-        for (cz.cesnet.shongo.api.Compartment compartment : reservationRequest.compartments) {
-        }
-
-        // TODO: Check required fields
-
-        if (true) {
-            throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+        for (cz.cesnet.shongo.api.Compartment compartment : reservationRequest.getCompartments()) {
+            Compartment compartmentImpl = reservationRequestImpl.addRequestedCompartment();
+            for ( cz.cesnet.shongo.api.Person person : compartment.getPersons()) {
+                compartmentImpl.addRequestedPerson(new Person(person.getName(), person.getEmail()));
+            }
+            for ( cz.cesnet.shongo.api.Compartment.ResourceSpecificationMap map : compartment.getResources()) {
+                ResourceSpecification resourceSpecification = null;
+                if ( map.containsKey("technology") ) {
+                    Technology technology = Converter.convertStringToEnum((String) map.get("technology"), Technology.class);
+                    if ( map.containsKey("count")) {
+                        resourceSpecification = new ExternalEndpointSpecification(technology, (Integer) map.get("count"));
+                    } else {
+                        resourceSpecification = new ExternalEndpointSpecification(technology, (Integer) map.get("count"));
+                    }
+                }
+                // Check resource specification existence
+                if ( resourceSpecification == null ) {
+                    throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+                }
+                // Fill requested persons
+                if ( map.containsKey("persons") ) {
+                    for ( Object object : (Object[])map.get("persons")) {
+                        cz.cesnet.shongo.api.Person person =
+                                Converter.convert(object, cz.cesnet.shongo.api.Person.class);
+                        resourceSpecification.addRequestedPerson(new Person(person.getName(), person.getEmail()));
+                    }
+                }
+                compartmentImpl.addRequestedResource(resourceSpecification);
+            }
         }
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

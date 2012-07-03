@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.AtomicType;
 import cz.cesnet.shongo.api.ComplexType;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.util.Property;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -74,7 +75,7 @@ public class Converter
                 try {
                     atomicType = (AtomicType) targetType.newInstance();
                 }
-                catch (java.lang.Exception exception) {
+                catch (Exception exception) {
                     throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
                             targetType));
                 }
@@ -116,6 +117,20 @@ public class Converter
         else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
             value = convertMapToObject((Map) value, targetType);
         }
+        // Convert map to specific map
+        else if (value instanceof Map && Map.class.isAssignableFrom(targetType)) {
+            Map map = null;
+            try {
+                map = (Map) targetType.newInstance();
+
+            }
+            catch (Exception exception) {
+                throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
+                        targetType));
+            }
+            map.putAll((Map) value);
+            value = map;
+        }
         else {
             throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
                     value.getClass().getCanonicalName(), targetType.getCanonicalName()));
@@ -132,9 +147,9 @@ public class Converter
      * @throws IllegalArgumentException when the value cannot be converted to specified type
      * @throws FaultException           when the conversion fails
      */
-    public static Object convert(Object value, Class targetType) throws FaultException
+    public static <T> T convert(Object value, Class<T> targetType) throws FaultException
     {
-        return convert(value, targetType, null);
+        return (T) convert(value, targetType, null);
     }
 
     /**
@@ -229,7 +244,7 @@ public class Converter
      * @return new instance of given object class that is filled by attributes from given map
      * @throws FaultException
      */
-    public static Object convertMapToObject(Map map, Class objectClass) throws FaultException
+    public static <T> T convertMapToObject(Map map, Class<T> objectClass) throws FaultException
     {
         if (!ComplexType.class.isAssignableFrom(objectClass)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
@@ -263,7 +278,7 @@ public class Converter
             ComplexType complexType = ComplexType.class.cast(object);
             fromMap(complexType, map);
 
-            return object;
+            return (T) object;
         }
     }
 
@@ -324,7 +339,7 @@ public class Converter
                     }
                     builder.append(Converter.getClassShortName(allowedType));
                 }*/
-                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
+                throw new FaultException(exception, Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
                         complexType.getClass(),
                         type,
                         value.getClass());

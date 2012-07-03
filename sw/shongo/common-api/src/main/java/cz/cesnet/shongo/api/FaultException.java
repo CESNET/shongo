@@ -11,28 +11,59 @@ import static cz.cesnet.shongo.util.ClassHelper.getClassShortName;
  */
 public class FaultException extends XmlRpcException
 {
-    public FaultException(int faultCode, String faultString, Object... objects)
-    {
-        super(faultCode, String.format(faultString, evaluateArguments(objects)));
-    }
-
+    /**
+     * Construct exception from known fault described by given fault and parameters.
+     *
+     * @param fault
+     * @param objects
+     */
     public FaultException(Fault fault, Object... objects)
     {
-        super(fault.getCode(), String.format(fault.getString(), evaluateArguments(objects)));
+        super(fault.getCode(), String.format(fault.getString(), evaluateParameters(objects)));
     }
 
+    /**
+     * Construct exception from know fault described by give fault and parameters and another exception
+     * which cause the fault.
+     *
+     * @param exception
+     * @param fault
+     * @param objects
+     */
+    public FaultException(Exception exception, Fault fault, Object... objects)
+    {
+        super(fault.getCode(), String.format(fault.getString(), evaluateParameters(objects)), exception);
+    }
+
+    /**
+     * Construct unknown fault by another exception which case the fault and a description string.
+     *
+     * @param exception
+     * @param faultString
+     */
     public FaultException(Exception exception, String faultString)
     {
         super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(), faultString),
                 exception);
     }
 
-    public FaultException(Exception exception)
+    /**
+     * Construct unknown fault by description string.
+     *
+     * @param faultString
+     */
+    public FaultException(String faultString)
     {
-        this(exception, exception.getMessage());
+        super(Fault.Common.UNKNOWN_FAULT.getCode(), faultString);
     }
 
-    private static Object[] evaluateArguments(Object[] objects)
+    /**
+     * Evaluate all given parameters (e.g., classes to class names).
+     *
+     * @param objects
+     * @return array of evaluated parameters
+     */
+    private static Object[] evaluateParameters(Object[] objects)
     {
         for (int index = 0; index < objects.length; index++) {
             if (objects[index] instanceof Class) {
@@ -42,6 +73,9 @@ public class FaultException extends XmlRpcException
         return objects;
     }
 
+    /**
+     * @return fault exception code.
+     */
     public int getCode()
     {
         return code;

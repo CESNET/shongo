@@ -1,21 +1,71 @@
 package cz.cesnet.shongo.api;
 
 /**
- * TODO:
+ * Represents a person in Shongo.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Person extends ComplexType
 {
-    public String name;
+    /**
+     * Name of the person.
+     */
+    private String name;
 
-    public String email;
+    /**
+     * Email for the person.
+     */
+    private String email;
 
-    public static Person create(String name, String email)
+    /**
+     * Constructor.
+     */
+    public Person()
     {
-        Person person = new Person();
-        person.name = name;
-        person.email = email;
-        return person;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name  sets the {@link #name}
+     * @param email sets the {@link #email}
+     */
+    public Person(String name, String email)
+    {
+        setName(name);
+        setEmail(email);
+    }
+
+    /**
+     * @return {@link #name}
+     */
+    public String getName()
+    {
+        return name;
+    }
+
+    /**
+     * @param name sets the {@link #name}
+     */
+    public void setName(String name)
+    {
+        this.name = name;
+    }
+
+    /**
+     * @return {@link #email}
+     */
+    @Required
+    public String getEmail()
+    {
+        return email;
+    }
+
+    /**
+     * @param email sets the {@link #name}
+     */
+    public void setEmail(String email)
+    {
+        this.email = email;
     }
 }
