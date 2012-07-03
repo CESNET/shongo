@@ -55,11 +55,17 @@
             <version>2.2.8</version>
         </dependency>
 
-        <!-- Apache XML-RPC client is used for testing controller API -->
+        <!-- Apache XML-RPC is used as implementation of remote procedure calls -->
         <dependency>
             <groupId>org.apache.xmlrpc</groupId>
-            <artifactId>xmlrpc-client</artifactId>
+            <artifactId>xmlrpc-server</artifactId>
             <version>3.1.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

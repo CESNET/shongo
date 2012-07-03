@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.common.PeriodicDateTimeSpecification;
-import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
-import cz.cesnet.shongo.common.AbstractManager;
+import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 
 import javax.persistence.EntityManager;

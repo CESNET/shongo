@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.jade.Agent;
-import cz.cesnet.shongo.common.shell.CommandHandler;
-import cz.cesnet.shongo.common.shell.CommandSet;
-import cz.cesnet.shongo.common.shell.Shell;
+import cz.cesnet.shongo.jade.Agent;
+import cz.cesnet.shongo.shell.CommandHandler;
+import cz.cesnet.shongo.shell.CommandSet;
+import cz.cesnet.shongo.shell.Shell;
 import jade.core.AID;
 import org.apache.commons.cli.CommandLine;
 

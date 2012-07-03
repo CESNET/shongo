@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.common.AbstractManager;
-import cz.cesnet.shongo.common.Identifier;
+import cz.cesnet.shongo.AbstractManager;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -76,15 +75,15 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * @param identifier
-     * @return {@link Resource} with given identifier or null if the resource not exists
+     * @param resourceId
+     * @return {@link Resource} with given {@code resourceId} or null if the resource not exists
      */
-    public Resource get(Identifier identifier)
+    public Resource get(Long resourceId)
     {
         try {
             Resource resource = entityManager.createQuery(
-                    "SELECT resource FROM Resource resource WHERE resource.identifierAsString = :identifier",
-                    Resource.class).setParameter("identifier", identifier.toString())
+                    "SELECT resource FROM Resource resource WHERE resource.id = :id",
+                    Resource.class).setParameter("id", resourceId)
                     .getSingleResult();
             return resource;
         }

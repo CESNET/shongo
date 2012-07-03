@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
-import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 

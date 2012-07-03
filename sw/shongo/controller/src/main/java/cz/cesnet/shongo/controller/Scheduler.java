@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.common.Person;
-import cz.cesnet.shongo.common.PrintableObject;
+import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;

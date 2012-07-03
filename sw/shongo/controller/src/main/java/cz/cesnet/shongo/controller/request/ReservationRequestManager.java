@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbstractManager;
+import cz.cesnet.shongo.AbstractManager;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -70,7 +70,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param reservationRequestId
      * @return {@link ReservationRequest} with given identifier or null if the request doesn't exist
      */
-    public ReservationRequest get(long reservationRequestId)
+    public ReservationRequest get(Long reservationRequestId)
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(

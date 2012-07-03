@@ -40,6 +40,11 @@
         <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/common-api/pom.xml" />
+      </set>
+    </option>
   </component>
   <component name="Palette2">
     <group name="Swing">
@@ -204,7 +209,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/client/client.iml" filepath="$PROJECT_DIR$/client/client.iml" />
       <module fileurl="file://$PROJECT_DIR$/common/common.iml" filepath="$PROJECT_DIR$/common/common.iml" />
-      <module fileurl="file://$PROJECT_DIR$/common-api/common-api.iml" filepath="$PROJECT_DIR$/common-api/common-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/connector/connector.iml" filepath="$PROJECT_DIR$/connector/connector.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller/controller.iml" filepath="$PROJECT_DIR$/controller/controller.iml" />
       <module fileurl="file://$PROJECT_DIR$/controller-api/controller-api.iml" filepath="$PROJECT_DIR$/controller-api/controller-api.iml" />
@@ -352,50 +356,6 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$MAVEN_REPOSITORY$/log4j/log4j/1.2.16/log4j-1.2.16-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.antlr:antlr-runtime:3.4">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr-runtime/3.4/antlr-runtime-3.4-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.antlr:antlr:3.4">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr/3.4/antlr-3.4.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr/3.4/antlr-3.4-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr/3.4/antlr-3.4-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.antlr:ST4:4.0.4">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/ST4/4.0.4/ST4-4.0.4.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/ST4/4.0.4/ST4-4.0.4-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/ST4/4.0.4/ST4-4.0.4-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="Maven: org.antlr:stringtemplate:3.2.1">
-      <CLASSES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$MAVEN_REPOSITORY$/org/antlr/stringtemplate/3.2.1/stringtemplate-3.2.1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="Maven: org.apache.ws.commons.util:ws-commons-util:1.0.2">

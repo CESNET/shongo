@@ -13,14 +13,35 @@
 
     <artifactId>controller-api</artifactId>
     <name>Shongo Controller API</name>
-    <description>API of domain controller for Shongo resource management system.</description>
+    <description>API for domain controller from Shongo resource management system.</description>
     <packaging>jar</packaging>
 
     <dependencies>
+        <!-- Joda Time is used as implementation of date/times/periods/intervals -->
         <dependency>
-            <groupId>cz.cesnet.shongo</groupId>
-            <artifactId>common-api</artifactId>
-            <version>1.0</version>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.1</version>
+        </dependency>
+
+        <!-- Apache XML-RPC common is used for XmlRpcException class -->
+        <dependency>
+            <groupId>org.apache.xmlrpc</groupId>
+            <artifactId>xmlrpc-common</artifactId>
+            <version>3.1.3</version>
+        </dependency>
+        <!-- Apache XML-RPC client is used for ControllerClient -->
+        <dependency>
+            <groupId>org.apache.xmlrpc</groupId>
+            <artifactId>xmlrpc-client</artifactId>
+            <version>3.1.3</version>
+        </dependency>
+
+        <!-- Commons BeanUtils are used for manipulating ComplexType beans -->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.8.3</version>
         </dependency>
     </dependencies>
 

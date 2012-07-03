@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.common.DateTimeSpecification;
-import cz.cesnet.shongo.common.Identifier;
-import cz.cesnet.shongo.common.PersistentObject;
-import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -38,11 +37,6 @@ public class Resource extends PersistentObject
          */
         PHYSICAL_ROOM
     }
-
-    /**
-     * Unique identifier in whole Shongo.
-     */
-    private Identifier identifier;
 
     /**
      * Type of a resource.

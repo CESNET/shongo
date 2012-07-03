@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbstractManager;
+import cz.cesnet.shongo.AbstractManager;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 

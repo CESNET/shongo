@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.PersistentObject;
-import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -77,7 +77,7 @@ public class CompartmentRequest extends PersistentObject
      * <p/>
      * One resource specification can be referenced from multiple compartment requests so
      * {@link ManyToMany} association must be used. It happens when resource is specified
-     * in {@link Compartment} and multiple {@link cz.cesnet.shongo.common.DateTimeSlot} are requested.
+     * in {@link Compartment} and multiple {@link cz.cesnet.shongo.controller.common.DateTimeSlot} are requested.
      * Resource specification can be added by user which selects a device resource which he will use
      * for connecting to compartment.
      */

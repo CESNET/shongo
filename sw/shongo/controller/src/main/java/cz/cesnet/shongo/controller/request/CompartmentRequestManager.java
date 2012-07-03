@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.AbstractManager;
-import cz.cesnet.shongo.common.Person;
+import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -470,7 +470,7 @@ public class CompartmentRequestManager extends AbstractManager
      * Accept the invitation for specified person to participate in the specified compartment.
      *
      * @param compartmentRequestId identifier for {@link CompartmentRequest}
-     * @param personId             identifier for {@link Person}
+     * @param personId             identifier for {@link cz.cesnet.shongo.controller.common.Person}
      * @throws IllegalStateException when person hasn't selected resource by he will connect to the compartment yet
      */
     public void acceptPersonRequest(Long compartmentRequestId, Long personId) throws IllegalStateException
@@ -491,7 +491,7 @@ public class CompartmentRequestManager extends AbstractManager
      * Reject the invitation for specified person to participate in the specified compartment.
      *
      * @param compartmentRequestId identifier for {@link CompartmentRequest}
-     * @param personId             identifier for {@link Person}
+     * @param personId             identifier for {@link cz.cesnet.shongo.controller.common.Person}
      */
     public void rejectPersonRequest(Long compartmentRequestId, Long personId)
     {
@@ -504,7 +504,7 @@ public class CompartmentRequestManager extends AbstractManager
 
     /**
      * @param compartmentRequest {@link CompartmentRequest} which is searched
-     * @param personId           identifier for {@link Person} for which the search is performed
+     * @param personId           identifier for {@link cz.cesnet.shongo.controller.common.Person} for which the search is performed
      * @return {@link PersonRequest} from given {@link CompartmentRequest} that references person with given identifier
      * @throws IllegalArgumentException when {@link PersonRequest} is not found
      */

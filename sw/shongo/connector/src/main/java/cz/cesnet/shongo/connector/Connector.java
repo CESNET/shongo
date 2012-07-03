@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.common.jade.Container;
-import cz.cesnet.shongo.common.jade.ContainerCommandSet;
-import cz.cesnet.shongo.common.shell.CommandHandler;
-import cz.cesnet.shongo.common.shell.Shell;
-import cz.cesnet.shongo.common.util.Logging;
+import cz.cesnet.shongo.jade.Container;
+import cz.cesnet.shongo.jade.ContainerCommandSet;
+import cz.cesnet.shongo.shell.CommandHandler;
+import cz.cesnet.shongo.shell.Shell;
+import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.common.DateTimeSlot;
-import cz.cesnet.shongo.common.DateTimeSpecification;
-import cz.cesnet.shongo.common.PersistentObject;
+import cz.cesnet.shongo.controller.common.DateTimeSlot;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;

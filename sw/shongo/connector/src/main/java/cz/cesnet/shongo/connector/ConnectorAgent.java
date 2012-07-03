@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.common.jade.Agent;
+import cz.cesnet.shongo.jade.Agent;
 
 /**
  * Jade Agent for Device Connector

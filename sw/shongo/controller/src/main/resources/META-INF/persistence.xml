@@ -9,16 +9,16 @@
         <provider>org.hibernate.ejb.HibernatePersistence</provider>
 
         <!-- Include hibernate typedefs from joda package -->
-        <class>cz.cesnet.shongo.common.joda</class>
+        <class>cz.cesnet.shongo.joda</class>
 
         <!-- Include entities from other modules -->
-        <class>cz.cesnet.shongo.common.DateTimeSpecification</class>
-        <class>cz.cesnet.shongo.common.AbsoluteDateTimeSpecification</class>
-        <class>cz.cesnet.shongo.common.RelativeDateTimeSpecification</class>
-        <class>cz.cesnet.shongo.common.PeriodicDateTimeSpecification</class>
-        <class>cz.cesnet.shongo.common.PeriodicDateTimeSpecification$Rule</class>
-        <class>cz.cesnet.shongo.common.DateTimeSlot</class>
-        <class>cz.cesnet.shongo.common.Person</class>
+        <class>cz.cesnet.shongo.controller.common.DateTimeSpecification</class>
+        <class>cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification</class>
+        <class>cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification</class>
+        <class>cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification</class>
+        <class>cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification$Rule</class>
+        <class>cz.cesnet.shongo.controller.common.DateTimeSlot</class>
+        <class>cz.cesnet.shongo.controller.common.Person</class>
 
         <!-- Hibernate configuration -->
         <properties>
