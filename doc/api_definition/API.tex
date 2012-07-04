@@ -1342,7 +1342,7 @@ Represents a virtual room on a multipoint server device.
 \ApiClass{UsageStats}{}
 Usage stats of a given multipoint device.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{callLog}{Byte[]}{} Call log in CDR. Should contain at least start time and duration of each call.
+\ApiClassAttribute{callLog}{byte[]}{} Call log in CDR. Should contain at least start time and duration of each call.
 \end{ApiClassAttributes}
 
 \ApiClass{RoomInfo}{}
@@ -1358,8 +1358,8 @@ A brief info about a virtual room at a server.
 \ApiEnum{RoomLayout}{}
 Layout of a virtual room.
 \begin{ApiEnumValues}
-\ApiEnumValue{SingleParticipant}{only a single, fixed participant is viewed}
-\ApiEnumValue{VoiceSwitchedSingleParticipant}{only a single, currently speaking participant is viewed}
+\ApiEnumValue{SingleParticipant}{only a single, fixed participant is displayed}
+\ApiEnumValue{VoiceSwitchedSingleParticipant}{only a single, currently speaking participant is displayed}
 \ApiEnumValue{SpeakerCorner}{a fixed participant is in the upper-left corner, other participants around}
 \ApiEnumValue{VoiceSwitchedSpeakerCorner}{the currently speaking participant is in the upper-left corner, other participants around}
 \ApiEnumValue{Grid}{all participants are spread in a regular grid}
