@@ -40,11 +40,6 @@
         <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
-    <option name="ignoredFiles">
-      <set>
-        <option value="$PROJECT_DIR$/common-api/pom.xml" />
-      </set>
-    </option>
   </component>
   <component name="Palette2">
     <group name="Swing">
@@ -193,6 +188,7 @@
           <option name="METHOD_CALL_CHAIN_WRAP" value="1" />
           <option name="FOR_STATEMENT_WRAP" value="1" />
           <option name="ARRAY_INITIALIZER_WRAP" value="1" />
+          <option name="ARRAY_INITIALIZER_RBRACE_ON_NEXT_LINE" value="true" />
           <option name="IF_BRACE_FORCE" value="3" />
           <option name="DOWHILE_BRACE_FORCE" value="3" />
           <option name="WHILE_BRACE_FORCE" value="3" />
@@ -204,6 +200,13 @@
       </value>
     </option>
     <option name="USE_PER_PROJECT_SETTINGS" value="true" />
+  </component>
+  <component name="ProjectDictionaryState">
+    <dictionary name="anode">
+      <words>
+        <w>cesnet</w>
+      </words>
+    </dictionary>
   </component>
   <component name="ProjectModuleManager">
     <modules>
