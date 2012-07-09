@@ -14,6 +14,7 @@ import org.apache.xmlrpc.serializer.TypeSerializer;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -23,9 +24,22 @@ import java.util.Map;
  */
 public class TypeFactory extends TypeFactoryImpl
 {
-    public TypeFactory(XmlRpcController pController)
+    /**
+     * Option whether store changes for object when it is converted map.
+     */
+    private boolean storeChanges;
+
+    /**
+     * Constructor.
+     *
+     * @param pController
+     * @param storeChanges sets the {@link #storeChanges}
+     */
+    public TypeFactory(XmlRpcController pController, boolean storeChanges)
     {
         super(pController);
+
+        this.storeChanges = storeChanges;
     }
 
     @Override
@@ -48,8 +62,12 @@ public class TypeFactory extends TypeFactoryImpl
                     catch (XmlRpcException exception) {
                         throw new SAXException(exception);
                     }
+                    // Empty map means null
+                    if (map == null || map.size() == 0) {
+                        setResult(null);
+                    }
                     // If the class key is present convert the map to object
-                    if (map != null && map.containsKey("class")) {
+                    else if (map.containsKey("class")) {
                         // Convert map to object of the class
                         try {
                             setResult(Converter.convertMapToObject(map));
@@ -69,7 +87,17 @@ public class TypeFactory extends TypeFactoryImpl
     @Override
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
-        if (pObject != null && Converter.isAtomic(pObject)) {
+        if (pObject == null) {
+            return new MapSerializer(this, pConfig)
+            {
+                @Override
+                public void write(ContentHandler pHandler, Object pObject) throws SAXException
+                {
+                    super.write(pHandler, new HashMap());
+                }
+            };
+        }
+        else if (Converter.isAtomic(pObject)) {
             pObject = pObject.toString();
         }
         TypeSerializer serializer = super.getSerializer(pConfig, pObject);
@@ -82,7 +110,7 @@ public class TypeFactory extends TypeFactoryImpl
                 public void write(ContentHandler pHandler, Object pObject) throws SAXException
                 {
                     try {
-                        Map<String, Object> map = Converter.convertObjectToMap(pObject);
+                        Map<String, Object> map = Converter.convertObjectToMap(pObject, storeChanges);
                         super.write(pHandler, map);
                     }
                     catch (FaultException exception) {

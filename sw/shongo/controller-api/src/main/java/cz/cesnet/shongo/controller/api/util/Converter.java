@@ -33,27 +33,35 @@ public class Converter
     public static Object convert(Object value, Class targetType, Class[] allowedTypes)
             throws FaultException, IllegalArgumentException
     {
+        if (value == null) {
+            return null;
+        }
+
         if (allowedTypes != null && allowedTypes.length > 0) {
-            if (allowedTypes.length == 1) {
-                if (!(value instanceof Object[] || value instanceof Collection)) {
+            // When some allowed types are present
+            if (!(value instanceof Object[] || value instanceof Collection)) {
+                // When not converting array/collection
+                if (allowedTypes.length == 1) {
+                    // If only one allowed type is present set the single allowed type as target type
                     targetType = allowedTypes[0];
                 }
-            }
-            else {
-                Object allowedValue = null;
-                for (Class allowedType : allowedTypes) {
-                    try {
-                        allowedValue = Converter.convert(value, allowedType, null);
-                        break;
-                    }
-                    catch (Exception exception) {
-                    }
-                }
-                if (allowedValue != null) {
-                    return allowedValue;
-                }
                 else {
-                    throw new IllegalArgumentException();
+                    // Iterate through each allowed type and try to convert the value to it
+                    Object allowedValue = null;
+                    for (Class allowedType : allowedTypes) {
+                        try {
+                            allowedValue = Converter.convert(value, allowedType, null);
+                            break;
+                        }
+                        catch (Exception exception) {
+                        }
+                    }
+                    if (allowedValue != null) {
+                        return allowedValue;
+                    }
+                    else {
+                        throw new IllegalArgumentException();
+                    }
                 }
             }
         }
@@ -96,20 +104,20 @@ public class Converter
                 // Convert array to specific type
                 Class componentType = targetType.getComponentType();
                 Object[] arrayValue = (Object[]) value;
-                Object[] newArray = (Object[]) Array.newInstance(componentType, arrayValue.length);
+                Object[] newArray = createArray(componentType, arrayValue.length);
                 for (int index = 0; index < arrayValue.length; index++) {
                     newArray[index] = convert(arrayValue[index], componentType, allowedTypes);
                 }
                 value = newArray;
             }
             else if (Collection.class.isAssignableFrom(targetType)) {
-                // Convert array to specific type
+                // Convert collection to specific type
                 Object[] arrayValue = (Object[]) value;
-                List<Object> newList = new ArrayList<Object>(arrayValue.length);
+                Collection<Object> collection = createCollection(targetType, arrayValue.length);
                 for (Object item : arrayValue) {
-                    newList.add(convert(item, Object.class, allowedTypes));
+                    collection.add(convert(item, Object.class, allowedTypes));
                 }
-                value = newList;
+                value = collection;
             }
         }
         // If complex type is required and map is given
@@ -284,13 +292,14 @@ public class Converter
     /**
      * Convert given object if possible to {@link Map} or {@link Object[]} (recursive).
      *
+     * @param storeChanges
      * @return {@link Map} or {@link Object[]} or given value
      */
-    public static Object convertToMapOrArray(Object object) throws FaultException
+    public static Object convertToMapOrArray(Object object, boolean storeChanges) throws FaultException
     {
         if (object instanceof ComplexType) {
             ComplexType complexType = ComplexType.class.cast(object);
-            return complexType.toMap();
+            return complexType.toMap(storeChanges);
         }
         else if (object instanceof Collection) {
 
@@ -298,7 +307,7 @@ public class Converter
             Object[] newArray = new Object[collection.size()];
             int index = 0;
             for (Object item : collection) {
-                newArray[index] = convertToMapOrArray(item);
+                newArray[index] = convertToMapOrArray(item, storeChanges);
                 index++;
             }
             return newArray;
@@ -307,7 +316,7 @@ public class Converter
             Object[] oldArray = (Object[]) object;
             Object[] newArray = new Object[oldArray.length];
             for (int index = 0; index < oldArray.length; index++) {
-                newArray[index] = convertToMapOrArray(oldArray[index]);
+                newArray[index] = convertToMapOrArray(oldArray[index], storeChanges);
             }
             return newArray;
         }
@@ -316,10 +325,11 @@ public class Converter
 
     /**
      * @param object
+     * @param storeChanges
      * @return map containing attributes of given object
      * @throws FaultException
      */
-    public static Map convertObjectToMap(Object object) throws FaultException
+    public static Map convertObjectToMap(Object object, boolean storeChanges) throws FaultException
     {
         if (!(object instanceof ComplexType)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
@@ -327,7 +337,7 @@ public class Converter
                             getClassShortName(object.getClass())));
         }
         ComplexType complexType = ComplexType.class.cast(object);
-        return complexType.toMap();
+        return complexType.toMap(storeChanges);
     }
 
     /**
@@ -348,5 +358,35 @@ public class Converter
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param componentType
+     * @param size
+     * @return new instance of array of given size
+     */
+    public static Object[] createArray(Class componentType, int size)
+    {
+        return (Object[]) Array.newInstance(componentType, size);
+    }
+
+    /**
+     * @param type
+     * @param size
+     * @return new instance of collection of given size
+     * @throws FaultException
+     */
+    public static Collection<Object> createCollection(Class type, int size) throws FaultException
+    {
+        if (List.class.isAssignableFrom(type)) {
+            return new ArrayList<Object>(size);
+        }
+        else if (Set.class.isAssignableFrom(type)) {
+            return new HashSet<Object>(size);
+        }
+        else if (Collection.class.equals(type)) {
+            return new ArrayList<Object>(size);
+        }
+        throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, type);
     }
 }

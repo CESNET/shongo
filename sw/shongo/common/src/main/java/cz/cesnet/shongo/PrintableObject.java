@@ -82,7 +82,7 @@ public abstract class PrintableObject
             return formatCollection(list);
         }
         else if (object instanceof Object[]) {
-            return formatCollection(Arrays.asList((Object[])object));
+            return formatCollection(Arrays.asList((Object[]) object));
         }
         return (object == null ? "null" : object.toString());
     }

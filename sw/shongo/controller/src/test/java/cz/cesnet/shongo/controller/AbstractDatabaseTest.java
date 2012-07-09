@@ -8,6 +8,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Abstract database test provides the entity manager to extending classes as protected member variable.
@@ -47,8 +48,9 @@ public abstract class AbstractDatabaseTest
     {
         // For testing purposes use only in-memory database
         Map<String, String> properties = new HashMap<String, String>();
-        String schema = getClass().getName().replace(".", "_");
-        properties.put("hibernate.connection.url", "jdbc:hsqldb:mem:" + schema + "; shutdown=true;");
+        String schema = getClass().getName().replace(".", "_") + "_" + (Math.abs(new Random().nextInt() % 100));
+        String url = "jdbc:hsqldb:mem:" + schema + "; shutdown=true;";
+        properties.put("hibernate.connection.url", url);
 
         entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
     }

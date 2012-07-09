@@ -161,6 +161,15 @@ public class Property
     }
 
     /**
+     * @return true if property is of {@link Object[]} or {@link Collection} type,
+     *         false otherwise
+     */
+    public boolean isArrayOrCollection()
+    {
+        return isArray() || isCollection();
+    }
+
+    /**
      * @param annotationClass
      * @return property annotation if exists,
      *         null otherwise
@@ -373,7 +382,11 @@ public class Property
         // Add properties by fields
         Class currentType = type;
         while (currentType != null) {
-            if (currentType.equals(Object.class)) {
+            if (currentType.equals(ComplexType.class)) {
+                propertyNames.add("identifier");
+                break;
+            }
+            else if (currentType.equals(Object.class)) {
                 break;
             }
             Field[] declaredFields = currentType.getDeclaredFields();
@@ -385,7 +398,9 @@ public class Property
             Method[] methods = currentType.getDeclaredMethods();
             for (Method method : methods) {
                 String methodName = method.getName();
-                if ((methodName.startsWith("get") || methodName.startsWith("set"))
+                int parameterCount = method.getParameterTypes().length;
+                if (((methodName.startsWith("get") && parameterCount == 0)
+                             || (methodName.startsWith("set") && parameterCount == 1))
                         && Modifier.isPublic(method.getModifiers())) {
                     String name = methodName.substring(3);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);

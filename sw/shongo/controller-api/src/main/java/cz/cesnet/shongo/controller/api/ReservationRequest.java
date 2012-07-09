@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.Period;
-import org.omg.PortableServer.ServantLocatorOperations;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,35 +13,25 @@ import java.util.List;
  */
 public class ReservationRequest extends ComplexType
 {
-
-
     /**
      * @see ReservationRequestType
      */
-    private ReservationRequestType type;
+    public static final String TYPE = "type";
 
     /**
      * @see ReservationRequestPurpose
      */
-    private ReservationRequestPurpose purpose;
+    public static final String PURPOSE = "purpose";
 
     /**
-     * List of {@link DateTimeSlot} for which the reservation is requested.
+     * Collection of {@link DateTimeSlot} for which the reservation is requested.
      */
-    private List<DateTimeSlot> slots = new ArrayList<DateTimeSlot>();
+    public static final String SLOTS = "slots";
 
     /**
-     * List of {@link Compartment} which are requested for the reservation.
+     * Collection of {@link Compartment} which are requested for the reservation.
      */
-    private List<Compartment> compartments = new ArrayList<Compartment>();
-
-    /**
-     * Attribute names
-     */
-    public final String TYPE = "type";
-    public final String PURPOSE = "purpose";
-    public final String SLOTS = "slots";
-    public final String COMPARTMENTS = "compartments";
+    public static final String COMPARTMENTS = "compartments";
 
     /**
      * Constructor.
@@ -53,63 +41,68 @@ public class ReservationRequest extends ComplexType
     }
 
     /**
-     * Constructor for existing reservation request with given identifier.
-     *
-     * @param identifier
-     */
-    public ReservationRequest(String identifier)
-    {
-    }
-
-    /**
-     * @return {@link #type}
+     * @return {@link #TYPE}
      */
     @Required
     public ReservationRequestType getType()
     {
-        return type;
+        return propertyStore.getValue(TYPE);
     }
 
     /**
-     * @param type sets the {@link #type}
+     * @param type sets the {@link #TYPE}
      */
     public void setType(ReservationRequestType type)
     {
-        this.type = type;
-
-        markPropertyAsFilled(TYPE);
+        propertyStore.setValue(TYPE, type);
     }
 
     /**
-     * @return {@link #purpose}
+     * @return {@link #PURPOSE}
      */
     @Required
     public ReservationRequestPurpose getPurpose()
     {
-        return purpose;
+        return propertyStore.getValue(PURPOSE);
     }
 
     /**
-     * @param purpose sets the {@link #purpose}
+     * @param purpose sets the {@link #PURPOSE}
      */
     public void setPurpose(ReservationRequestPurpose purpose)
     {
-        this.purpose = purpose;
-
-        markPropertyAsFilled(PURPOSE);
+        propertyStore.setValue(PURPOSE, purpose);
     }
 
     /**
-     * @return {@link #slots}
+     * @return {@link #SLOTS}
      */
     @Required
     public List<DateTimeSlot> getSlots()
     {
-        return slots;
+        return propertyStore.getCollection(SLOTS);
     }
 
     /**
-     * Add new slot to the {@link #slots}.
+     * @param slots sets the {@link #SLOTS}
+     */
+    private void setSlots(List<DateTimeSlot> slots)
+    {
+        propertyStore.setCollection(SLOTS, slots);
+    }
+
+    /**
+     * Add new slot to the {@link #SLOTS}.
+     *
+     * @param dateTimeSlot
+     */
+    public void addSlot(DateTimeSlot dateTimeSlot)
+    {
+        propertyStore.addCollectionItem(SLOTS, dateTimeSlot);
+    }
+
+    /**
+     * Add new slot to the {@link #SLOTS}.
      *
      * @param start
      * @param duration
@@ -117,45 +110,49 @@ public class ReservationRequest extends ComplexType
     public void addSlot(Object start, Period duration)
     {
         DateTimeSlot dateTimeSlot = new DateTimeSlot(start, duration);
-        slots.add(dateTimeSlot);
-        markCollectionItemAsNew(SLOTS, dateTimeSlot);
+        addSlot(dateTimeSlot);
     }
 
     /**
-     * @param dateTimeSlot slot to be removed from the {@link #slots}
+     * @param dateTimeSlot slot to be removed from the {@link #SLOTS}
      */
     public void removeSlot(DateTimeSlot dateTimeSlot)
     {
-        slots.remove(dateTimeSlot);
-        markCollectionItemAsRemoved(SLOTS, dateTimeSlot);
+        propertyStore.removeCollectionItem(SLOTS, dateTimeSlot);
     }
 
     /**
-     * @return {@link #compartments}
+     * @return {@link #COMPARTMENTS}
      */
     @Required
     public List<Compartment> getCompartments()
     {
-        return compartments;
+        return propertyStore.getCollection(COMPARTMENTS);
     }
 
     /**
-     * @return newly added {@link Compartment} to the {@link #compartments}
+     * @param compartments sets the {@link #COMPARTMENTS}
+     */
+    private void setCompartments(List<Compartment> compartments)
+    {
+        propertyStore.setCollection(COMPARTMENTS, compartments);
+    }
+
+    /**
+     * @return newly added {@link Compartment} to the {@link #COMPARTMENTS}
      */
     public Compartment addCompartment()
     {
         Compartment compartment = new Compartment();
-        compartments.add(compartment);
-        markCollectionItemAsNew(COMPARTMENTS, compartment);
+        propertyStore.addCollectionItem(COMPARTMENTS, compartment);
         return compartment;
     }
 
     /**
-     * @param compartment compartment to be removed from the {@link #compartments}
+     * @param compartment compartment to be removed from the {@link #COMPARTMENTS}
      */
     public void removeCompartment(Compartment compartment)
     {
-        compartments.remove(compartment);
-        markCollectionItemAsRemoved(COMPARTMENTS, compartment);
+        propertyStore.removeCollectionItem(COMPARTMENTS, compartment);
     }
 }

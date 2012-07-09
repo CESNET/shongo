@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
 import cz.cesnet.shongo.controller.request.ResourceSpecification;

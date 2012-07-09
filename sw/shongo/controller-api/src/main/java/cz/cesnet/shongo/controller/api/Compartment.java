@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Technology;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -21,56 +20,56 @@ public class Compartment extends ComplexType
     }
 
     /**
-     * List of requested persons for the compartment.
+     * Collection of requested persons for the compartment.
      */
-    private List<Person> persons = new ArrayList<Person>();
+    public final String PERSONS = "persons";
 
     /**
-     * List of requested reosurces for the compartment.
+     * Collection of requested reosurces for the compartment.
      */
-    private List<ResourceSpecificationMap> resources = new ArrayList<ResourceSpecificationMap>();
+    public final String RESOURCES = "resources";
 
     /**
-     * @return {@link #persons}
+     * @return {@link #PERSONS}
      */
     public List<Person> getPersons()
     {
-        return persons;
+        return propertyStore.getCollection(PERSONS);
     }
 
     /**
-     * @param persons sets the {@link #persons}
+     * @param persons sets the {@link #PERSONS}
      */
-    public void setPersons(List<Person> persons)
+    private void setPersons(List<Person> persons)
     {
-        this.persons = persons;
+        propertyStore.setCollection(PERSONS, persons);
     }
 
     /**
-     * Adds new person to the {@link #persons}.
+     * Adds new person to the {@link #PERSONS}.
      *
      * @param name
      * @param email
      */
     public void addPerson(String name, String email)
     {
-        getPersons().add(new Person(name, email));
+        propertyStore.addCollectionItem(PERSONS, new Person(name, email));
     }
 
     /**
-     * @return {@link #resources}
+     * @return {@link #RESOURCES}
      */
     public List<ResourceSpecificationMap> getResources()
     {
-        return resources;
+        return propertyStore.getCollection(RESOURCES);
     }
 
     /**
-     * @param resources {@link #resources}
+     * @param resources {@link #RESOURCES}
      */
     public void setResources(List<ResourceSpecificationMap> resources)
     {
-        this.resources = resources;
+        propertyStore.setCollection(RESOURCES, resources);
     }
 
     /**
@@ -86,6 +85,6 @@ public class Compartment extends ComplexType
         resourceSpecificationMap.put("technology", technology);
         resourceSpecificationMap.put("count", count);
         resourceSpecificationMap.put("persons", persons);
-        resources.add(resourceSpecificationMap);
+        propertyStore.addCollectionItem(RESOURCES, resourceSpecificationMap);
     }
 }

@@ -11,7 +11,6 @@ import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Reservation service implementation
@@ -66,6 +65,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         return "Reservation";
     }
 
+
     @Override
     public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException
@@ -75,28 +75,20 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
+        // Create reservation request
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 new cz.cesnet.shongo.controller.request.ReservationRequest();
+
+        // Fill common attributes
         reservationRequestImpl.setType(reservationRequest.getType());
         reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
+
+        // Fill requested slots
         for (DateTimeSlot dateTimeSlot : reservationRequest.getSlots()) {
-            Object dateTime = dateTimeSlot.getStart();
-            if (dateTime instanceof DateTime) {
-                reservationRequestImpl.addRequestedSlot(
-                        new cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification((DateTime) dateTime),
-                        dateTimeSlot.getDuration());
-            }
-            else if (dateTime instanceof PeriodicDateTime) {
-                PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
-                reservationRequestImpl.addRequestedSlot(
-                        new cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification(periodic.getStart(),
-                                periodic.getPeriod()), dateTimeSlot.getDuration());
-            }
-            else {
-                throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
-                        "Unknown date/time type.");
-            }
+            createRequestedSlotInReservationRequest(reservationRequestImpl, dateTimeSlot);
         }
+
+        // Fill requested compartments
         for (Compartment compartment : reservationRequest.getCompartments()) {
             cz.cesnet.shongo.controller.request.Compartment compartmentImpl =
                     reservationRequestImpl.addRequestedCompartment();
@@ -136,18 +128,80 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             }
         }
 
+        // Save it
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         reservationRequestManager.create(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
         entityManager.close();
 
+        // Return reservation request identifier
         return domain.formatIdentifier(reservationRequestImpl.getId());
     }
 
     @Override
-    public void modifyReservationRequest(SecurityToken token, String reservationRequestIdentifier, Map attributes)
+    public void modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException
+    {
+        Long reservationRequestId = domain.parseIdentifier(reservationRequest.getIdentifier());
+
+        EntityManager entityManager = getEntityManager();
+        entityManager.getTransaction().begin();
+
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
+        // Get reservation request
+        cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+                reservationRequestManager.get(reservationRequestId);
+
+        // Modify common attributes
+        if (reservationRequest.isPropertyFilled(ReservationRequest.TYPE)) {
+            reservationRequestImpl.setType(reservationRequest.getType());
+        }
+        if (reservationRequest.isPropertyFilled(ReservationRequest.PURPOSE)) {
+            reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
+        }
+
+        // Create/modify requested slots
+        for (DateTimeSlot dateTimeSlot : reservationRequest.getSlots()) {
+            // Create new requested slot
+            if (reservationRequest.isCollectionItemMarkedAsNew(ReservationRequest.SLOTS, dateTimeSlot)) {
+                createRequestedSlotInReservationRequest(reservationRequestImpl, dateTimeSlot);
+            }
+            else {
+                // Modify existing requested slot
+                cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl =
+                        reservationRequestImpl.getRequestedSlotById(dateTimeSlot.getIdentifierAsLong());
+                dateTimeSlotImpl.setDuration(dateTimeSlot.getDuration());
+
+                entityManager.remove(dateTimeSlotImpl.getStart());
+
+                Object dateTime = dateTimeSlot.getStart();
+                if (dateTime instanceof DateTime) {
+                    dateTimeSlotImpl.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
+                }
+                else if (dateTime instanceof PeriodicDateTime) {
+                    PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
+                    dateTimeSlotImpl.setStart(new PeriodicDateTimeSpecification(periodic.getStart(),
+                            periodic.getPeriod()));
+                }
+            }
+        }
+        // Delete requested slots
+        for (DateTimeSlot dateTimeSlot : reservationRequest.getCollectionItemsMarkedAsDeleted(
+                ReservationRequest.SLOTS, DateTimeSlot.class)) {
+            reservationRequestImpl.removeRequestedSlot(
+                    reservationRequestImpl.getRequestedSlotById(dateTimeSlot.getIdentifierAsLong()));
+        }
+
+        reservationRequestManager.update(reservationRequestImpl);
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
+    }
+
+    @Override
+    public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier) throws FaultException
     {
         Long reservationRequestId = domain.parseIdentifier(reservationRequestIdentifier);
 
@@ -155,15 +209,16 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         entityManager.getTransaction().begin();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        reservationRequestManager.get(reservationRequestId);
 
-        throw new FaultException(ControllerFault.TODO_IMPLEMENT);
-    }
+        // Get reservation request
+        cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+                reservationRequestManager.get(reservationRequestId);
 
-    @Override
-    public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier) throws FaultException
-    {
-        throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+        // Delete the request
+        reservationRequestManager.delete(reservationRequestImpl);
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
     }
 
     @Override
@@ -176,45 +231,54 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
+        if (reservationRequestImpl == null) {
+            return null;
+        }
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setIdentifier(domain.formatIdentifier(reservationRequestImpl.getId()));
         reservationRequest.setType(reservationRequestImpl.getType());
         reservationRequest.setPurpose(reservationRequestImpl.getPurpose());
 
-        for ( cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :
+        for (cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :
                 reservationRequestImpl.getRequestedSlots()) {
 
             Object start = null;
             if (dateTimeSlotImpl.getStart() instanceof AbsoluteDateTimeSpecification) {
-                start = ((AbsoluteDateTimeSpecification)dateTimeSlotImpl.getStart()).getDateTime();
-            } else if (dateTimeSlotImpl.getStart() instanceof PeriodicDateTimeSpecification) {
+                start = ((AbsoluteDateTimeSpecification) dateTimeSlotImpl.getStart()).getDateTime();
+            }
+            else if (dateTimeSlotImpl.getStart() instanceof PeriodicDateTimeSpecification) {
                 PeriodicDateTimeSpecification periodicDateTimeSpecification =
                         (PeriodicDateTimeSpecification) dateTimeSlotImpl.getStart();
 
                 start = new PeriodicDateTime(periodicDateTimeSpecification.getStart(),
                         periodicDateTimeSpecification.getPeriod());
-            } else {
+            }
+            else {
                 throw new FaultException(ControllerFault.TODO_IMPLEMENT);
             }
-            reservationRequest.addSlot(start, dateTimeSlotImpl.getDuration());
+            DateTimeSlot dateTimeSlot = new DateTimeSlot();
+            dateTimeSlot.setIdentifier(dateTimeSlotImpl.getId().toString());
+            dateTimeSlot.setStart(start);
+            dateTimeSlot.setDuration(dateTimeSlotImpl.getDuration());
+            reservationRequest.addSlot(dateTimeSlot);
         }
 
-        for ( cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
+        for (cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
                 reservationRequestImpl.getRequestedCompartments()) {
             Compartment compartment = reservationRequest.addCompartment();
-            for ( cz.cesnet.shongo.controller.common.Person person : compartmentImpl.getRequestedPersons()) {
+            for (cz.cesnet.shongo.controller.common.Person person : compartmentImpl.getRequestedPersons()) {
                 compartment.addPerson(person.getName(), person.getEmail());
             }
-            for ( cz.cesnet.shongo.controller.request.ResourceSpecification resource :
+            for (cz.cesnet.shongo.controller.request.ResourceSpecification resource :
                     compartmentImpl.getRequestedResources()) {
-                if ( resource instanceof cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) {
+                if (resource instanceof cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) {
                     cz.cesnet.shongo.controller.request.ExternalEndpointSpecification externalEndpointSpecification =
                             (cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) resource;
                     List<cz.cesnet.shongo.controller.common.Person> resourceRequestedPersons =
                             externalEndpointSpecification.getRequestedPersons();
                     Person[] persons = new Person[resourceRequestedPersons.size()];
-                    for ( int index = 0; index < resourceRequestedPersons.size(); index++) {
+                    for (int index = 0; index < resourceRequestedPersons.size(); index++) {
                         cz.cesnet.shongo.controller.common.Person person = resourceRequestedPersons.get(index);
                         persons[index] = new Person(person.getName(), person.getEmail());
                     }
@@ -225,5 +289,34 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         }
 
         return reservationRequest;
+    }
+
+    /**
+     * Create new requested slot in given reservation request from the given {@link DateTimeSlot}.
+     *
+     * @param reservationRequestImpl
+     * @param dateTimeSlot
+     * @throws FaultException
+     */
+    private void createRequestedSlotInReservationRequest(
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl, DateTimeSlot dateTimeSlot)
+            throws FaultException
+    {
+        Object dateTime = dateTimeSlot.getStart();
+        if (dateTime instanceof DateTime) {
+            reservationRequestImpl.addRequestedSlot(
+                    new AbsoluteDateTimeSpecification((DateTime) dateTime),
+                    dateTimeSlot.getDuration());
+        }
+        else if (dateTime instanceof PeriodicDateTime) {
+            PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
+            reservationRequestImpl.addRequestedSlot(
+                    new PeriodicDateTimeSpecification(periodic.getStart(),
+                            periodic.getPeriod()), dateTimeSlot.getDuration());
+        }
+        else {
+            throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
+                    "Unknown date/time type.");
+        }
     }
 }

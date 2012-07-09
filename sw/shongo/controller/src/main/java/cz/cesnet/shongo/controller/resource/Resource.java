@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;

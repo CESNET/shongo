@@ -66,7 +66,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         super(pPort, getHostByName(host));
 
         handlerMapping = new HandlerMapping();
-        handlerMapping.setTypeConverterFactory(new TypeConverterFactory());
+        handlerMapping.setTypeConverterFactory(new TypeConverterFactory(false));
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
         handlerMapping.setVoidMethodEnabled(true);
 
@@ -80,7 +80,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     protected XmlRpcStreamServer newXmlRpcStreamServer()
     {
         XmlRpcStreamServer server = new ConnectionServer();
-        server.setTypeFactory(new TypeFactory(server));
+        server.setTypeFactory(new TypeFactory(server, false));
         return server;
     }
 
@@ -124,6 +124,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      */
     public void stop()
     {
+
         shutdown();
     }
 

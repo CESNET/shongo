@@ -18,8 +18,31 @@ import java.util.Map;
  */
 public class TypeConverterFactory extends TypeConverterFactoryImpl
 {
-    private static final TypeConverter atomicTypeConverter = new AtomicTypeConverter(AtomicType.class);
-    private static final TypeConverter mapTypeConverter = new MapTypeConverter();
+    /**
+     * Option whether store changes for object when it is converted map.
+     */
+    private boolean storeChanges;
+
+    /**
+     * Converter for {@link AtomicType}.
+     */
+    private TypeConverter atomicTypeConverter = new AtomicTypeConverter(AtomicType.class);
+
+    /**
+     * Converter for {@link Map}.
+     */
+    private TypeConverter mapTypeConverter;
+
+    /**
+     * Constructor.
+     *
+     * @param storeChanges sets the {@link #storeChanges}
+     */
+    public TypeConverterFactory(boolean storeChanges)
+    {
+        this.storeChanges = storeChanges;
+        mapTypeConverter = new MapTypeConverter(storeChanges);
+    }
 
     @Override
     public TypeConverter getTypeConverter(Class pClass)
@@ -31,7 +54,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             return atomicTypeConverter;
         }
         else if (ComplexType.class.isAssignableFrom(pClass)) {
-            return ComplexTypeConverter.getInstance(pClass);
+            return ComplexTypeConverter.getInstance(pClass, storeChanges);
         }
         else if (Map.class.isAssignableFrom(pClass)) {
             return mapTypeConverter;
@@ -139,17 +162,31 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      */
     private static class ComplexTypeConverter implements TypeConverter
     {
-        private final Class clazz;
+        /**
+         * Option whether store changes for object when it is converted map.
+         */
+        private boolean storeChanges;
 
-        ComplexTypeConverter(Class pClass)
+        /**
+         * Type of object.
+         */
+        private final Class type;
+
+        /**
+         * Constructor.
+         *
+         * @param storeChanges sets the {@link #storeChanges}
+         */
+        ComplexTypeConverter(Class type, boolean storeChanges)
         {
-            clazz = pClass;
+            this.type = type;
+            this.storeChanges = storeChanges;
         }
 
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return pObject == null || clazz.isAssignableFrom(pObject.getClass()) || pObject instanceof Map;
+            return pObject == null || type.isAssignableFrom(pObject.getClass()) || pObject instanceof Map;
         }
 
         @Override
@@ -157,7 +194,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof Map) {
                 try {
-                    return Converter.convertMapToObject((Map) pObject, clazz);
+                    return Converter.convertMapToObject((Map) pObject, type);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -170,17 +207,17 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object pObject)
         {
             try {
-                return Converter.convertObjectToMap(pObject);
+                return Converter.convertObjectToMap(pObject, storeChanges);
             }
             catch (FaultException exception) {
                 throw new RuntimeException(exception);
             }
         }
 
-        public static ComplexTypeConverter getInstance(Class pClass)
+        public static ComplexTypeConverter getInstance(Class pClass, boolean storeChanges)
         {
             // TODO: Reuse instances for same class
-            return new ComplexTypeConverter(pClass);
+            return new ComplexTypeConverter(pClass, storeChanges);
         }
     }
 
@@ -191,6 +228,21 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      */
     private static class MapTypeConverter implements TypeConverter
     {
+        /**
+         * Option whether store changes for object when it is converted map.
+         */
+        private boolean storeChanges;
+
+        /**
+         * Constructor.
+         *
+         * @param storeChanges sets the {@link #storeChanges}
+         */
+        public MapTypeConverter(boolean storeChanges)
+        {
+            this.storeChanges = storeChanges;
+        }
+
         @Override
         public boolean isConvertable(Object pObject)
         {
@@ -203,7 +255,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof ComplexType) {
                 try {
-                    return Converter.convertObjectToMap(pObject);
+                    return Converter.convertObjectToMap(pObject, storeChanges);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);

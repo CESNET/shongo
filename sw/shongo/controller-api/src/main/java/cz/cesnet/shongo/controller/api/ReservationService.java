@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import java.util.Map;
-
 import static cz.cesnet.shongo.controller.api.ComplexType.Required;
 
 /**
@@ -28,12 +26,11 @@ public interface ReservationService extends Service
     /**
      * Modifies a given reservation.
      *
-     * @param token         token of the user requesting the operation
-     * @param reservationId Shongo identifier of the reservation to modify
-     * @param attributes    map of reservation attributes to change
+     * @param token              token of the user requesting the operation
+     * @param reservationRequest reservation request with attributes to be modified
      */
     @API
-    public void modifyReservationRequest(SecurityToken token, String reservationId, Map attributes)
+    public void modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException;
 
     /**

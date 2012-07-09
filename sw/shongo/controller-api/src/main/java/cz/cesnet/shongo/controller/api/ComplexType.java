@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.api.util.Converter;
 import cz.cesnet.shongo.controller.api.util.Property;
 
-import java.awt.event.ComponentEvent;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Array;
 import java.util.*;
 
 import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassShortName;
@@ -21,7 +21,7 @@ import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassShortName
 public abstract class ComplexType
 {
     /**
-     * Annotation used for properties that must be presented when creating new entity.
+     * Annotation used for properties that must be present when a new entity is created.
      */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD, ElementType.FIELD})
@@ -36,13 +36,19 @@ public abstract class ComplexType
     @Target({ElementType.METHOD, ElementType.FIELD})
     public static @interface AllowedTypes
     {
+        /**
+         * @return array of allowed types for the property
+         */
         Class[] value();
 
+        /**
+         * @return default value for {@link #value()}
+         */
         Class[] defaultValue() default {};
     }
 
     /**
-     * Stores state of collection.
+     * Stores state of collection property.
      */
     private static class CollectionChanges
     {
@@ -65,24 +71,170 @@ public abstract class ComplexType
     }
 
     /**
-     * Object identifier
+     * Holds values for properties.
      */
-    private Object identifier;
+    protected class PropertyStore
+    {
+        /**
+         * Internal store for property values.
+         */
+        private Map<String, Object> values = new HashMap<String, Object>();
+
+        /**
+         * Set property value.
+         *
+         * @param property
+         * @param value
+         */
+        public void setValue(String property, Object value)
+        {
+            values.put(property, value);
+            markPropertyAsFilled(property);
+        }
+
+        /**
+         * @param property
+         * @return value of given property
+         */
+        public <T> T getValue(String property)
+        {
+            @SuppressWarnings("unchecked")
+            T value = (T) values.get(property);
+            return value;
+        }
+
+        /**
+         * @param property
+         * @return return collection of given property
+         */
+        public <T> List<T> getCollection(String property)
+        {
+            @SuppressWarnings("unchecked")
+            List<T> collection = (List<T>) values.get(property);
+            if (collection == null) {
+                return new ArrayList<T>();
+            }
+            return collection;
+        }
+
+        /**
+         * @param property
+         * @param type
+         * @return return collection of given property converted to array
+         */
+        public <T> T[] getCollection(String property, Class<T> type)
+        {
+            List<T> collection = getCollection(property);
+            @SuppressWarnings("unchecked")
+            T[] array = (T[]) Array.newInstance(type, collection.size());
+            try {
+                return collection.toArray(array);
+            }
+            catch (RuntimeException exception) {
+                throw new RuntimeException(
+                        String.format("Failed to convert collection '%s' to array of type '%s'.", property,
+                                type.getCanonicalName()), exception);
+            }
+        }
+
+        /**
+         * Set property collection value.
+         *
+         * @param property
+         * @param collection
+         */
+        public <T> void setCollection(String property, List<T> collection)
+        {
+            values.put(property, collection);
+        }
+
+        /**
+         * Set property collection value from array.
+         *
+         * @param property
+         * @param array
+         */
+        public <T> void setCollection(String property, T[] array)
+        {
+            setCollection(property, new ArrayList<T>(Arrays.asList(array)));
+        }
+
+        /**
+         * Add given new item to to the collection property.
+         *
+         * @param property
+         * @param item
+         * @return true if adding was successful,
+         *         false otherwise
+         */
+        public boolean addCollectionItem(String property, Object item)
+        {
+            @SuppressWarnings("unchecked")
+            Collection<Object> collection = (Collection<Object>) values.get(property);
+            if (collection == null) {
+                collection = new ArrayList<Object>();
+                values.put(property, collection);
+            }
+            if (collection.add(item)) {
+                markCollectionItemAsNew(property, item);
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * Remove given item from the collection property.
+         *
+         * @param property
+         * @param item
+         * @return true if removing was successful,
+         *         false otherwise
+         */
+        public boolean removeCollectionItem(String property, Object item)
+        {
+            Collection collection = (Collection) values.get(property);
+            if (collection == null) {
+                return false;
+            }
+            if (collection.remove(item)) {
+                markCollectionItemAsDeleted(property, item);
+                return true;
+            }
+            return false;
+        }
+    }
 
     /**
-     * Set of fields which was marked as filled.
+     * Keys that are used in map for collection changes.
+     */
+    public static final String COLLECTION_NEW = "new";
+    public static final String COLLECTION_MODIFIED = "modified";
+    public static final String COLLECTION_DELETED = "deleted";
+
+    /**
+     * Object identifier
+     */
+    private String identifier;
+
+    /**
+     * Set of properties which are marked as filled.
      */
     private Set<String> filledProperties = new HashSet<String>();
 
     /**
-     * Map of changes for collections.
+     * Map of changes for collection properties.
      */
     private Map<String, CollectionChanges> collectionChangesMap = new HashMap<String, CollectionChanges>();
 
     /**
+     * Store that can be used to store property values by extending classes.
+     */
+    protected PropertyStore propertyStore = new PropertyStore();
+
+    /**
      * @return {@link #identifier}
      */
-    public Object getIdentifier()
+    public String getIdentifier()
     {
         return identifier;
     }
@@ -90,9 +242,17 @@ public abstract class ComplexType
     /**
      * @param identifier sets the {@link #identifier}
      */
-    void setIdentifier(Object identifier)
+    void setIdentifier(String identifier)
     {
-        this.identifier = identifier;
+        this.identifier = identifier.toString();
+    }
+
+    /**
+     * @return {@link #identifier}
+     */
+    public Long getIdentifierAsLong()
+    {
+        return Long.parseLong(identifier);
     }
 
     /**
@@ -116,15 +276,6 @@ public abstract class ComplexType
     }
 
     /**
-     * Clear all filled/collection marks
-     */
-    public void clearMarks()
-    {
-        filledProperties.clear();
-        collectionChangesMap.clear();
-    }
-
-    /**
      * Mark item in collection as new.
      *
      * @param property
@@ -133,7 +284,7 @@ public abstract class ComplexType
     protected void markCollectionItemAsNew(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
-        if ( collectionChanges == null ) {
+        if (collectionChanges == null) {
             collectionChanges = new CollectionChanges();
             collectionChangesMap.put(property, collectionChanges);
         }
@@ -146,18 +297,55 @@ public abstract class ComplexType
      * @param property
      * @param item
      */
-    protected void markCollectionItemAsRemoved(String property, Object item)
+    protected void markCollectionItemAsDeleted(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
-        if ( collectionChanges == null ) {
+        if (collectionChanges == null) {
             collectionChanges = new CollectionChanges();
             collectionChangesMap.put(property, collectionChanges);
         }
-        if ( collectionChanges.newItems.contains(item)) {
+        if (collectionChanges.newItems.contains(item)) {
             collectionChanges.newItems.remove(item);
-        } else {
+        }
+        else {
             collectionChanges.deletedItems.add(item);
         }
+    }
+
+    public boolean isCollectionItemMarkedAsNew(String property, Object item)
+    {
+        CollectionChanges collectionChanges = collectionChangesMap.get(property);
+        if (collectionChanges != null) {
+            return collectionChanges.newItems.contains(item);
+        }
+        return false;
+    }
+
+    /**
+     * @param property
+     * @param type
+     * @return set of items from given collection which are marked as deleted
+     */
+    public <T> Set<T> getCollectionItemsMarkedAsDeleted(String property, Class<T> type)
+    {
+        CollectionChanges collectionChanges = collectionChangesMap.get(property);
+        if (collectionChanges != null) {
+            @SuppressWarnings("unchecked")
+            Set<T> deletedItems = (Set) collectionChanges.deletedItems;
+            return deletedItems;
+        }
+        else {
+            return new HashSet<T>();
+        }
+    }
+
+    /**
+     * Clear all filled/collection marks
+     */
+    protected void clearMarks()
+    {
+        filledProperties.clear();
+        collectionChangesMap.clear();
     }
 
     /**
@@ -176,18 +364,80 @@ public abstract class ComplexType
             if (!(key instanceof String)) {
                 throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contain only string keys.");
             }
-            String property = (String) key;
+            String propertyName = (String) key;
             Object value = map.get(key);
 
             // Skip class property
-            if (property.equals("class")) {
+            if (propertyName.equals("class")) {
                 continue;
             }
 
             // Get property type and allowed types
-            Property propertyDefinition = Property.getPropertyNotNull(getClass(), property);
-            Class type = propertyDefinition.getType();
-            Class[] allowedTypes = propertyDefinition.getAllowedTypes();
+            Property property = Property.getPropertyNotNull(getClass(), propertyName);
+            Class type = property.getType();
+            Class[] allowedTypes = property.getAllowedTypes();
+
+            // Parse collection changes
+            if (value instanceof Map && property.isArrayOrCollection()) {
+                Map collectionChanges = (Map) value;
+                Object newItems = null;
+                Object modifiedItems = null;
+                Object deletedItems = null;
+                if (collectionChanges.containsKey(COLLECTION_NEW)) {
+                    newItems = Converter.convert(collectionChanges.get(COLLECTION_NEW), type, allowedTypes);
+                }
+                if (collectionChanges.containsKey(COLLECTION_MODIFIED)) {
+                    modifiedItems = Converter.convert(collectionChanges.get(COLLECTION_MODIFIED), type, allowedTypes);
+                }
+                if (collectionChanges.containsKey(COLLECTION_DELETED)) {
+                    deletedItems = Converter.convert(collectionChanges.get(COLLECTION_DELETED), type, allowedTypes);
+                }
+                if (newItems != null || modifiedItems != null || deletedItems != null) {
+                    if (property.isArray()) {
+                        int size = (newItems != null ? ((Object[]) newItems).length : 0)
+                                + (modifiedItems != null ? ((Object[]) modifiedItems).length : 0);
+                        int index = 0;
+                        Object[] array = Converter.createArray(type.getComponentType(), size);
+                        if (newItems != null) {
+                            for (Object newItem : (Object[]) newItems) {
+                                array[index++] = newItem;
+                                markCollectionItemAsNew(propertyName, newItem);
+                            }
+                        }
+                        if (modifiedItems != null) {
+                            for (Object modifiedItem : (Object[]) modifiedItems) {
+                                array[index++] = modifiedItem;
+                            }
+                        }
+                        if (deletedItems != null) {
+                            for (Object deletedItem : (Object[]) deletedItems) {
+                                markCollectionItemAsDeleted(propertyName, deletedItem);
+                            }
+                        }
+                        value = array;
+                    }
+                    else if (property.isCollection()) {
+                        Collection<Object> collection = Converter.createCollection(type, 0);
+                        if (newItems != null) {
+                            for (Object newItem : (Collection) newItems) {
+                                collection.add(newItem);
+                                markCollectionItemAsNew(propertyName, newItem);
+                            }
+                        }
+                        if (modifiedItems != null) {
+                            for (Object modifiedItem : (Collection) modifiedItems) {
+                                collection.add(modifiedItem);
+                            }
+                        }
+                        if (deletedItems != null) {
+                            for (Object deletedItem : (Collection) deletedItems) {
+                                markCollectionItemAsDeleted(propertyName, deletedItem);
+                            }
+                        }
+                        value = collection;
+                    }
+                }
+            }
 
             try {
                 value = Converter.convert(value, type, allowedTypes);
@@ -200,93 +450,111 @@ public abstract class ComplexType
                     }
                     builder.append(Converter.getClassShortName(allowedType));
                 }*/
-                throw new FaultException(exception, Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
+                throw new FaultException(exception, Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
                         getClass(),
                         type,
                         value.getClass());
             }
 
             // Set the value to property
-            Property.setPropertyValue(this, property, value);
+            Property.setPropertyValue(this, propertyName, value);
 
             // Mark property as filled
-            markPropertyAsFilled(property);
+            markPropertyAsFilled(propertyName);
         }
     }
 
     /**
-     * Convert object to a map. Put to map all properties that are not {@code null} or marked as filled. Don't put to
+     * Convert object to a map. Map will contain all object's properties that are:
+     * 1) simple (not {@link Object[]} or {@link Collection}) with not {@link null} value
+     * 2) simple with {@link null} value but marked as filled through ({@link #markPropertyAsFilled(String)}
+     * 3) {@link Object[]} or {@link Collection} which is not empty
+     * <p/>
+     * Put to map all properties that are not {@code null} or marked as filled. Don't put to
      * map empty arrays or collections.
      *
-     * @return map
-     * @throws FaultException
+     * @param storeChanges specifies whether marks for filled properties should be used and whether collections
+     *                     should be stored as Maps with {@link #COLLECTION_NEW}, {@link #COLLECTION_MODIFIED},
+     *                     {@link #COLLECTION_DELETED} lists.
+     * @return map which contains object's properties
+     * @throws FaultException when the conversion fails
      */
-    public Map toMap() throws FaultException
+    public Map toMap(boolean storeChanges) throws FaultException
     {
         Map<String, Object> map = new HashMap<String, Object>();
         String[] propertyNames = Property.getPropertyNames(getClass());
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(getClass(), propertyName);
+            if (property == null) {
+                throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, getClass());
+            }
             Object value = property.getValue(this);
-            if (value == null && !isPropertyFilled(propertyName)) {
+            if (value == null && !(storeChanges && isPropertyFilled(propertyName))) {
                 continue;
             }
 
-            // If property is collection with changes
-            if ( collectionChangesMap.containsKey(propertyName)) {
+            // Store collection changes
+            if (storeChanges && property.isArrayOrCollection()) {
+                Object[] items;
+                if (value instanceof Object[]) {
+                    items = (Object[]) value;
+                }
+                else {
+                    Collection collection = (Collection) value;
+                    items = collection.toArray();
+                }
+
+                // Map of changes
+                Map<String, Object> mapCollection = new HashMap<String, Object>();
+                // List of modified items
+                List<Object> modifiedItems = new ArrayList<Object>();
+
+                // Store collection changes into map
                 CollectionChanges collectionChanges = collectionChangesMap.get(propertyName);
-                // Skip empty changes
-                if (!collectionChanges.isEmpty()) {
-                    Object[] items = null;
-                    if ( value instanceof Object[]) {
-                        items = (Object[]) value;
-                    } else {
-                        Collection collection = (Collection) value;
-                        items = collection.toArray(new Object[collection.size()]);
-                    }
-                    // Get modified items from current items in collection
-                    List<Object> modifiedItems = new ArrayList<Object>();
-                    for ( Object item : items ) {
-                        if ( collectionChanges.newItems.contains(item)) {
+                if (collectionChanges != null) {
+                    // Find all modified items (not marked items are by default modified)
+                    for (Object item : items) {
+                        if (collectionChanges.newItems.contains(item)) {
                             continue;
                         }
-                        if ( collectionChanges.deletedItems.contains(item)) {
+                        if (collectionChanges.deletedItems.contains(item)) {
                             throw new IllegalStateException(
                                     "Item has been marked as delete but not removed from the collection.");
                         }
                         modifiedItems.add(item);
                     }
-
-                    // Pass only list of new items
-                    if ( modifiedItems.size() == 0 && collectionChanges.deletedItems.size() == 0) {
-                        value = collectionChanges.newItems;
+                    if (collectionChanges.newItems.size() > 0) {
+                        mapCollection.put(COLLECTION_NEW,
+                                Converter.convertToMapOrArray(collectionChanges.newItems, storeChanges));
                     }
-                    // Use new/modified/delete map
-                    else {
-                        Map<String, Object> mapCollection = new HashMap<String, Object>();
-                        if (collectionChanges.newItems.size() > 0 ) {
-                            mapCollection.put("new", Converter.convertToMapOrArray(collectionChanges.newItems));
-                        }
-                        if (collectionChanges.deletedItems.size() > 0 ) {
-                            mapCollection.put("deleted", Converter.convertToMapOrArray(collectionChanges.deletedItems));
-                        }
-
-
-
-                        if (modifiedItems.size() > 0 ) {
-                            mapCollection.put("modified", Converter.convertToMapOrArray(modifiedItems));
-                        }
-
-                        value = mapCollection;
+                    if (collectionChanges.deletedItems.size() > 0) {
+                        mapCollection.put(COLLECTION_DELETED,
+                                Converter.convertToMapOrArray(collectionChanges.deletedItems, storeChanges));
                     }
                 }
+                else {
+                    // If no collection changes are present then all items are modified
+                    for (Object item : items) {
+                        modifiedItems.add(item);
+                    }
+                }
+                if (modifiedItems.size() > 0) {
+                    mapCollection.put(COLLECTION_MODIFIED,
+                            Converter.convertToMapOrArray(modifiedItems, storeChanges));
+                }
+                // Skip empty changes
+                if (mapCollection.isEmpty()) {
+                    continue;
+                }
+                value = mapCollection;
             }
 
+
             // Convert value to map or array if the conversion is possible
-            value = Converter.convertToMapOrArray(value);
+            value = Converter.convertToMapOrArray(value, storeChanges);
 
             // Skip empty arrays
-            if ( value instanceof Object[] && ((Object[]) value).length == 0) {
+            if (value instanceof Object[] && ((Object[]) value).length == 0) {
                 continue;
             }
             map.put(propertyName, value);

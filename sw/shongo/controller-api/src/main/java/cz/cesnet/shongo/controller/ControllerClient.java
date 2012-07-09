@@ -60,10 +60,10 @@ public class ControllerClient
         config.setServerURL(new URL(String.format("http://%s:%d", host, port)));
         client = new XmlRpcClient();
         client.setConfig(config);
-        client.setTypeFactory(new TypeFactory(client));
+        client.setTypeFactory(new TypeFactory(client, true));
 
         // Connect to reservation service
-        clientFactory = new ClientFactory(client, new TypeConverterFactory());
+        clientFactory = new ClientFactory(client, new TypeConverterFactory(true));
     }
 
     /**
