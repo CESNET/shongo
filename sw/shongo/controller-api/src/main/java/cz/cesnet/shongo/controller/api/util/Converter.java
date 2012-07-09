@@ -275,10 +275,43 @@ public class Converter
             }
 
             ComplexType complexType = ComplexType.class.cast(object);
-            fromMap(complexType, map);
+            complexType.fromMap(map);
 
             return (T) object;
         }
+    }
+
+    /**
+     * Convert given object if possible to {@link Map} or {@link Object[]} (recursive).
+     *
+     * @return {@link Map} or {@link Object[]} or given value
+     */
+    public static Object convertToMapOrArray(Object object) throws FaultException
+    {
+        if (object instanceof ComplexType) {
+            ComplexType complexType = ComplexType.class.cast(object);
+            return complexType.toMap();
+        }
+        else if (object instanceof Collection) {
+
+            Collection collection = (Collection) object;
+            Object[] newArray = new Object[collection.size()];
+            int index = 0;
+            for (Object item : collection) {
+                newArray[index] = convertToMapOrArray(item);
+                index++;
+            }
+            return newArray;
+        }
+        else if (object instanceof Object[]) {
+            Object[] oldArray = (Object[]) object;
+            Object[] newArray = new Object[oldArray.length];
+            for (int index = 0; index < oldArray.length; index++) {
+                newArray[index] = convertToMapOrArray(oldArray[index]);
+            }
+            return newArray;
+        }
+        return object;
     }
 
     /**
@@ -294,99 +327,7 @@ public class Converter
                             getClassShortName(object.getClass())));
         }
         ComplexType complexType = ComplexType.class.cast(object);
-        return toMap(complexType);
-    }
-
-    /**
-     * Fill given {@link ComplexType} from the given map.
-     *
-     * @param complexType
-     * @param map
-     * @throws FaultException
-     */
-    public static void fromMap(ComplexType complexType, Map map) throws FaultException
-    {
-        // Clear all filled properties
-        complexType.clearPropertyFilledMarks();
-
-        // Fill each property that is present in map
-        for (Object key : map.keySet()) {
-            if (!(key instanceof String)) {
-                throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contain only string keys.");
-            }
-            String property = (String) key;
-            Object value = map.get(key);
-
-            // Skip class property
-            if (property.equals("class")) {
-                continue;
-            }
-
-            // Get property type and allowed types
-            Property propertyDefinition = Property.getPropertyNotNull(complexType.getClass(), property);
-            Class type = propertyDefinition.getType();
-            Class[] allowedTypes = propertyDefinition.getAllowedTypes();
-
-            try {
-                value = Converter.convert(value, type, allowedTypes);
-            }
-            catch (IllegalArgumentException exception) {
-                /*StringBuilder builder = new StringBuilder();
-                for (Class allowedType : allowedTypes) {
-                    if (builder.length() > 0) {
-                        builder.append("|");
-                    }
-                    builder.append(Converter.getClassShortName(allowedType));
-                }*/
-                throw new FaultException(exception, Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
-                        complexType.getClass(),
-                        type,
-                        value.getClass());
-            }
-
-            // Set the value to property
-            Property.setPropertyValue(complexType, property, value);
-
-            // Mark property as filled
-            complexType.markPropertyFilled(property);
-        }
-    }
-
-    /**
-     * Convert given {@link ComplexType} to a map.
-     *
-     * @param complexType
-     * @return map
-     * @throws FaultException
-     */
-    public static Map toMap(ComplexType complexType) throws FaultException
-    {
-        Map<String, Object> map = new HashMap<String, Object>();
-        String[] propertyNames = Property.getPropertyNames(complexType.getClass());
-        for (String property : propertyNames) {
-            Object value = Property.getPropertyValue(complexType, property);
-            if (value == null) {
-                continue;
-            }
-            else if (value instanceof ComplexType) {
-                value = convertObjectToMap((ComplexType) value);
-            }
-            else if (value instanceof Object[]) {
-                Object[] oldArray = (Object[]) value;
-                Object[] newArray = new Object[oldArray.length];
-                for (int index = 0; index < oldArray.length; index++) {
-                    Object item = oldArray[index];
-                    if (item instanceof ComplexType) {
-                        item = convertObjectToMap((ComplexType) item);
-                    }
-                    newArray[index] = item;
-                }
-                value = newArray;
-            }
-            map.put(property, value);
-        }
-        map.put("class", getClassShortName(complexType.getClass()));
-        return map;
+        return complexType.toMap();
     }
 
     /**

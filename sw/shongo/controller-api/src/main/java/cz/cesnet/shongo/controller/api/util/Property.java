@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.api.util;
 import cz.cesnet.shongo.controller.api.ComplexType;
 import cz.cesnet.shongo.controller.api.Fault;
 import cz.cesnet.shongo.controller.api.FaultException;
-import org.apache.commons.beanutils.PropertyUtils;
 
-import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
@@ -66,7 +64,7 @@ public class Property
     {
         try {
             if (writeMethod != null) {
-                PropertyUtils.setProperty(object, name, value);
+                writeMethod.invoke(object, value);
                 return;
             }
             else if (field != null) {
@@ -80,9 +78,12 @@ public class Property
         catch (FaultException exception) {
             throw exception;
         }
-        catch (Exception exception) {
+        catch (IllegalArgumentException exception) {
             throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH,
                     name, classType, getType(), value.getClass());
+        }
+        catch (Exception exception) {
+            throw new FaultException(exception, "Cannot set value of attribute '%s' in class '%s'!", name, classType);
         }
     }
 
@@ -95,12 +96,13 @@ public class Property
      */
     public Object getValue(Object object) throws FaultException
     {
+        Object value = null;
         try {
             if (readMethod != null) {
-                return readMethod.invoke(object);
+                value = readMethod.invoke(object);
             }
             else if (field != null) {
-                return field.get(object);
+                value = field.get(object);
             }
             else if (writeMethod != null) {
                 throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_WRITE_ONLY, name, classType);
@@ -110,10 +112,9 @@ public class Property
             throw exception;
         }
         catch (Exception exception) {
-            throw new FaultException(exception, String.format("Cannot get attribute '%s' from object of type '%s'.",
-                    name, getClassShortName(classType)));
+            throw new FaultException(exception, "Cannot get attribute '%s' from object of type '%s'.", name, classType);
         }
-        return null;
+        return value;
     }
 
     /**
@@ -133,6 +134,15 @@ public class Property
     }
 
     /**
+     * @return true if property is annotated with {@link ComplexType.Required},
+     *         false otherwise
+     */
+    public boolean isRequired()
+    {
+        return getAnnotation(ComplexType.Required.class) != null;
+    }
+
+    /**
      * @return true if property is of {@link Object[]} type,
      *         false otherwise
      */
@@ -148,18 +158,6 @@ public class Property
     public boolean isCollection()
     {
         return Collection.class.isAssignableFrom(type);
-    }
-
-    /**
-     * @param object
-     * @return true if property value is null,
-     *         false otherwise
-     * @throws FaultException when the value of the property cannot be retrieved
-     */
-    public boolean isEmpty(Object object) throws FaultException
-    {
-        Object value = getValue(object);
-        return value == null;
     }
 
     /**
@@ -267,36 +265,51 @@ public class Property
         property.name = name;
         property.classType = type;
 
-        // Get field
-        try {
-            property.field = type.getDeclaredField(name);
-            if (property.field != null && !Modifier.isPublic(property.field.getModifiers())) {
-                property.field = null;
-            }
-        }
-        catch (NoSuchFieldException e) {
-        }
+        // Get access method names
+        String upperName = name.substring(0, 1).toUpperCase() + name.substring(1);
+        String readMethodName = "get" + upperName;
+        String writeMethodName = "set" + upperName;
 
-        // Get read and write methods
-        PropertyDescriptor propertyDescriptor = null;
-        try {
-            for (PropertyDescriptor possiblePropertyDescriptor : PropertyUtils.getPropertyDescriptors(type)) {
-                if (name.equals(possiblePropertyDescriptor.getName())) {
-                    propertyDescriptor = possiblePropertyDescriptor;
-                    break;
+        // Get field and access methods
+        Class currentType = type;
+        while (currentType != null) {
+            try {
+                Field field = currentType.getDeclaredField(name);
+                if (field != null && !Modifier.isFinal(field.getModifiers())) {
+                    property.field = field;
                 }
             }
-            if (propertyDescriptor != null) {
-                property.writeMethod = propertyDescriptor.getWriteMethod();
-                property.readMethod = propertyDescriptor.getReadMethod();
+            catch (NoSuchFieldException e) {
             }
-        }
-        catch (Exception exception) {
+
+            Method[] methods = currentType.getDeclaredMethods();
+            for (Method method : methods) {
+                if (method.getName().equals(readMethodName) && method.getParameterTypes().length == 0) {
+                    property.readMethod = method;
+                }
+                if (method.getName().equals(writeMethodName) && method.getParameterTypes().length == 1) {
+                    property.writeMethod = method;
+                }
+            }
+            currentType = currentType.getSuperclass();
         }
 
         // If all values are null, property was not found
-        if (property.field == null && property.readMethod == null && property.writeMethod == null) {
+        if ((property.field == null || !Modifier.isPublic(property.field.getModifiers()))
+                && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))
+                && (property.writeMethod == null || !Modifier.isPublic(property.writeMethod.getModifiers()))) {
             return null;
+        }
+
+        // Set accessible
+        if (property.field != null && !Modifier.isPublic(property.field.getModifiers())) {
+            property.field.setAccessible(true);
+        }
+        if (property.readMethod != null && !Modifier.isPublic(property.readMethod.getModifiers())) {
+            property.readMethod.setAccessible(true);
+        }
+        if (property.writeMethod != null && !Modifier.isPublic(property.writeMethod.getModifiers())) {
+            property.writeMethod.setAccessible(true);
         }
 
         // Determine types from getter and setter
@@ -358,23 +371,28 @@ public class Property
         Set<String> propertyNames = new HashSet<String>();
 
         // Add properties by fields
-        Field[] declaredFields = type.getDeclaredFields();
-        for (Field declaredField : declaredFields) {
-            if (Modifier.isPublic(declaredField.getModifiers())) {
-                propertyNames.add(declaredField.getName());
+        Class currentType = type;
+        while (currentType != null) {
+            if (currentType.equals(Object.class)) {
+                break;
             }
-        }
-
-        // Add properties by getters/setters
-        PropertyDescriptor[] descriptors = PropertyUtils.getPropertyDescriptors(type);
-        for (PropertyDescriptor propertyDescriptor : descriptors) {
-            String name = propertyDescriptor.getName();
-            if (name.equals("class")) {
-                continue;
+            Field[] declaredFields = currentType.getDeclaredFields();
+            for (Field field : declaredFields) {
+                if (Modifier.isPublic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
+                    propertyNames.add(field.getName());
+                }
             }
-            if (!propertyNames.contains(name)) {
-                propertyNames.add(name);
+            Method[] methods = currentType.getDeclaredMethods();
+            for (Method method : methods) {
+                String methodName = method.getName();
+                if ((methodName.startsWith("get") || methodName.startsWith("set"))
+                        && Modifier.isPublic(method.getModifiers())) {
+                    String name = methodName.substring(3);
+                    name = name.substring(0, 1).toLowerCase() + name.substring(1);
+                    propertyNames.add(name);
+                }
             }
+            currentType = currentType.getSuperclass();
         }
 
         return propertyNames.toArray(new String[propertyNames.size()]);
@@ -450,7 +468,8 @@ public class Property
      * @return annotation for given type, it's property and annotation class
      * @throws FaultException
      */
-    public static <T extends Annotation> T getPropertyAnnotation(Class type, String name, Class<T> annotationClass) throws FaultException
+    public static <T extends Annotation> T getPropertyAnnotation(Class type, String name, Class<T> annotationClass)
+            throws FaultException
     {
         Property property = getPropertyNotNull(type, name);
         return property.getAnnotation(annotationClass);

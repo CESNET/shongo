@@ -41,10 +41,10 @@ public class FaultException extends XmlRpcException
      * @param exception
      * @param faultString
      */
-    public FaultException(Exception exception, String faultString)
+    public FaultException(Exception exception, String faultString, Object... objects)
     {
-        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(), faultString),
-                exception);
+        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
+                String.format(faultString, evaluateParameters(objects))), exception);
     }
 
     /**

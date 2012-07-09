@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory;
 import cz.cesnet.shongo.controller.api.xmlrpc.TypeFactory;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -34,7 +35,7 @@ public class ControllerClient
     }
 
     /**
-     * Constructor. Automatically perfomr {@link #connect(String, int)}.
+     * Constructor. Automatically perform {@link #connect(String, int)}.
      *
      * @param host
      * @param port
@@ -62,7 +63,7 @@ public class ControllerClient
         client.setTypeFactory(new TypeFactory(client));
 
         // Connect to reservation service
-        clientFactory = new ClientFactory(client);
+        clientFactory = new ClientFactory(client, new TypeConverterFactory());
     }
 
     /**

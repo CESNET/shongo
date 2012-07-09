@@ -21,6 +21,7 @@ public interface ReservationService extends Service
      *                           in {@link ReservationRequest}
      * @return the created reservation request identifier
      */
+    @API
     public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException;
 
@@ -31,6 +32,7 @@ public interface ReservationService extends Service
      * @param reservationId Shongo identifier of the reservation to modify
      * @param attributes    map of reservation attributes to change
      */
+    @API
     public void modifyReservationRequest(SecurityToken token, String reservationId, Map attributes)
             throws FaultException;
 
@@ -40,6 +42,7 @@ public interface ReservationService extends Service
      * @param token         token of the user requesting the operation
      * @param reservationId Shongo identifier of the reservation to modify
      */
+    @API
     public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException;
 
     /**
@@ -48,7 +51,9 @@ public interface ReservationService extends Service
      * @param token                token of the user requesting the operation
      * @param reservationRequestId identifier of the reservation request to get
      */
-    public ReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId);
+    @API
+    public ReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId)
+            throws FaultException;
 
     /**
      * Lists all the time slots with assigned resources that were allocated by the scheduler for the reservation.

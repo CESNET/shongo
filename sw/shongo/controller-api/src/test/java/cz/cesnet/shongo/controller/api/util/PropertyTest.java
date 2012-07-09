@@ -16,10 +16,18 @@ import static org.junit.Assert.assertArrayEquals;
  */
 public class PropertyTest
 {
-    public static class Foo extends ComplexType
+    public static class Bar extends ComplexType
     {
         public String field1;
 
+        private void setField1(String field1)
+        {
+            this.field1 = field1;
+        }
+    }
+
+    public static class Foo extends Bar
+    {
         public Integer getField2()
         {
             return 2;
@@ -66,7 +74,7 @@ public class PropertyTest
         Property.setPropertyValue(foo, "field1", "test");
         Property.setPropertyValue(foo, "field3", Long.valueOf(3));
         try {
-            Property.setPropertyValue(foo, "field2", "test");
+            Property.setPropertyValue(foo, "field2", 111);
             fail("Exception that field is read-only should be thrown.");
         }
         catch (FaultException exception) {

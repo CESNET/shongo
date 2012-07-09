@@ -1,9 +1,6 @@
 package cz.cesnet.shongo;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents an object that can print attributes defined in {@link #fillDescriptionMap(java.util.Map)} by
@@ -84,7 +81,20 @@ public abstract class PrintableObject
             List list = (List) object;
             return formatCollection(list);
         }
-        return object.toString();
+        else if (object instanceof Object[]) {
+            return formatCollection(Arrays.asList((Object[])object));
+        }
+        return (object == null ? "null" : object.toString());
+    }
+
+    /**
+     * Print given {@code object} to {@link System#out}.
+     *
+     * @param object
+     */
+    public static void printToSystemOut(Object object)
+    {
+        System.out.println(toString(object));
     }
 
     /**
@@ -117,7 +127,7 @@ public abstract class PrintableObject
                         builder.append("\n");
                     }
                 }
-                String objectString = object.toString();
+                String objectString = toString(object);
                 builder.append(objectString);
                 multiline = multiline || (objectString.indexOf("\n") != -1);
             }

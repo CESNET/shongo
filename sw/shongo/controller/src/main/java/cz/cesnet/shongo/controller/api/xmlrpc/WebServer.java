@@ -11,10 +11,12 @@ import org.apache.xmlrpc.webserver.Connection;
 import org.apache.xmlrpc.webserver.RequestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.AnnotationUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -66,6 +68,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         handlerMapping = new HandlerMapping();
         handlerMapping.setTypeConverterFactory(new TypeConverterFactory());
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
+        handlerMapping.setVoidMethodEnabled(true);
 
         XmlRpcServer xmlRpcServer = getXmlRpcServer();
         xmlRpcServer.setHandlerMapping(handlerMapping);
@@ -142,6 +145,17 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
          * Map of handler classes by name.
          */
         Map<String, Class> handlerClassMap = new HashMap<String, Class>();
+
+        @Override
+        protected boolean isHandlerMethod(Method pMethod)
+        {
+            boolean result = super.isHandlerMethod(pMethod);
+            if (result) {
+                Service.API api = AnnotationUtils.findAnnotation(pMethod, Service.API.class);
+                return api != null;
+            }
+            return false;
+        }
 
         @Override
         public void addHandler(String pKey, Class pClass) throws XmlRpcException

@@ -1,10 +1,20 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.api.util.Converter;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
+import org.springframework.beans.BeanUtils;
 
+import java.beans.PropertyDescriptor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 
 /**
@@ -138,6 +148,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     @Test
     public void testModifyReservationRequest() throws Exception
     {
+        SecurityToken securityToken = new SecurityToken();
         String identifier = null;
 
         // ---------------------------
@@ -153,21 +164,36 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             Compartment compartment = reservationRequest.addCompartment();
             compartment.addPerson("Martin Srom", "srom@cesnet.cz");
 
-            identifier = reservationService.createReservationRequest(new SecurityToken(), reservationRequest);
+            identifier = reservationService.createReservationRequest(securityToken, reservationRequest);
             assertNotNull(identifier);
+
+            reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
+            assertNotNull(reservationRequest);
+            assertEquals(ReservationRequestType.NORMAL, reservationRequest.getType());
+            assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
+            assertEquals(2, reservationRequest.getSlots().size());
+            assertEquals(1, reservationRequest.getCompartments().size());
         }
 
         // ---------------------------
         // Modify reservation request
         // ---------------------------
         {
-            ReservationRequest reservationRequest =
-                    reservationService.getReservationRequest(new SecurityToken(), identifier);
-            assertNotNull(reservationRequest);
+            ReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
+            reservationRequest.setType(ReservationRequestType.NORMAL);
+            reservationRequest.setPurpose(null);
+            reservationRequest.removeSlot(reservationRequest.getSlots().get(0));
+            Compartment compartment = reservationRequest.addCompartment();
+            reservationRequest.removeCompartment(compartment);
 
-            reservationRequest = reservationRequest;
+            Map map = reservationRequest.toMap();
+            PrintableObject.printToSystemOut(map);
+            System.exit(0);
 
             // TODO: Allow Property class to set values by private setters for fromMap
+
+            //reservationService.modifyReservationRequest(securityToken, reservationRequest.getIdentifier(),
+            //        reservationRequest.toMap());
         }
     }
 }

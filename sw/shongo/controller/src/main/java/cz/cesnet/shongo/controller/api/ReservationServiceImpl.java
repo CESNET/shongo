@@ -1,14 +1,16 @@
 package cz.cesnet.shongo.controller.api;
 
-
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Technology;
 import cz.cesnet.shongo.controller.api.util.Converter;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -144,21 +146,29 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     }
 
     @Override
-    public void modifyReservationRequest(SecurityToken token, String reservationId, Map attributes)
+    public void modifyReservationRequest(SecurityToken token, String reservationRequestIdentifier, Map attributes)
             throws FaultException
     {
+        Long reservationRequestId = domain.parseIdentifier(reservationRequestIdentifier);
+
+        EntityManager entityManager = getEntityManager();
+        entityManager.getTransaction().begin();
+
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        reservationRequestManager.get(reservationRequestId);
+
         throw new FaultException(ControllerFault.TODO_IMPLEMENT);
     }
 
     @Override
-    public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException
+    public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier) throws FaultException
     {
         throw new FaultException(ControllerFault.TODO_IMPLEMENT);
     }
 
     @Override
     public cz.cesnet.shongo.controller.api.ReservationRequest getReservationRequest(SecurityToken token,
-            String reservationRequestIdentifier)
+            String reservationRequestIdentifier) throws FaultException
     {
         Long reservationRequestId = domain.parseIdentifier(reservationRequestIdentifier);
 
@@ -172,7 +182,47 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         reservationRequest.setType(reservationRequestImpl.getType());
         reservationRequest.setPurpose(reservationRequestImpl.getPurpose());
 
-        // TODO: fill other attributes
+        for ( cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :
+                reservationRequestImpl.getRequestedSlots()) {
+
+            Object start = null;
+            if (dateTimeSlotImpl.getStart() instanceof AbsoluteDateTimeSpecification) {
+                start = ((AbsoluteDateTimeSpecification)dateTimeSlotImpl.getStart()).getDateTime();
+            } else if (dateTimeSlotImpl.getStart() instanceof PeriodicDateTimeSpecification) {
+                PeriodicDateTimeSpecification periodicDateTimeSpecification =
+                        (PeriodicDateTimeSpecification) dateTimeSlotImpl.getStart();
+
+                start = new PeriodicDateTime(periodicDateTimeSpecification.getStart(),
+                        periodicDateTimeSpecification.getPeriod());
+            } else {
+                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+            }
+            reservationRequest.addSlot(start, dateTimeSlotImpl.getDuration());
+        }
+
+        for ( cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
+                reservationRequestImpl.getRequestedCompartments()) {
+            Compartment compartment = reservationRequest.addCompartment();
+            for ( cz.cesnet.shongo.controller.common.Person person : compartmentImpl.getRequestedPersons()) {
+                compartment.addPerson(person.getName(), person.getEmail());
+            }
+            for ( cz.cesnet.shongo.controller.request.ResourceSpecification resource :
+                    compartmentImpl.getRequestedResources()) {
+                if ( resource instanceof cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) {
+                    cz.cesnet.shongo.controller.request.ExternalEndpointSpecification externalEndpointSpecification =
+                            (cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) resource;
+                    List<cz.cesnet.shongo.controller.common.Person> resourceRequestedPersons =
+                            externalEndpointSpecification.getRequestedPersons();
+                    Person[] persons = new Person[resourceRequestedPersons.size()];
+                    for ( int index = 0; index < resourceRequestedPersons.size(); index++) {
+                        cz.cesnet.shongo.controller.common.Person person = resourceRequestedPersons.get(index);
+                        persons[index] = new Person(person.getName(), person.getEmail());
+                    }
+                    compartment.addResource(externalEndpointSpecification.getTechnologies().iterator().next(),
+                            externalEndpointSpecification.getCount(), persons);
+                }
+            }
+        }
 
         return reservationRequest;
     }

@@ -1,5 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Represents an API service.
  *
@@ -7,6 +12,15 @@ package cz.cesnet.shongo.controller.api;
  */
 public interface Service
 {
+    /**
+     * Annotation for methods which are public API.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public @interface API
+    {
+    }
+
     /**
      * Get service name
      *

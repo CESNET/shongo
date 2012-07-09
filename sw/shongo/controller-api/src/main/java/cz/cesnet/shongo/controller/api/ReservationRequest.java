@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.Period;
+import org.omg.PortableServer.ServantLocatorOperations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,10 +15,7 @@ import java.util.List;
  */
 public class ReservationRequest extends ComplexType
 {
-    /**
-     * Reservation request identifier
-     */
-    private String identifier;
+
 
     /**
      * @see ReservationRequestType
@@ -40,6 +38,14 @@ public class ReservationRequest extends ComplexType
     private List<Compartment> compartments = new ArrayList<Compartment>();
 
     /**
+     * Attribute names
+     */
+    public final String TYPE = "type";
+    public final String PURPOSE = "purpose";
+    public final String SLOTS = "slots";
+    public final String COMPARTMENTS = "compartments";
+
+    /**
      * Constructor.
      */
     public ReservationRequest()
@@ -47,19 +53,12 @@ public class ReservationRequest extends ComplexType
     }
 
     /**
-     * @return {@link #identifier}
+     * Constructor for existing reservation request with given identifier.
+     *
+     * @param identifier
      */
-    public String getIdentifier()
+    public ReservationRequest(String identifier)
     {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
     }
 
     /**
@@ -77,6 +76,8 @@ public class ReservationRequest extends ComplexType
     public void setType(ReservationRequestType type)
     {
         this.type = type;
+
+        markPropertyAsFilled(TYPE);
     }
 
     /**
@@ -94,6 +95,8 @@ public class ReservationRequest extends ComplexType
     public void setPurpose(ReservationRequestPurpose purpose)
     {
         this.purpose = purpose;
+
+        markPropertyAsFilled(PURPOSE);
     }
 
     /**
@@ -106,14 +109,6 @@ public class ReservationRequest extends ComplexType
     }
 
     /**
-     * @param slots sets the {@link #slots}
-     */
-    public void setSlots(List<DateTimeSlot> slots)
-    {
-        this.slots = slots;
-    }
-
-    /**
      * Add new slot to the {@link #slots}.
      *
      * @param start
@@ -121,7 +116,18 @@ public class ReservationRequest extends ComplexType
      */
     public void addSlot(Object start, Period duration)
     {
-        slots.add(new DateTimeSlot(start, duration));
+        DateTimeSlot dateTimeSlot = new DateTimeSlot(start, duration);
+        slots.add(dateTimeSlot);
+        markCollectionItemAsNew(SLOTS, dateTimeSlot);
+    }
+
+    /**
+     * @param dateTimeSlot slot to be removed from the {@link #slots}
+     */
+    public void removeSlot(DateTimeSlot dateTimeSlot)
+    {
+        slots.remove(dateTimeSlot);
+        markCollectionItemAsRemoved(SLOTS, dateTimeSlot);
     }
 
     /**
@@ -134,20 +140,22 @@ public class ReservationRequest extends ComplexType
     }
 
     /**
-     * @param compartments sets the {@link #compartments}
-     */
-    public void setCompartments(List<Compartment> compartments)
-    {
-        this.compartments = compartments;
-    }
-
-    /**
      * @return newly added {@link Compartment} to the {@link #compartments}
      */
     public Compartment addCompartment()
     {
         Compartment compartment = new Compartment();
         compartments.add(compartment);
+        markCollectionItemAsNew(COMPARTMENTS, compartment);
         return compartment;
+    }
+
+    /**
+     * @param compartment compartment to be removed from the {@link #compartments}
+     */
+    public void removeCompartment(Compartment compartment)
+    {
+        compartments.remove(compartment);
+        markCollectionItemAsRemoved(COMPARTMENTS, compartment);
     }
 }
