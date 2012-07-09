@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.api;
 
 /**
  * Represents a virtual room on a multipoint server device.

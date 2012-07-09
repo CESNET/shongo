@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.api;
 
 /**
  * Usage stats of a given multipoint device.

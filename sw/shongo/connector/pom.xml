@@ -19,12 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
-            <artifactId>common</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>cz.cesnet.shongo</groupId>
-            <artifactId>controller</artifactId>
+            <artifactId>connector-api</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>

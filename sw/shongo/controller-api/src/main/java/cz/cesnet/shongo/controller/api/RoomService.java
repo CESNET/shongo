@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 /**
  * Interface to the service handling operations on rooms.
- * (If looking for the Roxette album Room Service, please, visit the local music store ;-)
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */

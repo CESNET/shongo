@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.controller.Technology;
 import cz.cesnet.shongo.controller.allocation.Reservation;

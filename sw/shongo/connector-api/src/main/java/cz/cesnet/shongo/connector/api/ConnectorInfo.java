@@ -1,6 +1,4 @@
-package cz.cesnet.shongo.connector;
-
-import cz.cesnet.shongo.controller.resource.Resource;
+package cz.cesnet.shongo.connector.api;
 
 /**
  * Information about a connector.
@@ -25,7 +23,7 @@ public class ConnectorInfo
     }
 
     private String name;
-    private Resource device;
+    private DeviceInfo device;
     private ConnectionState connectionState;
     private DeviceState deviceState;
 
@@ -49,7 +47,7 @@ public class ConnectorInfo
     /**
      * @return the device managed by this connector
      */
-    public Resource getDevice()
+    public DeviceInfo getDevice()
     {
         return device;
     }
@@ -57,11 +55,8 @@ public class ConnectorInfo
     /**
      * @param device    the device managed by this connector (must be a resource of type ManagedDevice)
      */
-    public void setDevice(Resource device)
+    public void setDevice(DeviceInfo device)
     {
-        if (device.getType() != Resource.Type.DEVICE) {
-            throw new IllegalArgumentException("Invalid type of resource, a device is expected.");
-        }
         this.device = device;
     }
 

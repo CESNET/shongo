@@ -1517,10 +1517,10 @@ Gets a snapshot of the video stream that a user is sending in a room. See the |c
 Immediately starts recording in a room to format |format| using a given |layout| (or the default room layout, if |layout| is not specified). Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
 
 \ApiCmd{stopRecording(SecurityToken token, int recordingId)}
-Stops recording. The |recordingId| parameter, specifying what to stop, is an identifier previously returned by |startRecording| or |scheduleRecording|.
+Stops recording. The |recordingId| parameter, specifying what to stop, is an identifier previously returned by |startRecording|.
 
 \ApiCmd{String getRecordingDownloadURL(SecurityToken token, int recordingId)}
-Returns a URL from where it is possible to download a recording. The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|.
+Returns a URL from where it is possible to download a recording. The |recordingId| parameter is an identifier previously returned by |startRecording|.
 
 \ApiCmd{notifyParticipants(SecurityToken token, int recordingId)}
 Sends an e-mail to all non-anonymous participants present in the room recorded. Participants present in any moment of the recording must be notified, not just the registered users.
@@ -1529,7 +1529,7 @@ Sends an e-mail to all non-anonymous participants present in the room recorded. 
 Starts downloading a recording from |downloadURL|. The recording is stored on the server under |targetPath|.
 
 \ApiCmd{deleteRecording(SecurityToken token, int recordingId)}
-Deletes a given recording. The |recordingId| parameter is an identifier previously returned by |startRecording| or |scheduleRecording|. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
+Deletes a given recording. The |recordingId| parameter is an identifier previously returned by |startRecording|. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
 
 \end{Api}
 
