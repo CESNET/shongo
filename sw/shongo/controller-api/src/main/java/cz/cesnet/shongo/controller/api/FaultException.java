@@ -40,11 +40,24 @@ public class FaultException extends XmlRpcException
      *
      * @param exception
      * @param faultString
+     * @param objects
      */
-    public FaultException(Exception exception, String faultString)
+    public FaultException(Exception exception, String faultString, Object... objects)
     {
-        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(), faultString),
-                exception);
+        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
+                String.format(faultString, evaluateParameters(objects))), exception);
+    }
+
+    /**
+     * Construct unknown fault by another exception which case the fault and a description string.
+     *
+     * @param faultString
+     * @param objects
+     */
+    public FaultException(String faultString, Object... objects)
+    {
+        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
+                String.format(faultString, evaluateParameters(objects))));
     }
 
     /**
@@ -56,6 +69,7 @@ public class FaultException extends XmlRpcException
     {
         super(Fault.Common.UNKNOWN_FAULT.getCode(), faultString);
     }
+
 
     /**
      * Evaluate all given parameters (e.g., classes to class names).

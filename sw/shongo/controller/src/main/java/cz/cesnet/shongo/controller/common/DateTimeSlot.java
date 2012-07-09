@@ -67,9 +67,7 @@ public class DateTimeSlot extends PersistentObject
     }
 
     /**
-     * Get date/time of time slot.
-     *
-     * @return date/time
+     * @return {@link #start}
      */
     @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
@@ -79,9 +77,15 @@ public class DateTimeSlot extends PersistentObject
     }
 
     /**
-     * Get duration of time slot.
-     *
-     * @return duration
+     * @param start sets the {@link #start}
+     */
+    public void setStart(DateTimeSpecification start)
+    {
+        this.start = start;
+    }
+
+    /**
+     * @return {@link #duration}
      */
     @Column
     @Type(type = "Period")
@@ -89,6 +93,14 @@ public class DateTimeSlot extends PersistentObject
     public Period getDuration()
     {
         return duration;
+    }
+
+    /**
+     * @param duration sets the {@link #duration}
+     */
+    public void setDuration(Period duration)
+    {
+        this.duration = duration;
     }
 
     /**

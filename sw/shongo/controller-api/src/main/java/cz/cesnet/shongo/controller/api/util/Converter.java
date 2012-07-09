@@ -33,27 +33,35 @@ public class Converter
     public static Object convert(Object value, Class targetType, Class[] allowedTypes)
             throws FaultException, IllegalArgumentException
     {
+        if (value == null) {
+            return null;
+        }
+
         if (allowedTypes != null && allowedTypes.length > 0) {
-            if (allowedTypes.length == 1) {
-                if (!(value instanceof Object[] || value instanceof Collection)) {
+            // When some allowed types are present
+            if (!(value instanceof Object[] || value instanceof Collection)) {
+                // When not converting array/collection
+                if (allowedTypes.length == 1) {
+                    // If only one allowed type is present set the single allowed type as target type
                     targetType = allowedTypes[0];
                 }
-            }
-            else {
-                Object allowedValue = null;
-                for (Class allowedType : allowedTypes) {
-                    try {
-                        allowedValue = Converter.convert(value, allowedType, null);
-                        break;
-                    }
-                    catch (Exception exception) {
-                    }
-                }
-                if (allowedValue != null) {
-                    return allowedValue;
-                }
                 else {
-                    throw new IllegalArgumentException();
+                    // Iterate through each allowed type and try to convert the value to it
+                    Object allowedValue = null;
+                    for (Class allowedType : allowedTypes) {
+                        try {
+                            allowedValue = Converter.convert(value, allowedType, null);
+                            break;
+                        }
+                        catch (Exception exception) {
+                        }
+                    }
+                    if (allowedValue != null) {
+                        return allowedValue;
+                    }
+                    else {
+                        throw new IllegalArgumentException();
+                    }
                 }
             }
         }
@@ -96,20 +104,20 @@ public class Converter
                 // Convert array to specific type
                 Class componentType = targetType.getComponentType();
                 Object[] arrayValue = (Object[]) value;
-                Object[] newArray = (Object[]) Array.newInstance(componentType, arrayValue.length);
+                Object[] newArray = createArray(componentType, arrayValue.length);
                 for (int index = 0; index < arrayValue.length; index++) {
                     newArray[index] = convert(arrayValue[index], componentType, allowedTypes);
                 }
                 value = newArray;
             }
             else if (Collection.class.isAssignableFrom(targetType)) {
-                // Convert array to specific type
+                // Convert collection to specific type
                 Object[] arrayValue = (Object[]) value;
-                List<Object> newList = new ArrayList<Object>(arrayValue.length);
+                Collection<Object> collection = createCollection(targetType, arrayValue.length);
                 for (Object item : arrayValue) {
-                    newList.add(convert(item, Object.class, allowedTypes));
+                    collection.add(convert(item, Object.class, allowedTypes));
                 }
-                value = newList;
+                value = collection;
             }
         }
         // If complex type is required and map is given
@@ -275,18 +283,53 @@ public class Converter
             }
 
             ComplexType complexType = ComplexType.class.cast(object);
-            fromMap(complexType, map);
+            complexType.fromMap(map);
 
             return (T) object;
         }
     }
 
     /**
+     * Convert given object if possible to {@link Map} or {@link Object[]} (recursive).
+     *
+     * @param storeChanges
+     * @return {@link Map} or {@link Object[]} or given value
+     */
+    public static Object convertToMapOrArray(Object object, boolean storeChanges) throws FaultException
+    {
+        if (object instanceof ComplexType) {
+            ComplexType complexType = ComplexType.class.cast(object);
+            return complexType.toMap(storeChanges);
+        }
+        else if (object instanceof Collection) {
+
+            Collection collection = (Collection) object;
+            Object[] newArray = new Object[collection.size()];
+            int index = 0;
+            for (Object item : collection) {
+                newArray[index] = convertToMapOrArray(item, storeChanges);
+                index++;
+            }
+            return newArray;
+        }
+        else if (object instanceof Object[]) {
+            Object[] oldArray = (Object[]) object;
+            Object[] newArray = new Object[oldArray.length];
+            for (int index = 0; index < oldArray.length; index++) {
+                newArray[index] = convertToMapOrArray(oldArray[index], storeChanges);
+            }
+            return newArray;
+        }
+        return object;
+    }
+
+    /**
      * @param object
+     * @param storeChanges
      * @return map containing attributes of given object
      * @throws FaultException
      */
-    public static Map convertObjectToMap(Object object) throws FaultException
+    public static Map convertObjectToMap(Object object, boolean storeChanges) throws FaultException
     {
         if (!(object instanceof ComplexType)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
@@ -294,99 +337,7 @@ public class Converter
                             getClassShortName(object.getClass())));
         }
         ComplexType complexType = ComplexType.class.cast(object);
-        return toMap(complexType);
-    }
-
-    /**
-     * Fill given {@link ComplexType} from the given map.
-     *
-     * @param complexType
-     * @param map
-     * @throws FaultException
-     */
-    public static void fromMap(ComplexType complexType, Map map) throws FaultException
-    {
-        // Clear all filled properties
-        complexType.clearPropertyFilledMarks();
-
-        // Fill each property that is present in map
-        for (Object key : map.keySet()) {
-            if (!(key instanceof String)) {
-                throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contain only string keys.");
-            }
-            String property = (String) key;
-            Object value = map.get(key);
-
-            // Skip class property
-            if (property.equals("class")) {
-                continue;
-            }
-
-            // Get property type and allowed types
-            Property propertyDefinition = Property.getPropertyNotNull(complexType.getClass(), property);
-            Class type = propertyDefinition.getType();
-            Class[] allowedTypes = propertyDefinition.getAllowedTypes();
-
-            try {
-                value = Converter.convert(value, type, allowedTypes);
-            }
-            catch (IllegalArgumentException exception) {
-                /*StringBuilder builder = new StringBuilder();
-                for (Class allowedType : allowedTypes) {
-                    if (builder.length() > 0) {
-                        builder.append("|");
-                    }
-                    builder.append(Converter.getClassShortName(allowedType));
-                }*/
-                throw new FaultException(exception, Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, property,
-                        complexType.getClass(),
-                        type,
-                        value.getClass());
-            }
-
-            // Set the value to property
-            Property.setPropertyValue(complexType, property, value);
-
-            // Mark property as filled
-            complexType.markPropertyFilled(property);
-        }
-    }
-
-    /**
-     * Convert given {@link ComplexType} to a map.
-     *
-     * @param complexType
-     * @return map
-     * @throws FaultException
-     */
-    public static Map toMap(ComplexType complexType) throws FaultException
-    {
-        Map<String, Object> map = new HashMap<String, Object>();
-        String[] propertyNames = Property.getPropertyNames(complexType.getClass());
-        for (String property : propertyNames) {
-            Object value = Property.getPropertyValue(complexType, property);
-            if (value == null) {
-                continue;
-            }
-            else if (value instanceof ComplexType) {
-                value = convertObjectToMap((ComplexType) value);
-            }
-            else if (value instanceof Object[]) {
-                Object[] oldArray = (Object[]) value;
-                Object[] newArray = new Object[oldArray.length];
-                for (int index = 0; index < oldArray.length; index++) {
-                    Object item = oldArray[index];
-                    if (item instanceof ComplexType) {
-                        item = convertObjectToMap((ComplexType) item);
-                    }
-                    newArray[index] = item;
-                }
-                value = newArray;
-            }
-            map.put(property, value);
-        }
-        map.put("class", getClassShortName(complexType.getClass()));
-        return map;
+        return complexType.toMap(storeChanges);
     }
 
     /**
@@ -407,5 +358,35 @@ public class Converter
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param componentType
+     * @param size
+     * @return new instance of array of given size
+     */
+    public static Object[] createArray(Class componentType, int size)
+    {
+        return (Object[]) Array.newInstance(componentType, size);
+    }
+
+    /**
+     * @param type
+     * @param size
+     * @return new instance of collection of given size
+     * @throws FaultException
+     */
+    public static Collection<Object> createCollection(Class type, int size) throws FaultException
+    {
+        if (List.class.isAssignableFrom(type)) {
+            return new ArrayList<Object>(size);
+        }
+        else if (Set.class.isAssignableFrom(type)) {
+            return new HashSet<Object>(size);
+        }
+        else if (Collection.class.equals(type)) {
+            return new ArrayList<Object>(size);
+        }
+        throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, type);
     }
 }

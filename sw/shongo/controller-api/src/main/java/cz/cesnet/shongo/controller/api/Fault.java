@@ -57,7 +57,10 @@ public interface Fault
                 22, "Failed to parse period '%s'."),
 
         COLLECTION_ITEM_TYPE_MISMATCH(
-                30, "Collection '%s' can contain items of type '%s' but '%s' was presented.");
+                30, "Collection '%s' can contain items of type '%s' but '%s' was presented."),
+
+        RECORD_NOT_EXIST(
+                41, "Record '%s' with id '%d' doesn't exist.");
 
         private int code;
         private String string;

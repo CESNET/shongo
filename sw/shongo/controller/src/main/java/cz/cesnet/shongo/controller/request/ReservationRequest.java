@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.common.DateTimeSlot;
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.Fault;
+import cz.cesnet.shongo.controller.api.FaultException;
+import cz.cesnet.shongo.controller.common.DateTimeSlot;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -139,6 +141,21 @@ public class ReservationRequest extends PersistentObject
     public List<DateTimeSlot> getRequestedSlots()
     {
         return Collections.unmodifiableList(requestedSlots);
+    }
+
+    /**
+     * @param id
+     * @return requested slot with given {@code id}
+     * @throws FaultException
+     */
+    public DateTimeSlot getRequestedSlotById(Long id) throws FaultException
+    {
+        for (DateTimeSlot dateTimeSlot : requestedSlots) {
+            if (dateTimeSlot.getId().equals(id)) {
+                return dateTimeSlot;
+            }
+        }
+        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, DateTimeSlot.class, id);
     }
 
     /**
