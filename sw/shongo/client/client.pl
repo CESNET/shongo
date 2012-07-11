@@ -2,7 +2,7 @@
 #
 # Shongo command line client
 #
-package main;
+#package main;
 
 # Setup lib directory
 BEGIN {
@@ -56,7 +56,7 @@ Getopt::Long::GetOptions(
     'connect:s' => \$connect,
     'cmd=s' => \$cmd,
     'file=s' => \$file
-) or usage("Invalid commmand line options.");
+) or usage('Invalid commmand line options.');
 if ( $help == 1) {
     usage();
     exit(0);
