@@ -1,7 +1,7 @@
 #
 # Reservation class - Management of reservations.
 #
-package Shongo::Client::Dialog;
+package Shongo::Console;
 
 use strict;
 use warnings;
@@ -9,27 +9,26 @@ use warnings;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-    dialog_info dialog_error
-    dialog_get dialog_get_choice dialog_select
-    ordered_hash ordered_hash_ref
+    console_print_info console_print_error
+    console_read console_read_choice console_select
 );
 
 use Term::ReadLine::Zoid;
 use Term::ANSIColor;
 
-sub dialog_info
+sub console_print_info
 {
     my ($message, @parameters) = @_;
-    print STDERR colored("[INFO] " . sprintf($message, @parameters), "white"), "\n";
+    print STDERR colored("" . sprintf($message, @parameters), "bold blue"), "\n";
 }
 
-sub dialog_error
+sub console_print_error
 {
     my ($message, @parameters) = @_;
     print STDERR colored("[ERROR] " . sprintf($message, @parameters), "red"), "\n";
 }
 
-sub dialog_get
+sub console_read
 {
     my ($message, $required, $regex, $value) = @_;
 
@@ -47,14 +46,14 @@ sub dialog_get
                 return;
             }
             else {
-                dialog_error("Value must match '%s'.", $regex);
+                console_print_error("Value must match '%s'.", $regex);
             }
         }
         $value = $term->readline(colored(sprintf("%s: ", $message), "bold blue"));
     }
 }
 
-sub dialog_get_choice
+sub console_read_choice
 {
     my ($message, $count) = @_;
 
@@ -66,13 +65,16 @@ sub dialog_get_choice
         if ( ($choice=~/\d/) && $choice >= 1 && $choice <= $count ) {
             return $choice;
         }
+        elsif ($choice eq 'exit' ) {
+            return;
+        }
         else {
-            dialog_error("You must choose value from %d to %d.", 1, $count);
+            console_print_error("You must choose value from %d to %d.", 1, $count);
         }
     }
 }
 
-sub dialog_select
+sub console_select
 {
     my ($message, $values, $value) = @_;
     my %map = %{$values};
@@ -105,7 +107,7 @@ sub dialog_select
                 $error .= " '$value'";
                 $first = 0;
             }
-            dialog_error($error);
+            console_print_error($error);
         }
     }
 
@@ -120,48 +122,12 @@ sub dialog_select
         push(@result, $key);
      }
     while ( 1 ) {
-        my $choice = dialog_get_choice("Enter number of choice", $index);
-        return $result[$choice - 1];
+        my $choice = console_read_choice("Enter number of choice", $index);
+        if ( defined($choice) ) {
+            return $result[$choice - 1];
+        }
+        return;
     }
-}
-
-#
-# Create hash from given values which has item "__keys" as array with keys in insertion order.
-#
-# @param values array of pair of items (even count)
-# @return created has
-#
-sub ordered_hash
-{
-    my (@values) = @_;
-    if ( ref($_[0]) ) {
-        @values = @{$_[0]};
-    }
-    my %hash = ();
-    my @order = ();
-
-    for ( my $index = 0; $index < (@values - 1); $index += 2 ) {
-        my $key = $values[$index];
-        my $value = $values[$index + 1];
-        $hash{$key} = $value;
-        push(@order, $key);
-    }
-
-    ${hash{'__keys'}} = [@order];
-
-    return %hash;
-}
-
-#
-# Create hash reference from given values which has item "__keys" as array with keys in insertion order.
-#
-# @param values array of pair of items (even count)
-# @return created has
-#
-sub ordered_hash_ref
-{
-    my %hash = ordered_hash(@_);
-    return \%hash;
 }
 
 1;

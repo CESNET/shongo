@@ -1,7 +1,7 @@
 #
 # Controller class - Manages XML-RPC connection to controller.
 #
-package Shongo::Client::Controller;
+package Shongo::Controller;
 
 use strict;
 use warnings;
@@ -43,7 +43,7 @@ sub populate()
                 my ($shell, %p) = @_;
                 my $url = $p{ARGV}[0];
                 if (defined($url) == 0) {
-                    my $controller = Shongo::Client::Controller->instance();
+                    my $controller = Shongo::Controller->instance();
                     if ( defined($controller->{"_url"}) ) {
                         $url = $controller->{"_url"};
                     } else {
@@ -51,19 +51,19 @@ sub populate()
                         return;
                     }
                 }
-                Shongo::Client::Controller->instance()->connect($url);
+                Shongo::Controller->instance()->connect($url);
             },
         },
         'disconnect' => {
             help => 'Disconnect from a controller.',
             exec => sub {
-                Shongo::Client::Controller->instance()->disconnect();
+                Shongo::Controller->instance()->disconnect();
             },
         },
         'status' => {
             help => 'Show status and information about connected controller.',
             exec => sub {
-                Shongo::Client::Controller->instance()->status();
+                Shongo::Controller->instance()->status();
             },
         }
     );

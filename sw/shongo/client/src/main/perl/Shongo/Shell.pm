@@ -1,14 +1,14 @@
 #
 # Shell class - represents Shongo client shell.
 #
-package Shongo::Client::Shell;
+package Shongo::Shell;
 
 use strict;
 use warnings;
 
-use Shongo::Client::Controller;
-use Shongo::Client::ResourceService;
-use Shongo::Client::ReservationService;
+use Shongo::Controller;
+use Shongo::ResourceService;
+use Shongo::ReservationService;
 use Term::ReadLine 1.07;
 use Term::Shell::MultiCmd;
 use File::HomeDir;
@@ -33,13 +33,13 @@ sub new()
     $self->{'_shell'}->populate(@tree);
 
     # Populate controller commands
-    Shongo::Client::Controller->populate($self->{'_shell'});
+    Shongo::Controller->populate($self->{'_shell'});
 
     # Populate resource management commands
-    Shongo::Client::ResourceService->populate($self->{'_shell'});
+    Shongo::ResourceService->populate($self->{'_shell'});
 
     # Populate reservation management commands
-    Shongo::Client::ReservationService->populate($self->{'_shell'});
+    Shongo::ReservationService->populate($self->{'_shell'});
 
     return $self;
 }
