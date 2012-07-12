@@ -9,13 +9,19 @@ use warnings;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-    dialog_error
-    dialog_get dialog_select
+    dialog_info dialog_error
+    dialog_get dialog_get_choice dialog_select
     ordered_hash ordered_hash_ref
 );
 
 use Term::ReadLine::Zoid;
 use Term::ANSIColor;
+
+sub dialog_info
+{
+    my ($message, @parameters) = @_;
+    print STDERR colored("[INFO] " . sprintf($message, @parameters), "white"), "\n";
+}
 
 sub dialog_error
 {
@@ -25,24 +31,43 @@ sub dialog_error
 
 sub dialog_get
 {
-    my ($message, $regex, $required) = @_;
+    my ($message, $required, $regex, $value) = @_;
+
+    # Show prompt and run loop for getting proper value
+    my $term = Term::ReadLine::Zoid->new();
+    while ( 1 ) {
+        if ( defined($value) ) {
+            if ( $required && $value eq "" ) {
+                dialog_error("Value must not be empty.");
+            }
+            elsif ( !defined($regex) || $value =~ m/$regex/ ) {
+                return $value;
+            }
+            elsif ( $value eq "" ) {
+                return;
+            }
+            else {
+                dialog_error("Value must match '%s'.", $regex);
+            }
+        }
+        $value = $term->readline(colored(sprintf("%s: ", $message), "bold blue"));
+    }
+}
+
+sub dialog_get_choice
+{
+    my ($message, $count) = @_;
 
     my $term = Term::ReadLine::Zoid->new();
 
     # Show prompt and run loop for getting proper value
     while ( 1 ) {
-        my $value = $term->readline(colored(sprintf("%s: ", $message), "bold blue"));
-        if ( $required && $value eq "" ) {
-            dialog_error("Value must not be empty.");
-        }
-        elsif ( !defined($regex) || $value =~ m/$regex/ ) {
-            return $value;
-        }
-        elsif ( $value eq "" ) {
-            return;
+        my $choice = $term->readline(colored(sprintf("%s: ", $message), "bold blue"));
+        if ( ($choice=~/\d/) && $choice >= 1 && $choice <= $count ) {
+            return $choice;
         }
         else {
-            dialog_error("Value must match '%s'.", $regex);
+            dialog_error("You must choose value from %d to %d.", 1, $count);
         }
     }
 }
@@ -85,7 +110,7 @@ sub dialog_select
     }
 
     # Show prompt and run loop for getting proper value
-    printf("%s:\n", colored($message, "bold blue"));
+    printf("%s\n", colored($message . ':', "bold blue"));
     my @result = ();
     my $index;
     for ( $index = 0; $index < @map_keys; $index++ ) {
@@ -95,14 +120,8 @@ sub dialog_select
         push(@result, $key);
      }
     while ( 1 ) {
-        printf("Enter number of choice: ");
-        my $choice = <>;
-        if ( ($choice=~/\d/) && $choice >= 1 && $choice <= $index ) {
-            return $result[$choice - 1];
-        }
-        else {
-            dialog_error("You must choose value from %d to %d.", 1, $index);
-        }
+        my $choice = dialog_get_choice("Enter number of choice", $index);
+        return $result[$choice - 1];
     }
 }
 
@@ -115,6 +134,9 @@ sub dialog_select
 sub ordered_hash
 {
     my (@values) = @_;
+    if ( ref($_[0]) ) {
+        @values = @{$_[0]};
+    }
     my %hash = ();
     my @order = ();
 
@@ -130,6 +152,12 @@ sub ordered_hash
     return %hash;
 }
 
+#
+# Create hash reference from given values which has item "__keys" as array with keys in insertion order.
+#
+# @param values array of pair of items (even count)
+# @return created has
+#
 sub ordered_hash_ref
 {
     my %hash = ordered_hash(@_);

@@ -7,8 +7,8 @@ use strict;
 use warnings;
 
 use Shongo::Client::Controller;
-use Shongo::Client::Resource;
-use Shongo::Client::Reservation;
+use Shongo::Client::ResourceService;
+use Shongo::Client::ReservationService;
 use Term::ReadLine 1.07;
 use Term::Shell::MultiCmd;
 use File::HomeDir;
@@ -36,10 +36,10 @@ sub new()
     Shongo::Client::Controller->populate($self->{'_shell'});
 
     # Populate resource management commands
-    Shongo::Client::Resource->populate($self->{'_shell'});
+    Shongo::Client::ResourceService->populate($self->{'_shell'});
 
     # Populate reservation management commands
-    Shongo::Client::Reservation->populate($self->{'_shell'});
+    Shongo::Client::ReservationService->populate($self->{'_shell'});
 
     return $self;
 }
