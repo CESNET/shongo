@@ -23,7 +23,7 @@ sub populate()
         'reservation' => 'Management of reservations',
         'reservation create' => {
             help => 'Create a new reservation',
-            opts => 'type=s name=s purpose=s slot=s',
+            opts => 'type=s name=s purpose=s slot=s@ person=s@ resource=s@',
             exec => sub {
                 my ($shell, %params) = @_;
                 create_reservation(%params);
@@ -58,10 +58,10 @@ sub create_reservation()
 {
     my (%attributes) = @_;
 
-    my $reservation_request = Shongo::ReservationRequest->create(%attributes);
-    if ( defined($reservation_request) ) {
+    my $identifier = Shongo::ReservationRequest->create(%attributes);
+    if ( defined($identifier) ) {
         console_print_info("Reservation request '%s' successfully created.",
-            $reservation_request->{'identifier'});
+            $identifier);
     }
 }
 

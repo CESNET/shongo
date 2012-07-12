@@ -19,6 +19,11 @@ public class ReservationRequest extends ComplexType
     public static final String TYPE = "type";
 
     /**
+     * Name of the reservation request.
+     */
+    public static final String NAME = "name";
+
+    /**
      * @see ReservationRequestPurpose
      */
     public static final String PURPOSE = "purpose";
@@ -55,6 +60,23 @@ public class ReservationRequest extends ComplexType
     public void setType(ReservationRequestType type)
     {
         propertyStore.setValue(TYPE, type);
+    }
+
+    /**
+     * @return {@link #NAME}
+     */
+    @Required
+    public String getName()
+    {
+        return propertyStore.getValue(NAME);
+    }
+
+    /**
+     * @param name sets the {@link #NAME}
+     */
+    public void setName(String name)
+    {
+        propertyStore.setValue(NAME, name);
     }
 
     /**

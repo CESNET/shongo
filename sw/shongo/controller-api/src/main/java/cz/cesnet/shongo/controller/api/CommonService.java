@@ -12,5 +12,6 @@ public interface CommonService extends Service
      *
      * @return controller information
      */
+    @API
     public ControllerInfo getControllerInfo();
 }

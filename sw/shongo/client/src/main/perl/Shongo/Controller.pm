@@ -9,6 +9,7 @@ use warnings;
 use RPC::XML;
 use RPC::XML::Client;
 use XML::Twig;
+use Shongo::Console;
 
 #
 # Single instance of Controller class.
@@ -47,7 +48,7 @@ sub populate()
                     if ( defined($controller->{"_url"}) ) {
                         $url = $controller->{"_url"};
                     } else {
-                        print("[ERROR] You must specify <URL> when connecting to controller.\n");
+                        console_print_error("You must specify <URL> when connecting to controller.\n");
                         return;
                     }
                 }
@@ -110,7 +111,7 @@ sub disconnect()
 {
     my ($self) = @_;
     if ( !defined($self->{"_client"}) ) {
-        print("[ERROR] Client is not connected to any controller!\n");
+        console_print_error("Client is not connected to any controller!\n");
         return;
     }
     undef $self->{"_client"};
@@ -130,6 +131,19 @@ sub is_connected()
 }
 
 #
+# Checks whether client is connected to controller
+#
+sub check_connected()
+{
+    my ($self) = @_;
+    if ( !$self->is_connected() ) {
+        console_print_error("Client is not connected to any controller!\n");
+        return 0;
+    }
+    return 1;
+}
+
+#
 # Send request to Controller XML-RPC server.
 #
 # @param... Arguments for XML-RPC request
@@ -140,11 +154,11 @@ sub request()
     my ($self, @args) = @_;
     my $response = $self->{"_client"}->send_request(@args);
     if ( !ref($response) ) {
-        print("[ERROR] Failed to send request to controller!\n" . $response . "\n");
+        console_print_error("Failed to send request to controller!\n" . $response . "\n");
         return;
     }
     if ( $response->is_fault() ) {
-        print("[ERROR] Server failed to perform request!\n" . $response->string . "\n");
+        console_print_error("Server failed to perform request!\n" . $response->string . "\n");
     }
     return $response;
 }

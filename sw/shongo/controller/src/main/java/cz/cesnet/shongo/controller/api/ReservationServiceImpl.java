@@ -81,6 +81,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
 
         // Fill common attributes
         reservationRequestImpl.setType(reservationRequest.getType());
+        reservationRequestImpl.setName(reservationRequest.getName());
         reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
 
         // Fill requested slots
@@ -157,6 +158,9 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         // Modify common attributes
         if (reservationRequest.isPropertyFilled(ReservationRequest.TYPE)) {
             reservationRequestImpl.setType(reservationRequest.getType());
+        }
+        if (reservationRequest.isPropertyFilled(ReservationRequest.NAME)) {
+            reservationRequestImpl.setName(reservationRequest.getName());
         }
         if (reservationRequest.isPropertyFilled(ReservationRequest.PURPOSE)) {
             reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
@@ -238,6 +242,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setIdentifier(domain.formatIdentifier(reservationRequestImpl.getId()));
         reservationRequest.setType(reservationRequestImpl.getType());
+        reservationRequest.setName(reservationRequestImpl.getName());
         reservationRequest.setPurpose(reservationRequestImpl.getPurpose());
 
         for (cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :

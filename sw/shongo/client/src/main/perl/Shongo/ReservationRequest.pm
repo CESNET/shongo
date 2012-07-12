@@ -8,6 +8,7 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller;
 use Shongo::Compartment;
 use Switch;
 
@@ -42,6 +43,10 @@ sub get_compartments_count()
 #
 sub create()
 {
+    if ( !Shongo::Controller->instance()->check_connected() ) {
+        return;
+    }
+
     my $class = shift;
     my (%attributes) = @_;
     my $self = {};
@@ -53,6 +58,58 @@ sub create()
     $self->{'type'} = console_select('Select reservation type', \%Type, $attributes{'type'});
     $self->{'name'} = console_read('Name of the reservation', 1, undef, $attributes{'name'});
     $self->{'purpose'} = console_select('Select reservation purpose', \%Purpose, $attributes{'purpose'});
+
+    # Parse requested slots
+    if ( defined($attributes{'slot'}) ) {
+        for ( my $index = 0; $index < @{$attributes{'slot'}}; $index++ ) {
+            my $slot = $attributes{'slot'}->[$index];
+            my $result = 0;
+            if ($slot =~ /\((.+)\),(.*)/) {
+                my $dateTime = $1;
+                my $duration = $2;
+                if ($dateTime =~ /(.+),(.*)/) {
+                    $result = 1;
+                    push($self->{'slots'}, {'start' => {'start' => $1, 'period' => $2}, 'duration' => $duration});
+                }
+            }
+            elsif ($slot =~ /(.+),(.*)/) {
+                my $dateTime = $1;
+                my $duration = $2;
+                push($self->{'slots'}, {'start' => $dateTime, 'duration' => $duration});
+                $result = 1;
+            }
+            if ( $result == 0 ) {
+                console_print_error("Requested slot '%s' is in wrong format!", $slot);
+                return;
+            }
+        }
+    }
+
+    # Parse requested compartment
+    if ( defined($attributes{'resource'}) || defined($attributes{'person'}) ) {
+        my $compartment = Shongo::Compartment->new();
+        if ( defined($attributes{'resource'}) ) {
+            for ( my $index = 0; $index < @{$attributes{'resource'}}; $index++ ) {
+                my $resource = $attributes{'resource'}->[$index];
+                if ($resource =~ /(.+),(.*)/) {
+                    my $technology = $1;
+                    my $count = $2;
+                    push($compartment->{'resources'}, {'technology' => $technology, 'count' => $count});
+                }
+            }
+        }
+        if ( defined($attributes{'person'}) ) {
+            for ( my $index = 0; $index < @{$attributes{'person'}}; $index++ ) {
+                my $resource = $attributes{'person'}->[$index];
+                if ($resource =~ /(.+),(.*)/) {
+                    my $name = $1;
+                    my $email = $2;
+                    push($compartment->{'persons'}, {'name' => $name, 'email' => $email});
+                }
+            }
+        }
+        push($self->{'compartments'}, $compartment);
+    }
 
     if ( $self->get_slots_count() == 0 ) {
         console_print_info("Fill requested slots:");
@@ -67,9 +124,15 @@ sub create()
     }
 
     if ( $self->modify_loop('creation of reservation request') ) {
-        printf("[TODO] Create reservation.\n%s", $self->to_string());
-        $self->{'identifier'} = "shongo:test:1";
-        return $self;
+        console_print_info("Creating reservation request...");
+        my $response = Shongo::Controller->instance()->request(
+            'Reservation.createReservationRequest',
+            RPC::XML::struct->new(),
+            $self->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            return $response->value();
+        }
     }
     return undef;
 }
@@ -303,6 +366,36 @@ sub compartments_to_string()
         $string .= "   -- None --\n";
     }
     return $string;
+}
+
+sub to_xml()
+{
+    my ($self) = @_;
+
+    my $slots = [];
+    for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
+        my $slot = $self->{'slots'}->[$index];
+        my $start = $slot->{'start'};
+        my $duration = $slot->{'duration'};
+        if ( ref($start) ) {
+        }
+        else {
+            push($slots, RPC::XML::struct->new('start' => $start, 'duration' => $duration));
+        }
+    }
+    my $compartments = [RPC::XML::struct->new('class' => 'Compartment')];
+    for ( my $index = 0; $index < $self->get_compartments_count(); $index++ ) {
+        my $compartment = $self->{'compartments'}->[$index];
+    }
+
+    my $xml = RPC::XML::struct->new(
+        'type' => RPC::XML::string->new($self->{'type'}),
+        'name' => RPC::XML::string->new($self->{'name'}),
+        'purpose' => RPC::XML::string->new($self->{'purpose'}),
+        'slots' => RPC::XML::array->new(from => $slots),
+        'compartments' => RPC::XML::array->new(from => $compartments)
+    );
+    return $xml;
 }
 
 1;

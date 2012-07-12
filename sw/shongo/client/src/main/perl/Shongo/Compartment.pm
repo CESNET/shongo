@@ -34,7 +34,7 @@ sub get_persons_count()
 #
 # @static
 #
-sub create
+sub new
 {
     my $class = shift;
     my $self = {};
@@ -42,6 +42,18 @@ sub create
 
     $self->{'resources'} = [];
     $self->{'persons'} = [];
+
+    return $self;
+}
+
+#
+# Create a new instance of compartment
+#
+# @static
+#
+sub create
+{
+    my $self = new(@_);
 
     if ( $self->modify_loop() ) {
         return $self;
