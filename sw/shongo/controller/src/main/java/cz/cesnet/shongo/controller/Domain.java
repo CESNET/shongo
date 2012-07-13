@@ -98,7 +98,7 @@ public class Domain
     {
         String prefix = String.format("shongo:%s:", getCodeName());
         if (!identifier.startsWith(prefix)) {
-            throw new IllegalArgumentException(String.format("The identifier '%s' should don't belong to domain '%s'!",
+            throw new IllegalArgumentException(String.format("The identifier '%s' doesn't belong to domain '%s'!",
                     identifier, getCodeName()));
         }
         return Long.parseLong(identifier.substring(prefix.length(), identifier.length()));

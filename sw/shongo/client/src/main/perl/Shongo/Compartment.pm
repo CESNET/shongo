@@ -163,4 +163,35 @@ sub to_string()
     return $string;
 }
 
+#
+# Convert compartment to xml
+#
+sub to_xml()
+{
+    my ($self) = @_;
+
+    my $resources = [];
+    for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
+        my $resource = $self->{'resources'}->[$index];
+        push($resources, RPC::XML::struct->new(
+            'technology' => $resource->{'technology'},
+            'count' => $resource->{'count'}
+        ));
+    }
+    my $persons = [];
+    for ( my $index = 0; $index < $self->get_persons_count(); $index++ ) {
+        my $person = $self->{'persons'}->[$index];
+        push($persons, RPC::XML::struct->new(
+            'name' => $person->{'name'},
+            'email' => $person->{'email'}
+        ));
+    }
+
+    my $xml = RPC::XML::struct->new(
+        'resources' => RPC::XML::array->new(from => $resources),
+        'persons' => RPC::XML::array->new(from => $persons)
+    );
+    return $xml;
+}
+
 1;

@@ -152,13 +152,17 @@ sub check_connected()
 sub request()
 {
     my ($self, @args) = @_;
+    if ( !$self->check_connected() ) {
+        return RPC::XML::fault->new(0, "Not connected!");
+    }
     my $response = $self->{"_client"}->send_request(@args);
     if ( !ref($response) ) {
         console_print_error("Failed to send request to controller!\n" . $response . "\n");
         return;
     }
     if ( $response->is_fault() ) {
-        console_print_error("Server failed to perform request!\n" . $response->string . "\n");
+        console_print_error("Server failed to perform request!\nFault %d: %s",
+            $response->code, $response->string);
     }
     return $response;
 }

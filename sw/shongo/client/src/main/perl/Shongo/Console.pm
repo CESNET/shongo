@@ -37,7 +37,7 @@ sub console_read
     while ( 1 ) {
         if ( defined($value) ) {
             if ( $required && $value eq "" ) {
-                dialog_error("Value must not be empty.");
+                console_print_error("Value must not be empty.");
             }
             elsif ( !defined($regex) || $value =~ m/$regex/ ) {
                 return $value;

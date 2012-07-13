@@ -1,22 +1,17 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.api.util.Converter;
+import org.apache.xmlrpc.XmlRpcException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
-import org.springframework.beans.BeanUtils;
 
-import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.*;
 
 /**
  * Tests for using the implementation of {@link ReservationService} through XML-RPC.
@@ -208,6 +203,43 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
 
             reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
             assertNull(reservationRequest);
+        }
+    }
+
+    @Test
+    public void testExceptions() throws Exception
+    {
+        Map<String, Object> reservationRequest = null;
+
+        reservationRequest = new HashMap<String, Object>();
+        reservationRequest.put("slots", new ArrayList<Object>()
+        {{
+                add(new HashMap<String, Object>());
+            }});
+        try {
+            controllerClient.execute("Reservation.createReservationRequest",
+                    new Object[]{new HashMap(), reservationRequest});
+            fail("Exception that collection cannot contain null should be thrown.");
+        }
+        catch (XmlRpcException exception) {
+            assertEquals(Fault.Common.COLLECTION_ITEM_NULL.getCode(), exception.code);
+        }
+
+        reservationRequest = new HashMap<String, Object>();
+        reservationRequest.put("slots", new ArrayList<Object>()
+        {{
+                add(new HashMap<String, Object>()
+                {{
+                        put("start", "xxx");
+                    }});
+            }});
+        try {
+            controllerClient.execute("Reservation.createReservationRequest",
+                    new Object[]{new HashMap(), reservationRequest});
+            fail("Exception that attribute has wrong type should be thrown.");
+        }
+        catch (XmlRpcException exception) {
+            assertEquals(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH.getCode(), exception.code);
         }
     }
 }

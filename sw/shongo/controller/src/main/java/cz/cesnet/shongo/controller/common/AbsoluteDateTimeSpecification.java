@@ -82,7 +82,7 @@ public class AbsoluteDateTimeSpecification extends DateTimeSpecification
     @Override
     public DateTime getEarliest(DateTime referenceDateTime)
     {
-        if (dateTime.isAfter(referenceDateTime)) {
+        if (referenceDateTime == null || dateTime.isAfter(referenceDateTime)) {
             return dateTime;
         }
         return null;

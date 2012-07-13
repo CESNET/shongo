@@ -365,7 +365,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
     {
         List<DateTime> dateTimes = enumerate(referenceDateTime, null, 2);
         for (DateTime dateTime : dateTimes) {
-            if (dateTime.isBefore(referenceDateTime) == false) {
+            if (referenceDateTime == null || dateTime.isBefore(referenceDateTime) == false) {
                 return dateTime;
             }
         }

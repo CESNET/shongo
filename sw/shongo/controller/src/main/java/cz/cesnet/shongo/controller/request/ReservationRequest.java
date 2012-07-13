@@ -59,6 +59,11 @@ public class ReservationRequest extends PersistentObject
     private String name;
 
     /**
+     * Description of the reservation that is shown to users.
+     */
+    private String description;
+
+    /**
      * List of date/time slots for which the reservation is requested.
      */
     private List<DateTimeSlot> requestedSlots = new ArrayList<DateTimeSlot>();
@@ -131,6 +136,23 @@ public class ReservationRequest extends PersistentObject
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #name}
+     */
+    @Column
+    public String getDescription()
+    {
+        return description;
+    }
+
+    /**
+     * @param description sets the {@link #description}
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
     }
 
     /**

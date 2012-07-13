@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.ComplexType;
 import cz.cesnet.shongo.controller.api.Fault;
 import cz.cesnet.shongo.controller.api.FaultException;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import java.lang.reflect.Array;
@@ -26,11 +27,12 @@ public class Converter
      * @param value
      * @param targetType
      * @param allowedTypes
+     * @param name
      * @return converted value
      * @throws FaultException
      * @throws IllegalArgumentException
      */
-    public static Object convert(Object value, Class targetType, Class[] allowedTypes)
+    public static Object convert(Object value, Class targetType, Class[] allowedTypes, String name)
             throws FaultException, IllegalArgumentException
     {
         if (value == null) {
@@ -50,7 +52,7 @@ public class Converter
                     Object allowedValue = null;
                     for (Class allowedType : allowedTypes) {
                         try {
-                            allowedValue = Converter.convert(value, allowedType, null);
+                            allowedValue = Converter.convert(value, allowedType, null, null);
                             break;
                         }
                         catch (Exception exception) {
@@ -69,12 +71,13 @@ public class Converter
         // If types are compatible
         if (targetType.isAssignableFrom(value.getClass())) {
             // Do nothing
+            return value;
         }
         // Convert atomic types
         else if (value instanceof String) {
             // If enum is required
             if (targetType.isEnum() && value instanceof String) {
-                value = Converter.convertStringToEnum((String) value, (Class<Enum>) targetType);
+                return Converter.convertStringToEnum((String) value, (Class<Enum>) targetType);
             }
             // If atomic type is required
             else if (AtomicType.class.isAssignableFrom(targetType) && value instanceof String) {
@@ -87,15 +90,19 @@ public class Converter
                             targetType));
                 }
                 atomicType.fromString((String) value);
-                value = atomicType;
+                return atomicType;
             }
             // If period is required
             else if (Period.class.isAssignableFrom(targetType)) {
-                value = convertStringToPeriod((String) value);
+                return convertStringToPeriod((String) value);
             }
             // If date/time is required
             else if (DateTime.class.isAssignableFrom(targetType)) {
-                value = convertStringToDateTime((String) value);
+                return convertStringToDateTime((String) value);
+            }
+            // If interval is required
+            else if (Interval.class.isAssignableFrom(targetType)) {
+                return convertStringToInterval((String) value);
             }
         }
         // Convert array types
@@ -106,23 +113,31 @@ public class Converter
                 Object[] arrayValue = (Object[]) value;
                 Object[] newArray = createArray(componentType, arrayValue.length);
                 for (int index = 0; index < arrayValue.length; index++) {
-                    newArray[index] = convert(arrayValue[index], componentType, allowedTypes);
+                    Object item = convert(arrayValue[index], componentType, allowedTypes, null);
+                    if (item == null) {
+                        throw new FaultException(Fault.Common.COLLECTION_ITEM_NULL, name);
+                    }
+                    newArray[index] = item;
                 }
-                value = newArray;
+                return newArray;
             }
             else if (Collection.class.isAssignableFrom(targetType)) {
                 // Convert collection to specific type
                 Object[] arrayValue = (Object[]) value;
                 Collection<Object> collection = createCollection(targetType, arrayValue.length);
                 for (Object item : arrayValue) {
-                    collection.add(convert(item, Object.class, allowedTypes));
+                    item = convert(item, Object.class, allowedTypes, null);
+                    if (item == null) {
+                        throw new FaultException(Fault.Common.COLLECTION_ITEM_NULL, name);
+                    }
+                    collection.add(item);
                 }
-                value = collection;
+                return collection;
             }
         }
         // If complex type is required and map is given
         else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
-            value = convertMapToObject((Map) value, targetType);
+            return convertMapToObject((Map) value, targetType);
         }
         // Convert map to specific map
         else if (value instanceof Map && Map.class.isAssignableFrom(targetType)) {
@@ -136,13 +151,10 @@ public class Converter
                         targetType));
             }
             map.putAll((Map) value);
-            value = map;
+            return map;
         }
-        else {
-            throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
-                    value.getClass().getCanonicalName(), targetType.getCanonicalName()));
-        }
-        return value;
+        throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
+                value.getClass().getCanonicalName(), targetType.getCanonicalName()));
     }
 
     /**
@@ -156,7 +168,7 @@ public class Converter
      */
     public static <T> T convert(Object value, Class<T> targetType) throws FaultException
     {
-        return (T) convert(value, targetType, null);
+        return (T) convert(value, targetType, null, null);
     }
 
     /**
@@ -221,6 +233,20 @@ public class Converter
         catch (Exception exception) {
             throw new FaultException(Fault.Common.PERIOD_PARSING_FAILED, value);
         }
+    }
+
+    /**
+     * @param value
+     * @return parsed interval from string
+     * @throws FaultException when parsing fails
+     */
+    public static Interval convertStringToInterval(String value) throws FaultException
+    {
+        String[] parts = value.split("/");
+        if ( parts.length == 2 ) {
+            return new Interval(convertStringToDateTime(parts[0]), convertStringToPeriod(parts[1]));
+        }
+        throw new FaultException(Fault.Common.INTERVAL_PARSING_FAILED, value);
     }
 
     /**
@@ -341,6 +367,19 @@ public class Converter
     }
 
     /**
+     * @param object Instance of atomic type
+     * @return converted atomic type to string
+     */
+    public static String convertAtomicToString(Object object)
+    {
+        if ( object instanceof Interval ) {
+            Interval interval = (Interval) object;
+            return String.format("%s/%s", interval.getStart().toString(), interval.toPeriod().toString());
+        }
+        return object.toString();
+    }
+
+    /**
      * @param object
      * @return true if object is of atomic type (e.g., {@link String}, {@link AtomicType}, {@link Enum},
      *         {@link Period} or {@link DateTime}),
@@ -354,7 +393,7 @@ public class Converter
         if (object instanceof AtomicType) {
             return true;
         }
-        if (object instanceof Period || object instanceof DateTime) {
+        if (object instanceof Period || object instanceof DateTime || object instanceof Interval) {
             return true;
         }
         return false;

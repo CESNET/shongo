@@ -43,10 +43,6 @@ sub get_compartments_count()
 #
 sub create()
 {
-    if ( !Shongo::Controller->instance()->check_connected() ) {
-        return;
-    }
-
     my $class = shift;
     my (%attributes) = @_;
     my $self = {};
@@ -123,7 +119,7 @@ sub create()
         }
     }
 
-    if ( $self->modify_loop('creation of reservation request') ) {
+    while ( $self->modify_loop('creation of reservation request') ) {
         console_print_info("Creating reservation request...");
         my $response = Shongo::Controller->instance()->request(
             'Reservation.createReservationRequest',
@@ -145,6 +141,8 @@ sub modify()
     my ($self) = @_;
 
     $self->modify_loop('modification of reservation request');
+
+    console_print_info("TODO: Modify");
 }
 
 #
@@ -171,9 +169,7 @@ sub modify_loop()
         	    $self->modify_compartments();
             }
             case 'confirm' {
-                if ( $self->validate() ) {
-                    return 1;
-                }
+                return 1;
             }
             else {
                 return 0;
@@ -368,6 +364,9 @@ sub compartments_to_string()
     return $string;
 }
 
+#
+# Convert reservation request to xml
+#
 sub to_xml()
 {
     my ($self) = @_;
@@ -378,14 +377,21 @@ sub to_xml()
         my $start = $slot->{'start'};
         my $duration = $slot->{'duration'};
         if ( ref($start) ) {
+            push($slots, RPC::XML::struct->new(
+                'start' => RPC::XML::struct->new('start' => $start->{'start'}, 'period' => $start->{'period'}),
+                'duration' => $duration
+            ));
         }
         else {
             push($slots, RPC::XML::struct->new('start' => $start, 'duration' => $duration));
         }
     }
-    my $compartments = [RPC::XML::struct->new('class' => 'Compartment')];
+    my $compartments = [];
     for ( my $index = 0; $index < $self->get_compartments_count(); $index++ ) {
         my $compartment = $self->{'compartments'}->[$index];
+        my $resources = [];
+        my $persons = [];
+        push($compartments, $compartment->to_xml());
     }
 
     my $xml = RPC::XML::struct->new(

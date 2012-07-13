@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.controller.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.api.util.Converter;
 import cz.cesnet.shongo.controller.api.util.Property;
 
@@ -384,13 +385,16 @@ public abstract class ComplexType
                 Object modifiedItems = null;
                 Object deletedItems = null;
                 if (collectionChanges.containsKey(COLLECTION_NEW)) {
-                    newItems = Converter.convert(collectionChanges.get(COLLECTION_NEW), type, allowedTypes);
+                    newItems = Converter.convert(collectionChanges.get(COLLECTION_NEW),
+                            type, allowedTypes, propertyName);
                 }
                 if (collectionChanges.containsKey(COLLECTION_MODIFIED)) {
-                    modifiedItems = Converter.convert(collectionChanges.get(COLLECTION_MODIFIED), type, allowedTypes);
+                    modifiedItems = Converter.convert(collectionChanges.get(COLLECTION_MODIFIED),
+                            type, allowedTypes, propertyName);
                 }
                 if (collectionChanges.containsKey(COLLECTION_DELETED)) {
-                    deletedItems = Converter.convert(collectionChanges.get(COLLECTION_DELETED), type, allowedTypes);
+                    deletedItems = Converter.convert(collectionChanges.get(COLLECTION_DELETED),
+                            type, allowedTypes, propertyName);
                 }
                 if (newItems != null || modifiedItems != null || deletedItems != null) {
                     if (property.isArray()) {
@@ -440,20 +444,26 @@ public abstract class ComplexType
             }
 
             try {
-                value = Converter.convert(value, type, allowedTypes);
+                value = Converter.convert(value, type, allowedTypes, propertyName);
             }
             catch (IllegalArgumentException exception) {
-                /*StringBuilder builder = new StringBuilder();
-                for (Class allowedType : allowedTypes) {
-                    if (builder.length() > 0) {
-                        builder.append("|");
+                Object requiredType = type;
+                Object givenType = value.getClass();
+                if (allowedTypes != null) {
+                    StringBuilder builder = new StringBuilder();
+                    for (Class allowedType : allowedTypes) {
+                        if (builder.length() > 0) {
+                            builder.append("|");
+                        }
+                        builder.append(ClassHelper.getClassShortName(allowedType));
                     }
-                    builder.append(Converter.getClassShortName(allowedType));
-                }*/
-                throw new FaultException(exception, Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
-                        getClass(),
-                        type,
-                        value.getClass());
+                    requiredType = builder.toString();
+                }
+                if (value instanceof String) {
+                    givenType = String.format("String(%s)", value);
+                }
+                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
+                        getClass(), requiredType, givenType);
             }
 
             // Set the value to property
