@@ -1,10 +1,15 @@
 #
 # Reservation class - Management of reservations.
 #
-package Shongo::Client::Reservation;
+package Shongo::ReservationService;
 
 use strict;
 use warnings;
+
+use Shongo::Common;
+use Shongo::Console;
+use Shongo::ReservationRequest;
+use Switch;
 
 #
 # Populate shell by options for management of reservations.
@@ -18,10 +23,10 @@ sub populate()
         'reservation' => 'Management of reservations',
         'reservation create' => {
             help => 'Create a new reservation',
-            opts => 'type=s',
+            opts => 'type=s name=s purpose=s slot=s@ person=s@ resource=s@',
             exec => sub {
-                my ($shell, %p) = @_;
-                create_reservation(%p);
+                my ($shell, %params) = @_;
+                create_reservation(%params);
             },
         },
         'reservation modify' => {
@@ -53,13 +58,11 @@ sub create_reservation()
 {
     my (%attributes) = @_;
 
-    my $type = $attributes{"type"};
-    if (defined($type) == 0) {
-        print("[ERROR] You must specify 'type' for a new reservation.\n");
-        return;
+    my $identifier = Shongo::ReservationRequest->create(%attributes);
+    if ( defined($identifier) ) {
+        console_print_info("Reservation request '%s' successfully created.",
+            $identifier);
     }
-
-    print("[TODO] Create reservation with type=${type}.\n");
 }
 
 #

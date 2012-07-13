@@ -2,7 +2,7 @@
 #
 # Shongo command line client
 #
-package main;
+#package main;
 
 # Setup lib directory
 BEGIN {
@@ -16,8 +16,8 @@ use lib $directory . '/src/main/perl';
 use strict;
 use warnings;
 
-use Shongo::Client::Controller;
-use Shongo::Client::Shell;
+use Shongo::Controller;
+use Shongo::Shell;
 use Getopt::Long;
 
 #
@@ -56,13 +56,13 @@ Getopt::Long::GetOptions(
     'connect:s' => \$connect,
     'cmd=s' => \$cmd,
     'file=s' => \$file
-) or usage("Invalid commmand line options.");
+) or usage('Invalid commmand line options.');
 if ( $help == 1) {
     usage();
     exit(0);
 }
 
-my $controller = Shongo::Client::Controller->instance();
+my $controller = Shongo::Controller->instance();
 
 # Connect to controller
 if ( defined($connect) ) {
@@ -75,7 +75,7 @@ if ( defined($connect) ) {
 }
 
 # Create shell
-my $shell = Shongo::Client::Shell->new();
+my $shell = Shongo::Shell->new();
 
 # Run single command
 if ( defined($cmd) ) {

@@ -10,7 +10,7 @@ import static junit.framework.Assert.*;
 import static org.junit.Assert.assertArrayEquals;
 
 /**
- * Test fro {@link Property}
+ * Test for {@link Property}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -67,7 +67,7 @@ public class PropertyTest
         // getPropertyNames
         String[] propertyNames = Property.getPropertyNames(Foo.class);
         Arrays.sort(propertyNames);
-        assertArrayEquals(new String[]{"field1", "field2", "field3", "field4", "field5", "field6", "field7"},
+        assertArrayEquals(new String[]{"field1", "field2", "field3", "field4", "field5", "field6", "field7", "identifier"},
                 propertyNames);
 
         // setPropertyValue

@@ -1,7 +1,7 @@
 #
 # Resource class - Management of resources.
 #
-package Shongo::Client::Resource;
+package Shongo::ResourceService;
 
 use strict;
 use warnings;
