@@ -14,6 +14,7 @@ public class DeviceLoadInfo
     private long memoryAvailable = -1L;
     private long diskSpaceOccupied = -1L;
     private long diskSpaceAvailable = -1L;
+    private long upTime = -1L;
 
     public float getCpuLoad()
     {
@@ -63,5 +64,15 @@ public class DeviceLoadInfo
     public void setMemoryOccupied(long memoryOccupied)
     {
         this.memoryOccupied = memoryOccupied;
+    }
+
+    public long getUpTime()
+    {
+        return upTime;
+    }
+
+    public void setUpTime(long upTime)
+    {
+        this.upTime = upTime;
     }
 }
