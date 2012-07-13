@@ -2,56 +2,72 @@
 # Shell class - represents Shongo client shell.
 #
 package Shongo::Shell;
+use base qw(Term::ShellUI);
 
 use strict;
 use warnings;
 
+use Shongo::Common;
+use Shongo::Console;
 use Shongo::Controller;
-use Shongo::ResourceService;
-use Shongo::ReservationService;
-use Term::ReadLine 1.07;
-use Term::Shell::MultiCmd;
-use File::HomeDir;
+use Shongo::Controller::ResourceService;
+use Shongo::Controller::ReservationService;
 
 #
-# Create a new Shell instance.
+# Create a new shell for controller client
 #
-sub new()
+sub new
 {
     my $class = shift;
-    my $self = {};
-    bless $self, $class;
-    $self->{'_shell'} = Term::Shell::MultiCmd->new(
-        -prompt => 'command',
-        -quit_cmd => 'exit',
-        -history_file => File::HomeDir->my_home . "/.shongo_client"
-    );
+    my $self = Term::ShellUI->new(@_, commands => {}, history_file => '~/.shongo_client');
 
-    # Populate common commands
-    my @tree = (
-    );
-    $self->{'_shell'}->populate(@tree);
+    $self->prompt('shongo>');
+    $self->add_commands({
+        "help" => {
+            desc => "Print help information",
+            args => sub { shift->help_args(undef, @_); },
+            method => sub { shift->help_call(undef, @_); }
+        },
+        "exit" => {
+            desc => "Exit the shell",
+            method => sub { shift->exit_requested(1); }
+        },
+    });
 
     # Populate controller commands
-    Shongo::Controller->populate($self->{'_shell'});
+    Shongo::Controller->populate($self);
 
     # Populate resource management commands
-    Shongo::ResourceService->populate($self->{'_shell'});
+    Shongo::Controller::ResourceService->populate($self);
 
     # Populate reservation management commands
-    Shongo::ReservationService->populate($self->{'_shell'});
+    Shongo::Controller::ReservationService->populate($self);
 
-    return $self;
+    return(bless($self, $class));;
 }
 
 #
-# Run the shell - prompt user in loop
+# Override invocation of command to parse options
 #
-sub run
+sub call_cmd
 {
-    my ($self) = @_;
-    print("Type 'help' or 'help COMMAND' for more info.\n");
-    $self->{'_shell'}->loop();
+    my ($self, $params) = @_;
+    my $command = $params->{'cmd'};
+    my $options = $command->{'options'};
+    # Parse options if defined
+    if ( defined($options) ) {
+        my @parsed_options = ref($options) ? @{$options} : split ' ', $options;
+        my $arguments = $params->{'args'};
+        use Getopt::Long ;
+        local @ARGV = @{$arguments};
+        my $values = {};
+        if ( eval{GetOptions( $values, @parsed_options)} ) {
+            $params->{'args'} = [@ARGV];
+            $params->{'options'} = $values;
+        }
+    }
+    # Default implemetnation
+    return Term::ShellUI::call_cmd(@_);
 }
 
 #
@@ -61,26 +77,7 @@ sub command
 {
     my ($self, $command) = @_;
     print("Performing command '", $command, "'.\n");
-    $self->{'_shell'}->cmd($command);
-}
-
-# Override Term::Shell::MultiCmd::_say to better format help
-{
-    no strict 'refs';
-    no warnings 'redefine';
-    *{"Term::Shell::MultiCmd" . '::' . "_say"} = \&_say;
-
-    sub _say(@) {
-        my $string = join ('', @_);
-        $string =~ /^\n*(.*?)\s*$/s;
-
-        # Convert " :\t" to fixed width form
-        if ( $string =~ m/(.*): \t(.*)/ ) {
-        	printf("%-15s  %s\n", $1 . ":", $2);
-        } else {
-            print($string, "\n");
-        }
-    }
+    $self->process_a_cmd($command);
 }
 
 1;

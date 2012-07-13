@@ -46,7 +46,7 @@ sub console_read
                 return;
             }
             else {
-                console_print_error("Value must match '%s'.", $regex);
+                console_print_error("Value '%s' must match '%s'.", $value, $regex);
             }
         }
         $value = $term->readline(colored(sprintf("%s: ", $message), "bold blue"));

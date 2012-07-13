@@ -29,20 +29,21 @@ sub instance
     return $singleInstance;
 }
 
+
 #
-# Populate shell by options for managing controller connection.
+# Populate shell by options for controller.
 #
 # @param shell
 #
 sub populate()
 {
     my ($self, $shell) = @_;
-    my @tree = (
-        'connect' => {
-            help => 'Connect to a controller. You must specify an <URL>.',
-            exec => sub {
-                my ($shell, %p) = @_;
-                my $url = $p{ARGV}[0];
+    $shell->add_commands({
+        "connect" => {
+            desc => "Connect to a controller. You must specify an <URL>.",
+            maxargs => 1, args => sub { shift->complete_onlydirs(@_); },
+            proc => sub {
+                my $url = $_[0];
                 if (defined($url) == 0) {
                     my $controller = Shongo::Controller->instance();
                     if ( defined($controller->{"_url"}) ) {
@@ -55,20 +56,19 @@ sub populate()
                 Shongo::Controller->instance()->connect($url);
             },
         },
-        'disconnect' => {
-            help => 'Disconnect from a controller.',
-            exec => sub {
+        "disconnect" => {
+            desc => "Disconnect from a controller.",
+            proc => sub {
                 Shongo::Controller->instance()->disconnect();
-            },
+            }
         },
-        'status' => {
-            help => 'Show status and information about connected controller.',
-            exec => sub {
+        "status" => {
+            desc => "Show status and information about connected controller.",
+            proc => sub {
                 Shongo::Controller->instance()->status();
-            },
-        }
-    );
-    $shell->populate(@tree);
+            }
+        },
+    });
 }
 
 #

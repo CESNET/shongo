@@ -1,15 +1,16 @@
 #
 # Reservation request
 #
-package Shongo::Compartment;
+package Shongo::Controller::API::Compartment;
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
+use Switch;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Resource;
-use Switch;
+use Shongo::Controller::API::Resource;
 
 #
 # Get count of requested resources in compartment
@@ -98,7 +99,7 @@ sub modify_loop()
         my $action = console_select('Select action', ordered_hash_ref($actions));
         switch ( $action ) {
             case 'resource-new' {
-                my $technology = console_select("Select technology", \%Shongo::Resource::Technology);
+                my $technology = console_select("Select technology", \%Shongo::Controller::API::Resource::Technology);
                 my $count = console_read("Count", 1, "\\d");
                 if ( defined($technology) && defined($count) ) {
                     push($self->{'resources'}, {'technology' => $technology, 'count' => $count});
@@ -143,7 +144,7 @@ sub to_string()
         for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
             my $resource = $self->{'resources'}->[$index];
             $string .= sprintf("   %d) Technology: %s, Count: %d\n", $index + 1,
-                $Shongo::Resource::Technology{$resource->{'technology'}}, $resource->{'count'});
+                $Shongo::Controller::API::Resource::Technology{$resource->{'technology'}}, $resource->{'count'});
         }
     }
     else {
@@ -161,37 +162,6 @@ sub to_string()
         $string .= "   -- None --\n";
     }
     return $string;
-}
-
-#
-# Convert compartment to xml
-#
-sub to_xml()
-{
-    my ($self) = @_;
-
-    my $resources = [];
-    for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
-        my $resource = $self->{'resources'}->[$index];
-        push($resources, RPC::XML::struct->new(
-            'technology' => $resource->{'technology'},
-            'count' => $resource->{'count'}
-        ));
-    }
-    my $persons = [];
-    for ( my $index = 0; $index < $self->get_persons_count(); $index++ ) {
-        my $person = $self->{'persons'}->[$index];
-        push($persons, RPC::XML::struct->new(
-            'name' => $person->{'name'},
-            'email' => $person->{'email'}
-        ));
-    }
-
-    my $xml = RPC::XML::struct->new(
-        'resources' => RPC::XML::array->new(from => $resources),
-        'persons' => RPC::XML::array->new(from => $persons)
-    );
-    return $xml;
 }
 
 1;

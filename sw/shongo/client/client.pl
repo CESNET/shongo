@@ -2,7 +2,7 @@
 #
 # Shongo command line client
 #
-#package main;
+package main;
 
 # Setup lib directory
 BEGIN {
@@ -16,8 +16,13 @@ use lib $directory . '/src/main/perl';
 use strict;
 use warnings;
 
+# Common usages of Shongo modules
+use Shongo::Common;
+use Shongo::Console;
 use Shongo::Controller;
 use Shongo::Shell;
+
+# Common usages of foreign modules
 use Getopt::Long;
 
 #
