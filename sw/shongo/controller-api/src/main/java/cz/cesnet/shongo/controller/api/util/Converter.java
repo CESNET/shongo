@@ -213,7 +213,8 @@ public class Converter
     public static DateTime convertStringToDateTime(String value) throws FaultException
     {
         try {
-            return DateTime.parse(value);
+            DateTime dateTime = DateTime.parse(value);
+            return dateTime;
         }
         catch (Exception exception) {
             throw new FaultException(Fault.Common.DATETIME_PARSING_FAILED, value);
@@ -228,7 +229,8 @@ public class Converter
     public static Period convertStringToPeriod(String value) throws FaultException
     {
         try {
-            return Period.parse(value);
+            Period period = Period.parse(value);
+            return period;
         }
         catch (Exception exception) {
             throw new FaultException(Fault.Common.PERIOD_PARSING_FAILED, value);
@@ -244,7 +246,8 @@ public class Converter
     {
         String[] parts = value.split("/");
         if ( parts.length == 2 ) {
-            return new Interval(convertStringToDateTime(parts[0]), convertStringToPeriod(parts[1]));
+            Interval interval = new Interval(convertStringToDateTime(parts[0]), convertStringToPeriod(parts[1]));
+            return interval;
         }
         throw new FaultException(Fault.Common.INTERVAL_PARSING_FAILED, value);
     }

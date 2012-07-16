@@ -108,11 +108,11 @@ public class ReservationServiceImpl extends Component implements ReservationServ
                             .convertStringToEnum((String) map.get("technology"), Technology.class);
                     if (map.containsKey("count")) {
                         resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
-                                technology, (Integer) map.get("count"));
+                                technology, Integer.parseInt(map.get("count").toString()));
                     }
                     else {
                         resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
-                                technology, (Integer) map.get("count"));
+                                technology, Integer.parseInt(map.get("count").toString()));
                     }
                 }
                 // Check resource specification existence
@@ -188,7 +188,11 @@ public class ReservationServiceImpl extends Component implements ReservationServ
 
                 Object dateTime = dateTimeSlot.getStart();
                 if (dateTime instanceof DateTime) {
-                    dateTimeSlotImpl.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
+                    if ( !(dateTimeSlotImpl.getStart() instanceof AbsoluteDateTimeSpecification)
+                            || !((DateTime)dateTime).isEqual(((AbsoluteDateTimeSpecification)dateTimeSlotImpl
+                            .getStart()).getDateTime()) ) {
+                        dateTimeSlotImpl.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
+                    }
                 }
                 else if (dateTime instanceof PeriodicDateTime) {
                     PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
@@ -202,6 +206,24 @@ public class ReservationServiceImpl extends Component implements ReservationServ
                 ReservationRequest.SLOTS, DateTimeSlot.class)) {
             reservationRequestImpl.removeRequestedSlot(
                     reservationRequestImpl.getRequestedSlotById(dateTimeSlot.getIdentifierAsLong()));
+        }
+
+        // Create/modify requested compartments
+        for (Compartment compartment : reservationRequest.getCompartments()) {
+            // Create new requested slot
+            if (reservationRequest.isCollectionItemMarkedAsNew(ReservationRequest.COMPARTMENTS, compartment)) {
+                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+            }
+            else {
+                // Modify existing requested slot
+                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+            }
+        }
+        // Delete requested compartments
+        for (Compartment compartment : reservationRequest.getCollectionItemsMarkedAsDeleted(
+                ReservationRequest.COMPARTMENTS, Compartment.class)) {
+            reservationRequestImpl.removeRequestedCompartment(
+                    reservationRequestImpl.getRequestedCompartmentById(compartment.getIdentifierAsLong()));
         }
 
         reservationRequestManager.update(reservationRequestImpl);
@@ -275,7 +297,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
         if (reservationRequestImpl == null) {
-            return null;
+            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, reservationRequestId);
         }
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -312,6 +334,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
                 reservationRequestImpl.getRequestedCompartments()) {
             Compartment compartment = reservationRequest.addCompartment();
+            compartment.setIdentifier(compartmentImpl.getId().toString());
             for (cz.cesnet.shongo.controller.common.Person person : compartmentImpl.getRequestedPersons()) {
                 compartment.addPerson(person.getName(), person.getEmail());
             }

@@ -147,24 +147,42 @@ sub check_connected()
 # Send request to Controller XML-RPC server.
 #
 # @param... Arguments for XML-RPC request
+# @param method
 # @return response
 #
 sub request()
 {
-    my ($self, @args) = @_;
+    my ($self, $method, @args) = @_;
     if ( !$self->check_connected() ) {
         return RPC::XML::fault->new(0, "Not connected!");
     }
-    my $response = $self->{"_client"}->send_request(@args);
+    my $response = $self->{"_client"}->send_request($method, @args);
     if ( !ref($response) ) {
         console_print_error("Failed to send request to controller!\n" . $response . "\n");
-        return;
+        return RPC::XML::fault->new(0, "Failed to send request!");;
     }
     if ( $response->is_fault() ) {
         console_print_error("Server failed to perform request!\nFault %d: %s",
             $response->code, $response->string);
     }
     return $response;
+}
+
+#
+# Send request to Controller XML-RPC server with auto fill first security token parameter.
+#
+# @param method
+# @param... Arguments for XML-RPC request
+# @return response
+#
+sub secure_request()
+{
+    my ($self, $method, @args) = @_;
+    return $self->request(
+        $method,
+        RPC::XML::struct->new('class' => 'SecurityToken'),
+        @args
+    );
 }
 
 #

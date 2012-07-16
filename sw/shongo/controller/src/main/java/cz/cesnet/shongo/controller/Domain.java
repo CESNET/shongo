@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Holds information about domain for which the controller is running.
  *
@@ -96,6 +99,9 @@ public class Domain
      */
     public Long parseIdentifier(String identifier)
     {
+        if (Pattern.matches("\\d+", identifier)) {
+            return Long.parseLong(identifier);
+        }
         String prefix = String.format("shongo:%s:", getCodeName());
         if (!identifier.startsWith(prefix)) {
             throw new IllegalArgumentException(String.format("The identifier '%s' doesn't belong to domain '%s'!",

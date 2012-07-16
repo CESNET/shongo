@@ -5,7 +5,6 @@ package Shongo::Controller::ReservationService;
 
 use strict;
 use warnings;
-use Switch;
 use Text::Table;
 use DateTime::Format::ISO8601;
 
@@ -66,6 +65,13 @@ sub populate()
     });
 }
 
+sub select_reservation($)
+{
+    my ($identifier) = @_;
+    $identifier = console_read_value('Identifier of the reservation', 0, '\\d|shongo:.+:\\d', $identifier);
+    return $identifier;
+}
+
 sub create_reservation()
 {
     my ($attributes) = @_;
@@ -79,34 +85,39 @@ sub create_reservation()
 sub modify_reservation()
 {
     my ($identifier) = @_;
-
-    if (defined($identifier) == 0) {
-        console_print_error("You must specify 'identifier' for the reservation to be modified.\n");
+    $identifier = select_reservation($identifier);
+    if ( !defined($identifier) ) {
         return;
     }
-
-    print("[TODO] Modify reservation with id=$identifier\n");
+    my $result = Shongo::Controller->instance()->secure_request(
+        'Reservation.getReservationRequest',
+        RPC::XML::string->new($identifier)
+    );
+    if ( !$result->is_fault ) {
+        my $reservation_request = Shongo::Controller::API::ReservationRequest->new()->from_xml($result);
+        if ( defined($reservation_request) ) {
+            $reservation_request->modify();
+        }
+    }
 }
 
 sub delete_reservation()
 {
     my ($identifier) = @_;
-
-    $identifier = console_read('Identifier of the reservation', 0, 'shongo:.+:\\d', $identifier);
-    if ( defined($identifier) ) {
-        Shongo::Controller->instance()->request(
-            'Reservation.deleteReservationRequest',
-            RPC::XML::struct->new(),
-            $identifier
-        );
+    $identifier = select_reservation($identifier);
+    if ( !defined($identifier) ) {
+        return;
     }
+    Shongo::Controller->instance()->secure_request(
+        'Reservation.deleteReservationRequest',
+        $identifier
+    );
 }
 
 sub list_reservations()
 {
-    my $response = Shongo::Controller->instance()->request(
-        'Reservation.listReservationRequests',
-        RPC::XML::struct->new()
+    my $response = Shongo::Controller->instance()->secure_request(
+        'Reservation.listReservationRequests'
     );
     if ( $response->is_fault() ) {
         return
@@ -132,19 +143,18 @@ sub list_reservations()
 sub get_reservation()
 {
     my ($identifier) = @_;
-
-    $identifier = console_read('Identifier of the reservation', 0, 'shongo:.+:\\d', $identifier);
-    if ( defined($identifier) ) {
-        my $result = Shongo::Controller->instance()->request(
-            'Reservation.getReservationRequest',
-            RPC::XML::struct->new(),
-            $identifier
-        );
-        if ( !$result->is_fault ) {
-            my $reservation_request = Shongo::Controller::API::ReservationRequest->new()->from_xml($result);
-            if ( defined($reservation_request) ) {
-                printf("\n%s\n", $reservation_request->to_string());
-            }
+    $identifier = select_reservation($identifier);
+    if ( !defined($identifier) ) {
+        return;
+    }
+    my $result = Shongo::Controller->instance()->secure_request(
+        'Reservation.getReservationRequest',
+        RPC::XML::string->new($identifier)
+    );
+    if ( !$result->is_fault ) {
+        my $reservation_request = Shongo::Controller::API::ReservationRequest->new()->from_xml($result);
+        if ( defined($reservation_request) ) {
+            printf("\n%s\n", $reservation_request->to_string());
         }
     }
 }
