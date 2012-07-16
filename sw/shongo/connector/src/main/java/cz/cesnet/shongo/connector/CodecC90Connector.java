@@ -15,6 +15,8 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A connector for Cisco TelePresence System Codec C90.
@@ -66,7 +68,7 @@ public class CodecC90Connector //implements EndpointService // FIXME: implement 
             System.exit(1);
         }
 
-        System.out.println("Uptime: " + xPathExprUptime.evaluate(result));
+        System.out.println("Uptime: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Uptime"));
         System.out.println("All done, disconnecting");
         conn.disconnect();
     }
@@ -96,9 +98,25 @@ public class CodecC90Connector //implements EndpointService // FIXME: implement 
     private static boolean staticInitialized = false;
     private static DocumentBuilder resultBuilder;
     private static XPathFactory xPathFactory;
-    private static XPathExpression xPathExprErrorReason;
-    private static XPathExpression xPathExprErrorXPath;
-    private static XPathExpression xPathExprUptime;
+    private static Map<String, XPathExpression> xPathExpressionCache = new HashMap<String, XPathExpression>();
+
+    /**
+     * Returns the result of an XPath expression on a given document. Caches the expressions for further usage.
+     *
+     * @param result      an XML document
+     * @param xPathString an XPath expression
+     * @return result of the XPath expression
+     */
+    private static String getResultString(Document result, String xPathString) throws XPathExpressionException
+    {
+        XPathExpression expr = xPathExpressionCache.get(xPathString);
+        if (expr == null) {
+            expr = xPathFactory.newXPath().compile(xPathString);
+            xPathExpressionCache.put(xPathString, expr);
+        }
+        return expr.evaluate(result);
+    }
+
 
     public CodecC90Connector() throws ParserConfigurationException, XPathExpressionException
     {
@@ -108,9 +126,6 @@ public class CodecC90Connector //implements EndpointService // FIXME: implement 
             resultBuilder = factory.newDocumentBuilder();
 
             xPathFactory = XPathFactory.newInstance();
-            xPathExprErrorReason = xPathFactory.newXPath().compile("/XmlDoc/Status[@status='Error']/Reason");
-            xPathExprErrorXPath = xPathFactory.newXPath().compile("/XmlDoc/Status[@status='Error']/XPath");
-            xPathExprUptime = xPathFactory.newXPath().compile("/XmlDoc/Status/SystemUnit/Uptime");
         }
     }
 
@@ -187,7 +202,7 @@ public class CodecC90Connector //implements EndpointService // FIXME: implement 
     /**
      * Sends a command to the device. If some output is expected, blocks until the response is complete.
      *
-     * @param command   a command to the device
+     * @param command a command to the device
      * @return output of the command, or NULL if the output is not expected
      * @throws IOException
      */
@@ -257,7 +272,8 @@ reading:
 
     /**
      * Finds out whether a given result XML denotes an error.
-     * @param result    an XML document - result of a command
+     *
+     * @param result an XML document - result of a command
      * @return true if the result marks an error, false if the result is an ordinary result record
      */
     private static boolean isError(Document result)
@@ -265,7 +281,8 @@ reading:
         Element root = result.getDocumentElement();
         NodeList statusNodes = root.getElementsByTagName("Status");
         if (statusNodes.getLength() != 1) {
-            throw new IllegalArgumentException("A valid command result XML, which contains a single <Status> element, is expected.");
+            throw new IllegalArgumentException(
+                    "A valid command result XML, which contains a single <Status> element, is expected.");
         }
         NamedNodeMap statusAttrs = statusNodes.item(0).getAttributes();
         Node status = statusAttrs.getNamedItem("status");
@@ -274,7 +291,8 @@ reading:
 
     /**
      * Given an XML result of a erroneous command, returns the error message.
-     * @param result    an XML document - result of a command
+     *
+     * @param result an XML document - result of a command
      * @return error message contained in the result document, or null if the document does not denote an error
      */
     private static String getErrorMessage(Document result) throws XPathExpressionException
@@ -283,8 +301,8 @@ reading:
             return null;
         }
 
-        String reason = xPathExprErrorReason.evaluate(result);
-        String xPath = xPathExprErrorXPath.evaluate(result);
+        String reason = getResultString(result, "/XmlDoc/Status[@status='Error']/Reason");
+        String xPath = getResultString(result, "/XmlDoc/Status[@status='Error']/XPath");
         return reason + " (XPath: " + xPath + ")";
     }
 }
