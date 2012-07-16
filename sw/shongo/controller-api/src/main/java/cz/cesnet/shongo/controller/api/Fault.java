@@ -55,9 +55,13 @@ public interface Fault
                 21, "Failed to parse date/time '%s'."),
         PERIOD_PARSING_FAILED(
                 22, "Failed to parse period '%s'."),
+        INTERVAL_PARSING_FAILED(
+                23, "Failed to parse interval '%s'."),
 
         COLLECTION_ITEM_TYPE_MISMATCH(
                 30, "Collection '%s' can contain items of type '%s' but '%s' was presented."),
+        COLLECTION_ITEM_NULL(
+                31, "Null value cannot be added to collection '%s'."),
 
         RECORD_NOT_EXIST(
                 41, "Record '%s' with id '%d' doesn't exist.");

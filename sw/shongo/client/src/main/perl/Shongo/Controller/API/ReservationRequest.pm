@@ -1,16 +1,16 @@
 #
 # Reservation request
 #
-package Shongo::ReservationRequest;
+package Shongo::Controller::API::ReservationRequest;
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
+use Switch;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller;
-use Shongo::Compartment;
-use Switch;
+use Shongo::Controller::API::Compartment;
 
 # Enumeration of reservation request type
 our %Type = ordered_hash('NORMAL' => 'Normal', 'PERMANENT' => 'Permanent');
@@ -41,28 +41,38 @@ sub get_compartments_count()
 #
 # @static
 #
-sub create()
+sub new()
 {
-    if ( !Shongo::Controller->instance()->check_connected() ) {
-        return;
-    }
-
     my $class = shift;
     my (%attributes) = @_;
     my $self = {};
     bless $self, $class;
 
+    $self->{'identifier'} = undef;
+    $self->{'type'} = undef;
+    $self->{'name'} = undef;
+    $self->{'purpose'} = undef;
     $self->{'slots'} = [];
     $self->{'compartments'} = [];
 
-    $self->{'type'} = console_select('Select reservation type', \%Type, $attributes{'type'});
-    $self->{'name'} = console_read('Name of the reservation', 1, undef, $attributes{'name'});
-    $self->{'purpose'} = console_select('Select reservation purpose', \%Purpose, $attributes{'purpose'});
+    return $self;
+}
+
+#
+# Create a new reservation request from this instance
+#
+sub create()
+{
+    my ($self, $attributes) = @_;
+
+    $self->{'type'} = console_select('Select reservation type', \%Type, $attributes->{'type'});
+    $self->{'name'} = console_read('Name of the reservation', 1, undef, $attributes->{'name'});
+    $self->{'purpose'} = console_select('Select reservation purpose', \%Purpose, $attributes->{'purpose'});
 
     # Parse requested slots
-    if ( defined($attributes{'slot'}) ) {
-        for ( my $index = 0; $index < @{$attributes{'slot'}}; $index++ ) {
-            my $slot = $attributes{'slot'}->[$index];
+    if ( defined($attributes->{'slot'}) ) {
+        for ( my $index = 0; $index < @{$attributes->{'slot'}}; $index++ ) {
+            my $slot = $attributes->{'slot'}->[$index];
             my $result = 0;
             if ($slot =~ /\((.+)\),(.*)/) {
                 my $dateTime = $1;
@@ -86,11 +96,11 @@ sub create()
     }
 
     # Parse requested compartment
-    if ( defined($attributes{'resource'}) || defined($attributes{'person'}) ) {
-        my $compartment = Shongo::Compartment->new();
-        if ( defined($attributes{'resource'}) ) {
-            for ( my $index = 0; $index < @{$attributes{'resource'}}; $index++ ) {
-                my $resource = $attributes{'resource'}->[$index];
+    if ( defined($attributes->{'resource'}) || defined($attributes->{'person'}) ) {
+        my $compartment = Shongo::Controller::API::Compartment->new();
+        if ( defined($attributes->{'resource'}) ) {
+            for ( my $index = 0; $index < @{$attributes->{'resource'}}; $index++ ) {
+                my $resource = $attributes->{'resource'}->[$index];
                 if ($resource =~ /(.+),(.*)/) {
                     my $technology = $1;
                     my $count = $2;
@@ -98,9 +108,9 @@ sub create()
                 }
             }
         }
-        if ( defined($attributes{'person'}) ) {
-            for ( my $index = 0; $index < @{$attributes{'person'}}; $index++ ) {
-                my $resource = $attributes{'person'}->[$index];
+        if ( defined($attributes->{'person'}) ) {
+            for ( my $index = 0; $index < @{$attributes->{'person'}}; $index++ ) {
+                my $resource = $attributes->{'person'}->[$index];
                 if ($resource =~ /(.+),(.*)/) {
                     my $name = $1;
                     my $email = $2;
@@ -117,13 +127,13 @@ sub create()
     }
     if ( $self->get_compartments_count() == 0 ) {
         console_print_info("Fill requested resources and/or persons:");
-        my $compartment = Shongo::Compartment->create();
+        my $compartment = Shongo::Controller::API::Compartment->create();
         if ( defined($compartment) ) {
             push($self->{'compartments'}, $compartment);
         }
     }
 
-    if ( $self->modify_loop('creation of reservation request') ) {
+    while ( $self->modify_loop('creation of reservation request') ) {
         console_print_info("Creating reservation request...");
         my $response = Shongo::Controller->instance()->request(
             'Reservation.createReservationRequest',
@@ -145,6 +155,8 @@ sub modify()
     my ($self) = @_;
 
     $self->modify_loop('modification of reservation request');
+
+    console_print_info("TODO: Modify");
 }
 
 #
@@ -171,9 +183,7 @@ sub modify_loop()
         	    $self->modify_compartments();
             }
             case 'confirm' {
-                if ( $self->validate() ) {
-                    return 1;
-                }
+                return 1;
             }
             else {
                 return 0;
@@ -253,7 +263,7 @@ sub modify_compartments
         my $action = console_select('Select action', ordered_hash_ref($actions));
         switch ( $action ) {
             case 'new' {
-                my $compartment = Shongo::Compartment->create();
+                my $compartment = Shongo::Controller::API::Compartment->create();
                 if ( defined($compartment) ) {
                     push($self->{'compartments'}, $compartment);
                 }
@@ -366,36 +376,6 @@ sub compartments_to_string()
         $string .= "   -- None --\n";
     }
     return $string;
-}
-
-sub to_xml()
-{
-    my ($self) = @_;
-
-    my $slots = [];
-    for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
-        my $slot = $self->{'slots'}->[$index];
-        my $start = $slot->{'start'};
-        my $duration = $slot->{'duration'};
-        if ( ref($start) ) {
-        }
-        else {
-            push($slots, RPC::XML::struct->new('start' => $start, 'duration' => $duration));
-        }
-    }
-    my $compartments = [RPC::XML::struct->new('class' => 'Compartment')];
-    for ( my $index = 0; $index < $self->get_compartments_count(); $index++ ) {
-        my $compartment = $self->{'compartments'}->[$index];
-    }
-
-    my $xml = RPC::XML::struct->new(
-        'type' => RPC::XML::string->new($self->{'type'}),
-        'name' => RPC::XML::string->new($self->{'name'}),
-        'purpose' => RPC::XML::string->new($self->{'purpose'}),
-        'slots' => RPC::XML::array->new(from => $slots),
-        'compartments' => RPC::XML::array->new(from => $compartments)
-    );
-    return $xml;
 }
 
 1;

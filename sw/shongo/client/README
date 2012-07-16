@@ -17,8 +17,10 @@ REQUIREMENTS
 This client requires Perl installed to run and following Perl modules:
 1) RPC::XML
 2) XML::Twig
-3) File::HomeDir
-4) Term::ReadLine::Zoid;
+3) Term::ShellUI
+4) Term::ReadLine::Zoid
+5) Text::Table
+6) DateTime::Format::ISO8601
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
@@ -28,4 +30,4 @@ can be installed by the following command:
 On other platforms the modules can be installed for instance
 by CPAN utility:
 
-    cpan -i RPC::XML XML::Twig File::HomeDir
+    cpan -i RPC::XML XML::Twig Term::ShellUI ...

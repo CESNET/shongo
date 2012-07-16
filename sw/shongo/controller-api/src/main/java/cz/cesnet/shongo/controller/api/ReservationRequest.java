@@ -29,6 +29,11 @@ public class ReservationRequest extends ComplexType
     public static final String PURPOSE = "purpose";
 
     /**
+     * Description of the reservation request.
+     */
+    public static final String DESCRIPTION = "description";
+
+    /**
      * Collection of {@link DateTimeSlot} for which the reservation is requested.
      */
     public static final String SLOTS = "slots";
@@ -65,7 +70,6 @@ public class ReservationRequest extends ComplexType
     /**
      * @return {@link #NAME}
      */
-    @Required
     public String getName()
     {
         return propertyStore.getValue(NAME);
@@ -94,6 +98,22 @@ public class ReservationRequest extends ComplexType
     public void setPurpose(ReservationRequestPurpose purpose)
     {
         propertyStore.setValue(PURPOSE, purpose);
+    }
+
+    /**
+     * @return {@link #DESCRIPTION}
+     */
+    public String getDescription()
+    {
+        return propertyStore.getValue(DESCRIPTION);
+    }
+
+    /**
+     * @param description sets the {@link #DESCRIPTION}
+     */
+    public void setDescription(String description)
+    {
+        propertyStore.setValue(DESCRIPTION, description);
     }
 
     /**

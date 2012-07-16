@@ -8,8 +8,10 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -82,6 +84,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         // Fill common attributes
         reservationRequestImpl.setType(reservationRequest.getType());
         reservationRequestImpl.setName(reservationRequest.getName());
+        reservationRequestImpl.setDescription(reservationRequest.getDescription());
         reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
 
         // Fill requested slots
@@ -162,6 +165,9 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         if (reservationRequest.isPropertyFilled(ReservationRequest.NAME)) {
             reservationRequestImpl.setName(reservationRequest.getName());
         }
+        if (reservationRequest.isPropertyFilled(ReservationRequest.DESCRIPTION)) {
+            reservationRequestImpl.setDescription(reservationRequest.getDescription());
+        }
         if (reservationRequest.isPropertyFilled(ReservationRequest.PURPOSE)) {
             reservationRequestImpl.setPurpose(reservationRequest.getPurpose());
         }
@@ -217,12 +223,45 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         // Get reservation request
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
+        if ( reservationRequestImpl == null ) {
+            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, reservationRequestId);
+        }
 
         // Delete the request
         reservationRequestManager.delete(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
         entityManager.close();
+    }
+
+    @Override
+    public ReservationRequestSummary[] listReservationRequests(SecurityToken token)
+    {
+        EntityManager entityManager = getEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
+        List<cz.cesnet.shongo.controller.request.ReservationRequest> list = reservationRequestManager.list();
+        List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
+        for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : list) {
+            ReservationRequestSummary summary = new ReservationRequestSummary();
+            summary.setIdentifier(domain.formatIdentifier(reservationRequest.getId()));
+
+            Interval earliestSlot = null;
+            for ( cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequest.getRequestedSlots()) {
+                Interval interval = slot.getEarliest(null);
+                if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
+                    earliestSlot = interval;
+                }
+            }
+
+            summary.setType(reservationRequest.getType());
+            summary.setName(reservationRequest.getName());
+            summary.setPurpose(reservationRequest.getPurpose());
+            summary.setDescription(reservationRequest.getDescription());
+            summary.setEarliestSlot(earliestSlot);
+            summaryList.add(summary);
+        }
+        return summaryList.toArray(new ReservationRequestSummary[summaryList.size()]);
     }
 
     @Override
@@ -243,6 +282,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         reservationRequest.setIdentifier(domain.formatIdentifier(reservationRequestImpl.getId()));
         reservationRequest.setType(reservationRequestImpl.getType());
         reservationRequest.setName(reservationRequestImpl.getName());
+        reservationRequest.setDescription(reservationRequestImpl.getDescription());
         reservationRequest.setPurpose(reservationRequestImpl.getPurpose());
 
         for (cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :

@@ -98,7 +98,14 @@ public class TypeFactory extends TypeFactoryImpl
             };
         }
         else if (Converter.isAtomic(pObject)) {
-            pObject = pObject.toString();
+            return new MapSerializer(this, pConfig)
+            {
+                @Override
+                public void write(ContentHandler pHandler, Object pObject) throws SAXException
+                {
+                    write(pHandler, null, Converter.convertAtomicToString(pObject));
+                }
+            };
         }
         TypeSerializer serializer = super.getSerializer(pConfig, pObject);
         // If none serializer was found, serialize by object attributes

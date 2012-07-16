@@ -37,7 +37,7 @@ sub console_read
     while ( 1 ) {
         if ( defined($value) ) {
             if ( $required && $value eq "" ) {
-                dialog_error("Value must not be empty.");
+                console_print_error("Value must not be empty.");
             }
             elsif ( !defined($regex) || $value =~ m/$regex/ ) {
                 return $value;
@@ -46,7 +46,7 @@ sub console_read
                 return;
             }
             else {
-                console_print_error("Value must match '%s'.", $regex);
+                console_print_error("Value '%s' must match '%s'.", $value, $regex);
             }
         }
         $value = $term->readline(colored(sprintf("%s: ", $message), "bold blue"));

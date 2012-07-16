@@ -1,7 +1,8 @@
 #
 # Reservation class - Management of reservations.
 #
-package Shongo::Resource;
+package Shongo::Controller::API::Resource;
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;

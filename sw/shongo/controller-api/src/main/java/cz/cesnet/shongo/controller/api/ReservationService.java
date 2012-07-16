@@ -12,10 +12,10 @@ public interface ReservationService extends Service
     /**
      * Creates a new reservation request.
      * <p/>
-     * The user with the given {@code token} will be the resource owner.
+     * The user with the given {@code token} will be the request owner.
      *
      * @param token              token of the user requesting the operation
-     * @param reservationRequest reservation request; should contains all atributes marked as {@link Required}
+     * @param reservationRequest reservation request; should contains all attributes marked as {@link Required}
      *                           in {@link ReservationRequest}
      * @return the created reservation request identifier
      */
@@ -41,6 +41,15 @@ public interface ReservationService extends Service
      */
     @API
     public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException;
+
+    /**
+     * Lists all the reservation requests.
+     *
+     * @param token  token of the user requesting the operation
+     * @return array of reservation requests
+     */
+    @API
+    public ReservationRequestSummary[] listReservationRequests(SecurityToken token);
 
     /**
      * Gets the complete Reservation object.
@@ -72,15 +81,6 @@ public interface ReservationService extends Service
      */
     //public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, DateTimeSlot slot,
     //        Map filter);
-
-    /**
-     * Lists all the reservations matching a filter.
-     *
-     * @param token  token of the user requesting the operation
-     * @param filter
-     * @return
-     */
-    //public ReservationSummary[] listReservations(SecurityToken token, Map filter);
 
     /**
      * Looks up available time slots for a given reservation duration and resources.
