@@ -18,24 +18,6 @@ our %Type = ordered_hash('NORMAL' => 'Normal', 'PERMANENT' => 'Permanent');
 our %Purpose = ordered_hash('EDUCATION' => 'Education', 'SCIENCE' => 'Science');
 
 #
-# Get count of requested slots in reservation request
-#
-sub get_slots_count()
-{
-    my ($self) = @_;
-    return $self->get_collection_size('slots');
-}
-
-#
-# Get count of requested compartments in reservation request
-#
-sub get_compartments_count()
-{
-    my ($self) = @_;
-    return $self->get_collection_size('compartments');
-}
-
-#
 # Create a new instance of reservation request
 #
 # @static
@@ -54,6 +36,24 @@ sub new()
     $self->{'compartments'} = [];
 
     return $self;
+}
+
+#
+# Get count of requested slots in reservation request
+#
+sub get_slots_count()
+{
+    my ($self) = @_;
+    return $self->get_collection_size('slots');
+}
+
+#
+# Get count of requested compartments in reservation request
+#
+sub get_compartments_count()
+{
+    my ($self) = @_;
+    return $self->get_collection_size('compartments');
 }
 
 #

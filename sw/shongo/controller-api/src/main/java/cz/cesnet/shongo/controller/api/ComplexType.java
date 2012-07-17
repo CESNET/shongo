@@ -106,16 +106,39 @@ public abstract class ComplexType
 
         /**
          * @param property
-         * @return return collection of given property
+         * @return internal collection
          */
-        public <T> List<T> getCollection(String property)
+        @SuppressWarnings("unchecked")
+        private Collection getInternalCollection(String property)
         {
-            @SuppressWarnings("unchecked")
-            List<T> collection = (List<T>) values.get(property);
+            Collection collection = (Collection) values.get(property);
             if (collection == null) {
-                return new ArrayList<T>();
+                Class propertyType = List.class;
+                try {
+                    propertyType = Property.getPropertyType(getClass(), property);
+                }
+                catch (FaultException e) {
+                }
+                try {
+                    collection = Converter.createCollection(propertyType, 0);
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+                values.put(property, collection);
             }
             return collection;
+        }
+
+        /**
+         * @param property
+         * @return return collection of given property
+         */
+        @SuppressWarnings("unchecked")
+        public <T extends Collection> T getCollection(String property)
+        {
+            Collection collection = getInternalCollection(property);
+            return (T) collection;
         }
 
         /**
@@ -123,10 +146,10 @@ public abstract class ComplexType
          * @param type
          * @return return collection of given property converted to array
          */
+        @SuppressWarnings("unchecked")
         public <T> T[] getCollection(String property, Class<T> type)
         {
-            List<T> collection = getCollection(property);
-            @SuppressWarnings("unchecked")
+            Collection<T> collection = getCollection(property);
             T[] array = (T[]) Array.newInstance(type, collection.size());
             try {
                 return collection.toArray(array);
@@ -144,7 +167,7 @@ public abstract class ComplexType
          * @param property
          * @param collection
          */
-        public <T> void setCollection(String property, List<T> collection)
+        public <T> void setCollection(String property, Collection<T> collection)
         {
             values.put(property, collection);
         }
@@ -171,11 +194,7 @@ public abstract class ComplexType
         public boolean addCollectionItem(String property, Object item)
         {
             @SuppressWarnings("unchecked")
-            Collection<Object> collection = (Collection<Object>) values.get(property);
-            if (collection == null) {
-                collection = new ArrayList<Object>();
-                values.put(property, collection);
-            }
+            Collection<Object> collection = getInternalCollection(property);
             if (collection.add(item)) {
                 markCollectionItemAsNew(property, item);
                 return true;

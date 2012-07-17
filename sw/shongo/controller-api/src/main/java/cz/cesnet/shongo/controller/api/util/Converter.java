@@ -245,7 +245,7 @@ public class Converter
     public static Interval convertStringToInterval(String value) throws FaultException
     {
         String[] parts = value.split("/");
-        if ( parts.length == 2 ) {
+        if (parts.length == 2) {
             Interval interval = new Interval(convertStringToDateTime(parts[0]), convertStringToPeriod(parts[1]));
             return interval;
         }
@@ -375,7 +375,7 @@ public class Converter
      */
     public static String convertAtomicToString(Object object)
     {
-        if ( object instanceof Interval ) {
+        if (object instanceof Interval) {
             Interval interval = (Interval) object;
             return String.format("%s/%s", interval.getStart().toString(), interval.toPeriod().toString());
         }

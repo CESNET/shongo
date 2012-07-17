@@ -10,7 +10,7 @@ use Switch;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-    console_print_info console_print_error
+    console_print_info console_print_error console_print_table
     console_read console_read_choice console_select
     console_action console_action_loop
     console_auto_value console_read_value console_edit_value
@@ -43,6 +43,27 @@ sub console_print_error
 {
     my ($message, @parameters) = @_;
     print STDERR colored("[ERROR] " . sprintf($message, @parameters), "red"), "\n";
+}
+
+#
+# Print table to console
+#
+# @param $table
+#
+sub console_print_table
+{
+    my ($table) = @_;
+    print $table->rule( '-', '+'), $table->title, $table->rule( '-', '+');
+    if ( !defined($table->body) || $table->body eq '' ) {
+        my $empty_text = ' -- None -- ';
+        my $width = $table->width() - 2 - length($empty_text);
+        my $left = $width / 2;
+        my $right = $width / 2 + ($width % 2);
+        print sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, ''), $table->rule( '-', '+');
+    } else {
+        print $table->body, $table->rule( '-', '+');
+
+    }
 }
 
 #

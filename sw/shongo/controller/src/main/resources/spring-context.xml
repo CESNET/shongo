@@ -41,7 +41,9 @@
 
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.api.CommonServiceImpl"/>
-    <bean id="resourceService" class="cz.cesnet.shongo.controller.api.ResourceServiceImpl"/>
+    <bean id="resourceService" class="cz.cesnet.shongo.controller.api.ResourceServiceImpl">
+        <property name="domain"><ref bean="domain"/></property>
+    </bean>
     <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl">
         <property name="domain"><ref bean="domain"/></property>
     </bean>

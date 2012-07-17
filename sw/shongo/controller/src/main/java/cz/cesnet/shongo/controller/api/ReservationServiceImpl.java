@@ -26,7 +26,6 @@ public class ReservationServiceImpl extends Component implements ReservationServ
      */
     private Domain domain;
 
-
     /**
      * Constructor.
      */
@@ -94,42 +93,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
 
         // Fill requested compartments
         for (Compartment compartment : reservationRequest.getCompartments()) {
-            cz.cesnet.shongo.controller.request.Compartment compartmentImpl =
-                    reservationRequestImpl.addRequestedCompartment();
-            for (Person person : compartment.getPersons()) {
-                compartmentImpl.addRequestedPerson(
-                        new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
-            }
-            for (Compartment.ResourceSpecificationMap map : compartment
-                    .getResources()) {
-                cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification = null;
-                if (map.containsKey("technology")) {
-                    Technology technology = Converter
-                            .convertStringToEnum((String) map.get("technology"), Technology.class);
-                    if (map.containsKey("count")) {
-                        resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
-                                technology, Integer.parseInt(map.get("count").toString()));
-                    }
-                    else {
-                        resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
-                                technology, Integer.parseInt(map.get("count").toString()));
-                    }
-                }
-                // Check resource specification existence
-                if (resourceSpecification == null) {
-                    throw new FaultException(ControllerFault.TODO_IMPLEMENT);
-                }
-                // Fill requested persons
-                if (map.containsKey("persons")) {
-                    for (Object object : (Object[]) map.get("persons")) {
-                        cz.cesnet.shongo.controller.api.Person person =
-                                Converter.convert(object, cz.cesnet.shongo.controller.api.Person.class);
-                        resourceSpecification.addRequestedPerson(
-                                new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
-                    }
-                }
-                compartmentImpl.addRequestedResource(resourceSpecification);
-            }
+            createRequestedCompartmentInReservationRequest(reservationRequestImpl, compartment);
         }
 
         // Save it
@@ -212,7 +176,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (Compartment compartment : reservationRequest.getCompartments()) {
             // Create new requested slot
             if (reservationRequest.isCollectionItemMarkedAsNew(ReservationRequest.COMPARTMENTS, compartment)) {
-                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+                createRequestedCompartmentInReservationRequest(reservationRequestImpl, compartment);
             }
             else {
                 // Modify existing requested slot
@@ -283,6 +247,9 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             summary.setEarliestSlot(earliestSlot);
             summaryList.add(summary);
         }
+
+        entityManager.close();
+
         return summaryList.toArray(new ReservationRequestSummary[summaryList.size()]);
     }
 
@@ -356,6 +323,8 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             }
         }
 
+        entityManager.close();
+
         return reservationRequest;
     }
 
@@ -385,6 +354,55 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         else {
             throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
                     "Unknown date/time type.");
+        }
+    }
+
+    /**
+     * Create a new requested compartment in given reservation request from the given {@link Compartment}.
+     *
+     * @param reservationRequestImpl
+     * @param compartment
+     * @throws FaultException
+     */
+    private void createRequestedCompartmentInReservationRequest(
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl, Compartment compartment)
+        throws FaultException
+    {
+        cz.cesnet.shongo.controller.request.Compartment compartmentImpl =
+                reservationRequestImpl.addRequestedCompartment();
+        for (Person person : compartment.getPersons()) {
+            compartmentImpl.addRequestedPerson(
+                    new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
+        }
+        for (Compartment.ResourceSpecificationMap map : compartment
+                .getResources()) {
+            cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification = null;
+            if (map.containsKey("technology")) {
+                Technology technology = Converter
+                        .convertStringToEnum((String) map.get("technology"), Technology.class);
+                if (map.containsKey("count")) {
+                    resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
+                            technology, Integer.parseInt(map.get("count").toString()));
+                }
+                else {
+                    resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
+                            technology, Integer.parseInt(map.get("count").toString()));
+                }
+            }
+            // Check resource specification existence
+            if (resourceSpecification == null) {
+                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+            }
+            // Fill requested persons
+            if (map.containsKey("persons")) {
+                for (Object object : (Object[]) map.get("persons")) {
+                    cz.cesnet.shongo.controller.api.Person person =
+                            Converter.convert(object, cz.cesnet.shongo.controller.api.Person.class);
+                    resourceSpecification.addRequestedPerson(
+                            new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
+                }
+            }
+            compartmentImpl.addRequestedResource(resourceSpecification);
         }
     }
 }

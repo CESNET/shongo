@@ -12,6 +12,23 @@ use Shongo::Console;
 use Shongo::Controller::API::Resource;
 
 #
+# Create a new instance of compartment
+#
+# @static
+#
+sub new
+{
+    my $class = shift;
+    my $self = Shongo::Controller::API::Object->new(@_);
+    bless $self, $class;
+
+    $self->{'resources'} = [];
+    $self->{'persons'} = [];
+
+    return $self;
+}
+
+#
 # Get count of requested resources in compartment
 #
 sub get_resources_count()
@@ -27,23 +44,6 @@ sub get_persons_count()
 {
     my ($self) = @_;
     return $self->get_collection_size('persons');
-}
-
-#
-# Create a new instance of compartment
-#
-# @static
-#
-sub new
-{
-    my $class = shift;
-    my $self = Shongo::Controller::API::Object->new(@_);
-    bless $self, $class;
-
-    $self->{'resources'} = [];
-    $self->{'persons'} = [];
-
-    return $self;
 }
 
 #

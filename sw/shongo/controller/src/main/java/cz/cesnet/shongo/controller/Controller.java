@@ -86,6 +86,11 @@ public class Controller
     Container jadeContainer;
 
     /**
+     * @see WorkerThread
+     */
+    WorkerThread workerThread;
+
+    /**
      * Jade agent.
      */
     ControllerAgent jadeAgent;
@@ -204,6 +209,20 @@ public class Controller
     }
 
     /**
+     * @param componentType
+     * @return component of given type
+     */
+    public <T> T getComponent(Class<T> componentType)
+    {
+        for ( Component component : components ) {
+            if (componentType.isInstance(component) ) {
+                return componentType.cast(component);
+            }
+        }
+        return null;
+    }
+
+    /**
      * Start the domain controller (but do not start rpc web server or jade container).
      */
     public void start() throws IllegalStateException
@@ -215,7 +234,7 @@ public class Controller
 
         logger.info("Controller is starting...");
 
-        // Inititialize components
+        // Initialize components
         for (Component component : components) {
             component.setEntityManagerFactory(entityManagerFactory);
             component.init();
@@ -232,6 +251,7 @@ public class Controller
         start();
         startRpc();
         startJade();
+        startWorkerThread();
     }
 
     /**
@@ -286,6 +306,16 @@ public class Controller
     }
 
     /**
+     * Start worker thread which periodically runs preprocessor and scheduler
+     */
+    public void startWorkerThread()
+    {
+        logger.info("Starting Controller worker...");
+        workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class));
+        workerThread.start();
+    }
+
+    /**
      * Run controller shell
      */
     public void run()
@@ -304,6 +334,18 @@ public class Controller
      */
     public void stop()
     {
+        if ( workerThread != null ) {
+            logger.info("Stopping Controller worker...");
+            if ( workerThread.isAlive() ) {
+                workerThread.interrupt();
+                try {
+                    workerThread.join();
+                }
+                catch (Exception e) {
+                }
+            }
+        }
+
         if (jadeContainer != null) {
             logger.info("Stopping Controller JADE container...");
             jadeContainer.stop();

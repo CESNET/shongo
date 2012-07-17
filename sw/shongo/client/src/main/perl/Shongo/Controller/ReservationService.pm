@@ -110,7 +110,7 @@ sub delete_reservation()
     }
     Shongo::Controller->instance()->secure_request(
         'Reservation.deleteReservationRequest',
-        $identifier
+        RPC::XML::string->new($identifier)
     );
 }
 
@@ -137,7 +137,7 @@ sub list_reservations()
             $slot
         );
     }
-    print $table->rule( '-', '+'), $table->title, $table->rule( '-', '+'), $table->body, $table->rule( '-', '+');
+    console_print_table($table);
 }
 
 sub get_reservation()

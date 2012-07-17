@@ -45,7 +45,7 @@ public interface ReservationService extends Service
     /**
      * Lists all the reservation requests.
      *
-     * @param token  token of the user requesting the operation
+     * @param token token of the user requesting the operation
      * @return array of reservation requests
      */
     @API

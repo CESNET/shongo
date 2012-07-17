@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
@@ -47,22 +46,30 @@ public class Scheduler extends Component
     {
         checkInitialized();
 
-        logger.debug("Running scheduler...");
+        logger.debug("Running scheduler for interval '{}'...", formatInterval(interval));
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
-        List<CompartmentRequest> compartmentRequests = compartmentRequestManager.listCompleted(interval);
+        try {
+            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
+            List<CompartmentRequest> compartmentRequests = compartmentRequestManager.listCompleted(interval);
 
-        // TODO: Apply some priority
+            // TODO: Apply some priority
 
-        for (CompartmentRequest compartmentRequest : compartmentRequests) {
-            allocateCompartmentRequest(compartmentRequest, entityManager);
+            for (CompartmentRequest compartmentRequest : compartmentRequests) {
+                allocateCompartmentRequest(compartmentRequest, entityManager);
+            }
+
+            entityManager.getTransaction().commit();
         }
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
+        catch (RuntimeException exception) {
+            entityManager.getTransaction().rollback();
+            throw exception;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
@@ -95,7 +102,7 @@ public class Scheduler extends Component
 
         // Schedule a new allocation
         if (allocatedResources.size() == 0) {
-            System.err.println(PrintableObject.toString(requestedResourcesWithPersons));
+            //System.err.println(PrintableObject.toString(requestedResourcesWithPersons));
 
             // TODO: Allocate endpoints
 

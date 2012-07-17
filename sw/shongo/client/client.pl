@@ -59,7 +59,7 @@ my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
-    'cmd=s' => \$cmd,
+    'cmd=s@' => \$cmd,
     'file=s' => \$file
 ) or usage('Invalid commmand line options.');
 if ( $help == 1) {
@@ -84,14 +84,15 @@ my $shell = Shongo::Shell->new();
 
 # Run single command
 if ( defined($cmd) ) {
-    $shell->command($cmd);
+    foreach my $item (@{$cmd}) {
+        $shell->command($item);
+    }
 }
 # Run command from file
 elsif ( defined($file) ) {
     open(FILE1, $file) || die "Error openning file $file: $!\n";
     my @lines = <FILE1>;
-    my $line;
-    foreach $line (@lines) {
+    foreach my $line (@lines) {
         $line =~ s/\s+$//;
         $shell->command($line);
     }
