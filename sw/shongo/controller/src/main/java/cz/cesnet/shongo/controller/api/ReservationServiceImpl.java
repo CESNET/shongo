@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Technology;
 import cz.cesnet.shongo.controller.api.util.Converter;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
+import cz.cesnet.shongo.controller.request.CompartmentRequest;
+import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -180,7 +183,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             }
             else {
                 // Modify existing requested slot
-                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+                //throw new FaultException(ControllerFault.TODO_IMPLEMENT);
             }
         }
         // Delete requested compartments
@@ -274,6 +277,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         reservationRequest.setDescription(reservationRequestImpl.getDescription());
         reservationRequest.setPurpose(reservationRequestImpl.getPurpose());
 
+        // Fill requested slots
         for (cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :
                 reservationRequestImpl.getRequestedSlots()) {
 
@@ -298,6 +302,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             reservationRequest.addSlot(dateTimeSlot);
         }
 
+        // Fill requested compartments
         for (cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
                 reservationRequestImpl.getRequestedCompartments()) {
             Compartment compartment = reservationRequest.addCompartment();
@@ -321,6 +326,17 @@ public class ReservationServiceImpl extends Component implements ReservationServ
                             externalEndpointSpecification.getCount(), persons);
                 }
             }
+        }
+
+        // Fill processed slots
+        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(reservationRequestImpl);
+        for ( CompartmentRequest compartmentRequest : compartmentRequestList) {
+            ReservationRequest.Request request = new ReservationRequest.Request();
+            request.setStart(compartmentRequest.getRequestedSlot().getStart());
+            request.setDuration(compartmentRequest.getRequestedSlot().toPeriod());
+            request.setState(ReservationRequest.Request.State.NOT_ALLOCATED);
+            reservationRequest.addRequest(request);
         }
 
         entityManager.close();

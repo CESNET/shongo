@@ -2,8 +2,10 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import org.joda.time.DateTime;
 import org.joda.time.Period;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,6 +44,11 @@ public class ReservationRequest extends ComplexType
      * Collection of {@link Compartment} which are requested for the reservation.
      */
     public static final String COMPARTMENTS = "compartments";
+
+    /**
+     * List of {@link Request} which are already processed for the reservation.
+     */
+    private List<Request> requests = new ArrayList<Request>();
 
     /**
      * Constructor.
@@ -196,5 +203,102 @@ public class ReservationRequest extends ComplexType
     public void removeCompartment(Compartment compartment)
     {
         propertyStore.removeCollectionItem(COMPARTMENTS, compartment);
+    }
+
+    /**
+     * @return {@link #requests}
+     */
+    public List<Request> getRequests()
+    {
+        return requests;
+    }
+
+    /**
+     * @param request slot to be added to the {@link #requests}
+     */
+    public void addRequest(Request request)
+    {
+        requests.add(request);
+    }
+
+    /**
+     * Represents a single already processed slot that is requested by reservation request.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    public static class Request extends ComplexType
+    {
+        /**
+         * State of processed slot.
+         */
+        public static enum State
+        {
+            NOT_ALLOCATED,
+            ALLOCATED,
+            ALLOCATION_FAILED
+        }
+
+        /**
+         * Starting date/time.
+         */
+        private DateTime start;
+
+        /**
+         * Duration of the time slot.
+         */
+        private Period duration;
+
+        /**
+         * Type of processed slot.
+         */
+        private State state;
+
+        /**
+         * @return {@link #start}
+         */
+        public DateTime getStart()
+        {
+            return start;
+        }
+
+        /**
+         * @param start sets the {@link #start}
+         */
+        void setStart(DateTime start)
+        {
+            this.start = start;
+        }
+
+        /**
+         * @return {@link #duration}
+         */
+        public Period getDuration()
+        {
+            return duration;
+        }
+
+        /**
+         * @param duration sets the {@link #duration}
+         */
+        void setDuration(Period duration)
+        {
+            this.duration = duration;
+        }
+
+        /**
+         * @return {@link #state}
+         */
+        public State getState()
+        {
+            return state;
+        }
+
+        /**
+         * @param state sets the {@link #state}
+         */
+        public void setState(State state)
+        {
+            this.state = state;
+        }
     }
 }

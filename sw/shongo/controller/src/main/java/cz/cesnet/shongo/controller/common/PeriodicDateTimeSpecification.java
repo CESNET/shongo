@@ -383,7 +383,10 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         }
 
         PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) object;
-        List<DateTime> dateTimes1 = enumerate();
+        return getId().equals(periodicDateTime.getId());
+
+        // TODO: think up how to do infinite equals
+        /*List<DateTime> dateTimes1 = enumerate();
         List<DateTime> dateTimes2 = periodicDateTime.enumerate();
         if (dateTimes1.size() != dateTimes2.size()) {
             return false;
@@ -393,7 +396,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
                 return false;
             }
         }
-        return true;
+        return true;*/
     }
 
     /**

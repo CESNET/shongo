@@ -17,6 +17,10 @@ our %Type = ordered_hash('NORMAL' => 'Normal', 'PERMANENT' => 'Permanent');
 # Enumeration of reservation request purpose
 our %Purpose = ordered_hash('EDUCATION' => 'Education', 'SCIENCE' => 'Science');
 
+# Enumeration of request state
+our %RequestState = ordered_hash('NOT_ALLOCATED' => 'Not Allocated', 'ALLOCATED' => 'Allocated',
+    'ALLOCATION_FAILED' => 'Allocation Failed');
+
 #
 # Create a new instance of reservation request
 #
@@ -34,6 +38,7 @@ sub new()
     $self->{'purpose'} = undef;
     $self->{'slots'} = [];
     $self->{'compartments'} = [];
+    $self->{'requests'} = [];
 
     return $self;
 }
@@ -344,6 +349,17 @@ sub to_string()
     $string .= "    Purpose: $Purpose{$self->{'purpose'}}\n";
     $string .= $self->slots_to_string();
     $string .= $self->compartments_to_string();
+
+    if ( $self->get_collection_size('requests') > 0 ) {
+        $string .= " Created requests:\n";
+        for ( my $index = 0; $index < $self->get_collection_size('requests'); $index++ ) {
+            my $processedSlots = $self->get_collection_item('requests', $index);
+            my $start = $processedSlots->{'start'};
+            my $duration = $processedSlots->{'duration'};
+            my $state = $RequestState{$processedSlots->{'state'}};
+            $string .= sprintf("   %d) at %s for %s (%s)\n", $index + 1, $start, $duration, $state);
+        }
+    }
 
     return $string;
 }
