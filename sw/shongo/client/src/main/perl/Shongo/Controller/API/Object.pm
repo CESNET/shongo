@@ -21,8 +21,20 @@ sub new
     bless $self, $class;
 
     $self->{'identifier'} = undef;
+    $self->{'__to_xml_skip_attributes'} = {'class' => 1};
 
     return $self;
+}
+
+#
+# Skip given attribute in to_xml calls
+#
+# @param $attribute_name
+#
+sub to_xml_skip_attribute
+{
+    my ($self, $attribute_name) = @_;
+    $self->{'__to_xml_skip_attributes'}->{$attribute_name} = 1;
 }
 
 #
@@ -209,7 +221,7 @@ sub to_xml()
     my $xml = {};
     foreach my $name (keys %{$self}) {
         my $value = $self->{$name};
-        if ( !($name eq "class") ) {
+        if ( !($name eq "__to_xml_skip_attributes") && !($self->{'__to_xml_skip_attributes'}->{$name}) ) {
             $xml->{$name} = to_xml_value($value);
         }
     }

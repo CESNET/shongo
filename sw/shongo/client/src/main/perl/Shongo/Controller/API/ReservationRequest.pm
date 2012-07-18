@@ -12,13 +12,13 @@ use Shongo::Console;
 use Shongo::Controller::API::Compartment;
 
 # Enumeration of reservation request type
-our %Type = ordered_hash('NORMAL' => 'Normal', 'PERMANENT' => 'Permanent');
+our $Type = ordered_hash('NORMAL' => 'Normal', 'PERMANENT' => 'Permanent');
 
 # Enumeration of reservation request purpose
-our %Purpose = ordered_hash('EDUCATION' => 'Education', 'SCIENCE' => 'Science');
+our $Purpose = ordered_hash('EDUCATION' => 'Education', 'SCIENCE' => 'Science');
 
 # Enumeration of request state
-our %RequestState = ordered_hash('NOT_ALLOCATED' => 'Not Allocated', 'ALLOCATED' => 'Allocated',
+our $RequestState = ordered_hash('NOT_ALLOCATED' => 'Not Allocated', 'ALLOCATED' => 'Allocated',
     'ALLOCATION_FAILED' => 'Allocation Failed');
 
 #
@@ -39,6 +39,8 @@ sub new()
     $self->{'slots'} = [];
     $self->{'compartments'} = [];
     $self->{'requests'} = [];
+
+    $self->to_xml_skip_attribute('requests');
 
     return $self;
 }
@@ -182,7 +184,7 @@ sub modify_loop()
         sub {
             printf("\n%s\n", $self->to_string());
         },
-        ordered_hash_ref(
+        ordered_hash(
             'Modify attributes' => sub {
                 $self->modify_attributes(1);
                 return undef;
@@ -210,9 +212,9 @@ sub modify_attributes()
 {
     my ($self, $edit) = @_;
 
-    $self->{'type'} = console_auto_enum($edit, 'Select reservation type', \%Type, $self->{'type'});
+    $self->{'type'} = console_auto_enum($edit, 'Select reservation type', $Type, $self->{'type'});
     $self->{'name'} = console_auto_value($edit, 'Name of the reservation', 1, undef, $self->{'name'});
-    $self->{'purpose'} = console_auto_enum($edit, 'Select reservation purpose', \%Purpose, $self->{'purpose'});
+    $self->{'purpose'} = console_auto_enum($edit, 'Select reservation purpose', $Purpose, $self->{'purpose'});
 }
 
 #
@@ -258,7 +260,7 @@ sub modify_slots()
             push($actions, 'Finish modifying requested slots' => sub {
                 return 0;
             });
-            return ordered_hash_ref($actions);
+            return ordered_hash($actions);
         }
     );
 }
@@ -303,7 +305,7 @@ sub modify_compartments
             push($actions, 'Finish modifying requested compartments' => sub {
                 return 0;
             });
-            return ordered_hash_ref($actions);
+            return ordered_hash($actions);
         }
     );
 }
@@ -344,9 +346,9 @@ sub to_string()
     if ( defined($self->{'identifier'}) ) {
         $string .= " Identifier: $self->{'identifier'}\n";
     }
-    $string .= "       Type: $Type{$self->{'type'}}\n";
+    $string .= "       Type: $Type->{$self->{'type'}}\n";
     $string .= "       Name: $self->{'name'}\n";
-    $string .= "    Purpose: $Purpose{$self->{'purpose'}}\n";
+    $string .= "    Purpose: $Purpose->{$self->{'purpose'}}\n";
     $string .= $self->slots_to_string();
     $string .= $self->compartments_to_string();
 
@@ -356,7 +358,7 @@ sub to_string()
             my $processedSlots = $self->get_collection_item('requests', $index);
             my $start = $processedSlots->{'start'};
             my $duration = $processedSlots->{'duration'};
-            my $state = $RequestState{$processedSlots->{'state'}};
+            my $state = $RequestState->{$processedSlots->{'state'}};
             $string .= sprintf("   %d) at '%s' for '%s' (%s)\n", $index + 1, format_datetime($start), $duration, $state);
         }
     }

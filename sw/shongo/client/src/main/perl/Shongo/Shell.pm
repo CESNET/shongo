@@ -65,6 +65,8 @@ sub call_cmd
         if ( eval{GetOptions( $values, @parsed_options)} ) {
             $params->{'args'} = [@ARGV];
             $params->{'options'} = $values;
+        } else {
+            return;
         }
     }
     # Default implemetnation

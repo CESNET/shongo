@@ -173,7 +173,7 @@ sub console_action
         }
     }
 
-    my $action_hash = ordered_hash_ref($action_array);
+    my $action_hash = ordered_hash($action_array);
     my $action = console_select($prompt, $action_hash);
     if ( defined($action) && defined($action_hash->{$action}) ) {
         $action = $action_hash->{$action};
