@@ -9,7 +9,7 @@ use warnings;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-    ordered_hash ordered_hash_ref ordered_hash_keys
+    ordered_hash ordered_hash_keys
     format_datetime
     var_dump
 );
@@ -40,18 +40,6 @@ sub ordered_hash
 
     ${hash{'__keys'}} = [@order];
 
-    return %hash;
-}
-
-#
-# Create hash reference from given values which has item "__keys" as array with keys in insertion order.
-#
-# @param values array of pair of items (even count)
-# @return created has
-#
-sub ordered_hash_ref
-{
-    my %hash = ordered_hash(@_);
     return \%hash;
 }
 

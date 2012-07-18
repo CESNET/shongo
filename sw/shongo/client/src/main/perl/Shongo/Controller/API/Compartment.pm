@@ -85,7 +85,7 @@ sub modify_loop()
         sub {
             my $actions = [];
             push($actions, 'Add new requested resource' => sub {
-                my $technology = console_read_enum("Select technology", \%Shongo::Controller::API::Resource::Technology);
+                my $technology = console_read_enum("Select technology", $Shongo::Controller::API::Resource::Technology);
                 my $count = console_read_value("Count", 1, "\\d");
                 if ( defined($technology) && defined($count) ) {
                     push($self->{'resources'}, {'technology' => $technology, 'count' => $count});
@@ -121,7 +121,7 @@ sub modify_loop()
             push($actions, 'Finish modifying compartment' => sub {
                 return 1;
             });
-            return ordered_hash_ref($actions);
+            return ordered_hash($actions);
         }
     );
 }
@@ -139,7 +139,7 @@ sub to_string()
         for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
             my $resource = $self->{'resources'}->[$index];
             $string .= sprintf("   %d) Technology: %s, Count: %d\n", $index + 1,
-                $Shongo::Controller::API::Resource::Technology{$resource->{'technology'}}, $resource->{'count'});
+                $Shongo::Controller::API::Resource::Technology->{$resource->{'technology'}}, $resource->{'count'});
         }
     }
     else {

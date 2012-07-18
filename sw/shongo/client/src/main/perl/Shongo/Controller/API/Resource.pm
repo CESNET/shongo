@@ -11,7 +11,7 @@ use Shongo::Common;
 use Shongo::Console;
 
 # Enumeration of technologies
-our %Technology = ordered_hash('H323' => 'H.323', 'SIP' => 'SIP', 'ADOBE_CONNECT' => 'Adobe Connect');
+our $Technology = ordered_hash('H323' => 'H.323', 'SIP' => 'SIP', 'ADOBE_CONNECT' => 'Adobe Connect');
 
 #
 # Create a new instance of resource
@@ -99,11 +99,7 @@ sub modify_loop()
                     return undef;
                 },
                 'Add new capability' => sub {
-                    my $dateTime = console_read_value("Type a date/time", 0, "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d");
-                    my $duration = console_read_value("Type a slot duration");
-                    if ( defined($dateTime) && defined($duration) ) {
-                        $self->add_collection_item('capabilities', {'start' => $dateTime, 'duration' => $duration});
-                    }
+                    console_print_info("TODO:");
                     return undef;
                 }
             ];
@@ -124,7 +120,7 @@ sub modify_loop()
                     return 0;
                 }
             ));
-            return ordered_hash_ref($actions);
+            return ordered_hash($actions);
         }
     );
 }

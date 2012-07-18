@@ -129,9 +129,9 @@ sub list_reservations()
         }
         $table->add(
             $reservation_request->{'identifier'},
-            $reservation_request->{'type'},
+            $Shongo::Controller::API::ReservationRequest::Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
-            $reservation_request->{'purpose'},
+            $Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             $slot
         );
     }
