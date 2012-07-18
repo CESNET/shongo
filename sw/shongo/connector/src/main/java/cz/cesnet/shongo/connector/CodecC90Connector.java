@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import cz.cesnet.shongo.connector.api.CommandException;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import org.w3c.dom.Document;
@@ -25,7 +26,7 @@ import java.util.Map;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CodecC90Connector //implements EndpointService // FIXME: implement the EndpointService interface
+public class CodecC90Connector implements EndpointService
 {
     public static void main(String[] args)
             throws IOException, JSchException, InterruptedException, SAXException, ParserConfigurationException,
@@ -317,14 +318,16 @@ reading:
      * In case of an error, throws a CommandException with a detailed message.
      *
      * @param command command to be issued; see the codec_c90_api_reference_guide_tc51.pdf for reference
+     * @return the result of the command
      */
-    private void issueCommand(Command command) throws CommandException
+    private Document issueCommand(Command command) throws CommandException
     {
         try {
             Document result = exec("xCommand " + command.toString());
             if (isError(result)) {
                 throw new CommandException(getErrorMessage(result));
             }
+            return result;
         }
         catch (IOException e) {
             throw new RuntimeException("Command issuing error", e);
@@ -335,5 +338,59 @@ reading:
         catch (XPathExpressionException e) {
             throw new RuntimeException("Command result handling error", e);
         }
+    }
+
+    @Override
+    public void dial(String server) throws CommandException
+    {
+        Command command = new Command("Dial");
+        command.setParameter("Number", server);
+        command.setParameter("Protocol", "H323");
+        // NOTE: the BookingId parameter could be used to identify the reservation for which this dial is issued in call
+        //       logs; other connectors are missing such a feature, however, so do we
+
+        issueCommand(command);
+        // NOTE: the CallId returned by the command could be used for something
+    }
+
+    @Override
+    public void resetDevice()
+    {
+    }
+
+    @Override
+    public void mute()
+    {
+    }
+
+    @Override
+    public void unmute()
+    {
+    }
+
+    @Override
+    public void setMicrophoneLevel(int level)
+    {
+    }
+
+    @Override
+    public void setPlaybackLevel(int level)
+    {
+    }
+
+    @Override
+    public void enableVideo()
+    {
+    }
+
+    @Override
+    public void disableVideo()
+    {
+    }
+
+    @Override
+    public ConnectorInfo getConnectorInfo()
+    {
+        return null;
     }
 }

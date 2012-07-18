@@ -9,43 +9,43 @@ public interface EndpointService extends CommonService
      * Dials a server.
      * @param server    server address to dial
      */
-    void dial(String server);
+    void dial(String server) throws CommandException;
 
     /**
      * Resets the device.
      */
-    void resetDevice();
+    void resetDevice() throws CommandException;
 
     /**
      * Mutes this endpoint.
      */
-    void mute();
+    void mute() throws CommandException;
 
     /**
      * Unmutes this endpoint.
      */
-    void unmute();
+    void unmute() throws CommandException;
 
     /**
      * Sets microphone audio level of this endpoint to a given value.
      * @param level         microphone level to set
      */
-    void setMicrophoneLevel(int level);
+    void setMicrophoneLevel(int level) throws CommandException;
 
     /**
      * Sets playback audio level of this endpoint to a given value.
      * @param level         microphone level to set
      */
-    void setPlaybackLevel(int level);
+    void setPlaybackLevel(int level) throws CommandException;
 
     /**
      * Enables video from this endpoint.
      */
-    void enableVideo();
+    void enableVideo() throws CommandException;
 
     /**
      * Disables video from this endpoint.
      */
-    void disableVideo();
+    void disableVideo() throws CommandException;
 
 }

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector;
+package cz.cesnet.shongo.connector.api;
 
 /**
  * An exception thrown by invalid commands.
