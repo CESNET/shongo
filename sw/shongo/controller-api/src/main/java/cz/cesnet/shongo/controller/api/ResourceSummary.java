@@ -1,10 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.controller.Technology;
-
-import java.util.List;
-import java.util.Set;
-
 /**
  * Represents an entity that can be scheduled.
  *

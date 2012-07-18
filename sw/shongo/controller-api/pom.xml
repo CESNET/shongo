@@ -17,6 +17,12 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>common-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- Joda Time is used as implementation of date/times/periods/intervals -->
         <dependency>
             <groupId>joda-time</groupId>

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.*;
