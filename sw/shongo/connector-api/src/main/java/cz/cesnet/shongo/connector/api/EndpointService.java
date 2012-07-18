@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.Alias;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -9,7 +11,7 @@ public interface EndpointService extends CommonService
      * Dials a server.
      * @param server    server address to dial
      */
-    void dial(String server) throws CommandException;
+    void dial(Alias server) throws CommandException;
 
     /**
      * Resets the device.

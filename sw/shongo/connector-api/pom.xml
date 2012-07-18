@@ -17,6 +17,12 @@
     <dependencies>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>common-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <!-- FIXME: remove these two dependencies, API should be independent of the implementation modules -->
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
             <artifactId>common</artifactId>
             <version>1.0</version>
         </dependency>
@@ -26,6 +32,7 @@
             <version>1.0</version>
         </dependency>
 
+        <!-- FIXME: remove this (unnecessary?) dependency -->
         <!-- Commons BeanUtils are used for manipulating ComplexType beans -->
         <dependency>
             <groupId>commons-beanutils</groupId>

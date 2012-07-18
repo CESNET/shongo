@@ -4,6 +4,7 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.connector.api.CommandException;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
@@ -341,11 +342,12 @@ reading:
     }
 
     @Override
-    public void dial(String server) throws CommandException
+    public void dial(Alias server) throws CommandException
     {
         Command command = new Command("Dial");
-        command.setParameter("Number", server);
-        command.setParameter("Protocol", "H323");
+        command.setParameter("Number", server.getValue());
+        command.setParameter("Protocol", server.getTechnology().getCode());
+        // TODO: find out whether the device accepts all types of aliases, or whether it must be told explicitly
         // NOTE: the BookingId parameter could be used to identify the reservation for which this dial is issued in call
         //       logs; other connectors are missing such a feature, however, so do we
 
