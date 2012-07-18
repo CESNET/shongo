@@ -4,7 +4,9 @@ import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
-import org.w3c.dom.*;
+import cz.cesnet.shongo.connector.api.ConnectorInfo;
+import cz.cesnet.shongo.connector.api.EndpointService;
+import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -62,7 +64,8 @@ public class CodecC90Connector //implements EndpointService // FIXME: implement 
         final CodecC90Connector conn = new CodecC90Connector();
         conn.connect(address, username, password);
 
-        Document result = conn.exec("xstatus SystemUnit uptime");
+        Document result = conn.exec("xstatus SystemUnit uptimefs");
+//        Document result = conn.exec("xCommand Camera PositionSet Zoom: 1000");
         if (isError(result)) {
             System.err.println("Error: " + getErrorMessage(result));
             System.exit(1);
@@ -276,17 +279,10 @@ reading:
      * @param result an XML document - result of a command
      * @return true if the result marks an error, false if the result is an ordinary result record
      */
-    private static boolean isError(Document result)
+    private static boolean isError(Document result) throws XPathExpressionException
     {
-        Element root = result.getDocumentElement();
-        NodeList statusNodes = root.getElementsByTagName("Status");
-        if (statusNodes.getLength() != 1) {
-            throw new IllegalArgumentException(
-                    "A valid command result XML, which contains a single <Status> element, is expected.");
-        }
-        NamedNodeMap statusAttrs = statusNodes.item(0).getAttributes();
-        Node status = statusAttrs.getNamedItem("status");
-        return (status != null && status.getTextContent().equals("Error"));
+        String status = getResultString(result, "/XmlDoc/*[@status != '']/@status");
+        return (status.contains("Error"));
     }
 
     /**
@@ -303,6 +299,41 @@ reading:
 
         String reason = getResultString(result, "/XmlDoc/Status[@status='Error']/Reason");
         String xPath = getResultString(result, "/XmlDoc/Status[@status='Error']/XPath");
-        return reason + " (XPath: " + xPath + ")";
+        if (!reason.isEmpty() || !xPath.isEmpty()) {
+            return reason + " (XPath: " + xPath + ")";
+        }
+
+        String usage = getResultString(result, "/XmlDoc/*[@status='ParameterError']/../Usage");
+        if (!usage.isEmpty()) {
+            usage = usage.replace("&lt;", "<").replace("&gt;", ">");
+            return "Parameter error. Usage: " + usage;
+        }
+
+        return "Uncategorized error";
+    }
+
+    /**
+     * Send an xCommand command to the device.
+     * In case of an error, throws a CommandException with a detailed message.
+     *
+     * @param command command to be issued; see the codec_c90_api_reference_guide_tc51.pdf for reference
+     */
+    private void issueCommand(Command command) throws CommandException
+    {
+        try {
+            Document result = exec("xCommand " + command.toString());
+            if (isError(result)) {
+                throw new CommandException(getErrorMessage(result));
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Command issuing error", e);
+        }
+        catch (SAXException e) {
+            throw new RuntimeException("Command result parsing error", e);
+        }
+        catch (XPathExpressionException e) {
+            throw new RuntimeException("Command result handling error", e);
+        }
     }
 }
