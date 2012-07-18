@@ -357,7 +357,7 @@ sub to_string()
             my $start = $processedSlots->{'start'};
             my $duration = $processedSlots->{'duration'};
             my $state = $RequestState{$processedSlots->{'state'}};
-            $string .= sprintf("   %d) at %s for %s (%s)\n", $index + 1, $start, $duration, $state);
+            $string .= sprintf("   %d) at '%s' for '%s' (%s)\n", $index + 1, format_datetime($start), $duration, $state);
         }
     }
 
@@ -378,9 +378,9 @@ sub slots_to_string()
             my $start = $slot->{'start'};
             my $duration = $slot->{'duration'};
             if ( ref($start) ) {
-                $start = sprintf("(%s, %s)", $start->{'start'}, $start->{'period'});
+                $start = sprintf("(%s, %s)", format_datetime($start->{'start'}), $start->{'period'});
             }
-            $string .= sprintf("   %d) at %s for %s\n", $index + 1, $start, $duration);
+            $string .= sprintf("   %d) at '%s' for '%s'\n", $index + 1, format_datetime($start), $duration);
         }
     }
     else {

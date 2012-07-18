@@ -21,7 +21,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Option whether store changes for object when it is converted map.
      */
-    private boolean storeChanges;
+    private ComplexType.Options options;
 
     /**
      * Converter for {@link AtomicType}.
@@ -36,12 +36,12 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Constructor.
      *
-     * @param storeChanges sets the {@link #storeChanges}
+     * @param options sets the {@link #options}
      */
-    public TypeConverterFactory(boolean storeChanges)
+    public TypeConverterFactory(ComplexType.Options options)
     {
-        this.storeChanges = storeChanges;
-        mapTypeConverter = new MapTypeConverter(storeChanges);
+        this.options = options;
+        mapTypeConverter = new MapTypeConverter(options);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             return atomicTypeConverter;
         }
         else if (ComplexType.class.isAssignableFrom(pClass)) {
-            return ComplexTypeConverter.getInstance(pClass, storeChanges);
+            return ComplexTypeConverter.getInstance(pClass, options);
         }
         else if (Map.class.isAssignableFrom(pClass)) {
             return mapTypeConverter;
@@ -165,7 +165,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         /**
          * Option whether store changes for object when it is converted map.
          */
-        private boolean storeChanges;
+        private ComplexType.Options options;
 
         /**
          * Type of object.
@@ -175,12 +175,12 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         /**
          * Constructor.
          *
-         * @param storeChanges sets the {@link #storeChanges}
+         * @param options sets the {@link #options}
          */
-        ComplexTypeConverter(Class type, boolean storeChanges)
+        ComplexTypeConverter(Class type, ComplexType.Options options)
         {
             this.type = type;
-            this.storeChanges = storeChanges;
+            this.options = options;
         }
 
         @Override
@@ -194,7 +194,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof Map) {
                 try {
-                    return Converter.convertMapToObject((Map) pObject, type);
+                    return Converter.convertMapToObject((Map) pObject, type, options);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -207,17 +207,17 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object pObject)
         {
             try {
-                return Converter.convertObjectToMap(pObject, storeChanges);
+                return Converter.convertObjectToMap(pObject, options);
             }
             catch (FaultException exception) {
                 throw new RuntimeException(exception);
             }
         }
 
-        public static ComplexTypeConverter getInstance(Class pClass, boolean storeChanges)
+        public static ComplexTypeConverter getInstance(Class pClass, ComplexType.Options options)
         {
             // TODO: Reuse instances for same class
-            return new ComplexTypeConverter(pClass, storeChanges);
+            return new ComplexTypeConverter(pClass, options);
         }
     }
 
@@ -231,16 +231,16 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         /**
          * Option whether store changes for object when it is converted map.
          */
-        private boolean storeChanges;
+        private ComplexType.Options options;
 
         /**
          * Constructor.
          *
-         * @param storeChanges sets the {@link #storeChanges}
+         * @param options sets the {@link #options}
          */
-        public MapTypeConverter(boolean storeChanges)
+        public MapTypeConverter(ComplexType.Options options)
         {
-            this.storeChanges = storeChanges;
+            this.options = options;
         }
 
         @Override
@@ -255,7 +255,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof ComplexType) {
                 try {
-                    return Converter.convertObjectToMap(pObject, storeChanges);
+                    return Converter.convertObjectToMap(pObject, options);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);

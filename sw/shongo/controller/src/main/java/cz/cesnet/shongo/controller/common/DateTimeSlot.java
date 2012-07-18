@@ -273,10 +273,12 @@ public class DateTimeSlot extends PersistentObject
         }
 
         DateTimeSlot slot = (DateTimeSlot) object;
-        return getId().equals(slot.getId());
+        if ( getId() != null ) {
+            return getId().equals(slot.getId());
+        }
 
         // TODO: think up how to do infinite equals
-        /*List<Interval> slots1 = enumerate();
+        List<Interval> slots1 = enumerate();
         List<Interval> slots2 = slot.enumerate();
         if (slots1.size() != slots2.size()) {
             return false;
@@ -288,7 +290,7 @@ public class DateTimeSlot extends PersistentObject
                 return false;
             }
         }
-        return true;*/
+        return true;
     }
 
     @Override

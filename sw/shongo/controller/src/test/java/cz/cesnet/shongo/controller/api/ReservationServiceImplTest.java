@@ -201,8 +201,12 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
 
             reservationService.deleteReservationRequest(securityToken, identifier);
 
-            reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
-            assertNull(reservationRequest);
+            try {
+                reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
+                fail("Exception that record doesn't exists should be thrown.");
+            } catch (XmlRpcException exception) {
+                assertEquals(Fault.Common.RECORD_NOT_EXIST.getCode(), exception.code);
+            }
         }
     }
 
@@ -240,6 +244,17 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         }
         catch (XmlRpcException exception) {
             assertEquals(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH.getCode(), exception.code);
+        }
+
+        reservationRequest = new HashMap<String, Object>();
+        reservationRequest.put("requests", new ArrayList<Object>());
+        try {
+            controllerClient.execute("Reservation.createReservationRequest",
+                    new Object[]{new HashMap(), reservationRequest});
+            fail("Exception that attribute is read only should be thrown.");
+        }
+        catch (XmlRpcException exception) {
+            assertEquals(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY.getCode(), exception.code);
         }
     }
 }

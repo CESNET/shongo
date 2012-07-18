@@ -22,7 +22,7 @@ public class PropertyTest
 
         private void setField1(String field1)
         {
-            this.field1 = field1;
+            this.field1 = "by setter " + field1;
         }
     }
 
@@ -71,7 +71,7 @@ public class PropertyTest
                 propertyNames);
 
         // setPropertyValue
-        Property.setPropertyValue(foo, "field1", "test");
+        Property.setPropertyValue(foo, "field1", "test", true);
         Property.setPropertyValue(foo, "field3", Long.valueOf(3));
         try {
             Property.setPropertyValue(foo, "field2", 111);
@@ -89,7 +89,7 @@ public class PropertyTest
         }
 
         // getPropertyValue
-        assertEquals("test", Property.getPropertyValue(foo, "field1"));
+        assertEquals("by setter test", Property.getPropertyValue(foo, "field1"));
         assertEquals(2, Property.getPropertyValue(foo, "field2"));
         try {
             assertEquals(Long.valueOf(1), Property.getPropertyValue(foo, "field3"));
