@@ -49,6 +49,15 @@ public abstract class ComplexType
     }
 
     /**
+     * Annotation used for properties to make them accessible by {@link Property}.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.METHOD, ElementType.FIELD})
+    public static @interface Accessible
+    {
+    }
+
+    /**
      * Stores state of collection property.
      */
     private static class CollectionChanges
@@ -234,6 +243,7 @@ public abstract class ComplexType
     /**
      * Object identifier
      */
+    @Accessible
     private String identifier;
 
     /**
@@ -369,12 +379,84 @@ public abstract class ComplexType
     }
 
     /**
+     * Options for {@link ComplexType#toMap(Options)}.
+     */
+    public static final class Options
+    {
+        /**
+         * Options for server.
+         * <p/>
+         * <code>{@link #storeChanges} = true</code>
+         * We want to propagate changes in entities from client to server. And thus
+         * {@link ComplexType#toMap(Options)} should store changes in client.
+         * <p/>
+         * <code>{@link #forceAccessible} = true<code/>
+         * On server side we want to serialize/deserialize only "public" properties.
+         */
+        public static final Options CLIENT = new Options(true, true);
+
+        /**
+         * Options for server.
+         * <p/>
+         * <code>{@link #storeChanges} = false</code>
+         * We don't want to propagate changes in entities from server to client. Client always get
+         * "clean" object without changes. And thus {@link ComplexType#toMap(Options)} should not
+         * store changes on server.
+         * <p/>
+         * <code>{@link #forceAccessible} = false</code>
+         * On server side we want to serialize/deserialize only "public" properties.
+         */
+        public static final Options SERVER = new Options(false, false);
+
+        /**
+         * Specifies whether marks for filled properties should be used and whether collections
+         * should be stored as Maps with {@link #COLLECTION_NEW}, {@link #COLLECTION_MODIFIED},
+         * {@link #COLLECTION_DELETED} lists.
+         */
+        private boolean storeChanges = false;
+
+        /**
+         * Options whether properties should be set with forced accessibility (e.g., to use private fields or setters).
+         */
+        private boolean forceAccessible = false;
+
+        /**
+         * Constructor.
+         *
+         * @param storeChanges    sets the {@link #storeChanges}
+         * @param forceAccessible sets the {@link #forceAccessible}
+         */
+        private Options(boolean storeChanges, boolean forceAccessible)
+        {
+            this.storeChanges = storeChanges;
+            this.forceAccessible = forceAccessible;
+        }
+
+        /**
+         * @return {@link #storeChanges}
+         */
+        public boolean isStoreChanges()
+        {
+            return storeChanges;
+        }
+
+        /**
+         * @return {@link #forceAccessible}
+         */
+        public boolean isForceAccessible()
+        {
+            return forceAccessible;
+        }
+    }
+
+    /**
      * Fill object from the given map.
      *
      * @param map
+     * @param options see {@link Options}
      * @throws FaultException
      */
-    public void fromMap(Map map) throws FaultException
+    public void fromMap(Map map, Options options) throws FaultException
     {
         // Clear all filled properties
         clearMarks();
@@ -405,15 +487,15 @@ public abstract class ComplexType
                 Object deletedItems = null;
                 if (collectionChanges.containsKey(COLLECTION_NEW)) {
                     newItems = Converter.convert(collectionChanges.get(COLLECTION_NEW),
-                            type, allowedTypes, propertyName);
+                            type, allowedTypes, propertyName, options);
                 }
                 if (collectionChanges.containsKey(COLLECTION_MODIFIED)) {
                     modifiedItems = Converter.convert(collectionChanges.get(COLLECTION_MODIFIED),
-                            type, allowedTypes, propertyName);
+                            type, allowedTypes, propertyName, options);
                 }
                 if (collectionChanges.containsKey(COLLECTION_DELETED)) {
                     deletedItems = Converter.convert(collectionChanges.get(COLLECTION_DELETED),
-                            type, allowedTypes, propertyName);
+                            type, allowedTypes, propertyName, options);
                 }
                 if (newItems != null || modifiedItems != null || deletedItems != null) {
                     if (property.isArray()) {
@@ -463,7 +545,7 @@ public abstract class ComplexType
             }
 
             try {
-                value = Converter.convert(value, type, allowedTypes, propertyName);
+                value = Converter.convert(value, type, allowedTypes, propertyName, options);
             }
             catch (IllegalArgumentException exception) {
                 Object requiredType = type;
@@ -486,7 +568,7 @@ public abstract class ComplexType
             }
 
             // Set the value to property
-            Property.setPropertyValue(this, propertyName, value);
+            property.setValue(this, value, options.isForceAccessible());
 
             // Mark property as filled
             markPropertyAsFilled(propertyName);
@@ -498,17 +580,12 @@ public abstract class ComplexType
      * 1) simple (not {@link Object[]} or {@link Collection}) with not {@link null} value
      * 2) simple with {@link null} value but marked as filled through ({@link #markPropertyAsFilled(String)}
      * 3) {@link Object[]} or {@link Collection} which is not empty
-     * <p/>
-     * Put to map all properties that are not {@code null} or marked as filled. Don't put to
-     * map empty arrays or collections.
      *
-     * @param storeChanges specifies whether marks for filled properties should be used and whether collections
-     *                     should be stored as Maps with {@link #COLLECTION_NEW}, {@link #COLLECTION_MODIFIED},
-     *                     {@link #COLLECTION_DELETED} lists.
+     * @param options see {@link Options}
      * @return map which contains object's properties
      * @throws FaultException when the conversion fails
      */
-    public Map toMap(boolean storeChanges) throws FaultException
+    public Map toMap(Options options) throws FaultException
     {
         Map<String, Object> map = new HashMap<String, Object>();
         String[] propertyNames = Property.getPropertyNames(getClass());
@@ -518,12 +595,12 @@ public abstract class ComplexType
                 throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, getClass());
             }
             Object value = property.getValue(this);
-            if (value == null && !(storeChanges && isPropertyFilled(propertyName))) {
+            if (value == null && !(options.isStoreChanges() && isPropertyFilled(propertyName))) {
                 continue;
             }
 
             // Store collection changes
-            if (storeChanges && property.isArrayOrCollection()) {
+            if (options.isStoreChanges() && property.isArrayOrCollection()) {
                 Object[] items;
                 if (value instanceof Object[]) {
                     items = (Object[]) value;
@@ -554,11 +631,11 @@ public abstract class ComplexType
                     }
                     if (collectionChanges.newItems.size() > 0) {
                         mapCollection.put(COLLECTION_NEW,
-                                Converter.convertToMapOrArray(collectionChanges.newItems, storeChanges));
+                                Converter.convertToMapOrArray(collectionChanges.newItems, options));
                     }
                     if (collectionChanges.deletedItems.size() > 0) {
                         mapCollection.put(COLLECTION_DELETED,
-                                Converter.convertToMapOrArray(collectionChanges.deletedItems, storeChanges));
+                                Converter.convertToMapOrArray(collectionChanges.deletedItems, options));
                     }
                 }
                 else {
@@ -569,7 +646,7 @@ public abstract class ComplexType
                 }
                 if (modifiedItems.size() > 0) {
                     mapCollection.put(COLLECTION_MODIFIED,
-                            Converter.convertToMapOrArray(modifiedItems, storeChanges));
+                            Converter.convertToMapOrArray(modifiedItems, options));
                 }
                 // Skip empty changes
                 if (mapCollection.isEmpty()) {
@@ -580,7 +657,7 @@ public abstract class ComplexType
 
 
             // Convert value to map or array if the conversion is possible
-            value = Converter.convertToMapOrArray(value, storeChanges);
+            value = Converter.convertToMapOrArray(value, options);
 
             // Skip empty arrays
             if (value instanceof Object[] && ((Object[]) value).length == 0) {

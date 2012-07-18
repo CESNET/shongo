@@ -40,7 +40,7 @@ public class Compartment extends ComplexType
     /**
      * @param persons sets the {@link #PERSONS}
      */
-    private void setPersons(List<Person> persons)
+    public void setPersons(List<Person> persons)
     {
         propertyStore.setCollection(PERSONS, persons);
     }

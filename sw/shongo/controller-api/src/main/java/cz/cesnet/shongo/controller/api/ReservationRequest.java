@@ -135,7 +135,7 @@ public class ReservationRequest extends ComplexType
     /**
      * @param slots sets the {@link #SLOTS}
      */
-    private void setSlots(List<DateTimeSlot> slots)
+    public void setSlots(List<DateTimeSlot> slots)
     {
         propertyStore.setCollection(SLOTS, slots);
     }
@@ -182,7 +182,7 @@ public class ReservationRequest extends ComplexType
     /**
      * @param compartments sets the {@link #COMPARTMENTS}
      */
-    private void setCompartments(List<Compartment> compartments)
+    public void setCompartments(List<Compartment> compartments)
     {
         propertyStore.setCollection(COMPARTMENTS, compartments);
     }

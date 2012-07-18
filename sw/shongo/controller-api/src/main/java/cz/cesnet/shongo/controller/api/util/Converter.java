@@ -28,12 +28,13 @@ public class Converter
      * @param targetType
      * @param allowedTypes
      * @param name
+     * @param options
      * @return converted value
      * @throws FaultException
      * @throws IllegalArgumentException
      */
-    public static Object convert(Object value, Class targetType, Class[] allowedTypes, String name)
-            throws FaultException, IllegalArgumentException
+    public static Object convert(Object value, Class targetType, Class[] allowedTypes, String name,
+            ComplexType.Options options) throws FaultException, IllegalArgumentException
     {
         if (value == null) {
             return null;
@@ -52,7 +53,7 @@ public class Converter
                     Object allowedValue = null;
                     for (Class allowedType : allowedTypes) {
                         try {
-                            allowedValue = Converter.convert(value, allowedType, null, null);
+                            allowedValue = Converter.convert(value, allowedType, null, null, options);
                             break;
                         }
                         catch (Exception exception) {
@@ -113,7 +114,7 @@ public class Converter
                 Object[] arrayValue = (Object[]) value;
                 Object[] newArray = createArray(componentType, arrayValue.length);
                 for (int index = 0; index < arrayValue.length; index++) {
-                    Object item = convert(arrayValue[index], componentType, allowedTypes, null);
+                    Object item = convert(arrayValue[index], componentType, allowedTypes, null, options);
                     if (item == null) {
                         throw new FaultException(Fault.Common.COLLECTION_ITEM_NULL, name);
                     }
@@ -126,7 +127,7 @@ public class Converter
                 Object[] arrayValue = (Object[]) value;
                 Collection<Object> collection = createCollection(targetType, arrayValue.length);
                 for (Object item : arrayValue) {
-                    item = convert(item, Object.class, allowedTypes, null);
+                    item = convert(item, Object.class, allowedTypes, null, options);
                     if (item == null) {
                         throw new FaultException(Fault.Common.COLLECTION_ITEM_NULL, name);
                     }
@@ -137,7 +138,7 @@ public class Converter
         }
         // If complex type is required and map is given
         else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
-            return convertMapToObject((Map) value, targetType);
+            return convertMapToObject((Map) value, targetType, options);
         }
         // Convert map to specific map
         else if (value instanceof Map && Map.class.isAssignableFrom(targetType)) {
@@ -168,7 +169,7 @@ public class Converter
      */
     public static <T> T convert(Object value, Class<T> targetType) throws FaultException
     {
-        return (T) convert(value, targetType, null, null);
+        return (T) convert(value, targetType, null, null, ComplexType.Options.SERVER);
     }
 
     /**
@@ -254,10 +255,11 @@ public class Converter
 
     /**
      * @param map
+     * @param options
      * @return new instance of object that is filled by attributes from given map (must contain 'class attribute')
      * @throws FaultException
      */
-    public static Object convertMapToObject(Map map) throws FaultException
+    public static Object convertMapToObject(Map map, ComplexType.Options options) throws FaultException
     {
         // Get object class
         String className = (String) map.get("class");
@@ -271,16 +273,17 @@ public class Converter
         catch (ClassNotFoundException exception) {
             throw new FaultException(Fault.Common.CLASS_NOT_DEFINED, className);
         }
-        return convertMapToObject(map, objectClass);
+        return convertMapToObject(map, objectClass, options);
     }
 
     /**
      * @param map
      * @param objectClass
+     * @param options
      * @return new instance of given object class that is filled by attributes from given map
      * @throws FaultException
      */
-    public static <T> T convertMapToObject(Map map, Class<T> objectClass) throws FaultException
+    public static <T> T convertMapToObject(Map map, Class<T> objectClass, ComplexType.Options options) throws FaultException
     {
         if (!ComplexType.class.isAssignableFrom(objectClass)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
@@ -312,7 +315,7 @@ public class Converter
             }
 
             ComplexType complexType = ComplexType.class.cast(object);
-            complexType.fromMap(map);
+            complexType.fromMap(map, options);
 
             return (T) object;
         }
@@ -321,14 +324,15 @@ public class Converter
     /**
      * Convert given object if possible to {@link Map} or {@link Object[]} (recursive).
      *
-     * @param storeChanges
+     * @param object
+     * @param options
      * @return {@link Map} or {@link Object[]} or given value
      */
-    public static Object convertToMapOrArray(Object object, boolean storeChanges) throws FaultException
+    public static Object convertToMapOrArray(Object object, ComplexType.Options options) throws FaultException
     {
         if (object instanceof ComplexType) {
             ComplexType complexType = ComplexType.class.cast(object);
-            return complexType.toMap(storeChanges);
+            return complexType.toMap(options);
         }
         else if (object instanceof Collection) {
 
@@ -336,7 +340,7 @@ public class Converter
             Object[] newArray = new Object[collection.size()];
             int index = 0;
             for (Object item : collection) {
-                newArray[index] = convertToMapOrArray(item, storeChanges);
+                newArray[index] = convertToMapOrArray(item, options);
                 index++;
             }
             return newArray;
@@ -345,7 +349,7 @@ public class Converter
             Object[] oldArray = (Object[]) object;
             Object[] newArray = new Object[oldArray.length];
             for (int index = 0; index < oldArray.length; index++) {
-                newArray[index] = convertToMapOrArray(oldArray[index], storeChanges);
+                newArray[index] = convertToMapOrArray(oldArray[index], options);
             }
             return newArray;
         }
@@ -354,11 +358,11 @@ public class Converter
 
     /**
      * @param object
-     * @param storeChanges
+     * @param options
      * @return map containing attributes of given object
      * @throws FaultException
      */
-    public static Map convertObjectToMap(Object object, boolean storeChanges) throws FaultException
+    public static Map convertObjectToMap(Object object, ComplexType.Options options) throws FaultException
     {
         if (!(object instanceof ComplexType)) {
             throw new FaultException(Fault.Common.UNKNOWN_FAULT,
@@ -366,7 +370,7 @@ public class Converter
                             getClassShortName(object.getClass())));
         }
         ComplexType complexType = ComplexType.class.cast(object);
-        return complexType.toMap(storeChanges);
+        return complexType.toMap(options);
     }
 
     /**

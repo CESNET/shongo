@@ -12,6 +12,17 @@ import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassShortName
 public class FaultException extends XmlRpcException
 {
     /**
+     * Construct exception from fault code and fault string.
+     *
+     * @param code
+     * @param string
+     */
+    public FaultException(int code, String string)
+    {
+        super(code, string);
+    }
+
+    /**
      * Construct exception from known fault described by given fault and parameters.
      *
      * @param fault

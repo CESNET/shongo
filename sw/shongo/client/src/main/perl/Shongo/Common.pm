@@ -10,8 +10,11 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_ref ordered_hash_keys
+    format_datetime
     var_dump
 );
+
+use DateTime::Format::ISO8601;
 
 #
 # Create hash from given values which has item "__keys" as array with keys in insertion order.
@@ -69,6 +72,18 @@ sub ordered_hash_keys
         @hash_keys = keys %{$hash};
     }
     return @hash_keys;
+}
+
+#
+# Format date/time
+#
+# @param $dateTime
+#
+sub format_datetime
+{
+    my ($dateTime) = @_;
+    $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
+    return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
 }
 
 #

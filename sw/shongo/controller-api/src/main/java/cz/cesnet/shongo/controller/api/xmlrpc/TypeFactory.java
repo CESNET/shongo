@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
+import cz.cesnet.shongo.controller.api.ComplexType;
 import cz.cesnet.shongo.controller.api.FaultException;
 import cz.cesnet.shongo.controller.api.util.Converter;
 import org.apache.ws.commons.util.NamespaceContextImpl;
@@ -25,21 +26,21 @@ import java.util.Map;
 public class TypeFactory extends TypeFactoryImpl
 {
     /**
-     * Option whether store changes for object when it is converted map.
+     * @see ComplexType.Options
      */
-    private boolean storeChanges;
+    private ComplexType.Options options;
 
     /**
      * Constructor.
      *
      * @param pController
-     * @param storeChanges sets the {@link #storeChanges}
+     * @param options sets the {@link #options}
      */
-    public TypeFactory(XmlRpcController pController, boolean storeChanges)
+    public TypeFactory(XmlRpcController pController, ComplexType.Options options)
     {
         super(pController);
 
-        this.storeChanges = storeChanges;
+        this.options = options;
     }
 
     @Override
@@ -70,7 +71,7 @@ public class TypeFactory extends TypeFactoryImpl
                     else if (map.containsKey("class")) {
                         // Convert map to object of the class
                         try {
-                            setResult(Converter.convertMapToObject(map));
+                            setResult(Converter.convertMapToObject(map, options));
                         }
                         catch (FaultException exception) {
                             throw new SAXException(exception);
@@ -117,7 +118,7 @@ public class TypeFactory extends TypeFactoryImpl
                 public void write(ContentHandler pHandler, Object pObject) throws SAXException
                 {
                     try {
-                        Map<String, Object> map = Converter.convertObjectToMap(pObject, storeChanges);
+                        Map<String, Object> map = Converter.convertObjectToMap(pObject, options);
                         super.write(pHandler, map);
                     }
                     catch (FaultException exception) {

@@ -6,7 +6,6 @@ package Shongo::Controller::ReservationService;
 use strict;
 use warnings;
 use Text::Table;
-use DateTime::Format::ISO8601;
 
 use Shongo::Common;
 use Shongo::Console;
@@ -126,8 +125,7 @@ sub list_reservations()
     foreach my $reservation_request (@{$response->value()}) {
         my $slot;
         if ( $reservation_request->{'earliestSlot'} =~ m/(.*)\/(.*)/ ) {
-            my $dateTime = DateTime::Format::ISO8601->parse_datetime($1);
-            $slot = sprintf("%s %02d:%02d, %s", $dateTime->ymd, $dateTime->hour, $dateTime->minute, $2);
+            $slot = sprintf("%s, %s", format_datetime($1), $2);
         }
         $table->add(
             $reservation_request->{'identifier'},

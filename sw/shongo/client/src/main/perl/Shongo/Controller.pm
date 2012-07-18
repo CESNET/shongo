@@ -41,7 +41,8 @@ sub populate()
     $shell->add_commands({
         "connect" => {
             desc => "Connect to a controller. You must specify an <URL>.",
-            maxargs => 1, args => sub { shift->complete_onlydirs(@_); },
+            maxargs => 1,
+            args => sub { return ['127.0.0.1', 'localhost']; },
             proc => sub {
                 my $url = $_[0];
                 if (defined($url) == 0) {

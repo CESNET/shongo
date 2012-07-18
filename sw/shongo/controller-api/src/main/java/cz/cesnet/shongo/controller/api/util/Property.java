@@ -54,21 +54,39 @@ public class Property
     private Method writeMethod;
 
     /**
+     * Option specifying whether field is always accessible.
+     */
+    private boolean accessible = false;
+
+    /**
      * Set value for the property to given object.
      *
      * @param object Object to which the value should be set
      * @param value  Value to set
      * @throws FaultException when the value cannot be set
      */
-    public void setValue(Object object, Object value) throws FaultException
+    public void setValue(Object object, Object value, boolean forceAccessible) throws FaultException
     {
+        forceAccessible = forceAccessible || accessible;
         try {
-            if (writeMethod != null) {
-                writeMethod.invoke(object, value);
+            if (writeMethod != null && (Modifier.isPublic(writeMethod.getModifiers()) || forceAccessible)) {
+                if (forceAccessible ) {
+                    writeMethod.setAccessible(true);
+                    writeMethod.invoke(object, value);
+                    writeMethod.setAccessible(false);
+                } else {
+                    writeMethod.invoke(object, value);
+                }
                 return;
             }
-            else if (field != null) {
-                field.set(object, value);
+            else if (field != null  && (Modifier.isPublic(field.getModifiers()) || forceAccessible)) {
+                if (forceAccessible ) {
+                    field.setAccessible(true);
+                    field.set(object, value);
+                    field.setAccessible(false);
+                } else {
+                    field.set(object, value);
+                }
                 return;
             }
             else if (readMethod != null) {
@@ -98,10 +116,10 @@ public class Property
     {
         Object value = null;
         try {
-            if (readMethod != null) {
+            if (readMethod != null && Modifier.isPublic(readMethod.getModifiers())) {
                 value = readMethod.invoke(object);
             }
-            else if (field != null) {
+            else if (field != null && Modifier.isPublic(field.getModifiers())) {
                 value = field.get(object);
             }
             else if (writeMethod != null) {
@@ -310,17 +328,6 @@ public class Property
             return null;
         }
 
-        // Set accessible
-        if (property.field != null && !Modifier.isPublic(property.field.getModifiers())) {
-            property.field.setAccessible(true);
-        }
-        if (property.readMethod != null && !Modifier.isPublic(property.readMethod.getModifiers())) {
-            property.readMethod.setAccessible(true);
-        }
-        if (property.writeMethod != null && !Modifier.isPublic(property.writeMethod.getModifiers())) {
-            property.writeMethod.setAccessible(true);
-        }
-
         // Determine types from getter and setter
         if (property.readMethod != null || property.writeMethod != null) {
             if (property.readMethod != null) {
@@ -347,6 +354,12 @@ public class Property
             if (allowedTypes.value().length > 0) {
                 property.allowedTypes = allowedTypes.value();
             }
+        }
+
+        // Determine accessible
+        ComplexType.Accessible accessible = property.getAnnotation(ComplexType.Accessible.class);
+        if ( accessible != null ) {
+            property.accessible = true;
         }
 
         // Put new property to cache
@@ -430,12 +443,26 @@ public class Property
      * @param object
      * @param name
      * @param value
+     * @param forceAccessible
+     * @throws FaultException
+     */
+    public static void setPropertyValue(Object object, String name, Object value, boolean forceAccessible) throws FaultException
+    {
+        Property property = getPropertyNotNull(object.getClass(), name);
+        property.setValue(object, value, forceAccessible);
+    }
+
+    /**
+     * Set property value to given object.
+     *
+     * @param object
+     * @param name
+     * @param value
      * @throws FaultException
      */
     public static void setPropertyValue(Object object, String name, Object value) throws FaultException
     {
-        Property property = getPropertyNotNull(object.getClass(), name);
-        property.setValue(object, value);
+        setPropertyValue(object, name, value, false);
     }
 
     /**
