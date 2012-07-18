@@ -218,6 +218,21 @@ public class ReservationRequest extends PersistentObject
     }
 
     /**
+     * @param id
+     * @return requested compartment with given {@code id}
+     * @throws FaultException
+     */
+    public Compartment getRequestedCompartmentById(Long id) throws FaultException
+    {
+        for (Compartment compartment : requestedCompartments) {
+            if (compartment.getId().equals(id)) {
+                return compartment;
+            }
+        }
+        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Compartment.class, id);
+    }
+
+    /**
      * @param compartment compartment to be added to the {@link #requestedCompartments}
      */
     public void addRequestedCompartment(Compartment compartment)

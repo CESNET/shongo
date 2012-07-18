@@ -56,7 +56,7 @@ public class ResourceDatabase extends Component
         super.init();
 
         entityManager = getEntityManager();
-        resourceManager = ResourceManager.createInstance(entityManager);
+        resourceManager = new ResourceManager(entityManager);
 
         logger.debug("Loading resource database...");
 

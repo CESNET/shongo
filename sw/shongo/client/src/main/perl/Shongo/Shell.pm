@@ -21,7 +21,8 @@ sub new
     my $class = shift;
     my $self = Term::ShellUI->new(@_, commands => {}, history_file => '~/.shongo_client');
 
-    $self->prompt('shongo>');
+    $self->{term}->Attribs->ornaments(0);
+    $self->prompt('shongo> ');
     $self->add_commands({
         "help" => {
             desc => "Print help information",

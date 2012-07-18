@@ -19,18 +19,9 @@ public class ResourceManager extends AbstractManager
      *
      * @param entityManager
      */
-    private ResourceManager(EntityManager entityManager)
+    public ResourceManager(EntityManager entityManager)
     {
         super(entityManager);
-    }
-
-    /**
-     * @param entityManager
-     * @return new instance of {@link cz.cesnet.shongo.controller.resource.ResourceManager}
-     */
-    public static ResourceManager createInstance(EntityManager entityManager)
-    {
-        return new ResourceManager(entityManager);
     }
 
     /**

@@ -9,7 +9,7 @@ use warnings;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-    ordered_hash ordered_hash_ref
+    ordered_hash ordered_hash_ref ordered_hash_keys
     var_dump
 );
 
@@ -50,6 +50,25 @@ sub ordered_hash_ref
 {
     my %hash = ordered_hash(@_);
     return \%hash;
+}
+
+#
+# Get array of keys from hash or ordered hash
+#
+# @return array of keys
+#
+sub ordered_hash_keys
+{
+    my ($hash) = @_;
+
+    my @hash_keys;
+    if ( defined($hash->{'__keys'}) ) {
+        @hash_keys = @{$hash->{'__keys'}};
+    }
+    else {
+        @hash_keys = keys %{$hash};
+    }
+    return @hash_keys;
 }
 
 #

@@ -30,7 +30,7 @@ public class DeviceResource extends Resource
     private List<Alias> aliases = new ArrayList<Alias>();
 
     /**
-     * Set of technologies for which the device capability is applied.
+     * Set of technologies which the resource supports.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
 

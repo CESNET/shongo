@@ -43,22 +43,30 @@ public class Preprocessor extends Component
     {
         checkInitialized();
 
-        logger.info("Running preprocessor...");
+        logger.info("Running preprocessor for interval '{}'...", formatInterval(interval));
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
-        // List all not preprocessed reservation requests
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        List<ReservationRequest> reservationRequests = reservationRequestManager.listNotPreprocessed(interval);
+        try {
+            // List all not preprocessed reservation requests
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            List<ReservationRequest> reservationRequests = reservationRequestManager.listNotPreprocessed(interval);
 
-        // Process all reservation requests
-        for (ReservationRequest reservationRequest : reservationRequests) {
-            processReservationRequest(reservationRequest, interval, entityManager);
+            // Process all reservation requests
+            for (ReservationRequest reservationRequest : reservationRequests) {
+                processReservationRequest(reservationRequest, interval, entityManager);
+            }
+
+            entityManager.getTransaction().commit();
         }
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
+        catch (RuntimeException exception) {
+            entityManager.getTransaction().rollback();
+            throw exception;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**
@@ -71,29 +79,38 @@ public class Preprocessor extends Component
     {
         checkInitialized();
 
-        logger.info("Running preprocessor for a single reservation request '{}'...", reservationRequestId);
+        logger.info("Running preprocessor for a single reservation request '{}' for interval '{}'...",
+                reservationRequestId, formatInterval(interval));
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
-        // Get reservation request by identifier
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
+        try {
+            // Get reservation request by identifier
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
 
-        if (reservationRequest == null) {
-            throw new IllegalArgumentException(String.format("Reservation request '%s' doesn't exist!",
-                    reservationRequestId));
-        }
-        ReservationRequestStateManager reservationRequestStateManager =
-                new ReservationRequestStateManager(entityManager, reservationRequest);
-        if (reservationRequestStateManager.getState(interval) != ReservationRequest.State.NOT_PREPROCESSED) {
-            throw new IllegalStateException(String.format("Reservation request '%s' is already preprocessed in %s!",
-                    reservationRequestId, interval));
-        }
-        processReservationRequest(reservationRequest, interval, entityManager);
+            if (reservationRequest == null) {
+                throw new IllegalArgumentException(String.format("Reservation request '%s' doesn't exist!",
+                        reservationRequestId));
+            }
+            ReservationRequestStateManager reservationRequestStateManager =
+                    new ReservationRequestStateManager(entityManager, reservationRequest);
+            if (reservationRequestStateManager.getState(interval) != ReservationRequest.State.NOT_PREPROCESSED) {
+                throw new IllegalStateException(String.format("Reservation request '%s' is already preprocessed in %s!",
+                        reservationRequestId, interval));
+            }
+            processReservationRequest(reservationRequest, interval, entityManager);
 
-        entityManager.getTransaction().commit();
-        entityManager.close();
+            entityManager.getTransaction().commit();
+        }
+        catch (RuntimeException exception) {
+            entityManager.getTransaction().rollback();
+            throw exception;
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     /**

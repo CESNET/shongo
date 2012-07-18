@@ -14,13 +14,13 @@ public interface ResourceService extends Service
      * <p/>
      * The user with the given token will be the resource owner.
      *
-     * @param token      token of the user requesting the operation
-     * @param domain     identifier of the domain to create the resource in
-     * @param attributes map of resource attributes; should only contain attributes specified in the Resource class
-     *                   while all the attributes marked as required must be present
+     * @param token    token of the user requesting the operation
+     * @param resource resource; should contains all attributes marked as {@link ComplexType.Required}
+     *                   in {@link ReservationRequest}
      * @return the created resource identifier
      */
-    public String createResource(SecurityToken token, String domain, Map attributes);
+    @API
+    public String createResource(SecurityToken token, Resource resource) throws FaultException;
 
     /**
      * Modifies a given resource.
@@ -28,11 +28,11 @@ public interface ResourceService extends Service
      * The operation is permitted only when the user with the given token is the resource owner and only when
      * the modification does not cancel any existing reservations (the existing ones might be rescheduled, though).
      *
-     * @param token      token of the user requesting the operation
-     * @param resourceId Shongo identifier of the resource to modify
-     * @param attributes map of resource attributes to change;
+     * @param token    token of the user requesting the operation
+     * @param resource resource with attributes to be modified
      */
-    public void modifyResource(SecurityToken token, String resourceId, Map attributes);
+    @API
+    public void modifyResource(SecurityToken token, Resource resource);
 
     /**
      * Deletes a given resource from Shongo management.
@@ -43,7 +43,17 @@ public interface ResourceService extends Service
      * @param token      token of the user requesting the operation
      * @param resourceId Shongo identifier of the resource to delete
      */
+    @API
     public void deleteResource(SecurityToken token, String resourceId);
+
+    /**
+     * Lists all Shongo-managed resources matching the filter.
+     *
+     * @param token  token of the user requesting the operation
+     * @return array of resource summaries
+     */
+    @API
+    ResourceSummary[] listResources(SecurityToken token);
 
     /**
      * Gets the complete resource object.
@@ -52,16 +62,8 @@ public interface ResourceService extends Service
      * @param resourceId Shongo identifier of the resource to get
      * @return
      */
-    //public Resource getResource(SecurityToken token, String resourceId);
-
-    /**
-     * Lists all Shongo-managed resources matching the filter.
-     *
-     * @param token  token of the user requesting the operation
-     * @param filter
-     * @return
-     */
-    //ResourceSummary[] listResources(SecurityToken token, Map filter);
+    @API
+    public Resource getResource(SecurityToken token, String resourceId);
 
     /**
      * Checks whether a given resource is used by any reservation in specified date/time.
@@ -71,5 +73,6 @@ public interface ResourceService extends Service
      * @param dateTime   date/time to check
      * @return
      */
+    //@API
     //boolean isResourceActive(SecurityToken token, String resourceId, AbsoluteDateTime dateTime);
 }

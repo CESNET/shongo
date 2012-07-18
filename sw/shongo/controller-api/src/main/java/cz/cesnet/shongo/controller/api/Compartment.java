@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * TODO:
+ * Represents a requested compartment in reservation request.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

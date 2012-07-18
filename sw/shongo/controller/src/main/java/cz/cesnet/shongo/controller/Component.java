@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import org.joda.time.Interval;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
@@ -65,5 +67,14 @@ public abstract class Component
      */
     public void destroy()
     {
+    }
+
+    /**
+     * @param interval
+     * @return formatted interval to string
+     */
+    public static String formatInterval(Interval interval)
+    {
+        return interval.toString();
     }
 }
