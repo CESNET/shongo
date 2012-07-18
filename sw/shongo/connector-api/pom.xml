@@ -31,15 +31,6 @@
             <artifactId>controller</artifactId>
             <version>1.0</version>
         </dependency>
-
-        <!-- FIXME: remove this (unnecessary?) dependency -->
-        <!-- Commons BeanUtils are used for manipulating ComplexType beans -->
-        <dependency>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils</artifactId>
-            <version>1.8.3</version>
-        </dependency>
     </dependencies>
-
 
 </project>
