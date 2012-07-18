@@ -19,6 +19,7 @@
         <module>client</module>
         <module>connector</module>
         <module>connector-api</module>
+        <module>common-api</module>
     </modules>
 
     <repositories>

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.Technology;
+import cz.cesnet.shongo.api.Technology;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

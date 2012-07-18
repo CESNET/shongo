@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.connector.api;
 
-import cz.cesnet.shongo.controller.Technology;
+import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.allocation.Reservation;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 

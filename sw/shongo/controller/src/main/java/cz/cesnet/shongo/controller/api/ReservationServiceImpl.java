@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.Technology;
+import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.api.util.Converter;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;

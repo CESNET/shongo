@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource.topology;
 
 import cz.cesnet.shongo.PrintableObject;
-import cz.cesnet.shongo.controller.Technology;
+import cz.cesnet.shongo.api.Technology;
 
 import java.util.Map;
 
