@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.AliasType;
 import cz.cesnet.shongo.api.Technology;
 
 import javax.persistence.Column;
@@ -16,26 +17,6 @@ import javax.persistence.Enumerated;
 @Entity
 public class Alias extends PersistentObject
 {
-    /**
-     * Enumeration for alias type.
-     */
-    public static enum Type
-    {
-        /**
-         * @see <a href="http://en.wikipedia.org/wiki/E.164">E.164</a>
-         */
-        E164,
-
-        /**
-         * e.g., H.323 ID
-         */
-        IDENTIFIER,
-
-        /**
-         * e.g., H.323 or SIP URI
-         */
-        URI
-    }
 
     /**
      * Technology of alias.
@@ -45,7 +26,7 @@ public class Alias extends PersistentObject
     /**
      * Type of alias.
      */
-    private Type type;
+    private AliasType type;
 
     /**
      * Value of alias.
@@ -59,7 +40,7 @@ public class Alias extends PersistentObject
      * @param type
      * @param value
      */
-    public Alias(Technology technology, Type type, String value)
+    public Alias(Technology technology, AliasType type, String value)
     {
         this.technology = technology;
         this.type = type;
@@ -72,7 +53,7 @@ public class Alias extends PersistentObject
      * @param type
      * @param value
      */
-    public Alias(Type type, String value)
+    public Alias(AliasType type, String value)
     {
         this.type = type;
         this.value = value;
@@ -101,7 +82,7 @@ public class Alias extends PersistentObject
      */
     @Column
     @Enumerated(EnumType.STRING)
-    public Type getType()
+    public AliasType getType()
     {
         return type;
     }
@@ -109,7 +90,7 @@ public class Alias extends PersistentObject
     /**
      * @param type sets the {@link #type}
      */
-    public void setType(Type type)
+    public void setType(AliasType type)
     {
         this.type = type;
     }

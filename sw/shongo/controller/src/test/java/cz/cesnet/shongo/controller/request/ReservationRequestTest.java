@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.api.AliasType;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
@@ -71,7 +72,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
             Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
             compartment.addRequestedPerson(person1,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(Alias.Type.E164, "950080085")));
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080085")));
             compartment.addRequestedPerson(person2);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -138,7 +139,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             // Second person accepts
             compartmentRequestManager.selectResourceForPersonRequest(compartmentRequestId, personId2,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(Alias.Type.E164, "950080086")));
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080086")));
             compartmentRequestManager.acceptPersonRequest(compartmentRequestId, personId2);
             assertEquals("One complete compartment request should be present", 1,
                     compartmentRequestManager.listCompleted(interval).size());
