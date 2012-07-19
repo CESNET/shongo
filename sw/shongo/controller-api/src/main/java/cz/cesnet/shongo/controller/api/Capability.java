@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.Set;
 
@@ -34,7 +35,7 @@ public class Capability extends ComplexType
     @Required
     public Type getType()
     {
-        return propertyStore.getValue(TYPE);
+        return getPropertyStorage().getValue(TYPE);
     }
 
     /**
@@ -42,16 +43,16 @@ public class Capability extends ComplexType
      */
     public void setType(Type type)
     {
-        propertyStore.setValue(TYPE, type);
+        getPropertyStorage().setValue(TYPE, type);
     }
 
     /**
      * @return {@link #TECHNOLOGIES}
      */
-    @ComplexType.Required
+    @Required
     public Set<Technology> getTechnologies()
     {
-        return propertyStore.getCollection(TECHNOLOGIES);
+        return getPropertyStorage().getCollection(TECHNOLOGIES);
     }
 
     /**
@@ -59,7 +60,7 @@ public class Capability extends ComplexType
      */
     private void setTechnologies(Set<Technology> technologies)
     {
-        propertyStore.setCollection(TECHNOLOGIES, technologies);
+        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
     }
 
     /**
@@ -67,7 +68,7 @@ public class Capability extends ComplexType
      */
     public void addTechnology(Technology technology)
     {
-        propertyStore.addCollectionItem(TECHNOLOGIES, technology);
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology);
     }
 
     /**
@@ -75,6 +76,6 @@ public class Capability extends ComplexType
      */
     public void removeTechnology(Technology technology)
     {
-        propertyStore.removeCollectionItem(TECHNOLOGIES, technology);
+        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
     }
 }

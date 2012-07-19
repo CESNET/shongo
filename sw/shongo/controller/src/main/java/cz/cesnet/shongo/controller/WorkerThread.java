@@ -39,7 +39,7 @@ public class WorkerThread extends Thread
     public WorkerThread(Preprocessor preprocessor, Scheduler scheduler)
     {
         setName("worker");
-        if ( preprocessor == null || scheduler == null ) {
+        if (preprocessor == null || scheduler == null) {
             throw new IllegalArgumentException("Both preprocessor and scheduler must be not-empty!");
         }
         this.preprocessor = preprocessor;
@@ -88,12 +88,14 @@ public class WorkerThread extends Thread
         Interval interval = new Interval(DateTime.now().minus(Period.days(1)), DateTime.now().plus(Period.months(1)));
         try {
             preprocessor.run(interval);
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             logger.error("Preprocessor failed: ", exception);
         }
         try {
             scheduler.run(interval);
-        } catch (Exception exception) {
+        }
+        catch (Exception exception) {
             logger.error("Scheduler failed: ", exception);
         }
     }

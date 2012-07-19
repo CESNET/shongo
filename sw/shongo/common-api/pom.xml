@@ -16,4 +16,13 @@
     <description>API common for multiple parts of Shongo resource management system.</description>
     <packaging>jar</packaging>
 
+    <dependencies>
+        <!-- Joda Time is used as implementation of date/times/periods/intervals -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.1</version>
+        </dependency>
+    </dependencies>
+
 </project>

@@ -20,30 +20,6 @@ import java.util.Map;
 public class Resource extends PersistentObject
 {
     /**
-     * Represents a type of a resource.
-     */
-    public static enum Type
-    {
-        /**
-         * Video/Web Conferencing Equipment
-         */
-        DEVICE,
-        /**
-         * Component for Device (e.g., alias, virtual room, etc.)
-         */
-        DEVICE_COMPONENT,
-        /**
-         * Physical room (e.g., boardroom, classroom)
-         */
-        PHYSICAL_ROOM
-    }
-
-    /**
-     * Type of a resource.
-     */
-    private Type type;
-
-    /**
      * Name of a resource that is visible to users.
      */
     private String name;
@@ -85,24 +61,6 @@ public class Resource extends PersistentObject
      */
     Resource()
     {
-    }
-
-    /**
-     * @return {@link #type}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public Type getType()
-    {
-        return type;
-    }
-
-    /**
-     * @param type sets the {@link #type}
-     */
-    public void setType(Type type)
-    {
-        this.type = type;
     }
 
     /**
@@ -285,7 +243,6 @@ public class Resource extends PersistentObject
     {
         super.fillDescriptionMap(map);
 
-        map.put("type", getType().toString());
         map.put("name", getName());
         map.put("description", getDescription());
         addCollectionToMap(map, "capabilities", capabilities);

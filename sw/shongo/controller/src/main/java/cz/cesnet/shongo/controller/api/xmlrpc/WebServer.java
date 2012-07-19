@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
-import cz.cesnet.shongo.controller.api.ComplexType;
-import cz.cesnet.shongo.controller.api.Service;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Options;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
-import org.apache.xmlrpc.common.ServerStreamConnection;
-import org.apache.xmlrpc.common.XmlRpcStreamRequestConfig;
+import org.apache.xmlrpc.common.*;
+import org.apache.xmlrpc.metadata.Util;
 import org.apache.xmlrpc.server.*;
 import org.apache.xmlrpc.webserver.Connection;
 import org.apache.xmlrpc.webserver.RequestData;
@@ -17,6 +17,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -67,7 +68,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         super(pPort, getHostByName(host));
 
         handlerMapping = new HandlerMapping();
-        handlerMapping.setTypeConverterFactory(new TypeConverterFactory(ComplexType.Options.SERVER));
+        handlerMapping.setTypeConverterFactory(new TypeConverterFactory(Options.SERVER));
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
         handlerMapping.setVoidMethodEnabled(true);
 
@@ -81,7 +82,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     protected XmlRpcStreamServer newXmlRpcStreamServer()
     {
         XmlRpcStreamServer server = new ConnectionServer();
-        server.setTypeFactory(new TypeFactory(server, ComplexType.Options.SERVER));
+        server.setTypeFactory(new TypeFactory(server, Options.SERVER));
         return server;
     }
 
@@ -125,7 +126,6 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      */
     public void stop()
     {
-
         shutdown();
     }
 
@@ -198,10 +198,142 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
                     }
                 }
                 catch (Exception e) {
+                    e.printStackTrace();
                 }
                 throw new XmlRpcNoSuchHandlerException("No such handler: " + pHandlerName);
             }
             return result;
+        }
+
+        /**
+         * Creates a new instance of {@link XmlRpcHandler}.
+         *
+         * @param pClass   The class, which was inspected for handler
+         *                 methods. This is used for error messages only. Typically,
+         *                 it is the same than <pre>pInstance.getClass()</pre>.
+         * @param pMethods The method being invoked.
+         */
+        @Override
+        protected XmlRpcHandler newXmlRpcHandler(final Class pClass,
+                final Method[] pMethods) throws XmlRpcException
+        {
+            RequestProcessorFactoryFactory.RequestProcessorFactory factory = getRequestProcessorFactoryFactory()
+                    .getRequestProcessorFactory(pClass);
+            return new Handler(this, getTypeConverterFactory(),
+                    pClass, factory, pMethods);
+
+        }
+
+        /**
+         * {@link ReflectiveXmlRpcHandler} with conversion of {@link FaultException} to {@link XmlRpcException}.
+         */
+        public static class Handler implements XmlRpcHandler
+        {
+            private static class MethodData
+            {
+                final Method method;
+                final TypeConverter[] typeConverters;
+
+                MethodData(Method pMethod, org.apache.xmlrpc.common.TypeConverterFactory pTypeConverterFactory)
+                {
+                    method = pMethod;
+                    Class[] paramClasses = method.getParameterTypes();
+                    typeConverters = new TypeConverter[paramClasses.length];
+                    for (int i = 0; i < paramClasses.length; i++) {
+                        typeConverters[i] = pTypeConverterFactory.getTypeConverter(paramClasses[i]);
+                    }
+                }
+            }
+
+            private final AbstractReflectiveHandlerMapping mapping;
+            private final MethodData[] methods;
+            private final Class clazz;
+            private final RequestProcessorFactoryFactory.RequestProcessorFactory requestProcessorFactory;
+
+            public Handler(AbstractReflectiveHandlerMapping pMapping,
+                    org.apache.xmlrpc.common.TypeConverterFactory pTypeConverterFactory,
+                    Class pClass, RequestProcessorFactoryFactory.RequestProcessorFactory pFactory, Method[] pMethods)
+            {
+                mapping = pMapping;
+                clazz = pClass;
+                methods = new MethodData[pMethods.length];
+                requestProcessorFactory = pFactory;
+                for (int i = 0; i < methods.length; i++) {
+                    methods[i] = new MethodData(pMethods[i], pTypeConverterFactory);
+                }
+            }
+
+            private Object getInstance(XmlRpcRequest pRequest) throws XmlRpcException
+            {
+                return requestProcessorFactory.getRequestProcessor(pRequest);
+            }
+
+            public Object execute(XmlRpcRequest pRequest) throws XmlRpcException
+            {
+                AuthenticationHandler authHandler = mapping.getAuthenticationHandler();
+                if (authHandler != null && !authHandler.isAuthorized(pRequest)) {
+                    throw new XmlRpcNotAuthorizedException("Not authorized");
+                }
+                Object[] args = new Object[pRequest.getParameterCount()];
+                for (int j = 0; j < args.length; j++) {
+                    args[j] = pRequest.getParameter(j);
+                }
+                Object instance = getInstance(pRequest);
+                for (int i = 0; i < methods.length; i++) {
+                    MethodData methodData = methods[i];
+                    TypeConverter[] converters = methodData.typeConverters;
+                    if (args.length == converters.length) {
+                        boolean matching = true;
+                        for (int j = 0; j < args.length; j++) {
+                            if (!converters[j].isConvertable(args[j])) {
+                                matching = false;
+                                break;
+                            }
+                        }
+                        if (matching) {
+                            for (int j = 0; j < args.length; j++) {
+                                args[j] = converters[j].convert(args[j]);
+                            }
+                            return invoke(instance, methodData.method, args);
+                        }
+                    }
+                }
+                throw new XmlRpcException("No method matching arguments: " + Util.getSignature(args));
+            }
+
+            private Object invoke(Object pInstance, Method pMethod, Object[] pArgs) throws XmlRpcException
+            {
+                try {
+                    return pMethod.invoke(pInstance, pArgs);
+                }
+                catch (IllegalAccessException e) {
+                    throw new XmlRpcException("Illegal access to method "
+                            + pMethod.getName() + " in class "
+                            + clazz.getName(), e);
+                }
+                catch (IllegalArgumentException e) {
+                    throw new XmlRpcException("Illegal argument for method "
+                            + pMethod.getName() + " in class "
+                            + clazz.getName(), e);
+                }
+                catch (InvocationTargetException e) {
+                    Throwable t = e.getTargetException();
+                    if (t instanceof XmlRpcException) {
+                        throw (XmlRpcException) t;
+                    }
+                    else if (t instanceof FaultException) {
+                        FaultException faultException = (FaultException) t;
+                        XmlRpcException xmlRpcException = new XmlRpcException(faultException.getCode(),
+                                faultException.getMessage());
+                        xmlRpcException.setStackTrace(faultException.getStackTrace());
+                        throw xmlRpcException;
+                    }
+                    throw new XmlRpcInvocationException("Failed to invoke method "
+                            + pMethod.getName() + " in class "
+                            + clazz.getName() + ": "
+                            + t.getMessage(), t);
+                }
+            }
         }
     }
 
@@ -246,7 +378,11 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         protected Throwable convertThrowable(Throwable pError)
         {
             if (pError instanceof RuntimeException) {
-                return pError.getCause();
+                if (pError.getCause() instanceof FaultException) {
+                    FaultException faultException = (FaultException) pError.getCause();
+                    return new XmlRpcException(faultException.getCode(), faultException.getMessage(),
+                            faultException.getCause());
+                }
             }
             return pError;
         }

@@ -226,20 +226,6 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    public Type getType()
-    {
-        return Type.DEVICE;
-    }
-
-    @Override
-    public void setType(Type type)
-    {
-        if (type != Type.DEVICE) {
-            throw new IllegalArgumentException("Device resource must be always of resource type device.");
-        }
-    }
-
-    @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {
         super.fillDescriptionMap(map);

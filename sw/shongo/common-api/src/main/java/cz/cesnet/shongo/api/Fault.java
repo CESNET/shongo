@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.api;
 
 /**
  * Fault interface. Every fault must implement fault

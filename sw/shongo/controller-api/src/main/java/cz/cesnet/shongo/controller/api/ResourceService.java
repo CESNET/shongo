@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import java.util.Map;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 
 /**
  * Interface to the service handling operations on resources.
@@ -15,8 +17,8 @@ public interface ResourceService extends Service
      * The user with the given token will be the resource owner.
      *
      * @param token    token of the user requesting the operation
-     * @param resource resource; should contains all attributes marked as {@link ComplexType.Required}
-     *                   in {@link ReservationRequest}
+     * @param resource resource; should contains all attributes marked as {@link Required}
+     *                 in {@link ReservationRequest}
      * @return the created resource identifier
      */
     @API
@@ -49,7 +51,7 @@ public interface ResourceService extends Service
     /**
      * Lists all Shongo-managed resources matching the filter.
      *
-     * @param token  token of the user requesting the operation
+     * @param token token of the user requesting the operation
      * @return array of resource summaries
      */
     @API

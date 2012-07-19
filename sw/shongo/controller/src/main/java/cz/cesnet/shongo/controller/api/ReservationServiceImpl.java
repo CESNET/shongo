@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.api.Technology;
-import cz.cesnet.shongo.controller.api.util.Converter;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
@@ -147,16 +149,16 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             else {
                 // Modify existing requested slot
                 cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl =
-                        reservationRequestImpl.getRequestedSlotById(dateTimeSlot.getIdentifierAsLong());
+                        reservationRequestImpl.getRequestedSlotById(Long.parseLong(dateTimeSlot.getIdentifier()));
                 dateTimeSlotImpl.setDuration(dateTimeSlot.getDuration());
 
                 entityManager.remove(dateTimeSlotImpl.getStart());
 
                 Object dateTime = dateTimeSlot.getStart();
                 if (dateTime instanceof DateTime) {
-                    if ( !(dateTimeSlotImpl.getStart() instanceof AbsoluteDateTimeSpecification)
-                            || !((DateTime)dateTime).isEqual(((AbsoluteDateTimeSpecification)dateTimeSlotImpl
-                            .getStart()).getDateTime()) ) {
+                    if (!(dateTimeSlotImpl.getStart() instanceof AbsoluteDateTimeSpecification)
+                            || !((DateTime) dateTime).isEqual(((AbsoluteDateTimeSpecification) dateTimeSlotImpl
+                            .getStart()).getDateTime())) {
                         dateTimeSlotImpl.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
                     }
                 }
@@ -171,7 +173,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (DateTimeSlot dateTimeSlot : reservationRequest.getCollectionItemsMarkedAsDeleted(
                 ReservationRequest.SLOTS, DateTimeSlot.class)) {
             reservationRequestImpl.removeRequestedSlot(
-                    reservationRequestImpl.getRequestedSlotById(dateTimeSlot.getIdentifierAsLong()));
+                    reservationRequestImpl.getRequestedSlotById(Long.parseLong(dateTimeSlot.getIdentifier())));
         }
 
         // Create/modify requested compartments
@@ -189,7 +191,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (Compartment compartment : reservationRequest.getCollectionItemsMarkedAsDeleted(
                 ReservationRequest.COMPARTMENTS, Compartment.class)) {
             reservationRequestImpl.removeRequestedCompartment(
-                    reservationRequestImpl.getRequestedCompartmentById(compartment.getIdentifierAsLong()));
+                    reservationRequestImpl.getRequestedCompartmentById(Long.parseLong(compartment.getIdentifier())));
         }
 
         reservationRequestManager.update(reservationRequestImpl);
@@ -211,7 +213,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         // Get reservation request
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
-        if ( reservationRequestImpl == null ) {
+        if (reservationRequestImpl == null) {
             throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, reservationRequestId);
         }
 
@@ -235,7 +237,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             summary.setIdentifier(domain.formatIdentifier(reservationRequest.getId()));
 
             Interval earliestSlot = null;
-            for ( cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequest.getRequestedSlots()) {
+            for (cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequest.getRequestedSlots()) {
                 Interval interval = slot.getEarliest(null);
                 if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                     earliestSlot = interval;
@@ -329,8 +331,9 @@ public class ReservationServiceImpl extends Component implements ReservationServ
 
         // Fill processed slots
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(reservationRequestImpl);
-        for ( CompartmentRequest compartmentRequest : compartmentRequestList) {
+        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager
+                .listByReservationRequest(reservationRequestImpl);
+        for (CompartmentRequest compartmentRequest : compartmentRequestList) {
             ReservationRequest.Request request = new ReservationRequest.Request();
             request.setStart(compartmentRequest.getRequestedSlot().getStart());
             request.setDuration(compartmentRequest.getRequestedSlot().toPeriod());
@@ -381,7 +384,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
      */
     private void createRequestedCompartmentInReservationRequest(
             cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl, Compartment compartment)
-        throws FaultException
+            throws FaultException
     {
         cz.cesnet.shongo.controller.request.Compartment compartmentImpl =
                 reservationRequestImpl.addRequestedCompartment();

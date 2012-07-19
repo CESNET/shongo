@@ -34,7 +34,7 @@ public class Compartment extends ComplexType
      */
     public List<Person> getPersons()
     {
-        return propertyStore.getCollection(PERSONS);
+        return getPropertyStorage().getCollection(PERSONS);
     }
 
     /**
@@ -42,7 +42,7 @@ public class Compartment extends ComplexType
      */
     public void setPersons(List<Person> persons)
     {
-        propertyStore.setCollection(PERSONS, persons);
+        getPropertyStorage().setCollection(PERSONS, persons);
     }
 
     /**
@@ -53,7 +53,7 @@ public class Compartment extends ComplexType
      */
     public void addPerson(String name, String email)
     {
-        propertyStore.addCollectionItem(PERSONS, new Person(name, email));
+        getPropertyStorage().addCollectionItem(PERSONS, new Person(name, email));
     }
 
     /**
@@ -61,7 +61,7 @@ public class Compartment extends ComplexType
      */
     public List<ResourceSpecificationMap> getResources()
     {
-        return propertyStore.getCollection(RESOURCES);
+        return getPropertyStorage().getCollection(RESOURCES);
     }
 
     /**
@@ -69,7 +69,7 @@ public class Compartment extends ComplexType
      */
     public void setResources(List<ResourceSpecificationMap> resources)
     {
-        propertyStore.setCollection(RESOURCES, resources);
+        getPropertyStorage().setCollection(RESOURCES, resources);
     }
 
     /**
@@ -85,6 +85,6 @@ public class Compartment extends ComplexType
         resourceSpecificationMap.put("technology", technology);
         resourceSpecificationMap.put("count", count);
         resourceSpecificationMap.put("persons", persons);
-        propertyStore.addCollectionItem(RESOURCES, resourceSpecificationMap);
+        getPropertyStorage().addCollectionItem(RESOURCES, resourceSpecificationMap);
     }
 }

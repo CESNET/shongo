@@ -2,14 +2,11 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
-import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Resource service implementation.

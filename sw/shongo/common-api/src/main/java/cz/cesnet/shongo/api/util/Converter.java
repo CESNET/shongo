@@ -1,9 +1,10 @@
-package cz.cesnet.shongo.controller.api.util;
+package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.controller.api.AtomicType;
-import cz.cesnet.shongo.controller.api.ComplexType;
-import cz.cesnet.shongo.controller.api.Fault;
-import cz.cesnet.shongo.controller.api.FaultException;
+
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.ChangesTrackingObject;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -11,8 +12,8 @@ import org.joda.time.Period;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassFromShortName;
-import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassShortName;
+import static cz.cesnet.shongo.api.util.ClassHelper.getClassFromShortName;
+import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
 
 /**
  * Helper class for converting types.
@@ -33,8 +34,8 @@ public class Converter
      * @throws FaultException
      * @throws IllegalArgumentException
      */
-    public static Object convert(Object value, Class targetType, Class[] allowedTypes, String name,
-            ComplexType.Options options) throws FaultException, IllegalArgumentException
+    public static Object convert(Object value, Class targetType, Class[] allowedTypes, String name, Options options)
+            throws FaultException, IllegalArgumentException
     {
         if (value == null) {
             return null;
@@ -136,10 +137,6 @@ public class Converter
                 return collection;
             }
         }
-        // If complex type is required and map is given
-        else if (ComplexType.class.isAssignableFrom(targetType) && value instanceof Map) {
-            return convertMapToObject((Map) value, targetType, options);
-        }
         // Convert map to specific map
         else if (value instanceof Map && Map.class.isAssignableFrom(targetType)) {
             Map map = null;
@@ -153,6 +150,10 @@ public class Converter
             }
             map.putAll((Map) value);
             return map;
+        }
+        // If map is given convert to object
+        else if (value instanceof Map) {
+            return convertMapToObject((Map) value, targetType, options);
         }
         throw new IllegalArgumentException(String.format("Cannot convert value of type '%s' to '%s'.",
                 value.getClass().getCanonicalName(), targetType.getCanonicalName()));
@@ -169,7 +170,7 @@ public class Converter
      */
     public static <T> T convert(Object value, Class<T> targetType) throws FaultException
     {
-        return (T) convert(value, targetType, null, null, ComplexType.Options.SERVER);
+        return (T) convert(value, targetType, null, null, Options.SERVER);
     }
 
     /**
@@ -259,7 +260,7 @@ public class Converter
      * @return new instance of object that is filled by attributes from given map (must contain 'class attribute')
      * @throws FaultException
      */
-    public static Object convertMapToObject(Map map, ComplexType.Options options) throws FaultException
+    public static Object convertMapToObject(Map map, Options options) throws FaultException
     {
         // Get object class
         String className = (String) map.get("class");
@@ -283,13 +284,8 @@ public class Converter
      * @return new instance of given object class that is filled by attributes from given map
      * @throws FaultException
      */
-    public static <T> T convertMapToObject(Map map, Class<T> objectClass, ComplexType.Options options) throws FaultException
+    public static <T> T convertMapToObject(Map map, Class<T> objectClass, Options options) throws FaultException
     {
-        if (!ComplexType.class.isAssignableFrom(objectClass)) {
-            throw new FaultException(Fault.Common.UNKNOWN_FAULT,
-                    String.format("Cannot convert map to '%s' because the target type doesn't support the conversion!",
-                            getClassShortName(objectClass)));
-        }
         // Null or empty map means "null" object
         if (map == null || map.size() == 0) {
             return null;
@@ -314,8 +310,138 @@ public class Converter
                 throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, objectClass);
             }
 
-            ComplexType complexType = ComplexType.class.cast(object);
-            complexType.fromMap(map, options);
+            ChangesTrackingObject changesTrackingObject =
+                    ((object instanceof ChangesTrackingObject) ? (ChangesTrackingObject) object : null);
+
+            // Clear all filled properties
+            if (changesTrackingObject != null) {
+                changesTrackingObject.clearMarks();
+            }
+
+            // Fill each property that is present in map
+            for (Object key : map.keySet()) {
+                if (!(key instanceof String)) {
+                    throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contain only string keys.");
+                }
+                String propertyName = (String) key;
+                Object value = map.get(key);
+
+                // Skip class property
+                if (propertyName.equals("class")) {
+                    continue;
+                }
+
+                // Get property type and allowed types
+                Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
+                Class type = property.getType();
+                Class[] allowedTypes = property.getAllowedTypes();
+
+                // Parse collection changes
+                if (value instanceof Map && property.isArrayOrCollection()) {
+                    Map collectionChanges = (Map) value;
+                    Object newItems = null;
+                    Object modifiedItems = null;
+                    Object deletedItems = null;
+                    if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_NEW)) {
+                        newItems = Converter.convert(collectionChanges.get(ChangesTrackingObject.COLLECTION_NEW),
+                                type, allowedTypes, propertyName, options);
+                    }
+                    if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_MODIFIED)) {
+                        modifiedItems = Converter
+                                .convert(collectionChanges.get(ChangesTrackingObject.COLLECTION_MODIFIED),
+                                        type, allowedTypes, propertyName, options);
+                    }
+                    if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_DELETED)) {
+                        deletedItems = Converter
+                                .convert(collectionChanges.get(ChangesTrackingObject.COLLECTION_DELETED),
+                                        type, allowedTypes, propertyName, options);
+                    }
+                    if (newItems != null || modifiedItems != null || deletedItems != null) {
+                        if (property.isArray()) {
+                            int size = (newItems != null ? ((Object[]) newItems).length : 0)
+                                    + (modifiedItems != null ? ((Object[]) modifiedItems).length : 0);
+                            int index = 0;
+                            Object[] array = Converter.createArray(type.getComponentType(), size);
+                            if (newItems != null) {
+                                for (Object newItem : (Object[]) newItems) {
+                                    array[index++] = newItem;
+                                    if (changesTrackingObject != null) {
+                                        changesTrackingObject.markCollectionItemAsNew(propertyName, newItem);
+                                    }
+                                }
+                            }
+                            if (modifiedItems != null) {
+                                for (Object modifiedItem : (Object[]) modifiedItems) {
+                                    array[index++] = modifiedItem;
+                                }
+                            }
+                            if (deletedItems != null) {
+                                for (Object deletedItem : (Object[]) deletedItems) {
+                                    if (changesTrackingObject != null) {
+                                        changesTrackingObject.markCollectionItemAsDeleted(propertyName, deletedItem);
+                                    }
+                                }
+                            }
+                            value = array;
+                        }
+                        else if (property.isCollection()) {
+                            Collection<Object> collection = Converter.createCollection(type, 0);
+                            if (newItems != null) {
+                                for (Object newItem : (Collection) newItems) {
+                                    collection.add(newItem);
+                                    if (changesTrackingObject != null) {
+                                        changesTrackingObject.markCollectionItemAsNew(propertyName, newItem);
+                                    }
+                                }
+                            }
+                            if (modifiedItems != null) {
+                                for (Object modifiedItem : (Collection) modifiedItems) {
+                                    collection.add(modifiedItem);
+                                }
+                            }
+                            if (deletedItems != null) {
+                                for (Object deletedItem : (Collection) deletedItems) {
+                                    if (changesTrackingObject != null) {
+                                        changesTrackingObject.markCollectionItemAsDeleted(propertyName, deletedItem);
+                                    }
+                                }
+                            }
+                            value = collection;
+                        }
+                    }
+                }
+
+                try {
+                    value = Converter.convert(value, type, allowedTypes, propertyName, options);
+                }
+                catch (IllegalArgumentException exception) {
+                    Object requiredType = type;
+                    Object givenType = value.getClass();
+                    if (allowedTypes != null) {
+                        StringBuilder builder = new StringBuilder();
+                        for (Class allowedType : allowedTypes) {
+                            if (builder.length() > 0) {
+                                builder.append("|");
+                            }
+                            builder.append(ClassHelper.getClassShortName(allowedType));
+                        }
+                        requiredType = builder.toString();
+                    }
+                    if (value instanceof String) {
+                        givenType = String.format("String(%s)", value);
+                    }
+                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
+                            object.getClass(), requiredType, givenType);
+                }
+
+                // Set the value to property
+                property.setValue(object, value, options.isForceAccessible());
+
+                // Mark property as filled
+                if (changesTrackingObject != null) {
+                    changesTrackingObject.markPropertyAsFilled(propertyName);
+                }
+            }
 
             return (T) object;
         }
@@ -328,11 +454,10 @@ public class Converter
      * @param options
      * @return {@link Map} or {@link Object[]} or given value
      */
-    public static Object convertToMapOrArray(Object object, ComplexType.Options options) throws FaultException
+    public static Object convertToMapOrArray(Object object, Options options) throws FaultException
     {
-        if (object instanceof ComplexType) {
-            ComplexType complexType = ComplexType.class.cast(object);
-            return complexType.toMap(options);
+        if (object == null || isAtomic(object) || object instanceof Map) {
+            return object;
         }
         else if (object instanceof Collection) {
 
@@ -353,7 +478,7 @@ public class Converter
             }
             return newArray;
         }
-        return object;
+        return convertObjectToMap(object, options);
     }
 
     /**
@@ -362,15 +487,108 @@ public class Converter
      * @return map containing attributes of given object
      * @throws FaultException
      */
-    public static Map convertObjectToMap(Object object, ComplexType.Options options) throws FaultException
+
+    /**
+     * Convert object to a map. Map will contain all object's properties that are:
+     * 1) simple (not {@link Object[]} or {@link Collection}) with not {@link null} value
+     * 2) simple with {@link null} value but marked as filled through
+     * ({@link ChangesTrackingObject#markPropertyAsFilled(String)}
+     * 3) {@link Object[]} or {@link Collection} which is not empty
+     *
+     * @param object
+     * @param options see {@link Options}
+     * @return map which contains object's properties
+     * @throws FaultException when the conversion fails
+     */
+    public static Map convertObjectToMap(Object object, Options options) throws FaultException
     {
-        if (!(object instanceof ComplexType)) {
-            throw new FaultException(Fault.Common.UNKNOWN_FAULT,
-                    String.format("Cannot convert '%s' to map because the object doesn't support the conversion!",
-                            getClassShortName(object.getClass())));
+        ChangesTrackingObject changesTrackingObject =
+                ((object instanceof ChangesTrackingObject) ? (ChangesTrackingObject) object : null);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        String[] propertyNames = Property.getPropertyNames(object.getClass());
+        for (String propertyName : propertyNames) {
+            Property property = Property.getProperty(object.getClass(), propertyName);
+            if (property == null) {
+                throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, object.getClass());
+            }
+            Object value = property.getValue(object);
+            if (value == null) {
+                if (changesTrackingObject == null || !options.isStoreChanges()
+                        || !changesTrackingObject.isPropertyFilled(propertyName)) {
+                    continue;
+                }
+            }
+
+            // Store collection changes
+            if (options.isStoreChanges() && property.isArrayOrCollection()) {
+                Object[] items;
+                if (value instanceof Object[]) {
+                    items = (Object[]) value;
+                }
+                else {
+                    Collection collection = (Collection) value;
+                    items = collection.toArray();
+                }
+
+                // Map of changes
+                Map<String, Object> mapCollection = new HashMap<String, Object>();
+                // List of modified items
+                List<Object> modifiedItems = new ArrayList<Object>();
+
+                // Store collection changes into map
+                ChangesTrackingObject.CollectionChanges collectionChanges = changesTrackingObject != null ? changesTrackingObject
+                        .getCollectionChanges(propertyName) : null;
+                if (collectionChanges != null) {
+                    // Find all modified items (not marked items are by default modified)
+                    for (Object item : items) {
+                        if (collectionChanges.newItems.contains(item)) {
+                            continue;
+                        }
+                        if (collectionChanges.deletedItems.contains(item)) {
+                            throw new IllegalStateException(
+                                    "Item has been marked as delete but not removed from the collection.");
+                        }
+                        modifiedItems.add(item);
+                    }
+                    if (collectionChanges.newItems.size() > 0) {
+                        mapCollection.put(ChangesTrackingObject.COLLECTION_NEW,
+                                Converter.convertToMapOrArray(collectionChanges.newItems, options));
+                    }
+                    if (collectionChanges.deletedItems.size() > 0) {
+                        mapCollection.put(ChangesTrackingObject.COLLECTION_DELETED,
+                                Converter.convertToMapOrArray(collectionChanges.deletedItems, options));
+                    }
+                }
+                else {
+                    // If no collection changes are present then all items are modified
+                    for (Object item : items) {
+                        modifiedItems.add(item);
+                    }
+                }
+                if (modifiedItems.size() > 0) {
+                    mapCollection.put(ChangesTrackingObject.COLLECTION_MODIFIED,
+                            Converter.convertToMapOrArray(modifiedItems, options));
+                }
+                // Skip empty changes
+                if (mapCollection.isEmpty()) {
+                    continue;
+                }
+                value = mapCollection;
+            }
+
+
+            // Convert value to map or array if the conversion is possible
+            value = Converter.convertToMapOrArray(value, options);
+
+            // Skip empty arrays
+            if (value instanceof Object[] && ((Object[]) value).length == 0) {
+                continue;
+            }
+            map.put(propertyName, value);
         }
-        ComplexType complexType = ComplexType.class.cast(object);
-        return complexType.toMap(options);
+        map.put("class", getClassShortName(object.getClass()));
+        return map;
     }
 
     /**
@@ -394,7 +612,7 @@ public class Converter
      */
     public static boolean isAtomic(Object object)
     {
-        if (object instanceof String || object instanceof Enum) {
+        if (object.getClass().isPrimitive() || object instanceof String || object instanceof Enum) {
             return true;
         }
         if (object instanceof AtomicType) {

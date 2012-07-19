@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.List;
 import java.util.Set;
@@ -32,7 +33,7 @@ public class Resource extends ComplexType
      */
     public String getName()
     {
-        return propertyStore.getValue(NAME);
+        return getPropertyStorage().getValue(NAME);
     }
 
     /**
@@ -40,7 +41,7 @@ public class Resource extends ComplexType
      */
     public void setName(String name)
     {
-        propertyStore.setValue(NAME, name);
+        getPropertyStorage().setValue(NAME, name);
     }
 
     /**
@@ -49,7 +50,7 @@ public class Resource extends ComplexType
     @Required
     public Set<Technology> getTechnologies()
     {
-        return propertyStore.getCollection(TECHNOLOGIES);
+        return getPropertyStorage().getCollection(TECHNOLOGIES);
     }
 
     /**
@@ -57,7 +58,7 @@ public class Resource extends ComplexType
      */
     private void setTechnologies(Set<Technology> technologies)
     {
-        propertyStore.setCollection(TECHNOLOGIES, technologies);
+        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
     }
 
     /**
@@ -65,7 +66,7 @@ public class Resource extends ComplexType
      */
     public void addTechnology(Technology technology)
     {
-        propertyStore.addCollectionItem(TECHNOLOGIES, technology);
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology);
     }
 
     /**
@@ -73,7 +74,7 @@ public class Resource extends ComplexType
      */
     public void removeTechnology(Technology technology)
     {
-        propertyStore.removeCollectionItem(TECHNOLOGIES, technology);
+        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
     }
 
     /**
@@ -82,7 +83,7 @@ public class Resource extends ComplexType
     @Required
     public List<Capability> getCapabilities()
     {
-        return propertyStore.getCollection(CAPABILITIES);
+        return getPropertyStorage().getCollection(CAPABILITIES);
     }
 
     /**
@@ -90,7 +91,7 @@ public class Resource extends ComplexType
      */
     private void setCapabilities(List<Capability> capabilities)
     {
-        propertyStore.setCollection(CAPABILITIES, capabilities);
+        getPropertyStorage().setCollection(CAPABILITIES, capabilities);
     }
 
     /**
@@ -98,7 +99,7 @@ public class Resource extends ComplexType
      */
     public void addCapability(Capability capability)
     {
-        propertyStore.addCollectionItem(CAPABILITIES, capability);
+        getPropertyStorage().addCollectionItem(CAPABILITIES, capability);
     }
 
     /**
@@ -106,6 +107,6 @@ public class Resource extends ComplexType
      */
     public void removeCapability(Capability capability)
     {
-        propertyStore.removeCollectionItem(CAPABILITIES, capability);
+        getPropertyStorage().removeCollectionItem(CAPABILITIES, capability);
     }
 }

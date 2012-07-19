@@ -1,16 +1,16 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.api;
 
-import org.apache.xmlrpc.XmlRpcException;
-
-import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassShortName;
+import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
 
 /**
  * Fault exception
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class FaultException extends XmlRpcException
+public class FaultException extends Exception
 {
+    private int code;
+
     /**
      * Construct exception from fault code and fault string.
      *
@@ -19,7 +19,20 @@ public class FaultException extends XmlRpcException
      */
     public FaultException(int code, String string)
     {
-        super(code, string);
+        super(string);
+        this.code = code;
+    }
+
+    /**
+     * Construct exception from fault code and fault string.
+     *
+     * @param code
+     * @param string
+     */
+    public FaultException(int code, String string, Throwable throwable)
+    {
+        super(string, throwable);
+        this.code = code;
     }
 
     /**
@@ -30,7 +43,7 @@ public class FaultException extends XmlRpcException
      */
     public FaultException(Fault fault, Object... objects)
     {
-        super(fault.getCode(), String.format(fault.getString(), evaluateParameters(objects)));
+        this(fault.getCode(), String.format(fault.getString(), evaluateParameters(objects)));
     }
 
     /**
@@ -43,7 +56,7 @@ public class FaultException extends XmlRpcException
      */
     public FaultException(Exception exception, Fault fault, Object... objects)
     {
-        super(fault.getCode(), String.format(fault.getString(), evaluateParameters(objects)), exception);
+        this(fault.getCode(), String.format(fault.getString(), evaluateParameters(objects)), exception);
     }
 
     /**
@@ -55,7 +68,7 @@ public class FaultException extends XmlRpcException
      */
     public FaultException(Exception exception, String faultString, Object... objects)
     {
-        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
+        this(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
                 String.format(faultString, evaluateParameters(objects))), exception);
     }
 
@@ -67,7 +80,7 @@ public class FaultException extends XmlRpcException
      */
     public FaultException(String faultString, Object... objects)
     {
-        super(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
+        this(Fault.Common.UNKNOWN_FAULT.getCode(), String.format(Fault.Common.UNKNOWN_FAULT.getString(),
                 String.format(faultString, evaluateParameters(objects))));
     }
 
@@ -78,7 +91,7 @@ public class FaultException extends XmlRpcException
      */
     public FaultException(String faultString)
     {
-        super(Fault.Common.UNKNOWN_FAULT.getCode(), faultString);
+        this(Fault.Common.UNKNOWN_FAULT.getCode(), faultString);
     }
 
 

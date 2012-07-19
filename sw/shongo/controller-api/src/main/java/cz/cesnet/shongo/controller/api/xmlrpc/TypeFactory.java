@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
-import cz.cesnet.shongo.controller.api.ComplexType;
-import cz.cesnet.shongo.controller.api.FaultException;
-import cz.cesnet.shongo.controller.api.util.Converter;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.api.util.Options;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.common.TypeFactoryImpl;
@@ -26,17 +26,17 @@ import java.util.Map;
 public class TypeFactory extends TypeFactoryImpl
 {
     /**
-     * @see ComplexType.Options
+     * @see Options
      */
-    private ComplexType.Options options;
+    private Options options;
 
     /**
      * Constructor.
      *
      * @param pController
-     * @param options sets the {@link #options}
+     * @param options     sets the {@link #options}
      */
-    public TypeFactory(XmlRpcController pController, ComplexType.Options options)
+    public TypeFactory(XmlRpcController pController, Options options)
     {
         super(pController);
 

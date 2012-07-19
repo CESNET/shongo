@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.Fault;
+
 /**
  * Domain controller faults.
  *

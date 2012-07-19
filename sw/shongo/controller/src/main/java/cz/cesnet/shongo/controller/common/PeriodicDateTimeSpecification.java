@@ -383,7 +383,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         }
 
         PeriodicDateTimeSpecification periodicDateTime = (PeriodicDateTimeSpecification) object;
-        if ( getId() != null ) {
+        if (getId() != null) {
             return getId().equals(periodicDateTime.getId());
         }
 

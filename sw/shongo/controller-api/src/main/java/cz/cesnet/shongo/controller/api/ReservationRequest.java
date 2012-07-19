@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
@@ -63,7 +64,7 @@ public class ReservationRequest extends ComplexType
     @Required
     public ReservationRequestType getType()
     {
-        return propertyStore.getValue(TYPE);
+        return getPropertyStorage().getValue(TYPE);
     }
 
     /**
@@ -71,7 +72,7 @@ public class ReservationRequest extends ComplexType
      */
     public void setType(ReservationRequestType type)
     {
-        propertyStore.setValue(TYPE, type);
+        getPropertyStorage().setValue(TYPE, type);
     }
 
     /**
@@ -79,7 +80,7 @@ public class ReservationRequest extends ComplexType
      */
     public String getName()
     {
-        return propertyStore.getValue(NAME);
+        return getPropertyStorage().getValue(NAME);
     }
 
     /**
@@ -87,7 +88,7 @@ public class ReservationRequest extends ComplexType
      */
     public void setName(String name)
     {
-        propertyStore.setValue(NAME, name);
+        getPropertyStorage().setValue(NAME, name);
     }
 
     /**
@@ -96,7 +97,7 @@ public class ReservationRequest extends ComplexType
     @Required
     public ReservationRequestPurpose getPurpose()
     {
-        return propertyStore.getValue(PURPOSE);
+        return getPropertyStorage().getValue(PURPOSE);
     }
 
     /**
@@ -104,7 +105,7 @@ public class ReservationRequest extends ComplexType
      */
     public void setPurpose(ReservationRequestPurpose purpose)
     {
-        propertyStore.setValue(PURPOSE, purpose);
+        getPropertyStorage().setValue(PURPOSE, purpose);
     }
 
     /**
@@ -112,7 +113,7 @@ public class ReservationRequest extends ComplexType
      */
     public String getDescription()
     {
-        return propertyStore.getValue(DESCRIPTION);
+        return getPropertyStorage().getValue(DESCRIPTION);
     }
 
     /**
@@ -120,7 +121,7 @@ public class ReservationRequest extends ComplexType
      */
     public void setDescription(String description)
     {
-        propertyStore.setValue(DESCRIPTION, description);
+        getPropertyStorage().setValue(DESCRIPTION, description);
     }
 
     /**
@@ -129,7 +130,7 @@ public class ReservationRequest extends ComplexType
     @Required
     public List<DateTimeSlot> getSlots()
     {
-        return propertyStore.getCollection(SLOTS);
+        return getPropertyStorage().getCollection(SLOTS);
     }
 
     /**
@@ -137,7 +138,7 @@ public class ReservationRequest extends ComplexType
      */
     public void setSlots(List<DateTimeSlot> slots)
     {
-        propertyStore.setCollection(SLOTS, slots);
+        getPropertyStorage().setCollection(SLOTS, slots);
     }
 
     /**
@@ -147,7 +148,7 @@ public class ReservationRequest extends ComplexType
      */
     public void addSlot(DateTimeSlot dateTimeSlot)
     {
-        propertyStore.addCollectionItem(SLOTS, dateTimeSlot);
+        getPropertyStorage().addCollectionItem(SLOTS, dateTimeSlot);
     }
 
     /**
@@ -167,7 +168,7 @@ public class ReservationRequest extends ComplexType
      */
     public void removeSlot(DateTimeSlot dateTimeSlot)
     {
-        propertyStore.removeCollectionItem(SLOTS, dateTimeSlot);
+        getPropertyStorage().removeCollectionItem(SLOTS, dateTimeSlot);
     }
 
     /**
@@ -176,7 +177,7 @@ public class ReservationRequest extends ComplexType
     @Required
     public List<Compartment> getCompartments()
     {
-        return propertyStore.getCollection(COMPARTMENTS);
+        return getPropertyStorage().getCollection(COMPARTMENTS);
     }
 
     /**
@@ -184,7 +185,7 @@ public class ReservationRequest extends ComplexType
      */
     public void setCompartments(List<Compartment> compartments)
     {
-        propertyStore.setCollection(COMPARTMENTS, compartments);
+        getPropertyStorage().setCollection(COMPARTMENTS, compartments);
     }
 
     /**
@@ -193,7 +194,7 @@ public class ReservationRequest extends ComplexType
     public Compartment addCompartment()
     {
         Compartment compartment = new Compartment();
-        propertyStore.addCollectionItem(COMPARTMENTS, compartment);
+        getPropertyStorage().addCollectionItem(COMPARTMENTS, compartment);
         return compartment;
     }
 
@@ -202,7 +203,7 @@ public class ReservationRequest extends ComplexType
      */
     public void removeCompartment(Compartment compartment)
     {
-        propertyStore.removeCollectionItem(COMPARTMENTS, compartment);
+        getPropertyStorage().removeCollectionItem(COMPARTMENTS, compartment);
     }
 
     /**
@@ -226,7 +227,7 @@ public class ReservationRequest extends ComplexType
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    public static class Request extends ComplexType
+    public static class Request
     {
         /**
          * State of processed slot.

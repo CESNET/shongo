@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.controller.api.xmlrpc.Service;
+
 /**
  * Interface to the service handling operations on rooms.
  *

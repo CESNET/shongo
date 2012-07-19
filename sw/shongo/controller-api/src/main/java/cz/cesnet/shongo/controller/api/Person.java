@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.Required;
+
 /**
  * Represents a person in Shongo.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Person extends ComplexType
+public class Person
 {
     /**
      * Name of the person.

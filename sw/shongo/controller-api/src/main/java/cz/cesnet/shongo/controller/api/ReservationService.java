@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import static cz.cesnet.shongo.controller.api.ComplexType.Required;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 
 /**
  * Interface to the service handling operations on reservations.

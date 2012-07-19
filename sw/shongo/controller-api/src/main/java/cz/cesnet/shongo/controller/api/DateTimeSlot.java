@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 

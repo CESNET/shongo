@@ -1,6 +1,8 @@
-package cz.cesnet.shongo.controller.api.util;
+package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -16,7 +18,15 @@ import static org.junit.Assert.assertArrayEquals;
  */
 public class PropertyTest
 {
-    public static class Bar extends ComplexType
+    public static class SecurityToken
+    {
+    }
+
+    public static class DateTime
+    {
+    }
+
+    public static class Bar
     {
         public String field1;
 
@@ -41,10 +51,10 @@ public class PropertyTest
 
         public List<SecurityToken> field4;
 
-        @AllowedTypes({String.class, PeriodicDateTime.class})
+        @AllowedTypes({String.class, DateTime.class})
         public List<Object> field5;
 
-        @AllowedTypes({String.class, PeriodicDateTime.class})
+        @AllowedTypes({String.class, DateTime.class})
         public Object field6;
 
         public SecurityToken[] field7;
@@ -67,7 +77,7 @@ public class PropertyTest
         // getPropertyNames
         String[] propertyNames = Property.getPropertyNames(Foo.class);
         Arrays.sort(propertyNames);
-        assertArrayEquals(new String[]{"field1", "field2", "field3", "field4", "field5", "field6", "field7", "identifier"},
+        assertArrayEquals(new String[]{"field1", "field2", "field3", "field4", "field5", "field6", "field7"},
                 propertyNames);
 
         // setPropertyValue
@@ -110,10 +120,10 @@ public class PropertyTest
         assertEquals(List.class, Property.getPropertyType(Foo.class, "field4"));
         assertArrayEquals(new Class[]{SecurityToken.class}, Property.getPropertyAllowedTypes(Foo.class, "field4"));
         assertEquals(List.class, Property.getPropertyType(Foo.class, "field5"));
-        assertArrayEquals(new Class[]{String.class, PeriodicDateTime.class},
+        assertArrayEquals(new Class[]{String.class, DateTime.class},
                 Property.getPropertyAllowedTypes(Foo.class, "field5"));
         assertEquals(Object.class, Property.getPropertyType(Foo.class, "field6"));
-        assertArrayEquals(new Class[]{String.class, PeriodicDateTime.class},
+        assertArrayEquals(new Class[]{String.class, DateTime.class},
                 Property.getPropertyAllowedTypes(Foo.class, "field6"));
         assertEquals(SecurityToken[].class, Property.getPropertyType(Foo.class, "field7"));
         assertArrayEquals(new Class[]{SecurityToken.class},

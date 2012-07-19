@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.api;
 
 /**
  * Represents a type that can be serialized

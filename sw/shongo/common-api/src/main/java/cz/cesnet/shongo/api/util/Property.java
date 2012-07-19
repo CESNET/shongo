@@ -1,14 +1,17 @@
-package cz.cesnet.shongo.controller.api.util;
+package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.controller.api.ComplexType;
-import cz.cesnet.shongo.controller.api.Fault;
-import cz.cesnet.shongo.controller.api.FaultException;
+import cz.cesnet.shongo.api.ChangesTrackingObject;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.annotation.Accessible;
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
+import cz.cesnet.shongo.api.annotation.Required;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.util.*;
 
-import static cz.cesnet.shongo.controller.api.util.ClassHelper.getClassShortName;
+import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
 
 /**
  * Class that represents a declared property in a class.
@@ -70,21 +73,23 @@ public class Property
         forceAccessible = forceAccessible || accessible;
         try {
             if (writeMethod != null && (Modifier.isPublic(writeMethod.getModifiers()) || forceAccessible)) {
-                if (forceAccessible ) {
+                if (forceAccessible) {
                     writeMethod.setAccessible(true);
                     writeMethod.invoke(object, value);
                     writeMethod.setAccessible(false);
-                } else {
+                }
+                else {
                     writeMethod.invoke(object, value);
                 }
                 return;
             }
-            else if (field != null  && (Modifier.isPublic(field.getModifiers()) || forceAccessible)) {
-                if (forceAccessible ) {
+            else if (field != null && (Modifier.isPublic(field.getModifiers()) || forceAccessible)) {
+                if (forceAccessible) {
                     field.setAccessible(true);
                     field.set(object, value);
                     field.setAccessible(false);
-                } else {
+                }
+                else {
                     field.set(object, value);
                 }
                 return;
@@ -152,12 +157,12 @@ public class Property
     }
 
     /**
-     * @return true if property is annotated with {@link ComplexType.Required},
+     * @return true if property is annotated with {@link Required},
      *         false otherwise
      */
     public boolean isRequired()
     {
-        return getAnnotation(ComplexType.Required.class) != null;
+        return getAnnotation(Required.class) != null;
     }
 
     /**
@@ -348,7 +353,7 @@ public class Property
         }
 
         // Determine allowed types
-        ComplexType.AllowedTypes allowedTypes = property.getAnnotation(ComplexType.AllowedTypes.class);
+        AllowedTypes allowedTypes = property.getAnnotation(AllowedTypes.class);
         // Explicitly by annotation
         if (allowedTypes != null) {
             if (allowedTypes.value().length > 0) {
@@ -357,8 +362,8 @@ public class Property
         }
 
         // Determine accessible
-        ComplexType.Accessible accessible = property.getAnnotation(ComplexType.Accessible.class);
-        if ( accessible != null ) {
+        Accessible accessible = property.getAnnotation(Accessible.class);
+        if (accessible != null) {
             property.accessible = true;
         }
 
@@ -395,11 +400,7 @@ public class Property
         // Add properties by fields
         Class currentType = type;
         while (currentType != null) {
-            if (currentType.equals(ComplexType.class)) {
-                propertyNames.add("identifier");
-                break;
-            }
-            else if (currentType.equals(Object.class)) {
+            if (currentType.equals(ChangesTrackingObject.class) || currentType.equals(Object.class)) {
                 break;
             }
             Field[] declaredFields = currentType.getDeclaredFields();
@@ -446,7 +447,8 @@ public class Property
      * @param forceAccessible
      * @throws FaultException
      */
-    public static void setPropertyValue(Object object, String name, Object value, boolean forceAccessible) throws FaultException
+    public static void setPropertyValue(Object object, String name, Object value, boolean forceAccessible)
+            throws FaultException
     {
         Property property = getPropertyNotNull(object.getClass(), name);
         property.setValue(object, value, forceAccessible);

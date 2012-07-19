@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.*;
 import org.apache.xmlrpc.XmlRpcException;
@@ -7,6 +9,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -205,8 +208,14 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             try {
                 reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
                 fail("Exception that record doesn't exists should be thrown.");
-            } catch (XmlRpcException exception) {
-                assertEquals(Fault.Common.RECORD_NOT_EXIST.getCode(), exception.code);
+            }
+            catch (FaultException exception) {
+                assertEquals(Fault.Common.RECORD_NOT_EXIST.getCode(), exception.getCode());
+            }
+            catch (UndeclaredThrowableException e) {
+                XmlRpcException exception = (XmlRpcException) e.getCause();
+                System.err.println(exception.code);
+                exception.printStackTrace();
             }
         }
     }

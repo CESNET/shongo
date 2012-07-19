@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.api.Service;
+import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
@@ -214,8 +214,8 @@ public class Controller
      */
     public <T> T getComponent(Class<T> componentType)
     {
-        for ( Component component : components ) {
-            if (componentType.isInstance(component) ) {
+        for (Component component : components) {
+            if (componentType.isInstance(component)) {
                 return componentType.cast(component);
             }
         }
@@ -334,9 +334,9 @@ public class Controller
      */
     public void stop()
     {
-        if ( workerThread != null ) {
+        if (workerThread != null) {
             logger.info("Stopping Controller worker...");
-            if ( workerThread.isAlive() ) {
+            if (workerThread.isAlive()) {
                 workerThread.interrupt();
                 try {
                     workerThread.join();

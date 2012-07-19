@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.api.Fault;
-import cz.cesnet.shongo.controller.api.FaultException;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import org.joda.time.DateTime;

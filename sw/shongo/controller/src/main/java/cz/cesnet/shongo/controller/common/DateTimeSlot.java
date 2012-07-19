@@ -273,7 +273,7 @@ public class DateTimeSlot extends PersistentObject
         }
 
         DateTimeSlot slot = (DateTimeSlot) object;
-        if ( getId() != null ) {
+        if (getId() != null) {
             return getId().equals(slot.getId());
         }
 

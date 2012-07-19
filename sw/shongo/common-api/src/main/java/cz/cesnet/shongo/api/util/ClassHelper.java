@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api.util;
+package cz.cesnet.shongo.api.util;
 
 import java.util.ArrayList;
 

@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**

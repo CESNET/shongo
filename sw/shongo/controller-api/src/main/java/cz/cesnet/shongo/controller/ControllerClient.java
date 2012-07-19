@@ -1,16 +1,18 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.api.ComplexType;
-import cz.cesnet.shongo.controller.api.FaultException;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory;
 import cz.cesnet.shongo.controller.api.xmlrpc.TypeFactory;
 import org.apache.xmlrpc.XmlRpcException;
-import org.apache.xmlrpc.client.*;
-import org.apache.xmlrpc.client.util.ClientFactory;
-import org.apache.xmlrpc.common.XmlRpcStreamRequestConfig;
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.common.TypeConverter;
+import org.apache.xmlrpc.common.XmlRpcInvocationException;
 
-import java.io.InputStream;
-import java.net.Proxy;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.List;
 
@@ -64,11 +66,10 @@ public class ControllerClient
         config.setServerURL(new URL(String.format("http://%s:%d", host, port)));
         client = new XmlRpcClient();
         client.setConfig(config);
-        client.setTypeFactory(new TypeFactory(client, ComplexType.Options.CLIENT));
-        client.setTransportFactory(new TransportFactory(client));
+        client.setTypeFactory(new TypeFactory(client, Options.CLIENT));
 
         // Connect to reservation service
-        clientFactory = new ClientFactory(client, new TypeConverterFactory(ComplexType.Options.CLIENT));
+        clientFactory = new ClientFactory(client, new TypeConverterFactory(Options.CLIENT));
     }
 
     /**
@@ -106,48 +107,79 @@ public class ControllerClient
         return client.execute(method, params);
     }
 
-    /**
-     * Transport factory which throws from {@link XmlRpcStreamTransport#readResponse(XmlRpcStreamRequestConfig,
-     * java.io.InputStream)} {@link FaultException} instead of {@link XmlRpcException}.
-     */
-    private static class TransportFactory extends XmlRpcSun15HttpTransportFactory {
-        /**
-         * Private attribute in {@link XmlRpcSun15HttpTransportFactory}.
-         */
-        private Proxy proxy;
+    public static class ClientFactory extends org.apache.xmlrpc.client.util.ClientFactory
+    {
+        private final org.apache.xmlrpc.common.TypeConverterFactory typeConverterFactory;
 
-        /**
-         * Constructor.
-         *
-         * @param client
-         */
-        public TransportFactory(XmlRpcClient client)
+        public ClientFactory(XmlRpcClient pClient, org.apache.xmlrpc.common.TypeConverterFactory pTypeConverterFactory)
         {
-            super(client);
+            super(pClient, pTypeConverterFactory);
+
+            typeConverterFactory = pTypeConverterFactory;
         }
 
+        /**
+         * Creates an object, which is implementing the given interface.
+         * The objects methods are internally calling an XML-RPC server
+         * by using the factories client.
+         *
+         * @param pClassLoader The class loader, which is being used for
+         *                     loading classes, if required.
+         * @param pClass       Interface, which is being implemented.
+         * @param pRemoteName  Handler name, which is being used when
+         *                     calling the server. This is used for composing the
+         *                     method name. For example, if <code>pRemoteName</code>
+         *                     is "Foo" and you want to invoke the method "bar" in
+         *                     the handler, then the full method name would be "Foo.bar".
+         */
         @Override
-        public void setProxy(Proxy pProxy) {
-            proxy = pProxy;
-        }
-
-        @Override
-        public XmlRpcTransport getTransport() {
-            XmlRpcSun15HttpTransport transport = new XmlRpcSun15HttpTransport(getClient()){
-                @Override
-                protected Object readResponse(XmlRpcStreamRequestConfig pConfig, InputStream pStream)
-                        throws XmlRpcException
+        public Object newInstance(ClassLoader pClassLoader, final Class pClass, final String pRemoteName)
+        {
+            return java.lang.reflect.Proxy.newProxyInstance(pClassLoader, new Class[]{pClass}, new InvocationHandler()
+            {
+                public Object invoke(Object pProxy, Method pMethod, Object[] pArgs) throws Throwable
                 {
-                    try {
-                        return super.readResponse(pConfig, pStream);
-                    } catch (XmlRpcException exception) {
-                        throw new FaultException(exception.code, exception.getMessage());
+                    if (isObjectMethodLocal() && pMethod.getDeclaringClass().equals(Object.class)) {
+                        return pMethod.invoke(pProxy, pArgs);
                     }
+                    final String methodName;
+                    if (pRemoteName == null || pRemoteName.length() == 0) {
+                        methodName = pMethod.getName();
+                    }
+                    else {
+                        methodName = pRemoteName + "." + pMethod.getName();
+                    }
+                    Object result;
+                    try {
+                        result = getClient().execute(methodName, pArgs);
+                    }
+                    catch (XmlRpcInvocationException e) {
+                        Throwable t = e.linkedException;
+                        if (t instanceof RuntimeException) {
+                            throw t;
+                        }
+                        else if (t instanceof XmlRpcException) {
+                            XmlRpcException xmlRpcException = (XmlRpcException) t;
+                            t = new FaultException(xmlRpcException.code, xmlRpcException.getMessage(),
+                                    xmlRpcException.getCause());
+                        }
+                        Class[] exceptionTypes = pMethod.getExceptionTypes();
+                        for (int i = 0; i < exceptionTypes.length; i++) {
+                            Class c = exceptionTypes[i];
+                            if (c.isAssignableFrom(t.getClass())) {
+                                throw t;
+                            }
+                        }
+                        throw new UndeclaredThrowableException(t);
+                    }
+                    catch (XmlRpcException exception) {
+                        FaultException faultException = new FaultException(exception.code, exception.getMessage());
+                        throw faultException;
+                    }
+                    TypeConverter typeConverter = typeConverterFactory.getTypeConverter(pMethod.getReturnType());
+                    return typeConverter.convert(result);
                 }
-            };
-            transport.setSSLSocketFactory(getSSLSocketFactory());
-            transport.setProxy(proxy);
-            return transport;
+            });
         }
     }
 }

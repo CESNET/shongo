@@ -23,7 +23,7 @@ public class Alias
     /**
      * Constructor.
      *
-     * @param technology    
+     * @param technology
      * @param type
      * @param value
      */

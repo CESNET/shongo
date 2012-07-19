@@ -1,17 +1,17 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
-import cz.cesnet.shongo.controller.api.AtomicType;
-import cz.cesnet.shongo.controller.api.ComplexType;
-import cz.cesnet.shongo.controller.api.Fault;
-import cz.cesnet.shongo.controller.api.FaultException;
-import cz.cesnet.shongo.controller.api.util.Converter;
+import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.api.util.Options;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 
 import java.util.Map;
 
 /**
- * TypeConverterFactory that allows {@link AtomicType}, {@link ComplexType} and enums as method parameters
+ * TypeConverterFactory that allows {@link AtomicType}, {@link StructType} and enums as method parameters
  * and return values.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -21,7 +21,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     /**
      * Option whether store changes for object when it is converted map.
      */
-    private ComplexType.Options options;
+    private Options options;
 
     /**
      * Converter for {@link AtomicType}.
@@ -38,7 +38,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      *
      * @param options sets the {@link #options}
      */
-    public TypeConverterFactory(ComplexType.Options options)
+    public TypeConverterFactory(Options options)
     {
         this.options = options;
         mapTypeConverter = new MapTypeConverter(options);
@@ -53,8 +53,8 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         else if (AtomicType.class.isAssignableFrom(pClass)) {
             return atomicTypeConverter;
         }
-        else if (ComplexType.class.isAssignableFrom(pClass)) {
-            return ComplexTypeConverter.getInstance(pClass, options);
+        else if (StructType.class.isAssignableFrom(pClass)) {
+            return StructTypeConverter.getInstance(pClass, options);
         }
         else if (Map.class.isAssignableFrom(pClass)) {
             return mapTypeConverter;
@@ -160,12 +160,12 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
-    private static class ComplexTypeConverter implements TypeConverter
+    private static class StructTypeConverter implements TypeConverter
     {
         /**
          * Option whether store changes for object when it is converted map.
          */
-        private ComplexType.Options options;
+        private Options options;
 
         /**
          * Type of object.
@@ -177,7 +177,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
          *
          * @param options sets the {@link #options}
          */
-        ComplexTypeConverter(Class type, ComplexType.Options options)
+        StructTypeConverter(Class type, Options options)
         {
             this.type = type;
             this.options = options;
@@ -214,10 +214,10 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             }
         }
 
-        public static ComplexTypeConverter getInstance(Class pClass, ComplexType.Options options)
+        public static StructTypeConverter getInstance(Class pClass, Options options)
         {
             // TODO: Reuse instances for same class
-            return new ComplexTypeConverter(pClass, options);
+            return new StructTypeConverter(pClass, options);
         }
     }
 
@@ -231,14 +231,14 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         /**
          * Option whether store changes for object when it is converted map.
          */
-        private ComplexType.Options options;
+        private Options options;
 
         /**
          * Constructor.
          *
          * @param options sets the {@link #options}
          */
-        public MapTypeConverter(ComplexType.Options options)
+        public MapTypeConverter(Options options)
         {
             this.options = options;
         }
@@ -247,13 +247,13 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public boolean isConvertable(Object pObject)
         {
             return pObject == null || Map.class.isAssignableFrom(pObject.getClass())
-                    || ComplexType.class.isAssignableFrom(pObject.getClass());
+                    || StructType.class.isAssignableFrom(pObject.getClass());
         }
 
         @Override
         public Object convert(Object pObject)
         {
-            if (pObject instanceof ComplexType) {
+            if (pObject instanceof StructType) {
                 try {
                     return Converter.convertObjectToMap(pObject, options);
                 }
