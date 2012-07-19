@@ -10,41 +10,12 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Capability extends ComplexType
+public class Capability extends IdentifiedChangeableObject
 {
-    /**
-     * Type of capability.
-     */
-    public static enum Type
-    {
-        STANDALONE_TERMINAL,
-        TERMINAL,
-        VIRTUAL_ROOMS
-    }
-
-    public static final String TYPE = "type";
-
     /**
      * Set of technologies for which the resource supports capability.
      */
     public static final String TECHNOLOGIES = "technologies";
-
-    /**
-     * @return {@link #TYPE}
-     */
-    @Required
-    public Type getType()
-    {
-        return getPropertyStorage().getValue(TYPE);
-    }
-
-    /**
-     * @param type sets the {@link #TYPE}
-     */
-    public void setType(Type type)
-    {
-        getPropertyStorage().setValue(TYPE, type);
-    }
 
     /**
      * @return {@link #TECHNOLOGIES}

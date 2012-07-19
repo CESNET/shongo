@@ -9,7 +9,7 @@ import org.joda.time.Period;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class DateTimeSlot extends ComplexType
+public class DateTimeSlot extends IdentifiedObject
 {
     /**
      * Starting date/time.

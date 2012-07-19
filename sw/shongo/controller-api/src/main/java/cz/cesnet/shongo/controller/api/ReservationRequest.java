@@ -14,8 +14,13 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequest extends ComplexType
+public class ReservationRequest extends IdentifiedChangeableObject
 {
+    /**
+     * Identifier of the resource.
+     */
+    private String identifier;
+
     /**
      * @see ReservationRequestType
      */
@@ -56,6 +61,22 @@ public class ReservationRequest extends ComplexType
      */
     public ReservationRequest()
     {
+    }
+
+    /**
+     * @return {@link #identifier}
+     */
+    public String getIdentifier()
+    {
+        return identifier;
+    }
+
+    /**
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setIdentifier(String identifier)
+    {
+        this.identifier = identifier;
     }
 
     /**

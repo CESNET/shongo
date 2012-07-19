@@ -1,9 +1,6 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.ChangesTrackingObject;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.util.Converter;
-import cz.cesnet.shongo.api.util.Property;
 
 import java.lang.reflect.Array;
 import java.util.*;

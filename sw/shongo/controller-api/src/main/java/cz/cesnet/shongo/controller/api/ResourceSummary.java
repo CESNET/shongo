@@ -5,12 +5,33 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceSummary extends ComplexType
+public class ResourceSummary
 {
+    /**
+     * Identifier of the resource.
+     */
+    private String identifier;
+
     /**
      * Name of the resource.
      */
     private String name;
+
+    /**
+     * @return {@link #identifier}
+     */
+    public String getIdentifier()
+    {
+        return identifier;
+    }
+
+    /**
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setIdentifier(String identifier)
+    {
+        this.identifier = identifier;
+    }
 
     /**
      * @return {@link #name}

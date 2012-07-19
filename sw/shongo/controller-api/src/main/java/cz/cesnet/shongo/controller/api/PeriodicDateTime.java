@@ -9,7 +9,7 @@ import org.joda.time.Period;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PeriodicDateTime extends ComplexType
+public class PeriodicDateTime
 {
     /**
      * First date/time.

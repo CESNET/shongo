@@ -33,9 +33,6 @@ sub new()
     my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
-    $self->{'type'} = undef;
-    $self->{'name'} = undef;
-    $self->{'purpose'} = undef;
     $self->{'slots'} = [];
     $self->{'compartments'} = [];
     $self->{'requests'} = [];

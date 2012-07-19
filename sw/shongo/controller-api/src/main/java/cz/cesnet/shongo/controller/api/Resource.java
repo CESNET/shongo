@@ -11,8 +11,13 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Resource extends ComplexType
+public class Resource extends IdentifiedChangeableObject
 {
+    /**
+     * Identifier of the resource.
+     */
+    private String identifier;
+
     /**
      * Name of the resource.
      */
@@ -27,6 +32,22 @@ public class Resource extends ComplexType
      * List of capabilities which the resource has.
      */
     public static final String CAPABILITIES = "capabilities";
+
+    /**
+     * @return {@link #identifier}
+     */
+    public String getIdentifier()
+    {
+        return identifier;
+    }
+
+    /**
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setIdentifier(String identifier)
+    {
+        this.identifier = identifier;
+    }
 
     /**
      * @return {@link #NAME}

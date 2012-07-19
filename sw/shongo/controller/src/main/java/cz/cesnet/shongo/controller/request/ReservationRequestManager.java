@@ -63,7 +63,20 @@ public class ReservationRequestManager extends AbstractManager
      */
     public void delete(ReservationRequest reservationRequest)
     {
+        Transaction transaction = beginTransaction();
+
+        // Delete all compartment requests
+        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+        for ( CompartmentRequest compartmentRequest : compartmentRequestManager.listByReservationRequest(reservationRequest) ) {
+            compartmentRequestManager.delete(compartmentRequest);
+        }
+
+        // Clear reservation request state
+        ReservationRequestStateManager.clear(entityManager, reservationRequest);
+
         super.delete(reservationRequest);
+
+        transaction.commit();
     }
 
     /**

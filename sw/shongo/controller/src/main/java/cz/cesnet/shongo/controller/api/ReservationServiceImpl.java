@@ -149,7 +149,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             else {
                 // Modify existing requested slot
                 cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl =
-                        reservationRequestImpl.getRequestedSlotById(Long.parseLong(dateTimeSlot.getIdentifier()));
+                        reservationRequestImpl.getRequestedSlotById((long)dateTimeSlot.getId());
                 dateTimeSlotImpl.setDuration(dateTimeSlot.getDuration());
 
                 entityManager.remove(dateTimeSlotImpl.getStart());
@@ -173,7 +173,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (DateTimeSlot dateTimeSlot : reservationRequest.getCollectionItemsMarkedAsDeleted(
                 ReservationRequest.SLOTS, DateTimeSlot.class)) {
             reservationRequestImpl.removeRequestedSlot(
-                    reservationRequestImpl.getRequestedSlotById(Long.parseLong(dateTimeSlot.getIdentifier())));
+                    reservationRequestImpl.getRequestedSlotById((long)dateTimeSlot.getId()));
         }
 
         // Create/modify requested compartments
@@ -191,7 +191,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (Compartment compartment : reservationRequest.getCollectionItemsMarkedAsDeleted(
                 ReservationRequest.COMPARTMENTS, Compartment.class)) {
             reservationRequestImpl.removeRequestedCompartment(
-                    reservationRequestImpl.getRequestedCompartmentById(Long.parseLong(compartment.getIdentifier())));
+                    reservationRequestImpl.getRequestedCompartmentById((long)compartment.getId()));
         }
 
         reservationRequestManager.update(reservationRequestImpl);
@@ -297,7 +297,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
                 throw new FaultException(ControllerFault.TODO_IMPLEMENT);
             }
             DateTimeSlot dateTimeSlot = new DateTimeSlot();
-            dateTimeSlot.setIdentifier(dateTimeSlotImpl.getId().toString());
+            dateTimeSlot.setId(dateTimeSlotImpl.getId().intValue());
             dateTimeSlot.setStart(start);
             dateTimeSlot.setDuration(dateTimeSlotImpl.getDuration());
             reservationRequest.addSlot(dateTimeSlot);
@@ -307,7 +307,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
                 reservationRequestImpl.getRequestedCompartments()) {
             Compartment compartment = reservationRequest.addCompartment();
-            compartment.setIdentifier(compartmentImpl.getId().toString());
+            compartment.setId(compartmentImpl.getId().intValue());
             for (cz.cesnet.shongo.controller.common.Person person : compartmentImpl.getRequestedPersons()) {
                 compartment.addPerson(person.getName(), person.getEmail());
             }

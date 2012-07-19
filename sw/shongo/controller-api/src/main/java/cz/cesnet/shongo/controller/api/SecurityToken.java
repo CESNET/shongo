@@ -5,6 +5,6 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class SecurityToken extends ComplexType
+public class SecurityToken extends IdentifiedChangeableObject
 {
 }

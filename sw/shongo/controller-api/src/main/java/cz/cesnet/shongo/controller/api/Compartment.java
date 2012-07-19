@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Compartment extends ComplexType
+public class Compartment extends IdentifiedChangeableObject
 {
     /**
      * Map that represents a resource specification.

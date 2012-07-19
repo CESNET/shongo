@@ -20,7 +20,6 @@ sub new
     my $self = {};
     bless $self, $class;
 
-    $self->{'identifier'} = undef;
     $self->{'__to_xml_skip_attributes'} = {'class' => 1};
 
     return $self;
@@ -207,7 +206,7 @@ sub to_xml_value
         return $value->to_xml($value);
     }
     else {
-        return RPC::XML::string->new($value);
+        return $value;
     }
 }
 
@@ -282,7 +281,7 @@ sub from_xml()
     # Convert hash to object
     foreach my $name (keys %{$hash}) {
         my $value = $hash->{$name};
-        if ( !($name eq "class") && exists($self->{$name}) ) {
+        if ( !($name eq "class") ) {
             $self->{$name} = from_xml_value($value);
         }
     }

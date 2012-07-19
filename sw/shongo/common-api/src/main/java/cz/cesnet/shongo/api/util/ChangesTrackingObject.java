@@ -1,7 +1,8 @@
-package cz.cesnet.shongo.api;
+package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.api.util.Property;
 
 import java.util.*;
 

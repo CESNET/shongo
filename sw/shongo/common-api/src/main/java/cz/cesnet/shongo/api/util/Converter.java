@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-
 import cz.cesnet.shongo.api.AtomicType;
-import cz.cesnet.shongo.api.ChangesTrackingObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import org.joda.time.DateTime;
@@ -74,6 +72,18 @@ public class Converter
         if (targetType.isAssignableFrom(value.getClass())) {
             // Do nothing
             return value;
+        }
+        // Convert from primitve types
+        else if (primitiveClassess.contains(value.getClass())) {
+            if (targetType.isPrimitive()) {
+                return value;
+            } else if (targetType.equals(String.class)) {
+                return value.toString();
+            }
+        }
+        // Convert from date
+        else if(value instanceof Date && DateTime.class.isAssignableFrom(targetType)) {
+            return new DateTime(value);
         }
         // Convert atomic types
         else if (value instanceof String) {
@@ -448,6 +458,22 @@ public class Converter
     }
 
     /**
+     * Set of primitive type classes.
+     */
+    private static Set<Class> primitiveClassess = new HashSet<Class>()
+    {{
+            add(Boolean.class);
+            add(Character.class);
+            add(Byte.class);
+            add(Short.class);
+            add(Integer.class);
+            add(Long.class);
+            add(Float.class);
+            add(Double.class);
+            add(Void.class);
+        }};
+
+    /**
      * Convert given object if possible to {@link Map} or {@link Object[]} (recursive).
      *
      * @param object
@@ -456,7 +482,7 @@ public class Converter
      */
     public static Object convertToMapOrArray(Object object, Options options) throws FaultException
     {
-        if (object == null || isAtomic(object) || object instanceof Map) {
+        if (object == null || object instanceof Map) {
             return object;
         }
         else if (object instanceof Collection) {
@@ -477,6 +503,9 @@ public class Converter
                 newArray[index] = convertToMapOrArray(oldArray[index], options);
             }
             return newArray;
+        }
+        else if (isAtomic(object) || primitiveClassess.contains(object.getClass())) {
+            return object;
         }
         return convertObjectToMap(object, options);
     }
@@ -612,7 +641,7 @@ public class Converter
      */
     public static boolean isAtomic(Object object)
     {
-        if (object.getClass().isPrimitive() || object instanceof String || object instanceof Enum) {
+        if (object instanceof String || object instanceof Enum) {
             return true;
         }
         if (object instanceof AtomicType) {

@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.ChangesTrackingObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.annotation.Accessible;
+import cz.cesnet.shongo.api.annotation.ForceAccessible;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
 
@@ -362,7 +361,7 @@ public class Property
         }
 
         // Determine accessible
-        Accessible accessible = property.getAnnotation(Accessible.class);
+        ForceAccessible accessible = property.getAnnotation(ForceAccessible.class);
         if (accessible != null) {
             property.accessible = true;
         }

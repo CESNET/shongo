@@ -25,7 +25,6 @@ sub new()
     my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
-    $self->{'name'} = undef;
     $self->{'capabilities'} = [];
 
     return $self;

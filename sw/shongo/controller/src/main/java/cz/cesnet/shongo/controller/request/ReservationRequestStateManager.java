@@ -394,4 +394,17 @@ public class ReservationRequestStateManager extends AbstractManager
                 new ReservationRequestStateManager(entityManager, reservationRequest);
         stateManager.setState(state, interval);
     }
+
+    /**
+     * Clear all stored information about reservation request state.
+     *
+     * @param entityManager
+     * @param reservationRequest
+     */
+    public static void clear(EntityManager entityManager, ReservationRequest reservationRequest)
+    {
+        ReservationRequestStateManager stateManager =
+                new ReservationRequestStateManager(entityManager, reservationRequest);
+        stateManager.setState(ReservationRequest.State.NOT_PREPROCESSED);
+    }
 }

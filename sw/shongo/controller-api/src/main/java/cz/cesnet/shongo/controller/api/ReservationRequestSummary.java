@@ -9,8 +9,13 @@ import org.joda.time.Interval;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestSummary extends ComplexType
+public class ReservationRequestSummary extends IdentifiedChangeableObject
 {
+    /**
+     * Identifier of the resource.
+     */
+    private String identifier;
+
     /**
      * @see ReservationRequest#TYPE
      */
@@ -35,6 +40,22 @@ public class ReservationRequestSummary extends ComplexType
      * Earliest slot.
      */
     private Interval earliestSlot;
+
+    /**
+     * @return {@link #identifier}
+     */
+    public String getIdentifier()
+    {
+        return identifier;
+    }
+
+    /**
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setIdentifier(String identifier)
+    {
+        this.identifier = identifier;
+    }
 
     /**
      * @return {@link #type}
