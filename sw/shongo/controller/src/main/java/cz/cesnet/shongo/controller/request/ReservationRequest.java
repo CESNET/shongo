@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Serializer;
+import cz.cesnet.shongo.api.util.SerializerListener;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
@@ -23,7 +25,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequest extends PersistentObject
+public class ReservationRequest extends PersistentObject implements SerializerListener
 {
     /**
      * State of reservation request.
@@ -342,5 +344,23 @@ public class ReservationRequest extends PersistentObject
             }
         }
         return false;
+    }
+
+    @Override
+    public Object getApiPropertyValue(String propertyName) throws FaultException
+    {
+        if (propertyName.equals("slots")) {
+            return Serializer.getApiPropertyValue(this, "requestedSlots");
+        }
+        if (propertyName.equals("compartments")) {
+            return Serializer.getApiPropertyValue(this, "requestedCompartments");
+        }
+        return Serializer.getApiPropertyValue(this, propertyName);
+    }
+
+    @Override
+    public void setApiPropertyValue(String propertyName, Object value) throws FaultException
+    {
+        Serializer.setApiPropertyValue(this, propertyName, value);
     }
 }

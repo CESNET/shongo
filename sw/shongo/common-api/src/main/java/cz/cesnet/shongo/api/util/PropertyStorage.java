@@ -62,18 +62,12 @@ public class PropertyStorage
      * @return internal collection
      */
     @SuppressWarnings("unchecked")
-    private Collection getInternalCollection(String property)
+    private <T extends Collection> Collection getInternalCollection(String property, Class<T> collectionType)
     {
         Collection collection = (Collection) values.get(property);
-        if (collection == null) {
-            Class propertyType = List.class;
+        if (collection == null && collectionType != null) {
             try {
-                propertyType = Property.getPropertyType(getClass(), property);
-            }
-            catch (FaultException e) {
-            }
-            try {
-                collection = Converter.createCollection(propertyType, 0);
+                collection = Converter.createCollection(collectionType, 0);
             }
             catch (FaultException exception) {
                 throw new RuntimeException(exception);
@@ -88,9 +82,9 @@ public class PropertyStorage
      * @return return collection of given property
      */
     @SuppressWarnings("unchecked")
-    public <T extends Collection> T getCollection(String property)
+    public <T extends Collection> T getCollection(String property, Class<? extends Collection> collectionType)
     {
-        Collection collection = getInternalCollection(property);
+        Collection collection = getInternalCollection(property, collectionType);
         return (T) collection;
     }
 
@@ -100,16 +94,19 @@ public class PropertyStorage
      * @return return collection of given property converted to array
      */
     @SuppressWarnings("unchecked")
-    public <T> T[] getCollection(String property, Class<T> type)
+    public <T> T[] getCollectionAsArray(String property, Class<T> type)
     {
-        Collection<T> collection = getCollection(property);
+        Collection<T> collection = (Collection) values.get(property);
+        if (collection == null) {
+            collection = new ArrayList();
+        }
         T[] array = (T[]) Array.newInstance(type, collection.size());
         try {
             return collection.toArray(array);
         }
         catch (RuntimeException exception) {
             throw new RuntimeException(
-                    String.format("Failed to convert collection '%s' to array of type '%s'.", property,
+                    String.format("Failed to convert collection '%s' to array of collectionType '%s'.", property,
                             type.getCanonicalName()), exception);
         }
     }
@@ -144,10 +141,11 @@ public class PropertyStorage
      * @return true if adding was successful,
      *         false otherwise
      */
-    public boolean addCollectionItem(String property, Object item)
+    public <T extends Collection> boolean addCollectionItem(String property, Object item,
+            Class<? extends Collection> collectionType)
     {
         @SuppressWarnings("unchecked")
-        Collection<Object> collection = getInternalCollection(property);
+        Collection<Object> collection = getInternalCollection(property, collectionType);
         if (collection.add(item)) {
             if (changesTrackingObject != null) {
                 changesTrackingObject.markCollectionItemAsNew(property, item);
@@ -167,7 +165,8 @@ public class PropertyStorage
      */
     public boolean removeCollectionItem(String property, Object item)
     {
-        Collection collection = (Collection) values.get(property);
+        @SuppressWarnings("unchecked")
+        Collection collection = getInternalCollection(property, null);
         if (collection == null) {
             return false;
         }

@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Serializer;
+import cz.cesnet.shongo.api.util.SerializerListener;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
@@ -15,7 +18,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Compartment extends PersistentObject
+public class Compartment extends PersistentObject implements SerializerListener
 {
     /**
      * Reservation request for which is the compartment request created.
@@ -145,5 +148,43 @@ public class Compartment extends PersistentObject
 
         addCollectionToMap(map, "persons", requestedPersons);
         addCollectionToMap(map, "resources", requestedResources);
+    }
+
+    @Override
+    public Object getApiPropertyValue(String propertyName) throws FaultException
+    {
+        if (propertyName.equals("persons")) {
+            return Serializer.getApiPropertyValue(this, "requestedPersons");
+        }
+        if (propertyName.equals("resources")) {
+            List<cz.cesnet.shongo.controller.api.Compartment.ResourceSpecificationMap> resources =
+                    new ArrayList<cz.cesnet.shongo.controller.api.Compartment.ResourceSpecificationMap>();
+            for (ResourceSpecification resourceSpecification : getRequestedResources()) {
+                if (resourceSpecification instanceof ExternalEndpointSpecification) {
+                    ExternalEndpointSpecification endpoint = (ExternalEndpointSpecification) resourceSpecification;
+                    List<Person> resourceRequestedPersons = endpoint.getRequestedPersons();
+                    cz.cesnet.shongo.controller.api.Person[] persons =
+                            new cz.cesnet.shongo.controller.api.Person[resourceRequestedPersons.size()];
+                    for (int index = 0; index < resourceRequestedPersons.size(); index++) {
+                        persons[index] = Serializer.toApi(resourceRequestedPersons.get(index),
+                                cz.cesnet.shongo.controller.api.Person.class);
+                    }
+                    cz.cesnet.shongo.controller.api.Compartment.ResourceSpecificationMap resourceSpecificationMap =
+                            new cz.cesnet.shongo.controller.api.Compartment.ResourceSpecificationMap();
+                    resourceSpecificationMap.put("technology", endpoint.getTechnologies().iterator().next());
+                    resourceSpecificationMap.put("count", endpoint.getCount());
+                    resourceSpecificationMap.put("persons", persons);
+                    resources.add(resourceSpecificationMap);
+                }
+            }
+            return resources;
+        }
+        return Serializer.getApiPropertyValue(this, propertyName);
+    }
+
+    @Override
+    public void setApiPropertyValue(String propertyName, Object value) throws FaultException
+    {
+        Serializer.setApiPropertyValue(this, propertyName, value);
     }
 }

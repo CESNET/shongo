@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.util.Serializer;
+import cz.cesnet.shongo.api.util.SerializerListener;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -18,7 +21,7 @@ import java.util.Map;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class DateTimeSlot extends PersistentObject
+public class DateTimeSlot extends PersistentObject implements SerializerListener
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -327,5 +330,26 @@ public class DateTimeSlot extends PersistentObject
             }
         }
         addCollectionToMap(map, "enumerated", slots);
+    }
+
+    @Override
+    public Object getApiPropertyValue(String propertyName) throws FaultException
+    {
+        if (propertyName.equals("start")) {
+            DateTimeSpecification dateTimeSpecification = getStart();
+            if (dateTimeSpecification instanceof AbsoluteDateTimeSpecification) {
+                return ((AbsoluteDateTimeSpecification) getStart()).getDateTime();
+            }
+            else if (dateTimeSpecification instanceof PeriodicDateTimeSpecification) {
+                return Serializer.toApi(dateTimeSpecification, cz.cesnet.shongo.controller.api.PeriodicDateTime.class);
+            }
+        }
+        return Serializer.getApiPropertyValue(this, propertyName);
+    }
+
+    @Override
+    public void setApiPropertyValue(String propertyName, Object value) throws FaultException
+    {
+        Serializer.setApiPropertyValue(this, propertyName, value);
     }
 }

@@ -20,7 +20,7 @@ sub new
     my $self = {};
     bless $self, $class;
 
-    $self->{'__to_xml_skip_attributes'} = {'class' => 1};
+    $self->{'__to_xml_skip_attributes'} = {};
 
     return $self;
 }
@@ -37,147 +37,6 @@ sub to_xml_skip_attribute
 }
 
 #
-# Get number of items in collection. Collection can be stored as hash('new' => [], 'modified' => [], 'deleted' => []).
-#
-# @param $collection  collection name
-# @return collection size
-#
-sub get_collection_size
-{
-    my ($self, $collection) = @_;
-    if ( ref($self->{$collection}) eq 'ARRAY' ) {
-        return scalar(@{$self->{$collection}});
-    }
-    elsif ( ref($self->{$collection}) eq 'HASH' ) {
-        my $count = 0;
-        if ( defined($self->{$collection}->{'modified'}) ) {
-            $count += scalar(@{$self->{$collection}->{'modified'}});
-        }
-        if ( defined($self->{$collection}->{'new'}) ) {
-            $count += scalar(@{$self->{$collection}->{'new'}});
-        }
-        return $count;
-    }
-    else {
-        return 0;
-    }
-}
-
-#
-# Get collection items as array. Collection can be stored as hash('new' => [], 'modified' => [], 'deleted' => []).
-#
-# @param $collection  collection name
-# @return array of items
-#
-sub get_collection_items
-{
-    my ($self, $collection) = @_;
-    if ( ref($self->{$collection}) eq 'ARRAY' ) {
-        return $self->{$collection};
-    }
-    elsif ( ref($self->{$collection}) eq 'HASH' ) {
-        my $array = [];
-        if ( defined($self->{$collection}->{'modified'}) ) {
-            push($array, @{$self->{$collection}->{'modified'}});
-        }
-        if ( defined($self->{$collection}->{'new'}) ) {
-            push($array, @{$self->{$collection}->{'new'}});
-        }
-        return $array;
-    }
-    else {
-        return [];
-    }
-}
-
-#
-# Get item from collection by index
-#
-# @param $collection  collection naem
-# @param $item_index  item index
-#
-sub get_collection_item
-{
-    my ($self, $collection, $item_index) = @_;
-    if ( ref($self->{$collection}) eq 'ARRAY' ) {
-        return $self->{$collection}->[$item_index];
-    }
-    elsif ( ref($self->{$collection}) eq 'HASH' ) {
-        my $items = $self->get_collection_items($collection);
-        return $items->[$item_index];
-    }
-    else {
-        return undef;
-    }
-}
-
-#
-# Convert collection to hash
-#
-# @param $collection  collection name
-#
-sub convert_collection_to_hash
-{
-    my ($self, $collection) = @_;
-    if ( ref($self->{$collection}) eq 'HASH' ) {
-        # Do nothing
-    }
-    elsif ( ref($self->{$collection}) eq 'ARRAY' ) {
-        $self->{$collection} = {'modified' => $self->{$collection}};
-    }
-    else {
-        $self->{$collection} = {};
-    };
-}
-
-#
-# Add item to collection
-#
-# @param $collection  collection name
-# @param $item        new item
-#
-sub add_collection_item
-{
-    my ($self, $collection, $item) = @_;
-    $self->convert_collection_to_hash($collection);
-    if ( !defined($self->{$collection}->{'new'}) ) {
-        $self->{$collection}->{'new'} = [];
-    }
-    push($self->{$collection}->{'new'}, $item);
-}
-
-#
-# Remove item from collection
-#
-sub remove_collection_item
-{
-    my ($self, $collection, $item_index) = @_;
-    $self->convert_collection_to_hash($collection);
-    if ( defined($self->{$collection}->{'modified'}) ) {
-        my $modified_count = scalar(@{$self->{$collection}->{'modified'}});
-        if ( $item_index < $modified_count ) {
-            my $item = $self->{$collection}->{'modified'}[$item_index];
-            splice($self->{$collection}->{'modified'}, $item_index, 1);
-            if ( !defined($self->{$collection}->{'deleted'}) ) {
-                $self->{$collection}->{'deleted'} = [];
-            }
-            push($self->{$collection}->{'deleted'}, $item);
-            return;
-        } else {
-            $item_index -= $modified_count;
-        }
-    }
-    if ( defined($self->{$collection}->{'new'}) ) {
-        my $new_count = scalar(@{$self->{$collection}->{'new'}});
-        if ( $item_index < $new_count ) {
-            splice($self->{$collection}->{'new'}, $item_index, 1);
-            return;
-        }
-    }
-    console_print_error("Cannot delete item with index '%d' in collection '%s'.", $item_index, $collection);
-}
-
-#
 # Convert $value to xml
 #
 # @param $value
@@ -189,9 +48,7 @@ sub to_xml_value
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            if ( !($item_name eq "class") ) {
-                $hash->{$item_name} = to_xml_value($item_value);
-            }
+            $hash->{$item_name} = to_xml_value($item_value);
         }
         return RPC::XML::struct->new($hash);
     }
@@ -247,9 +104,7 @@ sub from_xml_value
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            if ( !($item_name eq "class") ) {
-                $hash->{$item_name} = from_xml_value($item_value);
-            }
+            $hash->{$item_name} = from_xml_value($item_value);
         }
         return $hash;
     }

@@ -14,12 +14,12 @@ public abstract class IdentifiedObject implements StructType
     /**
      * Identifier.
      */
-    private int id;
+    private Integer id;
 
     /**
      * @return {@link #id
      */
-    public int getId()
+    public Integer getId()
     {
         return id;
     }
@@ -28,7 +28,7 @@ public abstract class IdentifiedObject implements StructType
      * @param id sets the {@link #id}
      */
     @ForceAccessible
-    void setId(int id)
+    void setId(Integer id)
     {
         this.id = id;
     }

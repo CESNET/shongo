@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.api.util.Serializer;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
@@ -125,8 +126,11 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         // Get reservation request
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
+        if (reservationRequestImpl == null) {
+            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, reservationRequestId);
+        }
 
-        // Modify common attributes
+        // Modify attributes
         if (reservationRequest.isPropertyFilled(ReservationRequest.TYPE)) {
             reservationRequestImpl.setType(reservationRequest.getType());
         }
@@ -149,7 +153,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             else {
                 // Modify existing requested slot
                 cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl =
-                        reservationRequestImpl.getRequestedSlotById((long)dateTimeSlot.getId());
+                        reservationRequestImpl.getRequestedSlotById((long) dateTimeSlot.getId());
                 dateTimeSlotImpl.setDuration(dateTimeSlot.getDuration());
 
                 entityManager.remove(dateTimeSlotImpl.getStart());
@@ -173,7 +177,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
         for (DateTimeSlot dateTimeSlot : reservationRequest.getCollectionItemsMarkedAsDeleted(
                 ReservationRequest.SLOTS, DateTimeSlot.class)) {
             reservationRequestImpl.removeRequestedSlot(
-                    reservationRequestImpl.getRequestedSlotById((long)dateTimeSlot.getId()));
+                    reservationRequestImpl.getRequestedSlotById((long) dateTimeSlot.getId()));
         }
 
         // Create/modify requested compartments
@@ -184,15 +188,18 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             }
             else {
                 // Modify existing requested slot
-                //throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
             }
         }
         // Delete requested compartments
         for (Compartment compartment : reservationRequest.getCollectionItemsMarkedAsDeleted(
                 ReservationRequest.COMPARTMENTS, Compartment.class)) {
             reservationRequestImpl.removeRequestedCompartment(
-                    reservationRequestImpl.getRequestedCompartmentById((long)compartment.getId()));
+                    reservationRequestImpl.getRequestedCompartmentById((long) compartment.getId()));
         }
+
+        // TODO: Delete from db deleted compartments that aren't referenced from compartment requests
+        // TODO: Think up how to delete all other objects (e.g. slots)
 
         reservationRequestManager.update(reservationRequestImpl);
 
@@ -265,69 +272,16 @@ public class ReservationServiceImpl extends Component implements ReservationServ
 
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
         if (reservationRequestImpl == null) {
             throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, reservationRequestId);
         }
 
-        ReservationRequest reservationRequest = new ReservationRequest();
+        // Fill by serializer
+        ReservationRequest reservationRequest = Serializer.toApi(reservationRequestImpl, ReservationRequest.class);
         reservationRequest.setIdentifier(domain.formatIdentifier(reservationRequestImpl.getId()));
-        reservationRequest.setType(reservationRequestImpl.getType());
-        reservationRequest.setName(reservationRequestImpl.getName());
-        reservationRequest.setDescription(reservationRequestImpl.getDescription());
-        reservationRequest.setPurpose(reservationRequestImpl.getPurpose());
-
-        // Fill requested slots
-        for (cz.cesnet.shongo.controller.common.DateTimeSlot dateTimeSlotImpl :
-                reservationRequestImpl.getRequestedSlots()) {
-
-            Object start = null;
-            if (dateTimeSlotImpl.getStart() instanceof AbsoluteDateTimeSpecification) {
-                start = ((AbsoluteDateTimeSpecification) dateTimeSlotImpl.getStart()).getDateTime();
-            }
-            else if (dateTimeSlotImpl.getStart() instanceof PeriodicDateTimeSpecification) {
-                PeriodicDateTimeSpecification periodicDateTimeSpecification =
-                        (PeriodicDateTimeSpecification) dateTimeSlotImpl.getStart();
-
-                start = new PeriodicDateTime(periodicDateTimeSpecification.getStart(),
-                        periodicDateTimeSpecification.getPeriod());
-            }
-            else {
-                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
-            }
-            DateTimeSlot dateTimeSlot = new DateTimeSlot();
-            dateTimeSlot.setId(dateTimeSlotImpl.getId().intValue());
-            dateTimeSlot.setStart(start);
-            dateTimeSlot.setDuration(dateTimeSlotImpl.getDuration());
-            reservationRequest.addSlot(dateTimeSlot);
-        }
-
-        // Fill requested compartments
-        for (cz.cesnet.shongo.controller.request.Compartment compartmentImpl :
-                reservationRequestImpl.getRequestedCompartments()) {
-            Compartment compartment = reservationRequest.addCompartment();
-            compartment.setId(compartmentImpl.getId().intValue());
-            for (cz.cesnet.shongo.controller.common.Person person : compartmentImpl.getRequestedPersons()) {
-                compartment.addPerson(person.getName(), person.getEmail());
-            }
-            for (cz.cesnet.shongo.controller.request.ResourceSpecification resource :
-                    compartmentImpl.getRequestedResources()) {
-                if (resource instanceof cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) {
-                    cz.cesnet.shongo.controller.request.ExternalEndpointSpecification externalEndpointSpecification =
-                            (cz.cesnet.shongo.controller.request.ExternalEndpointSpecification) resource;
-                    List<cz.cesnet.shongo.controller.common.Person> resourceRequestedPersons =
-                            externalEndpointSpecification.getRequestedPersons();
-                    Person[] persons = new Person[resourceRequestedPersons.size()];
-                    for (int index = 0; index < resourceRequestedPersons.size(); index++) {
-                        cz.cesnet.shongo.controller.common.Person person = resourceRequestedPersons.get(index);
-                        persons[index] = new Person(person.getName(), person.getEmail());
-                    }
-                    compartment.addResource(externalEndpointSpecification.getTechnologies().iterator().next(),
-                            externalEndpointSpecification.getCount(), persons);
-                }
-            }
-        }
 
         // Fill processed slots
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
@@ -409,7 +363,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
             }
             // Check resource specification existence
             if (resourceSpecification == null) {
-                throw new FaultException(ControllerFault.TODO_IMPLEMENT);
+                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
             }
             // Fill requested persons
             if (map.containsKey("persons")) {

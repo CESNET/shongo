@@ -77,12 +77,13 @@ public class Converter
         else if (primitiveClassess.contains(value.getClass())) {
             if (targetType.isPrimitive()) {
                 return value;
-            } else if (targetType.equals(String.class)) {
+            }
+            else if (targetType.equals(String.class)) {
                 return value.toString();
             }
         }
         // Convert from date
-        else if(value instanceof Date && DateTime.class.isAssignableFrom(targetType)) {
+        else if (value instanceof Date && DateTime.class.isAssignableFrom(targetType)) {
             return new DateTime(value);
         }
         // Convert atomic types
@@ -305,8 +306,8 @@ public class Converter
             if (map.containsKey("class")) {
                 String className = (String) map.get("class");
                 if (!className.equals(getClassShortName(objectClass))) {
-                    throw new FaultException(Fault.Common.UNKNOWN_FAULT, String.format(
-                            "Cannot convert map to object of class '%s' because map specifies different class '%s'."),
+                    throw new FaultException(Fault.Common.UNKNOWN_FAULT,
+                            "Cannot convert map to object of class '%s' because map specifies different class '%s'.",
                             getClassShortName(objectClass), className);
                 }
             }

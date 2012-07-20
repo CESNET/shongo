@@ -9,8 +9,7 @@ import cz.cesnet.shongo.api.Fault;
  */
 public enum ControllerFault implements Fault
 {
-    OTHER(100, "%s"),
-    TODO_IMPLEMENT(999, "TODO: Implement");
+    OTHER(100, "%s");
 
     private int code;
     private String string;

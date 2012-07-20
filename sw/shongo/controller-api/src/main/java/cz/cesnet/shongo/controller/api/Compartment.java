@@ -34,7 +34,7 @@ public class Compartment extends IdentifiedChangeableObject
      */
     public List<Person> getPersons()
     {
-        return getPropertyStorage().getCollection(PERSONS);
+        return getPropertyStorage().getCollection(PERSONS, List.class);
     }
 
     /**
@@ -53,7 +53,7 @@ public class Compartment extends IdentifiedChangeableObject
      */
     public void addPerson(String name, String email)
     {
-        getPropertyStorage().addCollectionItem(PERSONS, new Person(name, email));
+        getPropertyStorage().addCollectionItem(PERSONS, new Person(name, email), List.class);
     }
 
     /**
@@ -61,7 +61,7 @@ public class Compartment extends IdentifiedChangeableObject
      */
     public List<ResourceSpecificationMap> getResources()
     {
-        return getPropertyStorage().getCollection(RESOURCES);
+        return getPropertyStorage().getCollection(RESOURCES, List.class);
     }
 
     /**
@@ -85,6 +85,6 @@ public class Compartment extends IdentifiedChangeableObject
         resourceSpecificationMap.put("technology", technology);
         resourceSpecificationMap.put("count", count);
         resourceSpecificationMap.put("persons", persons);
-        getPropertyStorage().addCollectionItem(RESOURCES, resourceSpecificationMap);
+        getPropertyStorage().addCollectionItem(RESOURCES, resourceSpecificationMap, List.class);
     }
 }

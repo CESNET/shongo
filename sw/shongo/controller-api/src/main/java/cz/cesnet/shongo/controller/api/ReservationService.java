@@ -38,11 +38,12 @@ public interface ReservationService extends Service
     /**
      * Deletes a given reservation.
      *
-     * @param token         token of the user requesting the operation
-     * @param reservationId Shongo identifier of the reservation to modify
+     * @param token                        token of the user requesting the operation
+     * @param reservationRequestIdentifier Shongo identifier of the reservation to modify
      */
     @API
-    public void deleteReservationRequest(SecurityToken token, String reservationId) throws FaultException;
+    public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier)
+            throws FaultException;
 
     /**
      * Lists all the reservation requests.
@@ -56,11 +57,11 @@ public interface ReservationService extends Service
     /**
      * Gets the complete Reservation object.
      *
-     * @param token                token of the user requesting the operation
-     * @param reservationRequestId identifier of the reservation request to get
+     * @param token                        token of the user requesting the operation
+     * @param reservationRequestIdentifier identifier of the reservation request to get
      */
     @API
-    public ReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId)
+    public ReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
             throws FaultException;
 
     /**

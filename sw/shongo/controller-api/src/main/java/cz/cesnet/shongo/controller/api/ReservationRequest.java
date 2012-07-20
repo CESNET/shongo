@@ -151,7 +151,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
     @Required
     public List<DateTimeSlot> getSlots()
     {
-        return getPropertyStorage().getCollection(SLOTS);
+        return getPropertyStorage().getCollection(SLOTS, List.class);
     }
 
     /**
@@ -169,7 +169,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
      */
     public void addSlot(DateTimeSlot dateTimeSlot)
     {
-        getPropertyStorage().addCollectionItem(SLOTS, dateTimeSlot);
+        getPropertyStorage().addCollectionItem(SLOTS, dateTimeSlot, List.class);
     }
 
     /**
@@ -198,7 +198,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
     @Required
     public List<Compartment> getCompartments()
     {
-        return getPropertyStorage().getCollection(COMPARTMENTS);
+        return getPropertyStorage().getCollection(COMPARTMENTS, List.class);
     }
 
     /**
@@ -215,7 +215,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
     public Compartment addCompartment()
     {
         Compartment compartment = new Compartment();
-        getPropertyStorage().addCollectionItem(COMPARTMENTS, compartment);
+        getPropertyStorage().addCollectionItem(COMPARTMENTS, compartment, List.class);
         return compartment;
     }
 

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Technology;
-import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.Set;
 
@@ -20,10 +19,9 @@ public class Capability extends IdentifiedChangeableObject
     /**
      * @return {@link #TECHNOLOGIES}
      */
-    @Required
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES);
+        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
     }
 
     /**
@@ -39,7 +37,7 @@ public class Capability extends IdentifiedChangeableObject
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology);
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
     }
 
     /**

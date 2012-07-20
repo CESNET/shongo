@@ -16,7 +16,7 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     /**
      * Identifier.
      */
-    private int id;
+    private Integer id;
 
     /**
      * Storage for properties.
@@ -37,7 +37,7 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     /**
      * @return {@link #id
      */
-    public int getId()
+    public Integer getId()
     {
         return id;
     }
@@ -46,7 +46,7 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
      * @param id sets the {@link #id}
      */
     @ForceAccessible
-    void setId(int id)
+    void setId(Integer id)
     {
         this.id = id;
     }

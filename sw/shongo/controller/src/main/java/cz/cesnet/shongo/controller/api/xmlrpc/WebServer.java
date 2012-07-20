@@ -324,7 +324,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
                     else if (t instanceof FaultException) {
                         FaultException faultException = (FaultException) t;
                         XmlRpcException xmlRpcException = new XmlRpcException(faultException.getCode(),
-                                faultException.getMessage());
+                                faultException.getMessage(), faultException.getCause());
                         xmlRpcException.setStackTrace(faultException.getStackTrace());
                         throw xmlRpcException;
                     }

@@ -76,6 +76,8 @@ if ( defined($connect) ) {
     }
     if ( $controller->connect($connect)) {
         $controller->status();
+    } else {
+        exit(-1);
     }
 }
 

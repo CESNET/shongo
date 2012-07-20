@@ -52,6 +52,7 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @return {@link #NAME}
      */
+    @Required
     public String getName()
     {
         return getPropertyStorage().getValue(NAME);
@@ -71,13 +72,13 @@ public class Resource extends IdentifiedChangeableObject
     @Required
     public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getCollection(TECHNOLOGIES);
+        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
     }
 
     /**
      * @param technologies sets the {@link #TECHNOLOGIES}
      */
-    private void setTechnologies(Set<Technology> technologies)
+    public void setTechnologies(Set<Technology> technologies)
     {
         getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
     }
@@ -87,7 +88,7 @@ public class Resource extends IdentifiedChangeableObject
      */
     public void addTechnology(Technology technology)
     {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology);
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
     }
 
     /**
@@ -104,13 +105,13 @@ public class Resource extends IdentifiedChangeableObject
     @Required
     public List<Capability> getCapabilities()
     {
-        return getPropertyStorage().getCollection(CAPABILITIES);
+        return getPropertyStorage().getCollection(CAPABILITIES, List.class);
     }
 
     /**
      * @param capabilities sets the {@link #CAPABILITIES}
      */
-    private void setCapabilities(List<Capability> capabilities)
+    public void setCapabilities(List<Capability> capabilities)
     {
         getPropertyStorage().setCollection(CAPABILITIES, capabilities);
     }
@@ -120,7 +121,7 @@ public class Resource extends IdentifiedChangeableObject
      */
     public void addCapability(Capability capability)
     {
-        getPropertyStorage().addCollectionItem(CAPABILITIES, capability);
+        getPropertyStorage().addCollectionItem(CAPABILITIES, capability, List.class);
     }
 
     /**

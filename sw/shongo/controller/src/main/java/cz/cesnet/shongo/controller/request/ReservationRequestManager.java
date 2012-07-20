@@ -67,7 +67,8 @@ public class ReservationRequestManager extends AbstractManager
 
         // Delete all compartment requests
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-        for ( CompartmentRequest compartmentRequest : compartmentRequestManager.listByReservationRequest(reservationRequest) ) {
+        for (CompartmentRequest compartmentRequest : compartmentRequestManager
+                .listByReservationRequest(reservationRequest)) {
             compartmentRequestManager.delete(compartmentRequest);
         }
 

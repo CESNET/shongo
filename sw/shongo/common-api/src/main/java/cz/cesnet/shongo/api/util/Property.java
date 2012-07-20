@@ -2,8 +2,8 @@ package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.annotation.ForceAccessible;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
+import cz.cesnet.shongo.api.annotation.ForceAccessible;
 import cz.cesnet.shongo.api.annotation.Required;
 
 import java.lang.annotation.Annotation;
@@ -329,6 +329,7 @@ public class Property
         if ((property.field == null || !Modifier.isPublic(property.field.getModifiers()))
                 && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))
                 && (property.writeMethod == null || !Modifier.isPublic(property.writeMethod.getModifiers()))) {
+            // TODO: Cache also not found properties
             return null;
         }
 

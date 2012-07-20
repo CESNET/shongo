@@ -20,8 +20,8 @@ sub populate()
     $shell->add_commands({
         'create-resource' => {
             desc => 'Create a new resource',
-            options => 'name=s',
-            args => '[-name]',
+            options => 'name=s technology=s@ capability=s@',
+            args => '[-name] [-technology]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 create_resource($params->{'options'});
@@ -49,6 +49,14 @@ sub populate()
                 my ($shell, $params, @args) = @_;
                 list_resources();
             },
+        },
+        'get-resource' => {
+            desc => 'Get existing resource',
+            args => '[identifier]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                get_resource($args[0]);
+            }
         }
     });
 }
@@ -118,6 +126,25 @@ sub list_resources()
         );
     }
     console_print_table($table);
+}
+
+sub get_resource()
+{
+    my ($identifier) = @_;
+    $identifier = select_resource($identifier);
+    if ( !defined($identifier) ) {
+        return;
+    }
+    my $result = Shongo::Controller->instance()->secure_request(
+        'Resource.getResource',
+        RPC::XML::string->new($identifier)
+    );
+    if ( !$result->is_fault ) {
+        my $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
+        if ( defined($resource) ) {
+            printf("\n%s\n", $resource->to_string());
+        }
+    }
 }
 
 1;

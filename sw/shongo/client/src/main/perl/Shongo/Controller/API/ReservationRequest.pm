@@ -48,7 +48,7 @@ sub new()
 sub get_slots_count()
 {
     my ($self) = @_;
-    return $self->get_collection_size('slots');
+    return get_collection_size($self->{'slots'});
 }
 
 #
@@ -57,7 +57,7 @@ sub get_slots_count()
 sub get_compartments_count()
 {
     my ($self) = @_;
-    return $self->get_collection_size('compartments');
+    return get_collection_size($self->{'compartments'});
 }
 
 #
@@ -82,7 +82,7 @@ sub create()
                 my $duration = $2;
                 if ($dateTime =~ /(.+),(.*)/) {
                     $result = 1;
-                    $self->add_collection_item('slots', {
+                    add_collection_item(\$self->{'slots'}, {
                         'start' => {'start' => $1, 'period' => $2},
                         'duration' => $duration
                     });
@@ -91,7 +91,7 @@ sub create()
             elsif ($slot =~ /(.+),(.*)/) {
                 my $dateTime = $1;
                 my $duration = $2;
-                $self->add_collection_item('slots', {'start' => $dateTime, 'duration' => $duration});
+                add_collection_item(\$self->{'slots'}, {'start' => $dateTime, 'duration' => $duration});
                 $result = 1;
             }
             if ( $result == 0 ) {
@@ -110,7 +110,7 @@ sub create()
                 if ($resource =~ /(.+),(.*)/) {
                     my $technology = $1;
                     my $count = $2;
-                    $compartment->add_collection_item('resources', {'technology' => $technology, 'count' => $count});
+                    add_collection_item(\$compartment->{'resources'}, {'technology' => $technology, 'count' => $count});
                 }
             }
         }
@@ -120,11 +120,11 @@ sub create()
                 if ($resource =~ /(.+),(.*)/) {
                     my $name = $1;
                     my $email = $2;
-                    $compartment->add_collection_item('persons', {'name' => $name, 'email' => $email});
+                    add_collection_item(\$compartment->{'persons'}, {'name' => $name, 'email' => $email});
                 }
             }
         }
-        $self->add_collection_item('compartments', $compartment);
+        add_collection_item(\$self->{'compartments'}, $compartment);
     }
 
     if ( $self->get_slots_count() == 0 ) {
@@ -135,7 +135,7 @@ sub create()
         console_print_info("Fill requested resources and/or persons:");
         my $compartment = Shongo::Controller::API::Compartment->create();
         if ( defined($compartment) ) {
-            $self->add_collection_item('compartments', $compartment);
+            add_collection_item(\$self->{'compartments'}, $compartment);
         }
     }
 
@@ -231,7 +231,7 @@ sub modify_slots()
                     my $dateTime = console_read_value("Type a date/time", 0, "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d");
                     my $duration = console_read_value("Type a slot duration");
                     if ( defined($dateTime) && defined($duration) ) {
-                        $self->add_collection_item('slots', {'start' => $dateTime, 'duration' => $duration});
+                        add_collection_item(\$self->{'slots'}, {'start' => $dateTime, 'duration' => $duration});
                     }
                     return undef;
                 },
@@ -240,7 +240,7 @@ sub modify_slots()
                     my $period = console_read_value("Type a period");
                     my $duration = console_read_value("Type a slot duration");
                     if ( defined($dateTime) && defined($period) && defined($duration) ) {
-                        $self->add_collection_item('slots', {'start' => {'start' => $dateTime, 'period' => $period}, 'duration' => $duration});
+                        add_collection_item(\$self->{'slots'}, {'start' => {'start' => $dateTime, 'period' => $period}, 'duration' => $duration});
                     }
                     return undef;
                 }
@@ -249,7 +249,7 @@ sub modify_slots()
                 push($actions, 'Remove existing requested slot' => sub {
                     my $index = console_read_choice("Type a number of requested slot", 0, $self->get_slots_count());
                     if ( defined($index) ) {
-                        $self->remove_collection_item('slots', $index - 1);
+                        remove_collection_item(\$self->{'slots'}, $index - 1);
                     }
                     return undef;
                 });
@@ -278,7 +278,7 @@ sub modify_compartments
                 'Add new requested compartment' => sub {
                     my $compartment = Shongo::Controller::API::Compartment->create();
                     if ( defined($compartment) ) {
-                        $self->add_collection_item('compartments', $compartment);
+                        add_collection_item(\$self->{'compartments'}, $compartment);
                     }
                     return undef;
                 }
@@ -287,14 +287,14 @@ sub modify_compartments
                 push($actions, 'Modify existing requested compartment' => sub {
                     my $index = console_read_choice("Type a number of requested compartment", 0, $self->get_compartments_count());
                     if ( defined($index) ) {
-                        $self->get_collection_item('compartments', $index - 1)->modify();
+                        get_collection_item($self->{'compartments'}, $index - 1)->modify();
                     }
                     return undef;
                 });
                 push($actions, 'Remove existing requested compartment' => sub {
                     my $index = console_read_choice("Type a number of requested compartment", 0, $self->get_compartments_count());
                     if ( defined($index) ) {
-                        $self->remove_collection_item('compartments', $index - 1);
+                        remove_collection_item(\$self->{'compartments'}, $index - 1);
                     }
                     return undef;
                 });
@@ -323,7 +323,7 @@ sub validate()
         return 0;
     }
     for ( my $index = 0; $index < $self->get_compartments_count(); $index++ ) {
-        my $compartment = $self->get_collection_item('compartments', $index);
+        my $compartment = get_collection_item($self->{'compartments'}, $index);
         if ( $compartment->get_resources_count() == 0 && $compartment->get_persons_count() == 0 ) {
             console_print_error("Requested compartment should not be empty.");
             return 0;
@@ -349,10 +349,11 @@ sub to_string()
     $string .= $self->slots_to_string();
     $string .= $self->compartments_to_string();
 
-    if ( $self->get_collection_size('requests') > 0 ) {
+    my $request_count = get_collection_size($self->{'requests'});
+    if ( $request_count > 0 ) {
         $string .= " Created requests:\n";
-        for ( my $index = 0; $index < $self->get_collection_size('requests'); $index++ ) {
-            my $processedSlots = $self->get_collection_item('requests', $index);
+        for ( my $index = 0; $index < $request_count; $index++ ) {
+            my $processedSlots = get_collection_item($self->{'requests'}, $index);
             my $start = $processedSlots->{'start'};
             my $duration = $processedSlots->{'duration'};
             my $state = $RequestState->{$processedSlots->{'state'}};
@@ -373,13 +374,15 @@ sub slots_to_string()
     my $string = " Requested slots:\n";
     if ( $self->get_slots_count() > 0 ) {
         for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
-            my $slot = $self->get_collection_item('slots', $index);
+            my $slot = get_collection_item($self->{'slots'}, $index);
             my $start = $slot->{'start'};
             my $duration = $slot->{'duration'};
             if ( ref($start) ) {
                 $start = sprintf("(%s, %s)", format_datetime($start->{'start'}), $start->{'period'});
+            } else {
+                $start = format_datetime($start);
             }
-            $string .= sprintf("   %d) at '%s' for '%s'\n", $index + 1, format_datetime($start), $duration);
+            $string .= sprintf("   %d) at '%s' for '%s'\n", $index + 1, $start, $duration);
         }
     }
     else {
@@ -398,7 +401,7 @@ sub compartments_to_string()
     my $string = " Requested compartments:\n";
     if ( $self->get_compartments_count() > 0 ) {
         for ( my $index = 0; $index < $self->get_compartments_count(); $index++ ) {
-            my $compartment = $self->get_collection_item('compartments', $index);
+            my $compartment = get_collection_item($self->{'compartments'}, $index);
             $string .= sprintf("   %d) Compartment (resources: %d, persons: %d)\n", $index + 1,
                 $compartment->get_resources_count(), $compartment->get_persons_count());
         }

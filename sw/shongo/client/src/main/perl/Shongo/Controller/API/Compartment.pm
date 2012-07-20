@@ -34,7 +34,7 @@ sub new
 sub get_resources_count()
 {
     my ($self) = @_;
-    return $self->get_collection_size('resources');
+    return get_collection_size($self->{'resources'});
 }
 
 #
@@ -43,7 +43,7 @@ sub get_resources_count()
 sub get_persons_count()
 {
     my ($self) = @_;
-    return $self->get_collection_size('persons');
+    return get_collection_size($self->{'persons'});
 }
 
 #
@@ -88,7 +88,7 @@ sub modify_loop()
                 my $technology = console_read_enum("Select technology", $Shongo::Controller::API::Resource::Technology);
                 my $count = console_read_value("Count", 1, "\\d");
                 if ( defined($technology) && defined($count) ) {
-                    push($self->{'resources'}, {'technology' => $technology, 'count' => $count});
+                    add_collection_item(\$self->{'resources'}, {'technology' => $technology, 'count' => $count});
                 }
                 return undef;
             });
@@ -96,7 +96,7 @@ sub modify_loop()
                 push($actions, 'Remove existing requested resource' => sub {
                     my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
                     if ( defined($index) ) {
-                        splice($self->{'resources'}, $index - 1, 1);
+                        remove_collection_item(\$self->{'resources'}, $index - 1);
                     }
                     return undef;
                 });
@@ -105,7 +105,7 @@ sub modify_loop()
                 my $name = console_read_value("Name");
                 my $email = console_read_value("Email");
                 if ( defined($name) && defined($email) ) {
-                    push($self->{'persons'}, {'name' => $name, 'email' => $email});
+                    add_collection_item(\$self->{'persons'}, {'name' => $name, 'email' => $email});
                 }
                 return undef;
             });
@@ -113,7 +113,7 @@ sub modify_loop()
                 push($actions, 'Remove existing requested person' => sub {
                     my $index = console_read_choice("Type a number of requested person", 0, $self->get_persons_count());
                     if ( defined($index) ) {
-                        splice($self->{'persons'}, $index - 1, 1);
+                        remove_collection_item(\$self->{'persons'}, $index - 1);
                     }
                     return undef;
                 });
@@ -137,7 +137,7 @@ sub to_string()
     $string .= " Requested resources:\n";
     if ( $self->get_resources_count() > 0) {
         for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
-            my $resource = $self->{'resources'}->[$index];
+            my $resource = get_collection_item($self->{'resources'}, $index);
             $string .= sprintf("   %d) Technology: %s, Count: %d\n", $index + 1,
                 $Shongo::Controller::API::Resource::Technology->{$resource->{'technology'}}, $resource->{'count'});
         }
@@ -148,7 +148,7 @@ sub to_string()
     $string .= " Requested persons:\n";
     if ( $self->get_persons_count() > 0) {
         for ( my $index = 0; $index < $self->get_persons_count(); $index++ ) {
-            my $person = $self->{'persons'}->[$index];
+            my $person = get_collection_item($self->{'persons'}, $index);
             $string .= sprintf("   %d) Name: %s, Email: %s\n", $index + 1,
                 $person->{'name'}, $person->{'email'});
         }
