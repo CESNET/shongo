@@ -64,7 +64,7 @@ public interface Fault
                 31, "Null value cannot be added to collection '%s'."),
 
         RECORD_NOT_EXIST(
-                41, "Record '%s' with id '%d' doesn't exist."),
+                40, "Record '%s' with id '%d' doesn't exist."),
 
         TODO_IMPLEMENT(
                 99, "TODO: Implement");

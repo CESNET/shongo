@@ -15,6 +15,7 @@ our @EXPORT = qw(
     console_action console_action_loop
     console_auto_value console_read_value console_edit_value
     console_auto_enum console_read_enum console_edit_enum
+    console_edit_bool
 );
 
 use Term::ReadLine::Zoid;
@@ -355,6 +356,30 @@ sub console_read_enum
         }
     }
     return console_edit_enum($message, $values, $default);
+}
+
+#
+# Edit an bool value
+#
+# @param $message   message to be shown as prompt
+# @param $required  option whether not empty value should be returned
+# @param $value     value to be edited
+#
+sub console_edit_bool
+{
+    my ($message, $required, $default) = @_;
+    if ( defined($default) && $default == 1 ) {
+        $default = 'yes';
+    } elsif ( defined($default) && $default == 0 ) {
+        $default = 'no';
+    }
+    my $result = console_edit_value($message . ' (yes/no)', $required, 'yes|no', $default);
+    if ( defined($result) && $result eq 'yes' ) {
+        return 1;
+    } elsif ( defined($result) && $result eq 'no' ) {
+        return 0;
+    }
+    return undef;
 }
 
 1;

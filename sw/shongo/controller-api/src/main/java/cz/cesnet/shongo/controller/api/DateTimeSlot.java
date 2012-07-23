@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
+import cz.cesnet.shongo.api.annotation.Required;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -43,6 +44,7 @@ public class DateTimeSlot extends IdentifiedObject
     /**
      * @return {@link #start}
      */
+    @Required
     @AllowedTypes({DateTime.class, PeriodicDateTime.class})
     public Object getStart()
     {
@@ -60,6 +62,7 @@ public class DateTimeSlot extends IdentifiedObject
     /**
      * @return {@link #duration}
      */
+    @Required
     public Period getDuration()
     {
         return duration;

@@ -175,9 +175,10 @@ breakautoindent=true,
 Each entity in Shongo (e.g., resource, or reservation) is identified by an unique identifier.
 The identifier follows the URI standard \cite{rfc3986}:
 \begin{verbatim}
-shongo:<type>:<domain>(.<subdomain>)*:<uuid>
+shongo:<domain>(.<subdomain>)*:<id>
 \end{verbatim}
-The \ApiValue{<type>} component represents |type| of an entity (e.g., \ApiValue{resource}, or \ApiValue{reservation}). The \ApiValue{<domain>} component represents the full name of a |domain| to which the entity belongs (or where it was created in case of reservation). Each |domain| will run it's own controller platform. The \ApiValue{<uuid>} component represents represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination.
+%The \ApiValue{<type>} component represents |type| of an entity (e.g., \ApiValue{resource}, or \ApiValue{reservation}).
+The \ApiValue{<domain>} component represents the full name of a |domain| to which the entity belongs (or where it was created in case of reservation). Each |domain| will run it's own controller platform. The \ApiValue{<id>} component represents an identification of the entity in the specified domain.
 
 \end{UseCases}
 
@@ -255,27 +256,7 @@ The resource owner should be able to create new resources that will be managed b
 \UseCase{Resource identification}{res:identification}
 
 Each resource is identified by an unique identifier as defined in \UCref{com:identification}. The identifier will be
-assigned to the resource by it's owner when the resource is being created. The format is:
-\begin{verbatim}
-shongo:resource:<domain>(.<subdomain>)*:<uuid>
-\end{verbatim}
-Each resource belongs to some main |domain| that runs controller platform. The domain can be structured to any number of |<subdomains>| by "|.|" sign. The <uuid> represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination. For unmanaged resources that don’t belong to any domain there is a default \ApiValue{unmanaged} domain.
-
-\TODO{Modify examples to use UUID}
-
-Examples of managed resources:
-\begin{compactitem}
-\item \ApiValue{urn:shongo:resource:cz.muni.fi:sitola.c90} -- H.323 endpoint at C90 room
-\item \ApiValue{urn:shongo:resource:cz.cesnet:mirial.srom} -- personal H.323 Mirial endpoint
-\end{compactitem}
-
-Examples of unmanaged resources:
-\begin{compactitem}
-\item \ApiValue{urn:shongo:resource:unmanaged:h323.<H.323 id or number>}
-\item \ApiValue{urn:shongo:resource:unmanaged:connect.<shibboleth identity>}
-\end{compactitem}
-
-By a resource identifier, the user can lookup the resource type and all other attributes.
+automatically assigned to the resource when it is being created.
 
 \end{UseCases}
 
@@ -347,13 +328,7 @@ The roles can be delegated, which is important especially in case of owner/admin
 
 \UseCase{Reservation identification}{rsv:identification}
 
-Each reservation is identified by an unique identifier as defined in \UCref{com:identification}. The identifier is assigned to reservation automatically by the controller platform. The format is:
-\begin{verbatim}
-shongo:reservation:<domain>:<uuid>
-\end{verbatim}
-Each reservation is created in a |domain| that runs it's own controller platform.
-The <uuid> represents UUID \cite{rfc4122} which is generated automatically and it provides uniqueness in distributed systems without need for central coordination.
-
+Each reservation is identified by an unique identifier as defined in \UCref{com:identification}. The identifier is assigned to reservation automatically when it is being created.
 
 \UseCase{One time reservation}{rsv:reservation:one}
 
@@ -761,12 +736,32 @@ We use XML-RPC empty |struct| to represent |null| values, e.g., when the user wa
 
 Failures are propagated through XML-RPC by |faultCode| and |faultString| values. List of common faults:
 \begin{ApiFailures}
+
 \ApiFailure{0} Unknown fault which is described by |faultString|.
-\ApiFailure{1} The \ApiValue{class} is not defined, the |faultString| specifies which \ApiValue{class}.
-\ApiFailure{2} The attribute is not defined, the |faultString| specifies which attribute in which class.
-\ApiFailure{3} The attribute type is wrong, the |faultString| specifies which attribute in which class and also it specifies the presented and required type.
-\ApiFailure{4} The value of an enum attribute is wrong., the |faultString| specifies which value.
-\end{ApiFailures}
+
+\ApiFailure{10} The \ApiValue{class} is not defined, the |faultString| specifies which \ApiValue{class}.
+\ApiFailure{11} The \ApiValue{class} cannot be instanced, the |faultString| specifies which \ApiValue{class}.
+\ApiFailure{12} The attribute is not defined, the |faultString| specifies which attribute in which class.
+\ApiFailure{13} The attribute type is wrong, the |faultString| specifies which attribute in which class and also it specifies the present and required type.
+\ApiFailure{14} The attribute wasn't present and is required, the |faultString| specifies which attribute in which class.
+\ApiFailure{15} The collection is empty and is required, the |faultString| specifies which collection in which class.
+\ApiFailure{16} The attribute was present but is read-only, the |faultString| specifies which attribute in which class.
+\ApiFailure{17} The attribute cannot be read because it is write-only, the |faultString| specifies which attribute in which class.
+
+\ApiFailure{20} The value of an enum attribute is wrong, the |faultString| specifies which value.
+\ApiFailure{21} Failed to parse date/time value, the |faultString| specifies which date/time value.
+\ApiFailure{22} Failed to parse period value, the |faultString| specifies which period value.
+\ApiFailure{23} Failed to parse interval value, the |faultString| specifies which interval value.
+
+\ApiFailure{30} Item with wrong type was present in collection, the |faultString| specifies which item in which collection and types which are allowed.
+\ApiFailure{31} Null value cannot be used as item in collection, the |faultString| specifies which collection.
+
+\ApiFailure{40} Record was not found, the |faultString| specifies which record.
+
+\ApiFailure{99} A part of request is not implemented yet. The domain controller log must be checked for more details.
+
+\end{ApiFailures}                
+                
 These are only common faults that are independent on specific API section. Other business logic faults can be generated and are described in appropriate API section.
 
 
@@ -798,38 +793,27 @@ User identity.
 \begin{Api}
 
 \ApiType{Period}{String}
-Represented as ISO8601 period (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The first character "\ApiValue{P}" means period and it comes from the ISO8601 standard. Components can be omitted (e.g.,~\ApiValue{P3YT12H} which is \textit{3 years and 12 hours}). The zero duration is represented by \ApiValue{PT0S} value (which is \textit{0 seconds}).
+Represented as ISO8601 period or duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The first character "\ApiValue{P}" means period and it comes from the ISO8601 standard. Components can be omitted (e.g.,~\ApiValue{P3YT12H} which is \textit{3 years and 12 hours}). The zero duration is represented by \ApiValue{PT0S} value (which is \textit{0 seconds}).
 
-
-\ApiClass{DateTime}{}
-It serves only as base class for |AbsoluteDateTime|, |RelativeDateTime| and |PeriodicDateTime|.
-
-
-\ApiClass{AbsoluteDateTime}{DateTime}
+\ApiType{DateTime}{String}
 Represented as ISO8601 date/time in UTC (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course. All time data are handled as in UTC while clients are responsible for suitable converting between timezones.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{dateTime}{String}{\ApiRequired}
-\end{ApiClassAttributes}
 
-\ApiExample We want to create a new reservation for resources at the precise date. We can specify it by |AbsoluteDateTime|:
+\ApiExample We want to create a new reservation for resources at the precise date. We can specify it by |DateTime|:
 \begin{verbatim}
-absoluteDateTime.dateTime = 20121231
+dateTime = 20121231
 \end{verbatim}
 
 
-\ApiClass{RelativeDateTime}{DateTime}
-Relative date is calculated as current date and time increased by |duration|.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{duration}{Period}{\ApiOptionalDefault{PT0S}} See |Period| for format specification.
-\end{ApiClassAttributes}
+\ApiType{RelativeDateTime}{Period}
+Relative date is calculated as referenced date/time increased by |Period|.
 
 \ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it by |RelativeDateTime| as follows:
 \begin{verbatim}
-relativeDateTime.duration = P4M
+relativeDateTime = P4M
 \end{verbatim}
 
 
-\ApiClass{PeriodicDateTime}{DateTime}
+\ApiClass{PeriodicDateTime}{}
 It can be used for events that takes place repeatedly, but also for events that take place only once.
 
 \begin{ApiClassAttributes}
@@ -864,23 +848,21 @@ periodicDate.rules = {
 }
 \end{verbatim}
 
+\ApiType{Interval}{String}
+Represents the time between two instants. Values must be in format \ApiValue{<DateTime>,<Period>} where \ApiValue{<DateTime>} is |DateTime| and \ApiValue{<Period>} is |Period|.
 
 \ApiClass{DateTimeSlot}{}
-Date/time slot is a pair of |DateTime| and |Period|.
+Date/time slot is a pair of starting date/time and |Period|.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{start}{DateTime}{\ApiRequired}
+\ApiClassAttribute{start}{DateTime\|PeridicDateTime}{\ApiRequired}
 Defines the start of date/time slot.
-\ApiClassAttribute{duration}{Period}{\ApiOptional}
+\ApiClassAttribute{duration}{Period}{\ApiRequired}
 Defines the duration of date/time slot.
 \end{ApiClassAttributes}
 
 For reservation purposes, the array |DateTimeSlot[]| should be used to provide the ability to reserve multiple date/times with different periods (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
 
-If date/time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating date/time slot to |AbsoluteDateTimeSlot[]|.
-
-\ApiClass{AbsoluteDateTimeSlot}{DateTimeSlot}
-Extension of |DateTimeSlot| that allows only |AbsoluteDateTime| as an instance of date/time in the slot.
-
+If date/time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating date/time slot to |Interval[]|.
 
 \end{Api}
 
@@ -889,28 +871,15 @@ Extension of |DateTimeSlot| that allows only |AbsoluteDateTime| as an instance o
 
 \begin{Api}
 
-\ApiEnum{ResourceType}
-The resource is one of the types as defined in \UCref{res:types}.
-\begin{ApiEnumValues}
-\ApiEnumValue{ManagedDevice}{}
-\ApiEnumValue{UnmanagedDevice}{}
-\ApiEnumValue{VirtualRoom}{}
-\ApiEnumValue{License}{}
-\ApiEnumValue{Identifier}{}
-\ApiEnumValue{PhysicalRoom}{}
-\ApiEnumValue{Other}{}
-\end{ApiEnumValues}
-
-
 \ApiEnum{Technology}
 \begin{ApiEnumValues}
 \ApiEnumValue{H323}{}
 \ApiEnumValue{SIP}{}
-\ApiEnumValue{AdobeConnect}{}
-\ApiEnumValue{Skype}{}
-\ApiEnumValue{BigBlueButton}{}
-\ApiEnumValue{OpenMeeting}{}
-\ApiEnumValue{WebEx}{}
+\ApiEnumValue{ADOBE_CONNECT}{}
+\ApiEnumValue{SKYPE}{}
+\ApiEnumValue{BIG_BLUE_BUTTON}{}
+\ApiEnumValue{OPEN_MEETING}{}
+\ApiEnumValue{WEBEX}{}
 \end{ApiEnumValues}
 
 
@@ -958,46 +927,40 @@ Can be represented by string:
 \end{verbatim}
 
 
-\ApiEnum{CapabilityType}
-\begin{ApiEnumValues}
-\ApiEnumValue{Input}{}
-\ApiEnumValue{Output}{}
-\ApiEnumValue{Multipoint}{}\TODO{Does it make sense to have Multipoint capability type?}
-\ApiEnumValue{Translation}{}
-\ApiEnumValue{Recording}{}
-\ApiEnumValue{Streaming}{}
-\end{ApiEnumValues}
-
-
 \ApiClass{Capability}{}
+Base class for all specific capabilities which the device can support.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{type}{CapabilityType}{\ApiRequired} Type of capability, see |CapabilityType|.
-\ApiClassAttribute{rules}{Rule[]}{\ApiRequired} List of rules that defines which formats is capability able to process. Rule can be one of the following types:
-\begin{compactitem}
-\item |Enable| means that the device is able to process specified format.
-\item |Disable| means that the device is not able to process specified format.
-\end{compactitem}
-Conflicts in rules are solved by \textit{last-match} policy.
-For |Input|, |Output|, |Recording| and |Streaming| capability type one |format| must be specified. For |Translation| capability type format |from| and |to| must be specified.
+\ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
+Set of technologies for which the capability is supported by the device. 
+If the set is empty all device technologies are supported.
 \end{ApiClassAttributes}
 
-\ApiExample{}
-\begin{verbatim}
-capability.type = Translation
-capability.rules = {
-    { type = Enable, from = H323,SIP:*:H264:*, to = H323,SIP:*:H264:* },
-    { type = Disable, from = *:AC3:*:*, to = *:AC3:*:* },
-}
-\end{verbatim}
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{type}{CapabilityType}{\ApiRequired} Type of capability, see |CapabilityType|.
+%\ApiClassAttribute{rules}{Rule[]}{\ApiRequired} List of rules that defines which formats is capability able to process. Rule can be one of the following types:
+%\begin{compactitem}
+%\item |Enable| means that the device is able to process specified format.
+%\item |Disable| means that the device is not able to process specified format.
+%\end{compactitem}
+%Conflicts in rules are solved by \textit{last-match} policy.
+%For |Input|, |Output|, |Recording| and |Streaming| capability type one |format| must be specified. For |Translation| capability type format |from| and |to| must be specified.
+%\end{ApiClassAttributes}
+%\ApiExample{}
+%\begin{verbatim}
+%capability.type = Translation
+%capability.rules = {
+%    { type = Enable, from = H323,SIP:*:H264:*, to = H323,SIP:*:H264:* },
+%    { type = Disable, from = *:AC3:*:*, to = *:AC3:*:* },
+%}
+%\end{verbatim}
 
 
 \ApiClass{Resource}{}
-This class represents a complete resource definition. It contains child resources, possible translations and all other resource attributes. This class is used for creating and modifying resources.
+This class represents a complete resource definition. This class is used for creating and modifying resources.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
-\ApiClassAttribute{parentId}{String}{\ApiRequired} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
+\ApiClassAttribute{identifier}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
+\ApiClassAttribute{parentIdentifier}{String}{\ApiRequired} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
-\ApiClassAttribute{type}{ResourceType}{\ApiRequired} Type of the resource, see |ResourceType|.
 \ApiClassAttribute{capabilities}{Capability[]}{\ApiOptional} Capabilities of the resource.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
@@ -1006,16 +969,21 @@ This class represents a complete resource definition. It contains child resource
 \end{ApiClassAttributes}
 
 
+\ApiClass{VirtualRoomsCapability}{Capability}
+Capability for devices which allows for creating virtual rooms for connecting multiple endpoint.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{portCount}{Integer}{\ApiRequired}
+Maximum port count for all virtual rooms.
+\end{ApiClassAttributes}
+
+
+
 \ApiClass{ResourceSummary}{}
 This class represents a summary of a resource. The summary of resource is lightweight and does not contain all resource attributes. It contains some useful additional "calculated" attributes. It is suitable when listing a lot of resources from controller database where the detail information about resource is not appropriate.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{}
-\ApiClassAttribute{parentId}{String}{}
+\ApiClassAttribute{identifier}{String}{}
 \ApiClassAttribute{name}{String}{}
-\ApiClassAttribute{type}{ResourceType}{}
-\ApiClassAttribute{technology}{String}{} Enumeration of supported technologies
-\ApiClassAttribute{schedulable}{boolean}{}
-\ApiClassAttribute{maxFuture}{DateTime}{}
+\ApiClassAttribute{technologies}{String}{} Enumeration of supported technologies (separated by comma).
 \end{ApiClassAttributes}
 
 

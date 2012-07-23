@@ -81,6 +81,9 @@ public class Converter
             else if (targetType.equals(String.class)) {
                 return value.toString();
             }
+            else if (targetType.equals(Boolean.class) && value instanceof Integer) {
+                return ((Integer)value).intValue() != 0;
+            }
         }
         // Convert from date
         else if (value instanceof Date && DateTime.class.isAssignableFrom(targetType)) {
@@ -88,8 +91,12 @@ public class Converter
         }
         // Convert atomic types
         else if (value instanceof String) {
+            // If boolean is required
+            if (targetType.equals(Boolean.class)) {
+                return Boolean.parseBoolean(value.toString());
+            }
             // If enum is required
-            if (targetType.isEnum() && value instanceof String) {
+            else if (targetType.isEnum() && value instanceof String) {
                 return Converter.convertStringToEnum((String) value, (Class<Enum>) targetType);
             }
             // If atomic type is required

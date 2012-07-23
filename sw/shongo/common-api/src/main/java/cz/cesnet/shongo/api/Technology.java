@@ -13,22 +13,17 @@ public enum Technology
     /**
      * @see <a href="http://en.wikipedia.org/wiki/H.323">H.323</a>
      */
-    H323("h323", "H.323"),
+    H323("H.323"),
 
     /**
      * @see <a href="http://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a>
      */
-    SIP("sip", "SIP"),
+    SIP("SIP"),
 
     /**
      * @see <a href="http://www.adobe.com/products/adobeconnect.html">Adobe Connect</a>
      */
-    ADOBE_CONNECT("connect", "Adobe Connect");
-
-    /**
-     * Technology unique code.
-     */
-    private String code;
+    ADOBE_CONNECT("Adobe Connect");
 
     /**
      * Technology name that is visible to users.
@@ -38,21 +33,19 @@ public enum Technology
     /**
      * Constructor.
      *
-     * @param code Sets the {@link #code}
      * @param name Sets the {@link #name}
      */
-    private Technology(String code, String name)
+    private Technology(String name)
     {
-        this.code = code;
         this.name = name;
     }
 
     /**
-     * @return {@link #code}
+     * @return code of technology
      */
     public String getCode()
     {
-        return code;
+        return toString();
     }
 
     /**

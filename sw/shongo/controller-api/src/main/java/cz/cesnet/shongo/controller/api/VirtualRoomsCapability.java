@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.Required;
+
 /**
  * Capability tells that the device is able to host multiple virtual rooms.
  *
@@ -15,6 +17,7 @@ public class VirtualRoomsCapability extends Capability
     /**
      * @return {@link #portCount}
      */
+    @Required
     public Integer getPortCount()
     {
         return portCount;

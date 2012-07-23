@@ -24,6 +24,11 @@ public class Resource extends IdentifiedChangeableObject
     public static final String NAME = "name";
 
     /**
+     * Specifies whether resource can be scheduled by a scheduler.
+     */
+    public static final String SCHEDULABLE = "schedulable";
+
+    /**
      * Set of technologies which the resource supports.
      */
     public static final String TECHNOLOGIES = "technologies";
@@ -64,6 +69,22 @@ public class Resource extends IdentifiedChangeableObject
     public void setName(String name)
     {
         getPropertyStorage().setValue(NAME, name);
+    }
+
+    /**
+     * @return {@link #NAME}
+     */
+    public Boolean getSchedulable()
+    {
+        return getPropertyStorage().getValue(SCHEDULABLE);
+    }
+
+    /**
+     * @param schedulable sets the {@link #SCHEDULABLE}
+     */
+    public void setSchedulable(Boolean schedulable)
+    {
+        getPropertyStorage().setValue(SCHEDULABLE, schedulable);
     }
 
     /**

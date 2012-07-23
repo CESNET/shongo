@@ -55,7 +55,7 @@ public class DeviceTopology extends PrintableObject
     {
         Node node = null;
         for (Node possibleNode : nodes) {
-            if (possibleNode.getDeviceResource() == deviceResource) {
+            if (possibleNode.getDeviceResource().getId().equals(deviceResource.getId())) {
                 node = possibleNode;
                 break;
             }

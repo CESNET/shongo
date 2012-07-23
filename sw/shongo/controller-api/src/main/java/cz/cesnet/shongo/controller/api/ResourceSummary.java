@@ -18,6 +18,11 @@ public class ResourceSummary
     private String name;
 
     /**
+     * Technologies of the resource.
+     */
+    private String technologies;
+
+    /**
      * @return {@link #identifier}
      */
     public String getIdentifier()
@@ -47,5 +52,21 @@ public class ResourceSummary
     void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #technologies}
+     */
+    public String getTechnologies()
+    {
+        return technologies;
+    }
+
+    /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(String technologies)
+    {
+        this.technologies = technologies;
     }
 }

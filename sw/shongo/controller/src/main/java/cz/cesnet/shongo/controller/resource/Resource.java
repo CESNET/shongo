@@ -59,6 +59,11 @@ public class Resource extends PersistentObject
     private DateTimeSpecification maximumFuture;
 
     /**
+     * Specifies whether resource can be scheduled by scheduler.
+     */
+    private boolean schedulable;
+
+    /**
      * Constructor.
      */
     Resource()
@@ -255,6 +260,23 @@ public class Resource extends PersistentObject
         this.maximumFuture = maximumFuture;
     }
 
+    /**
+     * @return {@link #schedulable}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isSchedulable()
+    {
+        return schedulable;
+    }
+
+    /**
+     * @param schedulable sets the {@link #schedulable}
+     */
+    public void setSchedulable(boolean schedulable)
+    {
+        this.schedulable = schedulable;
+    }
+
     @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {
@@ -273,6 +295,7 @@ public class Resource extends PersistentObject
     {
         cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
         resource.setName(getName());
+        resource.setSchedulable(isSchedulable());
 
         if ( this instanceof DeviceResource ) {
             DeviceResource deviceResource = (DeviceResource) this;
@@ -294,6 +317,9 @@ public class Resource extends PersistentObject
         // Modify attributes
         if (api.isPropertyFilled(API.NAME)) {
             setName(api.getName());
+        }
+        if (api.isPropertyFilled(API.SCHEDULABLE)) {
+            setSchedulable(api.getSchedulable());
         }
 
         if ( this instanceof DeviceResource ) {

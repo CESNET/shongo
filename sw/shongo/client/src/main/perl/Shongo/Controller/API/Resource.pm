@@ -176,6 +176,10 @@ sub modify_attributes()
     my ($self, $edit) = @_;
 
     $self->{'name'} = console_auto_value($edit, 'Name of the resource', 1, undef, $self->{'name'});
+    if (!$edit) {
+        return;
+    }
+    $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
 }
 
 #
@@ -238,9 +242,10 @@ sub to_string()
 
     my $string = " RESOURCE\n";
     if ( defined($self->{'identifier'}) ) {
-        $string .= " Identifier: $self->{'identifier'}\n";
+        $string .= "  Identifier: $self->{'identifier'}\n";
     }
-    $string .= "       Name: $self->{'name'}\n";
+    $string .= "        Name: $self->{'name'}\n";
+    $string .= " Schedulable: $self->{'schedulable'}\n";
     $string .= technologies_to_string($self->{'technologies'});
     $string .= $self->capabilities_to_string();
 

@@ -118,11 +118,19 @@ sub list_resources()
     if ( $response->is_fault() ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' |');
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Technologies', \' |');
     foreach my $resource (@{$response->value()}) {
+        my $technologies = '';
+        foreach my $technology (split(/,/, $resource->{'technologies'})) {
+            if ( length($technologies) ) {
+                $technologies .= ', ';
+            }
+            $technologies .= $Shongo::Controller::API::Resource::Technology->{$technology};
+        }
         $table->add(
             $resource->{'identifier'},
-            $resource->{'name'}
+            $resource->{'name'},
+            $technologies
         );
     }
     console_print_table($table);

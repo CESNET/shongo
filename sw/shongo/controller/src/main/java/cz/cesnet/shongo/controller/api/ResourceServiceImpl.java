@@ -6,6 +6,7 @@ import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 
 import javax.persistence.EntityManager;
@@ -173,6 +174,16 @@ public class ResourceServiceImpl extends Component implements ResourceService
             ResourceSummary summary = new ResourceSummary();
             summary.setIdentifier(domain.formatIdentifier(resource.getId()));
             summary.setName(resource.getName());
+            if ( resource instanceof DeviceResource ) {
+                StringBuilder stringBuilder = new StringBuilder();
+                for ( Technology technology : ((DeviceResource) resource).getTechnologies()) {
+                    if (stringBuilder.length() > 0 ) {
+                        stringBuilder.append(",");
+                    }
+                    stringBuilder.append(technology.getCode());
+                }
+                summary.setTechnologies(stringBuilder.toString());
+            }
             summaryList.add(summary);
         }
 
