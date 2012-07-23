@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.ForceAccessible;
 import cz.cesnet.shongo.api.util.ChangesTrackingObject;
 import cz.cesnet.shongo.api.util.PropertyStorage;
 import cz.cesnet.shongo.controller.api.xmlrpc.StructType;

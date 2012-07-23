@@ -170,7 +170,11 @@ sub modify_loop()
     );
 }
 
-
+#
+# Modify resource attributes
+#
+# @param $edit
+#
 sub modify_attributes()
 {
     my ($self, $edit) = @_;
@@ -179,7 +183,9 @@ sub modify_attributes()
     if (!$edit) {
         return;
     }
+    $self->{'description'} = console_edit_value('Description of the resource', 0, undef, $self->{'description'});
     $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
+    $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0, $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
 }
 
 #
@@ -242,10 +248,26 @@ sub to_string()
 
     my $string = " RESOURCE\n";
     if ( defined($self->{'identifier'}) ) {
-        $string .= "  Identifier: $self->{'identifier'}\n";
+        $string .= "      Identifier: $self->{'identifier'}\n";
     }
-    $string .= "        Name: $self->{'name'}\n";
-    $string .= " Schedulable: $self->{'schedulable'}\n";
+    if ( defined($self->{'parentIdentifier'}) ) {
+        $string .= "          Parent: $self->{'parentIdentifier'}\n";
+    }
+    if ( defined($self->{'childResourceIdentifiers'}) && scalar(@{$self->{'childResourceIdentifiers'}}) > 0 ) {
+        $string .= " Child resources: ";
+        my $index = 0;
+        foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
+            if ( $index > 0 ) {
+                $string .= ', ';
+            }
+            $string .= $identifier;
+            $index++;
+        }
+        $string .= "\n";
+    }
+    $string .= "            Name: $self->{'name'}\n";
+    $string .= "     Description: $self->{'description'}\n";
+    $string .= "     Schedulable: $self->{'schedulable'}\n";
     $string .= technologies_to_string($self->{'technologies'});
     $string .= $self->capabilities_to_string();
 

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.api.annotation.ReadOnly;
+
 /**
  * Options for {@link Converter}.
  */
@@ -15,7 +17,7 @@ public final class Options
      * <code>{@link #forceAccessible} = true<code/>
      * On client side we want to serialize/deserialize all properties.
      */
-    public static final Options CLIENT = new Options(true, true);
+    public static final Options CLIENT = new Options(true, true, true, false);
 
     /**
      * Options for server.
@@ -28,7 +30,7 @@ public final class Options
      * <code>{@link #forceAccessible} = false</code>
      * On server side we want to serialize/deserialize only "public" properties.
      */
-    public static final Options SERVER = new Options(false, false);
+    public static final Options SERVER = new Options(false, false, false, true);
 
     /**
      * Specifies whether marks for filled properties should be used and whether collections
@@ -43,15 +45,28 @@ public final class Options
     private boolean forceAccessible = false;
 
     /**
+     * Specifies whether {@link ReadOnly} properties should be loaded.
+     */
+    private boolean loadReadOnly = false;
+
+    /**
+     * Specifies whether {@link ReadOnly} properties should be stored.
+     */
+    private boolean storeReadOnly = false;
+
+    /**
      * Constructor.
      *
-     * @param storeChanges    sets the {@link #storeChanges}
-     * @param forceAccessible sets the {@link #forceAccessible}
+     * @param storeChanges   sets the {@link #storeChanges}
+     * @param loadReadOnly   sets the {@link #loadReadOnly}
+     * @param storeReadOnly  sets the {@link #storeReadOnly}
      */
-    public Options(boolean storeChanges, boolean forceAccessible)
+    public Options(boolean storeChanges, boolean forceAccessible, boolean loadReadOnly, boolean storeReadOnly)
     {
         this.storeChanges = storeChanges;
         this.forceAccessible = forceAccessible;
+        this.loadReadOnly = loadReadOnly;
+        this.storeReadOnly = storeReadOnly;
     }
 
     /**
@@ -68,5 +83,21 @@ public final class Options
     public boolean isForceAccessible()
     {
         return forceAccessible;
+    }
+
+    /**
+     * @return {@link #loadReadOnly}
+     */
+    public boolean isLoadReadOnly()
+    {
+        return loadReadOnly;
+    }
+
+    /**
+     * @return {@link #storeReadOnly}
+     */
+    public boolean isStoreReadOnly()
+    {
+        return storeReadOnly;
     }
 }

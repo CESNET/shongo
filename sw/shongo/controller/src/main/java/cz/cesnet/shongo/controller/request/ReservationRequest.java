@@ -455,7 +455,7 @@ public class ReservationRequest extends PersistentObject
             }
             else {
                 // Modify existing requested compartment
-               throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+               //throw new FaultException(Fault.Common.TODO_IMPLEMENT);
             }
         }
         // Delete requested compartments

@@ -746,7 +746,6 @@ Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
 \ApiFailure{14} The attribute wasn't present and is required, the |faultString| specifies which attribute in which class.
 \ApiFailure{15} The collection is empty and is required, the |faultString| specifies which collection in which class.
 \ApiFailure{16} The attribute was present but is read-only, the |faultString| specifies which attribute in which class.
-\ApiFailure{17} The attribute cannot be read because it is write-only, the |faultString| specifies which attribute in which class.
 
 \ApiFailure{20} The value of an enum attribute is wrong, the |faultString| specifies which value.
 \ApiFailure{21} Failed to parse date/time value, the |faultString| specifies which date/time value.
@@ -883,48 +882,52 @@ If date/time slot contains |PeriodicDateTime|, all periodic events can be listed
 \end{ApiEnumValues}
 
 
-\ApiClass{Resolution}{}
-\begin{ApiClassAttributes}
-\ApiClassAttribute{width}{Integer}{\ApiRequired}
-\ApiClassAttribute{height}{Integer}{\ApiRequired}
-\end{ApiClassAttributes}
-\begin{ApiEnumValues}
-\ApiEnumValue{QCIF}{176x144}
-\ApiEnumValue{CIF}{352x288}
-\ApiEnumValue{4CIF}{704x576}
-\ApiEnumValue{720p}{1280x720}
-\ApiEnumValue{1080p}{1920x1080}
-\ApiEnumValue{2K}{2048x1080}
-\ApiEnumValue{4K}{4096x2160}
-\end{ApiEnumValues}
+%\ApiClass{Resolution}{}
+%\TODO{Not implemented yet}
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{width}{Integer}{\ApiRequired}
+%\ApiClassAttribute{height}{Integer}{\ApiRequired}
+%\end{ApiClassAttributes}
+%\begin{ApiEnumValues}
+%\ApiEnumValue{QCIF}{176x144}
+%\ApiEnumValue{CIF}{352x288}
+%\ApiEnumValue{4CIF}{704x576}
+%\ApiEnumValue{720p}{1280x720}
+%\ApiEnumValue{1080p}{1920x1080}
+%\ApiEnumValue{2K}{2048x1080}
+%\ApiEnumValue{4K}{4096x2160}
+%\end{ApiEnumValues}
 
 
-\ApiEnum{AudioCodec}
-\begin{ApiEnumValues}
-\ApiEnumValue{MP3}{}
-\ApiEnumValue{AC3}{}
-\end{ApiEnumValues}
+%\ApiEnum{AudioCodec}
+%\TODO{Not implemented yet}
+%\begin{ApiEnumValues}
+%\ApiEnumValue{MP3}{}
+%\ApiEnumValue{AC3}{}
+%\end{ApiEnumValues}
 
 
-\ApiEnum{VideoCodec}
-\begin{ApiEnumValues}
-\ApiEnumValue{H261}{}
-\ApiEnumValue{H263}{}
-\ApiEnumValue{H264}{}
-\end{ApiEnumValues}
+%\ApiEnum{VideoCodec}
+%\TODO{Not implemented yet}
+%\begin{ApiEnumValues}
+%\ApiEnumValue{H261}{}
+%\ApiEnumValue{H263}{}
+%\ApiEnumValue{H264}{}
+%\end{ApiEnumValues}
 
 
-\ApiClass{Format}{}
-\begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiRequired}
-\ApiClassAttribute{audio}{AudioCodec}{\ApiRequired}
-\ApiClassAttribute{video}{VideoCodec}{\ApiRequired}
-\ApiClassAttribute{resolution}{Resolution}{\ApiRequired}
-\end{ApiClassAttributes}
-Can be represented by string:
-\begin{verbatim}
-<technology>:<audio>:<video>:<resolution>
-\end{verbatim}
+%\ApiClass{Format}{}
+%\TODO{Not implemented yet}
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{technology}{Technology}{\ApiRequired}
+%\ApiClassAttribute{audio}{AudioCodec}{\ApiRequired}
+%\ApiClassAttribute{video}{VideoCodec}{\ApiRequired}
+%\ApiClassAttribute{resolution}{Resolution}{\ApiRequired}
+%\end{ApiClassAttributes}
+%Can be represented by string:
+%\begin{verbatim}
+%<technology>:<audio>:<video>:<resolution>
+%\end{verbatim}
 
 
 \ApiClass{Capability}{}
@@ -959,13 +962,13 @@ If the set is empty all device technologies are supported.
 This class represents a complete resource definition. This class is used for creating and modifying resources.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{identifier}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
-\ApiClassAttribute{parentIdentifier}{String}{\ApiRequired} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
+\ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
 \ApiClassAttribute{capabilities}{Capability[]}{\ApiOptional} Capabilities of the resource.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
 \ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
-\ApiClassAttribute{childResources}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |childResources| contains all videoconferencing devices in the room).
+\ApiClassAttribute{childResourceIdentifiers}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |childResourceIdentifiers| contains all videoconferencing devices in the room).
 \end{ApiClassAttributes}
 
 

@@ -3,7 +3,7 @@ package cz.cesnet.shongo.api.util;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
-import cz.cesnet.shongo.api.annotation.ForceAccessible;
+import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 
 import java.lang.annotation.Annotation;
@@ -56,9 +56,17 @@ public class Property
     private Method writeMethod;
 
     /**
-     * Option specifying whether field is always accessible.
+     * True if {@link ReadOnly} annotation is present for the property, false otherwise.
      */
-    private boolean accessible = false;
+    private boolean readOnly;
+
+    /**
+     * @return {@link #readOnly}
+     */
+    public boolean isReadOnly()
+    {
+        return readOnly;
+    }
 
     /**
      * Set value for the property to given object.
@@ -69,7 +77,6 @@ public class Property
      */
     public void setValue(Object object, Object value, boolean forceAccessible) throws FaultException
     {
-        forceAccessible = forceAccessible || accessible;
         try {
             if (writeMethod != null && (Modifier.isPublic(writeMethod.getModifiers()) || forceAccessible)) {
                 if (forceAccessible) {
@@ -118,25 +125,19 @@ public class Property
      */
     public Object getValue(Object object) throws FaultException
     {
-        Object value = null;
+        Exception thrownException = null;
         try {
             if (readMethod != null && Modifier.isPublic(readMethod.getModifiers())) {
-                value = readMethod.invoke(object);
+                return readMethod.invoke(object);
             }
             else if (field != null && Modifier.isPublic(field.getModifiers())) {
-                value = field.get(object);
+                return field.get(object);
             }
-            else if (writeMethod != null) {
-                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_WRITE_ONLY, name, classType);
-            }
-        }
-        catch (FaultException exception) {
-            throw exception;
         }
         catch (Exception exception) {
-            throw new FaultException(exception, "Cannot get attribute '%s' from object of type '%s'.", name, classType);
+            thrownException = exception;
         }
-        return value;
+        throw new FaultException(thrownException, "Cannot get attribute '%s' from object of type '%s'.", name, classType);
     }
 
     /**
@@ -361,10 +362,10 @@ public class Property
             }
         }
 
-        // Determine accessible
-        ForceAccessible accessible = property.getAnnotation(ForceAccessible.class);
-        if (accessible != null) {
-            property.accessible = true;
+        // Determine read-only
+        ReadOnly readOnly = property.getAnnotation(ReadOnly.class);
+        if (readOnly != null) {
+            property.readOnly = true;
         }
 
         // Put new property to cache

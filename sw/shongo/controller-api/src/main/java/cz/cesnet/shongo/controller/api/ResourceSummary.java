@@ -33,7 +33,7 @@ public class ResourceSummary
     /**
      * @param identifier sets the {@link #identifier}
      */
-    public void setIdentifier(String identifier)
+    void setIdentifier(String identifier)
     {
         this.identifier = identifier;
     }
@@ -65,7 +65,7 @@ public class ResourceSummary
     /**
      * @param technologies sets the {@link #technologies}
      */
-    public void setTechnologies(String technologies)
+     void setTechnologies(String technologies)
     {
         this.technologies = technologies;
     }

@@ -349,8 +349,12 @@ public class Converter
                     continue;
                 }
 
-                // Get property type and allowed types
                 Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
+                if ( property.isReadOnly() && !options.isLoadReadOnly()) {
+                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
+                }
+
+                // Get property type and allowed types
                 Class type = property.getType();
                 Class[] allowedTypes = property.getAllowedTypes();
 
@@ -549,12 +553,17 @@ public class Converter
             if (property == null) {
                 throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, object.getClass());
             }
+
             Object value = property.getValue(object);
             if (value == null) {
                 if (changesTrackingObject == null || !options.isStoreChanges()
                         || !changesTrackingObject.isPropertyFilled(propertyName)) {
                     continue;
                 }
+            }
+
+            if ( property.isReadOnly() && !options.isStoreReadOnly()) {
+                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
             }
 
             // Store collection changes

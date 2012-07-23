@@ -82,7 +82,7 @@ public class ResourceServiceImpl extends Component implements ResourceService
     @Override
     public String createResource(SecurityToken token, Resource resource) throws FaultException
     {
-        resource.checkRequiredPropertiesFilled();
+        resource.setupNewEntity();
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
@@ -92,19 +92,20 @@ public class ResourceServiceImpl extends Component implements ResourceService
                 new cz.cesnet.shongo.controller.resource.DeviceResource();
 
         // Synchronize from API
-        resourceImpl.fromApi(resource, entityManager);
+        resourceImpl.fromApi(resource, entityManager, domain);
 
         // Save it
         ResourceManager resourceManager = new ResourceManager(entityManager);
         resourceManager.create(resourceImpl);
 
         entityManager.getTransaction().commit();
-        entityManager.close();
 
         // Add resource to resource database
         if (resourceDatabase != null) {
             resourceDatabase.addResource(resourceImpl);
         }
+
+        entityManager.close();
 
         // Return resource identifier
         return domain.formatIdentifier(resourceImpl.getId());
@@ -124,17 +125,18 @@ public class ResourceServiceImpl extends Component implements ResourceService
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
 
         // Synchronize from API
-        resourceImpl.fromApi(resource, entityManager);
+        resourceImpl.fromApi(resource, entityManager, domain);
 
         resourceManager.update(resourceImpl);
 
         entityManager.getTransaction().commit();
-        entityManager.close();
 
         // Update resource in resource database
         if (resourceDatabase != null) {
             resourceDatabase.updateResource(resourceImpl);
         }
+
+        entityManager.close();
     }
 
     @Override
@@ -201,8 +203,7 @@ public class ResourceServiceImpl extends Component implements ResourceService
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
-        Resource resourceApi = resourceImpl.toApi();
-        resourceApi.setIdentifier(domain.formatIdentifier(resourceImpl.getId()));
+        Resource resourceApi = resourceImpl.toApi(entityManager, domain);
 
         entityManager.close();
 

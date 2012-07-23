@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -19,9 +21,19 @@ public class Resource extends IdentifiedChangeableObject
     private String identifier;
 
     /**
+     * Parent resource identifier for the resource.
+     */
+    public static final String PARENT_RESOURCE_IDENTIFIER = "parentResourceIdentifier";
+
+    /**
      * Name of the resource.
      */
     public static final String NAME = "name";
+
+    /**
+     * Description of the resource.
+     */
+    public static final String DESCRIPTION = "description";
 
     /**
      * Specifies whether resource can be scheduled by a scheduler.
@@ -37,6 +49,11 @@ public class Resource extends IdentifiedChangeableObject
      * List of capabilities which the resource has.
      */
     public static final String CAPABILITIES = "capabilities";
+
+    /**
+     * Child resources identifiers.
+     */
+    private List<String> childResourceIdentifiers = new ArrayList<String>();
 
     /**
      * @return {@link #identifier}
@@ -55,6 +72,23 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
+     * @return {@link #PARENT_RESOURCE_IDENTIFIER}
+     */
+    @Required
+    public String getParentIdentifier()
+    {
+        return getPropertyStorage().getValue(PARENT_RESOURCE_IDENTIFIER);
+    }
+
+    /**
+     * @param parentIdentifier sets the {@link #PARENT_RESOURCE_IDENTIFIER}
+     */
+    public void setParentIdentifier(String parentIdentifier)
+    {
+        getPropertyStorage().setValue(PARENT_RESOURCE_IDENTIFIER, parentIdentifier);
+    }
+
+    /**
      * @return {@link #NAME}
      */
     @Required
@@ -69,6 +103,23 @@ public class Resource extends IdentifiedChangeableObject
     public void setName(String name)
     {
         getPropertyStorage().setValue(NAME, name);
+    }
+
+    /**
+     * @return {@link #DESCRIPTION}
+     */
+    @Required
+    public String getDescription()
+    {
+        return getPropertyStorage().getValue(DESCRIPTION);
+    }
+
+    /**
+     * @param description sets the {@link #DESCRIPTION}
+     */
+    public void setDescription(String description)
+    {
+        getPropertyStorage().setValue(DESCRIPTION, description);
     }
 
     /**
@@ -123,7 +174,6 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @return {@link #CAPABILITIES}
      */
-    @Required
     public List<Capability> getCapabilities()
     {
         return getPropertyStorage().getCollection(CAPABILITIES, List.class);
@@ -151,5 +201,22 @@ public class Resource extends IdentifiedChangeableObject
     public void removeCapability(Capability capability)
     {
         getPropertyStorage().removeCollectionItem(CAPABILITIES, capability);
+    }
+
+    /**
+     * @return {@link #childResourceIdentifiers}
+     */
+    @ReadOnly
+    public List<String> getChildResourceIdentifiers()
+    {
+        return childResourceIdentifiers;
+    }
+
+    /**
+     * @param childResourceIdentifier identifier to be added to the {@link #childResourceIdentifiers}
+     */
+    public void addChildResourceIdentifier(String childResourceIdentifier)
+    {
+        childResourceIdentifiers.add(childResourceIdentifier);
     }
 }

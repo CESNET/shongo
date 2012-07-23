@@ -17,6 +17,9 @@ our @EXPORT = qw(
 
 use DateTime::Format::ISO8601;
 
+# Identifier pattern
+our $IdentifierPattern = '\\d|shongo:.+:\\d';
+
 #
 # Create hash from given values which has item "__keys" as array with keys in insertion order.
 #

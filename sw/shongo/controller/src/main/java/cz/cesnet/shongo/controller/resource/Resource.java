@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 
@@ -290,12 +289,22 @@ public class Resource extends PersistentObject
     /**
      * @return converted resource to API
      * @throws FaultException
+     * @param domain
      */
-    public cz.cesnet.shongo.controller.api.Resource toApi() throws FaultException
+    public cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager, Domain domain) throws FaultException
     {
+        final Resource resourceImpl = this;
         cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
+
+        resource.setIdentifier(domain.formatIdentifier(getId()));
         resource.setName(getName());
         resource.setSchedulable(isSchedulable());
+        resource.setDescription(getDescription());
+
+        Resource parentResource = getParentResource();
+        if (parentResource != null ) {
+            resource.setParentIdentifier(domain.formatIdentifier(parentResource.getId()));
+        }
 
         if ( this instanceof DeviceResource ) {
             DeviceResource deviceResource = (DeviceResource) this;
@@ -307,19 +316,41 @@ public class Resource extends PersistentObject
         for ( Capability capability : getCapabilities()) {
             resource.addCapability(capability.toApi());
         }
+        
+        for ( Resource childResource : getChildResources() ) {
+            resource.addChildResourceIdentifier(domain.formatIdentifier(childResource.getId()));
+        }
 
         return resource;
     }
 
+    /**
+     * Synchronize resource from API
+     *
+     * @param api
+     * @param entityManager
+     * @throws FaultException
+     */
     public <API extends cz.cesnet.shongo.controller.api.Resource>
-    void fromApi(API api, EntityManager entityManager) throws FaultException
+    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
     {
         // Modify attributes
         if (api.isPropertyFilled(API.NAME)) {
             setName(api.getName());
         }
+        if (api.isPropertyFilled(API.DESCRIPTION)) {
+            setDescription(api.getDescription());
+        }
         if (api.isPropertyFilled(API.SCHEDULABLE)) {
             setSchedulable(api.getSchedulable());
+        }
+        if (api.isPropertyFilled(API.PARENT_RESOURCE_IDENTIFIER)) {
+            Long parentResourceId = domain.parseIdentifier(api.getParentIdentifier());
+            if (getParentResource() == null || !getParentResource().getId().equals(parentResourceId)) {
+                ResourceManager resourceManager = new ResourceManager(entityManager);
+                Resource parentResource = resourceManager.get(parentResourceId);
+                setParentResource(parentResource);
+            }
         }
 
         if ( this instanceof DeviceResource ) {

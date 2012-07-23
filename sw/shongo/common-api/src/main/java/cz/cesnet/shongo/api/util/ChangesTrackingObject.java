@@ -26,6 +26,11 @@ public abstract class ChangesTrackingObject
     private Set<String> filledProperties = new HashSet<String>();
 
     /**
+     * Specifies whether all collection items are by default new (when new entity is being created this is true).
+     */
+    private boolean collectionItemIsByDefaultNew = false;
+
+    /**
      * Stores state of collection property.
      */
     public static class CollectionChanges
@@ -120,13 +125,19 @@ public abstract class ChangesTrackingObject
         }
     }
 
+    /**
+     * @param property
+     * @param item
+     * @return true if collection item is marked as new or when all not marked items are by default new,
+     *         false otherwise
+     */
     public boolean isCollectionItemMarkedAsNew(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges != null) {
             return collectionChanges.newItems.contains(item);
         }
-        return false;
+        return collectionItemIsByDefaultNew;
     }
 
     /**
@@ -153,6 +164,18 @@ public abstract class ChangesTrackingObject
     {
         filledProperties.clear();
         collectionChangesMap.clear();
+    }
+
+    /**
+     * Check whether all required fields are filled and set the {@link #collectionItemIsByDefaultNew} to true.
+     *
+     * @throws FaultException when some required field isn't filled
+     */
+    public void setupNewEntity() throws FaultException
+    {
+        collectionItemIsByDefaultNew = true;
+
+        checkRequiredPropertiesFilled();
     }
 
     /**

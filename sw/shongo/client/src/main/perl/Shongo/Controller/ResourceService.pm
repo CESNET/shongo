@@ -64,7 +64,7 @@ sub populate()
 sub select_resource($)
 {
     my ($identifier) = @_;
-    $identifier = console_read_value('Identifier of the resource', 0, '\\d|shongo:.+:\\d', $identifier);
+    $identifier = console_read_value('Identifier of the resource', 0, $Shongo::Common::IdentifierPattern, $identifier);
     return $identifier;
 }
 

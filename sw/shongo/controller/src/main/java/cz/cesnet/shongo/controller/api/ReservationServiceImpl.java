@@ -67,7 +67,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException
     {
-        reservationRequest.checkRequiredPropertiesFilled();
+        reservationRequest.setupNewEntity();
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
