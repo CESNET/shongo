@@ -22,6 +22,14 @@ public class PropertyStorage
      */
     ChangesTrackingObject changesTrackingObject;
 
+
+    /**
+     * Constructor.
+     */
+    public PropertyStorage()
+    {
+    }
+
     /**
      * Constructor.
      *

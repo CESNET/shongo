@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -39,7 +41,7 @@ public class Preprocessor extends Component
      *
      * @param interval
      */
-    public void run(Interval interval)
+    public void run(Interval interval) throws FaultException
     {
         checkInitialized();
 
@@ -60,9 +62,9 @@ public class Preprocessor extends Component
 
             entityManager.getTransaction().commit();
         }
-        catch (RuntimeException exception) {
+        catch (Exception exception) {
             entityManager.getTransaction().rollback();
-            throw exception;
+            throw new FaultException(exception, ControllerFault.PREPROCESSOR_FAILED);
         }
         finally {
             entityManager.close();
@@ -75,7 +77,7 @@ public class Preprocessor extends Component
      * @param reservationRequestId
      * @param interval
      */
-    public void run(long reservationRequestId, Interval interval)
+    public void run(long reservationRequestId, Interval interval) throws FaultException
     {
         checkInitialized();
 
@@ -104,9 +106,9 @@ public class Preprocessor extends Component
 
             entityManager.getTransaction().commit();
         }
-        catch (RuntimeException exception) {
+        catch (Exception exception) {
             entityManager.getTransaction().rollback();
-            throw exception;
+            throw new FaultException(exception, ControllerFault.PREPROCESSOR_FAILED);
         }
         finally {
             entityManager.close();
@@ -202,7 +204,7 @@ public class Preprocessor extends Component
      * @param entityManagerFactory
      * @param interval
      */
-    public static void run(EntityManagerFactory entityManagerFactory, Interval interval)
+    public static void run(EntityManagerFactory entityManagerFactory, Interval interval) throws FaultException
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setEntityManagerFactory(entityManagerFactory);
@@ -219,7 +221,7 @@ public class Preprocessor extends Component
      * @param interval
      */
     public static void run(EntityManagerFactory entityManagerFactory, long reservationRequestId,
-            Interval interval)
+            Interval interval) throws FaultException
     {
         Preprocessor preprocessor = new Preprocessor();
         preprocessor.setEntityManagerFactory(entityManagerFactory);

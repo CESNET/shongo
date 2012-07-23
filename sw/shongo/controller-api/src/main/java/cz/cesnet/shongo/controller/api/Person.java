@@ -7,7 +7,7 @@ import cz.cesnet.shongo.api.annotation.Required;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Person
+public class Person extends IdentifiedObject
 {
     /**
      * Name of the person.

@@ -68,7 +68,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @param type sets the {@link #type}
      */
-    void setType(ReservationRequestType type)
+    public void setType(ReservationRequestType type)
     {
         this.type = type;
     }
@@ -84,7 +84,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @param purpose sets the {@link #purpose}
      */
-    void setPurpose(ReservationRequestPurpose purpose)
+    public void setPurpose(ReservationRequestPurpose purpose)
     {
         this.purpose = purpose;
     }
@@ -100,7 +100,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @param name sets the {@link #name}
      */
-    void setName(String name)
+    public void setName(String name)
     {
         this.name = name;
     }
@@ -116,7 +116,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @param description sets the {@link #description}
      */
-    void setDescription(String description)
+    public void setDescription(String description)
     {
         this.description = description;
     }
@@ -132,7 +132,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @param earliestSlot sets the {@link #earliestSlot}
      */
-    void setEarliestSlot(Interval earliestSlot)
+    public void setEarliestSlot(Interval earliestSlot)
     {
         this.earliestSlot = earliestSlot;
     }

@@ -73,7 +73,7 @@ public class Converter
             // Do nothing
             return value;
         }
-        // Convert from primitve types
+        // Convert from primitive types
         else if (primitiveClassess.contains(value.getClass())) {
             if (targetType.isPrimitive()) {
                 return value;

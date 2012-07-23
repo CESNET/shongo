@@ -9,7 +9,9 @@ import cz.cesnet.shongo.api.Fault;
  */
 public enum ControllerFault implements Fault
 {
-    OTHER(100, "%s");
+    PREPROCESSOR_FAILED(100, "Preprocessor failed"),
+
+    OTHER(999, "%s");
 
     private int code;
     private String string;

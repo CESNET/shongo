@@ -131,10 +131,9 @@ public abstract class ChangesTrackingObject
 
     /**
      * @param property
-     * @param type
      * @return set of items from given collection which are marked as deleted
      */
-    public <T> Set<T> getCollectionItemsMarkedAsDeleted(String property, Class<T> type)
+    public <T> Set<T> getCollectionItemsMarkedAsDeleted(String property)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges != null) {

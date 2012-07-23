@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 
 import javax.persistence.*;
 
@@ -45,5 +47,22 @@ public class Capability extends PersistentObject
                 this.resource.addCapability(this);
             }
         }
+    }
+
+    /**
+     * @return converted capability to API
+     * @throws FaultException
+     */
+    public cz.cesnet.shongo.controller.api.Capability toApi() throws FaultException
+    {
+        if ( this instanceof VirtualRoomsCapability ) {
+            VirtualRoomsCapability virtualRoomsCapability = (VirtualRoomsCapability) this;
+            cz.cesnet.shongo.controller.api.VirtualRoomsCapability virtualRoomsCapabilityApi =
+                    new cz.cesnet.shongo.controller.api.VirtualRoomsCapability();
+            virtualRoomsCapabilityApi.setId(virtualRoomsCapability.getId().intValue());
+            virtualRoomsCapabilityApi.setPortCount(virtualRoomsCapability.getPortCount());
+            return virtualRoomsCapabilityApi;
+        }
+        throw new FaultException(Fault.Common.TODO_IMPLEMENT);
     }
 }

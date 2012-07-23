@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -67,9 +69,10 @@ public class ResourceManager extends AbstractManager
 
     /**
      * @param resourceId
-     * @return {@link Resource} with given {@code resourceId} or null if the resource not exists
+     * @return {@link Resource} with given {@code resourceId}
+     * @throws FaultException when resource doesn't exist
      */
-    public Resource get(Long resourceId)
+    public Resource get(Long resourceId) throws FaultException
     {
         try {
             Resource resource = entityManager.createQuery(
@@ -79,7 +82,7 @@ public class ResourceManager extends AbstractManager
             return resource;
         }
         catch (NoResultException exception) {
-            return null;
+            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Resource.class, resourceId);
         }
     }
 }

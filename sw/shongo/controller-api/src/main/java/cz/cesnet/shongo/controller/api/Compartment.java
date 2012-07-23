@@ -46,6 +46,14 @@ public class Compartment extends IdentifiedChangeableObject
     }
 
     /**
+     * @param person person to be added to the {@link #PERSONS}
+     */
+    public void addPerson(Person person)
+    {
+        getPropertyStorage().addCollectionItem(PERSONS, person, List.class);
+    }
+
+    /**
      * Adds new person to the {@link #PERSONS}.
      *
      * @param name
@@ -53,7 +61,7 @@ public class Compartment extends IdentifiedChangeableObject
      */
     public void addPerson(String name, String email)
     {
-        getPropertyStorage().addCollectionItem(PERSONS, new Person(name, email), List.class);
+        addPerson(new Person(name, email));
     }
 
     /**

@@ -45,8 +45,7 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     /**
      * @param id sets the {@link #id}
      */
-    @ForceAccessible
-    void setId(Integer id)
+    public void setId(Integer id)
     {
         this.id = id;
     }

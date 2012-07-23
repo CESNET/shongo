@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -82,9 +84,10 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequestId
-     * @return {@link ReservationRequest} with given identifier or null if the request doesn't exist
+     * @return {@link ReservationRequest} with given identifier
+     * @throws FaultException when reservation request doesn't exist
      */
-    public ReservationRequest get(Long reservationRequestId)
+    public ReservationRequest get(Long reservationRequestId) throws FaultException
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
@@ -94,7 +97,7 @@ public class ReservationRequestManager extends AbstractManager
             return reservationRequest;
         }
         catch (NoResultException exception) {
-            return null;
+            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, reservationRequestId);
         }
     }
 

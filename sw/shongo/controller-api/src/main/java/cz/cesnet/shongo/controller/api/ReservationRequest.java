@@ -210,12 +210,20 @@ public class ReservationRequest extends IdentifiedChangeableObject
     }
 
     /**
+     * @param compartment compartment to be added to the {@link #COMPARTMENTS}
+     */
+    public void addCompartment(Compartment compartment)
+    {
+        getPropertyStorage().addCollectionItem(COMPARTMENTS, compartment, List.class);
+    }
+
+    /**
      * @return newly added {@link Compartment} to the {@link #COMPARTMENTS}
      */
     public Compartment addCompartment()
     {
         Compartment compartment = new Compartment();
-        getPropertyStorage().addCollectionItem(COMPARTMENTS, compartment, List.class);
+        addCompartment(compartment);
         return compartment;
     }
 
@@ -286,7 +294,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
         /**
          * @param start sets the {@link #start}
          */
-        void setStart(DateTime start)
+        public void setStart(DateTime start)
         {
             this.start = start;
         }
@@ -302,7 +310,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
         /**
          * @param duration sets the {@link #duration}
          */
-        void setDuration(Period duration)
+        public void setDuration(Period duration)
         {
             this.duration = duration;
         }

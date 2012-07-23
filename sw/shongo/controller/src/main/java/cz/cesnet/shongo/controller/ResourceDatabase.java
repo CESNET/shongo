@@ -23,16 +23,6 @@ public class ResourceDatabase extends Component
     private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
 
     /**
-     * Entity manager that is used for loading/saving resources.
-     */
-    private EntityManager entityManager;
-
-    /**
-     * @see cz.cesnet.shongo.controller.resource.ResourceManager
-     */
-    private ResourceManager resourceManager;
-
-    /**
      * List of all resources in resource database by theirs id.
      */
     private Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
@@ -55,12 +45,10 @@ public class ResourceDatabase extends Component
     {
         super.init();
 
-        entityManager = getEntityManager();
-        resourceManager = new ResourceManager(entityManager);
-
         logger.debug("Loading resource database...");
 
         // Load all resources from db
+        ResourceManager resourceManager = new ResourceManager(getEntityManager());
         List<Resource> resourceList = resourceManager.list();
         for (Resource resource : resourceList) {
             addResource(resource);
@@ -91,11 +79,6 @@ public class ResourceDatabase extends Component
                     "Resource '" + resource.getId() + "' is already in the database!");
         }
 
-        // Save only resource that has not been saved yet
-        if (resource.isPersisted() == false) {
-            resourceManager.create(resource);
-        }
-
         // Add resource to list of all resources
         resourceMap.put(resource.getId(), resource);
 
@@ -120,11 +103,8 @@ public class ResourceDatabase extends Component
         }
 
         if (true) {
-            throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
+            //throw new RuntimeException("TODO: Implement ResourceDatabase.updateResource");
         }
-
-        // Update it
-        resourceManager.update(resource);
 
         // If resource is a device update it in the device topology
         if (resource instanceof DeviceResource) {
@@ -153,9 +133,6 @@ public class ResourceDatabase extends Component
 
         // Remove resource from the list of all resources
         resourceMap.remove(resource.getId());
-
-        // Delete it
-        resourceManager.delete(resource);
     }
 
     /**

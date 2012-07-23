@@ -3,21 +3,23 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.util.Serializer;
-import cz.cesnet.shongo.api.util.SerializerListener;
+import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.ControllerFault;
+import cz.cesnet.shongo.controller.api.PeriodicDateTime;
+import cz.cesnet.shongo.controller.api.Person;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a request created by an user to get allocated some resources for videoconference calls.
@@ -25,7 +27,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequest extends PersistentObject implements SerializerListener
+public class ReservationRequest extends PersistentObject
 {
     /**
      * State of reservation request.
@@ -346,21 +348,198 @@ public class ReservationRequest extends PersistentObject implements SerializerLi
         return false;
     }
 
-    @Override
-    public Object getApiPropertyValue(String propertyName) throws FaultException
+    private static Class ReservationRequestApi = cz.cesnet.shongo.controller.api.ReservationRequest.class;
+
+    /**
+     * @param entityManager
+     * @return converted reservation request to API
+     * @throws FaultException
+     */
+    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(EntityManager entityManager)
+            throws FaultException
     {
-        if (propertyName.equals("slots")) {
-            return Serializer.getApiPropertyValue(this, "requestedSlots");
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest =
+                new cz.cesnet.shongo.controller.api.ReservationRequest();
+
+        reservationRequest.setType(getType());
+        reservationRequest.setName(getName());
+        reservationRequest.setDescription(getDescription());
+        reservationRequest.setPurpose(getPurpose());
+
+        for (DateTimeSlot dateTimeSlot : getRequestedSlots()) {
+            reservationRequest.addSlot(dateTimeSlot.toApi());
         }
-        if (propertyName.equals("compartments")) {
-            return Serializer.getApiPropertyValue(this, "requestedCompartments");
+
+        for (Compartment compartment : getRequestedCompartments()) {
+            reservationRequest.addCompartment(compartment.toApi());
         }
-        return Serializer.getApiPropertyValue(this, propertyName);
+
+        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(this);
+        for (CompartmentRequest compartmentRequest : compartmentRequestList) {
+            cz.cesnet.shongo.controller.api.ReservationRequest.Request request =
+                    new cz.cesnet.shongo.controller.api.ReservationRequest.Request();
+            request.setStart(compartmentRequest.getRequestedSlot().getStart());
+            request.setDuration(compartmentRequest.getRequestedSlot().toPeriod());
+            request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_ALLOCATED);
+            reservationRequest.addRequest(request);
+        }
+
+        return reservationRequest;
     }
 
-    @Override
-    public void setApiPropertyValue(String propertyName, Object value) throws FaultException
+    /**
+     * Synchronize reservation request from API
+     *
+     * @param api
+     * @param entityManager
+     * @throws FaultException
+     */
+    public <API extends cz.cesnet.shongo.controller.api.ReservationRequest>
+    void fromApi(API api, EntityManager entityManager) throws FaultException
     {
-        Serializer.setApiPropertyValue(this, propertyName, value);
+        // Modify attributes
+        if (api.isPropertyFilled(API.TYPE)) {
+            setType(api.getType());
+        }
+        if (api.isPropertyFilled(API.NAME)) {
+            setName(api.getName());
+        }
+        if (api.isPropertyFilled(API.DESCRIPTION)) {
+            setDescription(api.getDescription());
+        }
+        if (api.isPropertyFilled(API.PURPOSE)) {
+            setPurpose(api.getPurpose());
+        }
+
+        // Create/modify requested slots
+        for (cz.cesnet.shongo.controller.api.DateTimeSlot apiSlot : api.getSlots()) {
+            // Create new requested slot
+            if (api.isCollectionItemMarkedAsNew(API.SLOTS, apiSlot)) {
+                fromApiCreateRequestedSlot(apiSlot);
+            }
+            else {
+                // Modify existing requested slot
+                DateTimeSlot dateTimeSlot = getRequestedSlotById(apiSlot.getId().longValue());
+                dateTimeSlot.setDuration(apiSlot.getDuration());
+
+                entityManager.remove(dateTimeSlot.getStart());
+
+                Object dateTime = apiSlot.getStart();
+                if (dateTime instanceof DateTime) {
+                    if (!(dateTimeSlot.getStart() instanceof AbsoluteDateTimeSpecification)
+                            || !((DateTime) dateTime).isEqual(((AbsoluteDateTimeSpecification) dateTimeSlot
+                            .getStart()).getDateTime())) {
+                        dateTimeSlot.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
+                    }
+                }
+                else if (dateTime instanceof PeriodicDateTime) {
+                    PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
+                    dateTimeSlot.setStart(new PeriodicDateTimeSpecification(periodic.getStart(),
+                            periodic.getPeriod()));
+                }
+            }
+        }
+        // Delete requested slots
+        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
+                api.getCollectionItemsMarkedAsDeleted(API.SLOTS);
+        for (cz.cesnet.shongo.controller.api.DateTimeSlot apiSlot : apiDeletedSlots) {
+            removeRequestedSlot(getRequestedSlotById(apiSlot.getId().longValue()));
+        }
+
+        // Create/modify requested compartments
+        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : api.getCompartments()) {
+            // Create new requested compartment
+            if (api.isCollectionItemMarkedAsNew(API.COMPARTMENTS, apiCompartment)) {
+                fromApiCreateRequestedCompartment(apiCompartment);
+            }
+            else {
+                // Modify existing requested compartment
+               throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            }
+        }
+        // Delete requested compartments
+        Set<cz.cesnet.shongo.controller.api.Compartment> apiDeletedCompartments =
+                api.getCollectionItemsMarkedAsDeleted(API.COMPARTMENTS);
+        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : apiDeletedCompartments) {
+            removeRequestedCompartment(getRequestedCompartmentById(apiCompartment.getId().longValue()));
+        }
+
+        // TODO: Delete from db deleted compartments that aren't referenced from compartment requests
+        // TODO: Think up how to delete all other objects (e.g. slots)
+    }
+
+    /**
+     * Create new requested slot in given reservation request from the given
+     * {@link cz.cesnet.shongo.controller.api.DateTimeSlot}.
+     *
+     * @param dateTimeSlot
+     * @throws FaultException
+     */
+    private void fromApiCreateRequestedSlot(cz.cesnet.shongo.controller.api.DateTimeSlot dateTimeSlot)
+            throws FaultException
+    {
+        Object dateTime = dateTimeSlot.getStart();
+        if (dateTime instanceof DateTime) {
+            addRequestedSlot(
+                    new AbsoluteDateTimeSpecification((DateTime) dateTime),
+                    dateTimeSlot.getDuration());
+        }
+        else if (dateTime instanceof PeriodicDateTime) {
+            PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
+            addRequestedSlot(
+                    new PeriodicDateTimeSpecification(periodic.getStart(),
+                            periodic.getPeriod()), dateTimeSlot.getDuration());
+        }
+        else {
+            throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
+                    "Unknown date/time type.");
+        }
+    }
+
+    /**
+     * Create a new requested compartment in given reservation request from the given {@link cz.cesnet.shongo.controller.api.Compartment}.
+     *
+     * @param compartment
+     * @throws FaultException
+     */
+    private void fromApiCreateRequestedCompartment(cz.cesnet.shongo.controller.api.Compartment compartment)
+            throws FaultException
+    {
+        Compartment compartmentImpl = addRequestedCompartment();
+        for (Person person : compartment.getPersons()) {
+            compartmentImpl.addRequestedPerson(
+                    new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
+        }
+        for (cz.cesnet.shongo.controller.api.Compartment.ResourceSpecificationMap map : compartment
+                .getResources()) {
+            cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification = null;
+            if (map.containsKey("technology")) {
+                Technology technology = Converter
+                        .convertStringToEnum((String) map.get("technology"), Technology.class);
+                if (map.containsKey("count")) {
+                    resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
+                            technology, Integer.parseInt(map.get("count").toString()));
+                }
+                else {
+                    resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
+                            technology, Integer.parseInt(map.get("count").toString()));
+                }
+            }
+            // Check resource specification existence
+            if (resourceSpecification == null) {
+                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            }
+            // Fill requested persons
+            if (map.containsKey("persons")) {
+                for (Object object : (Object[]) map.get("persons")) {
+                    cz.cesnet.shongo.controller.api.Person person =
+                            Converter.convert(object, cz.cesnet.shongo.controller.api.Person.class);
+                    resourceSpecification.addRequestedPerson(
+                            new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
+                }
+            }
+            compartmentImpl.addRequestedResource(resourceSpecification);
+        }
     }
 }

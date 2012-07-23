@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
-import cz.cesnet.shongo.api.util.Serializer;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ResourceDatabase;
@@ -91,27 +90,8 @@ public class ResourceServiceImpl extends Component implements ResourceService
         cz.cesnet.shongo.controller.resource.DeviceResource resourceImpl =
                 new cz.cesnet.shongo.controller.resource.DeviceResource();
 
-        // Fill common attributes
-        resourceImpl.setName(resource.getName());
-
-        // Fill technologies
-        for (Technology technology : resource.getTechnologies()) {
-            resourceImpl.addTechnology(technology);
-        }
-
-        // Fill capabilities
-        for (Capability capability : resource.getCapabilities()) {
-            if (capability instanceof VirtualRoomsCapability) {
-                VirtualRoomsCapability virtualRoomsCapability = (VirtualRoomsCapability) capability;
-                cz.cesnet.shongo.controller.resource.VirtualRoomsCapability virtualRoomsCapabilityImpl =
-                        new cz.cesnet.shongo.controller.resource.VirtualRoomsCapability();
-                virtualRoomsCapabilityImpl.setPortCount(virtualRoomsCapability.getPortCount());
-                resourceImpl.addCapability(virtualRoomsCapabilityImpl);
-            }
-            else {
-                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
-            }
-        }
+        // Synchronize from API
+        resourceImpl.fromApi(resource, entityManager);
 
         // Save it
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -140,31 +120,26 @@ public class ResourceServiceImpl extends Component implements ResourceService
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         // Get reservation request
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl =
-                resourceManager.get(resourceId);
-        if (resourceImpl == null) {
-            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, resourceId);
-        }
+        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
 
-        if (true) {
-            throw new RuntimeException("TODO: Implement ResourceServiceImpl.modifyResource");
-        }
+        // Synchronize from API
+        resourceImpl.fromApi(resource, entityManager);
 
-        // Modify attributes
-        if (resource.isPropertyFilled(Resource.NAME)) {
-            resourceImpl.setName(resource.getName());
-        }
+        resourceManager.update(resourceImpl);
+
+        entityManager.getTransaction().commit();
+        entityManager.close();
 
         // Update resource in resource database
         if (resourceDatabase != null) {
-            resourceDatabase.removeResource(resourceImpl);
+            resourceDatabase.updateResource(resourceImpl);
         }
     }
 
     @Override
     public void deleteResource(SecurityToken token, String resourceIdentifier) throws FaultException
     {
-        Long resource = domain.parseIdentifier(resourceIdentifier);
+        Long resourceId = domain.parseIdentifier(resourceIdentifier);
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
@@ -172,10 +147,7 @@ public class ResourceServiceImpl extends Component implements ResourceService
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         // Get the resource
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resource);
-        if (resourceImpl == null) {
-            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ReservationRequest.class, resource);
-        }
+        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
 
         // Delete the resource
         resourceManager.delete(resourceImpl);
@@ -218,15 +190,11 @@ public class ResourceServiceImpl extends Component implements ResourceService
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
-        if (resourceImpl == null) {
-            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Resource.class, resourceId);
-        }
-
-        Resource resource = Serializer.toApi(resourceImpl, Resource.class);
-        resource.setIdentifier(domain.formatIdentifier(resourceImpl.getId()));
+        Resource resourceApi = resourceImpl.toApi();
+        resourceApi.setIdentifier(domain.formatIdentifier(resourceImpl.getId()));
 
         entityManager.close();
 
-        return resource;
+        return resourceApi;
     }
 }

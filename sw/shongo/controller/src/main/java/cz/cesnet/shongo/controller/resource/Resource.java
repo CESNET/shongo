@@ -1,14 +1,16 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents an entity that can be scheduled.
@@ -105,6 +107,21 @@ public class Resource extends PersistentObject
     public List<Capability> getCapabilities()
     {
         return Collections.unmodifiableList(capabilities);
+    }
+
+    /**
+     * @param id
+     * @return capability with given {@code id}
+     * @throws FaultException
+     */
+    public Capability getCapabilityById(Long id) throws FaultException
+    {
+        for (Capability capability : capabilities) {
+            if (capability.getId().equals(id)) {
+                return capability;
+            }
+        }
+        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Capability.class, id);
     }
 
     /**
@@ -246,5 +263,78 @@ public class Resource extends PersistentObject
         map.put("name", getName());
         map.put("description", getDescription());
         addCollectionToMap(map, "capabilities", capabilities);
+    }
+
+    /**
+     * @return converted resource to API
+     * @throws FaultException
+     */
+    public cz.cesnet.shongo.controller.api.Resource toApi() throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
+        resource.setName(getName());
+
+        if ( this instanceof DeviceResource ) {
+            DeviceResource deviceResource = (DeviceResource) this;
+            for (Technology technology : deviceResource.getTechnologies() ) {
+                resource.addTechnology(technology);
+            }
+        }
+
+        for ( Capability capability : getCapabilities()) {
+            resource.addCapability(capability.toApi());
+        }
+
+        return resource;
+    }
+
+    public <API extends cz.cesnet.shongo.controller.api.Resource>
+    void fromApi(API api, EntityManager entityManager) throws FaultException
+    {
+        // Modify attributes
+        if (api.isPropertyFilled(API.NAME)) {
+            setName(api.getName());
+        }
+
+        if ( this instanceof DeviceResource ) {
+            DeviceResource deviceResource = (DeviceResource) this;
+            // Create technologies
+            for (Technology technology : api.getTechnologies()) {
+                if ( api.isCollectionItemMarkedAsNew(API.TECHNOLOGIES, technology) ) {
+                    deviceResource.addTechnology(technology);
+                }
+            }
+            // Delete technologies
+            Set<Technology> technologies = api.getCollectionItemsMarkedAsDeleted(API.TECHNOLOGIES);
+            for (Technology technology : technologies) {
+                deviceResource.removeTechnology(technology);
+            }
+        }
+
+        // Create/modify capabilities
+        for (cz.cesnet.shongo.controller.api.Capability apiCapability : api.getCapabilities()) {
+            if (apiCapability instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
+                cz.cesnet.shongo.controller.api.VirtualRoomsCapability apiVirtualRoomsCapability =
+                        (cz.cesnet.shongo.controller.api.VirtualRoomsCapability) apiCapability;
+                VirtualRoomsCapability virtualRoomsCapability = null;
+                if ( api.isCollectionItemMarkedAsNew(API.CAPABILITIES, apiCapability)) {
+                    virtualRoomsCapability = new VirtualRoomsCapability();
+                } else {
+                    virtualRoomsCapability = (VirtualRoomsCapability) getCapabilityById(
+                            apiVirtualRoomsCapability.getId().longValue());
+                }
+                virtualRoomsCapability.setPortCount(apiVirtualRoomsCapability.getPortCount());
+                addCapability(virtualRoomsCapability);
+            }
+            else {
+                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            }
+        }
+        // Delete capabilities
+        Set<cz.cesnet.shongo.controller.api.Capability> apiDeletedCapabilities =
+                api.getCollectionItemsMarkedAsDeleted(API.CAPABILITIES);
+        for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
+            removeCapability(getCapabilityById(apiCapability.getId().longValue()));
+        }
     }
 }

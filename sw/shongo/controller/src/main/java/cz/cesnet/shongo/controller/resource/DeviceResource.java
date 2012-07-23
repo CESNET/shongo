@@ -165,6 +165,14 @@ public class DeviceResource extends Resource
     }
 
     /**
+     * @param technology technology to be removed from the {@link #technologies}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        technologies.remove(technology);
+    }
+
+    /**
      * @return {@link #preferredTechnology}
      */
     @Column

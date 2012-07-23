@@ -159,4 +159,16 @@ public class Person extends PersistentObject
         map.put("email", getEmail());
         map.put("phoneNumber", getPhoneNumber());
     }
+
+    /**
+     * @return person converted to API
+     */
+    public cz.cesnet.shongo.controller.api.Person toApi()
+    {
+        cz.cesnet.shongo.controller.api.Person person = new cz.cesnet.shongo.controller.api.Person();
+        person.setId(getId().intValue());
+        person.setName(getName());
+        person.setEmail(getEmail());
+        return person;
+    }
 }
