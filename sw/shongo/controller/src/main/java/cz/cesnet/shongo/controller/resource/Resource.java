@@ -5,8 +5,12 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.*;
@@ -244,7 +248,7 @@ public class Resource extends PersistentObject
     /**
      * @return {@link #maximumFuture}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public DateTimeSpecification getMaximumFuture()
     {
@@ -301,6 +305,17 @@ public class Resource extends PersistentObject
         resource.setSchedulable(isSchedulable());
         resource.setDescription(getDescription());
 
+        DateTimeSpecification maxFuture = getMaximumFuture();
+        if ( maxFuture != null ) {
+            if ( maxFuture instanceof AbsoluteDateTimeSpecification) {
+                resource.setMaxFuture(((AbsoluteDateTimeSpecification) maxFuture).getDateTime());
+            } else if ( maxFuture instanceof RelativeDateTimeSpecification) {
+                resource.setMaxFuture(((RelativeDateTimeSpecification) maxFuture).getDuration());
+            } else {
+                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            }
+        }
+
         Resource parentResource = getParentResource();
         if (parentResource != null ) {
             resource.setParentIdentifier(domain.formatIdentifier(parentResource.getId()));
@@ -350,6 +365,16 @@ public class Resource extends PersistentObject
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 Resource parentResource = resourceManager.get(parentResourceId);
                 setParentResource(parentResource);
+            }
+        }
+        if (api.isPropertyFilled(API.MAX_FUTURE)) {
+            Object maxFuture = api.getMaxFuture();
+            if ( maxFuture instanceof DateTime) {
+                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime)maxFuture));
+            } else if ( maxFuture instanceof Period) {
+                setMaximumFuture(new RelativeDateTimeSpecification((Period) maxFuture));
+            } else {
+                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
             }
         }
 

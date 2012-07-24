@@ -291,7 +291,7 @@ public class ReservationRequest extends PersistentObject
     /**
      * @return {@link #interDomain}
      */
-    @Column
+    @Column(nullable = false, columnDefinition = "boolean default false")
     public boolean isInterDomain()
     {
         return interDomain;
@@ -365,6 +365,7 @@ public class ReservationRequest extends PersistentObject
         reservationRequest.setName(getName());
         reservationRequest.setDescription(getDescription());
         reservationRequest.setPurpose(getPurpose());
+        reservationRequest.setInterDomain(isInterDomain());
 
         for (DateTimeSlot dateTimeSlot : getRequestedSlots()) {
             reservationRequest.addSlot(dateTimeSlot.toApi());
@@ -410,6 +411,9 @@ public class ReservationRequest extends PersistentObject
         }
         if (api.isPropertyFilled(API.PURPOSE)) {
             setPurpose(api.getPurpose());
+        }
+        if (api.isPropertyFilled(API.INTER_DOMAIN)) {
+            setInterDomain(api.getInterDomain());
         }
 
         // Create/modify requested slots

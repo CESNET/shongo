@@ -46,7 +46,7 @@ public class Scheduler extends Component
     {
         checkInitialized();
 
-        logger.debug("Running scheduler for interval '{}'...", formatInterval(interval));
+        logger.info("Running scheduler for interval '{}'...", formatInterval(interval));
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();

@@ -184,8 +184,11 @@ sub modify_attributes()
         return;
     }
     $self->{'description'} = console_edit_value('Description of the resource', 0, undef, $self->{'description'});
+    $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0,
+        $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
     $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
-    $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0, $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
+    $self->{'maxFuture'} = console_edit_value('Maximum Future', 0,
+        $Shongo::Common::DateTimePattern . '|' . $Shongo::Common::PeriodPattern, $self->{'maxFuture'});
 }
 
 #
@@ -247,14 +250,17 @@ sub to_string()
     my ($self) = @_;
 
     my $string = " RESOURCE\n";
+
     if ( defined($self->{'identifier'}) ) {
-        $string .= "      Identifier: $self->{'identifier'}\n";
+        $string .= "  Identifier: $self->{'identifier'}\n";
     }
+    $string .= "        Name: $self->{'name'}\n";
+    $string .= " Description: $self->{'description'}\n";
     if ( defined($self->{'parentIdentifier'}) ) {
-        $string .= "          Parent: $self->{'parentIdentifier'}\n";
+        $string .= "      Parent: $self->{'parentIdentifier'}\n";
     }
     if ( defined($self->{'childResourceIdentifiers'}) && scalar(@{$self->{'childResourceIdentifiers'}}) > 0 ) {
-        $string .= " Child resources: ";
+        $string .= "    Children: ";
         my $index = 0;
         foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
             if ( $index > 0 ) {
@@ -265,9 +271,8 @@ sub to_string()
         }
         $string .= "\n";
     }
-    $string .= "            Name: $self->{'name'}\n";
-    $string .= "     Description: $self->{'description'}\n";
-    $string .= "     Schedulable: $self->{'schedulable'}\n";
+    $string .= " Schedulable: $self->{'schedulable'}\n";
+    $string .= "  Max Future: $self->{'maxFuture'}\n";
     $string .= technologies_to_string($self->{'technologies'});
     $string .= $self->capabilities_to_string();
 

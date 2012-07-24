@@ -17,8 +17,10 @@ our @EXPORT = qw(
 
 use DateTime::Format::ISO8601;
 
-# Identifier pattern
-our $IdentifierPattern = '\\d|shongo:.+:\\d';
+# Regular Expression Patterns
+our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
+our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d$)';
+our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
 
 #
 # Create hash from given values which has item "__keys" as array with keys in insertion order.

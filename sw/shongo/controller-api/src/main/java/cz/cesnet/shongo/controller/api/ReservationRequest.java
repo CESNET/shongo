@@ -52,6 +52,11 @@ public class ReservationRequest extends IdentifiedChangeableObject
     public static final String COMPARTMENTS = "compartments";
 
     /**
+     * Specifies whether the scheduler should try allocate resources from other domains.
+     */
+    public static final String INTER_DOMAIN = "interDomain";
+
+    /**
      * List of {@link Request} which are already processed for the reservation.
      */
     private List<Request> requests = new ArrayList<Request>();
@@ -233,6 +238,22 @@ public class ReservationRequest extends IdentifiedChangeableObject
     public void removeCompartment(Compartment compartment)
     {
         getPropertyStorage().removeCollectionItem(COMPARTMENTS, compartment);
+    }
+
+    /**
+     * @return {@link #INTER_DOMAIN}
+     */
+    public Boolean getInterDomain()
+    {
+        return getPropertyStorage().getValue(INTER_DOMAIN);
+    }
+
+    /**
+     * @param interDomain sets the {@link #INTER_DOMAIN}
+     */
+    public void setInterDomain(Boolean interDomain)
+    {
+        getPropertyStorage().setValue(INTER_DOMAIN, interDomain);
     }
 
     /**

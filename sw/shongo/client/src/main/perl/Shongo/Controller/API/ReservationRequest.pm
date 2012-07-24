@@ -228,17 +228,17 @@ sub modify_slots()
         sub {
             my $actions = [
                 'Add new requested slot by absolute date/time' => sub {
-                    my $dateTime = console_read_value("Type a date/time", 0, "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d");
-                    my $duration = console_read_value("Type a slot duration");
+                    my $dateTime = console_read_value("Type a date/time", 1, $Shongo::Common::DateTimePattern);
+                    my $duration = console_read_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern);
                     if ( defined($dateTime) && defined($duration) ) {
                         add_collection_item(\$self->{'slots'}, {'start' => $dateTime, 'duration' => $duration});
                     }
                     return undef;
                 },
                 'Add new requested slot by periodic date/time' => sub {
-                    my $dateTime = console_read_value("Type a starting date/time", 0, "\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d");
-                    my $period = console_read_value("Type a period");
-                    my $duration = console_read_value("Type a slot duration");
+                    my $dateTime = console_read_value("Type a starting date/time", 1, $Shongo::Common::DateTimePattern);
+                    my $period = console_read_value("Type a period", 0, $Shongo::Common::PeriodPattern);
+                    my $duration = console_read_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern);
                     if ( defined($dateTime) && defined($period) && defined($duration) ) {
                         add_collection_item(\$self->{'slots'}, {'start' => {'start' => $dateTime, 'period' => $period}, 'duration' => $duration});
                     }

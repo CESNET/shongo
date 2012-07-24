@@ -1,8 +1,12 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
+import org.joda.time.DateTime;
+import org.joda.time.Duration;
+import org.joda.time.Period;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,11 @@ public class Resource extends IdentifiedChangeableObject
      * Specifies whether resource can be scheduled by a scheduler.
      */
     public static final String SCHEDULABLE = "schedulable";
+
+    /**
+     * Specifies the maximum future for which the resource can be scheduled.
+     */
+    public static final String MAX_FUTURE = "maxFuture";
 
     /**
      * Set of technologies which the resource supports.
@@ -123,7 +132,7 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #NAME}
+     * @return {@link #SCHEDULABLE}
      */
     public Boolean getSchedulable()
     {
@@ -136,6 +145,23 @@ public class Resource extends IdentifiedChangeableObject
     public void setSchedulable(Boolean schedulable)
     {
         getPropertyStorage().setValue(SCHEDULABLE, schedulable);
+    }
+
+    /**
+     * @return {@link #MAX_FUTURE}
+     */
+    @AllowedTypes({DateTime.class, Period.class})
+    public Object getMaxFuture()
+    {
+        return getPropertyStorage().getValue(MAX_FUTURE);
+    }
+
+    /**
+     * @param maxFuture sets the {@link #MAX_FUTURE}
+     */
+    public void setMaxFuture(Object maxFuture)
+    {
+        getPropertyStorage().setValue(MAX_FUTURE, maxFuture);
     }
 
     /**

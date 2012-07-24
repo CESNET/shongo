@@ -66,15 +66,4 @@ public interface ResourceService extends Service
      */
     @API
     public Resource getResource(SecurityToken token, String resourceIdentifier) throws FaultException;
-
-    /**
-     * Checks whether a given resource is used by any reservation in specified date/time.
-     *
-     * @param token      token of the user requesting the operation
-     * @param resourceId Shongo identifier of the resource to check
-     * @param dateTime   date/time to check
-     * @return
-     */
-    //@API
-    //boolean isResourceActive(SecurityToken token, String resourceId, AbsoluteDateTime dateTime);
 }

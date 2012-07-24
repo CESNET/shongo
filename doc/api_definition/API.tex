@@ -21,6 +21,7 @@
 \usepackage{ifthen}
 \usepackage{xspace}
 \usepackage{verbatim}
+\usepackage{parcolumns}
 
 \usepackage{relsize}
 \usepackage{xcolor}
@@ -727,14 +728,77 @@ Export reservation stats in some common format like CDR.
 
 \chapter{Common Data Types and Object Classes}
 
-In this chapter we describe atomic types, enum types and object classes. In XML-RPC, every atomic type is converted to it's equivalent and each enum is converted to |String|. Object instances are converted to XML-RPC's |struct| and each non-empty object's attribute to XML-RPC |member| which consists of |name| and |value|. Every |struct| also includes one special \ApiValue{class} member which defines object class.
+In this chapter common atomic types, enum types and object classes for Shongo API are described.
 
-We use XML-RPC empty |struct| to represent |null| values, e.g., when the user want to clear attribute value by |modify| API method, he should set the attribute value to empty |struct| and the value will be cleared on the server.
+\section{XML-RPC}
+In XML-RPC types are represented as follows:
+
+\begin{compactitem}
+
+\item Values of atomic types are represented by their's equivalent in XML-RPC (e.g., integer value \ApiValue{42} as \ApiValue{<i4>42</i4>} or string value \ApiValue{Hello} as \ApiValue{<string>Hello</string>}).
+
+\item Enum values are represented as strings (e.g., \ApiValue{ReservationRequestType.PERMANENT} as \ApiValue{<string>PERMANENT</string>}).
+
+\item Arrays are represented as XML-RPC |array|s, e.g.
+\begin{parcolumns}[nofirstindent=true, colwidths={1=.36\textwidth}]{3}%
+\vspace{-3.5mm}\colchunk{%}
+\footnotesize\begin{verbatim}
+[101, 202]
+\end{verbatim}
+\flushright as
+}%
+\colchunk{%
+\footnotesize\begin{verbatim}
+<array><data>
+  <value><i4>101</i4></value>
+  <value><i4>202</i4></value>
+</data></array>
+\end{verbatim}
+}
+\end{parcolumns}\vspace{1mm}
+
+\item Object instances are represented as XML-RPC |struct| types with special \ApiValue{class} attribute specifying object type, e.g.%
+\begin{parcolumns}[nofirstindent=true, colwidths={1=.36\textwidth}]{3}%
+\vspace{-3.5mm}\colchunk{%}
+\footnotesize\begin{verbatim}
+Person {
+  name: "Martin Srom",
+  email: "srom@cesnet.cz"
+}
+\end{verbatim}
+\flushright as
+}%
+\colchunk{%
+\footnotesize\begin{verbatim}
+<struct>
+  <member>
+    <name>class</name>
+    <value><string>Person</string></value>
+  </member>
+  <member>
+    <name>name</name>
+    <value><string>Martin Srom</string></value>
+  </member>
+  <member>
+    <name>email</name>
+    <value><string>srom@cesnet.cz</string></value>
+  </member>
+</struct>
+\end{verbatim}
+}
+\end{parcolumns}\vspace{1mm}
+
+\item Null values are represented as empty XML-RPC |struct| type (<struct></struct>). It is useful e.g., when the user want to clear attribute value by any |modify| API method. He should set the attribute value to empty |struct| and the value will be cleared on the server.
+
+\item Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
+
+\end{compactitem}
 
 
 \section{Failure Related}
 
-Failures are propagated through XML-RPC by |faultCode| and |faultString| values. List of common faults:
+List of common faults:
+
 \begin{ApiFailures}
 
 \ApiFailure{0} Unknown fault which is described by |faultString|.
@@ -757,7 +821,7 @@ Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
 
 \ApiFailure{40} Record was not found, the |faultString| specifies which record.
 
-\ApiFailure{99} A part of request is not implemented yet. The domain controller log must be checked for more details.
+\ApiFailure{99} A part of request is not implemented yet. An application log must be checked for more details.
 
 \end{ApiFailures}                
                 
@@ -770,18 +834,25 @@ These are only common faults that are independent on specific API section. Other
 
 \ApiClass{UserIdentity}{}
 Each user that accesses shongo or participates in shongo managed videoconference should be identified by |UserIdentity| definition.
+
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiRequired}
 Equals to eduID identity. In future there can be unique identifier that associates multiple eduID for the same person.
 \end{ApiClassAttributes}
 
+\TODO{Consider usage of Person instead of UserIdentity or vice versa}
 
 \ApiClass{SecurityToken}{}
 Contains identity and credentials of a user performing the requested operation.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{user}{UserIdentity}{\ApiRequired}
-User identity.
 \item \TODO{Authorization data}
+\end{ApiClassAttributes}
+
+\ApiClass{Person}{}
+Represents a person that can access a Shongo videoconference.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiRequired} Name to be displayed.
+\ApiClassAttribute{email}{String}{\ApiRequired} Email to which a videoconference invitation should be sent.
 \end{ApiClassAttributes}
 
 \end{Api}
@@ -792,36 +863,46 @@ User identity.
 \begin{Api}
 
 \ApiType{Period}{String}
-Represented as ISO8601 period or duration (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The first character "\ApiValue{P}" means period and it comes from the ISO8601 standard. Components can be omitted (e.g.,~\ApiValue{P3YT12H} which is \textit{3 years and 12 hours}). The zero duration is represented by \ApiValue{PT0S} value (which is \textit{0 seconds}).
+Used for representing period or duration. Format is specified by ISO8601 period (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The first character "\ApiValue{P}" means period and it comes from the ISO8601 standard. Components can be omitted (e.g.,~\ApiValue{P3YT12H} which is \textit{3 years and 12 hours}). The zero duration is represented by \ApiValue{PT0S} value (which is \textit{0 seconds}).
+
+\ApiExample We want to set videoconference duration:
+\begin{quote}
+\begin{verbatim}
+duration = PT2H
+\end{verbatim}
+\end{quote}
 
 \ApiType{DateTime}{String}
-Represented as ISO8601 date/time in UTC (e.g., 20120130T10:09:55). More efficient way of implementation may be used internally, of course. All time data are handled as in UTC while clients are responsible for suitable converting between timezones.
+Used for representing an absolute date/time. Format is specified by ISO8601 date/time in UTC (e.g., 20120130T10:09:55) or with explicit timezone specification (e.g., 20120130T10:09:55+02:00).
 
 \ApiExample We want to create a new reservation for resources at the precise date. We can specify it by |DateTime|:
+\begin{quote}
 \begin{verbatim}
-dateTime = 20121231
+dateTime = 2012-12-31T12:00
 \end{verbatim}
-
+\end{quote}
 
 \ApiType{RelativeDateTime}{Period}
-Relative date is calculated as referenced date/time increased by |Period|.
+Used for representing a relative date/time. Relative date/time can be evaluated to absolute date/time by specifying a referenced absolute date/time.
 
-\ApiExample We want to define the maximum amount of time since the request moment (e.g., the user can specify dates which are at most 4 months ahead). We can specify it by |RelativeDateTime| as follows:
+\ApiExample We want to define a maximum future to which a resource can be scheduled. We can specify it by |RelativeDateTime| as follows:
+\begin{quote}
 \begin{verbatim}
 relativeDateTime = P4M
 \end{verbatim}
-
+\end{quote}
+The \ApiValue{relativeDateTime} can be evaluated by using reference date/time \ApiValue{2012-01-01T00:00} to \ApiValue{2012-05-01T00:00}.
 
 \ApiClass{PeriodicDateTime}{}
 It can be used for events that takes place repeatedly, but also for events that take place only once.
 
 \begin{ApiClassAttributes}
-\ApiClassAttribute{start}{AbsoluteDateTime}{\ApiRequired}
+\ApiClassAttribute{start}{DateTime}{\ApiRequired}
 Defines the first occurrence of an event.
 \ApiClassAttribute{period}{Period}{\ApiOptional}
 Defines the period in which the repeated events take place. See |Period| for format specification.
-\ApiClassAttribute{end}{AbsoluteDateTime}{\ApiOptional}
-Ending date/time for events to not occur forever.
+\ApiClassAttribute{end}{DateTime}{\ApiOptional}
+Ending date/time for events to not occur forever (not required, we can specify infinite periodic date/time).
 \ApiClassAttribute{rules}{Rule[]}{\ApiOptional}
 List of rules, which can define an extra events out of the periodicity or cancel specified periodical events. |Rule| can be one of the following types:
 \begin{compactitem}
@@ -832,11 +913,14 @@ Rules contains implicit definition of |Enable| rule for whole |PeridiocDateTime|
 \end{ApiClassAttributes}
 
 \ApiExample Only one lecture on 20.3.2012.
+\begin{quote}
 \begin{verbatim}
 periodicDateTime.start = 20110908T12:00:00
 \end{verbatim}
+\end{quote}
 
 \ApiExample A lecture on every Thursday at 12:00 with extra lecture on 20.3.2012 and Christmas holidays.
+\begin{quote}
 \begin{verbatim}
 periodicDate.start = 20110908T12:00:00
 periodicDate.period = P1W
@@ -846,15 +930,16 @@ periodicDate.rules = {
     { type = Extra, dateTime = 20120320 }
 }
 \end{verbatim}
+\end{quote}
 
 \ApiType{Interval}{String}
-Represents the time between two instants. Values must be in format \ApiValue{<DateTime>,<Period>} where \ApiValue{<DateTime>} is |DateTime| and \ApiValue{<Period>} is |Period|.
+Represents the time between two instants. Values must be in format \ApiValue{<DateTime>,<Period>} where \ApiValue{<DateTime>} is in |DateTime| format and \ApiValue{<Period>} in |Period| format.
 
 \ApiClass{DateTimeSlot}{}
-Date/time slot is a pair of starting date/time and |Period|.
+Date/time slot can represent one or more |Interval| values. Definition of date/time slot is a pair of starting date/time and duration, where starting date/time can be periodic and thus can result into multiple absolute date/times.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{start}{DateTime\|PeridicDateTime}{\ApiRequired}
-Defines the start of date/time slot.
+Defines the start of date/time slot (or multiple starts in case of periodic date/time).
 \ApiClassAttribute{duration}{Period}{\ApiRequired}
 Defines the duration of date/time slot.
 \end{ApiClassAttributes}
@@ -871,6 +956,7 @@ If date/time slot contains |PeriodicDateTime|, all periodic events can be listed
 \begin{Api}
 
 \ApiEnum{Technology}
+Enumeration of supported (or planned to be supported) videoconference technologies.
 \begin{ApiEnumValues}
 \ApiEnumValue{H323}{}
 \ApiEnumValue{SIP}{}
@@ -931,7 +1017,7 @@ If date/time slot contains |PeriodicDateTime|, all periodic events can be listed
 
 
 \ApiClass{Capability}{}
-Base class for all specific capabilities which the device can support.
+Base class for all specific capabilities which a device resource can support. A device resource can support zero, one or multiple capabilities.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
 Set of technologies for which the capability is supported by the device. 
@@ -964,6 +1050,8 @@ This class represents a complete resource definition. This class is used for cre
 \ApiClassAttribute{identifier}{String}{\ApiRequired} Resource unique identifier as defined in \UCref{res:identification}.
 \ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
+\ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
+Set of technologies which are supported by the resource. If the set is not empty the resource is considered as device resource and thus it can participate in videoconferences. 
 \ApiClassAttribute{capabilities}{Capability[]}{\ApiOptional} Capabilities of the resource.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
@@ -973,10 +1061,10 @@ This class represents a complete resource definition. This class is used for cre
 
 
 \ApiClass{VirtualRoomsCapability}{Capability}
-Capability for devices which allows for creating virtual rooms for connecting multiple endpoint.
+Capability for devices which allows for creating virtual rooms for connecting multiple endpoints (e.g., H.323 MCU will support |VirtualRoomsCapability|).
 \begin{ApiClassAttributes}
 \ApiClassAttribute{portCount}{Integer}{\ApiRequired}
-Maximum port count for all virtual rooms.
+Maximum number of ports which can be allocated for all virtual rooms.
 \end{ApiClassAttributes}
 
 
@@ -984,49 +1072,77 @@ Maximum port count for all virtual rooms.
 \ApiClass{ResourceSummary}{}
 This class represents a summary of a resource. The summary of resource is lightweight and does not contain all resource attributes. It contains some useful additional "calculated" attributes. It is suitable when listing a lot of resources from controller database where the detail information about resource is not appropriate.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{identifier}{String}{}
-\ApiClassAttribute{name}{String}{}
+\ApiClassAttribute{identifier}{String}{} Resource unique identifier.
+\ApiClassAttribute{name}{String}{} Resource name which can be displayed.
 \ApiClassAttribute{technologies}{String}{} Enumeration of supported technologies (separated by comma).
 \end{ApiClassAttributes}
 
 
-\ApiEnum{ReservationType}
+\ApiEnum{ReservationRequestType}
 \begin{ApiEnumValues}
-\ApiEnumValue{Periodic}{} One time or periodic reservation as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time reservation is a special case of periodic reservation).
-\ApiEnumValue{Permanent}{} Permanent reservation as defined in \UCref{rsv:reservation:permanent}.
+\ApiEnumValue{NORMAL}{} One time or periodic reservation as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time reservation is a special case of periodic reservation).
+\ApiEnumValue{PERNAMENT}{} Permanent reservation as defined in \UCref{rsv:reservation:permanent}.
 \end{ApiEnumValues}
 
 
-\ApiClass{Reservation}{}
-This class represents a complete reservation definition. It contains specification of requested resources, requested date/time slots, child reservations and all other reservation attributes. This class is used for creating and modifying reservations.
+\ApiEnum{ReservationRequestPurpose}
+\begin{ApiEnumValues}
+\ApiEnumValue{SCIENCE}{} Reservation will be used for research purposes.
+\ApiEnumValue{EDUCATION}{} Reservation will be used for education purposes (e.g., for a lecture).
+\end{ApiEnumValues}
+
+
+\ApiClass{ReservationRequest}{}
+This class represents a complete reservation request definition. It contains specification of requested compartments, requested date/time slots, child reservations and all other attributes. This class is used for creating and modifying reservation requests.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiReadOnly} Reservation unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{type}{ReservationType}{\ApiReadOnly} Type of reservation, see |ReservationType|.
-\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the scheduler should try allocate resources from other domains.
+\ApiClassAttribute{identifier}{String}{\ApiReadOnly} Reservation unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{type}{ReservationRequestType}{\ApiRequired} Type of reservation request, see |ReservationReqestType|.
+\ApiClassAttribute{name}{String}{\ApiRequired} Name of reservation request.
+\ApiClassAttribute{purpose}{ReservationRequestPurpose}{\ApiRequired} Purpose of reservation request, see |ReservationReqestPurpose|.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long reservation description.
-\ApiClassAttribute{resources}{Resource[]}{\ApiRequired} List of requested resources by this reservation. Each |Resource| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
 \ApiClassAttribute{slots}{DateTimeSlot[]}{\ApiRequired} Requested date/time slots for the reservation.
-\ApiClassAttribute{childReservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
-\ApiClassAttribute{users}{UserIdentity[]}{\ApiOptional} List of users that will be permitted to participate in the videoconference. The list can contain several empty |User| definitions to allow guests.
+\ApiClassAttribute{compartments}{Compartment[]}{\ApiRequired} Requested compartments for the reservation, see |Compartment|.
+%\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the scheduler should try allocate resources from other domains.
+%\ApiClassAttribute{childReservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
 \end{ApiClassAttributes}
 
 
-\ApiClass{ReservationAllocation}{}
-This class represents a successfully allocated date/time slots and its' allocated resources for a reservation. It contains only read only data that are obtained from a scheduler.
+\ApiClass{Compartment}{}
+Represents a group of resources that should be interconnected by the scheduler. It is useful to create two compartments in a single reservation request when the user wants to have two independent groups of device resources.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{} Reservation unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{slotResources}{Map<AbsoluteDateTimeSlot, String[]>}{\ApiReadOnly} Map of allocated resources where key is allocated date/time slot and value is list of allocated resources identifiers for the date/time slot (for different date/time slots there can be different allocated resources).
+\ApiClassAttribute{resources}{ResourceSpecification[]}{\ApiRequired} List of requested resources by this reservation. Each |ResourceSpecification| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
+\ApiClassAttribute{persons}{Person[]}{\ApiOptional} List of persons that will be invited to participate in the videoconference.
 \end{ApiClassAttributes}
 
 
-\ApiClass{ReservationSummary}{}
-This class represents a summary of a reservation. The summary of reservation is lightweight and does not contain all reservation attributes. It contains some useful additional "calculated" attributes. It is suitable when listing a lot of reservations from controller database where the detail information about reservation is not appropriate.
+\ApiClass{ResourceSpecification}{}
+Represents an external endpoint resource that is requested for a compartment.
+\\ \TODO{Allow also other types of resource specification (except external endpoint)}
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{} Reservation unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{type}{ReservationType}{}
-\ApiClassAttribute{description}{String}{}
-\ApiClassAttribute{dateTime}{AbsoluteDateTime}{} Specifies the first future date/time when the reservation takes place.
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of resource.
+\ApiClassAttribute{count}{Integer}{\ApiOptional} Number of same resources.
+\ApiClassAttribute{persons}{Person[]}{\ApiOptional} List of persons that will be invited to participate in the videoconference and by default they will use this resource for connecting to the videoconference.
 \end{ApiClassAttributes}
+
+
+\ApiClass{ReservationRequestSummary}{}
+This class represents a summary of a reservation request. The summary is lightweight and does not contain all reservation request attributes. It contains some useful additional "calculated" attributes. It is suitable when listing a lot of reservation requests from the controller database where the detail information about reservation request is not appropriate.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{} Reservation request unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{type}{ReservationRequestType}{} Type of reservation request, see |ReservationRequestType|.
+\ApiClassAttribute{name}{String}{} Name of the reservation request.
+\ApiClassAttribute{purpose}{ReservationRequestPurpose}{} Purpose of reservation request, see |ReservationRequestPurpose|.
+\ApiClassAttribute{description}{String}{} Description of reservation request.
+\ApiClassAttribute{earliestSlot}{Interval}{} Specifies the first future date/time slot when the reservation takes place.
+\end{ApiClassAttributes}
+
+
+%\ApiClass{ReservationAllocation}{}
+%This class represents a successfully allocated date/time slots and its' allocated resources for a reservation. It contains only read only data that are obtained from a scheduler.
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{id}{String}{} Reservation unique identifier as defined in \UCref{rsv:identification}.
+%\ApiClassAttribute{slotResources}{Map<AbsoluteDateTimeSlot, String[]>}{\ApiReadOnly} Map of allocated resources where key is allocated date/time slot and value is list of allocated resources identifiers for the date/time slot (for different date/time slots there can be different allocated resources).
+%\end{ApiClassAttributes}
 
 
 \ApiClass{RoomUser}{}
@@ -1038,7 +1154,7 @@ User identification in room (technology specific).
 Room unique identifier. \TODO{The identifier should contain a part denoting the user and a part denoting his/her session -- as requested by use case \ref{UC:ops:room:users-list}. resolved on the UserIdentity level}
 \ApiClassAttribute{userIdentity}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
-\ApiClassAttribute{joinTime}{AbsoluteDateTime}{} Date and time when the user joined the room.
+\ApiClassAttribute{joinTime}{DateTime}{} Date and time when the user joined the room.
 \ApiClassAttribute{muted}{boolean}{}
 Is the user muted?
 \ApiClassAttribute{microphoneLevel}{int}{}
@@ -1051,10 +1167,10 @@ User layout, overriding the room default layout.
 
 \end{Api}
 
-\begin{figure}[ht!]
-\includegraphics[width=\textwidth]{img/common_data_types.pdf}
-\caption{Class Diagram of Common Data Types}
-\end{figure}
+%\begin{figure}[ht!]
+%\includegraphics[width=\textwidth]{img/common_data_types.pdf}
+%\caption{Class Diagram of Common Data Types}
+%\end{figure}
 
 
 \chapter{User Interface API Specification}
@@ -1121,25 +1237,27 @@ Lists all known domains.
 
 \begin{Api}
 
-\ApiCmd{String createResource(SecurityToken token, String domain, Map attributes)}
-Create a new resource that will be managed by Shongo. The new resource identifier is returned as a result. The user with given |token| will be the resource owner. Map of |attributes| should contain only attributes specified in |Resource| class and all attributes marked as \ApiRequired\ must be present.
+\ApiCmd{String createResource(SecurityToken token, Resource resource)}
+Create a new resource that will be stored in the domain controller. The new resource identifier is returned as a result. The user with given |token| will be the resource owner. The |resource| must contain all attributes marked as \ApiRequired.
 
-\ApiCmd{modifyResource(SecurityToken token, String resourceId, Map attributes)}
-Modify the resource with specified |resourceId|. That operation is permited only when the user with given |token| is the resource owner. Map of |attributes| should contain only attributes specified in |Resource| class.
+\ApiCmd{modifyResource(SecurityToken token, Resource resource)}
+Modify the given resource. Attribute |identifier| must be filled and identifies the resource to be modified. That operation is permited only when the user with given |token| is the resource owner. The |resource| should contain only attributes to be modified.
 
-\ApiCmd{deleteResource(SecurityToken token, String resourceId)}
-Delete the resource with specified |resourceId| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+\ApiCmd{deleteResource(SecurityToken token, String resourceIdentifier)}
+Delete the resource with specified |resourceIdentifier| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
 
-\ApiCmd{Resource getResource(SecurityToken token, String resourceId)}
-Get the complete resource object for specified |resourceId| that a user with given |token| is entitled to see. See |Resource| for details.
+\ApiCmd{ResourceSummary[] listResources(SecurityToken token)}
+List of resource summaries managed by Shongo, that a user with given |token| is entitled to see.
 
-\ApiCmd{ResourceSummary[] listResources(SecurityToken token, Map filter)}
-List of resources managed by Shongo, that a user with given |token| is entitled to see and that meet the resource |filter| which contains only attributes defined in |ResourceSummary| class. See |ResourceSummary| for details.
+\ApiCmd{Resource getResource(SecurityToken token, String resourceIdentifier)}
+Get the complete resource object for specified |resourceIdentifier| that a user with given |token| is entitled to see. See |Resource| for details.
 
 \ApiCmd{boolean isResourceActive(SecurityToken token, String resourceId, AbsoluteDateTime dateTime)}
+\TODO{Not implemented yet}
 Checks whether the resource with specified |resourceId| is in given |dateTime| used by any reservation.
 
 \ApiCmd{AbsoluteDateTimeSlot[] findResourceAvailableSlots(SecurityToken token, String resourceId)}
+\TODO{Not implemented yet}
 Lookup date/time slots when the resource with specified |resourceId| is not allocated to any reservation.
 
 
@@ -1147,51 +1265,56 @@ Lookup date/time slots when the resource with specified |resourceId| is not allo
 
 \subsection{Failures}
 
-\begin{ApiFailures}
-\ApiFailure{100}
-\end{ApiFailures}
-\TODO{Complete this}
+%\begin{ApiFailures}
+%\ApiFailure{100}
+%\end{ApiFailures}
+\TODO{No special faults yet}
 
 
 \section{Reservations}
 
 \begin{Api}
 
-\ApiCmd{String createReservation(SecurityToken token, ReservationType type, Map attributes)}
-Create a new reservation. The new reservation identifier is returned as a result. Map of |attributes| should contain only attributes specified in |Reservation| class and all attributes marked as \ApiRequired\ must be present.
+\ApiCmd{String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)}
+Create a new reservation. The new reservation identifier is returned as a result. The |reservationRequest| must contain all attributes marked as \ApiRequired.
 
-\ApiCmd{modifyReservation(SecurityToken token, String reservationId, Map attributes)}
-Modify the reservation with specified |reservationId|. Map of |attributes| should contain only attributes specified in |Reservation| class.
+\ApiCmd{modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)}
+Modify the reservation. Attribute |identifier| must be filled and identifies the reservation request to be modified. The |reservationRequest| should contain only attributes to be modified.
 
-\ApiCmd{deleteReservation(SecurityToken token, String reservationId)}
-Release the reservation with specified |reservationId|. The child reservations remain untouched.
+\ApiCmd{deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier)}
+Release the reservation with specified |reservationIdentifier|. The child reservations remain untouched.
 
-\ApiCmd{Reservation getReservation(SecurityToken token, String reservationId)}
-Get the reservation object for specified |reservationId| that a user with given |token| is entitled to see. The returned object contains requested time slots, requested resources, child reservations and all other attributes that can be modified. It does not contain the read only scheduler allocation information which can be obtained by |getReservationAllocation|.
+\ApiCmd{ReservationSummary[] listReservationRequests(SecurityToken token)}
+List all the reservations that a user with given |token| is entitled to see. Only the lightweight definitions of reservation requests are returned, see |ReservationRequestSummary| for details.
 
-\ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId)}
+\ApiCmd{Reservation getReservationRequest(SecurityToken token, String reservationRequestIdentifier)}
+Get the reservation object for specified |reservationIdentifier| that a user with given |token| is entitled to see. The returned object contains requested time slots, requested compartments, child reservations and all other attributes that can be modified. It does not contain the read only scheduler allocation information which can be obtained by |getReservationAllocation|.
+
+\ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationRequestIdentifier)}
+\TODO{Not implemented yet}
 List all the date/time slots that were allocated by a scheduler for the reservation and for all child reservation (recursive). Each date/time slot contains list of identifiers for resources that are allocated for the date/time slot.
 
 \ApiCmd{ResourceSummary[] listReservationSlotResources(SecurityToken token, String reservationId, AbsoluteDateTimeSlot slot, Map filter)}
+\TODO{Not implemented yet}
 Get a list of allocated resources for the given date/time slot in a reservation with specified |reservationId| (one reservation can have multiple date/time slots in which the reservation takes place and the list of allocated resources may vary). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
 
-\ApiCmd{ReservationSummary[] listReservations(SecurityToken token, Map filter)}
-List all the reservations that a user with given |token| is entitled to see and that meet the reservation |filter| which contains only attributes defined in |ReservationSummary| class. Only the lightweight definitions of reservations is returned, see |ReservationSummary| for details.
-
 \ApiCmd{AbsoluteDateTimeSlot[] findReservationAvailableSlots(SecurityToken token, Period duration, Resource[] resources, boolean interDomain)}
+\TODO{Not implemented yet}
 Lookup available date/time slots for specified reservation |duration| and |resources|. Argument |interDomain| specifies whether inter-domain lookup should be performed.
 
 \end{Api}
 
 \subsection{Failures}
 
-\begin{ApiFailures}
-\ApiFailure{200}
-\end{ApiFailures}
-\TODO{Complete this}
+%\begin{ApiFailures}
+%\ApiFailure{200}
+%\end{ApiFailures}
+\TODO{No special faults yet}
 
 
 \section{Room Operations}
+
+\TODO{Not implemented yet}
 
 \begin{Api}
 
@@ -1211,10 +1334,10 @@ Disconnect the user with specified |userId| from the room with given |roomId|.
 
 \subsection{Failures}
 
-\begin{ApiFailures}
-\ApiFailure{300}
-\end{ApiFailures}
-\TODO{Complete this}
+%\begin{ApiFailures}
+%\ApiFailure{300}
+%\end{ApiFailures}
+\TODO{No special faults yet}
 
 
 \chapter{Connector API Specification}

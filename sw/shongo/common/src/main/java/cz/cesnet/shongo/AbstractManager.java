@@ -10,6 +10,9 @@ import javax.persistence.EntityTransaction;
  * they represents a single place where all queries for a single
  * entity are placed.
  *
+ * TODO: how to delete one-to-one referenced entities when are replaced by another one?
+ * https://hibernate.onjira.com/browse/HHH-6484?page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public abstract class AbstractManager
