@@ -424,6 +424,12 @@ reading:
     }
 
     @Override
+    public void standBy() throws CommandException
+    {
+        issueCommand(new Command("xCommand Standby Activate"));
+    }
+
+    @Override
     public ConnectorInfo getConnectorInfo()
     {
         return null; // FIXME: implement

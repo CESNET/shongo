@@ -3,6 +3,11 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.Alias;
 
 /**
+ * Set of functionality offered by endpoint devices.
+ *
+ * Any of the methods may throw CommandException when a command execution fails, or CommandUnsupportedException when the
+ * command is not supported (and thus may not be implemented) by the target device.
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public interface EndpointService extends CommonService
@@ -59,5 +64,10 @@ public interface EndpointService extends CommonService
      * Stop the presentation mode (turns off the media stream).
      */
     void stopPresentation() throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Sets the device in standby mode.
+     */
+    void standBy() throws CommandException, CommandUnsupportedException;
 
 }
