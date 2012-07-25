@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Technology;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -13,21 +12,14 @@ import java.util.List;
 public class Compartment extends IdentifiedChangeableObject
 {
     /**
-     * Map that represents a resource specification.
-     */
-    public static class ResourceSpecificationMap extends HashMap<String, Object>
-    {
-    }
-
-    /**
      * Collection of requested persons for the compartment.
      */
-    public final String PERSONS = "persons";
+    public static final String PERSONS = "persons";
 
     /**
      * Collection of requested reosurces for the compartment.
      */
-    public final String RESOURCES = "resources";
+    public static final String RESOURCES = "resources";
 
     /**
      * @return {@link #PERSONS}
@@ -67,7 +59,7 @@ public class Compartment extends IdentifiedChangeableObject
     /**
      * @return {@link #RESOURCES}
      */
-    public List<ResourceSpecificationMap> getResources()
+    public List<ResourceSpecification> getResources()
     {
         return getPropertyStorage().getCollection(RESOURCES, List.class);
     }
@@ -75,13 +67,23 @@ public class Compartment extends IdentifiedChangeableObject
     /**
      * @param resources {@link #RESOURCES}
      */
-    public void setResources(List<ResourceSpecificationMap> resources)
+    public void setResources(List<ResourceSpecification> resources)
     {
         getPropertyStorage().setCollection(RESOURCES, resources);
     }
 
     /**
-     * Adds new external resources definition.
+     * Adds new requested resource.
+     *
+     * @param resourceSpecification
+     */
+    public void addResource(ResourceSpecification resourceSpecification)
+    {
+        getPropertyStorage().addCollectionItem(RESOURCES, resourceSpecification, List.class);
+    }
+
+    /**
+     * Adds new requested external resource(s).
      *
      * @param technology
      * @param count
@@ -89,10 +91,12 @@ public class Compartment extends IdentifiedChangeableObject
      */
     public void addResource(Technology technology, int count, Person[] persons)
     {
-        ResourceSpecificationMap resourceSpecificationMap = new ResourceSpecificationMap();
-        resourceSpecificationMap.put("technology", technology);
-        resourceSpecificationMap.put("count", count);
-        resourceSpecificationMap.put("persons", persons);
-        getPropertyStorage().addCollectionItem(RESOURCES, resourceSpecificationMap, List.class);
+        ExternalEndpointSpecification externalEndpointSpecification = new ExternalEndpointSpecification();
+        externalEndpointSpecification.setTechnology(technology);
+        externalEndpointSpecification.setCount(count);
+        for (Person person : persons) {
+            externalEndpointSpecification.addPerson(person);
+        }
+        addResource(externalEndpointSpecification);
     }
 }

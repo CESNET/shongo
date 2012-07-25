@@ -55,7 +55,7 @@ public class Capability extends PersistentObject
      */
     public cz.cesnet.shongo.controller.api.Capability toApi() throws FaultException
     {
-        if ( this instanceof VirtualRoomsCapability ) {
+        if (this instanceof VirtualRoomsCapability) {
             VirtualRoomsCapability virtualRoomsCapability = (VirtualRoomsCapability) this;
             cz.cesnet.shongo.controller.api.VirtualRoomsCapability virtualRoomsCapabilityApi =
                     new cz.cesnet.shongo.controller.api.VirtualRoomsCapability();

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.*;
+import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.xmlrpc.XmlRpcException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -35,10 +36,13 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     {
         super.before();
 
+        Domain domain = new Domain("cz.cesnet");
+
         // Start controller
         controller = new Controller();
+        controller.setDomain(domain);
         controller.setEntityManagerFactory(getEntityManagerFactory());
-        controller.addService(new ReservationServiceImpl(new Domain("cz.cesnet")));
+        controller.addService(new ReservationServiceImpl(domain));
         controller.start();
         controller.startRpc();
 
@@ -116,6 +120,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                         {{
                                 add(new HashMap<String, Object>()
                                 {{
+                                        put("class", "ExternalEndpointSpecification");
                                         put("technology", "H323");
                                         put("count", 2);
                                         put("persons", new ArrayList<Object>()

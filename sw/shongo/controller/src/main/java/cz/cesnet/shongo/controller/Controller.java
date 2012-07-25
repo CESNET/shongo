@@ -7,6 +7,10 @@ import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.SystemConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -27,38 +31,25 @@ public class Controller
     private static Logger logger = LoggerFactory.getLogger(Controller.class);
 
     /**
-     * Default controller parameters values.
+     * Controller configuration parameters names.
      */
-    public static final String DEFAULT_RPC_HOST = ""; // All interfaces
-    public static final Integer DEFAULT_RPC_PORT = 8181;
-    public static final String DEFAULT_JADE_HOST = "127.0.0.1";
-    public static final Integer DEFAULT_JADE_PORT = 8282;
-    public static final String DEFAULT_JADE_PLATFORM_ID = "Shongo";
+    public static final String DOMAIN_NAME = "domain.name";
+    public static final String DOMAIN_ORGANIZATION = "domain.organization";
+    public static final String RPC_HOST = "rpc.host";
+    public static final String RPC_PORT = "rpc.port";
+    public static final String JADE_HOST = "jade.host";
+    public static final String JADE_PORT = "jade.port";
+    public static final String JADE_PLATFORM_ID = "jade.platform-id";
 
     /**
-     * Host to run XML-RPC web server.
+     * Configuration of the controller.
      */
-    private String rpcHost;
+    private CompositeConfiguration configuration;
 
     /**
-     * Port to run XML-RPC web server.
+     * Domain for which the controller is running.
      */
-    private Integer rpcPort;
-
-    /**
-     * Host to run JADE container.
-     */
-    private String jadeHost;
-
-    /**
-     * Port to run JADE container.
-     */
-    private Integer jadePort;
-
-    /**
-     * JADE platform identifier.
-     */
-    private String jadePlatformId;
+    Domain domain;
 
     /**
      * Entity manager factory.
@@ -100,62 +91,112 @@ public class Controller
      */
     public Controller()
     {
+        setConfiguration(null);
     }
 
     /**
-     * @return {@link #rpcHost}
+     * Constructor.
+     *
+     * @param configuration sets the {@link #configuration}
+     */
+    public Controller(Configuration configuration)
+    {
+        setConfiguration(configuration);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param configurationFileName
+     */
+    public Controller(String configurationFileName)
+    {
+        try {
+            Configuration configuration = new XMLConfiguration(configurationFileName);
+            setConfiguration(configuration);
+        }
+        catch (Exception exception) {
+            logger.warn(exception.getMessage());
+            setConfiguration(null);
+        }
+    }
+
+    /**
+     * @param configuration configuration to be set to the controller
+     */
+    public void setConfiguration(Configuration configuration)
+    {
+        this.configuration = new CompositeConfiguration();
+        // System properties has the highest priority
+        this.configuration.addConfiguration(new SystemConfiguration());
+        // Passed configuration has lower priority
+        if (configuration != null) {
+            this.configuration.addConfiguration(configuration);
+        }
+        // Default configuration has the lowest priority
+        try {
+            this.configuration.addConfiguration(new XMLConfiguration(
+                    getClass().getClassLoader().getResource("default.cfg.xml")));
+        }
+        catch (Exception exception) {
+            throw new RuntimeException("Failed to load default controller configuration!", exception);
+        }
+    }
+
+    /**
+     * @return {@link #domain}
+     */
+    public Domain getDomain()
+    {
+        return domain;
+    }
+
+    /**
+     * @param domain sets the {@link #domain}
+     */
+    public void setDomain(Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    /**
+     * @return XML-RPC server host
      */
     public String getRpcHost()
     {
-        return rpcHost;
+        return configuration.getString(RPC_HOST);
     }
 
     /**
-     * @param rpcHost sets the {@link #rpcHost}
-     */
-    public void setRpcHost(String rpcHost)
-    {
-        this.rpcHost = rpcHost;
-    }
-
-    /**
-     * @return {@link #rpcPort}
+     * @return XML-RPC server port
      */
     public int getRpcPort()
     {
-        return rpcPort;
+        return configuration.getInt(RPC_PORT);
     }
 
     /**
-     * @param rpcPort sets the {@link #rpcPort}
+     * @return Jade container host
      */
-    public void setRpcPort(int rpcPort)
+    public String getJadeHost()
     {
-        this.rpcPort = rpcPort;
+        return configuration.getString(JADE_HOST);
     }
 
     /**
-     * @param jadeHost sets the {@link #jadeHost}
+     * @return Jade container host
      */
-    public void setJadeHost(String jadeHost)
+    public int getJadePort()
     {
-        this.jadeHost = jadeHost;
+        return configuration.getInt(JADE_PORT);
     }
 
     /**
-     * @param jadePort sets the {@link #jadePort}
+     * @return Jade platform id
      */
-    public void setJadePort(int jadePort)
+    public String getJadePlatformId()
     {
-        this.jadePort = jadePort;
-    }
-
-    /**
-     * @param jadePlatformId sets the {@link #jadePlatformId}
-     */
-    public void setJadePlatformId(String jadePlatformId)
-    {
-        this.jadePlatformId = jadePlatformId;
+        return configuration.getString(JADE_PLATFORM_ID);
     }
 
     /**
@@ -232,7 +273,18 @@ public class Controller
             instance = this;
         }
 
-        logger.info("Controller is starting...");
+        // Initialize domain
+        if (domain == null) {
+            throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
+        }
+        if (domain.getName() == null) {
+            domain.setName(configuration.getString("domain.name"));
+        }
+        if (domain.getOrganization() == null) {
+            domain.setOrganization(configuration.getString("domain.organization"));
+        }
+
+        logger.info("Controller for domain '{}' is starting...", domain.getName());
 
         // Initialize components
         for (Component component : components) {
@@ -261,16 +313,11 @@ public class Controller
      */
     public void startRpc() throws IOException
     {
-        if (rpcHost == null) {
-            rpcHost = DEFAULT_RPC_HOST;
-        }
-        if (rpcPort == null) {
-            rpcPort = DEFAULT_RPC_PORT;
-        }
+        String rpcHost = getRpcHost();
+        logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost.isEmpty() ? "*" : rpcHost),
+                getRpcPort());
 
-        logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost.isEmpty() ? "*" : rpcHost), rpcPort);
-
-        rpcServer = new WebServer(rpcHost.isEmpty() ? null : rpcHost, rpcPort);
+        rpcServer = new WebServer(rpcHost.isEmpty() ? null : rpcHost, getRpcPort());
         for (Service service : services) {
             logger.debug("Adding XML-RPC service '" + service.getServiceName() + "'...");
             rpcServer.addHandler(service.getServiceName(), service);
@@ -285,20 +332,11 @@ public class Controller
      */
     public void startJade() throws IllegalStateException
     {
-        if (jadeHost == null) {
-            jadeHost = DEFAULT_JADE_HOST;
-        }
-        if (jadePort == null) {
-            jadePort = DEFAULT_JADE_PORT;
-        }
-        if (jadePlatformId == null) {
-            jadePlatformId = DEFAULT_JADE_PLATFORM_ID;
-        }
-
-        logger.info("Starting Controller JADE container on {}:{}...", jadeHost, jadePort);
+        logger.info("Starting Controller JADE container on {}:{} (platform {})...",
+                new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
 
         jadeAgent = new ControllerAgent();
-        jadeContainer = Container.createMainContainer(jadeHost, jadePort, jadePlatformId);
+        jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
         jadeContainer.addAgent("Controller", jadeAgent);
         if (jadeContainer.start() == false) {
             throw new IllegalStateException("Failed to start JADE container.");
@@ -453,26 +491,20 @@ public class Controller
             System.exit(0);
         }
 
-        System.setProperty("rpc-host", DEFAULT_RPC_HOST);
-        System.setProperty("rpc-port", DEFAULT_RPC_PORT.toString());
-        System.setProperty("jade-host", DEFAULT_JADE_HOST);
-        System.setProperty("jade-port", DEFAULT_JADE_PORT.toString());
-        System.setProperty("jade-platform-id", DEFAULT_JADE_PLATFORM_ID);
-
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
             String host = commandLine.getOptionValue(optionHost.getOpt());
-            System.setProperty("rpc-host", host);
-            System.setProperty("jade-host", host);
+            System.setProperty(RPC_HOST, host);
+            System.setProperty(JADE_HOST, host);
         }
         if (commandLine.hasOption(optionRpcPort.getOpt())) {
-            System.setProperty("rpc-port", commandLine.getOptionValue(optionRpcPort.getOpt()));
+            System.setProperty(RPC_PORT, commandLine.getOptionValue(optionRpcPort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePort.getOpt())) {
-            System.setProperty("jade-port", commandLine.getOptionValue(optionJadePort.getOpt()));
+            System.setProperty(JADE_PORT, commandLine.getOptionValue(optionJadePort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePlatform.getOpt())) {
-            System.setProperty("jade-platform-id", commandLine.getOptionValue(optionJadePlatform.getOpt()));
+            System.setProperty(JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
         }
 
         // Run application by spring application context

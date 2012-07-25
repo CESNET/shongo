@@ -171,4 +171,15 @@ public class Person extends PersistentObject
         person.setEmail(getEmail());
         return person;
     }
+
+    /**
+     * Synchronize person from API
+     *
+     * @param api
+     */
+    public void fromApi(cz.cesnet.shongo.controller.api.Person api)
+    {
+        setName(api.getName());
+        setEmail(api.getEmail());
+    }
 }

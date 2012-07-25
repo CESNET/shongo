@@ -88,7 +88,11 @@ sub modify_loop()
                 my $technology = console_read_enum("Select technology", $Shongo::Controller::API::Resource::Technology);
                 my $count = console_read_value("Count", 1, "\\d");
                 if ( defined($technology) && defined($count) ) {
-                    add_collection_item(\$self->{'resources'}, {'technology' => $technology, 'count' => $count});
+                    add_collection_item(\$self->{'resources'}, {
+                        'class' => 'ExternalEndpointSpecification',
+                        'technology' => $technology,
+                        'count' => $count
+                    });
                 }
                 return undef;
             });

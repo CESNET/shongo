@@ -152,12 +152,9 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Schedule complete compartment request(s)
         // -----------------------------------------
         {
-            EntityManager entityManager = getEntityManager();
-            entityManager.getTransaction().begin();
-
-            Scheduler.run(getEntityManagerFactory(), interval);
-
-            entityManager.close();
+            // TODO: Implement scheduler
+            System.err.println("TODO: Implement scheduler");
+            //Scheduler.run(getEntityManagerFactory(), interval);
         }
 
         // ------------------------

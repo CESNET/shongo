@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Default Configuration of Domain Controller -->
+<configuration>
+
+    <!-- Configuration of controlled domain -->
+    <domain>
+        <name>unknown</name>
+        <organization>NO-ORGANIZATION</organization>
+    </domain>
+
+    <!-- Configuration of XML-RPC server -->
+    <rpc>
+        <host></host>
+        <port>8181</port>
+    </rpc>
+
+    <!-- Configuration of Jade container -->
+    <jade>
+        <host>127.0.0.1</host>
+        <port>8282</port>
+        <platform-id>Shongo</platform-id>
+    </jade>
+
+</configuration>

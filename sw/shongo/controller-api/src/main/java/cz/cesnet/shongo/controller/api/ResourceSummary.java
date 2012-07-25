@@ -23,6 +23,11 @@ public class ResourceSummary
     private String technologies;
 
     /**
+     * Parent resource identifier.
+     */
+    private String parentIdentifier;
+
+    /**
      * @return {@link #identifier}
      */
     public String getIdentifier()
@@ -65,8 +70,24 @@ public class ResourceSummary
     /**
      * @param technologies sets the {@link #technologies}
      */
-     void setTechnologies(String technologies)
+    void setTechnologies(String technologies)
     {
         this.technologies = technologies;
+    }
+
+    /**
+     * @return {@link #parentIdentifier}
+     */
+    public String getParentIdentifier()
+    {
+        return parentIdentifier;
+    }
+
+    /**
+     * @param parentIdentifier sets the {@link #parentIdentifier}
+     */
+    public void setParentIdentifier(String parentIdentifier)
+    {
+        this.parentIdentifier = parentIdentifier;
     }
 }

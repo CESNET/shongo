@@ -6,22 +6,15 @@
                            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
 
     <context:annotation-config/>
-    <context:property-placeholder/>
 
-    <!-- Domain configuration -->
-    <bean id="domain" class="cz.cesnet.shongo.controller.Domain">
-        <property name="codeName"><value>cz.cesnet</value></property>
-        <property name="name"><value>CESNET, z.s.p.o.</value></property>
-    </bean>
+    <!-- Controlled Domain -->
+    <bean id="domain" class="cz.cesnet.shongo.controller.Domain"/>
 
     <!-- Application -->
     <bean id="controller" class="cz.cesnet.shongo.controller.Controller" init-method="startAll" destroy-method="stop">
-        <property name="rpcHost" value="${rpc-host}"/>
-        <property name="rpcPort" value="${rpc-port}"/>
-        <property name="jadeHost" value="${jade-host}"/>
-        <property name="jadePort" value="${jade-port}"/>
-        <property name="jadePlatformId" value="${jade-platform-id}"/>
-        <property name="entityManagerFactory"><ref bean="entityManagerFactory"/></property>
+        <constructor-arg type="java.lang.String" value="controller.cfg.xml"/>
+        <property name="domain"  ref="domain"/>
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
         <property name="services">
             <bean class="cz.cesnet.shongo.controller.util.BeanListFactoryBean">
                 <property name="beanType" value="cz.cesnet.shongo.controller.api.xmlrpc.Service"/>
@@ -42,21 +35,17 @@
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.api.CommonServiceImpl"/>
     <bean id="resourceService" class="cz.cesnet.shongo.controller.api.ResourceServiceImpl">
-        <property name="domain"><ref bean="domain"/></property>
-        <property name="resourceDatabase"><ref bean="resourceDatabase"/></property>
+        <property name="domain" ref="domain"/>
+        <property name="resourceDatabase" ref="resourceDatabase"/>
     </bean>
     <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl">
-        <property name="domain"><ref bean="domain"/></property>
+        <property name="domain" ref="domain"/>
     </bean>
     <bean id="roomService" class="cz.cesnet.shongo.controller.api.RoomServiceImpl"/>
 
     <!-- Entity Manager Factory -->
-    <bean id="entityManagerFactory"
-          class="javax.persistence.Persistence"
-          factory-method="createEntityManagerFactory">
-        <constructor-arg>
-            <value>controller</value>
-        </constructor-arg>
+    <bean id="entityManagerFactory" class="javax.persistence.Persistence" factory-method="createEntityManagerFactory">
+        <constructor-arg type="java.lang.String" value="controller"/>
     </bean>
 
     <!-- Entity Manager -->

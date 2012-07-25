@@ -18,7 +18,7 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
-        EntityManager entityManager = getEntityManager();
+        /*EntityManager entityManager = getEntityManager();
 
         // Fill resource database
         ResourceDatabase resourceDatabase = new ResourceDatabase();
@@ -48,6 +48,6 @@ public class ResourceDatabaseTest extends AbstractDatabaseTest
         for (Resource resource : resourceList) {
             System.err.println(resource.toString());
         }
-        System.err.println(resourceDatabase.getDeviceTopology().toString());
+        System.err.println(resourceDatabase.getDeviceTopology().toString());*/
     }
 }

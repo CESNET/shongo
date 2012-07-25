@@ -3,13 +3,10 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.Technology;
-import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.api.PeriodicDateTime;
-import cz.cesnet.shongo.controller.api.Person;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
@@ -453,14 +450,15 @@ public class ReservationRequest extends PersistentObject
 
         // Create/modify requested compartments
         for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : api.getCompartments()) {
-            // Create new requested compartment
+            // Create/modify requested compartment
+            Compartment compartment = null;
             if (api.isCollectionItemMarkedAsNew(API.COMPARTMENTS, apiCompartment)) {
-                fromApiCreateRequestedCompartment(apiCompartment);
+                compartment = addRequestedCompartment();
             }
             else {
-                // Modify existing requested compartment
-               //throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+                compartment = getRequestedCompartmentById(apiCompartment.getId().longValue());
             }
+            compartment.fromApi(apiCompartment);
         }
         // Delete requested compartments
         Set<cz.cesnet.shongo.controller.api.Compartment> apiDeletedCompartments =
@@ -510,40 +508,6 @@ public class ReservationRequest extends PersistentObject
     private void fromApiCreateRequestedCompartment(cz.cesnet.shongo.controller.api.Compartment compartment)
             throws FaultException
     {
-        Compartment compartmentImpl = addRequestedCompartment();
-        for (Person person : compartment.getPersons()) {
-            compartmentImpl.addRequestedPerson(
-                    new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
-        }
-        for (cz.cesnet.shongo.controller.api.Compartment.ResourceSpecificationMap map : compartment
-                .getResources()) {
-            cz.cesnet.shongo.controller.request.ResourceSpecification resourceSpecification = null;
-            if (map.containsKey("technology")) {
-                Technology technology = Converter
-                        .convertStringToEnum((String) map.get("technology"), Technology.class);
-                if (map.containsKey("count")) {
-                    resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
-                            technology, Integer.parseInt(map.get("count").toString()));
-                }
-                else {
-                    resourceSpecification = new cz.cesnet.shongo.controller.request.ExternalEndpointSpecification(
-                            technology, Integer.parseInt(map.get("count").toString()));
-                }
-            }
-            // Check resource specification existence
-            if (resourceSpecification == null) {
-                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
-            }
-            // Fill requested persons
-            if (map.containsKey("persons")) {
-                for (Object object : (Object[]) map.get("persons")) {
-                    cz.cesnet.shongo.controller.api.Person person =
-                            Converter.convert(object, cz.cesnet.shongo.controller.api.Person.class);
-                    resourceSpecification.addRequestedPerson(
-                            new cz.cesnet.shongo.controller.common.Person(person.getName(), person.getEmail()));
-                }
-            }
-            compartmentImpl.addRequestedResource(resourceSpecification);
-        }
+
     }
 }

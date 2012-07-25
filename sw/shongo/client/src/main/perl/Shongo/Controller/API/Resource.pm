@@ -30,6 +30,8 @@ sub new()
     $self->{'technologies'} = [];
     $self->{'capabilities'} = [];
 
+    $self->to_xml_skip_attribute('childResourceIdentifiers');
+
     return $self;
 }
 
@@ -255,7 +257,9 @@ sub to_string()
         $string .= "  Identifier: $self->{'identifier'}\n";
     }
     $string .= "        Name: $self->{'name'}\n";
-    $string .= " Description: $self->{'description'}\n";
+    if ( defined($self->{'description'}) ) {
+        $string .= " Description: $self->{'description'}\n";
+    }
     if ( defined($self->{'parentIdentifier'}) ) {
         $string .= "      Parent: $self->{'parentIdentifier'}\n";
     }
@@ -272,7 +276,9 @@ sub to_string()
         $string .= "\n";
     }
     $string .= " Schedulable: $self->{'schedulable'}\n";
-    $string .= "  Max Future: $self->{'maxFuture'}\n";
+    if ( defined($self->{'maxFuture'}) ) {
+        $string .= "  Max Future: $self->{'maxFuture'}\n";
+    }
     $string .= technologies_to_string($self->{'technologies'});
     $string .= $self->capabilities_to_string();
 

@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

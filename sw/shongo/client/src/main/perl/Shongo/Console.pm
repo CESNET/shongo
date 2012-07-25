@@ -260,6 +260,9 @@ sub console_edit_value
     $value = console_read($message, $value);
     while ( 1 ) {
         if ( defined($value) && console_validate_value($value, $required, $pattern) ) {
+            if ( $value eq '' ) {
+                return undef;
+            }
             return $value;
         }
         $value = console_read($message, $value);

@@ -291,11 +291,12 @@ public class Resource extends PersistentObject
     }
 
     /**
+     * @param domain
      * @return converted resource to API
      * @throws FaultException
-     * @param domain
      */
-    public cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager, Domain domain) throws FaultException
+    public cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager, Domain domain)
+            throws FaultException
     {
         final Resource resourceImpl = this;
         cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
@@ -306,33 +307,35 @@ public class Resource extends PersistentObject
         resource.setDescription(getDescription());
 
         DateTimeSpecification maxFuture = getMaximumFuture();
-        if ( maxFuture != null ) {
-            if ( maxFuture instanceof AbsoluteDateTimeSpecification) {
+        if (maxFuture != null) {
+            if (maxFuture instanceof AbsoluteDateTimeSpecification) {
                 resource.setMaxFuture(((AbsoluteDateTimeSpecification) maxFuture).getDateTime());
-            } else if ( maxFuture instanceof RelativeDateTimeSpecification) {
+            }
+            else if (maxFuture instanceof RelativeDateTimeSpecification) {
                 resource.setMaxFuture(((RelativeDateTimeSpecification) maxFuture).getDuration());
-            } else {
+            }
+            else {
                 throw new FaultException(Fault.Common.TODO_IMPLEMENT);
             }
         }
 
         Resource parentResource = getParentResource();
-        if (parentResource != null ) {
+        if (parentResource != null) {
             resource.setParentIdentifier(domain.formatIdentifier(parentResource.getId()));
         }
 
-        if ( this instanceof DeviceResource ) {
+        if (this instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) this;
-            for (Technology technology : deviceResource.getTechnologies() ) {
+            for (Technology technology : deviceResource.getTechnologies()) {
                 resource.addTechnology(technology);
             }
         }
 
-        for ( Capability capability : getCapabilities()) {
+        for (Capability capability : getCapabilities()) {
             resource.addCapability(capability.toApi());
         }
-        
-        for ( Resource childResource : getChildResources() ) {
+
+        for (Resource childResource : getChildResources()) {
             resource.addChildResourceIdentifier(domain.formatIdentifier(childResource.getId()));
         }
 
@@ -360,29 +363,39 @@ public class Resource extends PersistentObject
             setSchedulable(api.getSchedulable());
         }
         if (api.isPropertyFilled(API.PARENT_RESOURCE_IDENTIFIER)) {
-            Long parentResourceId = domain.parseIdentifier(api.getParentIdentifier());
-            if (getParentResource() == null || !getParentResource().getId().equals(parentResourceId)) {
+            Long newParentResourceId = null;
+            if (api.getParentIdentifier() != null) {
+                newParentResourceId = domain.parseIdentifier(api.getParentIdentifier());
+            }
+            Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
+            if ((newParentResourceId == null && oldParentResourceId != null)
+                    || (newParentResourceId != null && !newParentResourceId.equals(oldParentResourceId))) {
                 ResourceManager resourceManager = new ResourceManager(entityManager);
-                Resource parentResource = resourceManager.get(parentResourceId);
+                Resource parentResource = resourceManager.get(newParentResourceId);
                 setParentResource(parentResource);
             }
         }
         if (api.isPropertyFilled(API.MAX_FUTURE)) {
             Object maxFuture = api.getMaxFuture();
-            if ( maxFuture instanceof DateTime) {
-                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime)maxFuture));
-            } else if ( maxFuture instanceof Period) {
+            if (maxFuture == null) {
+                setMaximumFuture(null);
+            }
+            else if (maxFuture instanceof DateTime) {
+                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maxFuture));
+            }
+            else if (maxFuture instanceof Period) {
                 setMaximumFuture(new RelativeDateTimeSpecification((Period) maxFuture));
-            } else {
+            }
+            else {
                 throw new FaultException(Fault.Common.TODO_IMPLEMENT);
             }
         }
 
-        if ( this instanceof DeviceResource ) {
+        if (this instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) this;
             // Create technologies
             for (Technology technology : api.getTechnologies()) {
-                if ( api.isCollectionItemMarkedAsNew(API.TECHNOLOGIES, technology) ) {
+                if (api.isCollectionItemMarkedAsNew(API.TECHNOLOGIES, technology)) {
                     deviceResource.addTechnology(technology);
                 }
             }
@@ -399,9 +412,10 @@ public class Resource extends PersistentObject
                 cz.cesnet.shongo.controller.api.VirtualRoomsCapability apiVirtualRoomsCapability =
                         (cz.cesnet.shongo.controller.api.VirtualRoomsCapability) apiCapability;
                 VirtualRoomsCapability virtualRoomsCapability = null;
-                if ( api.isCollectionItemMarkedAsNew(API.CAPABILITIES, apiCapability)) {
+                if (api.isCollectionItemMarkedAsNew(API.CAPABILITIES, apiCapability)) {
                     virtualRoomsCapability = new VirtualRoomsCapability();
-                } else {
+                }
+                else {
                     virtualRoomsCapability = (VirtualRoomsCapability) getCapabilityById(
                             apiVirtualRoomsCapability.getId().longValue());
                 }

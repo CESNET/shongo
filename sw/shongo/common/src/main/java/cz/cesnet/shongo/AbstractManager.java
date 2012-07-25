@@ -9,7 +9,7 @@ import javax.persistence.EntityTransaction;
  * Managers are responsible for loading/saving entities and
  * they represents a single place where all queries for a single
  * entity are placed.
- *
+ * <p/>
  * TODO: how to delete one-to-one referenced entities when are replaced by another one?
  * https://hibernate.onjira.com/browse/HHH-6484?page=com.atlassian.jira.plugin.system.issuetabpanels:comment-tabpanel
  *

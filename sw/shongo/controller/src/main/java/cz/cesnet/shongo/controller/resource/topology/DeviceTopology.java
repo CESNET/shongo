@@ -4,7 +4,10 @@ import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a topology of device resources and their reachability.
@@ -62,11 +65,11 @@ public class DeviceTopology extends PrintableObject
                     + deviceResource.getId() + "' is not in device topology.");
         }
         List<Edge> listIncomingEdges = node.getIncomingEdges();
-        while (listIncomingEdges.size() > 0 ) {
+        while (listIncomingEdges.size() > 0) {
             removeEdge(listIncomingEdges.get(0));
         }
         List<Edge> listOutgoingEdges = node.getOutgoingEdges();
-        while (listOutgoingEdges.size() > 0 ) {
+        while (listOutgoingEdges.size() > 0) {
             removeEdge(listOutgoingEdges.get(0));
         }
         nodes.remove(node);
