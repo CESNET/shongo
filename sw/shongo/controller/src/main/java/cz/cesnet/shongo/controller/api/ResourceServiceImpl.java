@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Component;
@@ -176,15 +175,19 @@ public class ResourceServiceImpl extends Component implements ResourceService
             ResourceSummary summary = new ResourceSummary();
             summary.setIdentifier(domain.formatIdentifier(resource.getId()));
             summary.setName(resource.getName());
-            if ( resource instanceof DeviceResource ) {
+            if (resource instanceof DeviceResource) {
                 StringBuilder stringBuilder = new StringBuilder();
-                for ( Technology technology : ((DeviceResource) resource).getTechnologies()) {
-                    if (stringBuilder.length() > 0 ) {
+                for (Technology technology : ((DeviceResource) resource).getTechnologies()) {
+                    if (stringBuilder.length() > 0) {
                         stringBuilder.append(",");
                     }
                     stringBuilder.append(technology.getCode());
                 }
                 summary.setTechnologies(stringBuilder.toString());
+            }
+            cz.cesnet.shongo.controller.resource.Resource parentResource = resource.getParentResource();
+            if (parentResource != null) {
+                summary.setParentIdentifier(domain.formatIdentifier(parentResource.getId()));
             }
             summaryList.add(summary);
         }

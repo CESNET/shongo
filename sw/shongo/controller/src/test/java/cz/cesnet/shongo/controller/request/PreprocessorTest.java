@@ -96,7 +96,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 compartmentRequestList.get(1).getRequestedSlot());
 
         // List all reservation requests and theirs compartment requests
-        List<ReservationRequest> rrList = reservationRequestManager.list();
+        /*List<ReservationRequest> rrList = reservationRequestManager.list();
         for (ReservationRequest rr : rrList) {
             System.err.println(rr.toString());
 
@@ -104,6 +104,6 @@ public class PreprocessorTest extends AbstractDatabaseTest
             for (CompartmentRequest cr : crList) {
                 System.err.println(cr.toString());
             }
-        }
+        }*/
     }
 }

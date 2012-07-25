@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import org.joda.time.DateMidnight;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -87,7 +86,8 @@ public class WorkerThread extends Thread
     private void work()
     {
 
-        Interval interval = new Interval(DateMidnight.now().minus(Period.days(1)), DateMidnight.now().plus(Period.days(31)));
+        Interval interval = new Interval(DateMidnight.now().minus(Period.days(1)),
+                DateMidnight.now().plus(Period.days(31)));
         try {
             preprocessor.run(interval);
         }

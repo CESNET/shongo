@@ -167,26 +167,14 @@ public abstract class ChangesTrackingObject
     }
 
     /**
-     * Check whether all required fields are filled and set the {@link #collectionItemIsByDefaultNew} to true.
+     * Checks whether all properties with {@link Required} annotation are marked as filled and
+     * sets the {@link #collectionItemIsByDefaultNew} to true (recursive).
      *
      * @throws FaultException when some required field isn't filled
      */
     public void setupNewEntity() throws FaultException
     {
-        collectionItemIsByDefaultNew = true;
-
-        checkRequiredPropertiesFilled();
-    }
-
-    /**
-     * Checks whether all properties with {@link Required} annotation are marked as filled (recursive).
-     *
-     * @throws cz.cesnet.shongo.api.FaultException
-     *
-     */
-    public void checkRequiredPropertiesFilled() throws FaultException
-    {
-        checkRequiredPropertiesFilled(this);
+        setupNewEntity(this);
     }
 
     /**
@@ -196,10 +184,11 @@ public abstract class ChangesTrackingObject
      * @param object
      * @throws FaultException
      */
-    private static void checkRequiredPropertiesFilled(Object object) throws FaultException
+    private static void setupNewEntity(Object object) throws FaultException
     {
         if (object instanceof ChangesTrackingObject) {
             ChangesTrackingObject changesTrackingObject = (ChangesTrackingObject) object;
+            changesTrackingObject.collectionItemIsByDefaultNew = true;
             Class type = changesTrackingObject.getClass();
             String[] propertyNames = Property.getPropertyNames(type);
             for (String propertyName : propertyNames) {
@@ -213,7 +202,7 @@ public abstract class ChangesTrackingObject
                                 changesTrackingObject.getClass());
                     }
                     for (Object item : array) {
-                        checkRequiredPropertiesFilled(item);
+                        setupNewEntity(item);
                     }
                 }
                 else if (property.isCollection()) {
@@ -223,7 +212,7 @@ public abstract class ChangesTrackingObject
                                 changesTrackingObject.getClass());
                     }
                     for (Object item : collection) {
-                        checkRequiredPropertiesFilled(item);
+                        setupNewEntity(item);
                     }
                 }
                 else if (required && value == null) {
@@ -235,13 +224,13 @@ public abstract class ChangesTrackingObject
         else if (object instanceof Object[]) {
             Object[] array = (Object[]) object;
             for (Object item : array) {
-                checkRequiredPropertiesFilled(item);
+                setupNewEntity(item);
             }
         }
         else if (object instanceof Collection) {
             Collection collection = (Collection) object;
             for (Object item : collection) {
-                checkRequiredPropertiesFilled(item);
+                setupNewEntity(item);
             }
         }
     }

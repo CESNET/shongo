@@ -10,14 +10,14 @@ import java.util.regex.Pattern;
 public class Domain
 {
     /**
-     * Represents an unique code name (e.g., "cz.cesnet")
-     */
-    private String codeName;
-
-    /**
-     * Represents a user-visible name (e.g., "CESNET, z.s.p.o.").
+     * Represents an unique domain name (e.g., "cz.cesnet")
      */
     private String name;
+
+    /**
+     * Represents a user-visible domain organization (e.g., "CESNET, z.s.p.o.").
+     */
+    private String organization;
 
     /**
      * Constructor.
@@ -29,39 +29,23 @@ public class Domain
     /**
      * Constructor.
      *
-     * @param codeName sets the {@link #codeName}
+     * @param name sets the {@link #name}
      */
-    public Domain(String codeName)
+    public Domain(String name)
     {
-        setCodeName(codeName);
+        setName(name);
     }
 
     /**
      * Constructor.
      *
-     * @param codeName sets the {@link #codeName}
-     * @param name     sets the {@link #name}
+     * @param name         sets the {@link #name}
+     * @param organization sets the {@link #organization}
      */
-    public Domain(String codeName, String name)
+    public Domain(String name, String organization)
     {
-        setCodeName(codeName);
         setName(name);
-    }
-
-    /**
-     * @return {@link #codeName}
-     */
-    public String getCodeName()
-    {
-        return codeName;
-    }
-
-    /**
-     * @param codeName sets the {@link #codeName}
-     */
-    public void setCodeName(String codeName)
-    {
-        this.codeName = codeName;
+        setOrganization(organization);
     }
 
     /**
@@ -81,6 +65,22 @@ public class Domain
     }
 
     /**
+     * @return {@link #organization}
+     */
+    public String getOrganization()
+    {
+        return organization;
+    }
+
+    /**
+     * @param organization sets the {@link #organization}
+     */
+    public void setOrganization(String organization)
+    {
+        this.organization = organization;
+    }
+
+    /**
      * @param id
      * @return formatted identifier from given database id
      */
@@ -89,7 +89,7 @@ public class Domain
         if (id == null) {
             throw new IllegalArgumentException("Cannot format identifier because id is null!");
         }
-        return String.format("shongo:%s:%d", getCodeName(), id.longValue());
+        return String.format("shongo:%s:%d", getName(), id.longValue());
     }
 
     /**
@@ -101,10 +101,10 @@ public class Domain
         if (Pattern.matches("\\d+", identifier)) {
             return Long.parseLong(identifier);
         }
-        String prefix = String.format("shongo:%s:", getCodeName());
+        String prefix = String.format("shongo:%s:", getName());
         if (!identifier.startsWith(prefix)) {
             throw new IllegalArgumentException(String.format("The identifier '%s' doesn't belong to domain '%s'!",
-                    identifier, getCodeName()));
+                    identifier, getName()));
         }
         return Long.parseLong(identifier.substring(prefix.length(), identifier.length()));
     }

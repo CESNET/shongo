@@ -68,7 +68,8 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         super(pPort, getHostByName(host));
 
         handlerMapping = new HandlerMapping();
-        handlerMapping.setTypeConverterFactory(new cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory(Options.SERVER));
+        handlerMapping.setTypeConverterFactory(
+                new cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory(Options.SERVER));
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
         handlerMapping.setVoidMethodEnabled(true);
 

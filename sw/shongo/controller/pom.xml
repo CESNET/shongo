@@ -67,6 +67,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- Apache Commons Configuration is used for loading/storing configuration -->
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.8</version>
+        </dependency>
     </dependencies>
 
     <build>

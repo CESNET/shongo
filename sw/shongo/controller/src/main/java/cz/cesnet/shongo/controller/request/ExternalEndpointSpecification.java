@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.resource.Alias;
 
@@ -126,6 +128,14 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     }
 
     /**
+     * Remove all technologies from the specification.
+     */
+    public void removeAllTechnologies()
+    {
+        technologies.clear();
+    }
+
+    /**
      * @return {@link #aliases}
      */
     @OneToMany(cascade = CascadeType.ALL)
@@ -160,5 +170,41 @@ public class ExternalEndpointSpecification extends ResourceSpecification
         if (count != 1) {
             map.put("count", Integer.toString(count));
         }
+    }
+
+    @Override
+    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi() throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification api =
+                new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
+
+        api.setCount(getCount());
+
+        if (technologies.size() == 1) {
+            api.setTechnology(technologies.iterator().next());
+        }
+        else {
+            throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+        }
+
+        super.toApi(api);
+
+        return api;
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification apiExternalEndpoint =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) api;
+        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.TECHNOLOGY)) {
+            technologies.clear();
+            addTechnology(apiExternalEndpoint.getTechnology());
+        }
+        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.COUNT)) {
+            setCount(apiExternalEndpoint.getCount());
+        }
+        super.fromApi(api);
     }
 }

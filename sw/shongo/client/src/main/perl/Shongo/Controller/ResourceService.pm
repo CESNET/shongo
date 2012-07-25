@@ -118,7 +118,7 @@ sub list_resources()
     if ( $response->is_fault() ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Technologies', \' |');
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Technologies', \' | ', 'Parent Resource', \' |');
     foreach my $resource (@{$response->value()}) {
         my $technologies = '';
         foreach my $technology (split(/,/, $resource->{'technologies'})) {
@@ -130,7 +130,8 @@ sub list_resources()
         $table->add(
             $resource->{'identifier'},
             $resource->{'name'},
-            $technologies
+            $technologies,
+            $resource->{'parentIdentifier'},
         );
     }
     console_print_table($table);

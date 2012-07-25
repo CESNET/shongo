@@ -29,7 +29,8 @@ public class BeanListFactoryBean<T> extends AbstractFactoryBean<List<T>>
     @Override
     protected List<T> createInstance() throws Exception
     {
-        return new ArrayList<T>(beanFactory.getBeansOfType(beanType).values());
+        List<T> list = new ArrayList<T>(beanFactory.getBeansOfType(beanType).values());
+        return list;
     }
 
     @Override

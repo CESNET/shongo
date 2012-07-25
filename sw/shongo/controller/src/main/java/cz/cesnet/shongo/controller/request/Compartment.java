@@ -1,14 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a group of requested resources and/or persons.
@@ -73,6 +71,20 @@ public class Compartment extends PersistentObject
     }
 
     /**
+     * @param id
+     * @return requested resource with given {@code id}
+     */
+    private ResourceSpecification getRequestedResourceById(Long id) throws FaultException
+    {
+        for (ResourceSpecification resourceSpecification : requestedResources) {
+            if (resourceSpecification.getId().equals(id)) {
+                return resourceSpecification;
+            }
+        }
+        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ResourceSpecification.class, id);
+    }
+
+    /**
      * @param requestedResource resource to be added to the {@link #requestedResources}
      */
     public void addRequestedResource(ResourceSpecification requestedResource)
@@ -106,6 +118,21 @@ public class Compartment extends PersistentObject
     public List<Person> getRequestedPersons()
     {
         return Collections.unmodifiableList(requestedPersons);
+    }
+
+    /**
+     * @param id
+     * @return requested person with given {@code id}
+     * @throws FaultException
+     */
+    public Person getRequestedPersonById(Long id) throws FaultException
+    {
+        for (Person person : requestedPersons) {
+            if (person.getId().equals(id)) {
+                return person;
+            }
+        }
+        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Person.class, id);
     }
 
     /**
@@ -159,18 +186,54 @@ public class Compartment extends PersistentObject
             compartment.addPerson(person.toApi());
         }
         for (ResourceSpecification resourceSpecification : getRequestedResources()) {
-            if (resourceSpecification instanceof ExternalEndpointSpecification) {
-                ExternalEndpointSpecification externalEndpoint = (ExternalEndpointSpecification) resourceSpecification;
-                List<Person> requestedPersons = externalEndpoint.getRequestedPersons();
-                cz.cesnet.shongo.controller.api.Person[] persons =
-                        new cz.cesnet.shongo.controller.api.Person[requestedPersons.size()];
-                for (int index = 0; index < requestedPersons.size(); index++) {
-                    persons[index] = requestedPersons.get(index).toApi();
-                }
-                compartment.addResource(externalEndpoint.getTechnologies().iterator().next(),
-                        externalEndpoint.getCount(), persons);
-            }
+            compartment.addResource(resourceSpecification.toApi());
         }
         return compartment;
+    }
+
+    /**
+     * Synchronize compartment from API
+     *
+     * @param api
+     * @throws FaultException
+     */
+    public <API extends cz.cesnet.shongo.controller.api.Compartment>
+    void fromApi(API api) throws FaultException
+    {
+        // Create/modify requested persons
+        for (cz.cesnet.shongo.controller.api.Person apiPerson : api.getPersons()) {
+            Person person = null;
+            if (api.isCollectionItemMarkedAsNew(API.PERSONS, apiPerson)) {
+                person = new Person();
+                addRequestedPerson(person);
+            }
+            else {
+                person = getRequestedPersonById(apiPerson.getId().longValue());
+            }
+            person.fromApi(apiPerson);
+        }
+        // Delete requested persons
+        Set<cz.cesnet.shongo.controller.api.Person> apiDeletedPersons =
+                api.getCollectionItemsMarkedAsDeleted(API.PERSONS);
+        for (cz.cesnet.shongo.controller.api.Person apiPerson : apiDeletedPersons) {
+            removeRequestedPerson(getRequestedPersonById(apiPerson.getId().longValue()));
+        }
+
+        // Create/modify requested resources
+        for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : api.getResources()) {
+            if (api.isCollectionItemMarkedAsNew(API.RESOURCES, apiResource)) {
+                addRequestedResource(ResourceSpecification.fromAPI(apiResource));
+            }
+            else {
+                ResourceSpecification resourceSpecification = getRequestedResourceById(apiResource.getId().longValue());
+                resourceSpecification.fromApi(apiResource);
+            }
+        }
+        // Delete requested resources
+        Set<cz.cesnet.shongo.controller.api.ResourceSpecification> apiDeletedResources =
+                api.getCollectionItemsMarkedAsDeleted(API.RESOURCES);
+        for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : apiDeletedResources) {
+            removeRequestedResource(getRequestedResourceById(apiResource.getId().longValue()));
+        }
     }
 }
