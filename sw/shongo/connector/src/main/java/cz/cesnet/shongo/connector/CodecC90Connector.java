@@ -6,6 +6,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.connector.api.CommandException;
+import cz.cesnet.shongo.connector.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import org.w3c.dom.Document;
@@ -29,6 +30,9 @@ import java.util.Map;
  */
 public class CodecC90Connector implements EndpointService
 {
+
+    public static final int MICROPHONES_COUNT = 8;
+
     public static void main(String[] args)
             throws IOException, JSchException, InterruptedException, SAXException, ParserConfigurationException,
                    XPathExpressionException
@@ -67,7 +71,6 @@ public class CodecC90Connector implements EndpointService
         conn.connect(address, username, password);
 
         Document result = conn.exec("xstatus SystemUnit uptimefs");
-//        Document result = conn.exec("xCommand Camera PositionSet Zoom: 1000");
         if (isError(result)) {
             System.err.println("Error: " + getErrorMessage(result));
             System.exit(1);
@@ -324,7 +327,7 @@ reading:
     private Document issueCommand(Command command) throws CommandException
     {
         try {
-            Document result = exec("xCommand " + command.toString());
+            Document result = exec(command.toString());
             if (isError(result)) {
                 throw new CommandException(getErrorMessage(result));
             }
@@ -344,7 +347,7 @@ reading:
     @Override
     public void dial(Alias server) throws CommandException
     {
-        Command command = new Command("Dial");
+        Command command = new Command("xCommand Dial");
         command.setParameter("Number", server.getValue());
         command.setParameter("Protocol", server.getTechnology().getCode());
         // TODO: find out whether the device accepts all types of aliases, or whether it must be told explicitly
@@ -356,43 +359,79 @@ reading:
     }
 
     @Override
-    public void resetDevice()
+    public void resetDevice() throws CommandException
     {
+        Command command = new Command("xCommand Boot");
+        command.setParameter("Action", "Restart"); // should be default anyway, but just for sure...
+        issueCommand(command);
     }
 
     @Override
-    public void mute()
+    public void mute() throws CommandException
     {
+        // TODO: test that it really mutes the device
+        issueCommand(new Command("xCommand Audio Microphones Mute"));
     }
 
     @Override
-    public void unmute()
+    public void unmute() throws CommandException
     {
+        // TODO: test that it really unmutes the device
+        issueCommand(new Command("xCommand Audio Microphones Unmute"));
     }
 
     @Override
-    public void setMicrophoneLevel(int level)
+    public void setMicrophoneLevel(int level) throws CommandException
     {
+        // TODO: test that it really affects the microphones gain
+        for (int i = 0; i < MICROPHONES_COUNT; i++) {
+            Command cmd = new Command("xConfiguration Audio Input Microphone " + i);
+            cmd.setParameter("Level", String.valueOf(level));
+            issueCommand(cmd);
+        }
     }
 
     @Override
-    public void setPlaybackLevel(int level)
+    public void setPlaybackLevel(int level) throws CommandException
     {
+        Command cmd = new Command("xConfiguration Audio");
+        cmd.setParameter("Volume", String.valueOf(level));
+        issueCommand(cmd);
     }
 
     @Override
-    public void enableVideo()
+    public void enableVideo() throws CommandUnsupportedException
     {
+        throw new CommandUnsupportedException("Enabling video is not supported on Codec C90.");
     }
 
     @Override
-    public void disableVideo()
+    public void disableVideo() throws CommandUnsupportedException
     {
+        throw new CommandUnsupportedException("Disabling video is not supported on Codec C90.");
+    }
+
+    @Override
+    public void startPresentation() throws CommandException
+    {
+        issueCommand(new Command("xCommand Presentation Start"));
+    }
+
+    @Override
+    public void stopPresentation() throws CommandException
+    {
+        issueCommand(new Command("xCommand Presentation Stop"));
+    }
+
+    @Override
+    public void standBy() throws CommandException
+    {
+        issueCommand(new Command("xCommand Standby Activate"));
     }
 
     @Override
     public ConnectorInfo getConnectorInfo()
     {
-        return null;
+        return null; // FIXME: implement
     }
 }

@@ -205,6 +205,8 @@
     <dictionary name="anode">
       <words>
         <w>cesnet</w>
+        <w>codec</w>
+        <w>unmute</w>
       </words>
     </dictionary>
   </component>
