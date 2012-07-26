@@ -68,7 +68,7 @@ sub list_connectors()
     if ( $response->is_fault() ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Name', \' | ', 'Resource Identifier', \' | ', 'Status', \' |');
+    my $table = Text::Table->new(\'| ', 'Agent Name', \' | ', 'Managed Resource', \' | ', 'Status', \' |');
     foreach my $connector (@{$response->value()}) {
         $table->add(
             $connector->{'name'},

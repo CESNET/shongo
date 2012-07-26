@@ -188,6 +188,22 @@ sub modify_attributes()
     $self->{'description'} = console_edit_value('Description of the resource', 0, undef, $self->{'description'});
     $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0,
         $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
+
+    my $mode = 0;
+    if ( ref($self->{'mode'}) ) {
+        $mode = 1;
+    }
+    $mode = console_edit_enum('Select mode', ordered_hash(0 => 'Unmanaged', 1 => 'Managed'), $mode);
+    if ( $mode == 0 ) {
+        $self->{'mode'} = 'UNMANAGED';
+    } else {
+        my $connectorAgentName = undef;
+        if ( ref($self->{'mode'}) eq 'HASH' ) {
+            $connectorAgentName = $self->{'mode'}->{'connectorAgentName'};
+        }
+        $connectorAgentName = console_edit_value('Connector agent name', 1, undef, $connectorAgentName);
+        $self->{'mode'} = {'connectorAgentName' => $connectorAgentName};
+    }
     $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
     $self->{'maxFuture'} = console_edit_value('Maximum Future', 0,
         $Shongo::Common::DateTimePattern . '|' . $Shongo::Common::PeriodPattern, $self->{'maxFuture'});
@@ -262,6 +278,15 @@ sub to_string()
     }
     if ( defined($self->{'parentIdentifier'}) ) {
         $string .= "      Parent: $self->{'parentIdentifier'}\n";
+    }
+    if ( defined($self->{'mode'}) ) {
+        my $mode = '';
+        if ( $self->{'mode'} eq 'UNMANAGED' ) {
+            $mode = 'Unmanaged';
+        } elsif ( ref($self->{'mode'}) eq 'HASH' ) {
+            $mode = 'Managed(' . $self->{'mode'}->{'connectorAgentName'} . ')';
+        }
+        $string .= "        Mode: $mode\n";
     }
     if ( defined($self->{'childResourceIdentifiers'}) && scalar(@{$self->{'childResourceIdentifiers'}}) > 0 ) {
         $string .= "    Children: ";

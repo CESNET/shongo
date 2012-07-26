@@ -46,6 +46,8 @@ public interface Fault
                 15, "Collection '%s' in class '%s' is empty and is required."),
         CLASS_ATTRIBUTE_READ_ONLY(
                 16, "Cannot set attribute '%s' for object of class '%s' because it is read-only."),
+        CLASS_ATTRIBUTE_WRONG_VALUE(
+                17, "Cannot set attribute '%s' for object of class '%s' because wrong value '%s' was present."),
 
         ENUM_VALUE_NOT_DEFINED(
                 20, "Enum value '%s' is not defined in enum '%s'."),

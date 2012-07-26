@@ -35,6 +35,6 @@ public class ControllerAgent extends Agent
      */
     public AID[] listConnectorAgents()
     {
-        return findAgentsByService("connector");
+        return findAgentsByService("connector", 1000);
     }
 }

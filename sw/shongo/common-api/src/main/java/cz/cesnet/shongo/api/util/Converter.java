@@ -6,6 +6,8 @@ import cz.cesnet.shongo.api.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -18,8 +20,10 @@ import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Converter
+public class Converter    
 {
+    private static Logger logger = LoggerFactory.getLogger(Converter.class);
+
     /**
      * Convert given value to target type with list of allowed types.
      *
@@ -50,18 +54,25 @@ public class Converter
                 else {
                     // Iterate through each allowed type and try to convert the value to it
                     Object allowedValue = null;
+                    List<Exception> exceptionList = new ArrayList<Exception>(allowedTypes.length);
                     for (Class allowedType : allowedTypes) {
                         try {
                             allowedValue = Converter.convert(value, allowedType, null, null, options);
                             break;
                         }
                         catch (Exception exception) {
+                            exceptionList.add(exception);
                         }
                     }
                     if (allowedValue != null) {
                         return allowedValue;
                     }
                     else {
+                        for ( int index = 0; index < exceptionList.size(); index++ ) {
+                            logger.debug(String.format("Cannot convert value '%s' to '%s'.",
+                                    value.getClass().getCanonicalName(), allowedTypes[index].getCanonicalName()),
+                                    exceptionList.get(index));
+                        }
                         throw new IllegalArgumentException();
                     }
                 }

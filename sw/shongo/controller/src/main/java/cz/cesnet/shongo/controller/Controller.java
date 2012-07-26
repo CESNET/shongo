@@ -315,7 +315,8 @@ public class Controller
         start();
         startRpc();
         startJade();
-        startWorkerThread();
+        System.out.println("TODO: Start worker");
+        //startWorkerThread();
     }
 
     /**

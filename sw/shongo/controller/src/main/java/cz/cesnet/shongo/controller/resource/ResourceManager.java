@@ -85,4 +85,28 @@ public class ResourceManager extends AbstractManager
             throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Resource.class, resourceId);
         }
     }
+
+    public List<DeviceResource> listManagedDevices()
+    {
+        List<DeviceResource> resourceList = entityManager
+                .createQuery("SELECT device FROM DeviceResource device WHERE device.mode.class = ManagedMode",
+                        DeviceResource.class)
+                .getResultList();
+        return resourceList;
+    }
+
+    public DeviceResource getManagedDeviceByAgent(String agentName)
+    {
+        try {
+            DeviceResource deviceResource = entityManager.createQuery(
+                    "SELECT device FROM DeviceResource device " +
+                            "WHERE device.mode.class = ManagedMode AND device.mode.connectorAgentName = :name",
+                    DeviceResource.class).setParameter("name", agentName)
+                    .getSingleResult();
+            return deviceResource;
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
+    }
 }

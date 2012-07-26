@@ -304,6 +304,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
 
             private Object invoke(Object pInstance, Method pMethod, Object[] pArgs) throws XmlRpcException
             {
+                logger.debug("Invoking '{}.{}'...", pInstance.getClass().getSimpleName(), pMethod.getName());
                 try {
                     return pMethod.invoke(pInstance, pArgs);
                 }
@@ -434,6 +435,13 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         protected void setResponseHeader(ServerStreamConnection pConnection, String pHeader, String pValue)
         {
             ((Connection) pConnection).setResponseHeader(pHeader, pValue);
+        }
+
+        @Override
+        public void execute(XmlRpcStreamRequestConfig pConfig, ServerStreamConnection pConnection)
+                throws XmlRpcException
+        {
+            super.execute(pConfig, pConnection);
         }
     }
 }

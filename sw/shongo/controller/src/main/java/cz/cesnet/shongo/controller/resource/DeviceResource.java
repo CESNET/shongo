@@ -52,7 +52,7 @@ public class DeviceResource extends Resource
     /**
      * @return mode for device (managed/unmanaged).
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public Mode getMode()
     {

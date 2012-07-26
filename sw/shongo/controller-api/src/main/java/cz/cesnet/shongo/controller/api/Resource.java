@@ -19,6 +19,11 @@ import java.util.Set;
 public class Resource extends IdentifiedChangeableObject
 {
     /**
+     * String representing unmanaged mode.
+     */
+    public static final String UNMANAGED_MODE = "UNMANAGED";
+
+    /**
      * Identifier of the resource.
      */
     private String identifier;
@@ -39,6 +44,21 @@ public class Resource extends IdentifiedChangeableObject
     public static final String DESCRIPTION = "description";
 
     /**
+     * List of capabilities which the resource has.
+     */
+    public static final String CAPABILITIES = "capabilities";
+
+    /**
+     * Set of technologies which the resource supports.
+     */
+    public static final String TECHNOLOGIES = "technologies";
+
+    /**
+     * Specifies the mode of the resource.
+     */
+    public static final String MODE = "mode";
+
+    /**
      * Specifies whether resource can be scheduled by a scheduler.
      */
     public static final String SCHEDULABLE = "schedulable";
@@ -47,16 +67,6 @@ public class Resource extends IdentifiedChangeableObject
      * Specifies the maximum future for which the resource can be scheduled.
      */
     public static final String MAX_FUTURE = "maxFuture";
-
-    /**
-     * Set of technologies which the resource supports.
-     */
-    public static final String TECHNOLOGIES = "technologies";
-
-    /**
-     * List of capabilities which the resource has.
-     */
-    public static final String CAPABILITIES = "capabilities";
 
     /**
      * Child resources identifiers.
@@ -131,36 +141,35 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #SCHEDULABLE}
+     * @return {@link #CAPABILITIES}
      */
-    public Boolean getSchedulable()
+    public List<Capability> getCapabilities()
     {
-        return getPropertyStorage().getValue(SCHEDULABLE);
+        return getPropertyStorage().getCollection(CAPABILITIES, List.class);
     }
 
     /**
-     * @param schedulable sets the {@link #SCHEDULABLE}
+     * @param capabilities sets the {@link #CAPABILITIES}
      */
-    public void setSchedulable(Boolean schedulable)
+    public void setCapabilities(List<Capability> capabilities)
     {
-        getPropertyStorage().setValue(SCHEDULABLE, schedulable);
+        getPropertyStorage().setCollection(CAPABILITIES, capabilities);
     }
 
     /**
-     * @return {@link #MAX_FUTURE}
+     * @param capability capability to be added to the {@link #CAPABILITIES}
      */
-    @AllowedTypes({DateTime.class, Period.class})
-    public Object getMaxFuture()
+    public void addCapability(Capability capability)
     {
-        return getPropertyStorage().getValue(MAX_FUTURE);
+        getPropertyStorage().addCollectionItem(CAPABILITIES, capability, List.class);
     }
 
     /**
-     * @param maxFuture sets the {@link #MAX_FUTURE}
+     * @param capability capability to be removed from the {@link #CAPABILITIES}
      */
-    public void setMaxFuture(Object maxFuture)
+    public void removeCapability(Capability capability)
     {
-        getPropertyStorage().setValue(MAX_FUTURE, maxFuture);
+        getPropertyStorage().removeCollectionItem(CAPABILITIES, capability);
     }
 
     /**
@@ -197,35 +206,53 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #CAPABILITIES}
+     * @return {@link #MODE}
      */
-    public List<Capability> getCapabilities()
+    @AllowedTypes({String.class, ManagedMode.class})
+    public Object getMode()
     {
-        return getPropertyStorage().getCollection(CAPABILITIES, List.class);
+        return getPropertyStorage().getValue(MODE);
     }
 
     /**
-     * @param capabilities sets the {@link #CAPABILITIES}
+     * @param mode sets the {@link #MODE}
      */
-    public void setCapabilities(List<Capability> capabilities)
+    public void setMode(Object mode)
     {
-        getPropertyStorage().setCollection(CAPABILITIES, capabilities);
+        getPropertyStorage().setValue(MODE, mode);
     }
 
     /**
-     * @param capability capability to be added to the {@link #CAPABILITIES}
+     * @return {@link #SCHEDULABLE}
      */
-    public void addCapability(Capability capability)
+    public Boolean getSchedulable()
     {
-        getPropertyStorage().addCollectionItem(CAPABILITIES, capability, List.class);
+        return getPropertyStorage().getValue(SCHEDULABLE);
     }
 
     /**
-     * @param capability capability to be removed from the {@link #CAPABILITIES}
+     * @param schedulable sets the {@link #SCHEDULABLE}
      */
-    public void removeCapability(Capability capability)
+    public void setSchedulable(Boolean schedulable)
     {
-        getPropertyStorage().removeCollectionItem(CAPABILITIES, capability);
+        getPropertyStorage().setValue(SCHEDULABLE, schedulable);
+    }
+
+    /**
+     * @return {@link #MAX_FUTURE}
+     */
+    @AllowedTypes({DateTime.class, Period.class})
+    public Object getMaxFuture()
+    {
+        return getPropertyStorage().getValue(MAX_FUTURE);
+    }
+
+    /**
+     * @param maxFuture sets the {@link #MAX_FUTURE}
+     */
+    public void setMaxFuture(Object maxFuture)
+    {
+        getPropertyStorage().setValue(MAX_FUTURE, maxFuture);
     }
 
     /**

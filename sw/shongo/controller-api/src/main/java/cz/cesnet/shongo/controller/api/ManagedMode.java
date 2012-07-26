@@ -1,16 +1,13 @@
-package cz.cesnet.shongo.controller.resource;
+package cz.cesnet.shongo.controller.api;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import cz.cesnet.shongo.controller.api.xmlrpc.StructType;
 
 /**
- * Represents a device mode in which the device
- * is managed by a connector.
+ * Represents a managed mode for a device resource.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-@Entity
-public class ManagedMode extends Mode
+public class ManagedMode implements StructType
 {
     /**
      * Connector Jade agent name.
@@ -18,9 +15,25 @@ public class ManagedMode extends Mode
     private String connectorAgentName;
 
     /**
+     * Constructor.
+     */
+    public ManagedMode()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param connectorAgentName sets the {@link #connectorAgentName}
+     */
+    public ManagedMode(String connectorAgentName)
+    {
+        this.connectorAgentName = connectorAgentName;
+    }
+
+    /**
      * @return {@link #connectorAgentName}
      */
-    @Column
     public String getConnectorAgentName()
     {
         return connectorAgentName;

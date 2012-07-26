@@ -186,7 +186,7 @@ public class Agent extends jade.core.Agent
      * @param serviceType
      * @return array of agents
      */
-    public AID[] findAgentsByService(String serviceType)
+    public AID[] findAgentsByService(String serviceType, long timeout)
     {
         ServiceDescription serviceDescription = new ServiceDescription();
         serviceDescription.setType(serviceType);
@@ -195,7 +195,11 @@ public class Agent extends jade.core.Agent
         agentDescription.addServices(serviceDescription);
 
         try {
-            DFAgentDescription[] result = DFService.search(this, agentDescription);
+            DFAgentDescription[] result = DFService.searchUntilFound(this, getDefaultDF(), agentDescription, null, timeout);
+            //DFAgentDescription[] result = DFService.search(this, agentDescription);
+            if ( result == null ) {
+                result = new DFAgentDescription[0];
+            }
             AID[] agents = new AID[result.length];
             for (int i = 0; i < result.length; ++i) {
                 agents[i] = result[i].getName();
