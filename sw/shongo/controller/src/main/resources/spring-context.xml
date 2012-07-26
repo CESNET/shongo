@@ -7,13 +7,9 @@
 
     <context:annotation-config/>
 
-    <!-- Controlled Domain -->
-    <bean id="domain" class="cz.cesnet.shongo.controller.Domain"/>
-
     <!-- Application -->
     <bean id="controller" class="cz.cesnet.shongo.controller.Controller" init-method="startAll" destroy-method="stop">
         <constructor-arg type="java.lang.String" value="controller.cfg.xml"/>
-        <property name="domain"  ref="domain"/>
         <property name="entityManagerFactory" ref="entityManagerFactory"/>
         <property name="services">
             <bean class="cz.cesnet.shongo.controller.util.BeanListFactoryBean">
@@ -35,12 +31,9 @@
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.api.CommonServiceImpl"/>
     <bean id="resourceService" class="cz.cesnet.shongo.controller.api.ResourceServiceImpl">
-        <property name="domain" ref="domain"/>
         <property name="resourceDatabase" ref="resourceDatabase"/>
     </bean>
-    <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl">
-        <property name="domain" ref="domain"/>
-    </bean>
+    <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl"/>
     <bean id="roomService" class="cz.cesnet.shongo.controller.api.RoomServiceImpl"/>
 
     <!-- Entity Manager Factory -->

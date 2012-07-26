@@ -49,7 +49,7 @@ public class Controller
     /**
      * Domain for which the controller is running.
      */
-    Domain domain;
+    Domain domain = new Domain();
 
     /**
      * Entity manager factory.
@@ -112,8 +112,10 @@ public class Controller
     public Controller(String configurationFileName)
     {
         try {
-            Configuration configuration = new XMLConfiguration(configurationFileName);
-            setConfiguration(configuration);
+            XMLConfiguration xmlConfiguration = new XMLConfiguration();
+            xmlConfiguration.setDelimiterParsingDisabled(true);
+            xmlConfiguration.load(configurationFileName);
+            setConfiguration(xmlConfiguration);
         }
         catch (Exception exception) {
             logger.warn(exception.getMessage());
@@ -135,8 +137,10 @@ public class Controller
         }
         // Default configuration has the lowest priority
         try {
-            this.configuration.addConfiguration(new XMLConfiguration(
-                    getClass().getClassLoader().getResource("default.cfg.xml")));
+            XMLConfiguration xmlConfiguration = new XMLConfiguration();
+            xmlConfiguration.setDelimiterParsingDisabled(true);
+            xmlConfiguration.load(getClass().getClassLoader().getResource("default.cfg.xml"));
+            this.configuration.addConfiguration(xmlConfiguration);
         }
         catch (Exception exception) {
             throw new RuntimeException("Failed to load default controller configuration!", exception);
@@ -152,11 +156,15 @@ public class Controller
     }
 
     /**
-     * @param domain sets the {@link #domain}
+     * Set domain information.
+     *
+     * @param name         sets the {@link Domain#name}
+     * @param organization sets the {@link Domain#organization}
      */
-    public void setDomain(Domain domain)
+    public void setDomain(String name, String organization)
     {
-        this.domain = domain;
+        domain.setName(name);
+        domain.setOrganization(organization);
     }
 
     /**
@@ -288,6 +296,10 @@ public class Controller
 
         // Initialize components
         for (Component component : components) {
+            if (component instanceof Component.WithDomain) {
+                Component.WithDomain componentWithDomain = (Component.WithDomain) component;
+                componentWithDomain.setDomain(domain);
+            }
             component.setEntityManagerFactory(entityManagerFactory);
             component.init();
         }
@@ -340,6 +352,14 @@ public class Controller
         jadeContainer.addAgent("Controller", jadeAgent);
         if (jadeContainer.start() == false) {
             throw new IllegalStateException("Failed to start JADE container.");
+        }
+
+        // Notify Component.ControllerAgentAware components
+        for (Component component : components) {
+            if (component instanceof Component.ControllerAgentAware) {
+                Component.ControllerAgentAware controllerAgentAware = (Component.ControllerAgentAware) component;
+                controllerAgentAware.setControllerAgent(jadeAgent);
+            }
         }
     }
 

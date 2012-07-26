@@ -1,17 +1,30 @@
 package cz.cesnet.shongo.controller.api;
 
-import javax.annotation.Resource;
-import javax.persistence.EntityManager;
+import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.ControllerAgent;
+import jade.core.AID;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Room service implementation.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CommonServiceImpl implements CommonService
+public class CommonServiceImpl extends Component.WithDomain implements CommonService, Component.ControllerAgentAware
 {
-    @Resource
-    private EntityManager entityManager;
+    /**
+     * @see ControllerAgent
+     */
+    private ControllerAgent controllerAgent;
+
+    @Override
+    public void setControllerAgent(ControllerAgent controllerAgent)
+    {
+        this.controllerAgent = controllerAgent;
+    }
 
     @Override
     public String getServiceName()
@@ -20,11 +33,31 @@ public class CommonServiceImpl implements CommonService
     }
 
     @Override
-    public ControllerInfo getControllerInfo()
+    public Controller getController()
     {
-        ControllerInfo controllerInfo = new ControllerInfo();
-        controllerInfo.name = "Debugging Controller";
-        controllerInfo.description = "Controller platform used for debugging purposes";
-        return controllerInfo;
+        Controller controller = new Controller();
+        controller.setDomain(domain.toApi());
+        return controller;
+    }
+
+    @Override
+    public Collection<Domain> listDomains(SecurityToken token)
+    {
+        List<Domain> domainList = new ArrayList<Domain>();
+        domainList.add(domain.toApi());
+        return domainList;
+    }
+
+    @Override
+    public Collection<Connector> listConnectors(SecurityToken token)
+    {
+        List<Connector> connectorList = new ArrayList<Connector>();
+        for (AID aid : controllerAgent.listConnectorAgents() ) {
+            Connector connector = new Connector();
+            connector.setName(aid.getLocalName());
+            connector.setStatus(Connector.Status.AVAILABLE);
+            connectorList.add(connector);
+        }
+        return connectorList;
     }
 }

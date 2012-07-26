@@ -108,4 +108,16 @@ public class Domain
         }
         return Long.parseLong(identifier.substring(prefix.length(), identifier.length()));
     }
+
+    /**
+     * @return domain converted to API
+     */
+    public cz.cesnet.shongo.controller.api.Domain toApi()
+    {
+        cz.cesnet.shongo.controller.api.Domain apiDomain = new cz.cesnet.shongo.controller.api.Domain();
+        apiDomain.setName(getName());
+        apiDomain.setOrganization(getOrganization());
+        apiDomain.setStatus(cz.cesnet.shongo.controller.api.Domain.Status.AVAILABLE);
+        return apiDomain;
+    }
 }

@@ -3,13 +3,13 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -17,42 +17,12 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceServiceImpl extends Component implements ResourceService
+public class ResourceServiceImpl extends Component.WithDomain implements ResourceService
 {
-    /**
-     * @see Domain
-     */
-    private Domain domain;
-
     /**
      * @see ResourceDatabase
      */
     private ResourceDatabase resourceDatabase;
-
-    /**
-     * Constructor.
-     */
-    public ResourceServiceImpl()
-    {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param domain sets the {@link #domain}
-     */
-    public ResourceServiceImpl(Domain domain)
-    {
-        setDomain(domain);
-    }
-
-    /**
-     * @param domain sets the {@link #domain}
-     */
-    public void setDomain(Domain domain)
-    {
-        this.domain = domain;
-    }
 
     /**
      * @param resourceDatabase sets the {@link #resourceDatabase}
@@ -66,8 +36,8 @@ public class ResourceServiceImpl extends Component implements ResourceService
     public void init()
     {
         super.init();
-        if (domain == null) {
-            throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
+        if (resourceDatabase == null) {
+            throw new IllegalStateException(getClass().getName() + " doesn't have the resource database set!");
         }
     }
 
@@ -164,7 +134,7 @@ public class ResourceServiceImpl extends Component implements ResourceService
     }
 
     @Override
-    public ResourceSummary[] listResources(SecurityToken token)
+    public Collection<ResourceSummary> listResources(SecurityToken token)
     {
         EntityManager entityManager = getEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -194,7 +164,7 @@ public class ResourceServiceImpl extends Component implements ResourceService
 
         entityManager.close();
 
-        return summaryList.toArray(new ResourceSummary[summaryList.size()]);
+        return summaryList;
     }
 
     @Override

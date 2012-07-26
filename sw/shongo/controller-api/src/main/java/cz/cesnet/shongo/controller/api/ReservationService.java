@@ -4,6 +4,8 @@ import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 
+import java.util.Collection;
+
 /**
  * Interface to the service handling operations on reservations.
  *
@@ -52,7 +54,7 @@ public interface ReservationService extends Service
      * @return array of reservation requests
      */
     @API
-    public ReservationRequestSummary[] listReservationRequests(SecurityToken token);
+    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token);
 
     /**
      * Gets the complete Reservation object.

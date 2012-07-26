@@ -1031,37 +1031,40 @@ Person {
 
 \begin{Api}
 
-\ApiEnum{ControllerType}
-Types of controllers in the domain.
+%\ApiEnum{ControllerType}
+%Types of controllers in the domain.
+%\begin{ApiEnumValues}
+%\ApiEnumValue{Primary}{} The primary controller.
+%\ApiEnumValue{Backup}{} A backup controller. Behaves just like the primary controller, even some agents may be connected to a backup controller instead of the primary one.
+%\end{ApiEnumValues}
+
+\ApiClass{Controller}{}
+Information about the domain controller.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{domain}{Domain}{\ApiReadOnly} Domain which is controlled by the controller.
+\end{ApiClassAttributes}
+
+\ApiEnum{Status}
+Status of domain/connector.
 \begin{ApiEnumValues}
-\ApiEnumValue{Primary}{} The primary controller.
-\ApiEnumValue{Backup}{} A backup controller. Behaves just like the primary controller, even some agents may be connected to a backup controller instead of the primary one.
+\ApiEnumValue{AVAILABLE}{} Means that domain/connector is available to controller.
+\ApiEnumValue{NOT_AVAILABLE}{} Means that domain/connect is not currently available to the controller.
 \end{ApiEnumValues}
 
-\ApiClass{ControllerInfo}{}
-Represents information about the domain controller.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{name}{String}{\ApiRequired} A unique name within the domain.
-\ApiClassAttribute{description}{String}{\ApiOptional}
-\ApiClassAttribute{type}{ControllerType}{\ApiRequired}
-\end{ApiClassAttributes}
-
-\ApiClass{Agent}{}
-Represents an agent managing a resource.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{identifier}{String}{\ApiRequired} A unique agent identifier within the domain.
-\ApiClassAttribute{address}{String}{\ApiRequired} An address where the agent is reachable.
-\ApiClassAttribute{port}{int}{\ApiRequired} Port on which the agent is reachable.
-\ApiClassAttribute{resource}{ResourceSummary}{\ApiOptional} Resource managed by the agent.
-\end{ApiClassAttributes}
-
-\ApiClass{DomainInfo}{}
-Information about a domain and its controller.
+\ApiClass{Domain}{}
+Information about a domain.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiRequired} A unique domain name.
 \ApiClassAttribute{organization}{String}{\ApiOptional} Organization owning the domain.
-\ApiClassAttribute{controller}{ControllerInfo}{\ApiRequired} A controller of the domain.
-\ApiClassAttribute{connected}{boolean}{\ApiRequired} Whether a connection to the domain controller is established.
+\ApiClassAttribute{status}{Status}{\ApiRequired} Status whether the domain controller is available.
+\end{ApiClassAttributes}
+
+\ApiClass{Connector}{}
+Information about a connector which is managing a resource.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiReadOnly} A unique connector name within the domain (Jade agent name).
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiReadOnly} Identifier of a resource which is managed by the connector.
+\ApiClassAttribute{status}{Status}{\ApiRequired} Status whether the connector is available.
 \end{ApiClassAttributes}
 
 \ApiClass{DateTimeSlot}{}
@@ -1203,17 +1206,14 @@ This class represents a summary of a reservation request. The summary is lightwe
 
 \begin{Api}
 
-\ApiCmd{ControllerInfo getControllerInfo()}
-Get information about the domain controller. See |ControllerInfo| class.
+\ApiCmd{Controller getController()}
+Get information about the domain controller. See |Controller| class.
 
-\ApiCmd{Agent[] listAgents(Map filter)}
-Lists all agents within the platform (i.e., managed by the controller) managing a resource satisfying a given filter.
+\ApiCmd{Domain[] listDomains()}
+Lists all known domains with status if they are available to the domain controller.
 
-\ApiCmd{ControllerInfo[] listControllers()}
-Lists the primary and all backup controllers for the domain.
-
-\ApiCmd{DomainInfo[] listDomains()}
-Lists all known domains.
+\ApiCmd{Connector[] listConnectors()}
+Lists all known connectors in the controlled domain.
 
 \end{Api}
 

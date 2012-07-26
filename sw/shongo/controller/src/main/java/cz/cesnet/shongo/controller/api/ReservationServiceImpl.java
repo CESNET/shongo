@@ -2,12 +2,12 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -15,47 +15,8 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationServiceImpl extends Component implements ReservationService
+public class ReservationServiceImpl extends Component.WithDomain implements ReservationService
 {
-    /**
-     * @see Domain
-     */
-    private Domain domain;
-
-    /**
-     * Constructor.
-     */
-    public ReservationServiceImpl()
-    {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param domain sets the {@link #domain}
-     */
-    public ReservationServiceImpl(Domain domain)
-    {
-        setDomain(domain);
-    }
-
-    /**
-     * @param domain sets the {@link #domain}
-     */
-    public void setDomain(Domain domain)
-    {
-        this.domain = domain;
-    }
-
-    @Override
-    public void init()
-    {
-        super.init();
-        if (domain == null) {
-            throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
-        }
-    }
-
     @Override
     public String getServiceName()
     {
@@ -134,7 +95,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
     }
 
     @Override
-    public ReservationRequestSummary[] listReservationRequests(SecurityToken token)
+    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
     {
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -163,7 +124,7 @@ public class ReservationServiceImpl extends Component implements ReservationServ
 
         entityManager.close();
 
-        return summaryList.toArray(new ReservationRequestSummary[summaryList.size()]);
+        return summaryList;
     }
 
     @Override

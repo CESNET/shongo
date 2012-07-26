@@ -10,6 +10,7 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller;
+use Shongo::Controller::CommonService;
 use Shongo::Controller::ResourceService;
 use Shongo::Controller::ReservationService;
 
@@ -37,6 +38,9 @@ sub new
 
     # Populate controller commands
     Shongo::Controller->populate($self);
+
+    # Populate common commands
+    Shongo::Controller::CommonService->populate($self);
 
     # Populate resource management commands
     Shongo::Controller::ResourceService->populate($self);

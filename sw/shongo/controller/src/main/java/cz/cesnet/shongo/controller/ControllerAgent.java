@@ -22,12 +22,19 @@ public class ControllerAgent extends Agent
             @Override
             public void perform(CommandLine commandLine)
             {
-                AID[] agents = findAgentsByService("connector");
-                for (AID agent : agents) {
+                for (AID agent : listConnectorAgents()) {
                     Shell.printInfo("Agent [%s]", agent.getName());
                 }
             }
         });
         return commandSet;
+    }
+
+    /**
+     * @return list of all connector agents
+     */
+    public AID[] listConnectorAgents()
+    {
+        return findAgentsByService("connector");
     }
 }

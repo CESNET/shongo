@@ -4,7 +4,6 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.*;
-import org.apache.commons.configuration.BaseConfiguration;
 import org.apache.xmlrpc.XmlRpcException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
@@ -25,7 +24,7 @@ import static junit.framework.Assert.*;
  */
 public class ReservationServiceImplTest extends AbstractDatabaseTest
 {
-    Controller controller;
+    cz.cesnet.shongo.controller.Controller controller;
 
     ControllerClient controllerClient;
 
@@ -36,13 +35,11 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     {
         super.before();
 
-        Domain domain = new Domain("cz.cesnet");
-
         // Start controller
-        controller = new Controller();
-        controller.setDomain(domain);
+        controller = new cz.cesnet.shongo.controller.Controller();
+        controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(getEntityManagerFactory());
-        controller.addService(new ReservationServiceImpl(domain));
+        controller.addService(new ReservationServiceImpl());
         controller.start();
         controller.startRpc();
 

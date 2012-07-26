@@ -94,7 +94,7 @@ sub connect()
 
     print("Connecting to controller at '$url'...\n");
     my $client = RPC::XML::Client->new($url);
-    my $response = $client->send_request("Common.getControllerInfo");
+    my $response = $client->send_request("Common.getController");
     if ( ref($response) ) {
         $self->{"_client"} = $client;
         print("Successfully connected to the controller!\n");
@@ -197,20 +197,20 @@ sub status()
         return;
     }
 
-    my $response = $self->request("Common.getControllerInfo");
+    my $response = $self->request("Common.getController");
     if ( !ref($response) || $response->is_fault() ) {
         return;
     }
-    if ( !($response->{"class"}->value eq "ControllerInfo") ) {
-        print("[ERROR] Server hasn't return ControllerInfo object!\n");
+    if ( !($response->{"class"}->value eq "Controller") ) {
+        print("[ERROR] Server hasn't return Controller object!\n");
         return;
     }
     printf("+----------------------------------------------------------------------+\n");
     printf("| Connected to the following controller:                               |\n");
     printf("| -------------------------------------------------------------------- |\n");
-    printf("| URL:         %-55s |\n", $self->{'_url'});
-    printf("| Name:        %-55s |\n", $response->{"name"}->value);
-    printf("| Description: %-55s |\n", substr($response->{"description"}->value, 0, 55));
+    printf("| URL:                 %-47s |\n", $self->{'_url'});
+    printf("| Domain Name:         %-47s |\n", $response->{"domain"}->{"name"}->value);
+    printf("| Domain Organization: %-47s |\n", $response->{"domain"}->{"organization"}->value);
     printf("+----------------------------------------------------------------------+\n");
 }
 

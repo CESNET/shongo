@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 
+import java.util.Collection;
+
 /**
  * Interface to the service handling common operations.
  *
@@ -10,10 +12,20 @@ import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 public interface CommonService extends Service
 {
     /**
-     * Get information about controller platform.
-     *
-     * @return controller information
+     * @return information about the domain controller
      */
     @API
-    public ControllerInfo getControllerInfo();
+    public Controller getController();
+
+    /**
+     * @return array of all known domains
+     */
+    @API
+    public Collection<Domain> listDomains(SecurityToken token);
+
+    /**
+     * @return
+     */
+    @API
+    public Collection<Connector> listConnectors(SecurityToken token);
 }

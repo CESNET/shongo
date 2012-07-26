@@ -4,6 +4,8 @@ import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 
+import java.util.Collection;
+
 /**
  * Interface to the service handling operations on resources.
  *
@@ -55,7 +57,7 @@ public interface ResourceService extends Service
      * @return array of resource summaries
      */
     @API
-    ResourceSummary[] listResources(SecurityToken token);
+    Collection<ResourceSummary> listResources(SecurityToken token);
 
     /**
      * Gets the complete resource object.

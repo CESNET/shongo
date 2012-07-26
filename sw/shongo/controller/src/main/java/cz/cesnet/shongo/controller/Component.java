@@ -77,4 +77,51 @@ public abstract class Component
     {
         return interval.toString();
     }
+
+    /**
+     * {@link Component} which contains reference to current {@link Domain}.
+     */
+    public static class WithDomain extends Component
+    {
+        /**
+         * @see Domain
+         */
+        protected Domain domain;
+
+        /**
+         * @return {@link #domain}
+         */
+        public Domain getDomain()
+        {
+            return domain;
+        }
+
+        /**
+         * @param domain sets the {@link #domain}
+         */
+        public void setDomain(Domain domain)
+        {
+            this.domain = domain;
+        }
+
+        @Override
+        public void init()
+        {
+            super.init();
+            if (domain == null) {
+                throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
+            }
+        }
+    }
+
+    /**
+     * Object extending {@link Component} can implement this interface to be aware of {@link ControllerAgent}.
+     */
+    public static interface ControllerAgentAware
+    {
+        /**
+         * @param controllerAgent {@link ControllerAgent} which can be used by implementing {@link Component}
+         */
+        public void setControllerAgent(ControllerAgent controllerAgent);
+    }
 }
