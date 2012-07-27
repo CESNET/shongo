@@ -10,6 +10,7 @@ import cz.cesnet.shongo.api.Fault;
 public enum ControllerFault implements Fault
 {
     PREPROCESSOR_FAILED(100, "Preprocessor failed"),
+    SCHEDULER_FAILED(101, "Scheduler failed"),
 
     OTHER(999, "%s");
 

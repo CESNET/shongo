@@ -1,12 +1,18 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.allocation.ResourceResolver;
+import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.request.ResourceSpecification;
+import cz.cesnet.shongo.controller.resource.Resource;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +48,7 @@ public class Scheduler extends Component
      *
      * @param interval
      */
-    public void run(Interval interval)
+    public void run(Interval interval) throws FaultException
     {
         checkInitialized();
 
@@ -63,9 +69,9 @@ public class Scheduler extends Component
 
             entityManager.getTransaction().commit();
         }
-        catch (RuntimeException exception) {
+        catch (Exception exception) {
             entityManager.getTransaction().rollback();
-            throw exception;
+            throw new FaultException(exception, ControllerFault.SCHEDULER_FAILED);
         }
         finally {
             entityManager.close();
@@ -78,6 +84,7 @@ public class Scheduler extends Component
      * @param compartmentRequest
      */
     private void allocateCompartmentRequest(CompartmentRequest compartmentRequest, EntityManager entityManager)
+            throws FaultException
     {
         logger.info("Allocating compartment request '{}'...", compartmentRequest.getId());
 
@@ -102,15 +109,24 @@ public class Scheduler extends Component
 
         // Schedule a new allocation
         if (allocatedResources.size() == 0) {
-            //System.err.println(PrintableObject.toString(requestedResourcesWithPersons));
-
-            // TODO: Allocate endpoints
-
-            // TODO: Allocate aliases for endpoint (if needed)
-
-            // TODO: Allocate virtual rooms and gateways for connecting endpoints
-
-            throw new RuntimeException("TODO: Implement");
+            ResourceResolver resourceResolver = new ResourceResolver();
+            for ( ResourceSpecification resource : requestedResourcesWithPersons.keySet()) {
+                if ( resource instanceof ExternalEndpointSpecification) {
+                    ExternalEndpointSpecification externalEndpoint = (ExternalEndpointSpecification) resource;
+                    for (Technology technology : externalEndpoint.getTechnologies()) {
+                        resourceResolver.addTechnologyPorts(technology, externalEndpoint.getCount());
+                    }
+                } else {
+                    throw new FaultException("Implement allocation of '%s' resource.", resource.getClass());
+                }
+            }
+            List<Resource> resources = resourceResolver.resolve();
+            for (Resource resource : resources) {
+                AllocatedResource allocatedResource = new AllocatedResource();
+                allocatedResource.setResource(resource);
+                allocatedResource.setSlot(compartmentRequest.getRequestedSlot());
+                allocatedCompartment.addAllocatedResource(allocatedResource);
+            }
         }
         // Reschedule existing allocation
         else {
@@ -128,7 +144,7 @@ public class Scheduler extends Component
      * @param entityManagerFactory
      * @param interval
      */
-    public static void run(EntityManagerFactory entityManagerFactory, Interval interval)
+    public static void run(EntityManagerFactory entityManagerFactory, Interval interval) throws FaultException
     {
         Scheduler scheduler = new Scheduler();
         scheduler.setEntityManagerFactory(entityManagerFactory);
