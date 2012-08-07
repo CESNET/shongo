@@ -21,7 +21,6 @@ import java.sql.Timestamp;
  */
 public class PersistentInterval implements CompositeUserType, Serializable
 {
-
     private static final String[] PROPERTY_NAMES = new String[]{"start", "end"};
 
     private static final Type[] TYPES = new Type[]{StandardBasicTypes.TIMESTAMP, StandardBasicTypes.TIMESTAMP};

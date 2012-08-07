@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
@@ -68,6 +69,14 @@ public class Resource extends PersistentObject
     private boolean schedulable;
 
     /**
+     * Allocations for the resource. Should be never accessed (used only for JPA query access which doesn't work
+     * without association {@see http://stackoverflow.com/questions/2837255/jpa-outer-join-without-relation}).
+     */
+    @OneToMany(mappedBy = "resource")
+    @Access(AccessType.FIELD)
+    private List<AllocatedResource> allocations;
+
+    /**
      * Constructor.
      */
     Resource()
@@ -77,7 +86,7 @@ public class Resource extends PersistentObject
     /**
      * @return {@link #name}
      */
-    @Column
+    @Column(nullable = false)
     public String getName()
     {
         return name;
@@ -131,6 +140,30 @@ public class Resource extends PersistentObject
             }
         }
         throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Capability.class, id);
+    }
+
+    /**
+     * @param capabilityType
+     * @return true whether resource has capability of given {@code capabilityType},
+     *         false otherwise
+     */
+    public boolean hasCapability(Class<? extends Capability> capabilityType)
+    {
+        return getCapability(capabilityType) != null;
+    }
+
+    /**
+     * @param capabilityType
+     * @return capability of given {@code capabilityType} if exits, null otherwise
+     */
+    public <T extends Capability> T getCapability(Class<T> capabilityType)
+    {
+        for (Capability capability : capabilities) {
+            if (capabilityType.isAssignableFrom(capability.getClass())) {
+                return capabilityType.cast(capability);
+            }
+        }
+        return null;
     }
 
     /**

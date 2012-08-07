@@ -4,6 +4,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.resource.Resource;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -28,9 +29,14 @@ public class AllocatedResource extends PersistentObject
     private Resource resource;
 
     /**
-     * Date/time slot for which is the resource allocated.
+     * Interval start date/time.
      */
-    private Interval slot;
+    private DateTime slotStart;
+
+    /**
+     * Interval end date/time.
+     */
+    private DateTime slotEnd;
 
     /**
      * @return {@link #allocatedCompartment}
@@ -80,20 +86,70 @@ public class AllocatedResource extends PersistentObject
     }
 
     /**
-     * @return {@link #slot}
+     * @return {@link #slotStart}
      */
-    @Columns(columns = {@Column(name = "slot_start"), @Column(name = "slot_end")})
-    @Type(type = "Interval")
-    public Interval getSlot()
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getSlotStart()
     {
-        return slot;
+        return slotStart;
     }
 
     /**
-     * @param slot sets the {@link #slot}
+     * @param slotStart sets the {@link #slotStart}
+     */
+    public void setSlotStart(DateTime slotStart)
+    {
+        this.slotStart = slotStart;
+    }
+
+    /**
+     * @return {@link #slotEnd}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getSlotEnd()
+    {
+        return slotEnd;
+    }
+
+    /**
+     * @param slotEnd sets the {@link #slotEnd}
+     */
+    public void setSlotEnd(DateTime slotEnd)
+    {
+        this.slotEnd = slotEnd;
+    }
+
+    /**
+     * @return slot ({@link #slotStart}, {@link #slotEnd})
+     */
+    @Transient
+    public Interval getSlot()
+    {
+        return new Interval(slotStart, slotEnd);
+    }
+
+    /**
+     * @param slot sets the slot
      */
     public void setSlot(Interval slot)
     {
-        this.slot = slot;
+        setSlotStart(slot.getStart());
+        setSlotEnd(slot.getEnd());
+    }
+
+    /**
+     * Sets the slot to new interval created from given {@code start} and {@code end}.
+     *
+     * @param start
+     * @param end
+     */
+    public void setSlot(DateTime start, DateTime end)
+    {
+        setSlotStart(start);
+        setSlotEnd(end);
     }
 }

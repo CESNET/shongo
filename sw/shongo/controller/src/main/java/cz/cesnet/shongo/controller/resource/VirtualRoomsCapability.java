@@ -17,6 +17,23 @@ public class VirtualRoomsCapability extends DeviceCapability
     private Integer portCount;
 
     /**
+     * Contructor.
+     */
+    public VirtualRoomsCapability()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param portCount sets the {@link #portCount}
+     */
+    public VirtualRoomsCapability(Integer portCount)
+    {
+        this.portCount = portCount;
+    }
+
+    /**
      * @return {@link #portCount}
      */
     @Column

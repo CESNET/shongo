@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -57,7 +58,17 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * @return list of all resources in the database.
+     * Create a new resource allocation in the database.
+     *
+     * @param allocatedResource
+     */
+    public void createAllocation(AllocatedResource allocatedResource)
+    {
+        super.create(allocatedResource);
+    }
+
+    /**
+     * @return list of all resources in the database
      */
     public List<Resource> list()
     {
@@ -86,6 +97,47 @@ public class ResourceManager extends AbstractManager
         }
     }
 
+    /**
+     *
+     * @param deviceResourceId
+     * @return {@link DeviceResource} with given {@code deviceResourceId}
+     * @throws FaultException when device resource doesn't exist
+     */
+    public DeviceResource getDevice(Long deviceResourceId) throws FaultException
+    {
+        try {
+            DeviceResource deviceResource = entityManager.createQuery(
+                    "SELECT device FROM DeviceResource device WHERE device.id = :id",
+                    DeviceResource.class).setParameter("id", deviceResourceId)
+                    .getSingleResult();
+            return deviceResource;
+        }
+        catch (NoResultException exception) {
+            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, DeviceResource.class, deviceResourceId);
+        }
+    }
+
+    /**
+     * @param capabilityType
+     * @return list of all device resources which have capability with given {@code capabilityType}
+     */
+    public List<DeviceResource> listDevicesWithCapability(Class<? extends Capability> capabilityType)
+    {
+        List<DeviceResource> deviceResources = entityManager.createQuery("SELECT device FROM DeviceResource device"
+                + " WHERE device.id IN("
+                + "  SELECT device.id FROM DeviceResource device"
+                + "  INNER JOIN device.capabilities capability"
+                + "  WHERE TYPE(capability) = :capability"
+                + "  GROUP BY device.id"
+                + " )", DeviceResource.class)
+                .setParameter("capability", capabilityType)
+                .getResultList();
+        return deviceResources;
+    }
+
+    /**
+     * @return list of all managed device resource in the database
+     */
     public List<DeviceResource> listManagedDevices()
     {
         List<DeviceResource> resourceList = entityManager
@@ -95,6 +147,11 @@ public class ResourceManager extends AbstractManager
         return resourceList;
     }
 
+    /**
+     * @param agentName
+     * @return managed device resource which has assigned given {@code agentName}
+     *         in the {@link ManagedMode#connectorAgentName} or null if it doesn't exist
+     */
     public DeviceResource getManagedDeviceByAgent(String agentName)
     {
         try {
@@ -108,5 +165,20 @@ public class ResourceManager extends AbstractManager
         catch (NoResultException exception) {
             return null;
         }
+    }
+
+    /**
+     * @param resource
+     * @return list of all resource allocations for given {@code resource}
+     */
+    public List<AllocatedResource> listResourceAllocations(Resource resource)
+    {
+        List<AllocatedResource> allocatedResourceList = entityManager
+                .createQuery(
+                        "SELECT allocation FROM AllocatedResource allocation WHERE allocation.resource = :resource",
+                        AllocatedResource.class)
+                .setParameter("resource", resource)
+                .getResultList();
+        return allocatedResourceList;
     }
 }

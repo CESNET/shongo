@@ -7,7 +7,7 @@ import javax.persistence.Transient;
 import java.util.Map;
 
 /**
- * Represents an object that can be persisted to a database.
+ * Represents an object that can be persisted to a database (must contain unique identifier).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

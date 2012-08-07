@@ -6,11 +6,11 @@ import java.util.*;
  * Set of values. Each value has assigned range to which it belongs. Methods for retrieving values based on
  * whether they belongs to specific range are provided.
  *
- * @param <R>
  * @param <V>
+ * @param <R>
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RangeSet<R, V> implements Iterable<V>
+public class RangeSet<V, R> implements Iterable<V>
 {
     /**
      * Map of buckets accessible by range values.
@@ -23,7 +23,7 @@ public class RangeSet<R, V> implements Iterable<V>
     Map<V, Range> rangeMap = new HashMap<V, Range>();
 
     /**
-     * Add new rangeValue to the set.
+     * Add new value to the set.
      *
      * @param value rangeValue to be added
      * @param start start of rangeValue's range
@@ -33,7 +33,7 @@ public class RangeSet<R, V> implements Iterable<V>
      */
     public boolean add(V value, R start, R end)
     {
-        // If rangeValue is already added, remove it
+        // If rangeValue is already added, do nothing
         if (rangeMap.containsKey(value)) {
             return false;
         }

@@ -3,9 +3,11 @@ package cz.cesnet.shongo.controller.allocation;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
+import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@Entity
 public class AllocatedDevice extends AllocatedResource
 {
     /**
@@ -77,5 +80,14 @@ public class AllocatedDevice extends AllocatedResource
     public void removeAlias(Alias alias)
     {
         aliases.remove(alias);
+    }
+
+    @Override
+    public void setResource(Resource resource)
+    {
+        if (!(resource instanceof DeviceResource)) {
+            throw new IllegalArgumentException("Resource which is allocated must be device.");
+        }
+        super.setResource(resource);
     }
 }
