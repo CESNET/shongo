@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.Interval;
 
@@ -134,6 +135,14 @@ public class CompartmentRequestManager extends AbstractManager
                     + "because the person has already been asked "
                     + "whether he will accepts the invitation.");
         }
+    }
+
+    /**
+     * @param compartmentRequest to be updated in database
+     */
+    public void update(CompartmentRequest compartmentRequest)
+    {
+        super.update(compartmentRequest);
     }
 
     /**
@@ -302,7 +311,7 @@ public class CompartmentRequestManager extends AbstractManager
             compartmentRequest.updateStateByRequestedPersons();
         }
 
-        super.update(compartmentRequest);
+        update(compartmentRequest);
 
         return modified;
     }
@@ -314,6 +323,10 @@ public class CompartmentRequestManager extends AbstractManager
      */
     public void delete(CompartmentRequest compartmentRequest)
     {
+        if (true) {
+            throw new RuntimeException("TODO: Delete all allocated compartment requests");
+            // TODO: Notify virtual room database somehow
+        }
         super.delete(compartmentRequest);
     }
 

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.ResourceDatabase;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -48,8 +49,8 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             DeviceResource deviceResource = new DeviceResource();
             deviceResource.addTechnology(Technology.H323);
-            deviceResource.addCapability(new VirtualRoomsCapability());
-            resourceDatabase.addResource(deviceResource);
+            deviceResource.addCapability(new VirtualRoomsCapability(100));
+            resourceDatabase.addResource(deviceResource, getEntityManager());
         }
 
         // ---------------------------

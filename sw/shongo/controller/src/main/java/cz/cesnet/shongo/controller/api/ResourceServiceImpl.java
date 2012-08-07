@@ -71,7 +71,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
 
         // Add resource to resource database
         if (resourceDatabase != null) {
-            resourceDatabase.addResource(resourceImpl);
+            resourceDatabase.addResource(resourceImpl, entityManager);
         }
 
         entityManager.close();
@@ -102,7 +102,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
 
         // Update resource in resource database
         if (resourceDatabase != null) {
-            resourceDatabase.updateResource(resourceImpl);
+            resourceDatabase.updateResource(resourceImpl, entityManager);
         }
 
         entityManager.close();
@@ -126,7 +126,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
 
         // Remove resource from resource database
         if (resourceDatabase != null) {
-            resourceDatabase.removeResource(resourceImpl);
+            resourceDatabase.removeResource(resourceImpl, entityManager);
         }
 
         entityManager.getTransaction().commit();

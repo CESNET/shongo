@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -98,7 +99,6 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     *
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
      * @throws FaultException when device resource doesn't exist
@@ -168,16 +168,20 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
-     * @param resource
-     * @return list of all resource allocations for given {@code resource}
+     * @param resourceId
+     * @param interval
+     * @return list of all resource allocations for resource with given {@code resourceId} which intersects
+     *         given {@code interval}
      */
-    public List<AllocatedResource> listResourceAllocations(Resource resource)
+    public List<AllocatedResource> listResourceAllocationsInInterval(Long resourceId, Interval interval)
     {
-        List<AllocatedResource> allocatedResourceList = entityManager
-                .createQuery(
-                        "SELECT allocation FROM AllocatedResource allocation WHERE allocation.resource = :resource",
-                        AllocatedResource.class)
-                .setParameter("resource", resource)
+        List<AllocatedResource> allocatedResourceList = entityManager.createQuery("SELECT allocation"
+                + " FROM AllocatedResource allocation"
+                + " WHERE allocation.resource.id = :id"
+                + " AND NOT(allocation.slotStart >= :end OR allocation.slotEnd <= :start)", AllocatedResource.class)
+                .setParameter("id", resourceId)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
                 .getResultList();
         return allocatedResourceList;
     }

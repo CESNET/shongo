@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.allocation;
 
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -70,8 +69,8 @@ public class VirtualRoomsTest extends AbstractDatabaseTest
         // ----------------------------
         // Load allocated virtual rooms
         // ----------------------------
-        VirtualRoomManager virtualRoomManager = new VirtualRoomManager();
-        virtualRoomManager.load(entityManager);
+        VirtualRoomDatabase virtualRoomDatabase = new VirtualRoomDatabase();
+        virtualRoomDatabase.loadDeviceResources(entityManager);
 
         // ---------------------------------
         // Test find available virtual rooms
@@ -79,48 +78,53 @@ public class VirtualRoomsTest extends AbstractDatabaseTest
         List<AvailableVirtualRoom> result;
 
         // Test different intervals
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager, Interval.parse("0/1"), 50);
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("0/1"), 50, entityManager);
         assertEquals(2, result.size());
 
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager, Interval.parse("200/250"), 50);
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("200/250"), 50, entityManager);
         assertEquals(2, result.size());
 
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager, Interval.parse("50/100"), 50);
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("50/100"), 50, entityManager);
         assertEquals(1, result.size());
 
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager, Interval.parse("100/150"), 50);
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("100/150"), 50, entityManager);
         assertEquals(1, result.size());
 
         // Test different technologies
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager,
-                Interval.parse("100/149"), 10, new Technology[]{Technology.H323, Technology.ADOBE_CONNECT});
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("100/149"), 10,
+                new Technology[]{Technology.H323, Technology.ADOBE_CONNECT}, entityManager
+        );
         assertEquals(1, result.size());
         assertEquals(Long.valueOf(1), result.get(0).getDeviceResource().getId());
 
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager,
-                Interval.parse("100/149"), 10, new Technology[]{Technology.SIP, Technology.ADOBE_CONNECT});
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("100/149"), 10,
+                new Technology[]{Technology.SIP, Technology.ADOBE_CONNECT}, entityManager
+        );
         assertEquals(1, result.size());
         assertEquals(Long.valueOf(2), result.get(0).getDeviceResource().getId());
 
         // Test different number of required ports
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager,
-                Interval.parse("100/149"), 10, new Technology[]{Technology.ADOBE_CONNECT});
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("100/149"), 10,
+                new Technology[]{Technology.ADOBE_CONNECT}, entityManager
+        );
         assertEquals(2, result.size());
         assertEquals(Long.valueOf(1), result.get(0).getDeviceResource().getId());
         assertEquals(50, result.get(0).getAvailablePortCount());
         assertEquals(Long.valueOf(2), result.get(1).getDeviceResource().getId());
         assertEquals(20, result.get(1).getAvailablePortCount());
 
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager,
-                Interval.parse("100/149"), 20, new Technology[]{Technology.ADOBE_CONNECT});
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("100/149"), 20,
+                new Technology[]{Technology.ADOBE_CONNECT}, entityManager
+        );
         assertEquals(2, result.size());
         assertEquals(Long.valueOf(1), result.get(0).getDeviceResource().getId());
         assertEquals(50, result.get(0).getAvailablePortCount());
         assertEquals(Long.valueOf(2), result.get(1).getDeviceResource().getId());
         assertEquals(20, result.get(1).getAvailablePortCount());
 
-        result = virtualRoomManager.findAvailableVirtualRooms(entityManager,
-                Interval.parse("100/149"), 21, new Technology[]{Technology.ADOBE_CONNECT});
+        result = virtualRoomDatabase.findAvailableVirtualRooms(Interval.parse("100/149"), 21,
+                new Technology[]{Technology.ADOBE_CONNECT}, entityManager
+        );
         assertEquals(1, result.size());
         assertEquals(Long.valueOf(1), result.get(0).getDeviceResource().getId());
         assertEquals(50, result.get(0).getAvailablePortCount());

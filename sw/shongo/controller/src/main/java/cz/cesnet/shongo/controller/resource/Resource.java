@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
-import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
@@ -364,10 +363,11 @@ public class Resource extends PersistentObject
                 resource.addTechnology(technology);
             }
 
-            if ( deviceResource.isManaged() ) {
+            if (deviceResource.isManaged()) {
                 ManagedMode managedMode = (ManagedMode) deviceResource.getMode();
                 resource.setMode(new cz.cesnet.shongo.controller.api.ManagedMode(managedMode.getConnectorAgentName()));
-            } else {
+            }
+            else {
                 resource.setMode(cz.cesnet.shongo.controller.api.Resource.UNMANAGED_MODE);
             }
         }
@@ -412,7 +412,8 @@ public class Resource extends PersistentObject
             if ((newParentResourceId == null && oldParentResourceId != null)
                     || (newParentResourceId != null && !newParentResourceId.equals(oldParentResourceId))) {
                 ResourceManager resourceManager = new ResourceManager(entityManager);
-                Resource parentResource = resourceManager.get(newParentResourceId);
+                Resource parentResource =
+                        (newParentResourceId != null ? resourceManager.get(newParentResourceId) : null);
                 setParentResource(parentResource);
             }
         }
@@ -448,24 +449,28 @@ public class Resource extends PersistentObject
 
             if (api.isPropertyFilled(API.MODE)) {
                 Object mode = api.getMode();
-                if ( mode instanceof String ) {
-                    if ( mode.equals(API.UNMANAGED_MODE)) {
+                if (mode instanceof String) {
+                    if (mode.equals(API.UNMANAGED_MODE)) {
                         deviceResource.setMode(null);
-                    } else {
+                    }
+                    else {
                         throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_WRONG_VALUE,
                                 API.MODE, api.getClass(), mode);
                     }
-                } else if ( mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
+                }
+                else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
                     ManagedMode managedMode;
                     if (deviceResource.isManaged()) {
                         managedMode = (ManagedMode) deviceResource.getMode();
-                    } else {
+                    }
+                    else {
                         managedMode = new ManagedMode();
                         deviceResource.setMode(managedMode);
                     }
                     managedMode.setConnectorAgentName(
                             ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
-                } else {
+                }
+                else {
                     throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_WRONG_VALUE,
                             API.MODE, api.getClass(), mode);
                 }

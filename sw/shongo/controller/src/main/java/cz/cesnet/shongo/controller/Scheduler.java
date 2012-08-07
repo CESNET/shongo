@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
-import cz.cesnet.shongo.controller.allocation.ResourceResolver;
+import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
@@ -19,8 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a component of a domain controller that is responsible for scheduling resources for compartment requests.
@@ -31,9 +27,26 @@ public class Scheduler extends Component
 {
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
+    /**
+     * @see {@link ResourceDatabase}
+     */
+    private ResourceDatabase resourceDatabase;
+
+    /**
+     * @param resourceDatabase sets the {@link #resourceDatabase}
+     */
+    public void setResourceDatabase(ResourceDatabase resourceDatabase)
+    {
+        this.resourceDatabase = resourceDatabase;
+    }
+
     @Override
     public void init()
     {
+        if (resourceDatabase == null) {
+            throw new IllegalStateException("Component " + getClass().getName()
+                    + " doesn't have the resource database set!");
+        }
         super.init();
     }
 
@@ -56,6 +69,9 @@ public class Scheduler extends Component
 
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
+
+        VirtualRoomDatabase virtualRoomDatabase = resourceDatabase.getVirtualRoomDatabase();
+        virtualRoomDatabase.setWorkingInterval(interval, entityManager);
 
         try {
             CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
@@ -88,7 +104,12 @@ public class Scheduler extends Component
     {
         logger.info("Allocating compartment request '{}'...", compartmentRequest.getId());
 
+        VirtualRoomDatabase virtualRoomDatabase = resourceDatabase.getVirtualRoomDatabase();
+        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+
+        // Get requested slot
+        Interval requestedSlot = compartmentRequest.getRequestedSlot();
 
         // Get existing allocated compartment
         AllocatedCompartment allocatedCompartment =
@@ -109,32 +130,89 @@ public class Scheduler extends Component
 
         // Schedule a new allocation
         if (allocatedResources.size() == 0) {
-            ResourceResolver resourceResolver = new ResourceResolver();
-            for ( ResourceSpecification resource : requestedResourcesWithPersons.keySet()) {
-                if ( resource instanceof ExternalEndpointSpecification) {
+            // Track how many ports for each technology is needed
+            Map<Technology, Integer> technologyPorts = new HashMap<Technology, Integer>();
+
+            // Iterate though all requested resource and increment requested ports
+            for (ResourceSpecification resource : requestedResourcesWithPersons.keySet()) {
+                if (resource instanceof ExternalEndpointSpecification) {
                     ExternalEndpointSpecification externalEndpoint = (ExternalEndpointSpecification) resource;
                     for (Technology technology : externalEndpoint.getTechnologies()) {
-                        resourceResolver.addTechnologyPorts(technology, externalEndpoint.getCount());
+                        Integer currentPortCount = technologyPorts.get(technology);
+                        if (currentPortCount == null) {
+                            currentPortCount = 0;
+                        }
+                        currentPortCount += externalEndpoint.getCount();
+                        technologyPorts.put(technology, currentPortCount);
                     }
-                } else {
+                }
+                else {
                     throw new FaultException("Implement allocation of '%s' resource.", resource.getClass());
                 }
             }
-            List<Resource> resources = resourceResolver.resolve();
-            for (Resource resource : resources) {
-                AllocatedResource allocatedResource = new AllocatedResource();
-                allocatedResource.setResource(resource);
-                allocatedResource.setSlot(compartmentRequest.getRequestedSlot());
-                allocatedCompartment.addAllocatedResource(allocatedResource);
+
+            // TODO: Allocate endpoints
+            // TODO: Allocate aliases for endpoint (if needed)
+
+            if (technologyPorts.size() == 0) {
+                throw new FaultException("No resources are requested for allocation.");
+            }
+            else if (technologyPorts.size() > 1) {
+                throw new FaultException("Only resources of a single technology is allowed for now.");
+            }
+            // For now only single technology is possible to allocate
+            Technology technology = technologyPorts.keySet().iterator().next();
+            int requestedPortCount = technologyPorts.get(technology);
+
+            // List available virtual rooms which can connect all requested endpoints
+            List<AvailableVirtualRoom> availableVirtualRooms = virtualRoomDatabase.findAvailableVirtualRooms(
+                    requestedSlot, requestedPortCount, new Technology[]{technology}, entityManager);
+            if (availableVirtualRooms.size() > 0) {
+                Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
+                {
+                    @Override
+                    public int compare(AvailableVirtualRoom first, AvailableVirtualRoom second)
+                    {
+                        return Integer.valueOf(first.getAvailablePortCount()).compareTo(second.getAvailablePortCount());
+                    }
+                });
+                AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
+                AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
+                allocatedVirtualRoom.setResource(availableVirtualRoom.getDeviceResource());
+                allocatedVirtualRoom.setSlot(requestedSlot);
+                allocatedVirtualRoom.setPortCount(requestedPortCount);
+                if (requestedSlot.toDuration().isLongerThan(AllocatedVirtualRoom.MAXIMUM_DURATION)) {
+                    throw new FaultException("Requested slot '%s' is longer than maximum '%s'!",
+                            requestedSlot.toDuration().toString(), AllocatedVirtualRoom.MAXIMUM_DURATION.toString());
+                }
+                allocatedCompartment.addAllocatedResource(allocatedVirtualRoom);
+
+                virtualRoomDatabase.addAllocatedVirtualRoom(allocatedVirtualRoom);
+            }
+            else {
+                compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED);
+                compartmentRequestManager.update(compartmentRequest);
+                allocatedCompartmentManager.delete(allocatedCompartment);
+
+                // TODO: Save a reason somewhere to compartment request
+
+                // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
+                /*throw new FaultException("No virtual room was found for following specification:\n"
+                        + "       Interval: %s\n"
+                        + "     Technology: %s\n"
+                        + "Number of ports: %d\n",
+                        requestedSlot.toString(), technology.toString(), requestedPortCount);*/
             }
         }
         // Reschedule existing allocation
         else {
             if (true) {
-                throw new RuntimeException("TODO: Implement");
+                throw new RuntimeException("TODO: Implement reallocation");
             }
         }
 
+        compartmentRequest.setState(CompartmentRequest.State.ALLOCATED);
+        compartmentRequestManager.update(compartmentRequest);
         allocatedCompartmentManager.update(allocatedCompartment);
     }
 

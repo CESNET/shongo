@@ -2,11 +2,14 @@ package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import java.util.*;
@@ -16,8 +19,15 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomManager
+public class VirtualRoomDatabase
 {
+    private static Logger logger = LoggerFactory.getLogger(VirtualRoomDatabase.class);
+
+    /**
+     * Working interval for which are loaded allocated virtual rooms.
+     */
+    private Interval workingInterval;
+
     /**
      * Map of device resource states by theirs identifiers.
      */
@@ -33,7 +43,7 @@ public class VirtualRoomManager
      *
      * @param entityManager entity manager for loading allocated virtual rooms
      */
-    public void load(EntityManager entityManager)
+    public void loadDeviceResources(EntityManager entityManager)
     {
         deviceStateById.clear();
         devicesByTechnology.clear();
@@ -42,6 +52,27 @@ public class VirtualRoomManager
         List<DeviceResource> deviceResources = resourceManager.listDevicesWithCapability(VirtualRoomsCapability.class);
         for (DeviceResource deviceResource : deviceResources) {
             addDeviceResource(deviceResource, entityManager);
+        }
+    }
+
+    /**
+     * Set new working interval
+     *
+     * @param workingInterval
+     * @param entityManager
+     */
+    public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
+    {
+        workingInterval = new Interval(workingInterval.getStart().minus(AllocatedVirtualRoom.MAXIMUM_DURATION),
+                workingInterval.getEnd().plus(AllocatedVirtualRoom.MAXIMUM_DURATION));
+        if (!workingInterval.equals(this.workingInterval)) {
+            logger.info("Setting new working interval '{}' to database of virtual rooms...",
+                    Component.formatInterval(workingInterval));
+            this.workingInterval = workingInterval;
+            // Remove all allocated virtual rooms from all resources and add it again for the new interval
+            for (DeviceResourceState deviceResourceState : deviceStateById.values()) {
+                updateDeviceResourceState(deviceResourceState, entityManager);
+            }
         }
     }
 
@@ -58,7 +89,7 @@ public class VirtualRoomManager
         }
         DeviceResourceState deviceResourceState = deviceStateById.get(deviceResource.getId());
         if (deviceResourceState == null) {
-            deviceResourceState = new DeviceResourceState();
+            deviceResourceState = new DeviceResourceState(deviceResource.getId());
             deviceStateById.put(deviceResource.getId(), deviceResourceState);
         }
 
@@ -67,7 +98,7 @@ public class VirtualRoomManager
         if (technologies.size() == 0) {
             technologies = deviceResource.getTechnologies();
         }
-        for (Technology technology : deviceResource.getTechnologies()) {
+        for (Technology technology : technologies) {
             Set<Long> devices = devicesByTechnology.get(technology);
             if (devices == null) {
                 devices = new HashSet<Long>();
@@ -79,16 +110,32 @@ public class VirtualRoomManager
         // Set the capability to the device state
         deviceResourceState.virtualRoomsCapability = virtualRoomsCapability;
 
-        // Get all allocated virtual rooms for the device and add them to the device state
+        updateDeviceResourceState(deviceResourceState, entityManager);
+    }
+
+    /**
+     * Remove all allocated virtual rooms for the given device and add them again for current working interval.
+     *
+     * @param deviceResourceState
+     * @param entityManager
+     */
+    private void updateDeviceResourceState(DeviceResourceState deviceResourceState, EntityManager entityManager)
+    {
         deviceResourceState.allocatedVirtualRooms.clear();
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<AllocatedResource> allocations = resourceManager.listResourceAllocations(deviceResource);
-        for (AllocatedResource allocation : allocations) {
-            if (!(allocation instanceof AllocatedVirtualRoom)) {
-                throw new IllegalStateException("Device resource with VirtualRooms capability can be allocated only"
-                        + " as allocated virtual rooms.");
+
+        if (workingInterval != null) {
+            // Get all allocated virtual rooms for the device and add them to the device state
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            List<AllocatedResource> allocations =
+                    resourceManager.listResourceAllocationsInInterval(deviceResourceState.deviceResourceId,
+                            workingInterval);
+            for (AllocatedResource allocation : allocations) {
+                if (!(allocation instanceof AllocatedVirtualRoom)) {
+                    throw new IllegalStateException("Device resource with VirtualRooms capability can be allocated only"
+                            + " as allocated virtual rooms.");
+                }
+                addAllocatedVirtualRoom((AllocatedVirtualRoom) allocation);
             }
-            addAllocatedVirtualRoom((AllocatedVirtualRoom) allocation);
         }
     }
 
@@ -111,14 +158,15 @@ public class VirtualRoomManager
      */
     public void updateDeviceResource(DeviceResource deviceResource, EntityManager entityManager)
     {
-        removeDeviceResource(deviceResource);
+        removeDeviceResource(deviceResource, entityManager);
         addDeviceResource(deviceResource, entityManager);
     }
 
     /**
      * @param deviceResource device resource for which all it's {@link AllocatedVirtualRoom}s should be removed
+     * @param entityManager  reserved for future use
      */
-    public void removeDeviceResource(DeviceResource deviceResource)
+    public void removeDeviceResource(DeviceResource deviceResource, EntityManager entityManager)
     {
         // Remove the device to map by technology
         for (Technology technology : deviceResource.getTechnologies()) {
@@ -136,14 +184,14 @@ public class VirtualRoomManager
      * Find available devices in given {@code interval} which have at least {@code requiredPortCount} available ports
      * and which supports given {@code technologies}.
      *
-     * @param entityManager
      * @param interval
      * @param requiredPortCount
      * @param technologies
+     * @param entityManager
      * @return list of available devices
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(EntityManager entityManager, Interval interval,
-            int requiredPortCount, Technology[] technologies)
+    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
+            Technology[] technologies, EntityManager entityManager)
     {
         Set<Long> devices = null;
         for (Technology technology : technologies) {
@@ -162,7 +210,7 @@ public class VirtualRoomManager
                 devices.retainAll(technologyDevices);
             }
         }
-        if (devices == null ) {
+        if (devices == null) {
             devices = deviceStateById.keySet();
         }
 
@@ -194,12 +242,12 @@ public class VirtualRoomManager
     }
 
     /**
-     * @see {@link #findAvailableVirtualRooms(EntityManager, org.joda.time.Interval, int, Technology[])}
+     * @see {@link #findAvailableVirtualRooms}
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(EntityManager entityManager, Interval interval,
-            int requiredPortCount)
+    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
+            EntityManager entityManager)
     {
-        return findAvailableVirtualRooms(entityManager, interval, requiredPortCount, new Technology[0]);
+        return findAvailableVirtualRooms(interval, requiredPortCount, new Technology[0], entityManager);
     }
 
     /**
@@ -207,6 +255,11 @@ public class VirtualRoomManager
      */
     private static class DeviceResourceState
     {
+        /**
+         * Device resource identifier.
+         */
+        private Long deviceResourceId;
+
         /**
          * {@link VirtualRoomsCapability} for the device.
          */
@@ -216,5 +269,15 @@ public class VirtualRoomManager
          * Already allocated {@link AllocatedVirtualRoom} for the device.
          */
         private RangeSet<AllocatedVirtualRoom, DateTime> allocatedVirtualRooms = new RangeSet<AllocatedVirtualRoom, DateTime>();
+
+        /**
+         * Constructor.
+         *
+         * @param deviceResourceId sets the {@link #deviceResourceId}
+         */
+        public DeviceResourceState(Long deviceResourceId)
+        {
+            this.deviceResourceId = deviceResourceId;
+        }
     }
 }

@@ -38,6 +38,14 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
+     * @param allocatedCompartment to be deleted in the database
+     */
+    public void delete(AllocatedCompartment allocatedCompartment)
+    {
+        super.delete(allocatedCompartment);
+    }
+
+    /**
      * @param compartmentRequest
      * @return {@link AllocatedCompartment} for the given {@link CompartmentRequest} or null if doesn't exists
      */

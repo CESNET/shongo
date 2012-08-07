@@ -45,7 +45,12 @@ public class CompartmentRequest extends PersistentObject
          * All requested resources by compartment request has been allocated. If the compartment
          * request becomes modified, it's state changes back to {@link #COMPLETE}.
          */
-        ALLOCATED
+        ALLOCATED,
+
+        /**
+         * Allocation failed because some resources cannot be allocated.
+         */
+        ALLOCATION_FAILED
     }
 
     /**

@@ -26,7 +26,9 @@
     <!-- Components -->
     <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.ResourceDatabase"/>
     <bean id="preprocessor" class="cz.cesnet.shongo.controller.Preprocessor"/>
-    <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler"/>
+    <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler">
+        <property name="resourceDatabase" ref="resourceDatabase"/>
+    </bean>
 
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.api.CommonServiceImpl"/>

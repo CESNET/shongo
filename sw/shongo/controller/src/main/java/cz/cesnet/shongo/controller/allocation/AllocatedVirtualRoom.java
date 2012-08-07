@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.allocation;
 
+import org.joda.time.Duration;
+import org.joda.time.Period;
+
 import javax.persistence.Entity;
 
 /**
@@ -10,6 +13,11 @@ import javax.persistence.Entity;
 @Entity
 public class AllocatedVirtualRoom extends AllocatedDevice
 {
+    /**
+     * Maximum duration of allocated virtual room.
+     */
+    public static Duration MAXIMUM_DURATION = Duration.standardDays(1);
+
     /**
      * Allocated port count.
      */
