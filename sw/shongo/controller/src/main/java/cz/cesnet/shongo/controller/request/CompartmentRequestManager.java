@@ -250,6 +250,9 @@ public class CompartmentRequestManager extends AbstractManager
                         modified = true;
                     }
                 }
+
+                // Resource specification is modified
+                modified = true;
             }
             else {
                 // Resource specification doesn't exists so add it

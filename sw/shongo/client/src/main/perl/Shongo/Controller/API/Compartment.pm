@@ -71,6 +71,19 @@ sub modify()
     $self->modify_loop();
 }
 
+sub modify_resource($$)
+{
+    my ($resource, $edit) = @_;
+
+    var_dump($resource);
+
+    $resource->{'class'} = 'ExternalEndpointSpecification';
+    $resource->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::Resource::Technology, $resource->{'technology'});
+    $resource->{'count'} = console_edit_value("Count", 1, "\\d+", $resource->{'count'});
+
+    return $resource;
+}
+
 #
 # Run modify loop
 #
@@ -85,18 +98,19 @@ sub modify_loop()
         sub {
             my $actions = [];
             push($actions, 'Add new requested resource' => sub {
-                my $technology = console_read_enum("Select technology", $Shongo::Controller::API::Resource::Technology);
-                my $count = console_read_value("Count", 1, "\\d");
-                if ( defined($technology) && defined($count) ) {
-                    add_collection_item(\$self->{'resources'}, {
-                        'class' => 'ExternalEndpointSpecification',
-                        'technology' => $technology,
-                        'count' => $count
-                    });
-                }
+                my $resource = {};
+                modify_resource($resource, 0);
+                add_collection_item(\$self->{'resources'}, $resource);
                 return undef;
             });
             if ( $self->get_resources_count() > 0 ) {
+                push($actions, 'Modify existing requested resource' => sub {
+                    my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
+                    if ( defined($index) ) {
+                        modify_resource(get_collection_item($self->{'resources'}, $index - 1), 1);
+                    }
+                    return undef;
+                });
                 push($actions, 'Remove existing requested resource' => sub {
                     my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
                     if ( defined($index) ) {

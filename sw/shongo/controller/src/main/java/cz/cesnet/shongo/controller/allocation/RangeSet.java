@@ -41,7 +41,7 @@ public class RangeSet<V, R> implements Iterable<V>
         // Find the nearest start/end and update buckets
         R floor = bucketMap.floorKey(start);
         R ceiling = bucketMap.ceilingKey(end);
-        if (floor != start) {
+        if (!start.equals(floor)) {
             Bucket<R, V> newBucket = new Bucket<R, V>(start);
             newBucket.addOwnerValue(value);
             bucketMap.put(start, newBucket);
@@ -54,7 +54,7 @@ public class RangeSet<V, R> implements Iterable<V>
         else {
             bucketMap.get(start).addOwnerValue(value);
         }
-        if (ceiling != end) {
+        if (!end.equals(ceiling)) {
             Bucket<R, V> newBucket = new Bucket<R, V>(end);
             newBucket.addOwnerValue(value);
             bucketMap.put(end, newBucket);
