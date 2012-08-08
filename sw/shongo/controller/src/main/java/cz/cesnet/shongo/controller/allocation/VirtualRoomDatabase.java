@@ -16,6 +16,12 @@ import java.util.*;
 
 /**
  * Holds database of allocated virtual rooms for device resources with {@link VirtualRoomsCapability}.
+ * <p/>
+ * Device resources mut be explicitly added by {@link #addDeviceResource(DeviceResource, EntityManager)} or
+ * {@link #loadDeviceResources(EntityManager)}.
+ * <p/>
+ * Database holds only allocated virtual rooms in {@link #workingInterval}. If {@link #workingInterval} isn't set
+ * the database of virtual rooms will be empty (it is not desirable to load all allocated virtual room for entire time).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -194,7 +200,7 @@ public class VirtualRoomDatabase
         }
 
         allocatedVirtualRoom = deviceResourceState.allocatedVirtualRoomById.get(allocatedVirtualRoom.getId());
-        if (allocatedVirtualRoom == null ) {
+        if (allocatedVirtualRoom == null) {
             throw new IllegalStateException("Allocated virtual rooms doesn't exist in the virtual rooms database.");
         }
         deviceResourceState.allocatedVirtualRooms.remove(allocatedVirtualRoom);

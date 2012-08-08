@@ -48,6 +48,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             resourceDatabase.init();
 
             DeviceResource deviceResource = new DeviceResource();
+            deviceResource.setName("MCU");
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new VirtualRoomsCapability(100));
             resourceDatabase.addResource(deviceResource, getEntityManager());
@@ -153,7 +154,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Schedule complete compartment request(s)
         // -----------------------------------------
         {
-            Scheduler.run(getEntityManagerFactory(), interval);
+            Scheduler.run(getEntityManagerFactory(), resourceDatabase, interval);
 
             // TODO: Check created allocation
         }

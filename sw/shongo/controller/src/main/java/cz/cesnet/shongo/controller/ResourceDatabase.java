@@ -90,6 +90,12 @@ public class ResourceDatabase extends Component
     {
         checkInitialized();
 
+        // Create resource in the database if it wasn't created yet
+        if (!resource.isPersisted()) {
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            resourceManager.create(resource);
+        }
+
         if (resourceMap.containsKey(resource.getId())) {
             throw new IllegalArgumentException(
                     "Resource '" + resource.getId() + "' is already in the database!");

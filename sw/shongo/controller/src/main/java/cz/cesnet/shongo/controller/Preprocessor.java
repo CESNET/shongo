@@ -25,26 +25,9 @@ public class Preprocessor extends Component
 {
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
-    /**
-     * @see {@link ResourceDatabase}
-     */
-    private ResourceDatabase resourceDatabase;
-
-    /**
-     * @param resourceDatabase sets the {@link #resourceDatabase}
-     */
-    public void setResourceDatabase(ResourceDatabase resourceDatabase)
-    {
-        this.resourceDatabase = resourceDatabase;
-    }
-
     @Override
     public void init()
     {
-        if (resourceDatabase == null) {
-            throw new IllegalStateException("Component " + getClass().getName()
-                    + " doesn't have the resource database set!");
-        }
         super.init();
     }
 
@@ -69,8 +52,6 @@ public class Preprocessor extends Component
         entityManager.getTransaction().begin();
 
         try {
-            beforeRun(entityManager);
-
             // List all not preprocessed reservation requests
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             List<ReservationRequest> reservationRequests = reservationRequestManager.listNotPreprocessed(interval);
@@ -79,8 +60,6 @@ public class Preprocessor extends Component
             for (ReservationRequest reservationRequest : reservationRequests) {
                 processReservationRequest(reservationRequest, interval, entityManager);
             }
-
-            afterRun(entityManager);
 
             entityManager.getTransaction().commit();
         }
@@ -110,8 +89,6 @@ public class Preprocessor extends Component
         entityManager.getTransaction().begin();
 
         try {
-            beforeRun(entityManager);
-
             // Get reservation request by identifier
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
@@ -128,8 +105,6 @@ public class Preprocessor extends Component
             }
             processReservationRequest(reservationRequest, interval, entityManager);
 
-            afterRun(entityManager);
-
             entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
@@ -139,27 +114,6 @@ public class Preprocessor extends Component
         finally {
             entityManager.close();
         }
-    }
-
-    /**
-     * Called before preprocessor will process reservation requests
-     *
-     * @param entityManager
-     */
-    private void beforeRun(EntityManager entityManager)
-    {
-    }
-
-    /**
-     * Called after preprocessor has processed reservation requests
-     *
-     * @param entityManager
-     */
-    private void afterRun(EntityManager entityManager)
-    {
-        // Delete all allocated compartments which was marked for deletion
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        allocatedCompartmentManager.deleteAllMarked(resourceDatabase.getVirtualRoomDatabase());
     }
 
     /**

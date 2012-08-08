@@ -69,6 +69,10 @@ public class Scheduler extends Component
         EntityManager entityManager = getEntityManager();
         entityManager.getTransaction().begin();
 
+        // Delete all allocated compartments which was marked for deletion
+        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+        allocatedCompartmentManager.deleteAllMarked(resourceDatabase.getVirtualRoomDatabase());
+
         VirtualRoomDatabase virtualRoomDatabase = resourceDatabase.getVirtualRoomDatabase();
         virtualRoomDatabase.setWorkingInterval(interval, entityManager);
 
@@ -210,10 +214,12 @@ public class Scheduler extends Component
      * @param entityManagerFactory
      * @param interval
      */
-    public static void run(EntityManagerFactory entityManagerFactory, Interval interval) throws FaultException
+    public static void run(EntityManagerFactory entityManagerFactory, ResourceDatabase resourceDatabase,
+            Interval interval) throws FaultException
     {
         Scheduler scheduler = new Scheduler();
         scheduler.setEntityManagerFactory(entityManagerFactory);
+        scheduler.setResourceDatabase(resourceDatabase);
         scheduler.init();
         scheduler.run(interval);
         scheduler.destroy();

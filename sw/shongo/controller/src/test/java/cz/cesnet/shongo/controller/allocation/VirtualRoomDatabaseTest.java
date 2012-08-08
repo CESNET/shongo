@@ -19,7 +19,7 @@ import static junitx.framework.Assert.assertEquals;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomsTest extends AbstractDatabaseTest
+public class VirtualRoomDatabaseTest extends AbstractDatabaseTest
 {
     @Test
     public void test() throws Exception
@@ -71,6 +71,7 @@ public class VirtualRoomsTest extends AbstractDatabaseTest
         // ----------------------------
         VirtualRoomDatabase virtualRoomDatabase = new VirtualRoomDatabase();
         virtualRoomDatabase.loadDeviceResources(entityManager);
+        virtualRoomDatabase.setWorkingInterval(Interval.parse("0/9999"), entityManager);
 
         // ---------------------------------
         // Test find available virtual rooms
