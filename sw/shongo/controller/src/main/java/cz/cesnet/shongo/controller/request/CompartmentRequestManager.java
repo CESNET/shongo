@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.Interval;
@@ -323,9 +324,11 @@ public class CompartmentRequestManager extends AbstractManager
      */
     public void delete(CompartmentRequest compartmentRequest)
     {
-        if (true) {
-            throw new RuntimeException("TODO: Delete all allocated compartment requests");
-            // TODO: Notify virtual room database somehow
+        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+        List<AllocatedCompartment> allocatedCompartments =
+                allocatedCompartmentManager.listByCompartmentRequest(compartmentRequest.getId());
+        for (AllocatedCompartment allocatedCompartment : allocatedCompartments) {
+            allocatedCompartmentManager.markedForDeletion(allocatedCompartment);
         }
         super.delete(compartmentRequest);
     }

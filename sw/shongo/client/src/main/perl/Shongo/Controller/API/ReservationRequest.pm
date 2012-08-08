@@ -7,6 +7,7 @@ use base qw(Shongo::Controller::API::Object);
 use strict;
 use warnings;
 
+use Term::ANSIColor;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Compartment;
@@ -18,8 +19,12 @@ our $Type = ordered_hash('NORMAL' => 'Normal', 'PERMANENT' => 'Permanent');
 our $Purpose = ordered_hash('EDUCATION' => 'Education', 'SCIENCE' => 'Science');
 
 # Enumeration of request state
-our $RequestState = ordered_hash('NOT_ALLOCATED' => 'Not Allocated', 'ALLOCATED' => 'Allocated',
-    'ALLOCATION_FAILED' => 'Allocation Failed');
+our $RequestState = ordered_hash(
+    'NOT_COMPLETE' => 'Not Complete',
+    'NOT_ALLOCATED' => 'Not Allocated',
+    'ALLOCATED' => 'Allocated',
+    'ALLOCATION_FAILED' => 'Allocation Failed'
+);
 
 #
 # Create a new instance of reservation request
@@ -358,6 +363,17 @@ sub to_string()
             my $duration = $processedSlots->{'duration'};
             my $state = $RequestState->{$processedSlots->{'state'}};
             $string .= sprintf("   %d) at '%s' for '%s' (%s)\n", $index + 1, format_datetime($start), $duration, $state);
+
+            my $stateDescription = $processedSlots->{'stateDescription'};
+            if ( defined($stateDescription) ) {
+                my $color = 'blue';
+                if ( $processedSlots->{'state'} eq 'ALLOCATION_FAILED' ) {
+                    $color = 'red';
+                }
+                $stateDescription =~ s/\n/\n      /g;
+                $stateDescription =~ s/\n      $/\n/g;
+                $string .= sprintf("      %s", colored($stateDescription, $color));
+            }
         }
     }
 

@@ -150,6 +150,9 @@ public class VirtualRoomDatabase
         }
         Interval slot = allocatedVirtualRoom.getSlot();
         deviceResourceState.allocatedVirtualRooms.add(allocatedVirtualRoom, slot.getStart(), slot.getEnd());
+
+        allocatedVirtualRoom.checkPersisted();
+        deviceResourceState.allocatedVirtualRoomById.put(allocatedVirtualRoom.getId(), allocatedVirtualRoom);
     }
 
     /**
@@ -178,6 +181,23 @@ public class VirtualRoomDatabase
 
         // Remove the device state
         deviceStateById.remove(deviceResource.getId());
+    }
+
+    /**
+     * @param allocatedVirtualRoom
+     */
+    public void removeAllocatedVirtualRoom(AllocatedVirtualRoom allocatedVirtualRoom)
+    {
+        DeviceResourceState deviceResourceState = deviceStateById.get(allocatedVirtualRoom.getResource().getId());
+        if (deviceResourceState == null) {
+            throw new IllegalStateException("Device in which the virtual rooms is allocated is not maintained.");
+        }
+
+        allocatedVirtualRoom = deviceResourceState.allocatedVirtualRoomById.get(allocatedVirtualRoom.getId());
+        if (allocatedVirtualRoom == null ) {
+            throw new IllegalStateException("Allocated virtual rooms doesn't exist in the virtual rooms database.");
+        }
+        deviceResourceState.allocatedVirtualRooms.remove(allocatedVirtualRoom);
     }
 
     /**
@@ -269,6 +289,11 @@ public class VirtualRoomDatabase
          * Already allocated {@link AllocatedVirtualRoom} for the device.
          */
         private RangeSet<AllocatedVirtualRoom, DateTime> allocatedVirtualRooms = new RangeSet<AllocatedVirtualRoom, DateTime>();
+
+        /**
+         * Map of allocated virtual rooms by id.
+         */
+        private Map<Long, AllocatedVirtualRoom> allocatedVirtualRoomById = new HashMap<Long, AllocatedVirtualRoom>();
 
         /**
          * Constructor.

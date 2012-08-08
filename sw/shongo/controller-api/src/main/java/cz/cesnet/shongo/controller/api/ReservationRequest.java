@@ -284,6 +284,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
          */
         public static enum State
         {
+            NOT_COMPLETE,
             NOT_ALLOCATED,
             ALLOCATED,
             ALLOCATION_FAILED
@@ -300,9 +301,14 @@ public class ReservationRequest extends IdentifiedChangeableObject
         private Period duration;
 
         /**
-         * Type of processed slot.
+         * State of processed slot.
          */
         private State state;
+
+        /**
+         * Description of state.
+         */
+        private String stateDescription;
 
         /**
          * @return {@link #start}
@@ -350,6 +356,22 @@ public class ReservationRequest extends IdentifiedChangeableObject
         public void setState(State state)
         {
             this.state = state;
+        }
+
+        /**
+         * @return {@link #stateDescription}
+         */
+        public String getStateDescription()
+        {
+            return stateDescription;
+        }
+
+        /**
+         * @param stateDescription sets the {@link #stateDescription}
+         */
+        public void setStateDescription(String stateDescription)
+        {
+            this.stateDescription = stateDescription;
         }
     }
 }

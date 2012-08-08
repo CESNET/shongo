@@ -94,6 +94,11 @@ public class CompartmentRequest extends PersistentObject
     private State state;
 
     /**
+     * Description of the current compartment request state (e.g., the reason of {@link State#ALLOCATION_FAILED}).
+     */
+    private String stateDescription;
+
+    /**
      * @return {@link #compartment}
      */
     @OneToOne
@@ -272,6 +277,28 @@ public class CompartmentRequest extends PersistentObject
     public void setState(State state)
     {
         this.state = state;
+        this.stateDescription = null;
+    }
+
+    /**
+     * @param state            sets the {@link #state}
+     * @param stateDescription {@link #stateDescription}
+     */
+    public void setState(State state, String stateDescription)
+    {
+        this.state = state;
+        this.stateDescription = stateDescription;
+    }
+
+    /**
+     * @return {@link #stateDescription}
+     */
+    @Column
+    @Lob
+    @Access(AccessType.FIELD)
+    public String getStateDescription()
+    {
+        return stateDescription;
     }
 
     /**
@@ -298,6 +325,7 @@ public class CompartmentRequest extends PersistentObject
     public void updateStateByRequestedPersons()
     {
         State state = getState();
+        StringBuilder stateDescription = new StringBuilder();
         if (state == null || state == State.NOT_COMPLETE) {
             state = State.COMPLETE;
         }
@@ -306,9 +334,13 @@ public class CompartmentRequest extends PersistentObject
             if (personRequestState == PersonRequest.State.NOT_ASKED
                     || personRequestState == PersonRequest.State.ASKED) {
                 state = State.NOT_COMPLETE;
+
+                Person person = personRequest.getPerson();
+                stateDescription.append(String.format("%s (%s) hasn't selected an endpoint yet.\n",
+                        person.getName(), person.getEmail()));
             }
         }
-        setState(state);
+        setState(state, (stateDescription.length() > 0 ? stateDescription.toString() : null));
     }
 
     @Override

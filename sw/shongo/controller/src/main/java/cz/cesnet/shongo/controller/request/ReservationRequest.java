@@ -5,6 +5,8 @@ import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.api.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
@@ -373,6 +375,7 @@ public class ReservationRequest extends PersistentObject
         }
 
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
         List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(this);
         for (CompartmentRequest compartmentRequest : compartmentRequestList) {
             cz.cesnet.shongo.controller.api.ReservationRequest.Request request =
@@ -380,16 +383,21 @@ public class ReservationRequest extends PersistentObject
             request.setStart(compartmentRequest.getRequestedSlot().getStart());
             request.setDuration(compartmentRequest.getRequestedSlot().toPeriod());
             switch (compartmentRequest.getState()) {
+                case NOT_COMPLETE:
+                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_COMPLETE);
+                    break;
                 case ALLOCATED:
                     request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATED);
                     break;
                 case ALLOCATION_FAILED:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATION_FAILED);
+                    request.setState(
+                            cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATION_FAILED);
                     break;
                 default:
                     request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_ALLOCATED);
                     break;
             }
+            request.setStateDescription(compartmentRequest.getStateDescription());
             reservationRequest.addRequest(request);
         }
 
