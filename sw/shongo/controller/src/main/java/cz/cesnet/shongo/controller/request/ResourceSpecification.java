@@ -121,7 +121,6 @@ public abstract class ResourceSpecification extends PersistentObject
     /**
      * Synchronize resource specification from API
      *
-     *
      * @param api
      * @param entityManager
      * @param domain

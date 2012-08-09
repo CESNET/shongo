@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import org.joda.time.Duration;
-import org.joda.time.Period;
 
 import javax.persistence.Entity;
 

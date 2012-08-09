@@ -154,7 +154,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Schedule complete compartment request(s)
         // -----------------------------------------
         {
-            Scheduler.run(getEntityManagerFactory(), resourceDatabase, interval);
+            Scheduler.run(getEntityManagerFactory(), interval, resourceDatabase, new Domain("cz.cesnet"));
 
             // TODO: Check created allocation
         }

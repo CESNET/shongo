@@ -40,15 +40,6 @@ public class DeviceTopology extends PrintableObject
     }
 
     /**
-     * @param deviceResource device to be updated in the device topology
-     */
-    public void updateDeviceResource(DeviceResource deviceResource)
-    {
-        removeDeviceResource(deviceResource);
-        addDeviceResource(deviceResource);
-    }
-
-    /**
      * @param deviceResource device to be removed from the device topology
      */
     public void removeDeviceResource(DeviceResource deviceResource)

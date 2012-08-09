@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.api.PeriodicDateTime;
@@ -351,7 +350,6 @@ public class ReservationRequest extends PersistentObject
     private static Class ReservationRequestApi = cz.cesnet.shongo.controller.api.ReservationRequest.class;
 
     /**
-     *
      * @param entityManager
      * @param domain
      * @return converted reservation request to API

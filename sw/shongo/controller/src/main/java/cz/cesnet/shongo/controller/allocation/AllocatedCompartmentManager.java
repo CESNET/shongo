@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 
 import javax.persistence.EntityManager;
@@ -41,15 +42,12 @@ public class AllocatedCompartmentManager extends AbstractManager
     /**
      * @param allocatedCompartment to be deleted in the database
      */
-    public void delete(AllocatedCompartment allocatedCompartment, VirtualRoomDatabase virtualRoomDatabase)
+    public void delete(AllocatedCompartment allocatedCompartment, ResourceDatabase resourceDatabase)
     {
         // Remove all allocated virtual rooms from virtual rooms database
         List<AllocatedResource> allocatedResources = allocatedCompartment.getAllocatedResources();
         for (AllocatedResource allocatedResource : allocatedResources) {
-            if (allocatedResource instanceof AllocatedVirtualRoom) {
-                AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;
-                virtualRoomDatabase.removeAllocatedVirtualRoom(allocatedVirtualRoom);
-            }
+            resourceDatabase.removeAllocatedResource(allocatedResource);
         }
         super.delete(allocatedCompartment);
     }
@@ -97,16 +95,17 @@ public class AllocatedCompartmentManager extends AbstractManager
 
     /**
      * Delete all allocated compartment which were marked by {@link #markedForDeletion(AllocatedCompartment)}.
-     * @param virtualRoomDatabase
+     *
+     * @param resourceDatabase
      */
-    public void deleteAllMarked(VirtualRoomDatabase virtualRoomDatabase)
+    public void deleteAllMarked(ResourceDatabase resourceDatabase)
     {
         List<AllocatedCompartment> allocatedCompartments = entityManager.createQuery(
                 "SELECT allocation FROM AllocatedCompartment allocation WHERE allocation.compartmentRequest IS NULL",
                 AllocatedCompartment.class)
                 .getResultList();
         for (AllocatedCompartment allocatedCompartment : allocatedCompartments) {
-            delete(allocatedCompartment, virtualRoomDatabase);
+            delete(allocatedCompartment, resourceDatabase);
         }
     }
 }

@@ -88,7 +88,8 @@ public class TerminalCapability extends DeviceCapability
             if (api.isCollectionItemMarkedAsNew(apiTerminalCapability.ALIASES, apiAlias)) {
                 alias = new Alias();
                 addAlias(alias);
-            } else {
+            }
+            else {
                 alias = getAliasById(apiAlias.getId().longValue());
             }
             alias.fromApi(apiAlias);

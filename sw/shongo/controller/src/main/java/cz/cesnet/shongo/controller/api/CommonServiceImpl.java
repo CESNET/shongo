@@ -2,7 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
 import jade.core.AID;
 
 import java.util.*;
@@ -52,10 +53,10 @@ public class CommonServiceImpl extends Component.WithDomain implements CommonSer
     {
         ResourceManager resourceManager = new ResourceManager(getEntityManager());
 
-        List<DeviceResource> deviceResourceList = resourceManager.listManagedDevices();        
+        List<DeviceResource> deviceResourceList = resourceManager.listManagedDevices();
         Map<String, DeviceResource> deviceResourceMap = new HashMap<String, DeviceResource>();
-        for ( DeviceResource deviceResource : deviceResourceList) {
-            String agentName = ((cz.cesnet.shongo.controller.resource.ManagedMode)deviceResource.getMode())
+        for (DeviceResource deviceResource : deviceResourceList) {
+            String agentName = ((cz.cesnet.shongo.controller.resource.ManagedMode) deviceResource.getMode())
                     .getConnectorAgentName();
             deviceResourceMap.put(agentName, deviceResource);
         }
@@ -76,7 +77,7 @@ public class CommonServiceImpl extends Component.WithDomain implements CommonSer
 
             connectorList.add(connector);
         }
-        
+
         for (Map.Entry<String, DeviceResource> entry : deviceResourceMap.entrySet()) {
             Connector connector = new Connector();
             connector.setName(entry.getKey());

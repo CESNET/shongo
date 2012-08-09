@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.resource.Resource;
-import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

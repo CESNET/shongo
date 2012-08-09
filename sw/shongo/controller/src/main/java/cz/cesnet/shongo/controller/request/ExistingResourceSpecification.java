@@ -44,7 +44,7 @@ public class ExistingResourceSpecification extends ResourceSpecification
     {
         cz.cesnet.shongo.controller.api.ExistingResourceSpecification api =
                 new cz.cesnet.shongo.controller.api.ExistingResourceSpecification();
-        
+
         api.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
 
         super.toApi(api);

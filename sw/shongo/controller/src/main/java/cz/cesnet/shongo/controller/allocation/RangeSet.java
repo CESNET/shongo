@@ -322,7 +322,7 @@ public class RangeSet<V, R> implements Iterable<V>
          * Constructor.
          *
          * @param start sets the {@link #start}
-         * @param end sets the {@link #end}
+         * @param end   sets the {@link #end}
          */
         public Range(R start, R end)
         {

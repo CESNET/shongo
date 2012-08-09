@@ -21,6 +21,11 @@ public class AvailableVirtualRoom extends PrintableObject
     private int availablePortCount;
 
     /**
+     * Maximum number of ports which the device provides.
+     */
+    private int maximumPortCount;
+
+    /**
      * @return {@link #deviceResource}
      */
     public DeviceResource getDeviceResource()
@@ -59,5 +64,29 @@ public class AvailableVirtualRoom extends PrintableObject
 
         map.put("resource", deviceResource.toString());
         map.put("portCount", Integer.valueOf(availablePortCount).toString());
+    }
+
+    /**
+     * @return {@link #maximumPortCount}
+     */
+    public int getMaximumPortCount()
+    {
+        return maximumPortCount;
+    }
+
+    /**
+     * @param maximumPortCount sets the {@link #maximumPortCount}
+     */
+    public void setMaximumPortCount(int maximumPortCount)
+    {
+        this.maximumPortCount = maximumPortCount;
+    }
+
+    /**
+     * @return ratio of fullness for the device (0.0 - 1.0)
+     */
+    public double getFullnessRatio()
+    {
+        return 1.0 - (double) availablePortCount / (double) maximumPortCount;
     }
 }
