@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.resource.DeviceResource;

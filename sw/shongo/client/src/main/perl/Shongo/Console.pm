@@ -1,5 +1,7 @@
 #
-# Reservation class - Management of reservations.
+# Functions for dialog in console.
+#
+# @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Console;
 

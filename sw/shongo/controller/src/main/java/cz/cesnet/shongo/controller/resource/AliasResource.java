@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.api.AliasType;
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 
 import javax.persistence.Column;
 import javax.persistence.EnumType;

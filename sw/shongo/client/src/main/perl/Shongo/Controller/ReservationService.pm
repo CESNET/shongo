@@ -1,5 +1,7 @@
 #
-# Reservation class - Management of reservations.
+# Management of reservations.
+#
+# @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::ReservationService;
 

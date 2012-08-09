@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
@@ -92,7 +92,6 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @return {@link #PARENT_RESOURCE_IDENTIFIER}
      */
-    @Required
     public String getParentIdentifier()
     {
         return getPropertyStorage().getValue(PARENT_RESOURCE_IDENTIFIER);

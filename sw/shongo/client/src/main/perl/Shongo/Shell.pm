@@ -1,6 +1,8 @@
 #
 # Shell class - represents Shongo client shell.
 #
+# @author Martin Srom <martin.srom@cesnet.cz>
+#
 package Shongo::Shell;
 use base qw(Term::ShellUI);
 

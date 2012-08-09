@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.api;
+package cz.cesnet.shongo;
 
 /**
  * Enumeration for alias type.

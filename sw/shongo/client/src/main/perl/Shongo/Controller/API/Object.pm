@@ -1,5 +1,7 @@
 #
-# Reservation request
+# Base API object
+#
+# @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Object;
 
@@ -43,19 +45,19 @@ sub to_xml_skip_attribute
 #
 sub to_xml_value
 {
-    my ($value) = @_;
+    my ($self, $value) = @_;
     if ( ref($value) eq 'HASH' ) {
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            $hash->{$item_name} = to_xml_value($item_value);
+            $hash->{$item_name} = $self->to_xml_value($item_value);
         }
         return RPC::XML::struct->new($hash);
     }
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push($array, to_xml_value($item));
+            push($array, $self->to_xml_value($item));
         }
         return RPC::XML::array->new(from => $array);
     }
@@ -81,10 +83,22 @@ sub to_xml()
     foreach my $name (keys %{$self}) {
         my $value = $self->{$name};
         if ( !($name eq "__to_xml_skip_attributes") && !($self->{'__to_xml_skip_attributes'}->{$name}) ) {
-            $xml->{$name} = to_xml_value($value);
+            $xml->{$name} = $self->to_xml_value($value);
         }
     }
     return RPC::XML::struct->new($xml);
+}
+
+#
+# Create new instance of value
+#
+# @param $class
+# @param $attribute
+#
+sub create_value_instance
+{
+    my ($self, $class, $attribute) = @_;
+    return eval('Shongo::Controller::API::' . $class . '->new()');
 }
 
 #
@@ -94,11 +108,11 @@ sub to_xml()
 #
 sub from_xml_value
 {
-    my ($value) = @_;
+    my ($self, $value, $attribute) = @_;
 
     if ( ref($value) eq 'HASH' ) {
         if ( exists $value->{'class'} ) {
-            my $object = eval('Shongo::Controller::API::' . $value->{'class'} . '->new()');
+            my $object = $self->create_value_instance($value->{'class'}, $attribute);
             if ( defined($object) ) {
                 $object->from_xml($value);
                 return $object;
@@ -107,14 +121,14 @@ sub from_xml_value
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            $hash->{$item_name} = from_xml_value($item_value);
+            $hash->{$item_name} = $self->from_xml_value($item_value, $item_name);
         }
         return $hash;
     }
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push($array, from_xml_value($item));
+            push($array, $self->from_xml_value($item, $attribute));
         }
         return $array;
     }
@@ -139,11 +153,22 @@ sub from_xml()
     # Convert hash to object
     foreach my $name (keys %{$hash}) {
         my $value = $hash->{$name};
-        if ( !($name eq "class") ) {
-            $self->{$name} = from_xml_value($value);
-        }
+        $self->{$name} = $self->from_xml_value($value, $name);
     }
     return $self;
+}
+
+#
+# Convert object to string
+#
+# @return string describing this object
+#
+sub to_string()
+{
+    my ($self) = @_;
+
+    my $string = " OBJECT\n";
+    return $string;
 }
 
 1;

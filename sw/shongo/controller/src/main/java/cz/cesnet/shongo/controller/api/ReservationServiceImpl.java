@@ -37,7 +37,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
         cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
                 new cz.cesnet.shongo.controller.request.ReservationRequest();
 
-        reservationRequestImpl.fromApi(reservationRequest, entityManager);
+        reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
 
         // Save it
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -66,7 +66,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
                 reservationRequestManager.get(reservationRequestId);
 
         // Synchronize it from API
-        reservationRequestImpl.fromApi(reservationRequest, entityManager);
+        reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
 
         reservationRequestManager.update(reservationRequestImpl);
 
@@ -137,8 +137,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         cz.cesnet.shongo.controller.request.ReservationRequest requestImpl = reservationRequestManager.get(id);
-        ReservationRequest request = requestImpl.toApi(entityManager);
-        request.setIdentifier(domain.formatIdentifier(requestImpl.getId()));
+        ReservationRequest request = requestImpl.toApi(entityManager, domain);
 
         entityManager.close();
 

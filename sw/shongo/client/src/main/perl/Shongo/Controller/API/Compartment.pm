@@ -10,6 +10,7 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Resource;
+use Shongo::Controller::API::ResourceSpecification;
 
 #
 # Create a new instance of compartment
@@ -71,19 +72,6 @@ sub modify()
     $self->modify_loop();
 }
 
-sub modify_resource($$)
-{
-    my ($resource, $edit) = @_;
-
-    var_dump($resource);
-
-    $resource->{'class'} = 'ExternalEndpointSpecification';
-    $resource->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::Resource::Technology, $resource->{'technology'});
-    $resource->{'count'} = console_edit_value("Count", 1, "\\d+", $resource->{'count'});
-
-    return $resource;
-}
-
 #
 # Run modify loop
 #
@@ -98,16 +86,18 @@ sub modify_loop()
         sub {
             my $actions = [];
             push($actions, 'Add new requested resource' => sub {
-                my $resource = {};
-                modify_resource($resource, 0);
-                add_collection_item(\$self->{'resources'}, $resource);
+                my $resource = Shongo::Controller::API::ResourceSpecification->new();
+                $resource = $resource->create();
+                if ( defined($resource) ) {
+                    add_collection_item(\$self->{'resources'}, $resource);
+                }
                 return undef;
             });
             if ( $self->get_resources_count() > 0 ) {
                 push($actions, 'Modify existing requested resource' => sub {
                     my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
                     if ( defined($index) ) {
-                        modify_resource(get_collection_item($self->{'resources'}, $index - 1), 1);
+                        get_collection_item($self->{'resources'}, $index - 1)->modify();
                     }
                     return undef;
                 });
@@ -144,9 +134,17 @@ sub modify_loop()
     );
 }
 
-#
-# Convert object to string
-#
+# @Override
+sub create_value_instance
+{
+    my ($self, $class, $attribute) = @_;
+    if ( $attribute eq 'resources' ) {
+        return Shongo::Controller::API::ResourceSpecification->new();
+    }
+    return $self->SUPER::create_value_instance($class, $attribute);
+}
+
+# @Override
 sub to_string()
 {
     my ($self) = @_;
@@ -156,8 +154,7 @@ sub to_string()
     if ( $self->get_resources_count() > 0) {
         for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
             my $resource = get_collection_item($self->{'resources'}, $index);
-            $string .= sprintf("   %d) Technology: %s, Count: %d\n", $index + 1,
-                $Shongo::Controller::API::Resource::Technology->{$resource->{'technology'}}, $resource->{'count'});
+            $string .= sprintf("   %d) %s", $index + 1, $resource->to_string());
         }
     }
     else {
@@ -176,5 +173,7 @@ sub to_string()
     }
     return $string;
 }
+
+
 
 1;

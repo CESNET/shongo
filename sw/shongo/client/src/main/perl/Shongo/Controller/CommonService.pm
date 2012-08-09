@@ -1,5 +1,7 @@
 #
-# Reservation class - Management of reservations.
+# Common services.
+#
+# @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::CommonService;
 

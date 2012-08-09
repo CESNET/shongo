@@ -1,6 +1,8 @@
 #
 # Reservation request
 #
+# @author Martin Srom <martin.srom@cesnet.cz>
+#
 package Shongo::Controller::API::ReservationRequest;
 use base qw(Shongo::Controller::API::Object);
 
@@ -186,26 +188,37 @@ sub modify_loop()
         sub {
             printf("\n%s\n", $self->to_string());
         },
-        ordered_hash(
-            'Modify attributes' => sub {
-                $self->modify_attributes(1);
-                return undef;
-            },
-            'Modify requested slots' => sub {
-                $self->modify_slots();
-                return undef;
-            },
-            'Modify requested compartments' => sub {
-                $self->modify_compartments();
-                return undef;
-            },
-            'Confirm ' . $message => sub {
-                return 1;
-            },
-            'Cancel ' . $message => sub {
-                return 0;
+        sub {
+            my $actions = [
+                'Modify attributes' => sub {
+                    $self->modify_attributes(1);
+                    return undef;
+                },
+                'Modify requested slots' => sub {
+                    $self->modify_slots();
+                    return undef;
+                }
+            ];
+            if ( $self->get_compartments_count() > 0 ) {
+                push($actions, 'Modify first compartment' => sub {
+                    get_collection_item($self->{'compartments'}, 0)->modify();
+                    return undef;
+                });
             }
-        )
+            push($actions, (
+                'Modify requested compartments' => sub {
+                    $self->modify_compartments();
+                    return undef;
+                },
+                'Confirm ' . $message => sub {
+                    return 1;
+                },
+                'Cancel ' . $message => sub {
+                    return 0;
+                }
+            ));
+            return ordered_hash($actions);
+        }
     );
 }
 
@@ -310,31 +323,6 @@ sub modify_compartments
             return ordered_hash($actions);
         }
     );
-}
-
-#
-# Validate the reservation request
-#
-sub validate()
-{
-    my ($self) = @_;
-
-    if ( $self->get_slots_count() == 0 ) {
-        console_print_error("Requested slots should not be empty.");
-        return 0;
-    }
-    if ( $self->get_compartments_count() == 0 ) {
-        console_print_error("Requested compartments should not be empty.");
-        return 0;
-    }
-    for ( my $index = 0; $index < $self->get_compartments_count(); $index++ ) {
-        my $compartment = get_collection_item($self->{'compartments'}, $index);
-        if ( $compartment->get_resources_count() == 0 && $compartment->get_persons_count() == 0 ) {
-            console_print_error("Requested compartment should not be empty.");
-            return 0;
-        }
-    }
-    return 1;
 }
 
 #

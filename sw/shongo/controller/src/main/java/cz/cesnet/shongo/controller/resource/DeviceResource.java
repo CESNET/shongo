@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
@@ -20,14 +20,9 @@ public class DeviceResource extends Resource
     private Mode mode;
 
     /**
-     * IP address on which the device is running.
+     * Address on which the device is running (IP address or URL)
      */
-    private String ipAddress;
-
-    /**
-     * List of aliases that are permanently assigned to device.
-     */
-    private List<Alias> aliases = new ArrayList<Alias>();
+    private String address;
 
     /**
      * Set of technologies which the resource supports.
@@ -68,12 +63,12 @@ public class DeviceResource extends Resource
     }
 
     /**
-     * @return {@link #ipAddress}
+     * @return {@link #address}
      */
     @Column
-    public String getIpAddress()
+    public String getAddress()
     {
-        return ipAddress;
+        return address;
     }
 
     /**
@@ -81,41 +76,15 @@ public class DeviceResource extends Resource
      */
     public boolean hasIpAddress()
     {
-        return ipAddress != null;
+        return address != null;
     }
 
     /**
-     * @param ipAddress sets the {@link #ipAddress}
+     * @param address sets the {@link #address}
      */
-    public void setIpAddress(String ipAddress)
+    public void setAddress(String address)
     {
-        this.ipAddress = ipAddress;
-    }
-
-    /**
-     * @return {@link #aliases}
-     */
-    @OneToMany
-    @Access(AccessType.FIELD)
-    public List<Alias> getAliases()
-    {
-        return aliases;
-    }
-
-    /**
-     * @param alias alias to be added to the {@link #aliases}
-     */
-    public void addAlias(Alias alias)
-    {
-        aliases.add(alias);
-    }
-
-    /**
-     * @param alias alias to be removed from the {@link #aliases}
-     */
-    public void removeAlias(Alias alias)
-    {
-        aliases.remove(alias);
+        this.address = address;
     }
 
     /**

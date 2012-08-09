@@ -1,5 +1,7 @@
 #
-# Reservation class - Management of reservations.
+# Resource
+#
+# @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Resource;
 use base qw(Shongo::Controller::API::Object);
@@ -7,10 +9,9 @@ use base qw(Shongo::Controller::API::Object);
 use strict;
 use warnings;
 
-use Switch;
-
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller::API::Capability;
 
 # Enumeration of technologies
 our $Technology = ordered_hash('H323' => 'H.323', 'SIP' => 'SIP', 'ADOBE_CONNECT' => 'Adobe Connect');
@@ -52,6 +53,8 @@ sub create()
     my ($self, $attributes) = @_;
 
     $self->{'name'} = $attributes->{'name'};
+    $self->{'schedulable'} = 0;
+    $self->{'maxFuture'} = 'PT4M';
     $self->modify_attributes(0);
 
     # Parse technologies
@@ -133,24 +136,21 @@ sub modify_loop()
             ];
             append_technologies_actions($actions, \$self->{'technologies'});
             push($actions, 'Add new capability' => sub {
-                my $capability = console_read_enum('Select type of capability', ordered_hash('VIRTUAL_ROOMS' => 'Virtual Rooms'));
+                my $capability = Shongo::Controller::API::Capability->new();
+                $capability = $capability->create();
                 if ( defined($capability) ) {
-                    switch ($capability) {
-                    	case 'VIRTUAL_ROOMS' {
-                    	    my $portCount = console_read_value('Maximum number of ports', 0, '\\d+');
-                    	    $capability = {'class' => 'VirtualRoomsCapability', 'portCount' => $portCount};
-                    	}
-                    	else {
-                    	    $capability = undef;
-                    	}
-                    }
-                    if ( defined($capability) ) {
-                        add_collection_item(\$self->{'capabilities'}, $capability);
-                    }
+                    add_collection_item(\$self->{'capabilities'}, $capability);
                 }
                 return undef;
             });
             if ( $self->get_capabilities_count() > 0 ) {
+                push($actions, 'Modify existing capability' => sub {
+                    my $index = console_read_choice("Type a number of capability", 0, $self->get_capabilities_count());
+                    if ( defined($index) ) {
+                        get_collection_item($self->{'capabilities'}, $index - 1)->modify();
+                    }
+                    return undef;
+                });
                 push($actions, 'Remove existing capability' => sub {
                     my $index = console_read_choice("Type a number of capability", 0, $self->get_capabilities_count());
                     if ( defined($index) ) {
@@ -182,10 +182,10 @@ sub modify_attributes()
     my ($self, $edit) = @_;
 
     $self->{'name'} = console_auto_value($edit, 'Name of the resource', 1, undef, $self->{'name'});
+    $self->{'description'} = console_edit_value('Description of the resource', 1, undef, $self->{'description'});
     if (!$edit) {
         return;
     }
-    $self->{'description'} = console_edit_value('Description of the resource', 0, undef, $self->{'description'});
     $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0,
         $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
 
@@ -246,23 +246,17 @@ sub append_technologies_actions()
     }
 }
 
-#
-# Validate the reservation request
-#
-sub validate()
+# @Override
+sub create_value_instance
 {
-    my ($self) = @_;
-
-    if ( $self->get_capabilities_count() == 0 ) {
-        console_print_error("Capabilities should not be empty.");
-        return 0;
+    my ($self, $class, $attribute) = @_;
+    if ( $attribute eq 'capabilities' ) {
+        return Shongo::Controller::API::Capability->new();
     }
-    return 1;
+    return $self->SUPER::create_value_instance($class, $attribute);
 }
 
-#
-# Convert object to string
-#
+# @Override
 sub to_string()
 {
     my ($self) = @_;
@@ -310,6 +304,9 @@ sub to_string()
     return $string;
 }
 
+#
+# Format technologies to string
+#
 sub technologies_to_string
 {
     my ($technologies) = @_;
@@ -329,7 +326,7 @@ sub technologies_to_string
 }
 
 #
-# Convert requested slots to string
+# Format capabilities to string
 #
 sub capabilities_to_string()
 {
@@ -339,15 +336,7 @@ sub capabilities_to_string()
     if ( $self->get_capabilities_count() > 0 ) {
         for ( my $index = 0; $index < $self->get_capabilities_count(); $index++ ) {
             my $capability = get_collection_item($self->{'capabilities'}, $index);
-            my $description = '';
-            switch ($capability->{'class'}) {
-            	case 'VirtualRoomsCapability' {
-            	    $description .= sprintf("portCount: %s", $capability->{'portCount'});
-            	}
-            	else {
-            	}
-            }
-           $string .= sprintf("   %d) %s %s\n", $index + 1, $capability->{'class'}, $description);
+            $string .= sprintf("   %d) %s \n", $index + 1, $capability->to_string());
         }
     }
     else {

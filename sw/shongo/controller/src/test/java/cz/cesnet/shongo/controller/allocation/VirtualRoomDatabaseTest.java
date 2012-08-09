@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;

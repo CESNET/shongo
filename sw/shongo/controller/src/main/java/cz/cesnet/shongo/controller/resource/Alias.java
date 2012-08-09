@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.api.AliasType;
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.Technology;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -17,7 +17,6 @@ import javax.persistence.Enumerated;
 @Entity
 public class Alias extends PersistentObject
 {
-
     /**
      * Technology of alias.
      */
@@ -32,6 +31,13 @@ public class Alias extends PersistentObject
      * Value of alias.
      */
     private String value;
+
+    /**
+     * Constructor.
+     */
+    public Alias()
+    {
+    }
 
     /**
      * Constructor.
@@ -110,5 +116,36 @@ public class Alias extends PersistentObject
     public void setValue(String value)
     {
         this.value = value;
+    }
+
+    /**
+     * @return alias converted to API
+     */
+    public cz.cesnet.shongo.api.Alias toApi()
+    {
+        cz.cesnet.shongo.api.Alias api = new cz.cesnet.shongo.api.Alias();
+        api.setId(getId().intValue());
+        api.setTechnology(getTechnology());
+        api.setType(getType());
+        api.setValue(getValue());
+        return api;
+    }
+
+    /**
+     * Synchronize compartment from API
+     *
+     * @param api
+     */
+    public void fromApi(cz.cesnet.shongo.api.Alias api)
+    {
+        if (api.getTechnology() != null) {
+            setTechnology(api.getTechnology());
+        }
+        if (api.getType() != null) {
+            setType(api.getType());
+        }
+        if (api.getValue() != null) {
+            setValue(api.getValue());
+        }
     }
 }

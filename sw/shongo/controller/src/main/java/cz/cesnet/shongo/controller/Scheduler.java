@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.common.Person;

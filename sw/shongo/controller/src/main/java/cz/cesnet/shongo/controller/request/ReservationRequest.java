@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
@@ -350,16 +351,19 @@ public class ReservationRequest extends PersistentObject
     private static Class ReservationRequestApi = cz.cesnet.shongo.controller.api.ReservationRequest.class;
 
     /**
+     *
      * @param entityManager
+     * @param domain
      * @return converted reservation request to API
      * @throws FaultException
      */
-    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(EntityManager entityManager)
+    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(EntityManager entityManager, Domain domain)
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest =
                 new cz.cesnet.shongo.controller.api.ReservationRequest();
 
+        reservationRequest.setIdentifier(domain.formatIdentifier(getId()));
         reservationRequest.setType(getType());
         reservationRequest.setName(getName());
         reservationRequest.setDescription(getDescription());
@@ -371,7 +375,7 @@ public class ReservationRequest extends PersistentObject
         }
 
         for (Compartment compartment : getRequestedCompartments()) {
-            reservationRequest.addCompartment(compartment.toApi());
+            reservationRequest.addCompartment(compartment.toApi(domain));
         }
 
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
@@ -409,10 +413,11 @@ public class ReservationRequest extends PersistentObject
      *
      * @param api
      * @param entityManager
+     * @param domain
      * @throws FaultException
      */
     public <API extends cz.cesnet.shongo.controller.api.ReservationRequest>
-    void fromApi(API api, EntityManager entityManager) throws FaultException
+    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
     {
         // Modify attributes
         if (api.isPropertyFilled(API.TYPE)) {
@@ -476,7 +481,7 @@ public class ReservationRequest extends PersistentObject
             else {
                 compartment = getRequestedCompartmentById(apiCompartment.getId().longValue());
             }
-            compartment.fromApi(apiCompartment);
+            compartment.fromApi(apiCompartment, entityManager, domain);
         }
         // Delete requested compartments
         Set<cz.cesnet.shongo.controller.api.Compartment> apiDeletedCompartments =
@@ -515,17 +520,5 @@ public class ReservationRequest extends PersistentObject
             throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
                     "Unknown date/time type.");
         }
-    }
-
-    /**
-     * Create a new requested compartment in given reservation request from the given {@link cz.cesnet.shongo.controller.api.Compartment}.
-     *
-     * @param compartment
-     * @throws FaultException
-     */
-    private void fromApiCreateRequestedCompartment(cz.cesnet.shongo.controller.api.Compartment compartment)
-            throws FaultException
-    {
-
     }
 }

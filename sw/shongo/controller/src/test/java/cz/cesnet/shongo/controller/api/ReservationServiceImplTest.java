@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.*;
 import org.apache.xmlrpc.XmlRpcException;
 import org.joda.time.DateTime;

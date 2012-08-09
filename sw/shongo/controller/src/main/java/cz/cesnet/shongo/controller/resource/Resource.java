@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
@@ -119,7 +119,7 @@ public class Resource extends PersistentObject
     /**
      * @return {@link #capabilities}
      */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "resource")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "resource", orphanRemoval = true)
     @Access(AccessType.FIELD)
     public List<Capability> getCapabilities()
     {
@@ -479,22 +479,12 @@ public class Resource extends PersistentObject
 
         // Create/modify capabilities
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : api.getCapabilities()) {
-            if (apiCapability instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
-                cz.cesnet.shongo.controller.api.VirtualRoomsCapability apiVirtualRoomsCapability =
-                        (cz.cesnet.shongo.controller.api.VirtualRoomsCapability) apiCapability;
-                VirtualRoomsCapability virtualRoomsCapability = null;
-                if (api.isCollectionItemMarkedAsNew(API.CAPABILITIES, apiCapability)) {
-                    virtualRoomsCapability = new VirtualRoomsCapability();
-                }
-                else {
-                    virtualRoomsCapability = (VirtualRoomsCapability) getCapabilityById(
-                            apiVirtualRoomsCapability.getId().longValue());
-                }
-                virtualRoomsCapability.setPortCount(apiVirtualRoomsCapability.getPortCount());
-                addCapability(virtualRoomsCapability);
+            if (api.isCollectionItemMarkedAsNew(API.CAPABILITIES, apiCapability)) {
+                addCapability(Capability.fromAPI(apiCapability, entityManager));
             }
             else {
-                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+                Capability capability = getCapabilityById(apiCapability.getId().longValue());
+                capability.fromApi(apiCapability, entityManager);
             }
         }
         // Delete capabilities

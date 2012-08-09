@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
@@ -121,18 +122,18 @@ public class Compartment extends PersistentObject
     }
 
     /**
-     * @param id
+     * @param personId
      * @return requested person with given {@code id}
-     * @throws FaultException
+     * @throws FaultException when the requested person doesn't exist
      */
-    public Person getRequestedPersonById(Long id) throws FaultException
+    public Person getRequestedPersonById(Long personId) throws FaultException
     {
         for (Person person : requestedPersons) {
-            if (person.getId().equals(id)) {
+            if (person.getId().equals(personId)) {
                 return person;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Person.class, id);
+        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Person.class, personId);
     }
 
     /**
@@ -176,9 +177,10 @@ public class Compartment extends PersistentObject
     }
 
     /**
+     * @param domain
      * @return compartment converted to API
      */
-    public cz.cesnet.shongo.controller.api.Compartment toApi() throws FaultException
+    public cz.cesnet.shongo.controller.api.Compartment toApi(Domain domain) throws FaultException
     {
         cz.cesnet.shongo.controller.api.Compartment compartment = new cz.cesnet.shongo.controller.api.Compartment();
         compartment.setId(getId().intValue());
@@ -186,7 +188,7 @@ public class Compartment extends PersistentObject
             compartment.addPerson(person.toApi());
         }
         for (ResourceSpecification resourceSpecification : getRequestedResources()) {
-            compartment.addResource(resourceSpecification.toApi());
+            compartment.addResource(resourceSpecification.toApi(domain));
         }
         return compartment;
     }
@@ -195,10 +197,12 @@ public class Compartment extends PersistentObject
      * Synchronize compartment from API
      *
      * @param api
+     * @param entityManager
+     * @param domain
      * @throws FaultException
      */
     public <API extends cz.cesnet.shongo.controller.api.Compartment>
-    void fromApi(API api) throws FaultException
+    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
     {
         // Create/modify requested persons
         for (cz.cesnet.shongo.controller.api.Person apiPerson : api.getPersons()) {
@@ -222,11 +226,11 @@ public class Compartment extends PersistentObject
         // Create/modify requested resources
         for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : api.getResources()) {
             if (api.isCollectionItemMarkedAsNew(API.RESOURCES, apiResource)) {
-                addRequestedResource(ResourceSpecification.fromAPI(apiResource));
+                addRequestedResource(ResourceSpecification.fromAPI(apiResource, entityManager, domain));
             }
             else {
                 ResourceSpecification resourceSpecification = getRequestedResourceById(apiResource.getId().longValue());
-                resourceSpecification.fromApi(apiResource);
+                resourceSpecification.fromApi(apiResource, entityManager, domain);
             }
         }
         // Delete requested resources

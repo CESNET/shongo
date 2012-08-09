@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.Technology;
 
 import java.util.List;
 

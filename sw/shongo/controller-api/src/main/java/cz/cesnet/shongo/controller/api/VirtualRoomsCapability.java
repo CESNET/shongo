@@ -12,22 +12,22 @@ public class VirtualRoomsCapability extends Capability
     /**
      * Number of available ports.
      */
-    private Integer portCount;
+    public static final String PORT_COUNT = "portCount";
 
     /**
-     * @return {@link #portCount}
+     * @return {@link #PORT_COUNT}
      */
     @Required
     public Integer getPortCount()
     {
-        return portCount;
+        return getPropertyStorage().getValue(PORT_COUNT);
     }
 
     /**
-     * @param portCount sets the {@link #portCount}
+     * @param portCount sets the {@link #PORT_COUNT}
      */
     public void setPortCount(Integer portCount)
     {
-        this.portCount = portCount;
+        getPropertyStorage().setValue(PORT_COUNT, portCount);
     }
 }

@@ -1,6 +1,8 @@
 #
 # Controller class - Manages XML-RPC connection to controller.
 #
+# @author Martin Srom <martin.srom@cesnet.cz>
+#
 package Shongo::Controller;
 
 use strict;

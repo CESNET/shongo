@@ -13,7 +13,7 @@ import javax.persistence.*;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public class Capability extends PersistentObject
+public abstract class Capability extends PersistentObject
 {
     /**
      * Resource to which the capability is applied.
@@ -53,16 +53,48 @@ public class Capability extends PersistentObject
      * @return converted capability to API
      * @throws FaultException
      */
-    public cz.cesnet.shongo.controller.api.Capability toApi() throws FaultException
+    public abstract cz.cesnet.shongo.controller.api.Capability toApi() throws FaultException;
+
+    /**
+     * @param api API capability to be filled
+     */
+    protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
     {
-        if (this instanceof VirtualRoomsCapability) {
-            VirtualRoomsCapability virtualRoomsCapability = (VirtualRoomsCapability) this;
-            cz.cesnet.shongo.controller.api.VirtualRoomsCapability virtualRoomsCapabilityApi =
-                    new cz.cesnet.shongo.controller.api.VirtualRoomsCapability();
-            virtualRoomsCapabilityApi.setId(virtualRoomsCapability.getId().intValue());
-            virtualRoomsCapabilityApi.setPortCount(virtualRoomsCapability.getPortCount());
-            return virtualRoomsCapabilityApi;
+        api.setId(getId().intValue());
+    }
+
+    /**
+     * Synchronize capability from API
+     *
+     * @param api
+     * @param entityManager
+     * @throws FaultException
+     */
+    public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
+            throws FaultException
+    {
+    }
+
+    /**
+     * @param api
+     * @param entityManager
+     * @return new instance of {@link Capability} from API
+     * @throws FaultException
+     */
+    public static Capability fromAPI(cz.cesnet.shongo.controller.api.Capability api,
+            EntityManager entityManager) throws FaultException
+    {
+        Capability resourceSpecification;
+        if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
+            resourceSpecification = new VirtualRoomsCapability();
         }
-        throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+        else if (api instanceof cz.cesnet.shongo.controller.api.TerminalCapability) {
+            resourceSpecification = new TerminalCapability();
+        }
+        else {
+            throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+        }
+        resourceSpecification.fromApi(api, entityManager);
+        return resourceSpecification;
     }
 }

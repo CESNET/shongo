@@ -1,10 +1,18 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class Alias
 {
+    /**
+     * Identifier.
+     */
+    private Integer id;
+
     /**
      * Technology of alias.
      */
@@ -22,6 +30,13 @@ public class Alias
 
     /**
      * Constructor.
+     */
+    public Alias()
+    {
+    }
+
+    /**
+     * Constructor.
      *
      * @param technology
      * @param type
@@ -34,31 +49,65 @@ public class Alias
         this.value = value;
     }
 
+    /**
+     * @return {@link #id
+     */
+    public Integer getId()
+    {
+        return id;
+    }
+
+    /**
+     * @param id sets the {@link #id}
+     */
+    public void setId(Integer id)
+    {
+        this.id = id;
+    }
+
+    /**
+     * @return {@link #technology}
+     */
     public Technology getTechnology()
     {
         return technology;
     }
 
+    /**
+     * @param technology sets the {@link #technology}
+     */
     public void setTechnology(Technology technology)
     {
         this.technology = technology;
     }
 
+    /**
+     * @return {@link #type}
+     */
     public AliasType getType()
     {
         return type;
     }
 
+    /**
+     * @param type sets the {@link #type}
+     */
     public void setType(AliasType type)
     {
         this.type = type;
     }
 
+    /**
+     * @return {@link #value}
+     */
     public String getValue()
     {
         return value;
     }
 
+    /**
+     * @param value sets the {@link #value}
+     */
     public void setValue(String value)
     {
         this.value = value;

@@ -1,15 +1,16 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.api.Technology;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
 import java.util.*;
 
 /**
- * Represents an external endpoint(s) that is/are specified to compartment.
+ * Represents an external (not existing) endpoint(s) specification for the compartment.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -173,7 +174,7 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi() throws FaultException
+    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification api =
                 new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
@@ -193,8 +194,8 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api)
-            throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
+            Domain domain) throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification apiExternalEndpoint =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) api;
@@ -205,6 +206,6 @@ public class ExternalEndpointSpecification extends ResourceSpecification
         if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.COUNT)) {
             setCount(apiExternalEndpoint.getCount());
         }
-        super.fromApi(api);
+        super.fromApi(api, entityManager, domain);
     }
 }

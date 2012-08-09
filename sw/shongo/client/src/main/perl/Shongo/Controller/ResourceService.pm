@@ -1,5 +1,7 @@
 #
-# Resource class - Management of resources.
+# Management of resources.
+#
+# @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::ResourceService;
 

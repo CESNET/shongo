@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.Fault;
 import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
 
 import javax.persistence.*;
@@ -100,9 +101,11 @@ public abstract class ResourceSpecification extends PersistentObject
     }
 
     /**
+     * @param domain
      * @return converted resource specification to API
+     * @throws FaultException
      */
-    public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi() throws FaultException;
+    public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException;
 
     /**
      * @param api API resource specification to be filled
@@ -118,10 +121,14 @@ public abstract class ResourceSpecification extends PersistentObject
     /**
      * Synchronize resource specification from API
      *
+     *
      * @param api
+     * @param entityManager
+     * @param domain
      * @throws FaultException
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
+            Domain domain) throws FaultException
     {
         // Create/modify requested persons
         for (cz.cesnet.shongo.controller.api.Person apiPerson : api.getPersons()) {
@@ -145,20 +152,28 @@ public abstract class ResourceSpecification extends PersistentObject
 
     /**
      * @param api
+     * @param entityManager
+     * @param domain
      * @return new instance of {@link ResourceSpecification} from API
      * @throws FaultException
      */
-    public static ResourceSpecification fromAPI(cz.cesnet.shongo.controller.api.ResourceSpecification api)
-            throws FaultException
+    public static ResourceSpecification fromAPI(cz.cesnet.shongo.controller.api.ResourceSpecification api,
+            EntityManager entityManager, Domain domain) throws FaultException
     {
         ResourceSpecification resourceSpecification;
-        if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) {
+        if (api instanceof cz.cesnet.shongo.controller.api.ExistingResourceSpecification) {
+            resourceSpecification = new ExistingResourceSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.LookupResourceSpecification) {
+            resourceSpecification = new LookupResourceSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) {
             resourceSpecification = new ExternalEndpointSpecification();
         }
         else {
             throw new FaultException(Fault.Common.TODO_IMPLEMENT);
         }
-        resourceSpecification.fromApi(api);
+        resourceSpecification.fromApi(api, entityManager, domain);
         return resourceSpecification;
     }
 }
