@@ -202,6 +202,52 @@ public class DeviceResource extends Resource
         this.callable = callable;
     }
 
+    /**
+     * @return true if device resource is terminal (can participate in video conferences),
+     *         false otherwise
+     */
+    @Transient
+    public boolean isTerminal()
+    {
+        return hasCapability(TerminalCapability.class);
+    }
+
+    /**
+     *
+     * @param deviceCapabilityType
+     * @return set of technologies which the device supports for capability of given {@code deviceCapabilityType}
+     */
+    @Transient
+    public Set<Technology> getCapabilityTechnologies(Class<TerminalCapability> deviceCapabilityType)
+    {
+        DeviceCapability deviceCapability = getCapability(deviceCapabilityType);
+        if (deviceCapability == null) {
+            throw new IllegalArgumentException(
+                    "Device doesn't contain capability '" + deviceCapabilityType.getCanonicalName() + "'.");
+        }
+        return getCapabilityTechnologies(deviceCapability);
+    }
+
+    /**
+     * @param deviceCapability
+     * @return set of technologies which the device supports for given {@code deviceCapability}
+     */
+    @Transient
+    public Set<Technology> getCapabilityTechnologies(DeviceCapability deviceCapability)
+    {
+        Set<Technology> technologies = deviceCapability.getTechnologies();
+        if (technologies.size() == 0) {
+            technologies = getTechnologies();
+        }
+        else {
+            if (technologies.retainAll(getTechnologies())) {
+                throw new IllegalStateException(
+                        "Capability contains technologies which aren't specified for the device resource.");
+            }
+        }
+        return Collections.unmodifiableSet(technologies);
+    }
+
     @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {

@@ -30,7 +30,7 @@ public interface Fault
     public static enum Common implements Fault
     {
         UNKNOWN_FAULT(
-                0, "Unknown fault: %s"),
+                0, "%s"),
 
         CLASS_NOT_DEFINED(
                 10, "Class '%s' is not defined."),

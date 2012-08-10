@@ -8,6 +8,8 @@ import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +78,7 @@ public class Scheduler extends Component.WithDomain
         resourceDatabase.setWorkingInterval(interval, entityManager);
 
         try {
-            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
+            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
             List<CompartmentRequest> compartmentRequests = compartmentRequestManager.listCompleted(interval);
 
             // TODO: Apply some priority
@@ -102,7 +104,7 @@ public class Scheduler extends Component.WithDomain
      * @param compartmentRequest
      */
     private void allocateCompartmentRequest(CompartmentRequest compartmentRequest, EntityManager entityManager)
-            throws FaultException
+
     {
         logger.info("Allocating compartment request '{}'...", compartmentRequest.getId());
 
@@ -113,6 +115,7 @@ public class Scheduler extends Component.WithDomain
         AllocatedCompartment allocatedCompartment =
                 allocatedCompartmentManager.getByCompartmentRequest(compartmentRequest);
 
+        // TODO: Try to intelligently reallocate and not delete old allocation
         // Delete old allocation
         if (allocatedCompartment != null) {
             allocatedCompartmentManager.delete(allocatedCompartment, resourceDatabase);
@@ -135,118 +138,128 @@ public class Scheduler extends Component.WithDomain
             resourceSpecifications.add(resource);
         }
 
-        // Track how many ports for each technology is needed
-        /*Map<Technology, Integer> technologyPorts = new HashMap<Technology, Integer>();
-        for (Technology technology : externalEndpoint.getTechnologies()) {
-            Integer currentPortCount = technologyPorts.get(technology);
-            if (currentPortCount == null) {
-                currentPortCount = 0;
-            }
-            currentPortCount += externalEndpoint.getCount();
-            technologyPorts.put(technology, currentPortCount);
-        }*/
-
+        // Setup scheduler task
         Task task = new Task();
 
-        // Process all external endpoint and existing resources
-        for (Iterator<ResourceSpecification> iterator = resourceSpecifications.iterator(); iterator.hasNext(); ) {
-            ResourceSpecification resourceSpecification = iterator.next();
-            if (resourceSpecification instanceof ExternalEndpointSpecification) {
-                ExternalEndpointSpecification externalEndpoint = (ExternalEndpointSpecification) resourceSpecification;
-                task.add(externalEndpoint);
-                iterator.remove();
+        try {
+            // Check maximum slot duration
+            if (requestedSlot.toDuration().isLongerThan(AllocatedResource.MAXIMUM_DURATION)) {
+                throw new FaultException("Requested slot '%s' is longer than maximum '%s'!",
+                        requestedSlot.toPeriod().normalizedStandard().toString(),
+                        AllocatedResource.MAXIMUM_DURATION.toString());
             }
-            else if (resourceSpecification instanceof ExistingResourceSpecification) {
-                ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
-                Resource resource = existingResource.getResource();
-                // If resource is not already allocated on requested time slot
-                if (resourceDatabase.isResourceAvailable(resource, requestedSlot)) {
-                    // Device resources are add to the task
-                    if (resource instanceof DeviceResource) {
-                        task.add((DeviceResource) resource);
+
+            // Add all requested resources to the task
+            try {
+                // First process all external endpoint and existing resources
+                for (Iterator<ResourceSpecification> iterator = resourceSpecifications.iterator();
+                     iterator.hasNext(); ) {
+                    ResourceSpecification resourceSpecification = iterator.next();
+                    if (resourceSpecification instanceof ExternalEndpointSpecification) {
+                        ExternalEndpointSpecification externalEndpoint = (ExternalEndpointSpecification) resourceSpecification;
+                        task.add(externalEndpoint);
+                        iterator.remove();
                     }
-                    // Not device resources are directly allocated
-                    else {
-                        AllocatedResource allocatedResource = new AllocatedResource();
-                        allocatedResource.setSlot(requestedSlot);
-                        allocatedResource.setResource(resource);
-                        allocatedCompartment.addAllocatedResource(allocatedResource);
-                    }
-                }
-                else {
-                    // Requested resource is not available
-                    setCompartmentRequestAllocationFailed(compartmentRequestManager, compartmentRequest,
-                            "Requested resource is not available in specified time slot:\n"
+                    else if (resourceSpecification instanceof ExistingResourceSpecification) {
+                        ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
+                        Resource resource = existingResource.getResource();
+                        if (task.hasResource(resource)) {
+                            // Same resource is requested multiple times
+                            throw new FaultException("Resource is requested multiple times in specified time slot:\n"
+                                    + "  Resource: %s\n",
+                                    domain.formatIdentifier(resource.getId()));
+                        }
+                        if (!resourceDatabase.isResourceAvailable(resource, requestedSlot)) {
+                            // Requested resource is not available in requested slot
+                            throw new FaultException("Requested resource is not available in specified time slot:\n"
                                     + " Time Slot: %s\n"
                                     + "  Resource: %s\n",
-                            requestedSlot.toString(), domain.formatIdentifier(resource.getId()));
-                    return;
-                }
-                iterator.remove();
-            }
-        }
-
-        // Process all lookup resource specifications
-        for (Iterator<ResourceSpecification> iterator = resourceSpecifications.iterator(); iterator.hasNext(); ) {
-            ResourceSpecification resourceSpecification = iterator.next();
-            if (resourceSpecification instanceof LookupResourceSpecification) {
-                LookupResourceSpecification lookupResource = (LookupResourceSpecification) resourceSpecification;
-                Set<Technology> technologies = lookupResource.getTechnologies();
-                // Lookup device resources
-                List<DeviceResource> deviceResources = resourceDatabase.findAvailableTerminal(requestedSlot,
-                        technologies.toArray(new Technology[technologies.size()]));
-                // If some was found, select the best one and it as group for scheduling
-                if (deviceResources.size() > 0) {
-                    // TODO: Select best resource based on some criteria
-                    DeviceResource deviceResource = deviceResources.get(0);
-                    task.add(deviceResource);
-                }
-                else {
-                    // Resource was not found
-                    StringBuilder builder = new StringBuilder();
-                    for (Technology technology : technologies) {
-                        if (builder.length() > 0) {
-                            builder.append(", ");
+                                    TemporalHelper.formatInterval(requestedSlot), domain.formatIdentifier(resource.getId()));
                         }
-                        builder.append(technology.getName());
+                        task.add(resource);
+                        iterator.remove();
                     }
-                    setCompartmentRequestAllocationFailed(compartmentRequestManager, compartmentRequest,
-                            "No resource was found for following specification:\n"
+                }
+
+                // Then process all lookup resource specifications
+                for (Iterator<ResourceSpecification> iterator = resourceSpecifications.iterator();
+                     iterator.hasNext(); ) {
+                    ResourceSpecification resourceSpecification = iterator.next();
+                    if (resourceSpecification instanceof LookupResourceSpecification) {
+                        LookupResourceSpecification lookupResource = (LookupResourceSpecification) resourceSpecification;
+                        Set<Technology> technologies = lookupResource.getTechnologies();
+                        // Lookup device resources
+                        List<DeviceResource> deviceResources = resourceDatabase.findAvailableTerminal(requestedSlot,
+                                technologies, entityManager);
+
+                        // Select first available device resource
+                        // TODO: Select best resource based on some criteria
+                        DeviceResource deviceResource = null;
+                        for (DeviceResource possibleDeviceResource : deviceResources) {
+                            if (task.hasResource(possibleDeviceResource)) {
+                                continue;
+                            }
+                            deviceResource = possibleDeviceResource;
+                            break;
+                        }
+
+                        // If some was found
+                        if (deviceResource != null) {
+                            task.add(deviceResource);
+                        }
+                        else {
+                            // Resource was not found
+                            StringBuilder builder = new StringBuilder();
+                            for (Technology technology : technologies) {
+                                if (builder.length() > 0) {
+                                    builder.append(", ");
+                                }
+                                builder.append(technology.getName());
+                            }
+                            throw new FaultException(
+                                    "No available resource was found for the following specification:\n"
                                     + "    Time Slot: %s\n"
                                     + " Technologies: %s\n",
-                            requestedSlot.toString(), builder.toString());
-                    return;
+                                    TemporalHelper.formatInterval(requestedSlot), builder.toString());
+                        }
+                        iterator.remove();
+                    }
                 }
-                iterator.remove();
+
+                // TODO: Allocate aliases for endpoint (if needed)
+
+                // Check if all specification was processed
+                if (resourceSpecifications.size() > 0) {
+                    ResourceSpecification resourceSpecification = resourceSpecifications.get(0);
+                    throw new FaultException("Allocation of '%s' resource is not implemented yet.",
+                            resourceSpecification.getClass());
+                }
             }
-        }
+            // Handle exceptions that resource cannot be added
+            catch (Task.AddResourceException exception) {
+                throw new FaultException("Requested resource is not terminal:\n"
+                        + "  Resource: %s\n",
+                        TemporalHelper.formatInterval(requestedSlot), domain.formatIdentifier(exception.getResource().getId()));
+            }
 
-        // Check if all specification was processed
-        if (resourceSpecifications.size() > 0) {
-            ResourceSpecification resourceSpecification = resourceSpecifications.get(0);
-            throw new FaultException("Implement allocation of '%s' resource.", resourceSpecification.getClass());
-        }
+            // Merge task content
+            task.merge();
+            if (task.size() == 0) {
+                throw new FaultException("No resources are requested for allocation.");
+            }
 
-        // Merge groups
-        task.merge();
+            // For now only single virtual room is possible to allocate
+            else if (task.size() > 1) {
+                throw new FaultException("Only single virtual room can be allocated for now.");
+            }
+            TaskGroup taskGroup = task.get(0);
 
-        // TODO: Allocate endpoints
-        // TODO: Allocate aliases for endpoint (if needed)
+            // TODO: Try to use virtual rooms from special terminals
 
-        if (task.size() == 0) {
-            throw new FaultException("No resources are requested for allocation.");
-        }
-        else if (task.size() > 1) {
-            throw new FaultException("Only single virtual rooms can be allocated for now.");
-        }
-        // For now only single technology is possible to allocate
-        TaskItem taskItem = task.get(0);
-
-        // List available virtual rooms which can connect all requested endpoints
-        List<AvailableVirtualRoom> availableVirtualRooms = resourceDatabase.findAvailableVirtualRooms(
-                requestedSlot, taskItem.getPortCount(), taskItem.getTechnologies(), entityManager);
-        if (availableVirtualRooms.size() > 0) {
-            // Sort virtual rooms by theirs fullness
+            // List available virtual rooms which can connect all requested endpoints
+            List<AvailableVirtualRoom> availableVirtualRooms = resourceDatabase.findAvailableVirtualRooms(
+                    requestedSlot, taskGroup.getPortCount(), taskGroup.getTechnologies(), entityManager);
+            // Sort virtual rooms from the most filled to the least filled
             Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
             {
                 @Override
@@ -255,16 +268,46 @@ public class Scheduler extends Component.WithDomain
                     return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
                 }
             });
+            if (availableVirtualRooms.size() == 0) {
+                // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
+
+                // No virtual rooms is available
+                throw new FaultException("No single virtual room was found for following specification:\n"
+                        + "       Time slot: %s\n"
+                        + "      Technology: %s\n"
+                        + " Number of ports: %d\n",
+                        TemporalHelper.formatInterval(requestedSlot), taskGroup.getTechnologiesAsString(), taskGroup.getPortCount());
+            }
+
+            // Allocate virtual room
             AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
             AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
             allocatedVirtualRoom.setResource(availableVirtualRoom.getDeviceResource());
             allocatedVirtualRoom.setSlot(requestedSlot);
-            allocatedVirtualRoom.setPortCount(taskItem.getPortCount());
-            if (requestedSlot.toDuration().isLongerThan(AllocatedVirtualRoom.MAXIMUM_DURATION)) {
-                throw new FaultException("Requested slot '%s' is longer than maximum '%s'!",
-                        requestedSlot.toDuration().toString(), AllocatedVirtualRoom.MAXIMUM_DURATION.toString());
-            }
+            allocatedVirtualRoom.setPortCount(taskGroup.getPortCount());
             allocatedCompartment.addAllocatedResource(allocatedVirtualRoom);
+
+            // Allocate other resources
+            for (Resource resource : task.getResources()) {
+                if (resource instanceof DeviceResource) {
+                    AllocatedDevice allocatedDevice = new AllocatedDevice();
+                    allocatedDevice.setSlot(requestedSlot);
+                    allocatedDevice.setResource(resource);
+
+                    // TODO: Add persons for allocated device
+
+                    allocatedCompartment.addAllocatedResource(allocatedDevice);
+
+                }
+                else {
+                    AllocatedResource allocatedResource = new AllocatedResource();
+                    allocatedResource.setSlot(requestedSlot);
+                    allocatedResource.setResource(resource);
+                    allocatedCompartment.addAllocatedResource(allocatedResource);
+                }
+            }
+
+            // Create allocated compartment
             allocatedCompartmentManager.create(allocatedCompartment);
 
             // Add allocated resources to the resource database
@@ -276,32 +319,10 @@ public class Scheduler extends Component.WithDomain
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATED);
             compartmentRequestManager.update(compartmentRequest);
         }
-        else {
-            // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
-
-            setCompartmentRequestAllocationFailed(compartmentRequestManager, compartmentRequest,
-                    "No single virtual room was found for following specification:\n"
-                            + "       Time slot: %s\n"
-                            + "      Technology: %s\n"
-                            + " Number of ports: %d\n",
-                    requestedSlot.toString(), taskItem.getTechnologiesAsString(), taskItem.getPortCount());
+        catch (FaultException exception) {
+            compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED, exception.getMessage());
+            compartmentRequestManager.update(compartmentRequest);
         }
-    }
-
-    /**
-     * Set allocation failed state to compartment request.
-     *
-     * @param compartmentRequestManager
-     * @param compartmentRequest
-     * @param format
-     * @param objects
-     */
-    private static void setCompartmentRequestAllocationFailed(CompartmentRequestManager compartmentRequestManager,
-            CompartmentRequest compartmentRequest, String format, Object... objects)
-    {
-        compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED,
-                String.format(format, objects));
-        compartmentRequestManager.update(compartmentRequest);
     }
 
     /**
@@ -322,37 +343,150 @@ public class Scheduler extends Component.WithDomain
         scheduler.destroy();
     }
 
-    public static class Task extends ArrayList<TaskItem>
+    /**
+     * Represents a scheduler task for allocating resources
+     */
+    public static class Task extends ArrayList<TaskGroup>
     {
+        /**
+         * Set of resources which should be allocated.
+         */
+        private Set<Resource> resources = new HashSet<Resource>();
+
+        /**
+         * Append requested {@link ExternalEndpointSpecification} to the task.
+         *
+         * @param externalEndpointSpecification
+         */
         public void add(ExternalEndpointSpecification externalEndpointSpecification)
         {
-            throw new RuntimeException("TODO: Implement");
+            TaskGroup taskItem = new TaskGroup();
+            taskItem.portCount = externalEndpointSpecification.getCount();
+            taskItem.technologies.addAll(externalEndpointSpecification.getTechnologies());
+            add(taskItem);
         }
 
-        public void add(DeviceResource deviceResource)
+        /**
+         * Append requested {@link Resource}.
+         *
+         * @param resource
+         * @throws AddResourceException
+         */
+        public void add(Resource resource) throws AddResourceException
         {
-            throw new RuntimeException("TODO: Implement");
+            if (resource instanceof DeviceResource) {
+                DeviceResource deviceResource = (DeviceResource) resource;
+                if (deviceResource.isTerminal()) {
+                    TaskGroup taskItem = new TaskGroup();
+                    taskItem.portCount = 1;
+                    taskItem.technologies.addAll(deviceResource.getCapabilityTechnologies(TerminalCapability.class));
+                    taskItem.deviceResources.add(deviceResource);
+                    add(taskItem);
+                }
+                else {
+                    // Requested resource is not available
+                    throw new AddResourceException(resource);
+                }
+            }
+            resources.add(resource);
         }
 
+        /**
+         * @param resource
+         * @return true if given {@code resource} was already added to the task,
+         *         false otherwise
+         */
+        public boolean hasResource(Resource resource)
+        {
+            return resources.contains(resource);
+        }
+
+        /**
+         * @return collection of all resources which were added to the task
+         */
+        public Collection<Resource> getResources()
+        {
+            return resources;
+        }
+
+        /**
+         * Merge definitions to minimize number of different groups
+         */
         public void merge()
         {
-            throw new RuntimeException("TODO: Implement");
+            for (int index = 0; index < size(); index++) {
+                TaskGroup taskItem = get(index);
+                for (int mergeIndex = index + 1; mergeIndex < size(); mergeIndex++) {
+                    TaskGroup mergeTaskItem = get(mergeIndex);
+                    if (taskItem.merge(mergeTaskItem)) {
+                        remove(mergeIndex);
+                        mergeIndex--;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Exception which is thrown when {@link Resource} cannot be added to the {@link Task}
+         */
+        public static class AddResourceException extends Exception
+        {
+            /**
+             * Specifies which {@link Resource}.
+             */
+            private Resource resource;
+
+            /**
+             * Constructor.
+             *
+             * @param resource sets the {@link #resource}
+             */
+            AddResourceException(Resource resource)
+            {
+                this.resource = resource;
+            }
+
+            /**
+             * @return {@link #resource}
+             */
+            public Resource getResource()
+            {
+                return resource;
+            }
         }
     }
 
-    public static class TaskItem
+    /**
+     * Represents a group of compatible resources/ports in {@link Task}.
+     */
+    public static class TaskGroup
     {
+        /**
+         * Supported technologies of a group of resources/ports.
+         */
         private Set<Technology> technologies = new HashSet<Technology>();
 
+        /**
+         * Number of ports requested by the group.
+         */
         private int portCount = 0;
 
+        /**
+         * Set of device resources in the group.
+         */
         private Set<DeviceResource> deviceResources = new HashSet<DeviceResource>();
 
-        public Technology[] getTechnologies()
+        /**
+         * @return {@link #technologies}
+         */
+        public Set<Technology> getTechnologies()
         {
-            return technologies.toArray(new Technology[technologies.size()]);
+            return technologies;
         }
-        
+
+        /**
+         * @return formatted {@link #technologies} as string
+         */
         public String getTechnologiesAsString()
         {
             StringBuilder builder = new StringBuilder();
@@ -364,10 +498,30 @@ public class Scheduler extends Component.WithDomain
             }
             return builder.toString();
         }
-        
+
+        /**
+         * @return {@link #portCount}
+         */
         public int getPortCount()
         {
             return portCount;
+        }
+
+        /**
+         * Try to merge given {@code taskGroup} to this {@link TaskGroup}.
+         *
+         * @param taskGroup
+         * @return true if merge was done,
+         *         false otherwise
+         */
+        public boolean merge(TaskGroup taskGroup)
+        {
+            if (!technologies.equals(taskGroup.technologies)) {
+                return false;
+            }
+            this.portCount += taskGroup.portCount;
+            this.deviceResources.addAll(deviceResources);
+            return true;
         }
     }
 }
