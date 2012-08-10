@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
+import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
@@ -11,12 +12,19 @@ import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.hibernate.Session;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.hsqldb.util.DatabaseManagerSwing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -384,6 +392,27 @@ public class Controller
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.addCommands(jadeAgent.createCommandSet());
+        shell.addCommand("database", "Show database browser", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                DatabaseManagerSwing databaseManager = new DatabaseManagerSwing();
+                databaseManager.main();
+
+                try {
+                    EntityManager entityManager = entityManagerFactory.createEntityManager();
+                    Session session = (Session) entityManager.getDelegate();
+                    SessionFactoryImplementor sessionFactory = (SessionFactoryImplementor) session.getSessionFactory();
+                    ConnectionProvider connectionProvider = sessionFactory.getConnectionProvider();
+                    Connection connection = connectionProvider.getConnection();
+                    databaseManager.connect(connection);
+                }
+                catch (Exception exception) {
+                    logger.error("Cannot connect to current database!", exception);
+                }
+            }
+        });
         shell.run();
     }
 
