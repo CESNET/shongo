@@ -1,15 +1,17 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
-import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.AbstractDatabaseTest;
+import cz.cesnet.shongo.controller.ControllerClient;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.junit.Test;
 
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -211,13 +213,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                 reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
                 fail("Exception that record doesn't exists should be thrown.");
             }
-            catch (FaultException exception) {
-                assertEquals(Fault.Common.RECORD_NOT_EXIST.getCode(), exception.getCode());
-            }
-            catch (UndeclaredThrowableException e) {
-                XmlRpcException exception = (XmlRpcException) e.getCause();
-                System.err.println(exception.code);
-                exception.printStackTrace();
+            catch (EntityNotFoundException exception) {
             }
         }
     }
@@ -238,7 +234,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             fail("Exception that collection cannot contain null should be thrown.");
         }
         catch (XmlRpcException exception) {
-            assertEquals(Fault.Common.COLLECTION_ITEM_NULL.getCode(), exception.code);
+            assertEquals(CommonFault.COLLECTION_ITEM_NULL.getCode(), exception.code);
         }
 
         reservationRequest = new HashMap<String, Object>();
@@ -255,7 +251,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             fail("Exception that attribute has wrong type should be thrown.");
         }
         catch (XmlRpcException exception) {
-            assertEquals(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH.getCode(), exception.code);
+            assertEquals(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH.getCode(), exception.code);
         }
 
         reservationRequest = new HashMap<String, Object>();
@@ -266,7 +262,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             fail("Exception that attribute is read only should be thrown.");
         }
         catch (XmlRpcException exception) {
-            assertEquals(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY.getCode(), exception.code);
+            assertEquals(CommonFault.CLASS_ATTRIBUTE_READ_ONLY.getCode(), exception.code);
         }
     }
 }

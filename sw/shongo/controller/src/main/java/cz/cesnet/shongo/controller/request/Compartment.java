@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -74,15 +74,16 @@ public class Compartment extends PersistentObject
     /**
      * @param id
      * @return requested resource with given {@code id}
+     * @throws EntityNotFoundException when the requested resource doesn't exist
      */
-    private ResourceSpecification getRequestedResourceById(Long id) throws FaultException
+    private ResourceSpecification getRequestedResourceById(Long id) throws EntityNotFoundException
     {
         for (ResourceSpecification resourceSpecification : requestedResources) {
             if (resourceSpecification.getId().equals(id)) {
                 return resourceSpecification;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, ResourceSpecification.class, id);
+        throw new EntityNotFoundException(ResourceSpecification.class, id);
     }
 
     /**
@@ -124,16 +125,16 @@ public class Compartment extends PersistentObject
     /**
      * @param personId
      * @return requested person with given {@code id}
-     * @throws FaultException when the requested person doesn't exist
+     * @throws EntityNotFoundException when the requested person doesn't exist
      */
-    public Person getRequestedPersonById(Long personId) throws FaultException
+    public Person getRequestedPersonById(Long personId) throws EntityNotFoundException
     {
         for (Person person : requestedPersons) {
             if (person.getId().equals(personId)) {
                 return person;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Person.class, personId);
+        throw new EntityNotFoundException(Person.class, personId);
     }
 
     /**

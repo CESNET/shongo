@@ -2,7 +2,7 @@ package cz.cesnet.shongo.connector.api;
 
 /**
  * Custom media data.
- *
+ * <p/>
  * Typically used for uploading or downloading some content (images, documents, etc.) with content type information.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -22,7 +22,7 @@ public class MediaData
     }
 
     /**
-     * @param compressionAlgorithm    Algorithm used to compress data.
+     * @param compressionAlgorithm Algorithm used to compress data.
      */
     public void setCompressionAlgorithm(CompressionAlgorithm compressionAlgorithm)
     {
@@ -38,7 +38,7 @@ public class MediaData
     }
 
     /**
-     * @param contentType    Type of the data.
+     * @param contentType Type of the data.
      */
     public void setContentType(ContentType contentType)
     {
@@ -54,7 +54,7 @@ public class MediaData
     }
 
     /**
-     * @param data    The content. To be interpreted according to the content type.
+     * @param data The content. To be interpreted according to the content type.
      */
     public void setData(byte[] data)
     {

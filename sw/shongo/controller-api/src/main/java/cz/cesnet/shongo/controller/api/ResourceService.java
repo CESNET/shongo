@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
 
@@ -48,7 +49,7 @@ public interface ResourceService extends Service
      * @param resourceIdentifier Shongo identifier of the resource to delete
      */
     @API
-    public void deleteResource(SecurityToken token, String resourceIdentifier) throws FaultException;
+    public void deleteResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException;
 
     /**
      * Lists all Shongo-managed resources matching the filter.
@@ -67,5 +68,5 @@ public interface ResourceService extends Service
      * @return
      */
     @API
-    public Resource getResource(SecurityToken token, String resourceIdentifier) throws FaultException;
+    public Resource getResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException;
 }

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.api.Capability;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,7 +55,7 @@ public class VirtualRoomsCapability extends DeviceCapability
     }
 
     @Override
-    public Capability toApi() throws FaultException
+    public Capability toApi()
     {
         cz.cesnet.shongo.controller.api.VirtualRoomsCapability api =
                 new cz.cesnet.shongo.controller.api.VirtualRoomsCapability();

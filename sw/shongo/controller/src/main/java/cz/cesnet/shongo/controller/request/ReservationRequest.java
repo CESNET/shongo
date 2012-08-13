@@ -1,18 +1,17 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
-import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.api.PeriodicDateTime;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSlot;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -171,16 +170,16 @@ public class ReservationRequest extends PersistentObject
     /**
      * @param id
      * @return requested slot with given {@code id}
-     * @throws FaultException
+     * @throws EntityNotFoundException when the requested slot doesn't exist
      */
-    public DateTimeSlot getRequestedSlotById(Long id) throws FaultException
+    public DateTimeSlot getRequestedSlotById(Long id) throws EntityNotFoundException
     {
         for (DateTimeSlot dateTimeSlot : requestedSlots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, DateTimeSlot.class, id);
+        throw new EntityNotFoundException(DateTimeSlot.class, id);
     }
 
     /**
@@ -223,16 +222,16 @@ public class ReservationRequest extends PersistentObject
     /**
      * @param id
      * @return requested compartment with given {@code id}
-     * @throws FaultException
+     * @throws EntityNotFoundException when the requested compartment doesn't exist
      */
-    public Compartment getRequestedCompartmentById(Long id) throws FaultException
+    public Compartment getRequestedCompartmentById(Long id) throws EntityNotFoundException
     {
         for (Compartment compartment : requestedCompartments) {
             if (compartment.getId().equals(id)) {
                 return compartment;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Compartment.class, id);
+        throw new EntityNotFoundException(Compartment.class, id);
     }
 
     /**
@@ -515,8 +514,7 @@ public class ReservationRequest extends PersistentObject
                             periodic.getPeriod()), dateTimeSlot.getDuration());
         }
         else {
-            throw new FaultException(ControllerFault.Common.UNKNOWN_FAULT,
-                    "Unknown date/time type.");
+            throw new FaultException("Unknown date/time type.");
         }
     }
 }

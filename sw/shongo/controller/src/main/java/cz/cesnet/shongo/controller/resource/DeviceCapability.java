@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.Collections;

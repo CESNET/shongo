@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.api.PeriodicDateTime;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -348,7 +348,7 @@ public class DateTimeSlot extends PersistentObject
             start = new PeriodicDateTime(periodicSpecification.getStart(), periodicSpecification.getPeriod());
         }
         else {
-            throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            throw new TodoImplementException();
         }
         cz.cesnet.shongo.controller.api.DateTimeSlot dateTimeSlot = new cz.cesnet.shongo.controller.api.DateTimeSlot();
         dateTimeSlot.setId(getId().intValue());

@@ -1,15 +1,17 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory;
 import cz.cesnet.shongo.controller.api.xmlrpc.TypeFactory;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.XmlRpcInvocationException;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -32,6 +34,11 @@ public class ControllerClient
      * XML-RPC client factory for creating services.
      */
     ClientFactory clientFactory;
+
+    /**
+     * @see {@link ControllerFault}
+     */
+    private static final ControllerFault controllerFault = new ControllerFault();
 
     /**
      * Constructor.
@@ -107,6 +114,39 @@ public class ControllerClient
         return client.execute(method, params);
     }
 
+    /**
+     * @param xmlRpcException
+     * @return {@code xmlRpcException} converted to {@link FaultException}
+     */
+    public static FaultException convertException(XmlRpcException xmlRpcException)
+    {
+        FaultException.Message message = new FaultException.Message();
+        message.fromString(xmlRpcException.getMessage());
+
+        Class<? extends Exception> type = controllerFault.getClasses().get(xmlRpcException.code);
+        if (type != null && FaultException.class.isAssignableFrom(type)) {
+            @SuppressWarnings("unchecked")
+            Class<? extends FaultException> newType = (Class<? extends FaultException>) type;
+            try {
+                Constructor<? extends FaultException> constructor =
+                        newType.getDeclaredConstructor(FaultException.Message.class);
+                FaultException faultException = constructor.newInstance(message);
+                faultException.setCode(xmlRpcException.code);
+                return faultException;
+            }
+            catch (NoSuchMethodException exception) {
+                throw new IllegalStateException("Exception '" + type.getCanonicalName()
+                        + "' doesn't have constructor with '" + FaultException.Message.class.getCanonicalName()
+                        + "' parameter.", exception);
+            }
+            catch (Exception exception) {
+                throw new IllegalStateException("Cannot instance exception type " + type.getCanonicalName(),
+                        exception);
+            }
+        }
+        return new FaultException(xmlRpcException.code, message.getMessage());
+    }
+
     public static class ClientFactory extends org.apache.xmlrpc.client.util.ClientFactory
     {
         private final org.apache.xmlrpc.common.TypeConverterFactory typeConverterFactory;
@@ -173,7 +213,8 @@ public class ControllerClient
                         throw new UndeclaredThrowableException(t);
                     }
                     catch (XmlRpcException exception) {
-                        FaultException faultException = new FaultException(exception.code, exception.getMessage());
+                        FaultException faultException = convertException(exception);
+                        faultException.setStackTrace(exception.getStackTrace());
                         throw faultException;
                     }
                     TypeConverter typeConverter = typeConverterFactory.getTypeConverter(pMethod.getReturnType());

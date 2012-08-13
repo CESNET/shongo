@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -35,16 +35,16 @@ public class TerminalCapability extends DeviceCapability
     /**
      * @param aliasId
      * @return alias with given {@code aliasId}
-     * @throws FaultException when the alias doesn't exist
+     * @throws EntityNotFoundException when the alias doesn't exist
      */
-    private Alias getAliasById(Long aliasId) throws FaultException
+    private Alias getAliasById(Long aliasId) throws EntityNotFoundException
     {
         for (Alias alias : aliases) {
             if (alias.getId().equals(aliasId)) {
                 return alias;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Alias.class, aliasId);
+        throw new EntityNotFoundException(Alias.class, aliasId);
     }
 
     /**
@@ -64,7 +64,7 @@ public class TerminalCapability extends DeviceCapability
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Capability toApi() throws FaultException
+    public cz.cesnet.shongo.controller.api.Capability toApi()
     {
         cz.cesnet.shongo.controller.api.TerminalCapability api =
                 new cz.cesnet.shongo.controller.api.TerminalCapability();

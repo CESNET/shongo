@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.common.Person;
@@ -9,6 +8,7 @@ import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -174,7 +174,8 @@ public class Scheduler extends Component.WithDomain
                             throw new FaultException("Requested resource is not available in specified time slot:\n"
                                     + " Time Slot: %s\n"
                                     + "  Resource: %s\n",
-                                    TemporalHelper.formatInterval(requestedSlot), domain.formatIdentifier(resource.getId()));
+                                    TemporalHelper.formatInterval(requestedSlot),
+                                    domain.formatIdentifier(resource.getId()));
                         }
                         task.add(resource);
                         iterator.remove();
@@ -218,8 +219,8 @@ public class Scheduler extends Component.WithDomain
                             }
                             throw new FaultException(
                                     "No available resource was found for the following specification:\n"
-                                    + "    Time Slot: %s\n"
-                                    + " Technologies: %s\n",
+                                            + "    Time Slot: %s\n"
+                                            + " Technologies: %s\n",
                                     TemporalHelper.formatInterval(requestedSlot), builder.toString());
                         }
                         iterator.remove();
@@ -239,7 +240,8 @@ public class Scheduler extends Component.WithDomain
             catch (Task.AddResourceException exception) {
                 throw new FaultException("Requested resource is not terminal:\n"
                         + "  Resource: %s\n",
-                        TemporalHelper.formatInterval(requestedSlot), domain.formatIdentifier(exception.getResource().getId()));
+                        TemporalHelper.formatInterval(requestedSlot),
+                        domain.formatIdentifier(exception.getResource().getId()));
             }
 
             // Merge task content
@@ -276,7 +278,8 @@ public class Scheduler extends Component.WithDomain
                         + "       Time slot: %s\n"
                         + "      Technology: %s\n"
                         + " Number of ports: %d\n",
-                        TemporalHelper.formatInterval(requestedSlot), taskGroup.getTechnologiesAsString(), taskGroup.getPortCount());
+                        TemporalHelper.formatInterval(requestedSlot), taskGroup.getTechnologiesAsString(),
+                        taskGroup.getPortCount());
             }
 
             // Allocate virtual room

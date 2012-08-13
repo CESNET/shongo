@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 
@@ -53,7 +53,7 @@ public abstract class Capability extends PersistentObject
      * @return converted capability to API
      * @throws FaultException
      */
-    public abstract cz.cesnet.shongo.controller.api.Capability toApi() throws FaultException;
+    public abstract cz.cesnet.shongo.controller.api.Capability toApi();
 
     /**
      * @param api API capability to be filled
@@ -92,7 +92,7 @@ public abstract class Capability extends PersistentObject
             resourceSpecification = new TerminalCapability();
         }
         else {
-            throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            throw new TodoImplementException();
         }
         resourceSpecification.fromApi(api, entityManager);
         return resourceSpecification;

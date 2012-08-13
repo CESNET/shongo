@@ -57,9 +57,9 @@ public final class Options
     /**
      * Constructor.
      *
-     * @param storeChanges   sets the {@link #storeChanges}
-     * @param loadReadOnly   sets the {@link #loadReadOnly}
-     * @param storeReadOnly  sets the {@link #storeReadOnly}
+     * @param storeChanges  sets the {@link #storeChanges}
+     * @param loadReadOnly  sets the {@link #loadReadOnly}
+     * @param storeReadOnly sets the {@link #storeReadOnly}
      */
     public Options(boolean storeChanges, boolean forceAccessible, boolean loadReadOnly, boolean storeReadOnly)
     {

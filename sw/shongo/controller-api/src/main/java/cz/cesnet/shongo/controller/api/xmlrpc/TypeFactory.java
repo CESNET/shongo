@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.common.TypeFactoryImpl;

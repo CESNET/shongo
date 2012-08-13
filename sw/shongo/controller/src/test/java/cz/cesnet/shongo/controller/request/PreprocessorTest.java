@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.AbstractDatabaseTest;
+import cz.cesnet.shongo.controller.Preprocessor;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
+import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
-import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

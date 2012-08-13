@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;

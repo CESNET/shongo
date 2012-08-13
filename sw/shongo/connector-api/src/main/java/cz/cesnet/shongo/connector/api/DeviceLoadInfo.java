@@ -2,7 +2,7 @@ package cz.cesnet.shongo.connector.api;
 
 /**
  * Current device load information.
- *
+ * <p/>
  * A negative value in any attribute means the value could not be determined.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>

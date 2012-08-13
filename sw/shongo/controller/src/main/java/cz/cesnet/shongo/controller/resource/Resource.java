@@ -2,14 +2,16 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -129,16 +131,16 @@ public class Resource extends PersistentObject
     /**
      * @param id
      * @return capability with given {@code id}
-     * @throws FaultException
+     * @throws EntityNotFoundException when capability doesn't exist
      */
-    public Capability getCapabilityById(Long id) throws FaultException
+    public Capability getCapabilityById(Long id) throws EntityNotFoundException
     {
         for (Capability capability : capabilities) {
             if (capability.getId().equals(id)) {
                 return capability;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Capability.class, id);
+        throw new EntityNotFoundException(Capability.class, id);
     }
 
     /**
@@ -329,7 +331,6 @@ public class Resource extends PersistentObject
      * @throws FaultException
      */
     public cz.cesnet.shongo.controller.api.Resource toApi(EntityManager entityManager, Domain domain)
-            throws FaultException
     {
         final Resource resourceImpl = this;
         cz.cesnet.shongo.controller.api.Resource resource = new cz.cesnet.shongo.controller.api.Resource();
@@ -348,7 +349,7 @@ public class Resource extends PersistentObject
                 resource.setMaxFuture(((RelativeDateTimeSpecification) maxFuture).getDuration());
             }
             else {
-                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+                throw new TodoImplementException();
             }
         }
 
@@ -391,7 +392,8 @@ public class Resource extends PersistentObject
      * @throws FaultException
      */
     public <API extends cz.cesnet.shongo.controller.api.Resource>
-    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
+    void fromApi(API api, EntityManager entityManager, Domain domain)
+            throws EntityNotFoundException, FaultException
     {
         // Modify attributes
         if (api.isPropertyFilled(API.NAME)) {
@@ -429,7 +431,7 @@ public class Resource extends PersistentObject
                 setMaximumFuture(new RelativeDateTimeSpecification((Period) maxFuture));
             }
             else {
-                throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+                throw new TodoImplementException();
             }
         }
 
@@ -454,7 +456,7 @@ public class Resource extends PersistentObject
                         deviceResource.setMode(null);
                     }
                     else {
-                        throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_WRONG_VALUE,
+                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
                                 API.MODE, api.getClass(), mode);
                     }
                 }
@@ -471,7 +473,7 @@ public class Resource extends PersistentObject
                             ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
                 }
                 else {
-                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_WRONG_VALUE,
+                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
                             API.MODE, api.getClass(), mode);
                 }
             }

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import java.lang.reflect.Array;
 import java.util.*;

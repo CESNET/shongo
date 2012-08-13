@@ -18,7 +18,7 @@ public class UsageStats
     }
 
     /**
-     * @param callLog    Call log in the CDR format.
+     * @param callLog Call log in the CDR format.
      */
     public void setCallLog(byte[] callLog)
     {

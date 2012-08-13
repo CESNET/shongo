@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -86,7 +86,7 @@ public class LookupResourceSpecification extends ResourceSpecification
             api.setTechnology(technologies.iterator().next());
         }
         else {
-            throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            throw new TodoImplementException();
         }
 
         super.toApi(api);

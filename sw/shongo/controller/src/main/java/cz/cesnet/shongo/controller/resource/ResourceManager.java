@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -82,9 +81,9 @@ public class ResourceManager extends AbstractManager
     /**
      * @param resourceId
      * @return {@link Resource} with given {@code resourceId}
-     * @throws FaultException when resource doesn't exist
+     * @throws EntityNotFoundException when resource doesn't exist
      */
-    public Resource get(Long resourceId) throws FaultException
+    public Resource get(Long resourceId) throws EntityNotFoundException
     {
         try {
             Resource resource = entityManager.createQuery(
@@ -94,16 +93,16 @@ public class ResourceManager extends AbstractManager
             return resource;
         }
         catch (NoResultException exception) {
-            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Resource.class, resourceId);
+            throw new EntityNotFoundException(Resource.class, resourceId);
         }
     }
 
     /**
      * @param deviceResourceId
      * @return {@link DeviceResource} with given {@code deviceResourceId}
-     * @throws FaultException when device resource doesn't exist
+     * @throws EntityNotFoundException when device resource doesn't exist
      */
-    public DeviceResource getDevice(Long deviceResourceId) throws FaultException
+    public DeviceResource getDevice(Long deviceResourceId) throws EntityNotFoundException
     {
         try {
             DeviceResource deviceResource = entityManager.createQuery(
@@ -113,7 +112,7 @@ public class ResourceManager extends AbstractManager
             return deviceResource;
         }
         catch (NoResultException exception) {
-            throw new FaultException(Fault.Common.RECORD_NOT_EXIST, DeviceResource.class, deviceResourceId);
+            throw new EntityNotFoundException(DeviceResource.class, deviceResourceId);
         }
     }
 

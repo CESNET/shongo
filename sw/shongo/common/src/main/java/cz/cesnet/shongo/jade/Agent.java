@@ -195,9 +195,10 @@ public class Agent extends jade.core.Agent
         agentDescription.addServices(serviceDescription);
 
         try {
-            DFAgentDescription[] result = DFService.searchUntilFound(this, getDefaultDF(), agentDescription, null, timeout);
+            DFAgentDescription[] result = DFService
+                    .searchUntilFound(this, getDefaultDF(), agentDescription, null, timeout);
             //DFAgentDescription[] result = DFService.search(this, agentDescription);
-            if ( result == null ) {
+            if (result == null) {
                 result = new DFAgentDescription[0];
             }
             AID[] agents = new AID[result.length];

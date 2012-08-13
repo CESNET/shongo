@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.fault.Fault;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
@@ -131,6 +132,21 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     }
 
     /**
+     * @param fault
+     * @return fault converted to {@link XmlRpcException}
+     */
+    public static XmlRpcException convertException(Fault fault, Throwable cause)
+    {
+        FaultException.Message message = new FaultException.Message();
+        message.setMessage(fault.getMessage());
+        if (fault instanceof FaultException) {
+            ((FaultException) fault).fillMessageParameters(message);
+        }
+        XmlRpcException xmlRpcException = new XmlRpcException(fault.getCode(), message.toString(), cause);
+        return xmlRpcException;
+    }
+
+    /**
      * Handler mapping that is able to translate full class name (which extends {@link Service})
      * to added handler name.
      * <p/>
@@ -222,11 +238,10 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
                     .getRequestProcessorFactory(pClass);
             return new Handler(this, getTypeConverterFactory(),
                     pClass, factory, pMethods);
-
         }
 
         /**
-         * {@link ReflectiveXmlRpcHandler} with conversion of {@link FaultException} to {@link XmlRpcException}.
+         * {@link ReflectiveXmlRpcHandler} with conversion of {@link cz.cesnet.shongo.fault.Fault} to {@link XmlRpcException}.
          */
         public static class Handler implements XmlRpcHandler
         {
@@ -319,21 +334,20 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
                             + clazz.getName(), e);
                 }
                 catch (InvocationTargetException e) {
-                    Throwable t = e.getTargetException();
-                    if (t instanceof XmlRpcException) {
-                        throw (XmlRpcException) t;
+                    Throwable throwable = e.getTargetException();
+                    if (throwable instanceof XmlRpcException) {
+                        throw (XmlRpcException) throwable;
                     }
-                    else if (t instanceof FaultException) {
-                        FaultException faultException = (FaultException) t;
-                        XmlRpcException xmlRpcException = new XmlRpcException(faultException.getCode(),
-                                faultException.getMessage(), faultException.getCause());
-                        xmlRpcException.setStackTrace(faultException.getStackTrace());
+                    else if (throwable instanceof Fault) {
+                        XmlRpcException xmlRpcException = WebServer.convertException((Fault) throwable,
+                                throwable.getCause());
+                        xmlRpcException.setStackTrace(throwable.getStackTrace());
                         throw xmlRpcException;
                     }
                     throw new XmlRpcInvocationException("Failed to invoke method "
                             + pMethod.getName() + " in class "
                             + clazz.getName() + ": "
-                            + t.getMessage(), t);
+                            + throwable.getMessage(), throwable);
                 }
             }
         }
@@ -380,10 +394,9 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         protected Throwable convertThrowable(Throwable pError)
         {
             if (pError instanceof RuntimeException) {
-                if (pError.getCause() instanceof FaultException) {
-                    FaultException faultException = (FaultException) pError.getCause();
-                    return new XmlRpcException(faultException.getCode(), faultException.getMessage(),
-                            faultException.getCause());
+                Throwable cause = pError.getCause();
+                if (cause instanceof Fault) {
+                    return WebServer.convertException((Fault) cause, cause.getCause());
                 }
             }
             return pError;

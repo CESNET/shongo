@@ -1,0 +1,126 @@
+package cz.cesnet.shongo.fault;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Common faults.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+public class CommonFault
+{
+    public static final int UNKNOWN_FAULT = 0;
+
+    public static final Fault CLASS_NOT_DEFINED = new SimpleFault(
+            10, "Class '%s' is not defined.");
+    public static final Fault CLASS_CANNOT_BE_INSTANCED = new SimpleFault(
+            11, "Class '%s' cannot be instanced.");
+    public static final Fault CLASS_ATTRIBUTE_NOT_DEFINED = new SimpleFault(
+            12, "Attribute '%s' in class '%s' is not defined.");
+    public static final Fault CLASS_ATTRIBUTE_TYPE_MISMATCH = new SimpleFault(
+            13, "Attribute '%s' in class '%s' has type '%s' but '%s' was presented.");
+    public static final Fault CLASS_ATTRIBUTE_IS_REQUIRED = new SimpleFault(
+            14, "Attribute '%s' in class '%s' wasn't present and is required.");
+    public static final Fault CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED = new SimpleFault(
+            15, "Collection '%s' in class '%s' is empty and is required.");
+    public static final Fault CLASS_ATTRIBUTE_READ_ONLY = new SimpleFault(
+            16, "Cannot set attribute '%s' for object of class '%s' because it is read-only.");
+    public static final Fault CLASS_ATTRIBUTE_WRONG_VALUE = new SimpleFault(
+            17, "Cannot set attribute '%s' for object of class '%s' because wrong value '%s' was present.");
+
+    public static final Fault ENUM_VALUE_NOT_DEFINED = new SimpleFault(
+            20, "Enum value '%s' is not defined in enum '%s'.");
+    public static final Fault DATETIME_PARSING_FAILED = new SimpleFault(
+            21, "Failed to parse date/time '%s'.");
+    public static final Fault PERIOD_PARSING_FAILED = new SimpleFault(
+            22, "Failed to parse period '%s'.");
+    public static final Fault INTERVAL_PARSING_FAILED = new SimpleFault(
+            23, "Failed to parse interval '%s'.");
+
+    public static final Fault COLLECTION_ITEM_TYPE_MISMATCH = new SimpleFault(
+            30, "Collection '%s' can contain items of type '%s' but '%s' was presented.");
+    public static final Fault COLLECTION_ITEM_NULL = new SimpleFault(
+            31, "Null value cannot be added to collection '%s'.");
+
+    public static final int ENTITY_NOT_FOUND = 40;
+
+    public static final int TODO_IMPLEMENT = 99;
+
+    /**
+     * List of exception classes bound to fault code.
+     */
+    private Map<Integer, Class<? extends Exception>> classes;
+
+    /**
+     * Add new exception class to be bound to a fault code.
+     *
+     * @param code
+     * @param type
+     */
+    public void add(int code, Class<? extends Exception> type)
+    {
+        classes.put(code, type);
+    }
+
+    /**
+     * Fill exception classes.
+     */
+    protected void fill()
+    {
+        add(ENTITY_NOT_FOUND, EntityNotFoundException.class);
+        add(TODO_IMPLEMENT, TodoImplementException.class);
+    }
+
+    /**
+     * @return map of exception class by fault code
+     */
+    public final Map<Integer, Class<? extends Exception>> getClasses()
+    {
+        if (classes == null) {
+            classes = new HashMap<Integer, Class<? extends Exception>>();
+            fill();
+        }
+        return classes;
+    }
+
+    /**
+     * Represents a fault which doesn't have own exception class but the message should be stored in one place.
+     */
+    public static class SimpleFault implements Fault
+    {
+        /**
+         * Fault code.
+         */
+        private int code;
+
+        /**
+         * Fault string (can contain placeholders, e.g., "%s").
+         */
+        private String message;
+
+        /**
+         * Constructor.
+         *
+         * @param code    sets the {@link #code}
+         * @param message sets the {@link #message}
+         */
+        public SimpleFault(int code, String message)
+        {
+            this.code = code;
+            this.message = message;
+        }
+
+        @Override
+        public int getCode()
+        {
+            return code;
+        }
+
+        @Override
+        public String getMessage()
+        {
+            return message;
+        }
+    }
+}

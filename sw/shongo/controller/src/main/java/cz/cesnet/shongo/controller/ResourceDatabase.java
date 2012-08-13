@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
 import cz.cesnet.shongo.controller.allocation.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.allocation.RangeSet;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -434,7 +434,7 @@ public class ResourceDatabase extends Component
     {
         // Get top parent resource and checks whether it is available
         Resource parentResource = resource;
-        while ( parentResource.getParentResource() != null ) {
+        while (parentResource.getParentResource() != null) {
             parentResource = parentResource.getParentResource();
         }
         return isResourceAndChildResourcesAvailableRecursive(parentResource, interval);
@@ -492,8 +492,7 @@ public class ResourceDatabase extends Component
                     deviceResources.add(resourceManager.getDevice(terminalId));
                 }
                 catch (FaultException exception) {
-                    throw new IllegalStateException("Cannot find device resource for available terminal.",
-                            exception);
+                    throw new IllegalStateException("Cannot find device resource for available terminal.", exception);
                 }
             }
         }
@@ -581,7 +580,7 @@ public class ResourceDatabase extends Component
     public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
             EntityManager entityManager)
     {
-        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>)null, entityManager);
+        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>) null, entityManager);
     }
 
     /**

@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -43,16 +44,16 @@ public abstract class ResourceSpecification extends PersistentObject
     /**
      * @param id
      * @return requested person with given {@code id}
-     * @throws FaultException
+     * @throws EntityNotFoundException when the requested person doesn't exist
      */
-    public Person getRequestedPersonById(Long id) throws FaultException
+    public Person getRequestedPersonById(Long id) throws EntityNotFoundException
     {
         for (Person person : requestedPersons) {
             if (person.getId().equals(id)) {
                 return person;
             }
         }
-        throw new FaultException(Fault.Common.RECORD_NOT_EXIST, Person.class, id);
+        throw new EntityNotFoundException(Person.class, id);
     }
 
     /**
@@ -170,7 +171,7 @@ public abstract class ResourceSpecification extends PersistentObject
             resourceSpecification = new ExternalEndpointSpecification();
         }
         else {
-            throw new FaultException(Fault.Common.TODO_IMPLEMENT);
+            throw new TodoImplementException();
         }
         resourceSpecification.fromApi(api, entityManager, domain);
         return resourceSpecification;

@@ -213,7 +213,6 @@ public class DeviceResource extends Resource
     }
 
     /**
-     *
      * @param deviceCapabilityType
      * @return set of technologies which the device supports for capability of given {@code deviceCapabilityType}
      */

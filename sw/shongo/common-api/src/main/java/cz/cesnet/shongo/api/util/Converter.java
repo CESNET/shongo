@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.api.AtomicType;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -20,7 +20,7 @@ import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Converter    
+public class Converter
 {
     private static Logger logger = LoggerFactory.getLogger(Converter.class);
 
@@ -68,7 +68,7 @@ public class Converter
                         return allowedValue;
                     }
                     else {
-                        for ( int index = 0; index < exceptionList.size(); index++ ) {
+                        for (int index = 0; index < exceptionList.size(); index++) {
                             logger.debug(String.format("Cannot convert value '%s' to '%s'.",
                                     value.getClass().getCanonicalName(), allowedTypes[index].getCanonicalName()),
                                     exceptionList.get(index));
@@ -85,7 +85,7 @@ public class Converter
             return value;
         }
         // Convert from primitive types
-        else if (primitiveClassess.contains(value.getClass())) {
+        else if (isPrimitive(value)) {
             if (targetType.isPrimitive()) {
                 return value;
             }
@@ -93,7 +93,7 @@ public class Converter
                 return value.toString();
             }
             else if (targetType.equals(Boolean.class) && value instanceof Integer) {
-                return ((Integer)value).intValue() != 0;
+                return ((Integer) value).intValue() != 0;
             }
         }
         // Convert from date
@@ -117,7 +117,7 @@ public class Converter
                     atomicType = (AtomicType) targetType.newInstance();
                 }
                 catch (Exception exception) {
-                    throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
+                    throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED,
                             targetType));
                 }
                 atomicType.fromString((String) value);
@@ -146,7 +146,7 @@ public class Converter
                 for (int index = 0; index < arrayValue.length; index++) {
                     Object item = convert(arrayValue[index], componentType, allowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(Fault.Common.COLLECTION_ITEM_NULL, name);
+                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, name);
                     }
                     newArray[index] = item;
                 }
@@ -159,7 +159,7 @@ public class Converter
                 for (Object item : arrayValue) {
                     item = convert(item, Object.class, allowedTypes, null, options);
                     if (item == null) {
-                        throw new FaultException(Fault.Common.COLLECTION_ITEM_NULL, name);
+                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, name);
                     }
                     collection.add(item);
                 }
@@ -174,7 +174,7 @@ public class Converter
 
             }
             catch (Exception exception) {
-                throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED,
+                throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED,
                         targetType));
             }
             map.putAll((Map) value);
@@ -231,7 +231,7 @@ public class Converter
             return Enum.valueOf(enumClass, value);
         }
         catch (IllegalArgumentException exception) {
-            throw new FaultException(Fault.Common.ENUM_VALUE_NOT_DEFINED, value,
+            throw new FaultException(CommonFault.ENUM_VALUE_NOT_DEFINED, value,
                     getClassShortName(enumClass));
         }
     }
@@ -248,7 +248,7 @@ public class Converter
             return dateTime;
         }
         catch (Exception exception) {
-            throw new FaultException(Fault.Common.DATETIME_PARSING_FAILED, value);
+            throw new FaultException(CommonFault.DATETIME_PARSING_FAILED, value);
         }
     }
 
@@ -264,7 +264,7 @@ public class Converter
             return period;
         }
         catch (Exception exception) {
-            throw new FaultException(Fault.Common.PERIOD_PARSING_FAILED, value);
+            throw new FaultException(CommonFault.PERIOD_PARSING_FAILED, value);
         }
     }
 
@@ -280,7 +280,7 @@ public class Converter
             Interval interval = new Interval(convertStringToDateTime(parts[0]), convertStringToPeriod(parts[1]));
             return interval;
         }
-        throw new FaultException(Fault.Common.INTERVAL_PARSING_FAILED, value);
+        throw new FaultException(CommonFault.INTERVAL_PARSING_FAILED, value);
     }
 
     /**
@@ -294,14 +294,14 @@ public class Converter
         // Get object class
         String className = (String) map.get("class");
         if (className == null) {
-            throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contains 'class' attribute!");
+            throw new FaultException(CommonFault.UNKNOWN_FAULT, "Map must contains 'class' attribute!");
         }
         Class objectClass = null;
         try {
             objectClass = getClassFromShortName(className);
         }
         catch (ClassNotFoundException exception) {
-            throw new FaultException(Fault.Common.CLASS_NOT_DEFINED, className);
+            throw new FaultException(CommonFault.CLASS_NOT_DEFINED, className);
         }
         return convertMapToObject(map, objectClass, options);
     }
@@ -324,7 +324,7 @@ public class Converter
             if (map.containsKey("class")) {
                 String className = (String) map.get("class");
                 if (!className.equals(getClassShortName(objectClass))) {
-                    throw new FaultException(Fault.Common.UNKNOWN_FAULT,
+                    throw new FaultException(CommonFault.UNKNOWN_FAULT,
                             "Cannot convert map to object of class '%s' because map specifies different class '%s'.",
                             getClassShortName(objectClass), className);
                 }
@@ -336,7 +336,7 @@ public class Converter
                 object = objectClass.newInstance();
             }
             catch (Exception exception) {
-                throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, objectClass);
+                throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, objectClass);
             }
 
             ChangesTrackingObject changesTrackingObject =
@@ -350,7 +350,7 @@ public class Converter
             // Fill each property that is present in map
             for (Object key : map.keySet()) {
                 if (!(key instanceof String)) {
-                    throw new FaultException(Fault.Common.UNKNOWN_FAULT, "Map must contain only string keys.");
+                    throw new FaultException(CommonFault.UNKNOWN_FAULT, "Map must contain only string keys.");
                 }
                 String propertyName = (String) key;
                 Object value = map.get(key);
@@ -361,8 +361,8 @@ public class Converter
                 }
 
                 Property property = Property.getPropertyNotNull(object.getClass(), propertyName);
-                if ( property.isReadOnly() && !options.isLoadReadOnly()) {
-                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
+                if (property.isReadOnly() && !options.isLoadReadOnly()) {
+                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
                 }
 
                 // Get property type and allowed types
@@ -463,7 +463,7 @@ public class Converter
                     if (value instanceof String) {
                         givenType = String.format("String(%s)", value);
                     }
-                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
+                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
                             object.getClass(), requiredType, givenType);
                 }
 
@@ -483,7 +483,7 @@ public class Converter
     /**
      * Set of primitive type classes.
      */
-    private static Set<Class> primitiveClassess = new HashSet<Class>()
+    private static Set<Class> primitiveClasses = new HashSet<Class>()
     {{
             add(Boolean.class);
             add(Character.class);
@@ -527,7 +527,7 @@ public class Converter
             }
             return newArray;
         }
-        else if (isAtomic(object) || primitiveClassess.contains(object.getClass())) {
+        else if (isAtomic(object) || isPrimitive(object)) {
             return object;
         }
         return convertObjectToMap(object, options);
@@ -558,7 +558,7 @@ public class Converter
                 ((object instanceof ChangesTrackingObject) ? (ChangesTrackingObject) object : null);
 
         Map<String, Object> map = new HashMap<String, Object>();
-        String[] propertyNames = Property.getPropertyNames(object.getClass());
+        String[] propertyNames = Property.getPropertyNames(object.getClass(), ChangesTrackingObject.class);
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(object.getClass(), propertyName);
             if (property == null) {
@@ -573,8 +573,8 @@ public class Converter
                 }
             }
 
-            if ( property.isReadOnly() && !options.isStoreReadOnly()) {
-                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
+            if (property.isReadOnly() && !options.isStoreReadOnly()) {
+                throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
             }
 
             // Store collection changes
@@ -662,6 +662,16 @@ public class Converter
     }
 
     /**
+     * @param value
+     * @return true if object is primitive type (see {@link #primitiveClasses})
+     *         false otherwise
+     */
+    public static boolean isPrimitive(Object value)
+    {
+        return primitiveClasses.contains(value.getClass());
+    }
+
+    /**
      * @param object
      * @return true if object is of atomic type (e.g., {@link String}, {@link AtomicType}, {@link Enum},
      *         {@link Period} or {@link DateTime}),
@@ -708,6 +718,6 @@ public class Converter
         else if (Collection.class.equals(type)) {
             return new ArrayList<Object>(size);
         }
-        throw new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, type);
+        throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type);
     }
 }

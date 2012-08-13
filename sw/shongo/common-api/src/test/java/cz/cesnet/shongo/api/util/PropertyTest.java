@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -88,14 +88,14 @@ public class PropertyTest
             fail("Exception that field is read-only should be thrown.");
         }
         catch (FaultException exception) {
-            assertEquals(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY.getCode(), exception.getCode());
+            assertEquals(CommonFault.CLASS_ATTRIBUTE_READ_ONLY.getCode(), exception.getCode());
         }
         try {
             Property.setPropertyValue(foo, "fieldNot", "test");
             fail("Exception that field is not defined should be thrown.");
         }
         catch (FaultException exception) {
-            assertEquals(Fault.Common.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
+            assertEquals(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
         }
 
         // getPropertyValue
@@ -106,14 +106,14 @@ public class PropertyTest
             fail("Exception that field is write-only should be thrown.");
         }
         catch (FaultException exception) {
-            assertEquals(Fault.Common.UNKNOWN_FAULT.getCode(), exception.getCode());
+            assertEquals(CommonFault.UNKNOWN_FAULT, exception.getCode());
         }
         try {
             Property.getPropertyValue(foo, "fieldNot");
             fail("Exception that field is not defined should be thrown.");
         }
         catch (FaultException exception) {
-            assertEquals(Fault.Common.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
+            assertEquals(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
         }
 
         // Get getPropertyType and getPropertyAllowedTypes

@@ -37,7 +37,7 @@ public class ConnectorInfo
     }
 
     /**
-     * @param connectionState   connection state to the device
+     * @param connectionState connection state to the device
      */
     public void setConnectionState(ConnectionState connectionState)
     {
@@ -53,7 +53,7 @@ public class ConnectorInfo
     }
 
     /**
-     * @param device    the device managed by this connector (must be a resource of type ManagedDevice)
+     * @param device the device managed by this connector (must be a resource of type ManagedDevice)
      */
     public void setDevice(DeviceInfo device)
     {
@@ -69,7 +69,7 @@ public class ConnectorInfo
     }
 
     /**
-     * @param deviceState    state of the device, maintained by the connector for performance reasons
+     * @param deviceState state of the device, maintained by the connector for performance reasons
      */
     public void setDeviceState(DeviceState deviceState)
     {
@@ -85,7 +85,7 @@ public class ConnectorInfo
     }
 
     /**
-     * @param name    the connector name
+     * @param name the connector name
      */
     public void setName(String name)
     {

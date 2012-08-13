@@ -37,7 +37,7 @@ public class RoomUser
     }
 
     /**
-     * @param layout    User layout, overriding the room default layout.
+     * @param layout User layout, overriding the room default layout.
      */
     public void setLayout(RoomLayout layout)
     {
@@ -53,7 +53,7 @@ public class RoomUser
     }
 
     /**
-     * @param microphoneLevel    Microphone level
+     * @param microphoneLevel Microphone level
      */
     public void setMicrophoneLevel(int microphoneLevel)
     {
@@ -69,7 +69,7 @@ public class RoomUser
     }
 
     /**
-     * @param muted    Is the user muted?
+     * @param muted Is the user muted?
      */
     public void setMuted(boolean muted)
     {
@@ -85,7 +85,7 @@ public class RoomUser
     }
 
     /**
-     * @param playbackLevel    Playback level (speakers volume)
+     * @param playbackLevel Playback level (speakers volume)
      */
     public void setPlaybackLevel(int playbackLevel)
     {
@@ -101,7 +101,7 @@ public class RoomUser
     }
 
     /**
-     * @param roomId    Room unique identifier
+     * @param roomId Room unique identifier
      */
     public void setRoomId(String roomId)
     {
@@ -117,7 +117,7 @@ public class RoomUser
     }
 
     /**
-     * @param userId    User identification in room (technology specific).
+     * @param userId User identification in room (technology specific).
      */
     public void setUserId(String userId)
     {
@@ -133,7 +133,7 @@ public class RoomUser
     }
 
     /**
-     * @param userIdentity    User identity
+     * @param userIdentity User identity
      */
     public void setUserIdentity(UserIdentity userIdentity)
     {

@@ -26,7 +26,7 @@ public class RoomInfo
     }
 
     /**
-     * @param creation    Date and time when the room was created.
+     * @param creation Date and time when the room was created.
      */
     public void setCreation(AbsoluteDateTimeSpecification creation)
     {
@@ -42,7 +42,7 @@ public class RoomInfo
     }
 
     /**
-     * @param name    Name of the room.
+     * @param name Name of the room.
      */
     public void setName(String name)
     {
@@ -58,7 +58,7 @@ public class RoomInfo
     }
 
     /**
-     * @param owner    Identification of the room owner.
+     * @param owner Identification of the room owner.
      */
     public void setOwner(String owner)
     {
@@ -74,7 +74,7 @@ public class RoomInfo
     }
 
     /**
-     * @param reservation    Reservation for which this room was created
+     * @param reservation Reservation for which this room was created
      */
     public void setReservation(Reservation reservation)
     {
@@ -90,7 +90,7 @@ public class RoomInfo
     }
 
     /**
-     * @param type    Type of the room.
+     * @param type Type of the room.
      */
     public void setType(Technology type)
     {

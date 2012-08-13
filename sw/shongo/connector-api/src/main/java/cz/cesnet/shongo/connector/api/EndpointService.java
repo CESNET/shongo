@@ -4,7 +4,7 @@ import cz.cesnet.shongo.api.Alias;
 
 /**
  * Set of functionality offered by endpoint devices.
- *
+ * <p/>
  * Any of the methods may throw CommandException when a command execution fails, or CommandUnsupportedException when the
  * command is not supported (and thus may not be implemented) by the target device.
  *
@@ -14,7 +14,8 @@ public interface EndpointService extends CommonService
 {
     /**
      * Dials a server.
-     * @param server    server address to dial
+     *
+     * @param server server address to dial
      */
     void dial(Alias server) throws CommandException, CommandUnsupportedException;
 
@@ -35,13 +36,15 @@ public interface EndpointService extends CommonService
 
     /**
      * Sets microphone (all microphones) audio level of this endpoint to a given value.
-     * @param level         microphone level to set
+     *
+     * @param level microphone level to set
      */
     void setMicrophoneLevel(int level) throws CommandException, CommandUnsupportedException;
 
     /**
      * Sets playback audio level of this endpoint to a given value.
-     * @param level         microphone level to set
+     *
+     * @param level microphone level to set
      */
     void setPlaybackLevel(int level) throws CommandException, CommandUnsupportedException;
 

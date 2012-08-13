@@ -1,37 +1,21 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.Fault;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.Fault;
 
 /**
  * Domain controller faults.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public enum ControllerFault implements Fault
+public class ControllerFault extends CommonFault
 {
-    PREPROCESSOR_FAILED(100, "Preprocessor failed"),
-    SCHEDULER_FAILED(101, "Scheduler failed"),
-
-    OTHER(999, "%s");
-
-    private int code;
-    private String string;
-
-    private ControllerFault(int code, String string)
-    {
-        this.code = code;
-        this.string = string;
-    }
+    public static final Fault PREPROCESSOR_FAILED = new SimpleFault(100, "Preprocessor failed");
+    public static final Fault SCHEDULER_FAILED = new SimpleFault(101, "Scheduler failed");
 
     @Override
-    public int getCode()
+    protected void fill()
     {
-        return code;
-    }
-
-    @Override
-    public String getString()
-    {
-        return string;
+        super.fill();
     }
 }

@@ -2,11 +2,11 @@ package cz.cesnet.shongo.connector.api;
 
 /**
  * Description of a media type.
- *
+ * <p/>
  * Any MIME Media Type listed by IANA, e.g. image/jpeg.
  *
- * @see <a href="http://www.iana.org/assignments/media-types/index.html">IANA MIME Media Type list</a>
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
+ * @see <a href="http://www.iana.org/assignments/media-types/index.html">IANA MIME Media Type list</a>
  */
 public class ContentType
 {
@@ -22,7 +22,7 @@ public class ContentType
     }
 
     /**
-     * @param subtype    textual name of the subtype (e.g., "jpeg" or "html")
+     * @param subtype textual name of the subtype (e.g., "jpeg" or "html")
      */
     public void setSubtype(String subtype)
     {
@@ -38,7 +38,7 @@ public class ContentType
     }
 
     /**
-     * @param type    textual name of the type (e.g., "image" or "text")
+     * @param type textual name of the type (e.g., "image" or "text")
      */
     public void setType(String type)
     {

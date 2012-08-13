@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
 import cz.cesnet.shongo.api.AtomicType;
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
 
@@ -140,7 +140,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                     atomicType = (AtomicType) clazz.newInstance();
                 }
                 catch (java.lang.Exception exception) {
-                    throw new RuntimeException(new FaultException(Fault.Common.CLASS_CANNOT_BE_INSTANCED, clazz));
+                    throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, clazz));
                 }
                 atomicType.fromString(value);
                 return atomicType;

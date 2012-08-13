@@ -9,6 +9,7 @@ public interface CommonService
 {
     /**
      * Get information about connector.
+     *
      * @return information about the connector
      */
     ConnectorInfo getConnectorInfo();

@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -101,14 +101,14 @@ public class Property
                 return;
             }
             else if (readMethod != null) {
-                throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_READ_ONLY, name, classType);
+                throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, name, classType);
             }
         }
         catch (FaultException exception) {
             throw exception;
         }
         catch (IllegalArgumentException exception) {
-            throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_TYPE_MISMATCH,
+            throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH,
                     name, classType, getType(), value.getClass());
         }
         catch (Exception exception) {
@@ -137,7 +137,8 @@ public class Property
         catch (Exception exception) {
             thrownException = exception;
         }
-        throw new FaultException(thrownException, "Cannot get attribute '%s' from object of type '%s'.", name, classType);
+        throw new FaultException(thrownException, "Cannot get attribute '%s' from object of type '%s'.",
+                name, classType);
     }
 
     /**
@@ -384,7 +385,7 @@ public class Property
     {
         Property property = getProperty(type, name);
         if (property == null) {
-            throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_NOT_DEFINED, name, type);
+            throw new FaultException(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED, name, type);
         }
         return property;
     }
@@ -392,16 +393,26 @@ public class Property
     /**
      * @param type
      * @return array of property names for given class
-     * @throws FaultException
      */
-    public static String[] getPropertyNames(Class type) throws FaultException
+    public static String[] getPropertyNames(Class type)
+    {
+        return getPropertyNames(type, ChangesTrackingObject.class);
+
+    }
+
+    /**
+     * @param type      type from which the property names should be returned
+     * @param breakType super type from which the properties should not be returned (and all super super types)
+     * @return array of property names for given class
+     */
+    public static String[] getPropertyNames(Class type, Class breakType)
     {
         Set<String> propertyNames = new HashSet<String>();
 
         // Add properties by fields
         Class currentType = type;
         while (currentType != null) {
-            if (currentType.equals(ChangesTrackingObject.class) || currentType.equals(Object.class)) {
+            if (currentType.equals(breakType) || currentType.equals(Object.class)) {
                 break;
             }
             Field[] declaredFields = currentType.getDeclaredFields();

@@ -1,11 +1,12 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import java.util.ArrayList;
@@ -109,7 +110,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     }
 
     @Override
-    public void deleteResource(SecurityToken token, String resourceIdentifier) throws FaultException
+    public void deleteResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException
     {
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
 
@@ -168,7 +169,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     }
 
     @Override
-    public Resource getResource(SecurityToken token, String resourceIdentifier) throws FaultException
+    public Resource getResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException
     {
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
 

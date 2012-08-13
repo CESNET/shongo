@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;

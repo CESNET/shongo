@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.Fault;
-import cz.cesnet.shongo.api.FaultException;
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.*;
 
@@ -190,7 +190,7 @@ public abstract class ChangesTrackingObject
             ChangesTrackingObject changesTrackingObject = (ChangesTrackingObject) object;
             changesTrackingObject.collectionItemIsByDefaultNew = true;
             Class type = changesTrackingObject.getClass();
-            String[] propertyNames = Property.getPropertyNames(type);
+            String[] propertyNames = Property.getPropertyNames(type, ChangesTrackingObject.class);
             for (String propertyName : propertyNames) {
                 Property property = Property.getProperty(changesTrackingObject.getClass(), propertyName);
                 Object value = property.getValue(changesTrackingObject);
@@ -198,7 +198,7 @@ public abstract class ChangesTrackingObject
                 if (property.isArray()) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
-                        throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
+                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
                                 changesTrackingObject.getClass());
                     }
                     for (Object item : array) {
@@ -208,7 +208,7 @@ public abstract class ChangesTrackingObject
                 else if (property.isCollection()) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
-                        throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
+                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
                                 changesTrackingObject.getClass());
                     }
                     for (Object item : collection) {
@@ -216,7 +216,7 @@ public abstract class ChangesTrackingObject
                     }
                 }
                 else if (required && value == null) {
-                    throw new FaultException(Fault.Common.CLASS_ATTRIBUTE_IS_REQUIRED, propertyName,
+                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_IS_REQUIRED, propertyName,
                             changesTrackingObject.getClass());
                 }
             }

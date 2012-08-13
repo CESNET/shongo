@@ -22,7 +22,7 @@ public class Room
     }
 
     /**
-     * @param allowGuests    A flag indicating whether to allow guest users to join the room.
+     * @param allowGuests A flag indicating whether to allow guest users to join the room.
      */
     public void setAllowGuests(boolean allowGuests)
     {
@@ -38,7 +38,7 @@ public class Room
     }
 
     /**
-     * @param configuration    Platform specific configuration.
+     * @param configuration Platform specific configuration.
      */
     public void setConfiguration(String[] configuration)
     {
@@ -47,7 +47,7 @@ public class Room
 
     /**
      * @return The default room layout (used for all participants who did not specify a layout of their
-    own choice).
+     *         own choice).
      */
     public RoomLayout getLayout()
     {
@@ -55,7 +55,7 @@ public class Room
     }
 
     /**
-     * @param layout    The default room layout (used for all participants who did not specify a layout of their own choice).
+     * @param layout The default room layout (used for all participants who did not specify a layout of their own choice).
      */
     public void setLayout(RoomLayout layout)
     {
@@ -71,7 +71,7 @@ public class Room
     }
 
     /**
-     * @param licenseCount    Number of licenses that multipoint server can utilize for this room.
+     * @param licenseCount Number of licenses that multipoint server can utilize for this room.
      */
     public void setLicenseCount(int licenseCount)
     {
@@ -87,7 +87,7 @@ public class Room
     }
 
     /**
-     * @param users    List of allowed users.
+     * @param users List of allowed users.
      */
     public void setUsers(RoomUser[] users)
     {
