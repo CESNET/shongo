@@ -11,6 +11,7 @@ use warnings;
 use RPC::XML;
 use RPC::XML::Client;
 use XML::Twig;
+use Shongo::Common;
 use Shongo::Console;
 
 #
@@ -165,8 +166,12 @@ sub request()
         return RPC::XML::fault->new(0, "Failed to send request!");;
     }
     if ( $response->is_fault() ) {
+        my $message = $response->string();
+        if ( $message =~ /<message>(.*)<\/message>/ ) {
+            $message = $1;
+        }
         console_print_error("Server failed to perform request!\nFault %d: %s",
-            $response->code, $response->string);
+            $response->code, $message);
     }
     return $response;
 }
