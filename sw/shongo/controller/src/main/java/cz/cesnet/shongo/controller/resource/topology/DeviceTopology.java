@@ -118,6 +118,15 @@ public class DeviceTopology extends PrintableObject
         edges.remove(edge);
     }
 
+    /**
+     * Remove all device resources.
+     */
+    public void clear()
+    {
+        nodes.clear();
+        edges.clear();
+    }
+
     @Override
     protected void fillDescriptionMap(Map<String, String> map)
     {

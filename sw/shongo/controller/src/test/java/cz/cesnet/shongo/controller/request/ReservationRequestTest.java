@@ -2,11 +2,14 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -26,7 +29,9 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
-        //
+        // Domain
+        Domain domain = new Domain("cz.cesnet");
+        // Resource database
         ResourceDatabase resourceDatabase = null;
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
@@ -154,9 +159,71 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Schedule complete compartment request(s)
         // -----------------------------------------
         {
-            Scheduler.run(getEntityManagerFactory(), interval, resourceDatabase, new Domain("cz.cesnet"));
+            Scheduler.run(getEntityManagerFactory(), interval, resourceDatabase, domain);
 
-            // TODO: Check created allocation
+            EntityManager entityManager = getEntityManager();
+
+            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+            AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+
+            CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
+            assertEquals("Compartment request should be in ALLOCATED state.",
+                    compartmentRequest.getState(), CompartmentRequest.State.ALLOCATED);
+
+            AllocatedCompartment allocatedCompartment =
+                    allocatedCompartmentManager.getByCompartmentRequest(compartmentRequestId);
+            assertNotNull("Allocated compartment should be created for the compartment request", allocatedCompartment);
+
+            entityManager.close();
+        }
+
+        // ---------------------------
+        // Modify compartment request
+        // ---------------------------
+        {
+            EntityManager entityManager = getEntityManager();
+
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+            AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+
+            // Add new requested resource to exceed the maximum number of ports
+            entityManager.getTransaction().begin();
+            ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
+            Compartment compartment = reservationRequest.getRequestedCompartments().get(0);
+            compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 100));
+            reservationRequestManager.update(reservationRequest);
+            entityManager.getTransaction().commit();
+
+            // Pre-process and schedule compartment request
+            Preprocessor.run(getEntityManagerFactory(), interval);
+            Scheduler.run(getEntityManagerFactory(), interval, resourceDatabase, domain);
+
+            // Checks allocation failed
+            CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
+            assertEquals("Compartment request should be in ALLOCATION_FAILED state.",
+                    CompartmentRequest.State.ALLOCATION_FAILED, compartmentRequest.getState());
+            AllocatedCompartment allocatedCompartment =
+                    allocatedCompartmentManager.getByCompartmentRequest(compartmentRequestId);
+            assertNull("Allocated compartment should not be created for the compartment request",
+                    allocatedCompartment);
+
+            // Modify requested resources to not exceed the maximum number of ports
+            entityManager.getTransaction().begin();
+            ExternalEndpointSpecification externalEndpointSpecification =
+                    (ExternalEndpointSpecification) compartment.getRequestedResources().get(2);
+            externalEndpointSpecification.setCount(96);
+            reservationRequestManager.update(reservationRequest);
+            entityManager.getTransaction().commit();
+
+            // Pre-process and schedule compartment request
+            Preprocessor.run(getEntityManagerFactory(), interval);
+            Scheduler.run(getEntityManagerFactory(), interval, resourceDatabase, domain);
+
+            // Checks allocated
+            entityManager.refresh(compartmentRequest);
+            assertEquals("Compartment request should be in ALLOCATED state.",
+                    CompartmentRequest.State.ALLOCATED, compartmentRequest.getState());
         }
 
         // ------------------------

@@ -47,19 +47,9 @@ public class ResourceDatabase extends Component
      */
     private Map<Long, ResourceState> resourceStateById = new HashMap<Long, ResourceState>();
 
-    public static class CapabilityState
-    {
-        Class<? extends Capability> capabilityType;
-
-        public CapabilityState(Class<? extends Capability> capabilityType)
-        {
-            this.capabilityType = capabilityType;
-        }
-
-        private Map<Long, Capability> capabilityByResourceId = new HashMap<Long, Capability>();
-        private Map<Technology, Set<Long>> deviceResourcesByTechnology = new HashMap<Technology, Set<Long>>();
-    }
-    
+    /**
+     * Map of capability states by theirs types.
+     */
     private Map<Class<? extends Capability>, CapabilityState> capabilityStateByType =
             new HashMap<Class<? extends Capability>, CapabilityState>();
 
@@ -98,7 +88,11 @@ public class ResourceDatabase extends Component
     {
         logger.debug("Closing resource database...");
 
+        workingInterval = null;
         resourceById.clear();
+        resourceStateById.clear();
+        capabilityStateByType.clear();
+        deviceTopology.clear();
 
         super.init();
     }
@@ -619,5 +613,36 @@ public class ResourceDatabase extends Component
         {
             this.resourceId = resourceId;
         }
+    }
+
+    /**
+     * Current state of capability for all resources which have it.
+     */
+    public static class CapabilityState
+    {
+        /**
+         * Type of capability for which the state is managed.
+         */
+        Class<? extends Capability> capabilityType;
+
+        /**
+         * Constructor.
+         *
+         * @param capabilityType sets the {@link #capabilityType}
+         */
+        public CapabilityState(Class<? extends Capability> capabilityType)
+        {
+            this.capabilityType = capabilityType;
+        }
+
+        /**
+         * Map of instances of {@link Capability} by resource identifier.
+         */
+        private Map<Long, Capability> capabilityByResourceId = new HashMap<Long, Capability>();
+
+        /**
+         * Map of device resources by theirs technology.
+         */
+        private Map<Technology, Set<Long>> deviceResourcesByTechnology = new HashMap<Technology, Set<Long>>();
     }
 }

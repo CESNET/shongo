@@ -58,10 +58,20 @@ public class AllocatedCompartmentManager extends AbstractManager
      */
     public AllocatedCompartment getByCompartmentRequest(CompartmentRequest compartmentRequest)
     {
+        return getByCompartmentRequest(compartmentRequest.getId());
+    }
+
+    /**
+     * @param compartmentRequestId
+     * @return {@link AllocatedCompartment} for {@link CompartmentRequest} with given {@code compartmentRequestId}
+     *         or null if doesn't exists
+     */
+    public AllocatedCompartment getByCompartmentRequest(Long compartmentRequestId)
+    {
         try {
             AllocatedCompartment allocatedCompartment = entityManager.createQuery(
                     "SELECT alloc FROM AllocatedCompartment alloc WHERE alloc.compartmentRequest.id = :id",
-                    AllocatedCompartment.class).setParameter("id", compartmentRequest.getId())
+                    AllocatedCompartment.class).setParameter("id", compartmentRequestId)
                     .getSingleResult();
             return allocatedCompartment;
         }
