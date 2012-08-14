@@ -60,15 +60,19 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                get_reservation($args[0]);
+                foreach my $identifier (split(/,/, $args[0])) {
+                    get_reservation($identifier);
+                }
             }
         },
-        'get-allocation' => {
+        'get-reservation-allocation' => {
             desc => 'Get allocation for existing reservation request',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                get_allocation($args[0])
+                foreach my $identifier (split(/,/, $args[0])) {
+                    get_reservation_allocation($identifier);
+                }
             }
         }
     });
@@ -163,7 +167,7 @@ sub get_reservation()
     }
 }
 
-sub get_allocation()
+sub get_reservation_allocation()
 {
     my ($identifier) = @_;
     $identifier = select_reservation($identifier);
@@ -177,6 +181,7 @@ sub get_allocation()
     if ( $result->is_fault ) {
         return;
     }
+    print("\n");
     my $index = 0;
     foreach my $allocated_compartment (@{$result->value()}) {
         $index++;
@@ -185,14 +190,15 @@ sub get_allocation()
             my $class = $allocated_resource->{'class'};
             print("   -");
             if ( $class eq 'AllocatedVirtualRoom') {
-                printf("%s (%s) VirtualRoom(portCount: %d)", $allocated_resource->{'resourceName'},
-                    $allocated_resource->{'resourceIdentifier'}, $allocated_resource->{'portCount'});
+                printf("%s (%s) VirtualRoom(portCount: %d)", $allocated_resource->{'name'},
+                    $allocated_resource->{'identifier'}, $allocated_resource->{'portCount'});
             } else {
-                printf("%s (%s)", $allocated_resource->{'resourceName'}, $allocated_resource->{'resourceIdentifier'});
+                printf("%s (%s)", $allocated_resource->{'name'}, $allocated_resource->{'identifier'});
             }
             print("\n");
         }
     }
+    print("\n");
 }
 
 1;

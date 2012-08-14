@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 

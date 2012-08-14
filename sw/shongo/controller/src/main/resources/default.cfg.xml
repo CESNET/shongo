@@ -3,6 +3,9 @@
 <!-- Default Configuration of Domain Controller -->
 <configuration>
 
+    <!-- Specifies whether XML-RPC requests and responses should be logged -->
+    <log-rpc>false</log-rpc>
+
     <!-- Configuration of controlled domain -->
     <domain>
         <name>unknown</name>

@@ -131,15 +131,17 @@ public class AllocatedCompartment extends PersistentObject
                 AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;
                 cz.cesnet.shongo.controller.api.AllocatedVirtualRoom allocatedVirtualRoomApi =
                         new cz.cesnet.shongo.controller.api.AllocatedVirtualRoom();
-                allocatedVirtualRoomApi.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
-                allocatedVirtualRoomApi.setResourceName(resource.getName());
+                allocatedVirtualRoomApi.setIdentifier(domain.formatIdentifier(resource.getId()));
+                allocatedVirtualRoomApi.setName(resource.getName());
+                allocatedVirtualRoomApi.setSlot(compartmentRequest.getRequestedSlot());
                 allocatedVirtualRoomApi.setPortCount(allocatedVirtualRoom.getPortCount());
                 allocatedCompartmentApi.addAllocatedResource(allocatedVirtualRoomApi);
             } else {
                 cz.cesnet.shongo.controller.api.AllocatedResource allocatedResourceApi =
                         new cz.cesnet.shongo.controller.api.AllocatedResource();
-                allocatedResourceApi.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
-                allocatedResourceApi.setResourceName(resource.getName());
+                allocatedResourceApi.setIdentifier(domain.formatIdentifier(resource.getId()));
+                allocatedResourceApi.setName(resource.getName());
+                allocatedResourceApi.setSlot(compartmentRequest.getRequestedSlot());
                 allocatedCompartmentApi.addAllocatedResource(allocatedResourceApi);
             }
         }

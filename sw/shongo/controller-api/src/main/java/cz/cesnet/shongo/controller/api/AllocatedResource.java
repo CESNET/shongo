@@ -1,33 +1,74 @@
 package cz.cesnet.shongo.controller.api;
 
+import org.joda.time.Interval;
+
 /**
-* TODO:
-*
-* @author Martin Srom <martin.srom@cesnet.cz>
-*/
+ * Represents an allocation of a {@link Resource} for a {@link Compartment} in the {@link ReservationRequest}.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
 public class AllocatedResource
 {
-    private String resourceIdentifier;
+    /**
+     * Unique identifier of the resource.
+     */
+    private String identifier;
 
-    private String resourceName;
+    /**
+     * Name of the resource.
+     */
+    private String name;
 
-    public String getResourceIdentifier()
+    /**
+     * Slot fot which the resource is allocated.
+     */
+    private Interval slot;
+
+    /**
+     * @return {@link #identifier}
+     */
+    public String getIdentifier()
     {
-        return resourceIdentifier;
+        return identifier;
     }
 
-    public void setResourceIdentifier(String resourceIdentifier)
+    /**
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setIdentifier(String identifier)
     {
-        this.resourceIdentifier = resourceIdentifier;
+        this.identifier = identifier;
     }
 
-    public String getResourceName()
+    /**
+     * @return {@link #name}
+     */
+    public String getName()
     {
-        return resourceName;
+        return name;
     }
 
-    public void setResourceName(String resourceName)
+    /**
+     * @param name sets the {@link #name}
+     */
+    public void setName(String name)
     {
-        this.resourceName = resourceName;
+        this.name = name;
+    }
+
+    /**
+     * @return {@link #slot}
+     */
+    public Interval getSlot()
+    {
+        return slot;
+    }
+
+    /**
+     * @param slot sets the {@link #slot}
+     */
+    public void setSlot(Interval slot)
+    {
+        this.slot = slot;
     }
 }

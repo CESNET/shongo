@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.allocation;
 import javax.persistence.Entity;
 
 /**
- * TODO:
+ * Represents a special type of {@link AllocatedDevice} an allocated virtual room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

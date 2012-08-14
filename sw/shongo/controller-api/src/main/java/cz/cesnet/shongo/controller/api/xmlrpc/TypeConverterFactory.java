@@ -7,6 +7,9 @@ import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.TypeConverterFactoryImpl;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import java.util.Map;
 
@@ -24,9 +27,19 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     private Options options;
 
     /**
-     * Converter for {@link AtomicType}.
+     * Converter for {@link Interval}.
      */
-    private TypeConverter atomicTypeConverter = new AtomicTypeConverter(AtomicType.class);
+    private TypeConverter intervalConverter = new IntervalConverter();
+
+    /**
+     * Converter for {@link DateTime}.
+     */
+    private TypeConverter dateTimeConverter = new DateTimeConverter();
+
+    /**
+     * Converter for {@link Period}.
+     */
+    private TypeConverter periodConverter = new PeriodConverter();
 
     /**
      * Converter for {@link Map}.
@@ -51,7 +64,16 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             return EnumTypeConverter.getInstance(pClass);
         }
         else if (AtomicType.class.isAssignableFrom(pClass)) {
-            return atomicTypeConverter;
+            return new AtomicTypeConverter(pClass);
+        }
+        else if (Interval.class.isAssignableFrom(pClass)) {
+            return intervalConverter;
+        }
+        else if (DateTime.class.isAssignableFrom(pClass)) {
+            return dateTimeConverter;
+        }
+        else if (Period.class.isAssignableFrom(pClass)) {
+            return periodConverter;
         }
         else if (StructType.class.isAssignableFrom(pClass)) {
             return StructTypeConverter.getInstance(pClass, options);
@@ -151,6 +173,120 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
+            return result.toString();
+        }
+    }
+
+    /**
+     * Converter for {@link Interval}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class IntervalConverter implements TypeConverter
+    {
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || pObject instanceof Interval;
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+
+                try {
+                    return Converter.convertStringToInterval((String) pObject);
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            if (result == null ) {
+                return null;
+            }
+            return Converter.convertIntervalToString((Interval) result);
+        }
+    }
+
+    /**
+     * Converter for {@link DateTime}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class DateTimeConverter implements TypeConverter
+    {
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || pObject instanceof DateTime;
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+
+                try {
+                    return Converter.convertStringToDateTime((String) pObject);
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            if (result == null ) {
+                return null;
+            }
+            return result.toString();
+        }
+    }
+
+    /**
+     * Converter for {@link DateTime}.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class PeriodConverter implements TypeConverter
+    {
+        @Override
+        public boolean isConvertable(Object pObject)
+        {
+            return pObject == null || (pObject instanceof String) || pObject instanceof Period;
+        }
+
+        @Override
+        public Object convert(Object pObject)
+        {
+            if (pObject instanceof String) {
+
+                try {
+                    return Converter.convertStringToPeriod((String) pObject);
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
+            return pObject;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            if (result == null ) {
+                return null;
+            }
             return result.toString();
         }
     }

@@ -656,9 +656,18 @@ public class Converter
     {
         if (object instanceof Interval) {
             Interval interval = (Interval) object;
-            return String.format("%s/%s", interval.getStart().toString(), interval.toPeriod().toString());
+            return convertIntervalToString(interval);
         }
         return object.toString();
+    }
+
+    /**
+     * @param interval
+     * @return converted interval to string
+     */
+    public static String convertIntervalToString(Interval interval)
+    {
+        return String.format("%s/%s", interval.getStart().toString(), interval.toPeriod().toString());
     }
 
     /**
@@ -686,6 +695,27 @@ public class Converter
             return true;
         }
         if (object instanceof Period || object instanceof DateTime || object instanceof Interval) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param type
+     * @return true if type is of atomic type (e.g., {@link String}, {@link AtomicType}, {@link Enum},
+     *         {@link Period} or {@link DateTime}),
+     *         false otherwise
+     */
+    public static boolean isAtomicType(Class type)
+    {
+        if (type.equals(String.class) || type.isEnum()) {
+            return true;
+        }
+        if (AtomicType.class.isAssignableFrom(type)) {
+            return true;
+        }
+        if (Period.class.isAssignableFrom(type) || DateTime.class.isAssignableFrom(type)
+                || Interval.class.isAssignableFrom(type)) {
             return true;
         }
         return false;

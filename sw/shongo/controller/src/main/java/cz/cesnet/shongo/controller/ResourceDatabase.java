@@ -98,10 +98,16 @@ public class ResourceDatabase extends Component
     }
 
     /**
-     * Set new working interval
-     *
-     * @param workingInterval
-     * @param entityManager
+     * @return {@link #workingInterval}
+     */
+    public Interval getWorkingInterval()
+    {
+        return workingInterval;
+    }
+
+    /**
+     * @param workingInterval sets the {@link #workingInterval}
+     * @param entityManager   used for reloading allocations of resources for the new interval
      */
     public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
     {
@@ -470,6 +476,20 @@ public class ResourceDatabase extends Component
     }
 
     /**
+     * @param resourceId
+     * @param interval
+     * @return collection of allocations for resource with given {@code resourceId} in given {@code interval}
+     */
+    public Collection<AllocatedResource> getResourceAllocations(Long resourceId, Interval interval)
+    {
+        ResourceState resourceState = resourceStateById.get(resourceId);
+        if (resourceState == null) {
+            throw new IllegalArgumentException("Resource '" + resourceId + "' isn't added to the resource database.");
+        }
+        return resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
+    }
+
+    /**
      * @param interval
      * @param technologies
      * @param entityManager
@@ -508,6 +528,41 @@ public class ResourceDatabase extends Component
         Set<Technology> technologySet = new HashSet<Technology>();
         Collections.addAll(technologySet, technologies);
         return findAvailableTerminal(interval, technologySet, entityManager);
+    }
+
+    /**
+     * @param deviceResource
+     * @param interval
+     * @return {@link AvailableVirtualRoom} for given {@code deviceResource} in given {@code interval}
+     */
+    public AvailableVirtualRoom getAvailableVirtualRoom(DeviceResource deviceResource, Interval interval)
+    {
+        ResourceState resourceState = resourceStateById.get(deviceResource.getId());
+        if (resourceState == null) {
+            throw new IllegalArgumentException("Resource '" + deviceResource.getId()
+                    + "' is not device or isn't added to the resource database.");
+        }
+        VirtualRoomsCapability virtualRoomsCapability
+                = getResourceCapability(deviceResource.getId(), VirtualRoomsCapability.class);
+        if (virtualRoomsCapability == null) {
+            throw new IllegalStateException("Device resource doesn't have VirtualRooms capability.");
+        }
+        Set<AllocatedResource> allocatedResources =
+                resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
+        int usedPortCount = 0;
+        for (AllocatedResource allocatedResource : allocatedResources) {
+            if (!(allocatedResource instanceof AllocatedVirtualRoom)) {
+                throw new IllegalStateException(
+                        "Device resource with VirtualRooms capability should be allocated only as virtual room.");
+            }
+            AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;
+            usedPortCount += allocatedVirtualRoom.getPortCount();
+        }
+        AvailableVirtualRoom availableVirtualRoom = new AvailableVirtualRoom();
+        availableVirtualRoom.setDeviceResource(deviceResource);
+        availableVirtualRoom.setMaximumPortCount(virtualRoomsCapability.getPortCount());
+        availableVirtualRoom.setAvailablePortCount(virtualRoomsCapability.getPortCount() - usedPortCount);
+        return availableVirtualRoom;
     }
 
     /**
@@ -556,6 +611,7 @@ public class ResourceDatabase extends Component
                     throw new IllegalStateException("Cannot find device resource for available virtual room",
                             exception);
                 }
+                availableVirtualRoom.setMaximumPortCount(virtualRoomsCapability.getPortCount());
                 availableVirtualRoom.setAvailablePortCount(availablePortCount);
                 availableVirtualRooms.add(availableVirtualRoom);
             }

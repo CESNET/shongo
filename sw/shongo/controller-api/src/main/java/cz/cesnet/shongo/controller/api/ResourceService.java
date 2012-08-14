@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.Interval;
 
 import java.util.Collection;
 
@@ -69,4 +70,16 @@ public interface ResourceService extends Service
      */
     @API
     public Resource getResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException;
+
+    /**
+     * Gets the information about resource allocations.
+     *
+     * @param token              token of the user requesting the operation
+     * @param resourceIdentifier identifier of the resource to get
+     * @param interval
+     * @return allocation information of resource with given {@code resourceIdentifier} for given {@code interval}
+     */
+    @API
+    public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceIdentifier, Interval interval)
+            throws EntityNotFoundException;
 }

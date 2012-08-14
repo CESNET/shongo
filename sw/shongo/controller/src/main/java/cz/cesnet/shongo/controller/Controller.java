@@ -41,6 +41,7 @@ public class Controller
     /**
      * Controller configuration parameters names.
      */
+    public static final String LOG_RPC = "log-rpc";
     public static final String DOMAIN_NAME = "domain.name";
     public static final String DOMAIN_ORGANIZATION = "domain.organization";
     public static final String RPC_HOST = "rpc.host";
@@ -287,6 +288,11 @@ public class Controller
         // Set single instance of domain controller.
         if (instance == null) {
             instance = this;
+        }
+
+        // Configure
+        if (configuration.getBoolean(LOG_RPC)) {
+            WebServerXmlLogger.setEnabled(true);
         }
 
         // Initialize domain

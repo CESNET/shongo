@@ -57,9 +57,22 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                get_resource($args[0]);
+                foreach my $identifier (split(/,/, $args[0])) {
+                    get_resource($identifier);
+                }
             }
-        }
+        },
+        'get-resource-allocation' => {
+            desc => 'Get information about resource allocations',
+            options => 'interval=s',
+            args => '[-interval] [identifier]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                foreach my $identifier (split(/,/, $args[0])) {
+                    get_resource_allocation($identifier, $params->{'options'}->{'interval'});
+                }
+            }
+        },
     });
 }
 
@@ -156,6 +169,48 @@ sub get_resource()
             printf("\n%s\n", $resource->to_string());
         }
     }
+}
+
+sub get_resource_allocation()
+{
+    my ($identifier, $interval) = @_;
+    $identifier = select_resource($identifier);
+    if ( !defined($identifier) ) {
+        return;
+    }
+    if (defined($interval)) {
+        $interval = RPC::XML::string->new($interval);
+    } else {
+        $interval = RPC::XML::struct->new();
+    }
+    my $result = Shongo::Controller->instance()->secure_request(
+        'Resource.getResourceAllocation',
+        RPC::XML::string->new($identifier),
+        $interval
+    );
+    if ( $result->is_fault ) {
+        return
+    }
+    my $resource_allocation = $result->value();
+    print("\n RESOURCE ALLOCATION\n");
+    printf("           Identifier: %s\n", $resource_allocation->{'identifier'});
+    printf("                 Name: %s\n", $resource_allocation->{'name'});
+    printf("             Interval: %s\n", format_interval($resource_allocation->{'interval'}));
+    if ($resource_allocation->{'class'} eq 'VirtualRoomsResourceAllocation') {
+        printf("   Maximum Port Count: %d\n", $resource_allocation->{'maximumPortCount'});
+        printf(" Available Port Count: %d\n", $resource_allocation->{'availablePortCount'});
+    }
+    print(" Allocations:\n");
+    my $index = 0;
+    foreach my $allocation (@{$resource_allocation->{'allocations'}}) {
+        $index++;
+        printf(" %d) %s", $index, format_interval($allocation->{'slot'}));
+        if ( $allocation->{'class'} eq 'AllocatedVirtualRoom') {
+            printf(" VirtualRoom(portCount: %d)", $allocation->{'portCount'});
+        }
+        print("\n");
+    }
+    print("\n");
 }
 
 1;
