@@ -13,7 +13,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
-    format_datetime
+    format_datetime format_interval
     var_dump
 );
 
@@ -224,6 +224,20 @@ sub format_datetime
     my ($dateTime) = @_;
     $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
     return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
+}
+
+#
+# Format interval
+#
+# @param $interval
+#
+sub format_interval
+{
+    my ($interval) = @_;
+    if ( $interval =~ m/(.*)\/(.*)/ ) {
+        return sprintf("%s, %s", format_datetime($1), $2);
+    }
+    return undef;
 }
 
 #

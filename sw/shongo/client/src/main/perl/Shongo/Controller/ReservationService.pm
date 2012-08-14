@@ -48,7 +48,7 @@ sub populate()
             }
         },
         'list-reservations' => {
-            desc => 'List summary of all existing reservations',
+            desc => 'List summary of all existing reservation requests',
             opts => '',
             method => sub {
                 my ($shell, $params, @args) = @_;
@@ -56,11 +56,19 @@ sub populate()
             }
         },
         'get-reservation' => {
-            desc => 'Get existing reservation',
+            desc => 'Get existing reservation request',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 get_reservation($args[0]);
+            }
+        },
+        'get-allocation' => {
+            desc => 'Get allocation for existing reservation request',
+            args => '[identifier]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                get_allocation($args[0])
             }
         }
     });
@@ -125,16 +133,12 @@ sub list_reservations()
     }
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Type', \' | ', 'Name', \' | ', 'Purpose', \' | ', 'Earliest Slot', \' |');
     foreach my $reservation_request (@{$response->value()}) {
-        my $slot;
-        if ( $reservation_request->{'earliestSlot'} =~ m/(.*)\/(.*)/ ) {
-            $slot = sprintf("%s, %s", format_datetime($1), $2);
-        }
         $table->add(
             $reservation_request->{'identifier'},
             $Shongo::Controller::API::ReservationRequest::Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
             $Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
-            $slot
+            format_interval($reservation_request->{'earliestSlot'})
         );
     }
     console_print_table($table);
@@ -155,6 +159,38 @@ sub get_reservation()
         my $reservation_request = Shongo::Controller::API::ReservationRequest->new()->from_xml($result);
         if ( defined($reservation_request) ) {
             printf("\n%s\n", $reservation_request->to_string());
+        }
+    }
+}
+
+sub get_allocation()
+{
+    my ($identifier) = @_;
+    $identifier = select_reservation($identifier);
+    if ( !defined($identifier) ) {
+        return;
+    }
+    my $result = Shongo::Controller->instance()->secure_request(
+        'Reservation.listAllocatedCompartments',
+        RPC::XML::string->new($identifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $index = 0;
+    foreach my $allocated_compartment (@{$result->value()}) {
+        $index++;
+        printf("%d) %s\n", $index, format_interval($allocated_compartment->{'slot'}));
+        foreach my $allocated_resource (@{$allocated_compartment->{'allocatedResources'}}) {
+            my $class = $allocated_resource->{'class'};
+            print("   -");
+            if ( $class eq 'AllocatedVirtualRoom') {
+                printf("%s (%s) VirtualRoom(portCount: %d)", $allocated_resource->{'resourceName'},
+                    $allocated_resource->{'resourceIdentifier'}, $allocated_resource->{'portCount'});
+            } else {
+                printf("%s (%s)", $allocated_resource->{'resourceName'}, $allocated_resource->{'resourceIdentifier'});
+            }
+            print("\n");
         }
     }
 }

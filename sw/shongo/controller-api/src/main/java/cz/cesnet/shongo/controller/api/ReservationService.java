@@ -51,7 +51,7 @@ public interface ReservationService extends Service
      * Lists all the reservation requests.
      *
      * @param token token of the user requesting the operation
-     * @return array of reservation requests
+     * @return collection of reservation requests
      */
     @API
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token);
@@ -67,35 +67,12 @@ public interface ReservationService extends Service
             throws FaultException;
 
     /**
-     * Lists all the time slots with assigned resources that were allocated by the scheduler for the reservation.
-     *
-     * @param token         token of the user requesting the operation
-     * @param reservationId Shongo identifier of the reservation to get
-     * @return
-     */
-    //public ReservationAllocation getReservationAllocation(SecurityToken token, String reservationId);
-
-    /**
-     * Lists resources allocated by a given reservation in a given time slot, matching a filter.
-     *
-     * @param token         token of the user requesting the operation
-     * @param reservationId Shongo identifier of the reservation to get
-     * @param slot
-     * @param filter
-     * @return
-     */
-    //public ResourceSummary[] listReservationResources(SecurityToken token, String reservationId, DateTimeSlot slot,
-    //        Map filter);
-
-    /**
-     * Looks up available time slots for a given reservation duration and resources.
-     *
      * @param token
-     * @param duration
-     * @param resources
-     * @param interDomain specification whether inter-domain lookup should be performed
-     * @return
+     * @param reservationRequestIdentifier
+     * @return collection of already allocated compartments for given reservation request
+     * @throws FaultException
      */
-    //public DateTimeSlot[] findReservationAvailableTime(SecurityToken token, Period duration, Resource[] resources,
-    //        boolean interDomain);
+    @API
+    public Collection<AllocatedCompartment> listAllocatedCompartments(SecurityToken token,
+            String reservationRequestIdentifier) throws FaultException;
 }

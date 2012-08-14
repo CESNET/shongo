@@ -381,8 +381,7 @@ public class ReservationRequest extends PersistentObject
         for (CompartmentRequest compartmentRequest : compartmentRequestList) {
             cz.cesnet.shongo.controller.api.ReservationRequest.Request request =
                     new cz.cesnet.shongo.controller.api.ReservationRequest.Request();
-            request.setStart(compartmentRequest.getRequestedSlot().getStart());
-            request.setDuration(compartmentRequest.getRequestedSlot().toPeriod());
+            request.setSlot(compartmentRequest.getRequestedSlot());
             switch (compartmentRequest.getState()) {
                 case NOT_COMPLETE:
                     request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_COMPLETE);

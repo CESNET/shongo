@@ -347,10 +347,9 @@ sub to_string()
         $string .= " Created requests:\n";
         for ( my $index = 0; $index < $request_count; $index++ ) {
             my $processedSlots = get_collection_item($self->{'requests'}, $index);
-            my $start = $processedSlots->{'start'};
-            my $duration = $processedSlots->{'duration'};
+            my $slot = $processedSlots->{'slot'};
             my $state = $RequestState->{$processedSlots->{'state'}};
-            $string .= sprintf("   %d) at '%s' for '%s' (%s)\n", $index + 1, format_datetime($start), $duration, $state);
+            $string .= sprintf("   %d) %s (%s)\n", $index + 1, format_interval($slot), $state);
 
             my $stateDescription = $processedSlots->{'stateDescription'};
             if ( defined($stateDescription) ) {

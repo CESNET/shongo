@@ -328,9 +328,9 @@ public class CompartmentRequestManager extends AbstractManager
     public void delete(CompartmentRequest compartmentRequest)
     {
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        List<AllocatedCompartment> allocatedCompartments =
-                allocatedCompartmentManager.listByCompartmentRequest(compartmentRequest.getId());
-        for (AllocatedCompartment allocatedCompartment : allocatedCompartments) {
+        AllocatedCompartment allocatedCompartment =
+                allocatedCompartmentManager.getByCompartmentRequest(compartmentRequest.getId());
+        if (allocatedCompartment != null) {
             allocatedCompartmentManager.markedForDeletion(allocatedCompartment);
         }
         super.delete(compartmentRequest);

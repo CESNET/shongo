@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -128,7 +129,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ReservationRequest getReservationRequest(SecurityToken token,
+    public ReservationRequest getReservationRequest(SecurityToken token,
             String reservationRequestIdentifier) throws FaultException
     {
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
@@ -142,5 +143,26 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
         entityManager.close();
 
         return request;
+    }
+
+    @Override
+    public Collection<AllocatedCompartment> listAllocatedCompartments(SecurityToken token,
+            String reservationRequestIdentifier) throws FaultException
+    {
+        Long id = domain.parseIdentifier(reservationRequestIdentifier);
+
+        EntityManager entityManager = getEntityManager();
+        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+
+        List<cz.cesnet.shongo.controller.allocation.AllocatedCompartment> allocatedCompartments =
+                allocatedCompartmentManager.listByReservationRequest(id);
+        List<AllocatedCompartment> allocatedCompartmentList = new ArrayList<AllocatedCompartment>();
+        for (cz.cesnet.shongo.controller.allocation.AllocatedCompartment allocation :allocatedCompartments) {
+            allocatedCompartmentList.add(allocation.toApi(getDomain()));
+        }
+
+        entityManager.close();
+
+        return allocatedCompartmentList;
     }
 }

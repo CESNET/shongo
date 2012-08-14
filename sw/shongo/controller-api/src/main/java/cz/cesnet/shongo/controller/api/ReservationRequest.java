@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
+import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import java.util.ArrayList;
@@ -291,14 +292,9 @@ public class ReservationRequest extends IdentifiedChangeableObject
         }
 
         /**
-         * Starting date/time.
+         * Slot date/time and duration.
          */
-        private DateTime start;
-
-        /**
-         * Duration of the time slot.
-         */
-        private Period duration;
+        private Interval slot;
 
         /**
          * State of processed slot.
@@ -311,35 +307,19 @@ public class ReservationRequest extends IdentifiedChangeableObject
         private String stateDescription;
 
         /**
-         * @return {@link #start}
+         * @return {@link #slot}
          */
-        public DateTime getStart()
+        public Interval getSlot()
         {
-            return start;
+            return slot;
         }
 
         /**
-         * @param start sets the {@link #start}
+         * @param slot sets the {@link #slot}
          */
-        public void setStart(DateTime start)
+        public void setSlot(Interval slot)
         {
-            this.start = start;
-        }
-
-        /**
-         * @return {@link #duration}
-         */
-        public Period getDuration()
-        {
-            return duration;
-        }
-
-        /**
-         * @param duration sets the {@link #duration}
-         */
-        public void setDuration(Period duration)
-        {
-            this.duration = duration;
+            this.slot = slot;
         }
 
         /**

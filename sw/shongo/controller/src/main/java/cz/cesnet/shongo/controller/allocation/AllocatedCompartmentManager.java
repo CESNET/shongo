@@ -81,15 +81,16 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
-     * @param compartmentRequestId
-     * @return list of all allocated compartments for the compartment request
+     * @param reservationRequestId
+     * @return list of all allocated compartments for the reservation request
      */
-    public List<AllocatedCompartment> listByCompartmentRequest(Long compartmentRequestId)
+    public List<AllocatedCompartment> listByReservationRequest(Long reservationRequestId)
     {
         List<AllocatedCompartment> allocatedCompartments = entityManager.createQuery(
-                "SELECT allocation FROM AllocatedCompartment allocation  WHERE allocation.compartmentRequest.id = :id",
+                "SELECT allocation FROM AllocatedCompartment allocation"
+                + " WHERE allocation.compartmentRequest.reservationRequest.id = :id",
                 AllocatedCompartment.class)
-                .setParameter("id", compartmentRequestId)
+                .setParameter("id", reservationRequestId)
                 .getResultList();
         return allocatedCompartments;
     }

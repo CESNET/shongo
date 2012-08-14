@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
+import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -293,10 +294,10 @@ public class Controller
             throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
         }
         if (domain.getName() == null) {
-            domain.setName(configuration.getString("domain.name"));
+            domain.setName(configuration.getString(DOMAIN_NAME));
         }
         if (domain.getOrganization() == null) {
-            domain.setOrganization(configuration.getString("domain.organization"));
+            domain.setOrganization(configuration.getString(DOMAIN_ORGANIZATION));
         }
 
         logger.info("Controller for domain '{}' is starting...", domain.getName());
@@ -391,6 +392,14 @@ public class Controller
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.addCommands(jadeAgent.createCommandSet());
+        shell.addCommand("log-rpc", "Toggle logging of XML-RPC request and response XMLs", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                WebServerXmlLogger.setEnabled(!WebServerXmlLogger.isEnabled());
+            }
+        });
         shell.addCommand("database", "Show database browser", new CommandHandler()
         {
             @Override

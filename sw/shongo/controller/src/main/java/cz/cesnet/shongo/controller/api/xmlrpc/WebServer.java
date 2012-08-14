@@ -8,6 +8,7 @@ import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.common.*;
 import org.apache.xmlrpc.metadata.Util;
+import org.apache.xmlrpc.serializer.XmlRpcWriter;
 import org.apache.xmlrpc.server.*;
 import org.apache.xmlrpc.webserver.Connection;
 import org.apache.xmlrpc.webserver.RequestData;
@@ -17,6 +18,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -382,9 +384,10 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     }
 
     /**
-     * Connection server. Copied default implementation which only overrides
-     * convertThrowable method to allow use of cause from runtime exception
-     * as fault.
+     * Connection server. Copied default implementation which overrides:
+     * 1) convertThrowable method to allow use of cause from runtime exception
+     *    as fault.
+     * 2) getRequest and writeResponse for logging of XML-RPC requests and response XMLs.
      *
      * @author Martin Srom <martin.srom@cesnet.cz>
      */
@@ -403,6 +406,40 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         }
 
         @Override
+        protected XmlRpcRequest getRequest(XmlRpcStreamRequestConfig pConfig, InputStream pStream)
+                throws XmlRpcException
+        {
+            if (WebServerXmlLogger.isEnabled()) {
+                pStream = WebServerXmlLogger.logRequest(pStream);
+            }
+            return super.getRequest(pConfig, pStream);
+        }
+
+        @Override
+        protected void writeResponse(XmlRpcStreamRequestConfig pConfig, OutputStream pStream, Object pResult)
+                throws XmlRpcException
+        {
+            if (WebServerXmlLogger.isEnabled()) {
+                pStream = WebServerXmlLogger.logResponse(pStream);
+            }
+            RequestData data = (RequestData) pConfig;
+            try {
+                if (data.isByteArrayRequired()) {
+                    super.writeResponse(pConfig, pStream, pResult);
+                    data.getConnection().writeResponse(data, pStream);
+                }
+                else {
+                    data.getConnection().writeResponseHeader(data, -1);
+                    super.writeResponse(pConfig, pStream, pResult);
+                    pStream.flush();
+                }
+            }
+            catch (IOException e) {
+                throw new XmlRpcException(e.getMessage(), e);
+            }
+        }
+
+        @Override
         protected void writeError(XmlRpcStreamRequestConfig pConfig, OutputStream pStream,
                 Throwable pError) throws XmlRpcException
         {
@@ -415,27 +452,6 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
                 else {
                     data.getConnection().writeErrorHeader(data, pError, -1);
                     super.writeError(pConfig, pStream, pError);
-                    pStream.flush();
-                }
-            }
-            catch (IOException e) {
-                throw new XmlRpcException(e.getMessage(), e);
-            }
-        }
-
-        @Override
-        protected void writeResponse(XmlRpcStreamRequestConfig pConfig, OutputStream pStream, Object pResult)
-                throws XmlRpcException
-        {
-            RequestData data = (RequestData) pConfig;
-            try {
-                if (data.isByteArrayRequired()) {
-                    super.writeResponse(pConfig, pStream, pResult);
-                    data.getConnection().writeResponse(data, pStream);
-                }
-                else {
-                    data.getConnection().writeResponseHeader(data, -1);
-                    super.writeResponse(pConfig, pStream, pResult);
                     pStream.flush();
                 }
             }
