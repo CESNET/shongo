@@ -23,6 +23,23 @@ public class ExistingResourceSpecification extends ResourceSpecification
     private Resource resource;
 
     /**
+     * Constructor.
+     */
+    public ExistingResourceSpecification()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param resource sets the {@link #resource}
+     */
+    public ExistingResourceSpecification(Resource resource)
+    {
+        this.resource = resource;
+    }
+
+    /**
      * @return {@link #resource}
      */
     @OneToOne

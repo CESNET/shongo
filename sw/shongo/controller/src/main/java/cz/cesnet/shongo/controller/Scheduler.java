@@ -169,6 +169,12 @@ public class Scheduler extends Component.WithDomain
                                     + "  Resource: %s\n",
                                     domain.formatIdentifier(resource.getId()));
                         }
+                        if (!resource.isSchedulable()) {
+                            // Requested resource cannot be allocated
+                            throw new FaultException("Requested resource cannot be allocated:\n"
+                                    + "  Resource: %s\n",
+                                    domain.formatIdentifier(resource.getId()));
+                        }
                         if (!resourceDatabase.isResourceAvailable(resource, requestedSlot)) {
                             // Requested resource is not available in requested slot
                             throw new FaultException("Requested resource is not available in specified time slot:\n"

@@ -43,6 +43,11 @@ public class ResourceDatabase extends Component
     private Interval workingInterval;
 
     /**
+     * Represents a reference data time which is a rounded now().
+     */
+    private DateTime referenceDateTime;
+
+    /**
      * Map of device resource states by theirs identifiers.
      */
     private Map<Long, ResourceState> resourceStateById = new HashMap<Long, ResourceState>();
@@ -111,12 +116,14 @@ public class ResourceDatabase extends Component
      */
     public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
     {
-        workingInterval = new Interval(workingInterval.getStart().minus(AllocatedVirtualRoom.MAXIMUM_DURATION),
+        Interval adjustedWorkingInterval = new Interval(
+                workingInterval.getStart().minus(AllocatedVirtualRoom.MAXIMUM_DURATION),
                 workingInterval.getEnd().plus(AllocatedVirtualRoom.MAXIMUM_DURATION));
-        if (!workingInterval.equals(this.workingInterval)) {
+        if (!adjustedWorkingInterval.equals(this.workingInterval)) {
             logger.info("Setting new working interval '{}' to database of virtual rooms...",
-                    Component.formatInterval(workingInterval));
-            this.workingInterval = workingInterval;
+                    Component.formatInterval(adjustedWorkingInterval));
+            this.workingInterval = adjustedWorkingInterval;
+            this.referenceDateTime = workingInterval.getStart();
             // Remove all allocated virtual rooms from all resources and add it again for the new interval
             for (ResourceState resourceState : resourceStateById.values()) {
                 updateResourceState(resourceState, entityManager);
@@ -448,7 +455,7 @@ public class ResourceDatabase extends Component
 
     /**
      * Checks whether {@code resource} and all it's children are available (recursive).
-     * Device resources with {@link VirtualRoomsCapability} are always available (if theirs capacity is fully used).
+     * Device resources with {@link VirtualRoomsCapability} can be available even if theirs capacity is fully used.
      *
      * @param resource
      * @param interval
@@ -457,6 +464,9 @@ public class ResourceDatabase extends Component
     private boolean isResourceAndChildResourcesAvailableRecursive(Resource resource, Interval interval)
     {
         Long resourceId = resource.getId();
+        if (!resource.isSchedulable() || !resource.isAvailableAt(interval.getEnd(), referenceDateTime)) {
+            return false;
+        }
         // Check only resources without virtual rooms
         if (!hasResourceCapability(resourceId, VirtualRoomsCapability.class)) {
             ResourceState resourceState = resourceStateById.get(resourceId);
@@ -584,6 +594,10 @@ public class ResourceDatabase extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
         List<AvailableVirtualRoom> availableVirtualRooms = new ArrayList<AvailableVirtualRoom>();
         for (Long deviceId : deviceResources) {
+            Resource resource = resourceById.get(deviceId);
+            if (!resource.isSchedulable() || !resource.isAvailableAt(interval.getEnd(), referenceDateTime)) {
+                continue;
+            }
             ResourceState resourceState = resourceStateById.get(deviceId);
             Set<AllocatedResource> allocatedResources =
                     resourceState.allocations.getValues(interval.getStart(), interval.getEnd());

@@ -7,9 +7,9 @@ import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
+import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -56,6 +56,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             deviceResource.setName("MCU");
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new VirtualRoomsCapability(100));
+            deviceResource.setSchedulable(true);
             resourceDatabase.addResource(deviceResource, getEntityManager());
         }
 
@@ -168,7 +169,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
             assertEquals("Compartment request should be in ALLOCATED state.",
-                    compartmentRequest.getState(), CompartmentRequest.State.ALLOCATED);
+                    CompartmentRequest.State.ALLOCATED, compartmentRequest.getState());
 
             AllocatedCompartment allocatedCompartment =
                     allocatedCompartmentManager.getByCompartmentRequest(compartmentRequestId);
@@ -233,4 +234,128 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             resourceDatabase.destroy();
         }
     }
+
+    /**
+     * Create reservation request in the database, allocate it and check if allocation succeeds
+     *
+     * @param reservationRequest
+     * @param resourceDatabase
+     * @throws Exception
+     */
+    private void checkSuccessfulAllocation(ReservationRequest reservationRequest, ResourceDatabase resourceDatabase)
+            throws Exception
+    {
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(getEntityManager());
+        reservationRequestManager.create(reservationRequest);
+
+        Interval interval = Interval.parse("0/9999");
+        Preprocessor.run(getEntityManagerFactory(), interval);
+        Scheduler.run(getEntityManagerFactory(), interval, resourceDatabase, new Domain("cz.cesnet"));
+
+        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
+        List<CompartmentRequest> compartmentRequests =
+                compartmentRequestManager.listByReservationRequest(reservationRequest);
+        assertEquals(1, compartmentRequests.size());
+        CompartmentRequest compartmentRequest = compartmentRequests.get(0);
+
+        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(getEntityManager());
+        List<AllocatedCompartment> allocatedCompartments = allocatedCompartmentManager.listByReservationRequest(reservationRequest);
+        if (allocatedCompartments.size() == 0) {
+            System.err.println(compartmentRequest.getStateDescription());
+            Thread.sleep(100);
+        }
+        assertEquals(1, allocatedCompartments.size());
+    }
+
+    @Test
+    public void testStandaloneTerminals() throws Exception
+    {
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+        resourceDatabase.init();
+
+        DeviceResource terminal1 = new DeviceResource();
+        terminal1.addTechnology(Technology.H323);
+        terminal1.addCapability(new StandaloneTerminalCapability());
+        terminal1.setSchedulable(true);
+        resourceDatabase.addResource(terminal1, getEntityManager());
+
+        DeviceResource terminal2 = new DeviceResource();
+        terminal2.addTechnology(Technology.H323);
+        terminal2.addCapability(new StandaloneTerminalCapability());
+        terminal2.setSchedulable(true);
+        resourceDatabase.addResource(terminal2, getEntityManager());
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(ReservationRequestType.NORMAL);
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
+        Compartment compartment = reservationRequest.addRequestedCompartment();
+        compartment.addRequestedResource(new ExistingResourceSpecification(terminal1));
+        compartment.addRequestedResource(new ExistingResourceSpecification(terminal2));
+
+        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+    }
+
+    @Test
+    public void testMultipleTechnologyVirtualRoom() throws Exception
+    {
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+        resourceDatabase.init();
+
+        DeviceResource terminal1 = new DeviceResource();
+        terminal1.addTechnology(Technology.H323);
+        terminal1.addCapability(new TerminalCapability());
+        resourceDatabase.addResource(terminal1, getEntityManager());
+
+        DeviceResource terminal2 = new DeviceResource();
+        terminal2.addTechnology(Technology.SIP);
+        terminal2.addCapability(new TerminalCapability());
+        resourceDatabase.addResource(terminal2, getEntityManager());
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
+        mcu.addCapability(new VirtualRoomsCapability(10));
+        resourceDatabase.addResource(mcu, getEntityManager());
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(ReservationRequestType.NORMAL);
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
+        Compartment compartment = reservationRequest.addRequestedCompartment();
+        compartment.addRequestedResource(new ExistingResourceSpecification(terminal1));
+        compartment.addRequestedResource(new ExistingResourceSpecification(terminal2));
+
+        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+    }
+
+    @Test
+    public void testMultipleVirtualRooms() throws Exception
+    {
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+        resourceDatabase.init();
+
+        DeviceResource mcu1 = new DeviceResource();
+        mcu1.addTechnology(Technology.H323);
+        mcu1.addCapability(new VirtualRoomsCapability(6));
+        resourceDatabase.addResource(mcu1, getEntityManager());
+
+        DeviceResource mcu2 = new DeviceResource();
+        mcu2.addTechnology(Technology.H323);
+        mcu2.addCapability(new VirtualRoomsCapability(6));
+        resourceDatabase.addResource(mcu2, getEntityManager());
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(ReservationRequestType.NORMAL);
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
+        Compartment compartment = reservationRequest.addRequestedCompartment();
+        compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 10));
+
+        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+    }
+
+    // TODO: Verify that a capability supports only technologies supported by the device
+
+    // TODO: Some capability cannot be added multiple times (terminal, standalone terminal, virtual rooms)
 }

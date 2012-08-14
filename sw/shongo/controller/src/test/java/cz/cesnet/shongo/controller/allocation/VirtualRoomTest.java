@@ -38,6 +38,7 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         mcu1.addTechnology(Technology.H323);
         mcu1.addTechnology(Technology.ADOBE_CONNECT);
         mcu1.addCapability(new VirtualRoomsCapability(50));
+        mcu1.setSchedulable(true);
         resourceManager.create(mcu1);
 
         AllocatedVirtualRoom room1 = new AllocatedVirtualRoom();
@@ -51,6 +52,7 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         mcu2.addTechnology(Technology.SIP);
         mcu2.addTechnology(Technology.ADOBE_CONNECT);
         mcu2.addCapability(new VirtualRoomsCapability(100));
+        mcu2.setSchedulable(true);
         resourceManager.create(mcu2);
 
         AllocatedVirtualRoom room2 = new AllocatedVirtualRoom();

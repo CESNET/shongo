@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.allocation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -82,17 +83,26 @@ public class AllocatedCompartmentManager extends AbstractManager
 
     /**
      * @param reservationRequestId
-     * @return list of all allocated compartments for the reservation request
+     * @return list of all allocated compartments for reservation request with given {@code reservationRequestId}
      */
     public List<AllocatedCompartment> listByReservationRequest(Long reservationRequestId)
     {
         List<AllocatedCompartment> allocatedCompartments = entityManager.createQuery(
                 "SELECT allocation FROM AllocatedCompartment allocation"
-                + " WHERE allocation.compartmentRequest.reservationRequest.id = :id",
+                        + " WHERE allocation.compartmentRequest.reservationRequest.id = :id",
                 AllocatedCompartment.class)
                 .setParameter("id", reservationRequestId)
                 .getResultList();
         return allocatedCompartments;
+    }
+
+    /**
+     * @param reservationRequest
+     * @return list of all allocated compartments for given {@code reservationRequest}
+     */
+    public List<AllocatedCompartment> listByReservationRequest(ReservationRequest reservationRequest)
+    {
+        return listByReservationRequest(reservationRequest.getId());
     }
 
     /**

@@ -87,7 +87,7 @@ public class Resource extends PersistentObject
     /**
      * @return {@link #name}
      */
-    @Column(nullable = false)
+    @Column
     public String getName()
     {
         return name;
@@ -288,6 +288,20 @@ public class Resource extends PersistentObject
     public DateTimeSpecification getMaximumFuture()
     {
         return maximumFuture;
+    }
+
+    /**
+     * @param dateTime
+     * @return true if resource is available at given {@code dateTime},
+     *         false otherwise
+     */
+    public boolean isAvailableAt(DateTime dateTime, DateTime referenceDateTime)
+    {
+        if (maximumFuture == null) {
+            return true;
+        }
+        DateTime earliestDateTime = maximumFuture.getEarliest(referenceDateTime);
+        return !dateTime.isAfter(earliestDateTime);
     }
 
     /**
