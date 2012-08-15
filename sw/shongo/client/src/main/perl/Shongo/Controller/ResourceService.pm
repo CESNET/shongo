@@ -57,8 +57,12 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                foreach my $identifier (split(/,/, $args[0])) {
-                    get_resource($identifier);
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        get_resource($identifier);
+                    }
+                } else {
+                    get_resource();
                 }
             }
         },
@@ -68,8 +72,12 @@ sub populate()
             args => '[-interval] [identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                foreach my $identifier (split(/,/, $args[0])) {
-                    get_resource_allocation($identifier, $params->{'options'}->{'interval'});
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        get_resource_allocation($identifier, $params->{'options'}->{'interval'});
+                    }
+                } else {
+                    get_resource();
                 }
             }
         },

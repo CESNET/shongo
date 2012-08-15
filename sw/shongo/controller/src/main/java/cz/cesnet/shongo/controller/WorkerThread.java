@@ -6,6 +6,9 @@ import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+
 /**
  * Thread which periodically runs {@link Preprocessor} and {@link Scheduler}.
  *
@@ -31,19 +34,26 @@ public class WorkerThread extends Thread
     private Scheduler scheduler;
 
     /**
+     * {@link EntityManagerFactory} for {@link Preprocessor} and {@link Scheduler}.
+     */
+    private EntityManagerFactory entityManagerFactory;
+
+    /**
      * Constructor.
      *
-     * @param preprocessor sets the {@link #preprocessor}
-     * @param scheduler    sets the {@link #scheduler}
+     * @param preprocessor         sets the {@link #preprocessor}
+     * @param scheduler            sets the {@link #scheduler}
+     * @param entityManagerFactory sets the {@link #entityManagerFactory}
      */
-    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler)
+    public WorkerThread(Preprocessor preprocessor, Scheduler scheduler, EntityManagerFactory entityManagerFactory)
     {
         setName("worker");
         if (preprocessor == null || scheduler == null) {
-            throw new IllegalArgumentException("Both preprocessor and scheduler must be not-empty!");
+            throw new IllegalArgumentException("Preprocessor, Scheduler and EntityManagerFactory must be not-empty!");
         }
         this.preprocessor = preprocessor;
         this.scheduler = scheduler;
+        this.entityManagerFactory = entityManagerFactory;
     }
 
     /**
@@ -88,17 +98,29 @@ public class WorkerThread extends Thread
 
         Interval interval = new Interval(DateMidnight.now().minus(Period.days(1)),
                 DateMidnight.now().plus(Period.days(31)));
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+
         try {
-            preprocessor.run(interval);
+            entityManager.getTransaction().begin();
+            preprocessor.run(interval, entityManager);
+            entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
+            entityManager.getTransaction().rollback();
             logger.error("Preprocessor failed: ", exception);
         }
+
         try {
-            scheduler.run(interval);
+            entityManager.getTransaction().begin();
+            scheduler.run(interval, entityManager);
+            entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
+            entityManager.getTransaction().rollback();
             logger.error("Scheduler failed: ", exception);
         }
+
+        entityManager.close();
     }
 }

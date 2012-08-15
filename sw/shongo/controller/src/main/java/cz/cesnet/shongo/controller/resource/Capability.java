@@ -53,7 +53,17 @@ public abstract class Capability extends PersistentObject
      * @return converted capability to API
      * @throws FaultException
      */
-    public abstract cz.cesnet.shongo.controller.api.Capability toApi();
+    public final cz.cesnet.shongo.controller.api.Capability toApi()
+    {
+        cz.cesnet.shongo.controller.api.Capability api = createApi();
+        toApi(api);
+        return api;
+    }
+
+    /**
+     * @return new instance of API capability
+     */
+    protected abstract cz.cesnet.shongo.controller.api.Capability createApi();
 
     /**
      * @param api API capability to be filled
@@ -87,6 +97,9 @@ public abstract class Capability extends PersistentObject
         Capability resourceSpecification;
         if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
             resourceSpecification = new VirtualRoomsCapability();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.StandaloneTerminalCapability) {
+            resourceSpecification = new StandaloneTerminalCapability();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.TerminalCapability) {
             resourceSpecification = new TerminalCapability();

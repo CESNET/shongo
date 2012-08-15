@@ -57,14 +57,14 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestManager.create(reservationRequest);
 
         // Run preprocessor
-        Preprocessor.run(getEntityManagerFactory(),
-                new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")));
+        Preprocessor.createAndRun(new Interval(
+                DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")), entityManager);
         assertEquals(2, compartmentRequestManager.listByReservationRequest(reservationRequest).size());
-        Preprocessor.run(getEntityManagerFactory(),
-                new Interval(DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
+        Preprocessor.createAndRun(new Interval(
+                DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
         assertEquals(4, compartmentRequestManager.listByReservationRequest(reservationRequest).size());
-        Preprocessor.run(getEntityManagerFactory(),
-                new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
+        Preprocessor.createAndRun(new Interval(
+                DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
         assertEquals(6, compartmentRequestManager.listByReservationRequest(reservationRequest).size());
 
         // Check created compartments
@@ -87,8 +87,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestManager.update(reservationRequest);
 
         // Run preprocessor
-        Preprocessor.run(getEntityManagerFactory(),
-                new Interval(DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")));
+        Preprocessor.createAndRun(new Interval(
+                DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
 
         // Check modified compartments
         compartmentRequestList = compartmentRequestManager.listByReservationRequest(reservationRequest);

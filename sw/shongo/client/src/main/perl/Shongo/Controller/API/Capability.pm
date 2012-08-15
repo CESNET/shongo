@@ -20,7 +20,8 @@ use Shongo::Controller::API::Alias;
 #
 our $Type = ordered_hash(
     'TerminalCapability' => 'Terminal',
-    'VirtualRoomsCapability' => 'Virtual Rooms',
+    'StandaloneTerminalCapability' => 'Standalone Terminal',
+    'VirtualRoomsCapability' => 'Virtual Rooms'
 );
 
 #
@@ -72,7 +73,7 @@ sub modify()
     my ($self) = @_;
 
     switch ($self->{'class'}) {
-        case 'TerminalCapability' {
+        case ['TerminalCapability', 'StandaloneTerminalCapability'] {
             $self->modify_aliases();
             return $self;
         }
@@ -135,7 +136,7 @@ sub to_string()
 
     my $string = $Type->{$self->{'class'}} . ' ';
     switch ($self->{'class'}) {
-        case 'TerminalCapability' {
+        case ['TerminalCapability', 'StandaloneTerminalCapability'] {
             if ( $self->get_aliases_count() > 0 ) {
                 $string .= 'aliases: ';
                 for ( my $index = 0; $index < $self->get_aliases_count(); $index++ ) {

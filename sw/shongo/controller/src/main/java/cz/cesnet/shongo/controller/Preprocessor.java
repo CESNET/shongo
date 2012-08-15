@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.fault.FaultException;
@@ -8,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
@@ -24,31 +24,16 @@ public class Preprocessor extends Component
 {
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
-    @Override
-    public void init()
-    {
-        super.init();
-    }
-
-    @Override
-    public void destroy()
-    {
-        super.destroy();
-    }
-
     /**
      * Run preprocessor for a given interval.
      *
      * @param interval
      */
-    public void run(Interval interval) throws FaultException
+    public void run(Interval interval, EntityManager entityManager) throws FaultException
     {
-        checkInitialized();
-
         logger.info("Running preprocessor for interval '{}'...", formatInterval(interval));
 
-        EntityManager entityManager = getEntityManager();
-        entityManager.getTransaction().begin();
+        TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
             // List all not preprocessed reservation requests
@@ -60,14 +45,11 @@ public class Preprocessor extends Component
                 processReservationRequest(reservationRequest, interval, entityManager);
             }
 
-            entityManager.getTransaction().commit();
+            transaction.commit();
         }
         catch (Exception exception) {
-            entityManager.getTransaction().rollback();
+            transaction.rollback();
             throw new FaultException(exception, ControllerFault.PREPROCESSOR_FAILED);
-        }
-        finally {
-            entityManager.close();
         }
     }
 
@@ -76,16 +58,14 @@ public class Preprocessor extends Component
      *
      * @param reservationRequestId
      * @param interval
+     * @param entityManager
      */
-    public void run(long reservationRequestId, Interval interval) throws FaultException
+    public void run(long reservationRequestId, Interval interval, EntityManager entityManager) throws FaultException
     {
-        checkInitialized();
-
         logger.info("Running preprocessor for a single reservation request '{}' for interval '{}'...",
                 reservationRequestId, formatInterval(interval));
 
-        EntityManager entityManager = getEntityManager();
-        entityManager.getTransaction().begin();
+        TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
             // Get reservation request by identifier
@@ -104,14 +84,11 @@ public class Preprocessor extends Component
             }
             processReservationRequest(reservationRequest, interval, entityManager);
 
-            entityManager.getTransaction().commit();
+            transaction.commit();
         }
         catch (Exception exception) {
-            entityManager.getTransaction().rollback();
+            transaction.rollback();
             throw new FaultException(exception, ControllerFault.PREPROCESSOR_FAILED);
-        }
-        finally {
-            entityManager.close();
         }
     }
 
@@ -199,34 +176,32 @@ public class Preprocessor extends Component
     }
 
     /**
-     * Run preprocessor on given entityManagerFactory and interval.
+     * Run preprocessor on given {@code entityManager} and interval.
      *
-     * @param entityManagerFactory
+     * @param entityManager
      * @param interval
      */
-    public static void run(EntityManagerFactory entityManagerFactory, Interval interval) throws FaultException
+    public static void createAndRun(Interval interval, EntityManager entityManager) throws FaultException
     {
         Preprocessor preprocessor = new Preprocessor();
-        preprocessor.setEntityManagerFactory(entityManagerFactory);
         preprocessor.init();
-        preprocessor.run(interval);
+        preprocessor.run(interval, entityManager);
         preprocessor.destroy();
     }
 
     /**
-     * Run preprocessor on given entityManagerFactory, for a single reservation request and given interval.
+     * Run preprocessor on given {@code entityManager}, for a single reservation request and given interval.
      *
-     * @param entityManagerFactory
+     * @param entityManager
      * @param reservationRequestId
      * @param interval
      */
-    public static void run(EntityManagerFactory entityManagerFactory, long reservationRequestId,
-            Interval interval) throws FaultException
+    public static void createAndRun(long reservationRequestId, Interval interval, EntityManager entityManager)
+            throws FaultException
     {
         Preprocessor preprocessor = new Preprocessor();
-        preprocessor.setEntityManagerFactory(entityManagerFactory);
         preprocessor.init();
-        preprocessor.run(reservationRequestId, interval);
+        preprocessor.run(reservationRequestId, interval, entityManager);
         preprocessor.destroy();
     }
 }

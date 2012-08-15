@@ -60,8 +60,12 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                foreach my $identifier (split(/,/, $args[0])) {
-                    get_reservation($identifier);
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        get_reservation($identifier);
+                    }
+                } else {
+                    get_reservation_allocation();
                 }
             }
         },
@@ -70,8 +74,12 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                foreach my $identifier (split(/,/, $args[0])) {
-                    get_reservation_allocation($identifier);
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        get_reservation_allocation($identifier);
+                    }
+                } else {
+                    get_reservation_allocation();
                 }
             }
         }
@@ -181,9 +189,13 @@ sub get_reservation_allocation()
     if ( $result->is_fault ) {
         return;
     }
+    my $allocated_compartments = $result->value();
+    if (get_collection_size($allocated_compartments) == 0) {
+        return;
+    }
     print("\n");
     my $index = 0;
-    foreach my $allocated_compartment (@{$result->value()}) {
+    foreach my $allocated_compartment (@{$allocated_compartments}) {
         $index++;
         printf("%d) %s\n", $index, format_interval($allocated_compartment->{'slot'}));
         foreach my $allocated_resource (@{$allocated_compartment->{'allocatedResources'}}) {

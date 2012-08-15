@@ -1,7 +1,6 @@
 package cz.cesnet.shongo;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
 
 /**
  * Abstract DAO (Data Access Object) for persistent objects.
@@ -15,49 +14,12 @@ import javax.persistence.EntityTransaction;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractManager
+public abstract class AbstractManager extends TransactionHelper
 {
     /**
      * Entity manager that is used for managing persistent objects.
      */
     protected EntityManager entityManager;
-
-    /**
-     * Represents a transaction that can be committed.
-     * If null is passed in constructor, commit do nothing.
-     */
-    public static class Transaction
-    {
-        /**
-         * Entity transaction
-         */
-        private EntityTransaction entityTransaction;
-
-        /**
-         * Constructor.
-         *
-         * @param entityTransaction
-         */
-        private Transaction(EntityTransaction entityTransaction)
-        {
-            this.entityTransaction = entityTransaction;
-            if (this.entityTransaction != null) {
-                this.entityTransaction.begin();
-            }
-        }
-
-        /**
-         * Commit transaction.
-         */
-        public void commit()
-        {
-            if (entityTransaction != null) {
-                entityTransaction.commit();
-            }
-        }
-    }
-
-    private static Transaction transactionNone = new Transaction(null);
 
     /**
      * @param entityManager sets the {@link #entityManager}
@@ -115,10 +77,6 @@ public abstract class AbstractManager
      */
     protected Transaction beginTransaction()
     {
-        EntityTransaction entityTransaction = entityManager.getTransaction();
-        if (entityTransaction.isActive()) {
-            return transactionNone;
-        }
-        return new Transaction(entityTransaction);
+        return beginTransaction(entityManager);
     }
 }

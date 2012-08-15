@@ -93,7 +93,7 @@ public class Controller
     /**
      * Jade agent.
      */
-    ControllerAgent jadeAgent;
+    ControllerAgent jadeAgent = new ControllerAgent();
 
     /**
      * Constructor.
@@ -310,11 +310,18 @@ public class Controller
 
         // Initialize components
         for (Component component : components) {
-            if (component instanceof Component.WithDomain) {
-                Component.WithDomain componentWithDomain = (Component.WithDomain) component;
-                componentWithDomain.setDomain(domain);
+            if (component instanceof Component.DomainAware) {
+                Component.DomainAware domainAware = (Component.DomainAware) component;
+                domainAware.setDomain(domain);
             }
-            component.setEntityManagerFactory(entityManagerFactory);
+            if (component instanceof Component.EntityManagerFactoryAware) {
+                Component.EntityManagerFactoryAware entityManagerFactoryAware = (Component.EntityManagerFactoryAware) component;
+                entityManagerFactoryAware.setEntityManagerFactory(entityManagerFactory);
+            }
+            if (component instanceof Component.ControllerAgentAware) {
+                Component.ControllerAgentAware controllerAgentAware = (Component.ControllerAgentAware) component;
+                controllerAgentAware.setControllerAgent(jadeAgent);
+            }
             component.init();
         }
     }
@@ -361,19 +368,10 @@ public class Controller
         logger.info("Starting Controller JADE container on {}:{} (platform {})...",
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
 
-        jadeAgent = new ControllerAgent();
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
         jadeContainer.addAgent("Controller", jadeAgent);
         if (jadeContainer.start() == false) {
             throw new IllegalStateException("Failed to start JADE container.");
-        }
-
-        // Notify Component.ControllerAgentAware components
-        for (Component component : components) {
-            if (component instanceof Component.ControllerAgentAware) {
-                Component.ControllerAgentAware controllerAgentAware = (Component.ControllerAgentAware) component;
-                controllerAgentAware.setControllerAgent(jadeAgent);
-            }
         }
     }
 
@@ -383,7 +381,8 @@ public class Controller
     public void startWorkerThread()
     {
         logger.info("Starting Controller worker...");
-        workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class));
+        workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
+                entityManagerFactory);
         workerThread.start();
     }
 

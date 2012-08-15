@@ -7,6 +7,7 @@ import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,8 +17,39 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationServiceImpl extends Component.WithDomain implements ReservationService
+public class ReservationServiceImpl extends Component
+        implements ReservationService, Component.EntityManagerFactoryAware, Component.DomainAware
 {
+    /**
+     * @see javax.persistence.EntityManagerFactory
+     */
+    private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * @see cz.cesnet.shongo.controller.Domain
+     */
+    private cz.cesnet.shongo.controller.Domain domain;
+
+    @Override
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    @Override
+    public void setDomain(cz.cesnet.shongo.controller.Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    @Override
+    public void init()
+    {
+        checkDependency(entityManagerFactory, EntityManagerFactory.class);
+        checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
+        super.init();
+    }
+
     @Override
     public String getServiceName()
     {
@@ -31,7 +63,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     {
         reservationRequest.setupNewEntity();
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         // Create reservation request
@@ -57,7 +89,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     {
         Long reservationRequestId = domain.parseIdentifier(reservationRequest.getIdentifier());
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -80,7 +112,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     {
         Long requestId = domain.parseIdentifier(reservationRequestIdentifier);
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -98,7 +130,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     @Override
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         List<cz.cesnet.shongo.controller.request.ReservationRequest> list = reservationRequestManager.list();
@@ -134,7 +166,7 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     {
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         cz.cesnet.shongo.controller.request.ReservationRequest requestImpl = reservationRequestManager.get(id);
@@ -151,14 +183,14 @@ public class ReservationServiceImpl extends Component.WithDomain implements Rese
     {
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
 
         List<cz.cesnet.shongo.controller.allocation.AllocatedCompartment> allocatedCompartments =
                 allocatedCompartmentManager.listByReservationRequest(id);
         List<AllocatedCompartment> allocatedCompartmentList = new ArrayList<AllocatedCompartment>();
         for (cz.cesnet.shongo.controller.allocation.AllocatedCompartment allocation :allocatedCompartments) {
-            allocatedCompartmentList.add(allocation.toApi(getDomain()));
+            allocatedCompartmentList.add(allocation.toApi(domain));
         }
 
         entityManager.close();

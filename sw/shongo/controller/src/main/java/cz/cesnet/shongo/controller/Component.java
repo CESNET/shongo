@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller;
 
 import org.joda.time.Interval;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -13,53 +12,10 @@ import javax.persistence.EntityManagerFactory;
 public abstract class Component
 {
     /**
-     * Factory to create entity manager that can be used for loading/saving entities by the component.
-     */
-    private EntityManagerFactory entityManagerFactory;
-
-    /**
-     * Determines whether component has been initialized.
-     */
-    private boolean initialized = false;
-
-    /**
-     * @param entityManagerFactory sets the {@link #entityManagerFactory}
-     */
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
-    {
-        this.entityManagerFactory = entityManagerFactory;
-    }
-
-    /**
-     * @return entity manager
-     */
-    protected EntityManager getEntityManager()
-    {
-        return this.entityManagerFactory.createEntityManager();
-    }
-
-    /**
-     * Checks whether the component is initialized.
-     *
-     * @throws IllegalStateException
-     */
-    protected void checkInitialized() throws IllegalStateException
-    {
-        if (initialized == false) {
-            throw new IllegalStateException("Componet " + getClass().getName() + " hasn't been initialized yet!");
-        }
-    }
-
-    /**
      * Initialize domain controller component.
      */
     public void init()
     {
-        if (entityManagerFactory == null) {
-            throw new IllegalStateException("Component " + getClass().getName()
-                    + " doesn't have the entity manager factory set!");
-        }
-        initialized = true;
     }
 
     /**
@@ -67,6 +23,21 @@ public abstract class Component
      */
     public void destroy()
     {
+    }
+
+    /**
+     * Checks if dependency is filled.
+     *
+     * @param dependency
+     * @param dependencyType
+     * @throws IllegalStateException
+     */
+    protected void checkDependency(Object dependency, Class dependencyType) throws IllegalStateException
+    {
+        if (dependency == null) {
+            throw new IllegalStateException("Component " + getClass().getName()
+                    + " doesn't have the " + dependencyType.getSimpleName() + " set!");
+        }
     }
 
     /**
@@ -81,37 +52,23 @@ public abstract class Component
     /**
      * {@link Component} which contains reference to current {@link Domain}.
      */
-    public static class WithDomain extends Component
+    public static interface EntityManagerFactoryAware
     {
         /**
-         * @see Domain
+         * @param entityManagerFactory sets the {@link javax.persistence.EntityManagerFactory} to the component.
          */
-        protected Domain domain;
+        public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory);
+    }
 
+    /**
+     * {@link Component} which contains reference to current {@link Domain}.
+     */
+    public static interface DomainAware
+    {
         /**
-         * @return {@link #domain}
+         * @param domain sets the {@link Domain} to the component
          */
-        public Domain getDomain()
-        {
-            return domain;
-        }
-
-        /**
-         * @param domain sets the {@link #domain}
-         */
-        public void setDomain(Domain domain)
-        {
-            this.domain = domain;
-        }
-
-        @Override
-        public void init()
-        {
-            super.init();
-            if (domain == null) {
-                throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
-            }
-        }
+        public void setDomain(Domain domain);
     }
 
     /**

@@ -1,6 +1,4 @@
-package cz.cesnet.shongo.controller.resource;
-
-import javax.persistence.Entity;
+package cz.cesnet.shongo.controller.api;
 
 /**
  * Capability tells that the device can participate even in 2-point video conference call
@@ -8,12 +6,6 @@ import javax.persistence.Entity;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-@Entity
 public class StandaloneTerminalCapability extends TerminalCapability
 {
-    @Override
-    public cz.cesnet.shongo.controller.api.Capability createApi()
-    {
-        return new cz.cesnet.shongo.controller.api.StandaloneTerminalCapability();
-    }
 }

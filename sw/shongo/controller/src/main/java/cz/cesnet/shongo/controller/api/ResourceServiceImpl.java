@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -10,6 +10,7 @@ import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -19,12 +20,23 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceServiceImpl extends Component.WithDomain implements ResourceService
+public class ResourceServiceImpl extends Component
+        implements ResourceService, Component.EntityManagerFactoryAware, Component.DomainAware
 {
     /**
      * @see ResourceDatabase
      */
     private ResourceDatabase resourceDatabase;
+
+    /**
+     * @see javax.persistence.EntityManagerFactory
+     */
+    private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * @see cz.cesnet.shongo.controller.Domain
+     */
+    private cz.cesnet.shongo.controller.Domain domain;
 
     /**
      * @param resourceDatabase sets the {@link #resourceDatabase}
@@ -35,14 +47,25 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     }
 
     @Override
-    public void init()
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
-        super.init();
-        if (resourceDatabase == null) {
-            throw new IllegalStateException(getClass().getName() + " doesn't have the resource database set!");
-        }
+        this.entityManagerFactory = entityManagerFactory;
     }
 
+    @Override
+    public void setDomain(cz.cesnet.shongo.controller.Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    @Override
+    public void init()
+    {
+        checkDependency(resourceDatabase, ResourceDatabase.class);
+        checkDependency(entityManagerFactory, EntityManagerFactory.class);
+        checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
+        super.init();
+    }
 
     @Override
     public String getServiceName()
@@ -55,7 +78,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     {
         resource.setupNewEntity();
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         // Create reservation request
@@ -87,7 +110,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     {
         Long resourceId = domain.parseIdentifier(resource.getIdentifier());
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -115,7 +138,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     {
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -138,7 +161,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     @Override
     public Collection<ResourceSummary> listResources(SecurityToken token)
     {
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list();
@@ -174,7 +197,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
     {
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
@@ -194,7 +217,7 @@ public class ResourceServiceImpl extends Component.WithDomain implements Resourc
             interval = resourceDatabase.getWorkingInterval();
         }
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);

@@ -208,7 +208,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
-            if (result == null ) {
+            if (result == null) {
                 return null;
             }
             return Converter.convertIntervalToString((Interval) result);
@@ -246,7 +246,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
-            if (result == null ) {
+            if (result == null) {
                 return null;
             }
             return result.toString();
@@ -284,7 +284,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public Object backConvert(Object result)
         {
-            if (result == null ) {
+            if (result == null) {
                 return null;
             }
             return result.toString();

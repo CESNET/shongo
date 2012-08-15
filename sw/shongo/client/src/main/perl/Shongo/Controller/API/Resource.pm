@@ -54,7 +54,7 @@ sub create()
 
     $self->{'name'} = $attributes->{'name'};
     $self->{'schedulable'} = 0;
-    $self->{'maxFuture'} = 'PT4M';
+    $self->{'maxFuture'} = 'P4M';
     $self->modify_attributes(0);
 
     # Parse technologies

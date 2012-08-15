@@ -2,10 +2,12 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import jade.core.AID;
 
+import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
@@ -13,17 +15,50 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CommonServiceImpl extends Component.WithDomain implements CommonService, Component.ControllerAgentAware
+public class CommonServiceImpl extends Component
+        implements CommonService, Component.EntityManagerFactoryAware, Component.DomainAware,
+                   Component.ControllerAgentAware
 {
+    /**
+     * @see javax.persistence.EntityManagerFactory
+     */
+    private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * @see cz.cesnet.shongo.controller.Domain
+     */
+    private cz.cesnet.shongo.controller.Domain domain;
+
     /**
      * @see ControllerAgent
      */
     private ControllerAgent controllerAgent;
 
     @Override
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    @Override
+    public void setDomain(cz.cesnet.shongo.controller.Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    @Override
     public void setControllerAgent(ControllerAgent controllerAgent)
     {
         this.controllerAgent = controllerAgent;
+    }
+
+    @Override
+    public void init()
+    {
+        checkDependency(entityManagerFactory, EntityManagerFactory.class);
+        checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
+        checkDependency(controllerAgent, ControllerAgent.class);
+        super.init();
     }
 
     @Override
@@ -51,7 +86,7 @@ public class CommonServiceImpl extends Component.WithDomain implements CommonSer
     @Override
     public Collection<Connector> listConnectors(SecurityToken token)
     {
-        ResourceManager resourceManager = new ResourceManager(getEntityManager());
+        ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
 
         List<DeviceResource> deviceResourceList = resourceManager.listManagedDevices();
         Map<String, DeviceResource> deviceResourceMap = new HashMap<String, DeviceResource>();

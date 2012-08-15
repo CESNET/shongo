@@ -64,16 +64,20 @@ public class TerminalCapability extends DeviceCapability
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Capability toApi()
+    public cz.cesnet.shongo.controller.api.Capability createApi()
     {
-        cz.cesnet.shongo.controller.api.TerminalCapability api =
-                new cz.cesnet.shongo.controller.api.TerminalCapability();
-        api.setId(getId().intValue());
+        return new cz.cesnet.shongo.controller.api.TerminalCapability();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
+    {
+        cz.cesnet.shongo.controller.api.TerminalCapability terminalCapabilityApi =
+                (cz.cesnet.shongo.controller.api.TerminalCapability) api;
         for (Alias alias : aliases) {
-            api.addAlias(alias.toApi());
+            terminalCapabilityApi.addAlias(alias.toApi());
         }
-        toApi(api);
-        return api;
+        super.toApi(api);
     }
 
     @Override

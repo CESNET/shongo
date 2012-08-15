@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
 /**
@@ -28,7 +29,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceDatabase extends Component
+public class ResourceDatabase extends Component implements Component.EntityManagerFactoryAware
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceDatabase.class);
 
@@ -53,6 +54,11 @@ public class ResourceDatabase extends Component
     private Map<Long, ResourceState> resourceStateById = new HashMap<Long, ResourceState>();
 
     /**
+     * @see EntityManagerFactory
+     */
+    private EntityManagerFactory entityManagerFactory;
+
+    /**
      * Map of capability states by theirs types.
      */
     private Map<Class<? extends Capability>, CapabilityState> capabilityStateByType =
@@ -72,13 +78,20 @@ public class ResourceDatabase extends Component
     }
 
     @Override
+    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
+    {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    @Override
     public void init()
     {
+        checkDependency(entityManagerFactory, EntityManagerFactory.class);
         super.init();
 
         logger.debug("Loading resource database...");
 
-        EntityManager entityManager = getEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         // Load all resources from db
         ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -138,8 +151,6 @@ public class ResourceDatabase extends Component
      */
     public void addResource(Resource resource, EntityManager entityManager)
     {
-        checkInitialized();
-
         // Create resource in the database if it wasn't created yet
         if (!resource.isPersisted()) {
             ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -203,8 +214,6 @@ public class ResourceDatabase extends Component
      */
     public void removeResource(Resource resource, EntityManager entityManager)
     {
-        checkInitialized();
-
         Long resourceId = resource.getId();
         if (resourceById.containsKey(resourceId) == false) {
             throw new IllegalArgumentException("Resource '" + resourceId + "' is not in the database!");
