@@ -3,9 +3,7 @@ package cz.cesnet.shongo.api.util;
 import cz.cesnet.shongo.api.AtomicType;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
+import org.joda.time.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,6 +130,10 @@ public class Converter
                 return convertStringToDateTime((String) value);
             }
             // If interval is required
+            else if (ReadablePartial.class.isAssignableFrom(targetType)) {
+                return convertStringToReadablePartial((String) value);
+            }
+            // If interval is required
             else if (Interval.class.isAssignableFrom(targetType)) {
                 return convertStringToInterval((String) value);
             }
@@ -245,6 +247,22 @@ public class Converter
     {
         try {
             DateTime dateTime = DateTime.parse(value);
+            return dateTime;
+        }
+        catch (Exception exception) {
+            throw new FaultException(CommonFault.DATETIME_PARSING_FAILED, value);
+        }
+    }
+
+    /**
+     * @param value
+     * @return parsed partial date/time from string
+     * @throws FaultException when parsing fails
+     */
+    public static ReadablePartial convertStringToReadablePartial(String value) throws FaultException
+    {
+        try {
+            ReadablePartial dateTime = LocalDateTime.parse(value);
             return dateTime;
         }
         catch (Exception exception) {
@@ -694,28 +712,8 @@ public class Converter
         if (object instanceof AtomicType) {
             return true;
         }
-        if (object instanceof Period || object instanceof DateTime || object instanceof Interval) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param type
-     * @return true if type is of atomic type (e.g., {@link String}, {@link AtomicType}, {@link Enum},
-     *         {@link Period} or {@link DateTime}),
-     *         false otherwise
-     */
-    public static boolean isAtomicType(Class type)
-    {
-        if (type.equals(String.class) || type.isEnum()) {
-            return true;
-        }
-        if (AtomicType.class.isAssignableFrom(type)) {
-            return true;
-        }
-        if (Period.class.isAssignableFrom(type) || DateTime.class.isAssignableFrom(type)
-                || Interval.class.isAssignableFrom(type)) {
+        if (object instanceof Period || object instanceof DateTime || object instanceof ReadablePartial
+                || object instanceof Interval) {
             return true;
         }
         return false;

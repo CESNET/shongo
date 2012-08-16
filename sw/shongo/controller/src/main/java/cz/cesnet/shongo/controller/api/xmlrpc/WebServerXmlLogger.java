@@ -18,7 +18,7 @@ import java.io.*;
  */
 public class WebServerXmlLogger
 {
-    private static Logger logger = LoggerFactory.getLogger(org.apache.xmlrpc.server.XmlRpcStreamServer.class);
+    private static Logger logger = LoggerFactory.getLogger(WebServerXmlLogger.class);
 
     /**
      * Specifies whether logging is enabled.

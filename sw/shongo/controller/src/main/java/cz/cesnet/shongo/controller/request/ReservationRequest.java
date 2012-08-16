@@ -456,7 +456,7 @@ public class ReservationRequest extends PersistentObject
                 else if (dateTime instanceof PeriodicDateTime) {
                     PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
                     dateTimeSlot.setStart(new PeriodicDateTimeSpecification(periodic.getStart(),
-                            periodic.getPeriod()));
+                            periodic.getPeriod(), periodic.getEnd()));
                 }
             }
         }

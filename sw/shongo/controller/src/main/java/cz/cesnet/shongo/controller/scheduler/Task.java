@@ -110,20 +110,20 @@ public class Task
                     if (hasResource(resource)) {
                         // Same resource is requested multiple times
                         throw new FaultException("Resource is requested multiple times in specified time slot:\n"
-                                + "  Resource: %s\n",
+                                + "  Resource: %s",
                                 resource.getId().toString());
                     }
                     if (!resource.isSchedulable()) {
                         // Requested resource cannot be allocated
                         throw new FaultException("Requested resource cannot be allocated (schedulable = false):\n"
-                                + "  Resource: %s\n",
+                                + "  Resource: %s",
                                 resource.getId().toString());
                     }
                     if (!resourceDatabase.isResourceAvailable(resource, requestedSlot)) {
                         // Requested resource is not available in requested slot
                         throw new FaultException("Requested resource is not available in specified time slot:\n"
                                 + " Time Slot: %s\n"
-                                + "  Resource: %s\n",
+                                + "  Resource: %s",
                                 TemporalHelper.formatInterval(requestedSlot),
                                 resource.getId().toString());
                     }
@@ -172,7 +172,7 @@ public class Task
                         throw new FaultException(
                                 "No available resource was found for the following specification:\n"
                                         + "    Time Slot: %s\n"
-                                        + " Technologies: %s\n",
+                                        + " Technologies: %s",
                                 TemporalHelper.formatInterval(requestedSlot), builder.toString());
                     }
                     iterator.remove();
@@ -190,7 +190,7 @@ public class Task
         }
         catch (InterconnectableGroup.DeviceResourceIsNotTerminalException exception) {
             throw new FaultException("Requested resource is not terminal:\n"
-                    + "  Resource: %s\n",
+                    + "  Resource: %s",
                     exception.getResource().getId().toString());
         }
     }

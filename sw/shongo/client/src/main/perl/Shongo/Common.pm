@@ -13,7 +13,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
-    format_datetime format_interval
+    format_datetime format_datetime_partial format_interval
     var_dump
 );
 
@@ -21,8 +21,9 @@ use DateTime::Format::ISO8601;
 
 # Regular Expression Patterns
 our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
-our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d$)';
-our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
+our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d)?(.\\d+)?([\\+-]\\d\\d:\\d\\d)?$)';
+our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
+our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
 
 #
 # Create hash from given values which has item "__keys" as array with keys in insertion order.
@@ -220,6 +221,18 @@ sub remove_collection_item
 # @param $dateTime
 #
 sub format_datetime
+{
+    my ($dateTime) = @_;
+    $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
+    return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
+}
+
+#
+# Format date/time partial
+#
+# @param $dateTime
+#
+sub format_datetime_partial
 {
     my ($dateTime) = @_;
     $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);

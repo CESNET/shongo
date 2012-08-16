@@ -345,7 +345,11 @@ public class DateTimeSlot extends PersistentObject
         }
         else if (dateTimeSpecification instanceof PeriodicDateTimeSpecification) {
             PeriodicDateTimeSpecification periodicSpecification = (PeriodicDateTimeSpecification) dateTimeSpecification;
-            start = new PeriodicDateTime(periodicSpecification.getStart(), periodicSpecification.getPeriod());
+            PeriodicDateTime periodicDateTime = new PeriodicDateTime();
+            periodicDateTime.setStart(periodicSpecification.getStart());
+            periodicDateTime.setPeriod(periodicSpecification.getPeriod());
+            periodicDateTime.setEnd(periodicSpecification.getEnd());
+            start = periodicDateTime;
         }
         else {
             throw new TodoImplementException();

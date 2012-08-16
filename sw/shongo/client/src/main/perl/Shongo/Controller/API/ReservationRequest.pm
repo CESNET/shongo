@@ -233,6 +233,24 @@ sub modify_attributes()
 }
 
 #
+# @param $slot to be modified
+#
+sub modify_slot($)
+{
+    my ($slot) = @_;
+
+    if (ref($slot->{'start'}) && $slot->{'start'}->{'class'} eq 'PeriodicDateTime') {
+        $slot->{'start'}->{'start'} = console_edit_value("Type a starting date/time", 1, $Shongo::Common::DateTimePattern, $slot->{'start'}->{'start'});
+        $slot->{'duration'} = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $slot->{'duration'});
+        $slot->{'start'}->{'period'} = console_edit_value("Type a period", 0, $Shongo::Common::PeriodPattern, $slot->{'start'}->{'period'});
+        $slot->{'start'}->{'end'} = console_edit_value("Ending date/time", 0, $Shongo::Common::DateTimePartialPattern, $slot->{'start'}->{'end'});
+    } else {
+        $slot->{'start'} = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $slot->{'start'});
+        $slot->{'duration'} = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $slot->{'duration'});
+    }
+}
+
+#
 # Modify requested slots in the reservation request
 #
 sub modify_slots()
@@ -246,24 +264,30 @@ sub modify_slots()
         sub {
             my @actions = (
                 'Add new requested slot by absolute date/time' => sub {
-                    my $dateTime = console_read_value("Type a date/time", 1, $Shongo::Common::DateTimePattern);
-                    my $duration = console_read_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern);
-                    if ( defined($dateTime) && defined($duration) ) {
-                        add_collection_item(\$self->{'slots'}, {'start' => $dateTime, 'duration' => $duration});
+                    my $slot = {};
+                    modify_slot($slot);
+                    if ( defined($slot->{'start'}) && defined($slot->{'duration'}) ) {
+                        add_collection_item(\$self->{'slots'}, $slot);
                     }
                     return undef;
                 },
                 'Add new requested slot by periodic date/time' => sub {
-                    my $dateTime = console_read_value("Type a starting date/time", 1, $Shongo::Common::DateTimePattern);
-                    my $period = console_read_value("Type a period", 0, $Shongo::Common::PeriodPattern);
-                    my $duration = console_read_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern);
-                    if ( defined($dateTime) && defined($period) && defined($duration) ) {
-                        add_collection_item(\$self->{'slots'}, {'start' => {'start' => $dateTime, 'period' => $period}, 'duration' => $duration});
+                    my $slot = {'start' => {'class' => 'PeriodicDateTime'}};
+                    modify_slot($slot);
+                    if ( defined($slot->{'start'}) && defined($slot->{'duration'}) ) {
+                        add_collection_item(\$self->{'slots'}, $slot);
                     }
                     return undef;
                 }
             );
             if ( $self->get_slots_count() > 0 ) {
+                push(@actions, 'Modify existing requested slot' => sub {
+                    my $index = console_read_choice("Type a number of requested slot", 0, $self->get_slots_count());
+                    if ( defined($index) ) {
+                        modify_slot(get_collection_item($self->{'slots'}, $index - 1));
+                    }
+                    return undef;
+                });
                 push(@actions, 'Remove existing requested slot' => sub {
                     my $index = console_read_choice("Type a number of requested slot", 0, $self->get_slots_count());
                     if ( defined($index) ) {
@@ -359,7 +383,7 @@ sub to_string()
                 }
                 $stateDescription =~ s/\n/\n      /g;
                 $stateDescription =~ s/\n      $/\n/g;
-                $string .= sprintf("      %s", colored($stateDescription, $color));
+                $string .= sprintf("      %s\n", colored($stateDescription, $color));
             }
         }
     }
@@ -381,7 +405,12 @@ sub slots_to_string()
             my $start = $slot->{'start'};
             my $duration = $slot->{'duration'};
             if ( ref($start) ) {
-                $start = sprintf("(%s, %s)", format_datetime($start->{'start'}), $start->{'period'});
+                my $startString = sprintf("(%s, %s", format_datetime($start->{'start'}), $start->{'period'});
+                if ( defined($start->{'end'}) ) {
+                    $startString .= ", " . format_datetime_partial($start->{'end'});
+                }
+                $startString .= ")";
+                $start = $startString;
             } else {
                 $start = format_datetime($start);
             }

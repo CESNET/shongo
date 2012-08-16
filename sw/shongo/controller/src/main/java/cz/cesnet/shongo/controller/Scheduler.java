@@ -186,7 +186,7 @@ public class Scheduler extends Component
                     throw new FaultException("No single virtual room was found for following specification:\n"
                             + "       Time slot: %s\n"
                             + "      Technology: %s\n"
-                            + " Number of ports: %d\n",
+                            + " Number of ports: %d",
                             TemporalHelper.formatInterval(requestedSlot),
                             Technology.formatTechnologiesVariants(technologiesVariants),
                             requestedPortCount);

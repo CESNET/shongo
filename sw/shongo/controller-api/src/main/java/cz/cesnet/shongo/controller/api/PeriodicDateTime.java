@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.Required;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 /**
  * Represents a definition for multiple date/times by period.
@@ -20,6 +21,11 @@ public class PeriodicDateTime
      * Period for multiple date/times.
      */
     private Period period;
+
+    /**
+     * Ending date and/or time after which the periodic events are not considered.
+     */
+    private ReadablePartial end;
 
     /**
      * Constructor.
@@ -72,5 +78,21 @@ public class PeriodicDateTime
     public void setPeriod(Period period)
     {
         this.period = period;
+    }
+
+    /**
+     * @return {@link #end}
+     */
+    public ReadablePartial getEnd()
+    {
+        return end;
+    }
+
+    /**
+     * @param end sets the {@link #end}
+     */
+    public void setEnd(ReadablePartial end)
+    {
+        this.end = end;
     }
 }
