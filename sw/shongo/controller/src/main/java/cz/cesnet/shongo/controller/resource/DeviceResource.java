@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.fault.EntityValidationException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -106,6 +107,16 @@ public class DeviceResource extends Resource
     public Set<Technology> getTechnologies()
     {
         return Collections.unmodifiableSet(technologies);
+    }
+
+    /**
+     * @param technology
+     * @return true if the device resource support given {@code technology},
+     *         false otherwise
+     */
+    public boolean hasTechnology(Technology technology)
+    {
+        return technologies.contains(technology);
     }
 
     /**
@@ -245,6 +256,24 @@ public class DeviceResource extends Resource
             }
         }
         return Collections.unmodifiableSet(technologies);
+    }
+
+    @Override
+    public void validate() throws EntityValidationException
+    {
+        for (Capability capability : getCapabilities()) {
+            if (capability instanceof DeviceCapability) {
+                DeviceCapability deviceCapability = (DeviceCapability) capability;
+                for (Technology technology : deviceCapability.getTechnologies()) {
+                    if (!hasTechnology(technology)) {
+                        throw new EntityValidationException(getClass(), getId(),
+                                "Capability '%s' has '%s' technology but resource doesn't.",
+                                deviceCapability.getClass().getCanonicalName(), technology.getCode());
+                    }
+                }
+            }
+        }
+        super.validate();
     }
 
     @Override

@@ -209,6 +209,11 @@
         <w>unmute</w>
       </words>
     </dictionary>
+    <dictionary name="martin">
+      <words>
+        <w>interconnectable</w>
+      </words>
+    </dictionary>
   </component>
   <component name="ProjectModuleManager">
     <modules>

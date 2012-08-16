@@ -44,6 +44,7 @@ public class CommonFault
             31, "Null value cannot be added to collection '%s'.");
 
     public static final int ENTITY_NOT_FOUND = 40;
+    public static final int ENTITY_VALIDATION = 41;
 
     public static final int TODO_IMPLEMENT = 99;
 

@@ -248,7 +248,8 @@ public class CompartmentRequest extends PersistentObject
             }
         }
 
-        // Remove all resources that were requested with a list of persons and the list is empty
+        // Remove all requested resources which have been requested with a not empty list of persons
+        // and the current list of requested persons is empty (all persons rejected invitation)
         Iterator<Map.Entry<ResourceSpecification, List<Person>>> iterator =
                 mapRequestedResourcesWithPersons.entrySet().iterator();
         while (iterator.hasNext()) {

@@ -3,11 +3,14 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link Resource}.
@@ -31,9 +34,11 @@ public class ResourceManager extends AbstractManager
      * Create a new resource in the database.
      *
      * @param resource
+     * @throws FaultException when the creating fail
      */
-    public void create(Resource resource)
+    public void create(Resource resource) throws FaultException
     {
+        resource.validate();
         super.create(resource);
     }
 
@@ -41,9 +46,11 @@ public class ResourceManager extends AbstractManager
      * Update existing resource in the database.
      *
      * @param resource
+     * @throws FaultException when the updating fail
      */
-    public void update(Resource resource)
+    public void update(Resource resource) throws FaultException
     {
+        resource.validate();
         super.update(resource);
     }
 

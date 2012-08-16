@@ -29,8 +29,6 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
-        // Domain
-        Domain domain = new Domain("cz.cesnet");
         // Resource database
         ResourceDatabase resourceDatabase = null;
         // Interval for which a preprocessor and a scheduler runs and
@@ -162,7 +160,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         {
             EntityManager entityManager = getEntityManager();
 
-            Scheduler.createAndRun(interval, entityManager, resourceDatabase, domain);
+            Scheduler.createAndRun(interval, entityManager, resourceDatabase);
 
             CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
             AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
@@ -198,7 +196,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, resourceDatabase, domain);
+            Scheduler.createAndRun(interval, entityManager, resourceDatabase);
 
             // Checks allocation failed
             CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
@@ -219,7 +217,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, resourceDatabase, domain);
+            Scheduler.createAndRun(interval, entityManager, resourceDatabase);
 
             // Checks allocated
             entityManager.refresh(compartmentRequest);
@@ -250,7 +248,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
         Interval interval = Interval.parse("0/9999");
         Preprocessor.createAndRun(interval, getEntityManager());
-        Scheduler.createAndRun(interval, getEntityManager(), resourceDatabase, new Domain("cz.cesnet"));
+        Scheduler.createAndRun(interval, getEntityManager(), resourceDatabase);
 
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
         List<CompartmentRequest> compartmentRequests =
@@ -267,7 +265,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         assertEquals(1, allocatedCompartments.size());
     }
 
-    @Test
+    //@Test
     public void testStandaloneTerminals() throws Exception
     {
         ResourceDatabase resourceDatabase = new ResourceDatabase();
@@ -282,6 +280,37 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.H323);
+        terminal2.addCapability(new StandaloneTerminalCapability());
+        terminal2.setSchedulable(true);
+        resourceDatabase.addResource(terminal2, getEntityManager());
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setType(ReservationRequestType.NORMAL);
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
+        Compartment compartment = reservationRequest.addRequestedCompartment();
+        compartment.addRequestedResource(new ExistingResourceSpecification(terminal1));
+        compartment.addRequestedResource(new ExistingResourceSpecification(terminal2));
+
+        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+    }
+
+    @Test
+    public void testMultipleTechnologyTerminals() throws Exception
+    {
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
+        resourceDatabase.init();
+
+        DeviceResource terminal1 = new DeviceResource();
+        terminal1.addTechnology(Technology.H323);
+        terminal1.addTechnology(Technology.SIP);
+        terminal1.addCapability(new StandaloneTerminalCapability());
+        terminal1.setSchedulable(true);
+        resourceDatabase.addResource(terminal1, getEntityManager());
+
+        DeviceResource terminal2 = new DeviceResource();
+        terminal2.addTechnology(Technology.H323);
+        terminal2.addTechnology(Technology.ADOBE_CONNECT);
         terminal2.addCapability(new StandaloneTerminalCapability());
         terminal2.setSchedulable(true);
         resourceDatabase.addResource(terminal2, getEntityManager());
@@ -357,8 +386,4 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
         checkSuccessfulAllocation(reservationRequest, resourceDatabase);
     }
-
-    // TODO: Verify that a capability supports only technologies supported by the device
-
-    // TODO: Some capability cannot be added multiple times (terminal, standalone terminal, virtual rooms)
 }

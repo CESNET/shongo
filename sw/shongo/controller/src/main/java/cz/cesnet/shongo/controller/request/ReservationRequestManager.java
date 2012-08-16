@@ -27,6 +27,16 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservationRequest to be validated
+     */
+    private void validate(ReservationRequest reservationRequest) throws IllegalArgumentException
+    {
+        if (reservationRequest.getType() == null) {
+            throw new IllegalArgumentException("Reservation request must have type set!");
+        }
+    }
+
+    /**
      * Create a new reservation in the database.
      *
      * @param reservationRequest
@@ -124,15 +134,5 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("to", interval.getEnd())
                 .getResultList();
         return reservationRequestList;
-    }
-
-    /**
-     * @param reservationRequest to be validated
-     */
-    private void validate(ReservationRequest reservationRequest) throws IllegalArgumentException
-    {
-        if (reservationRequest.getType() == null) {
-            throw new IllegalArgumentException("Reservation request must have type set!");
-        }
     }
 }

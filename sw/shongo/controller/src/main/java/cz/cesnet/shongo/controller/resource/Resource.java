@@ -8,10 +8,8 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
-import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.*;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -508,6 +506,24 @@ public class Resource extends PersistentObject
                 api.getCollectionItemsMarkedAsDeleted(API.CAPABILITIES);
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
             removeCapability(getCapabilityById(apiCapability.getId().longValue()));
+        }
+    }
+
+    /**
+     * Validate resource
+     */
+    public void validate() throws EntityValidationException
+    {
+        Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
+        for (Capability capability : capabilities) {
+            for (Class<? extends Capability> capabilityType : capabilityTypes) {
+                if (capabilityType.isAssignableFrom(capability.getClass())) {
+                    throw new EntityValidationException(getClass(), getId(), "Resource cannot contain multiple '"
+                            + capabilityType.getSimpleName() + "'.");
+
+                }
+            }
+            capabilityTypes.add(capability.getClass());
         }
     }
 }

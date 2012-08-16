@@ -41,15 +41,6 @@ public abstract class Component
     }
 
     /**
-     * @param interval
-     * @return formatted interval to string
-     */
-    public static String formatInterval(Interval interval)
-    {
-        return interval.toString();
-    }
-
-    /**
      * {@link Component} which contains reference to current {@link Domain}.
      */
     public static interface EntityManagerFactoryAware
