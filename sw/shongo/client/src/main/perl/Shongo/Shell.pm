@@ -9,6 +9,7 @@ use base qw(Term::ShellUI);
 use strict;
 use warnings;
 
+use Term::ReadLine::Gnu;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller;
