@@ -30,7 +30,7 @@ public class WebServerXmlLogger
      */
     public static void log(String content)
     {
-        System.out.println(content);
+        logger.debug(content);
     }
 
     /**
@@ -165,14 +165,6 @@ public class WebServerXmlLogger
      */
     public static void setEnabled(boolean enabled)
     {
-        if (WebServerXmlLogger.enabled != enabled) {
-            if (enabled) {
-                logger.info("Enabling logging of XML-RPC requests and responses.");
-            }
-            else {
-                logger.info("Disabling logging of XML-RPC requests and responses.");
-            }
-        }
         WebServerXmlLogger.enabled = enabled;
     }
 }

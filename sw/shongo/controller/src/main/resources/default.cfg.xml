@@ -9,7 +9,7 @@
     <!-- Configuration of controlled domain -->
     <domain>
         <name>unknown</name>
-        <organization>NO-ORGANIZATION</organization>
+        <organization>Unknown Organization</organization>
     </domain>
 
     <!-- Configuration of XML-RPC server -->

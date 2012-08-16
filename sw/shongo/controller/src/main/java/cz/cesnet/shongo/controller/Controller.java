@@ -13,6 +13,7 @@ import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.log4j.Level;
 import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
@@ -397,12 +398,38 @@ public class Controller
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.addCommands(jadeAgent.createCommandSet());
-        shell.addCommand("log-rpc", "Toggle logging of XML-RPC request and response XMLs", new CommandHandler()
+        shell.addCommand("logger", "Toggle logging of [rpc|sql]", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)
             {
-                WebServerXmlLogger.setEnabled(!WebServerXmlLogger.isEnabled());
+                String[] args = commandLine.getArgs();
+                if (args.length <= 1) {
+                    return;
+                }
+                org.apache.log4j.Logger logger = null;
+                Boolean enabled = null;
+                if (args[1].equals("rpc")) {
+                    enabled = !WebServerXmlLogger.isEnabled();
+                    WebServerXmlLogger.setEnabled(enabled);
+                    logger = org.apache.log4j.Logger.getLogger(
+                            cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger.class);
+                } else if (args[1].equals("sql")) {
+                    logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
+                }
+                if (logger == null ) {
+                    return;
+                }
+                if (enabled == null ) {
+                    enabled = logger.getLevel() == null || logger.getLevel().isGreaterOrEqual(Level.INFO);
+                }
+                if (enabled) {
+                    Controller.logger.info("Enabling '{}' logger.", args[1]);
+                    logger.setLevel(Level.TRACE);
+                } else {
+                    Controller.logger.info("Disabling '{}' logger.", args[1]);
+                    logger.setLevel(Level.INFO);
+                }
             }
         });
         shell.addCommand("database", "Show database browser", new CommandHandler()

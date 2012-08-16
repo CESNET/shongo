@@ -321,9 +321,12 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
 
             private Object invoke(Object pInstance, Method pMethod, Object[] pArgs) throws XmlRpcException
             {
-                logger.debug("Invoking '{}.{}'...", pInstance.getClass().getSimpleName(), pMethod.getName());
+                logger.debug("request: ->", pInstance.getClass().getSimpleName(), pMethod.getName());
+                logger.debug("request: invoking '{}.{}'...", pInstance.getClass().getSimpleName(), pMethod.getName());
                 try {
-                    return pMethod.invoke(pInstance, pArgs);
+                    Object result = pMethod.invoke(pInstance, pArgs);
+                    logger.debug("request: <-");
+                    return result;
                 }
                 catch (IllegalAccessException e) {
                     throw new XmlRpcException("Illegal access to method "
