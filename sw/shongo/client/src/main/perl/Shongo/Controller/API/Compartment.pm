@@ -84,8 +84,8 @@ sub modify_loop()
             printf("\n%s\n", $self->to_string());
         },
         sub {
-            my $actions = [];
-            push($actions, 'Add new requested resource' => sub {
+            my @actions = ();
+            push(@actions, 'Add new requested resource' => sub {
                 my $resource = Shongo::Controller::API::ResourceSpecification->new();
                 $resource = $resource->create();
                 if ( defined($resource) ) {
@@ -94,14 +94,14 @@ sub modify_loop()
                 return undef;
             });
             if ( $self->get_resources_count() > 0 ) {
-                push($actions, 'Modify existing requested resource' => sub {
+                push(@actions, 'Modify existing requested resource' => sub {
                     my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
                     if ( defined($index) ) {
                         get_collection_item($self->{'resources'}, $index - 1)->modify();
                     }
                     return undef;
                 });
-                push($actions, 'Remove existing requested resource' => sub {
+                push(@actions, 'Remove existing requested resource' => sub {
                     my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
                     if ( defined($index) ) {
                         remove_collection_item(\$self->{'resources'}, $index - 1);
@@ -109,7 +109,7 @@ sub modify_loop()
                     return undef;
                 });
             }
-            push($actions, 'Add new requested person' => sub {
+            push(@actions, 'Add new requested person' => sub {
                 my $name = console_read_value("Name");
                 my $email = console_read_value("Email");
                 if ( defined($name) && defined($email) ) {
@@ -118,7 +118,7 @@ sub modify_loop()
                 return undef;
             });
             if ( $self->get_persons_count() > 0 ) {
-                push($actions, 'Remove existing requested person' => sub {
+                push(@actions, 'Remove existing requested person' => sub {
                     my $index = console_read_choice("Type a number of requested person", 0, $self->get_persons_count());
                     if ( defined($index) ) {
                         remove_collection_item(\$self->{'persons'}, $index - 1);
@@ -126,10 +126,10 @@ sub modify_loop()
                     return undef;
                 });
             }
-            push($actions, 'Finish modifying compartment' => sub {
+            push(@actions, 'Finish modifying compartment' => sub {
                 return 1;
             });
-            return ordered_hash($actions);
+            return ordered_hash(@actions);
         }
     );
 }

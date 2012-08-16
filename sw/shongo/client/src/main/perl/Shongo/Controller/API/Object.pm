@@ -57,7 +57,7 @@ sub to_xml_value
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push($array, $self->to_xml_value($item));
+            push(@{$array}, $self->to_xml_value($item));
         }
         return RPC::XML::array->new(from => $array);
     }
@@ -128,7 +128,7 @@ sub from_xml_value
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push($array, $self->from_xml_value($item, $attribute));
+            push(@{$array}, $self->from_xml_value($item, $attribute));
         }
         return $array;
     }

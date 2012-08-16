@@ -95,7 +95,7 @@ sub modify_aliases()
             printf("\n%s\n", $self->aliases_to_string());
         },
         sub {
-            my $actions = [
+            my @actions = (
                 'Add new alias' => sub {
                     my $alias = Shongo::Controller::API::Alias->new();
                     $alias = $alias->create();
@@ -104,16 +104,16 @@ sub modify_aliases()
                     }
                     return undef;
                 }
-            ];
+            );
             if ( $self->get_aliases_count() > 0 ) {
-                push($actions, 'Modify existing alias' => sub {
+                push(@actions, 'Modify existing alias' => sub {
                     my $index = console_read_choice("Type a number of alias", 0, $self->get_aliases_count());
                     if ( defined($index) ) {
                         get_collection_item(\$self->{'aliases'}, $index - 1)->modify();
                     }
                     return undef;
                 });
-                push($actions, 'Remove existing alias' => sub {
+                push(@actions, 'Remove existing alias' => sub {
                     my $index = console_read_choice("Type a number of alias", 0, $self->get_aliases_count());
                     if ( defined($index) ) {
                         remove_collection_item(\$self->{'aliases'}, $index - 1);
@@ -121,10 +121,10 @@ sub modify_aliases()
                     return undef;
                 });
             }
-            push($actions, 'Finish modifying aliases' => sub {
+            push(@actions, 'Finish modifying aliases' => sub {
                 return 0;
             });
-            return ordered_hash($actions);
+            return ordered_hash(@actions);
         }
     );
 }

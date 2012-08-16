@@ -128,14 +128,14 @@ sub modify_loop()
             printf("\n%s\n", $self->to_string());
         },
         sub {
-            my $actions = [
+            my @actions = (
                 'Modify attributes' => sub {
                     $self->modify_attributes(1);
                     return undef;
                 }
-            ];
-            append_technologies_actions($actions, \$self->{'technologies'});
-            push($actions, 'Add new capability' => sub {
+            );
+            append_technologies_actions(\@actions, \$self->{'technologies'});
+            push(@actions, 'Add new capability' => sub {
                 my $capability = Shongo::Controller::API::Capability->new();
                 $capability = $capability->create();
                 if ( defined($capability) ) {
@@ -144,14 +144,14 @@ sub modify_loop()
                 return undef;
             });
             if ( $self->get_capabilities_count() > 0 ) {
-                push($actions, 'Modify existing capability' => sub {
+                push(@actions, 'Modify existing capability' => sub {
                     my $index = console_read_choice("Type a number of capability", 0, $self->get_capabilities_count());
                     if ( defined($index) ) {
                         get_collection_item($self->{'capabilities'}, $index - 1)->modify();
                     }
                     return undef;
                 });
-                push($actions, 'Remove existing capability' => sub {
+                push(@actions, 'Remove existing capability' => sub {
                     my $index = console_read_choice("Type a number of capability", 0, $self->get_capabilities_count());
                     if ( defined($index) ) {
                         remove_collection_item(\$self->{'capabilities'}, $index - 1);
@@ -159,7 +159,7 @@ sub modify_loop()
                     return undef;
                 });
             }
-            push($actions, (
+            push(@actions, (
                 'Confirm ' . $message => sub {
                     return 1;
                 },
@@ -167,7 +167,7 @@ sub modify_loop()
                     return 0;
                 }
             ));
-            return ordered_hash($actions);
+            return ordered_hash(@actions);
         }
     );
 }
@@ -223,11 +223,11 @@ sub append_technologies_actions()
     my %technologies_hash = map { $_ => 1 } @{get_collection_items(${$technologies})};
     foreach my $key (ordered_hash_keys($Technology)) {
         if ( !exists($technologies_hash{$key}) ) {
-            push($available_technologies, $key => $Technology->{$key});
+            push(@{$available_technologies}, $key => $Technology->{$key});
         }
     }
     if ( get_collection_size($available_technologies) > 0 ) {
-        push($actions, 'Add new technology' => sub {
+        push(@{$actions}, 'Add new technology' => sub {
             my $technology = console_read_enum('Select technology', ordered_hash($available_technologies));
             if ( defined($technology) ) {
                 add_collection_item($technologies, $technology);
@@ -236,7 +236,7 @@ sub append_technologies_actions()
         });
     }
     if ( get_collection_size(${$technologies}) > 0 ) {
-        push($actions, 'Remove existing technology' => sub {
+        push(@{$actions}, 'Remove existing technology' => sub {
             my $index = console_read_choice("Type a number of technology", 0, get_collection_size(${$technologies}));
             if ( defined($index) ) {
                 remove_collection_item($technologies, $index - 1);

@@ -112,10 +112,10 @@ sub get_collection_items
     elsif ( ref($collection) eq 'HASH' ) {
         my $array = [];
         if ( defined($collection->{'modified'}) ) {
-            push($array, @{$collection->{'modified'}});
+            push(@{$array}, @{$collection->{'modified'}});
         }
         if ( defined($collection->{'new'}) ) {
-            push($array, @{$collection->{'new'}});
+            push(@{$array}, @{$collection->{'new'}});
         }
         return $array;
     }
@@ -177,7 +177,7 @@ sub add_collection_item
     if ( !defined(${$collection}->{'new'}) ) {
         ${$collection}->{'new'} = [];
     }
-    push(${$collection}->{'new'}, $item);
+    push(@{${$collection}->{'new'}}, $item);
 }
 
 #
@@ -194,11 +194,11 @@ sub remove_collection_item
         my $modified_count = scalar(@{${$collection}->{'modified'}});
         if ( $item_index < $modified_count ) {
             my $item = ${$collection}->{'modified'}[$item_index];
-            splice(${$collection}->{'modified'}, $item_index, 1);
+            splice(@{${$collection}->{'modified'}}, $item_index, 1);
             if ( !defined(${$collection}->{'deleted'}) ) {
                 ${$collection}->{'deleted'} = [];
             }
-            push(${$collection}->{'deleted'}, $item);
+            push(@{${$collection}->{'deleted'}}, $item);
             return;
         } else {
             $item_index -= $modified_count;
@@ -207,7 +207,7 @@ sub remove_collection_item
     if ( defined(${$collection}->{'new'}) ) {
         my $new_count = scalar(@{${$collection}->{'new'}});
         if ( $item_index < $new_count ) {
-            splice(${$collection}->{'new'}, $item_index, 1);
+            splice(@{${$collection}->{'new'}}, $item_index, 1);
             return;
         }
     }

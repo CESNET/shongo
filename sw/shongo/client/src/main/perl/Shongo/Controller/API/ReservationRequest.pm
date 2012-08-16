@@ -189,7 +189,7 @@ sub modify_loop()
             printf("\n%s\n", $self->to_string());
         },
         sub {
-            my $actions = [
+            my @actions = (
                 'Modify attributes' => sub {
                     $self->modify_attributes(1);
                     return undef;
@@ -198,14 +198,14 @@ sub modify_loop()
                     $self->modify_slots();
                     return undef;
                 }
-            ];
+            );
             if ( $self->get_compartments_count() > 0 ) {
-                push($actions, 'Modify first compartment' => sub {
+                push(@actions, 'Modify first compartment' => sub {
                     get_collection_item($self->{'compartments'}, 0)->modify();
                     return undef;
                 });
             }
-            push($actions, (
+            push(@actions, (
                 'Modify requested compartments' => sub {
                     $self->modify_compartments();
                     return undef;
@@ -217,7 +217,7 @@ sub modify_loop()
                     return 0;
                 }
             ));
-            return ordered_hash($actions);
+            return ordered_hash(@actions);
         }
     );
 }
@@ -244,7 +244,7 @@ sub modify_slots()
             printf("\n%s\n", $self->slots_to_string());
         },
         sub {
-            my $actions = [
+            my @actions = (
                 'Add new requested slot by absolute date/time' => sub {
                     my $dateTime = console_read_value("Type a date/time", 1, $Shongo::Common::DateTimePattern);
                     my $duration = console_read_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern);
@@ -262,9 +262,9 @@ sub modify_slots()
                     }
                     return undef;
                 }
-            ];
+            );
             if ( $self->get_slots_count() > 0 ) {
-                push($actions, 'Remove existing requested slot' => sub {
+                push(@actions, 'Remove existing requested slot' => sub {
                     my $index = console_read_choice("Type a number of requested slot", 0, $self->get_slots_count());
                     if ( defined($index) ) {
                         remove_collection_item(\$self->{'slots'}, $index - 1);
@@ -272,10 +272,10 @@ sub modify_slots()
                     return undef;
                 });
             }
-            push($actions, 'Finish modifying requested slots' => sub {
+            push(@actions, 'Finish modifying requested slots' => sub {
                 return 0;
             });
-            return ordered_hash($actions);
+            return ordered_hash(@actions);
         }
     );
 }
@@ -292,7 +292,7 @@ sub modify_compartments
             printf("\n%s\n", $self->compartments_to_string());
         },
         sub {
-            my $actions = [
+            my @actions = (
                 'Add new requested compartment' => sub {
                     my $compartment = Shongo::Controller::API::Compartment->create();
                     if ( defined($compartment) ) {
@@ -300,16 +300,16 @@ sub modify_compartments
                     }
                     return undef;
                 }
-            ];
+            );
             if ( $self->get_compartments_count() > 0 ) {
-                push($actions, 'Modify existing requested compartment' => sub {
+                push(@actions, 'Modify existing requested compartment' => sub {
                     my $index = console_read_choice("Type a number of requested compartment", 0, $self->get_compartments_count());
                     if ( defined($index) ) {
                         get_collection_item($self->{'compartments'}, $index - 1)->modify();
                     }
                     return undef;
                 });
-                push($actions, 'Remove existing requested compartment' => sub {
+                push(@actions, 'Remove existing requested compartment' => sub {
                     my $index = console_read_choice("Type a number of requested compartment", 0, $self->get_compartments_count());
                     if ( defined($index) ) {
                         remove_collection_item(\$self->{'compartments'}, $index - 1);
@@ -317,10 +317,10 @@ sub modify_compartments
                     return undef;
                 });
             }
-            push($actions, 'Finish modifying requested compartments' => sub {
+            push(@actions, 'Finish modifying requested compartments' => sub {
                 return 0;
             });
-            return ordered_hash($actions);
+            return ordered_hash(@actions);
         }
     );
 }

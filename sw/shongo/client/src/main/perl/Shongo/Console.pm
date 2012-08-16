@@ -167,16 +167,16 @@ sub console_action
         $actions = &{$actions}();
     }
 
-    my $action_array = [];
+    my @action_array = ();
     my $index = 0;
     foreach my $action (ordered_hash_keys($actions)) {
         if ( !($action eq "__keys") ) {
-            push($action_array, $index, $action);
+            push(@action_array, $index, $action);
             $index++;
         }
     }
 
-    my $action_hash = ordered_hash($action_array);
+    my $action_hash = ordered_hash(@action_array);
     my $action = console_select($prompt, $action_hash);
     if ( defined($action) && defined($action_hash->{$action}) ) {
         $action = $action_hash->{$action};
