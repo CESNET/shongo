@@ -77,7 +77,7 @@ sub populate()
                         get_resource_allocation($identifier, $params->{'options'}->{'interval'});
                     }
                 } else {
-                    get_resource();
+                    get_resource_allocation();
                 }
             }
         },
