@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static cz.cesnet.shongo.api.util.ClassHelper.getClassFromShortName;
 import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
@@ -255,19 +257,41 @@ public class Converter
     }
 
     /**
+     * Array of supported partial fields (in the same order as in the partial regex pattern).
+     */
+    private static DateTimeFieldType[] PARTIAL_FIELDS = new DateTimeFieldType[]{
+            DateTimeFieldType.year(),
+            DateTimeFieldType.monthOfYear(),
+            DateTimeFieldType.dayOfMonth(),
+            DateTimeFieldType.hourOfDay(),
+            DateTimeFieldType.minuteOfHour()
+    };
+
+    /**
      * @param value
      * @return parsed partial date/time from string
      * @throws FaultException when parsing fails
      */
     public static ReadablePartial convertStringToReadablePartial(String value) throws FaultException
     {
-        try {
-            ReadablePartial dateTime = LocalDateTime.parse(value);
-            return dateTime;
+        Pattern pattern = Pattern.compile("(\\d{1,4})(-\\d{1,2})?(-\\d{1,2})?(T\\d{1,2})?(:\\d{1,2})?");
+        Matcher matcher = pattern.matcher(value);
+        if (matcher.matches()) {
+            Partial partial = new Partial();
+            for (int index = 0; index < PARTIAL_FIELDS.length; index++) {
+                String group = matcher.group(index + 1);
+                if (group == null) {
+                    continue;
+                }
+                char first = group.charAt(0);
+                if (first < '0' || first > '9') {
+                    group = group.substring(1, group.length());
+                }
+                partial = partial.with(PARTIAL_FIELDS[index], Integer.parseInt(group));
+            }
+            return partial;
         }
-        catch (Exception exception) {
-            throw new FaultException(CommonFault.DATETIME_PARSING_FAILED, value);
-        }
+        throw new FaultException(CommonFault.PARTIAL_DATETIME_PARSING_FAILED, value);
     }
 
     /**

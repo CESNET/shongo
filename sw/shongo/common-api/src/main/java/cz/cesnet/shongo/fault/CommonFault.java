@@ -37,6 +37,8 @@ public class CommonFault
             22, "Failed to parse period '%s'.");
     public static final Fault INTERVAL_PARSING_FAILED = new SimpleFault(
             23, "Failed to parse interval '%s'.");
+    public static final Fault PARTIAL_DATETIME_PARSING_FAILED = new SimpleFault(
+            21, "Failed to parse partial date/time '%s'.");
 
     public static final Fault COLLECTION_ITEM_TYPE_MISMATCH = new SimpleFault(
             30, "Collection '%s' can contain items of type '%s' but '%s' was presented.");

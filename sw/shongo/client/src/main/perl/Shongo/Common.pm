@@ -235,8 +235,7 @@ sub format_datetime
 sub format_datetime_partial
 {
     my ($dateTime) = @_;
-    $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
-    return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
+    return sprintf("%s", $dateTime);
 }
 
 #

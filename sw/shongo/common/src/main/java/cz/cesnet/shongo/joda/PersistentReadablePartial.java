@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.joda;
 
+import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.fault.FaultException;
 import org.hibernate.HibernateException;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -25,9 +27,9 @@ public class PersistentReadablePartial extends PersistentStringType
     protected Object fromNonNullString(String string) throws HibernateException
     {
         try {
-            return LocalDateTime.parse(string);
+            return Converter.convertStringToReadablePartial(string);
         }
-        catch (Exception exception) {
+        catch (FaultException exception) {
             throw new HibernateException("Failed to load " + ReadablePartial.class.getName() + " from '" +
                     string.toString() + "'", exception);
         }
@@ -37,7 +39,7 @@ public class PersistentReadablePartial extends PersistentStringType
     protected String toNonNullString(Object value) throws HibernateException
     {
         if (value instanceof ReadablePartial) {
-            return ((ReadablePartial) value).toString();
+            return value.toString();
         }
         else {
             throw new HibernateException("Cannot save " + value.getClass().getName() + " as " +

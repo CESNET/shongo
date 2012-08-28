@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
 import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.joda.time.ReadablePartial;
+import org.joda.time.*;
 
 import javax.persistence.*;
 import java.util.*;
@@ -280,7 +277,8 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         // Find all events in range from-to
         List<DateTime> dateTimeList = new ArrayList<DateTime>();
         if (start != null) {
-            while (end == null || !start.isAfter(end)) {
+            // TODO: match end
+            while (end == null /*|| this.end.equals(start)*/ || !start.isAfter(end)) {
                 if (intervalTo != null && start.isAfter(intervalTo)) {
                     break;
                 }
