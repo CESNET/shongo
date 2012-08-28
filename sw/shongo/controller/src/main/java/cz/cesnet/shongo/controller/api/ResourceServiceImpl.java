@@ -82,12 +82,9 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        // Create reservation request
-        cz.cesnet.shongo.controller.resource.DeviceResource resourceImpl =
-                new cz.cesnet.shongo.controller.resource.DeviceResource();
-
-        // Synchronize from API
-        resourceImpl.fromApi(resource, entityManager, domain);
+        // Create resource from API
+        cz.cesnet.shongo.controller.resource.Resource resourceImpl =
+                cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager, domain);
 
         // Save it
         ResourceManager resourceManager = new ResourceManager(entityManager);

@@ -78,7 +78,7 @@ public class Agent extends jade.core.Agent
 
         started = true;
 
-        logger.info("Agent [{}] is ready!", getAID().getName());
+        logger.debug("Agent [{}] is ready!", getAID().getName());
 
         // Register language
         getContentManager().registerLanguage(new SLCodec());
@@ -104,7 +104,7 @@ public class Agent extends jade.core.Agent
 
         super.takeDown();
 
-        logger.info("Agent [{}] exiting!", getAID().getName());
+        logger.debug("Agent [{}] exiting!", getAID().getName());
     }
 
     /**

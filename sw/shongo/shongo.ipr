@@ -31,6 +31,19 @@
     <entry_points version="2.0" />
   </component>
   <component name="IdProvider" IDEtalkID="A138DC978136C01394E134B52A4E6830" />
+  <component name="InspectionProjectProfileManager">
+    <profiles>
+      <profile version="1.0" is_locked="false">
+        <option name="myName" value="Project Default" />
+        <option name="myLocal" value="false" />
+        <inspection_tool class="JpaAttributeMemberSignatureInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+        <inspection_tool class="JpaObjectClassSignatureInspection" enabled="true" level="WARNING" enabled_by_default="true" />
+      </profile>
+    </profiles>
+    <option name="PROJECT_PROFILE" value="Project Default" />
+    <option name="USE_PROJECT_PROFILE" value="true" />
+    <version value="1.0" />
+  </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_STRING" value="-target 1.6" />
   </component>

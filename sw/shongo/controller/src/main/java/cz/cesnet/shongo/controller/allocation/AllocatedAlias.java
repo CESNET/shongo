@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasResource;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -9,7 +9,8 @@ import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
 /**
- * Represents a special type of {@link AllocatedResource} an allocated {@link AliasResource}.
+ * Represents a special type of {@link AllocatedResource} an allocated alias from a resource
+ * with {@link AliasProviderCapability}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

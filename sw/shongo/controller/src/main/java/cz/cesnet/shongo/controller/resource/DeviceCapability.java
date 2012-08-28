@@ -66,6 +66,15 @@ public abstract class DeviceCapability extends Capability
     }
 
     @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
+    {
+        for (Technology technology : technologies) {
+            api.addTechnology(technology);
+        }
+        super.toApi(api);
+    }
+
+    @Override
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
             throws FaultException
     {
@@ -81,14 +90,5 @@ public abstract class DeviceCapability extends Capability
             removeTechnology(technology);
         }
         super.fromApi(api, entityManager);
-    }
-
-    @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
-    {
-        for (Technology technology : technologies) {
-            api.addTechnology(technology);
-        }
-        super.toApi(api);
     }
 }

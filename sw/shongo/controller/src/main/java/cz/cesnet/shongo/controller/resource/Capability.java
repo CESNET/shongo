@@ -61,6 +61,35 @@ public abstract class Capability extends PersistentObject
     }
 
     /**
+     * @param api
+     * @param entityManager
+     * @return new instance of {@link Capability} from API
+     * @throws FaultException
+     */
+    public static Capability createFromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
+            throws FaultException
+    {
+        Capability capability;
+        if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
+            capability = new VirtualRoomsCapability();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.StandaloneTerminalCapability) {
+            capability = new StandaloneTerminalCapability();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.TerminalCapability) {
+            capability = new TerminalCapability();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.RangeAliasProviderCapability) {
+            capability = new RangeAliasProviderCapability();
+        }
+        else {
+            throw new TodoImplementException();
+        }
+        capability.fromApi(api, entityManager);
+        return capability;
+    }
+
+    /**
      * @return new instance of API capability
      */
     protected abstract cz.cesnet.shongo.controller.api.Capability createApi();
@@ -80,34 +109,8 @@ public abstract class Capability extends PersistentObject
      * @param entityManager
      * @throws FaultException
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
+    protected void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
             throws FaultException
     {
-    }
-
-    /**
-     * @param api
-     * @param entityManager
-     * @return new instance of {@link Capability} from API
-     * @throws FaultException
-     */
-    public static Capability fromAPI(cz.cesnet.shongo.controller.api.Capability api,
-            EntityManager entityManager) throws FaultException
-    {
-        Capability resourceSpecification;
-        if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
-            resourceSpecification = new VirtualRoomsCapability();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.StandaloneTerminalCapability) {
-            resourceSpecification = new StandaloneTerminalCapability();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.TerminalCapability) {
-            resourceSpecification = new TerminalCapability();
-        }
-        else {
-            throw new TodoImplementException();
-        }
-        resourceSpecification.fromApi(api, entityManager);
-        return resourceSpecification;
     }
 }

@@ -69,7 +69,7 @@ public class AllocatedResource extends PersistentObject
     /**
      * @return {@link #resource}
      */
-    @OneToOne
+    @ManyToOne
     @Access(AccessType.FIELD)
     public Resource getResource()
     {

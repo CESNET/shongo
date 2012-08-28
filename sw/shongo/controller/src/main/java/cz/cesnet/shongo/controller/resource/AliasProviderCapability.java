@@ -3,16 +3,16 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 
-import javax.persistence.Column;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 
 /**
- * Represents a resource that can be allocated as an alias(es).
+ * Capability tells that the resource acts as alias provider which can allocate aliases for itself and/or
+ * other resources.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AliasResource extends Resource
+@Entity
+public abstract class AliasProviderCapability extends Capability
 {
     /**
      * Technology of aliases.

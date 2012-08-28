@@ -185,6 +185,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public XmlRpcHandler getHandler(String pHandlerName) throws XmlRpcException
         {
             XmlRpcHandler result = (XmlRpcHandler) handlerMap.get(pHandlerName);

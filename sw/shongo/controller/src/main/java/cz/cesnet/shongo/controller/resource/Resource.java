@@ -397,27 +397,45 @@ public class Resource extends PersistentObject
     }
 
     /**
+     * @param api
+     * @param entityManager
+     * @param domain
+     * @return resource converted from API
+     */
+    public static Resource createFromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager,
+            Domain domain) throws FaultException
+    {
+        Resource resource;
+        if (api.getTechnologies().size() > 0) {
+            resource = new DeviceResource();
+        } else {
+            resource = new Resource();
+        }
+        resource.fromApi(api, entityManager, domain);
+        return resource;
+    }
+
+    /**
      * Synchronize resource from API
      *
      * @param api
      * @param entityManager
      * @throws FaultException
      */
-    public <API extends cz.cesnet.shongo.controller.api.Resource>
-    void fromApi(API api, EntityManager entityManager, Domain domain)
-            throws EntityNotFoundException, FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager, Domain domain)
+            throws FaultException
     {
         // Modify attributes
-        if (api.isPropertyFilled(API.NAME)) {
+        if (api.isPropertyFilled(api.NAME)) {
             setName(api.getName());
         }
-        if (api.isPropertyFilled(API.DESCRIPTION)) {
+        if (api.isPropertyFilled(api.DESCRIPTION)) {
             setDescription(api.getDescription());
         }
-        if (api.isPropertyFilled(API.SCHEDULABLE)) {
+        if (api.isPropertyFilled(api.SCHEDULABLE)) {
             setSchedulable(api.getSchedulable());
         }
-        if (api.isPropertyFilled(API.PARENT_RESOURCE_IDENTIFIER)) {
+        if (api.isPropertyFilled(api.PARENT_RESOURCE_IDENTIFIER)) {
             Long newParentResourceId = null;
             if (api.getParentIdentifier() != null) {
                 newParentResourceId = domain.parseIdentifier(api.getParentIdentifier());
@@ -431,7 +449,7 @@ public class Resource extends PersistentObject
                 setParentResource(parentResource);
             }
         }
-        if (api.isPropertyFilled(API.MAX_FUTURE)) {
+        if (api.isPropertyFilled(api.MAX_FUTURE)) {
             Object maxFuture = api.getMaxFuture();
             if (maxFuture == null) {
                 setMaximumFuture(null);
@@ -451,25 +469,25 @@ public class Resource extends PersistentObject
             DeviceResource deviceResource = (DeviceResource) this;
             // Create technologies
             for (Technology technology : api.getTechnologies()) {
-                if (api.isCollectionItemMarkedAsNew(API.TECHNOLOGIES, technology)) {
+                if (api.isCollectionItemMarkedAsNew(api.TECHNOLOGIES, technology)) {
                     deviceResource.addTechnology(technology);
                 }
             }
             // Delete technologies
-            Set<Technology> technologies = api.getCollectionItemsMarkedAsDeleted(API.TECHNOLOGIES);
+            Set<Technology> technologies = api.getCollectionItemsMarkedAsDeleted(api.TECHNOLOGIES);
             for (Technology technology : technologies) {
                 deviceResource.removeTechnology(technology);
             }
 
-            if (api.isPropertyFilled(API.MODE)) {
+            if (api.isPropertyFilled(api.MODE)) {
                 Object mode = api.getMode();
                 if (mode instanceof String) {
-                    if (mode.equals(API.UNMANAGED_MODE)) {
+                    if (mode.equals(api.UNMANAGED_MODE)) {
                         deviceResource.setMode(null);
                     }
                     else {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
-                                API.MODE, api.getClass(), mode);
+                                api.MODE, api.getClass(), mode);
                     }
                 }
                 else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
@@ -486,15 +504,15 @@ public class Resource extends PersistentObject
                 }
                 else {
                     throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
-                            API.MODE, api.getClass(), mode);
+                            api.MODE, api.getClass(), mode);
                 }
             }
         }
 
         // Create/modify capabilities
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : api.getCapabilities()) {
-            if (api.isCollectionItemMarkedAsNew(API.CAPABILITIES, apiCapability)) {
-                addCapability(Capability.fromAPI(apiCapability, entityManager));
+            if (api.isCollectionItemMarkedAsNew(api.CAPABILITIES, apiCapability)) {
+                addCapability(Capability.createFromApi(apiCapability, entityManager));
             }
             else {
                 Capability capability = getCapabilityById(apiCapability.getId().longValue());
@@ -503,7 +521,7 @@ public class Resource extends PersistentObject
         }
         // Delete capabilities
         Set<cz.cesnet.shongo.controller.api.Capability> apiDeletedCapabilities =
-                api.getCollectionItemsMarkedAsDeleted(API.CAPABILITIES);
+                api.getCollectionItemsMarkedAsDeleted(api.CAPABILITIES);
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
             removeCapability(getCapabilityById(apiCapability.getId().longValue()));
         }

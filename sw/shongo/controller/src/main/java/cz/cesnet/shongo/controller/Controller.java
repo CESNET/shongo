@@ -16,8 +16,6 @@ import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
 import org.hsqldb.util.DatabaseManagerSwing;
-import org.joda.time.Duration;
-import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -27,6 +25,7 @@ import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -47,12 +46,12 @@ public class Controller
     /**
      * Domain for which the controller is running.
      */
-    Domain domain = new Domain();
+    private Domain domain = new Domain();
 
     /**
      * Entity manager factory.
      */
-    EntityManagerFactory entityManagerFactory;
+    private EntityManagerFactory entityManagerFactory;
 
     /**
      * List of services of the domain controller.
@@ -75,9 +74,9 @@ public class Controller
     Container jadeContainer;
 
     /**
-     * @see WorkerThread
+     * List of threads which are started for the controller.
      */
-    WorkerThread workerThread;
+    List<Thread> threads = new ArrayList<Thread>();
 
     /**
      * Jade agent.
@@ -270,6 +269,16 @@ public class Controller
     }
 
     /**
+     * @param thread to be started and added to the {@link #threads}
+     */
+    private void addThread(Thread thread)
+    {
+        logger.debug("Starting thread [{}]...", thread.getName());
+        threads.add(thread);
+        thread.start();
+    }
+
+    /**
      * Start the domain controller (but do not start rpc web server or jade container).
      */
     public void start() throws IllegalStateException
@@ -326,6 +335,7 @@ public class Controller
         startRpc();
         startJade();
         startWorkerThread();
+        startComponents();
     }
 
     /**
@@ -369,12 +379,25 @@ public class Controller
      */
     public void startWorkerThread()
     {
-        logger.info("Starting Controller worker...");
-        workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
+        WorkerThread workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
                 entityManagerFactory);
         workerThread.setPeriod(configuration.getDuration(Configuration.WORKER_PERIOD));
         workerThread.setIntervalLength(configuration.getPeriod(Configuration.WORKER_INTERVAL));
-        workerThread.start();
+        addThread(workerThread);
+    }
+
+    /**
+     * Start components.
+     */
+    public void startComponents()
+    {
+        for (Component component : components) {
+            if (component instanceof Component.WithThread) {
+                Component.WithThread withThread = (Component.WithThread) component;
+                Thread thread = withThread.getThread();
+                addThread(thread);
+            }
+        }
     }
 
     /**
@@ -453,12 +476,15 @@ public class Controller
      */
     public void stop()
     {
-        if (workerThread != null) {
-            logger.info("Stopping Controller worker...");
-            if (workerThread.isAlive()) {
-                workerThread.interrupt();
+        List<Thread> reverseThreads = new ArrayList<Thread>();
+        reverseThreads.addAll(threads);
+        Collections.reverse(reverseThreads);
+        for (Thread thread : reverseThreads) {
+            logger.debug("Stopping thread [{}]...", thread.getName());
+            if (thread.isAlive()) {
+                thread.interrupt();
                 try {
-                    workerThread.join();
+                    thread.join();
                 }
                 catch (Exception e) {
                 }

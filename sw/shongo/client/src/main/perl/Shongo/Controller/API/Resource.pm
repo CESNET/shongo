@@ -182,7 +182,8 @@ sub modify_attributes()
     my ($self, $edit) = @_;
 
     $self->{'name'} = console_auto_value($edit, 'Name of the resource', 1, undef, $self->{'name'});
-    $self->{'description'} = console_edit_value('Description of the resource', 1, undef, $self->{'description'});
+    $self->{'description'} = console_edit_value('Description of the resource', 0, undef, $self->{'description'});
+    $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
     if (!$edit) {
         return;
     }
@@ -204,7 +205,6 @@ sub modify_attributes()
         $connectorAgentName = console_edit_value('Connector agent name', 1, undef, $connectorAgentName);
         $self->{'mode'} = {'connectorAgentName' => $connectorAgentName};
     }
-    $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
     $self->{'maxFuture'} = console_edit_value('Maximum Future', 0,
         $Shongo::Common::DateTimePattern . '|' . $Shongo::Common::PeriodPattern, $self->{'maxFuture'});
 }

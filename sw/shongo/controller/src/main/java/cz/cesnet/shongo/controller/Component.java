@@ -1,9 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-
-
-import org.apache.commons.configuration.BaseConfiguration;
-
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -16,7 +12,7 @@ public abstract class Component
     /**
      * Initialize domain controller component.
      */
-    public void init()
+    public final void init()
     {
         init(new Configuration());
     }
@@ -75,7 +71,7 @@ public abstract class Component
     }
 
     /**
-     * Object extending {@link Component} can implement this interface to be aware of {@link ControllerAgent}.
+     * Class extending {@link Component} can implement this interface to be aware of {@link ControllerAgent}.
      */
     public static interface ControllerAgentAware
     {
@@ -83,5 +79,14 @@ public abstract class Component
          * @param controllerAgent {@link ControllerAgent} which can be used by implementing {@link Component}
          */
         public void setControllerAgent(ControllerAgent controllerAgent);
+    }
+
+    /**
+     * Class extending {@link Component} can implement this interface and the thread returned from
+     * the {@link #getThread()} method will be automatically started after the controller is started.
+     */
+    public static interface WithThread
+    {
+        public Thread getThread();
     }
 }

@@ -25,7 +25,7 @@
         <platform-id>Shongo</platform-id>
     </jade>
 
-    <!-- Worker starts periodically preprocessor and scheduler -->
+    <!-- Worker periodically starts preprocessor and scheduler -->
     <worker>
         <!-- Period in which the worker is periodically working -->
         <period>PT10S</period>

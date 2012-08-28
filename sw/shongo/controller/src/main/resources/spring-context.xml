@@ -29,6 +29,7 @@
     <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler">
         <property name="resourceDatabase" ref="resourceDatabase"/>
     </bean>
+    <bean id="executor" class="cz.cesnet.shongo.controller.Executor"/>
 
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.api.CommonServiceImpl"/>
@@ -42,8 +43,5 @@
     <bean id="entityManagerFactory" class="javax.persistence.Persistence" factory-method="createEntityManagerFactory">
         <constructor-arg type="java.lang.String" value="controller"/>
     </bean>
-
-    <!-- Entity Manager -->
-    <bean id="entityManager" factory-bean="entityManagerFactory" factory-method="createEntityManager"/>
 
 </beans>

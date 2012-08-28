@@ -21,12 +21,13 @@ import java.util.*;
 
 /**
  * Represents a component for a domain controller that holds all resources in memory in efficient form. It also holds
- * allocation information about resources.
+ * allocation information about resources which are used , e.g., by scheduler.
  * <p/>
  * Resources must be explicitly added by {@link #addResource(Resource, EntityManager)} or automatically loaded in
  * {@link Component#init(Configuration)}.
  * <p/>
- * Database holds only allocations inside the {@link #workingInterval}. If the {@link #workingInterval} isn't set
+ * Database holds only allocations inside the {@link #workingInterval} (automatically extended by
+ * {@link #deviceAllocationMaximumDuration}). If the {@link #workingInterval} isn't set
  * the database of allocations will be empty (it is not desirable to load all allocations for the entire time span).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -169,7 +170,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
                 workingInterval.getStart().minus(deviceAllocationMaximumDuration),
                 workingInterval.getEnd().plus(deviceAllocationMaximumDuration));
         if (!adjustedWorkingInterval.equals(this.workingInterval)) {
-            logger.info("Setting new working interval '{}' to database of virtual rooms...",
+            logger.info("Setting new working interval '{}' to resource database...",
                     TemporalHelper.formatInterval(adjustedWorkingInterval));
             this.workingInterval = adjustedWorkingInterval;
             this.referenceDateTime = workingInterval.getStart();

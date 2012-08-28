@@ -9,6 +9,7 @@ import static org.junit.Assert.assertArrayEquals;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
+@SuppressWarnings("unchecked")
 public class RangeSetTest
 {
     @Test

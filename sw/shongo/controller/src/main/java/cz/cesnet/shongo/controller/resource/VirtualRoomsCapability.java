@@ -20,7 +20,7 @@ public class VirtualRoomsCapability extends DeviceCapability
     private Integer portCount;
 
     /**
-     * Contructor.
+     * Constructor.
      */
     public VirtualRoomsCapability()
     {

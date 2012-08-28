@@ -125,7 +125,6 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @return {@link #DESCRIPTION}
      */
-    @Required
     public String getDescription()
     {
         return getPropertyStorage().getValue(DESCRIPTION);
@@ -174,7 +173,6 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @return {@link #TECHNOLOGIES}
      */
-    @Required
     public Set<Technology> getTechnologies()
     {
         return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
