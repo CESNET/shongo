@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
-import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import jade.core.AID;
@@ -53,12 +53,12 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
-    public void init()
+    public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         checkDependency(controllerAgent, ControllerAgent.class);
-        super.init();
+        super.init(configuration);
     }
 
     @Override

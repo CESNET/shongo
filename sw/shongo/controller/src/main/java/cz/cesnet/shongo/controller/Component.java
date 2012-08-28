@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller;
 
-import org.joda.time.Interval;
+
+
+import org.apache.commons.configuration.BaseConfiguration;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -15,6 +17,16 @@ public abstract class Component
      * Initialize domain controller component.
      */
     public void init()
+    {
+        init(new Configuration());
+    }
+
+    /**
+     * Initialize domain controller component.
+     *
+     * @param configuration
+     */
+    public void init(Configuration configuration)
     {
     }
 

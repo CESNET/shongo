@@ -136,7 +136,8 @@ public class AllocatedCompartment extends PersistentObject
                 allocatedVirtualRoomApi.setSlot(compartmentRequest.getRequestedSlot());
                 allocatedVirtualRoomApi.setPortCount(allocatedVirtualRoom.getPortCount());
                 allocatedCompartmentApi.addAllocatedResource(allocatedVirtualRoomApi);
-            } else {
+            }
+            else {
                 cz.cesnet.shongo.controller.api.AllocatedResource allocatedResourceApi =
                         new cz.cesnet.shongo.controller.api.AllocatedResource();
                 allocatedResourceApi.setIdentifier(domain.formatIdentifier(resource.getId()));

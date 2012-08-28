@@ -25,4 +25,21 @@
         <platform-id>Shongo</platform-id>
     </jade>
 
+    <!-- Worker starts periodically preprocessor and scheduler -->
+    <worker>
+        <!-- Period in which the worker is periodically working -->
+        <period>PT10S</period>
+        <!-- Length of working interval -->
+        <interval>P31D</interval>
+    </worker>
+
+    <!-- Resources configuration -->
+    <resource>
+        <!-- Configuration for allocations of device resources -->
+        <device-allocation>
+            <!-- Maximum duration of a single allocation -->
+            <max-duration>P6D</max-duration>
+        </device-allocation>
+    </resource>
+
 </configuration>

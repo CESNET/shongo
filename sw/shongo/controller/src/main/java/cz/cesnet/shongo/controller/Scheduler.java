@@ -128,10 +128,10 @@ public class Scheduler extends Component
         try {
             // Get requested slot and check it's maximum duration
             Interval requestedSlot = compartmentRequest.getRequestedSlot();
-            if (requestedSlot.toDuration().isLongerThan(AllocatedResource.MAXIMUM_DURATION)) {
+            if (requestedSlot.toDuration().isLongerThan(resourceDatabase.getDeviceAllocationMaximumDuration())) {
                 throw new FaultException("Requested slot '%s' is longer than maximum '%s'!",
                         requestedSlot.toPeriod().normalizedStandard().toString(),
-                        AllocatedResource.MAXIMUM_DURATION.toString());
+                        resourceDatabase.getDeviceAllocationMaximumDuration().toString());
             }
 
             // Get map of requested resources with requested persons for them

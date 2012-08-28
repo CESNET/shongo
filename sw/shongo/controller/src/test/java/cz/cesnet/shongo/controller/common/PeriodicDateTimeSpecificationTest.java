@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.common;
 
+import cz.cesnet.shongo.api.util.Converter;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
@@ -17,7 +18,7 @@ import static junit.framework.Assert.fail;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PeriodicDateTimeTest
+public class PeriodicDateTimeSpecificationTest
 {
     private PeriodicDateTimeSpecification periodicDateTime;
 
@@ -31,11 +32,11 @@ public class PeriodicDateTimeTest
         periodicDateTime.setEnd(LocalDate.parse("2012-03-31"));
 
         // Except 15.3 (week 12. - 18.3.)
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Disable,
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.DISABLE,
                 LocalDate.parse("2012-03-12"), LocalDate.parse("2012-03-18"));
 
         // With extra lecture on 30.3.
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra,
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA,
                 LocalDate.parse("2012-03-30"));
     }
 
@@ -46,8 +47,8 @@ public class PeriodicDateTimeTest
         assertEquals(Period.parse("P1W"), periodicDateTime.getPeriod());
         assertEquals(LocalDate.parse("2012-03-31"), periodicDateTime.getEnd());
         assertEquals(2, periodicDateTime.getRules().size());
-        assertEquals(PeriodicDateTimeSpecification.RuleType.Disable, periodicDateTime.getRules().get(0).getType());
-        assertEquals(PeriodicDateTimeSpecification.RuleType.Extra, periodicDateTime.getRules().get(1).getType());
+        assertEquals(PeriodicDateTimeSpecification.RuleType.DISABLE, periodicDateTime.getRules().get(0).getType());
+        assertEquals(PeriodicDateTimeSpecification.RuleType.EXTRA, periodicDateTime.getRules().get(1).getType());
     }
 
     @Test
@@ -70,7 +71,7 @@ public class PeriodicDateTimeTest
     {
         PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification();
         assertEquals(0, periodicDateTime.getRules().size());
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, new LocalDate());
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, new LocalDate());
         assertEquals(1, periodicDateTime.getRules().size());
     }
 
@@ -78,7 +79,7 @@ public class PeriodicDateTimeTest
     public void testClearRules() throws Exception
     {
         PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification();
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, new LocalDate());
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, new LocalDate());
         assertEquals(1, periodicDateTime.getRules().size());
         periodicDateTime.clearRules();
         assertEquals(0, periodicDateTime.getRules().size());
@@ -136,11 +137,21 @@ public class PeriodicDateTimeTest
         assertEquals(periodicDateTime, periodicDateTime);
 
         PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification();
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, LocalDateTime.parse("2012-03-01T12:00"));
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, LocalDateTime.parse("2012-03-08T12:00"));
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, LocalDateTime.parse("2012-03-22T12:00"));
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, LocalDateTime.parse("2012-03-29T12:00"));
-        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.Extra, LocalDateTime.parse("2012-03-30T12:00"));
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, LocalDateTime.parse("2012-03-01T12:00"));
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, LocalDateTime.parse("2012-03-08T12:00"));
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, LocalDateTime.parse("2012-03-22T12:00"));
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, LocalDateTime.parse("2012-03-29T12:00"));
+        periodicDateTime.addRule(PeriodicDateTimeSpecification.RuleType.EXTRA, LocalDateTime.parse("2012-03-30T12:00"));
         assertEquals(periodicDateTime, this.periodicDateTime);
+    }
+
+    @Test
+    public void testEndMatching() throws Exception
+    {
+        PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification();
+        periodicDateTime.setStart(DateTime.parse("2012-03-01T12:00"));
+        periodicDateTime.setPeriod(Period.parse("P1W"));
+        periodicDateTime.setEnd(Converter.convertStringToReadablePartial("2012-03"));
+        assertEquals(5, periodicDateTime.enumerate().size());
     }
 }

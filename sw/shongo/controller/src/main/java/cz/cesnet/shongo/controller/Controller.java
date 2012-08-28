@@ -9,8 +9,6 @@ import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Level;
@@ -18,6 +16,8 @@ import org.hibernate.Session;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
 import org.hsqldb.util.DatabaseManagerSwing;
+import org.joda.time.Duration;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -40,21 +40,9 @@ public class Controller
     private static Logger logger = LoggerFactory.getLogger(Controller.class);
 
     /**
-     * Controller configuration parameters names.
-     */
-    public static final String LOG_RPC = "log-rpc";
-    public static final String DOMAIN_NAME = "domain.name";
-    public static final String DOMAIN_ORGANIZATION = "domain.organization";
-    public static final String RPC_HOST = "rpc.host";
-    public static final String RPC_PORT = "rpc.port";
-    public static final String JADE_HOST = "jade.host";
-    public static final String JADE_PORT = "jade.port";
-    public static final String JADE_PLATFORM_ID = "jade.platform-id";
-
-    /**
      * Configuration of the controller.
      */
-    private CompositeConfiguration configuration;
+    private Configuration configuration;
 
     /**
      * Domain for which the controller is running.
@@ -109,7 +97,7 @@ public class Controller
      *
      * @param configuration sets the {@link #configuration}
      */
-    public Controller(Configuration configuration)
+    public Controller(org.apache.commons.configuration.Configuration configuration)
     {
         setConfiguration(configuration);
     }
@@ -136,9 +124,9 @@ public class Controller
     /**
      * @param configuration configuration to be set to the controller
      */
-    public void setConfiguration(Configuration configuration)
+    public void setConfiguration(org.apache.commons.configuration.Configuration configuration)
     {
-        this.configuration = new CompositeConfiguration();
+        this.configuration = new Configuration();
         // System properties has the highest priority
         this.configuration.addConfiguration(new SystemConfiguration());
         // Passed configuration has lower priority
@@ -182,7 +170,7 @@ public class Controller
      */
     public String getRpcHost()
     {
-        return configuration.getString(RPC_HOST);
+        return configuration.getString(Configuration.RPC_HOST);
     }
 
     /**
@@ -190,7 +178,7 @@ public class Controller
      */
     public int getRpcPort()
     {
-        return configuration.getInt(RPC_PORT);
+        return configuration.getInt(Configuration.RPC_PORT);
     }
 
     /**
@@ -198,7 +186,7 @@ public class Controller
      */
     public String getJadeHost()
     {
-        return configuration.getString(JADE_HOST);
+        return configuration.getString(Configuration.JADE_HOST);
     }
 
     /**
@@ -206,7 +194,7 @@ public class Controller
      */
     public int getJadePort()
     {
-        return configuration.getInt(JADE_PORT);
+        return configuration.getInt(Configuration.JADE_PORT);
     }
 
     /**
@@ -214,7 +202,7 @@ public class Controller
      */
     public String getJadePlatformId()
     {
-        return configuration.getString(JADE_PLATFORM_ID);
+        return configuration.getString(Configuration.JADE_PLATFORM_ID);
     }
 
     /**
@@ -292,7 +280,7 @@ public class Controller
         }
 
         // Configure
-        if (configuration.getBoolean(LOG_RPC)) {
+        if (configuration.getBoolean(Configuration.LOG_RPC)) {
             WebServerXmlLogger.setEnabled(true);
         }
 
@@ -301,10 +289,10 @@ public class Controller
             throw new IllegalStateException(getClass().getName() + " doesn't have the domain set!");
         }
         if (domain.getName() == null) {
-            domain.setName(configuration.getString(DOMAIN_NAME));
+            domain.setName(configuration.getString(Configuration.DOMAIN_NAME));
         }
         if (domain.getOrganization() == null) {
-            domain.setOrganization(configuration.getString(DOMAIN_ORGANIZATION));
+            domain.setOrganization(configuration.getString(Configuration.DOMAIN_ORGANIZATION));
         }
 
         logger.info("Controller for domain '{}' is starting...", domain.getName());
@@ -323,7 +311,7 @@ public class Controller
                 Component.ControllerAgentAware controllerAgentAware = (Component.ControllerAgentAware) component;
                 controllerAgentAware.setControllerAgent(jadeAgent);
             }
-            component.init();
+            component.init(configuration);
         }
     }
 
@@ -384,6 +372,8 @@ public class Controller
         logger.info("Starting Controller worker...");
         workerThread = new WorkerThread(getComponent(Preprocessor.class), getComponent(Scheduler.class),
                 entityManagerFactory);
+        workerThread.setPeriod(configuration.getDuration(Configuration.WORKER_PERIOD));
+        workerThread.setIntervalLength(configuration.getPeriod(Configuration.WORKER_INTERVAL));
         workerThread.start();
     }
 
@@ -398,7 +388,7 @@ public class Controller
         shell.addCommands(ContainerCommandSet.createContainerCommandSet(jadeContainer));
         shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, "Controller"));
         shell.addCommands(jadeAgent.createCommandSet());
-        shell.addCommand("logger", "Toggle logging of [rpc|sql]", new CommandHandler()
+        shell.addCommand("log", "Toggle logging of [rpc|sql]", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)
@@ -414,19 +404,21 @@ public class Controller
                     WebServerXmlLogger.setEnabled(enabled);
                     logger = org.apache.log4j.Logger.getLogger(
                             cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger.class);
-                } else if (args[1].equals("sql")) {
+                }
+                else if (args[1].equals("sql")) {
                     logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
                 }
-                if (logger == null ) {
+                if (logger == null) {
                     return;
                 }
-                if (enabled == null ) {
+                if (enabled == null) {
                     enabled = logger.getLevel() == null || logger.getLevel().isGreaterOrEqual(Level.INFO);
                 }
                 if (enabled) {
                     Controller.logger.info("Enabling '{}' logger.", args[1]);
                     logger.setLevel(Level.TRACE);
-                } else {
+                }
+                else {
                     Controller.logger.info("Disabling '{}' logger.", args[1]);
                     logger.setLevel(Level.INFO);
                 }
@@ -583,17 +575,17 @@ public class Controller
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
             String host = commandLine.getOptionValue(optionHost.getOpt());
-            System.setProperty(RPC_HOST, host);
-            System.setProperty(JADE_HOST, host);
+            System.setProperty(Configuration.RPC_HOST, host);
+            System.setProperty(Configuration.JADE_HOST, host);
         }
         if (commandLine.hasOption(optionRpcPort.getOpt())) {
-            System.setProperty(RPC_PORT, commandLine.getOptionValue(optionRpcPort.getOpt()));
+            System.setProperty(Configuration.RPC_PORT, commandLine.getOptionValue(optionRpcPort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePort.getOpt())) {
-            System.setProperty(JADE_PORT, commandLine.getOptionValue(optionJadePort.getOpt()));
+            System.setProperty(Configuration.JADE_PORT, commandLine.getOptionValue(optionJadePort.getOpt()));
         }
         if (commandLine.hasOption(optionJadePlatform.getOpt())) {
-            System.setProperty(JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
+            System.setProperty(Configuration.JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
         }
 
         // Run application by spring application context

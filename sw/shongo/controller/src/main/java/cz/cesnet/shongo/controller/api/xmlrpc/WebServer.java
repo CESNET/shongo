@@ -8,7 +8,6 @@ import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.common.*;
 import org.apache.xmlrpc.metadata.Util;
-import org.apache.xmlrpc.serializer.XmlRpcWriter;
 import org.apache.xmlrpc.server.*;
 import org.apache.xmlrpc.webserver.Connection;
 import org.apache.xmlrpc.webserver.RequestData;
@@ -389,7 +388,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     /**
      * Connection server. Copied default implementation which overrides:
      * 1) convertThrowable method to allow use of cause from runtime exception
-     *    as fault.
+     * as fault.
      * 2) getRequest and writeResponse for logging of XML-RPC requests and response XMLs.
      *
      * @author Martin Srom <martin.srom@cesnet.cz>

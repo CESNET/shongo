@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ import java.util.*;
  * allocation information about resources.
  * <p/>
  * Resources must be explicitly added by {@link #addResource(Resource, EntityManager)} or automatically loaded in
- * {@link #init()}.
+ * {@link Component#init(Configuration)}.
  * <p/>
  * Database holds only allocations inside the {@link #workingInterval}. If the {@link #workingInterval} isn't set
  * the database of allocations will be empty (it is not desirable to load all allocations for the entire time span).
@@ -38,6 +39,11 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      * List of all resources in resource database by theirs id.
      */
     private Map<Long, Resource> resourceById = new HashMap<Long, Resource>();
+
+    /**
+     * Maximum duration of a device allocation.
+     */
+    private Duration deviceAllocationMaximumDuration = Duration.standardDays(1);
 
     /**
      * Working interval for which are loaded allocated virtual rooms.
@@ -85,10 +91,15 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     }
 
     @Override
-    public void init()
+    public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
-        super.init();
+        super.init(configuration);
+
+        Duration duration = configuration.getDuration(Configuration.RESOURCE_DEVICE_ALLOCATION_MAX_DURATION);
+        if (duration != null) {
+            deviceAllocationMaximumDuration = duration;
+        }
 
         logger.debug("Loading resource database...");
 
@@ -120,7 +131,24 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         capabilityStateByType.clear();
         deviceTopology.clear();
 
-        super.init();
+        super.destroy();
+    }
+
+    /**
+     * @return {@link #deviceAllocationMaximumDuration}
+     */
+    public Duration getDeviceAllocationMaximumDuration()
+    {
+        return deviceAllocationMaximumDuration;
+    }
+
+    /**
+     * @param deviceAllocationMaximumDuration
+     *         sets the {@link #deviceAllocationMaximumDuration}
+     */
+    public void setDeviceAllocationMaximumDuration(Duration deviceAllocationMaximumDuration)
+    {
+        this.deviceAllocationMaximumDuration = deviceAllocationMaximumDuration;
     }
 
     /**
@@ -138,8 +166,8 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
     {
         Interval adjustedWorkingInterval = new Interval(
-                workingInterval.getStart().minus(AllocatedVirtualRoom.MAXIMUM_DURATION),
-                workingInterval.getEnd().plus(AllocatedVirtualRoom.MAXIMUM_DURATION));
+                workingInterval.getStart().minus(deviceAllocationMaximumDuration),
+                workingInterval.getEnd().plus(deviceAllocationMaximumDuration));
         if (!adjustedWorkingInterval.equals(this.workingInterval)) {
             logger.info("Setting new working interval '{}' to database of virtual rooms...",
                     TemporalHelper.formatInterval(adjustedWorkingInterval));
@@ -725,7 +753,6 @@ public class ResourceDatabase extends Component implements Component.EntityManag
                 technologiesVariants);
         return findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources, entityManager);
     }
-
 
     /**
      * Current state of a resource.

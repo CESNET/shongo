@@ -4,7 +4,6 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.resource.Resource;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -18,11 +17,6 @@ import javax.persistence.*;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class AllocatedResource extends PersistentObject
 {
-    /**
-     * Maximum duration of allocated virtual room.
-     */
-    public static Duration MAXIMUM_DURATION = Duration.standardDays(1);
-
     /**
      * {@link AllocatedCompartment} for which the resource is allocated.
      */

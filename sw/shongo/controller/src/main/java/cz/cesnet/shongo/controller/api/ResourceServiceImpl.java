@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -59,12 +60,12 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public void init()
+    public void init(Configuration configuration)
     {
         checkDependency(resourceDatabase, ResourceDatabase.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
-        super.init();
+        super.init(configuration);
     }
 
     @Override

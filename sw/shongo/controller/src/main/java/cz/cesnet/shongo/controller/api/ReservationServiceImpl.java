@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
+import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.fault.FaultException;
@@ -43,11 +44,11 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public void init()
+    public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
-        super.init();
+        super.init(configuration);
     }
 
     @Override
@@ -189,7 +190,7 @@ public class ReservationServiceImpl extends Component
         List<cz.cesnet.shongo.controller.allocation.AllocatedCompartment> allocatedCompartments =
                 allocatedCompartmentManager.listByReservationRequest(id);
         List<AllocatedCompartment> allocatedCompartmentList = new ArrayList<AllocatedCompartment>();
-        for (cz.cesnet.shongo.controller.allocation.AllocatedCompartment allocation :allocatedCompartments) {
+        for (cz.cesnet.shongo.controller.allocation.AllocatedCompartment allocation : allocatedCompartments) {
             allocatedCompartmentList.add(allocation.toApi(domain));
         }
 

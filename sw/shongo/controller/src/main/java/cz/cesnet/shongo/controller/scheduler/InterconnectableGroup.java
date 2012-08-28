@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,7 +40,7 @@ public class InterconnectableGroup
     {
         this.technologies.addAll(Arrays.asList(technologies));
     }
-    
+
     /**
      * Constructor.
      *

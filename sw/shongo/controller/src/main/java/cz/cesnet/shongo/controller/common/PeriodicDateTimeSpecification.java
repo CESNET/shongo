@@ -2,7 +2,10 @@ package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
 import org.hibernate.annotations.Type;
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import javax.persistence.*;
 import java.util.*;
@@ -272,13 +275,11 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
     public final List<DateTime> enumerate(DateTime intervalStart, DateTime intervalTo, int maxCount)
     {
         DateTime start = this.start;
-        DateTime end = (this.end != null ? this.end.toDateTime(start) : null);
 
         // Find all events in range from-to
         List<DateTime> dateTimeList = new ArrayList<DateTime>();
         if (start != null) {
-            // TODO: match end
-            while (end == null /*|| this.end.equals(start)*/ || !start.isAfter(end)) {
+            while (end == null || !start.isAfter(this.end.toDateTime(start))) {
                 if (intervalTo != null && start.isAfter(intervalTo)) {
                     break;
                 }
@@ -297,7 +298,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         Set<Integer> disabledSet = new HashSet<Integer>();
         for (Rule rule : rules) {
             // Extra rule
-            if (rule.getType() == RuleType.Extra) {
+            if (rule.getType() == RuleType.EXTRA) {
                 DateTime ruleDateTime = rule.getDateTime().toDateTime(start);
                 if ((intervalStart == null || !intervalStart.isAfter(ruleDateTime))
                         && (intervalTo == null || !intervalTo.isBefore(ruleDateTime))) {
@@ -311,7 +312,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
 
             // Enable/disable rule
             RuleType type = rule.getType();
-            if (type != RuleType.Enable && type != RuleType.Disable) {
+            if (type != RuleType.ENABLE && type != RuleType.DISABLE) {
                 throw new IllegalStateException("Rule type should be enable or disable.");
             }
             // Interval
@@ -321,7 +322,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
                 for (int index = 0; index < dateTimeList.size(); index++) {
                     DateTime dateTime = dateTimeList.get(index);
                     if (dateTime.isBefore(ruleFrom) == false && dateTime.isAfter(ruleTo) == false) {
-                        if (type == RuleType.Enable) {
+                        if (type == RuleType.ENABLE) {
                             disabledSet.remove(index);
                         }
                         else {
@@ -336,7 +337,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
                 for (int index = 0; index < dateTimeList.size(); index++) {
                     DateTime dateTime = dateTimeList.get(index);
                     if (dateTime.equals(ruleDateTime.toDateTime(dateTime))) {
-                        if (type == RuleType.Enable) {
+                        if (type == RuleType.ENABLE) {
                             disabledSet.remove(index);
                         }
                         else {
@@ -409,17 +410,17 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
         /**
          * Represents a rule that will add new event outside periodicity.
          */
-        Extra,
+        EXTRA,
 
         /**
          * Represents a rule for enabling events by concrete date/time or by interval from - to.
          */
-        Enable,
+        ENABLE,
 
         /**
          * Represents a rule for disabling events by concrete date/time or by interval from - to.
          */
-        Disable
+        DISABLE
     }
 
     /**

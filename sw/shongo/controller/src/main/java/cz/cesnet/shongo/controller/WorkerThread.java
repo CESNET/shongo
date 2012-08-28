@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import org.joda.time.DateMidnight;
+import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -21,7 +22,12 @@ public class WorkerThread extends Thread
     /**
      * Period in which the worker works.
      */
-    private long period = 10000;
+    private Duration period;
+
+    /**
+     * Length of working interval from now.
+     */
+    private Period intervalLength;
 
     /**
      * @see Preprocessor
@@ -59,9 +65,17 @@ public class WorkerThread extends Thread
     /**
      * @param period sets the {@link #period}
      */
-    public void setPeriod(long period)
+    public void setPeriod(Duration period)
     {
         this.period = period;
+    }
+
+    /**
+     * @param intervalLength sets the {@link #intervalLength}
+     */
+    public void setIntervalLength(Period intervalLength)
+    {
+        this.intervalLength = intervalLength;
     }
 
     @Override
@@ -69,8 +83,15 @@ public class WorkerThread extends Thread
     {
         logger.info("Worker started!");
 
+        if (period == null) {
+            throw new IllegalStateException("Worker must have period set!");
+        }
+        if (intervalLength == null) {
+            throw new IllegalStateException("Worker must have interval length set!");
+        }
+
         try {
-            Thread.sleep(1000);
+            Thread.sleep(period.getMillis());
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -79,7 +100,7 @@ public class WorkerThread extends Thread
         while (!Thread.interrupted()) {
             work();
             try {
-                Thread.sleep(period);
+                Thread.sleep(period.getMillis());
             }
             catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -95,9 +116,7 @@ public class WorkerThread extends Thread
      */
     private void work()
     {
-
-        Interval interval = new Interval(DateMidnight.now().minus(Period.days(1)),
-                DateMidnight.now().plus(Period.days(31)));
+        Interval interval = new Interval(DateMidnight.now(), DateMidnight.now().plus(intervalLength));
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 

@@ -47,7 +47,7 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Constructor.
      */
-    private DateTimeSlot()
+    public DateTimeSlot()
     {
     }
 
