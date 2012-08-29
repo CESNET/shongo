@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.command.ManageCommand;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
@@ -60,13 +62,29 @@ public class ContainerCommandSet extends CommandSet
             public void perform(CommandLine commandLine)
             {
                 String[] args = commandLine.getArgs();
-                if (commandLine.getArgs().length < 3) {
+                if (args.length < 3) {
                     Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
                     return;
                 }
                 container.performCommand(agentName, SendCommand.createSendMessage(args[1], args[2]));
             }
         });
+
+        commandSet.addCommand("manage", "Start managing a device", new CommandHandler()
+        {
+            @Override
+            public void perform(CommandLine commandLine)
+            {
+                String[] args = commandLine.getArgs();
+                if (args.length < 5) {
+                    Shell.printError("The manage command requires four parameters: <CONNECTOR-CLASS> <DEV-ADDRESS> <DEV-USERNAME> <DEV-PASSWORD>.");
+                    return;
+                }
+                Command cmd = new ManageCommand(args[1], args[2], args[3], args[4]);
+                container.performCommand(agentName, cmd);
+            }
+        });
+
         return commandSet;
     }
 }
