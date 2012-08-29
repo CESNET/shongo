@@ -146,7 +146,9 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         try {
             ServerSocket serverSocket = this.serverSocket;
             this.serverSocket = null;
-            serverSocket.close();
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
         }
         catch (IOException exception) {
             throw new IllegalStateException(exception);
