@@ -36,6 +36,7 @@
     <bean id="resourceService" class="cz.cesnet.shongo.controller.api.ResourceServiceImpl">
         <property name="resourceDatabase" ref="resourceDatabase"/>
     </bean>
+    <bean id="resourceControlService" class="cz.cesnet.shongo.controller.api.ResourceControlServiceImpl"/>
     <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl"/>
     <bean id="roomService" class="cz.cesnet.shongo.controller.api.RoomServiceImpl"/>
 

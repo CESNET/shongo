@@ -745,7 +745,7 @@ sub new
         $self->{$_} = $args{$_};
     }
 
-    $self->{term} ||= new Term::ReadLine($args{'app'});
+    $self->{term} = Term::ReadLine->new($args{'app'});
     $self->{term}->MinLine(0);  # manually call AddHistory
 
     my $attrs = $self->{term}->Attribs;

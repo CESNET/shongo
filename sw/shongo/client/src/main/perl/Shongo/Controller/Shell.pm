@@ -14,6 +14,7 @@ use Shongo::Console;
 use Shongo::Controller;
 use Shongo::Controller::CommonService;
 use Shongo::Controller::ResourceService;
+use Shongo::Controller::ResourceControlService;
 use Shongo::Controller::ReservationService;
 
 #
@@ -45,6 +46,7 @@ sub new
 
     # Populate resource management commands
     Shongo::Controller::ResourceService->populate($self);
+    Shongo::Controller::ResourceControlService->populate($self);
 
     # Populate reservation management commands
     Shongo::Controller::ReservationService->populate($self);
