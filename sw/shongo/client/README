@@ -17,19 +17,18 @@ REQUIREMENTS
 This client requires Perl installed to run and following Perl modules:
 1) RPC::XML
 2) XML::Twig
-3) Term::ReadLine::Gnu
-4) Term::ReadLine::Zoid
-5) Text::Table
-6) DateTime::Format::ISO8601
+3) Term::ReadLine::Zoid
+4) Text::Table
+5) DateTime::Format::ISO8601
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 
-    sudo apt-get install librpc-xml-perl libxml-twig-perl libterm-readline-gnu-perl \
+    sudo apt-get install librpc-xml-perl libxml-twig-perl \
         libterm-readline-zoid-perl libtext-table-perl libdatetime-format-iso8601-perl
 
 
 On other platforms the modules can be installed for instance
 by CPAN utility:
 
-    cpan -i RPC::XML XML::Twig Term::ReadLine::Gnu Term::ReadLine::Zoid Text::Table DateTime::Format::ISO8601
+    cpan -i RPC::XML XML::Twig Term::ReadLine::Zoid Text::Table DateTime::Format::ISO8601

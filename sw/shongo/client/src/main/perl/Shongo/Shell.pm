@@ -9,7 +9,6 @@ use base qw(Term::ShellUI);
 use strict;
 use warnings;
 
-use Term::ReadLine::Gnu;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller;
@@ -25,7 +24,7 @@ sub new
     my $class = shift;
     my $self = Term::ShellUI->new(@_, commands => {}, history_file => '~/.shongo_client');
 
-    $self->{term}->Attribs->ornaments(0);
+    $self->{term}->ornaments(0);
     $self->prompt('shongo> ');
     $self->add_commands({
         "help" => {

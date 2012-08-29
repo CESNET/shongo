@@ -360,6 +360,9 @@ sub to_string()
     if ( defined($self->{'identifier'}) ) {
         $string .= " Identifier: $self->{'identifier'}\n";
     }
+    if ( defined($self->{'created'}) ) {
+        $string .= "    Created: $self->{'created'}\n";
+    }
     $string .= "       Type: $Type->{$self->{'type'}}\n";
     $string .= "       Name: $self->{'name'}\n";
     $string .= "    Purpose: $Purpose->{$self->{'purpose'}}\n";

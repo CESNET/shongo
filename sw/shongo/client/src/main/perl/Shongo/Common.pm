@@ -223,8 +223,11 @@ sub remove_collection_item
 sub format_datetime
 {
     my ($dateTime) = @_;
-    $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
-    return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
+    if ( defined($dateTime) ) {
+        $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
+        return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
+    }
+    return $dateTime;
 }
 
 #
