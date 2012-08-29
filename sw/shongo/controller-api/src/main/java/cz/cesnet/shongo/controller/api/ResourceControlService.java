@@ -15,5 +15,5 @@ import java.util.Collection;
 public interface ResourceControlService extends Service
 {
     @API
-    public String dial(SecurityToken token, String resourceIdentifier, String target) throws FaultException;
+    public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException;
 }
