@@ -22,6 +22,8 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
@@ -124,12 +126,32 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         factory.addInstance(handler);
     }
 
+    @Override
+    public void log(Throwable pError)
+    {
+        if (pError instanceof SocketException) {
+            if (serverSocket == null) {
+                return;
+            }
+        }
+        super.log(pError);
+    }
+
     /**
      * Stop XML-RPC server
      */
     public void stop()
     {
         shutdown();
+        try {
+            ServerSocket serverSocket = this.serverSocket;
+            this.serverSocket = null;
+            serverSocket.close();
+        }
+        catch (IOException exception) {
+            throw new IllegalStateException(exception);
+        }
+
     }
 
     /**
