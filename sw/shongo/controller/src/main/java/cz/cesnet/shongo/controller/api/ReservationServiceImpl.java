@@ -148,6 +148,7 @@ public class ReservationServiceImpl extends Component
                 }
             }
 
+            summary.setCreated(reservationRequest.getCreated());
             summary.setType(reservationRequest.getType());
             summary.setName(reservationRequest.getName());
             summary.setPurpose(reservationRequest.getPurpose());

@@ -31,7 +31,11 @@ public class Configuration extends CompositeConfiguration
      */
     public Duration getDuration(String key)
     {
-        return Period.parse(getString(key)).toStandardDuration();
+        String value = getString(key);
+        if (value == null) {
+            return null;
+        }
+        return Period.parse(value).toStandardDuration();
     }
 
     /**
@@ -39,6 +43,10 @@ public class Configuration extends CompositeConfiguration
      */
     public Period getPeriod(String key)
     {
-        return Period.parse(getString(key));
+        String value = getString(key);
+        if (value == null) {
+            return null;
+        }
+        return Period.parse(value);
     }
 }
