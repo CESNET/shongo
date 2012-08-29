@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 /**
@@ -15,6 +16,11 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
      * Identifier of the resource.
      */
     private String identifier;
+
+    /**
+     * Date/time when the reservation request was created.
+     */
+    private DateTime created;
 
     /**
      * @see ReservationRequest#TYPE
@@ -55,6 +61,21 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     public void setIdentifier(String identifier)
     {
         this.identifier = identifier;
+    }
+
+    /**
+     * @return {@link #created}
+     */
+    public DateTime getCreated()
+    {
+        return created;
+    }
+    /**
+     * @param created sets the {@link #created}
+     */
+    public void setCreated(DateTime created)
+    {
+        this.created = created;
     }
 
     /**

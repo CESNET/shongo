@@ -74,6 +74,14 @@
             <artifactId>commons-configuration</artifactId>
             <version>1.8</version>
         </dependency>
+
+        <!-- Graph-theory objects and algorithms -->
+        <dependency>
+            <groupId>jgrapht</groupId>
+            <artifactId>jgrapht</artifactId>
+            <version>0.7.3</version>
+        </dependency>
+
     </dependencies>
 
     <build>

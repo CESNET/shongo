@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -43,6 +44,11 @@ public class ReservationRequest extends PersistentObject
          */
         PREPROCESSED
     }
+
+    /**
+     * Date/time when the reservation request was created.
+     */
+    private DateTime created;
 
     /**
      * Type of the reservation. Permanent reservation are created by resource owners to
@@ -86,6 +92,17 @@ public class ReservationRequest extends PersistentObject
      * Option that specifies whether inter-domain resource lookup can be performed.
      */
     private boolean interDomain;
+
+    /**
+     * @return {@link #created}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.FIELD)
+    public DateTime getCreated()
+    {
+        return created;
+    }
 
     /**
      * @return {@link #type}
@@ -346,6 +363,11 @@ public class ReservationRequest extends PersistentObject
         return false;
     }
 
+    @PrePersist
+    protected void onCreate() {
+        created = DateTime.now();
+    }
+
     private static Class ReservationRequestApi = cz.cesnet.shongo.controller.api.ReservationRequest.class;
 
     /**
@@ -361,6 +383,7 @@ public class ReservationRequest extends PersistentObject
                 new cz.cesnet.shongo.controller.api.ReservationRequest();
 
         reservationRequest.setIdentifier(domain.formatIdentifier(getId()));
+        reservationRequest.setCreated(getCreated());
         reservationRequest.setType(getType());
         reservationRequest.setName(getName());
         reservationRequest.setDescription(getDescription());
