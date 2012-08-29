@@ -735,7 +735,7 @@ sub new
         );
 
     # expand tildes in the history file
-    if($args{history_file}) {
+    if($args{history_file} && $args{history_file} =~ /^~([^\/]*)/) {
         $args{history_file} =~ s/^~([^\/]*)/$1?(getpwnam($1))[7]:
             $ENV{HOME}||$ENV{LOGDIR}||(getpwuid($>))[7]/e;
     }

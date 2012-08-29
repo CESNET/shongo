@@ -20,7 +20,7 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller;
-use Shongo::Shell;
+use Shongo::Controller::Shell;
 
 # Common usages of foreign modules
 use Getopt::Long;
@@ -82,7 +82,7 @@ if ( defined($connect) ) {
 }
 
 # Create shell
-my $shell = Shongo::Shell->new();
+my $shell = Shongo::Controller::Shell->new();
 
 # Run single command
 if ( defined($cmd) ) {

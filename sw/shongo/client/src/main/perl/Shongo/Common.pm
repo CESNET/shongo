@@ -15,9 +15,11 @@ our @EXPORT = qw(
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
     format_datetime format_datetime_partial format_interval
     var_dump
+    get_home_directory
 );
 
 use DateTime::Format::ISO8601;
+use File::HomeDir;
 
 # Regular Expression Patterns
 our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
@@ -262,6 +264,14 @@ sub var_dump
 {
     use Data::Dumper;
     print Dumper(@_);
+}
+
+#
+# Get home directory
+#
+sub get_home_directory
+{
+    return File::HomeDir->my_home;
 }
 
 1;

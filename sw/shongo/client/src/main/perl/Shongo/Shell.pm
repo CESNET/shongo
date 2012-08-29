@@ -11,10 +11,6 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller;
-use Shongo::Controller::CommonService;
-use Shongo::Controller::ResourceService;
-use Shongo::Controller::ReservationService;
 
 #
 # Create a new shell for controller client
@@ -22,33 +18,9 @@ use Shongo::Controller::ReservationService;
 sub new
 {
     my $class = shift;
-    my $self = Term::ShellUI->new(@_, commands => {}, history_file => '~/.shongo_client');
+    my $self = Term::ShellUI->new(@_, commands => {});
 
     $self->{term}->ornaments(0);
-    $self->prompt('shongo> ');
-    $self->add_commands({
-        "help" => {
-            desc => "Print help information",
-            args => sub { shift->help_args(undef, @_); },
-            method => sub { shift->help_call(undef, @_); }
-        },
-        "exit" => {
-            desc => "Exit the shell",
-            method => sub { shift->exit_requested(1); }
-        },
-    });
-
-    # Populate controller commands
-    Shongo::Controller->populate($self);
-
-    # Populate common commands
-    Shongo::Controller::CommonService->populate($self);
-
-    # Populate resource management commands
-    Shongo::Controller::ResourceService->populate($self);
-
-    # Populate reservation management commands
-    Shongo::Controller::ReservationService->populate($self);
 
     return(bless($self, $class));;
 }
