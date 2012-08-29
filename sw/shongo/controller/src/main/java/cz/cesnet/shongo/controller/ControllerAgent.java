@@ -17,7 +17,7 @@ public class ControllerAgent extends Agent
     public CommandSet createCommandSet()
     {
         CommandSet commandSet = new CommandSet();
-        commandSet.addCommand("list", "List all connectors in the domain", new CommandHandler()
+        commandSet.addCommand("list", "List all connector agents in the domain", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)
