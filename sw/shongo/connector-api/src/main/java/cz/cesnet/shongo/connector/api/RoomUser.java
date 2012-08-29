@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.connector.api;
 
-import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import org.joda.time.DateTime;
 
 /**
  * Represents an active user in a virtual room on a server.
@@ -12,18 +12,20 @@ public class RoomUser
     private String userId;
     private String roomId;
     private UserIdentity userIdentity;
-    private AbsoluteDateTimeSpecification joinTime;
+
+    private DateTime joinTime;
+
     private boolean muted;
     private int microphoneLevel;
     private int playbackLevel;
     private RoomLayout layout;
 
-    public AbsoluteDateTimeSpecification getJoinTime()
+    public DateTime getJoinTime()
     {
         return joinTime;
     }
 
-    public void setJoinTime(AbsoluteDateTimeSpecification joinTime)
+    public void setJoinTime(DateTime joinTime)
     {
         this.joinTime = joinTime;
     }

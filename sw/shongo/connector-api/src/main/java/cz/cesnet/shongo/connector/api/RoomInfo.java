@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.allocation.Reservation;
-import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import org.joda.time.DateTime;
 
 /**
  * A brief info about a virtual room at a server.
@@ -13,14 +12,20 @@ public class RoomInfo
 {
     private String name;
     private String owner;
-    private AbsoluteDateTimeSpecification creation;
-    private Reservation reservation;
+
+    private DateTime creation;
+
+    // FIXME: introduces a dependency on the controller module, which the API modules should not be dependent on;
+    //        create a class in the common API module for representing a reservation;
+    //        this attribute should serve as a reference to the reservation for which the room was created
+//    private Reservation reservation;
+
     private Technology type;
 
     /**
      * @return Date and time when the room was created.
      */
-    public AbsoluteDateTimeSpecification getCreation()
+    public DateTime getCreation()
     {
         return creation;
     }
@@ -28,7 +33,7 @@ public class RoomInfo
     /**
      * @param creation Date and time when the room was created.
      */
-    public void setCreation(AbsoluteDateTimeSpecification creation)
+    public void setCreation(DateTime creation)
     {
         this.creation = creation;
     }
@@ -65,21 +70,21 @@ public class RoomInfo
         this.owner = owner;
     }
 
-    /**
-     * @return Reservation for which this room was created
-     */
-    public Reservation getReservation()
-    {
-        return reservation;
-    }
-
-    /**
-     * @param reservation Reservation for which this room was created
-     */
-    public void setReservation(Reservation reservation)
-    {
-        this.reservation = reservation;
-    }
+//    /**
+//     * @return Reservation for which this room was created
+//     */
+//    public Reservation getReservation()
+//    {
+//        return reservation;
+//    }
+//
+//    /**
+//     * @param reservation Reservation for which this room was created
+//     */
+//    public void setReservation(Reservation reservation)
+//    {
+//        this.reservation = reservation;
+//    }
 
     /**
      * @return Type of the room.

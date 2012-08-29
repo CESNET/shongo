@@ -98,8 +98,8 @@ public class CodecC90Connector implements EndpointService
 
     /**
      * A stream for reading results of commands.
-     * Should be handled carefully (especially, it should not be buffered), because reading blocks (and may cause
-     * a deadlock) when trying to read more than expected.
+     * Should be handled carefully (especially, it should not be buffered), because reading may cause a deadlock when
+     * trying to read more than expected.
      */
     private InputStream commandResultStream;
 
