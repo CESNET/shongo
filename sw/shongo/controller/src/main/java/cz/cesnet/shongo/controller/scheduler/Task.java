@@ -142,7 +142,7 @@ public class Task
                     Set<Technology> technologies = lookupResource.getTechnologies();
                     // Lookup device resources
                     List<DeviceResource> deviceResources = resourceDatabase.findAvailableTerminal(requestedSlot,
-                            technologies, entityManager);
+                            technologies);
 
                     // Select first available device resource
                     // TODO: Select best resource based on some criteria

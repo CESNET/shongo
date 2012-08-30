@@ -178,7 +178,7 @@ public class Scheduler extends Component
 
                 // Get available virtual rooms
                 List<AvailableVirtualRoom> availableVirtualRooms = resourceDatabase.findAvailableVirtualRoomsByVariants(
-                        requestedSlot, requestedPortCount, technologiesVariants, entityManager);
+                        requestedSlot, requestedPortCount, technologiesVariants);
                 if (availableVirtualRooms.size() == 0) {
                     // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
 
@@ -188,7 +188,7 @@ public class Scheduler extends Component
                             + "      Technology: %s\n"
                             + " Number of ports: %d",
                             TemporalHelper.formatInterval(requestedSlot),
-                            Technology.formatTechnologiesVariants(technologiesVariants),
+                            Technology.formatTechnologySets(technologiesVariants),
                             requestedPortCount);
                 }
 
