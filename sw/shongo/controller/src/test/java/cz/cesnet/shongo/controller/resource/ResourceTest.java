@@ -22,9 +22,9 @@ public class ResourceTest
         resource.setMaximumFuture(new RelativeDateTimeSpecification("P4M"));
 
         DateTime referenceDateTime = DateTime.now();
-        assertTrue(resource.isAvailableAt(DateTime.parse("0"), referenceDateTime));
-        assertTrue(resource.isAvailableAt(referenceDateTime.plus(Period.parse("P2M")), referenceDateTime));
-        assertTrue(resource.isAvailableAt(referenceDateTime.plus(Period.parse("P4M")), referenceDateTime));
-        assertFalse(resource.isAvailableAt(referenceDateTime.plus(Period.parse("P5M")), referenceDateTime));
+        assertTrue(resource.isAvailableInFuture(DateTime.parse("0"), referenceDateTime));
+        assertTrue(resource.isAvailableInFuture(referenceDateTime.plus(Period.parse("P2M")), referenceDateTime));
+        assertTrue(resource.isAvailableInFuture(referenceDateTime.plus(Period.parse("P4M")), referenceDateTime));
+        assertFalse(resource.isAvailableInFuture(referenceDateTime.plus(Period.parse("P5M")), referenceDateTime));
     }
 }

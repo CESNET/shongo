@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
@@ -62,9 +63,15 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     private Map<Long, ResourceState> resourceStateById = new HashMap<Long, ResourceState>();
 
     /**
-     * @see EntityManagerFactory
+     * {@link EntityManagerFactory} used to load resources in {@link #init(Configuration)} method.
      */
     private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * Specifies whether resources and allocations don't have to be persisted before are added to the resource database
+     * (useful for testing purposes).
+     */
+    private boolean disabledPersistedRequirement = false;
 
     /**
      * Map of capability states by theirs types.
@@ -91,10 +98,17 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         this.entityManagerFactory = entityManagerFactory;
     }
 
+    /**
+     * Sets the {@link #disabledPersistedRequirement} option to {@code true}.
+     */
+    public void disablePersistedRequirement()
+    {
+        disabledPersistedRequirement = true;
+    }
+
     @Override
     public void init(Configuration configuration)
     {
-        checkDependency(entityManagerFactory, EntityManagerFactory.class);
         super.init(configuration);
 
         Duration duration = configuration.getDuration(Configuration.RESOURCE_DEVICE_ALLOCATION_MAX_DURATION);
@@ -102,21 +116,23 @@ public class ResourceDatabase extends Component implements Component.EntityManag
             deviceAllocationMaximumDuration = duration;
         }
 
-        logger.debug("Loading resource database...");
+        if (entityManagerFactory != null) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
 
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
+            logger.debug("Loading resource database...");
 
-        // Load all resources from db
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<Resource> resourceList = resourceManager.list();
+            // Load all resources from db
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            List<Resource> resourceList = resourceManager.list();
 
-        for (Resource resource : resourceList) {
-            try {
+            for (Resource resource : resourceList) {
+                try {
 
-                addResource(resource, entityManager);
-            }
-            catch (FaultException exception) {
-                throw new IllegalStateException("Fail to add resource.", exception);
+                    addResource(resource, entityManager);
+                }
+                catch (FaultException exception) {
+                    throw new IllegalStateException("Fail to add resource.", exception);
+                }
             }
         }
     }
@@ -181,20 +197,34 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         }
     }
 
+    private void checkPersisted(PersistentObject persistentObject)
+    {
+        if (!persistentObject.isPersisted()) {
+            if (disabledPersistedRequirement) {
+                persistentObject.setDebugId();
+                return;
+            }
+            persistentObject.checkPersisted();
+        }
+    }
+
     /**
      * Add new resource to the resource database. If the resource is not persisted yet it is created in the database.
      *
-     * @param resource
+     * @param resource      resource to be added to the resource database
+     * @param entityManager entity manager used for storing not persisted resource to the database and
+     *                      for loading resource allocations
      * @throws FaultException when the creating in the database fails
      */
     public void addResource(Resource resource, EntityManager entityManager) throws FaultException
     {
         // Create resource in the database if it wasn't created yet
-        if (!resource.isPersisted()) {
+        if (entityManager != null && !resource.isPersisted()) {
             ResourceManager resourceManager = new ResourceManager(entityManager);
             resourceManager.create(resource);
         }
 
+        checkPersisted(resource);
         Long resourceId = resource.getId();
         if (resourceById.containsKey(resourceId)) {
             throw new IllegalArgumentException("Resource '" + resourceId + "' is already in the database!");
@@ -231,17 +261,28 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         }
 
         // Update resource state
-        updateResourceState(resourceState, entityManager);
+        if (entityManager != null) {
+            updateResourceState(resourceState, entityManager);
+        }
+    }
+
+    /**
+     * @see {@link #addResource(Resource, EntityManager)}
+     */
+    public void addResource(Resource resource) throws FaultException
+    {
+        addResource(resource, null);
     }
 
     /**
      * Update resource in the resource database.
      *
      * @param resource
+     * @param entityManager entity manager used for loading of resource allocations from the database
      */
     public void updateResource(Resource resource, EntityManager entityManager)
     {
-        removeResource(resource, entityManager);
+        removeResource(resource);
         try {
             addResource(resource, entityManager);
         }
@@ -251,11 +292,19 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     }
 
     /**
+     * @see {@link #updateResource(Resource, EntityManager)}
+     */
+    public void updateResource(Resource resource)
+    {
+        updateResource(resource, null);
+    }
+
+    /**
      * Delete resource from the resource database
      *
      * @param resource
      */
-    public void removeResource(Resource resource, EntityManager entityManager)
+    public void removeResource(Resource resource)
     {
         Long resourceId = resource.getId();
         if (resourceById.containsKey(resourceId) == false) {
@@ -300,7 +349,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         // TODO: check if allocation doesn't collide
         resourceState.allocations.add(allocatedResource, slot.getStart(), slot.getEnd());
 
-        allocatedResource.checkPersisted();
+        checkPersisted(allocatedResource);
         resourceState.allocationsById.put(allocatedResource.getId(), allocatedResource);
     }
 
@@ -466,18 +515,18 @@ public class ResourceDatabase extends Component implements Component.EntityManag
 
     /**
      * @param capabilityType
-     * @param technologiesVariants
+     * @param technologySets
      * @return set of device resource identifiers which has capability of given {@code capabilityType}
-     *         supporting given {@code technologies}
+     *         supporting at least one set of given {@code technologySets}
      */
-    private Set<Long> getDeviceResourcesByCapabilityTechnologiesVariants(
-            Class<? extends DeviceCapability> capabilityType, Set<Set<Technology>> technologiesVariants)
+    private Set<Long> getDeviceResourcesByCapabilityTechnologies(
+            Class<? extends DeviceCapability> capabilityType, Collection<Set<Technology>> technologySets)
     {
-        if (technologiesVariants == null) {
-            return getDeviceResourcesByCapabilityTechnologies(capabilityType, null);
+        if (technologySets == null) {
+            return getDeviceResourcesByCapabilityTechnologies(capabilityType, (Set<Technology>) null);
         }
         Set<Long> devices = new HashSet<Long>();
-        for (Set<Technology> technologies : technologiesVariants) {
+        for (Set<Technology> technologies : technologySets) {
             devices.addAll(getDeviceResourcesByCapabilityTechnologies(capabilityType, technologies));
         }
         return devices;
@@ -533,7 +582,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     private boolean isResourceAndChildResourcesAvailableRecursive(Resource resource, Interval interval)
     {
         Long resourceId = resource.getId();
-        if (!resource.isSchedulable() || !resource.isAvailableAt(interval.getEnd(), referenceDateTime)) {
+        if (!resource.isSchedulable() || !resource.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
             return false;
         }
         // Check only resources without virtual rooms
@@ -571,28 +620,20 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     /**
      * @param interval
      * @param technologies
-     * @param entityManager
      * @return list of available terminals
      */
-    public List<DeviceResource> findAvailableTerminal(Interval interval, Set<Technology> technologies,
-            EntityManager entityManager)
+    public List<DeviceResource> findAvailableTerminal(Interval interval, Set<Technology> technologies)
     {
         Set<Long> terminals = getDeviceResourcesByCapabilityTechnologies(TerminalCapability.class, technologies);
 
-        ResourceManager resourceManager = new ResourceManager(entityManager);
         List<DeviceResource> deviceResources = new ArrayList<DeviceResource>();
         for (Long terminalId : terminals) {
-            Resource resource = resourceById.get(terminalId);
-            if (resource == null) {
+            DeviceResource deviceResource = (DeviceResource) resourceById.get(terminalId);
+            if (deviceResource == null) {
                 throw new IllegalStateException("Device resource should be added to the resource database.");
             }
-            if (isResourceAvailable(resource, interval)) {
-                try {
-                    deviceResources.add(resourceManager.getDevice(terminalId));
-                }
-                catch (FaultException exception) {
-                    throw new IllegalStateException("Cannot find device resource for available terminal.", exception);
-                }
+            if (isResourceAvailable(deviceResource, interval)) {
+                deviceResources.add(deviceResource);
             }
         }
         return deviceResources;
@@ -601,12 +642,11 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     /**
      * @see {@link #findAvailableTerminal}
      */
-    public List<DeviceResource> findAvailableTerminal(Interval interval, Technology[] technologies,
-            EntityManager entityManager)
+    public List<DeviceResource> findAvailableTerminal(Interval interval, Technology[] technologies)
     {
         Set<Technology> technologySet = new HashSet<Technology>();
         Collections.addAll(technologySet, technologies);
-        return findAvailableTerminal(interval, technologySet, entityManager);
+        return findAvailableTerminal(interval, technologySet);
     }
 
     /**
@@ -651,20 +691,19 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      * @param interval
      * @param requiredPortCount
      * @param deviceResources
-     * @param entityManager
      * @return list of {@link AvailableVirtualRoom}
      */
     private List<AvailableVirtualRoom> findAvailableVirtualRoomsInDeviceResources(Interval interval,
-            int requiredPortCount, Set<Long> deviceResources, EntityManager entityManager)
+            int requiredPortCount, Set<Long> deviceResources)
     {
-        ResourceManager resourceManager = new ResourceManager(entityManager);
         List<AvailableVirtualRoom> availableVirtualRooms = new ArrayList<AvailableVirtualRoom>();
-        for (Long deviceId : deviceResources) {
-            Resource resource = resourceById.get(deviceId);
-            if (!resource.isSchedulable() || !resource.isAvailableAt(interval.getEnd(), referenceDateTime)) {
+        for (Long deviceResourceId : deviceResources) {
+            DeviceResource deviceResource = (DeviceResource) resourceById.get(deviceResourceId);
+            if (!deviceResource.isSchedulable() || !deviceResource
+                    .isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
                 continue;
             }
-            ResourceState resourceState = resourceStateById.get(deviceId);
+            ResourceState resourceState = resourceStateById.get(deviceResourceId);
             Set<AllocatedResource> allocatedResources =
                     resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
             int usedPortCount = 0;
@@ -677,20 +716,14 @@ public class ResourceDatabase extends Component implements Component.EntityManag
                 usedPortCount += allocatedVirtualRoom.getPortCount();
             }
             VirtualRoomsCapability virtualRoomsCapability
-                    = getResourceCapability(deviceId, VirtualRoomsCapability.class);
+                    = getResourceCapability(deviceResourceId, VirtualRoomsCapability.class);
             if (virtualRoomsCapability == null) {
                 throw new IllegalStateException("Device resource should have VirtualRooms capability filled.");
             }
             int availablePortCount = virtualRoomsCapability.getPortCount() - usedPortCount;
             if (availablePortCount >= requiredPortCount) {
                 AvailableVirtualRoom availableVirtualRoom = new AvailableVirtualRoom();
-                try {
-                    availableVirtualRoom.setDeviceResource(resourceManager.getDevice(deviceId));
-                }
-                catch (FaultException exception) {
-                    throw new IllegalStateException("Cannot find device resource for available virtual room",
-                            exception);
-                }
+                availableVirtualRoom.setDeviceResource(deviceResource);
                 availableVirtualRoom.setMaximumPortCount(virtualRoomsCapability.getPortCount());
                 availableVirtualRoom.setAvailablePortCount(availablePortCount);
                 availableVirtualRooms.add(availableVirtualRoom);
@@ -706,35 +739,33 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      * @param interval
      * @param requiredPortCount
      * @param technologies
-     * @param entityManager
      * @return list of {@link AvailableVirtualRoom}
      */
     public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
-            Set<Technology> technologies, EntityManager entityManager)
+            Set<Technology> technologies)
     {
         Set<Long> deviceResources = getDeviceResourcesByCapabilityTechnologies(VirtualRoomsCapability.class,
                 technologies);
-        return findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources, entityManager);
+        return findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources);
     }
 
     /**
      * @see {@link #findAvailableVirtualRooms}
      */
     public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
-            Technology[] technologies, EntityManager entityManager)
+            Technology[] technologies)
     {
         Set<Technology> technologySet = new HashSet<Technology>();
         Collections.addAll(technologySet, technologies);
-        return findAvailableVirtualRooms(interval, requiredPortCount, technologySet, entityManager);
+        return findAvailableVirtualRooms(interval, requiredPortCount, technologySet);
     }
 
     /**
      * @see {@link #findAvailableVirtualRooms}
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
-            EntityManager entityManager)
+    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount)
     {
-        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>) null, entityManager);
+        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>) null);
     }
 
     /**
@@ -744,15 +775,14 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      * @param interval
      * @param requiredPortCount
      * @param technologiesVariants
-     * @param entityManager
      * @return list of {@link AvailableVirtualRoom}
      */
     public List<AvailableVirtualRoom> findAvailableVirtualRoomsByVariants(Interval interval, int requiredPortCount,
-            Set<Set<Technology>> technologiesVariants, EntityManager entityManager)
+            Collection<Set<Technology>> technologiesVariants)
     {
-        Set<Long> deviceResources = getDeviceResourcesByCapabilityTechnologiesVariants(VirtualRoomsCapability.class,
+        Set<Long> deviceResources = getDeviceResourcesByCapabilityTechnologies(VirtualRoomsCapability.class,
                 technologiesVariants);
-        return findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources, entityManager);
+        return findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources);
     }
 
     /**

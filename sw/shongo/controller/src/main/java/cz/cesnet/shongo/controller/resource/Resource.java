@@ -289,11 +289,12 @@ public class Resource extends PersistentObject
     }
 
     /**
-     * @param dateTime
+     * @param dateTime          date/time which is checked for availability
+     * @param referenceDateTime reference date/time used e.g., as base date/time for relative date/time
      * @return true if resource is available at given {@code dateTime},
      *         false otherwise
      */
-    public boolean isAvailableAt(DateTime dateTime, DateTime referenceDateTime)
+    public boolean isAvailableInFuture(DateTime dateTime, DateTime referenceDateTime)
     {
         if (maximumFuture == null) {
             return true;

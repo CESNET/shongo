@@ -149,7 +149,7 @@ public class ResourceServiceImpl extends Component
 
         // Remove resource from resource database
         if (resourceDatabase != null) {
-            resourceDatabase.removeResource(resourceImpl, entityManager);
+            resourceDatabase.removeResource(resourceImpl);
         }
 
         entityManager.getTransaction().commit();

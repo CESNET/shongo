@@ -1,8 +1,6 @@
 package cz.cesnet.shongo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an enumeration of all technologies.
@@ -95,10 +93,10 @@ public enum Technology
     /**
      * @return formatted given {@code #technologies} as string
      */
-    public static String formatTechnologiesVariants(Set<Set<Technology>> technologiesVariants)
+    public static String formatTechnologySets(Collection<Set<Technology>> technologySets)
     {
         StringBuilder builder = new StringBuilder();
-        for (Set<Technology> technologies : technologiesVariants) {
+        for (Set<Technology> technologies : technologySets) {
             if (builder.length() > 0) {
                 builder.append(", ");
             }
@@ -107,5 +105,75 @@ public enum Technology
             builder.append("]");
         }
         return builder.toString();
+    }
+
+
+    /**
+     * Recursive implementation of {@link #interconnect(java.util.List)}. Each recursion level process single
+     * {@link Set<Technology>} from {@code inputTechnologySets} (at {@code currentIndex}).
+     *
+     * @param inputTechnologySets  list of technology sets to be interconnected
+     * @param outputTechnologySets list of variants of technologies already computed
+     * @param currentTechnologySet current (incomplete) variant
+     * @param currentIndex         specifies recursive level
+     */
+    private static void interconnect(List<Set<Technology>> inputTechnologySets, Set<Set<Technology>> outputTechnologySets,
+            Set<Technology> currentTechnologySet, int currentIndex)
+    {
+        // Stop recursion
+        if (currentIndex < 0) {
+            // Finally remove all technologies which are not needed
+            for (Iterator<Technology> iterator = currentTechnologySet.iterator(); iterator.hasNext(); ) {
+                Technology possibleTechnology = iterator.next();
+                // Technology is not needed when each group is connected also by another technology
+                for (Set<Technology> inputTechnologySet : inputTechnologySets) {
+                    boolean connectedAlsoByAnotherTechnology = false;
+                    for (Technology technology : inputTechnologySet) {
+                        if (technology.equals(possibleTechnology)) {
+                            continue;
+                        }
+                        if (currentTechnologySet.contains(technology)) {
+                            connectedAlsoByAnotherTechnology = true;
+                            break;
+                        }
+                    }
+                    // Group is connected only by this technology and thus it cannot be removed
+                    if (!connectedAlsoByAnotherTechnology) {
+                        possibleTechnology = null;
+                        break;
+                    }
+                }
+                // All groups are connected also  by another technology so we can remove possible technology
+                if (possibleTechnology != null) {
+                    iterator.remove();
+                }
+            }
+            outputTechnologySets.add(currentTechnologySet);
+            return;
+        }
+
+        // Get current group in recursion
+        Set<Technology> inputTechnologySet = inputTechnologySets.get(currentIndex);
+        // Build all variants of technology set for current group and call next recursive level
+        for (Technology technology : inputTechnologySet) {
+            // Build new instance of technologies
+            Set<Technology> newTechnologies = new HashSet<Technology>();
+            newTechnologies.addAll(currentTechnologySet);
+            // Add new technology
+            newTechnologies.add(technology);
+            // Call next recursive level
+            interconnect(inputTechnologySets, outputTechnologySets, newTechnologies, currentIndex - 1);
+        }
+    }
+
+    /**
+     * @param technologySets list of technology sets to be interconnected
+     * @return collection of all variants of technologies which interconnects all given technology sets
+     */
+    public static Collection<Set<Technology>> interconnect(List<Set<Technology>> technologySets)
+    {
+        Set<Set<Technology>> outputTechnologySets = new HashSet<Set<Technology>>();
+        interconnect(technologySets, outputTechnologySets, new HashSet<Technology>(), technologySets.size() - 1);
+        return outputTechnologySets;
     }
 }

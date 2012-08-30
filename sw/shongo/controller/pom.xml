@@ -82,6 +82,13 @@
             <version>0.7.3</version>
         </dependency>
 
+        <!-- Visualisation of graphes -->
+        <dependency>
+            <groupId>jgraph</groupId>
+            <artifactId>jgraph</artifactId>
+            <version>5.13.0.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>

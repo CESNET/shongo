@@ -228,7 +228,7 @@ public class DeviceResource extends Resource
      * @return set of technologies which the device supports for capability of given {@code deviceCapabilityType}
      */
     @Transient
-    public Set<Technology> getCapabilityTechnologies(Class<TerminalCapability> deviceCapabilityType)
+    public Set<Technology> getCapabilityTechnologies(Class<? extends DeviceCapability> deviceCapabilityType)
     {
         DeviceCapability deviceCapability = getCapability(deviceCapabilityType);
         if (deviceCapability == null) {
