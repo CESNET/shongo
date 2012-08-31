@@ -201,6 +201,9 @@ public class Shell extends CommandSet
         // Parse command-line arguments from string
         String[] args = CommandLineParser.parse(line);
 
+        if (args.length == 0) {
+            return true;
+        }
         Command command = commands.get(args[0]);
         if (command == null) {
             printError("Unknown command '%s'!", args[0]);
