@@ -1,2 +1,3 @@
 @echo off
-java -jar %~dp0controller\target\controller-1.0.jar %*
+echo %~dp0
+java -jar "%~dp0controller\target\controller-1.0.jar" %*
