@@ -22,8 +22,12 @@ our @EXPORT = qw(
 
 use Term::ReadLine::Zoid;
 use Term::ANSIColor;
-if ( $^O eq 'MSWin32' ) {
-    use Win32::Console::ANSI;
+BEGIN {
+    if ($^O eq "MSWin32")
+    {
+        require Win32::Console::ANSI;
+        Win32::Console::ANSI->import();  # assuming you would not be passing arguments to "use Module"
+    }
 }
 use Shongo::Common;
 
