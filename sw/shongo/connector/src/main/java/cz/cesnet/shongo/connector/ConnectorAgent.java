@@ -25,6 +25,20 @@ public class ConnectorAgent extends Agent
         registerService("connector", "Connector Service");
     }
 
+    @Override
+    protected void takeDown()
+    {
+        if (connector != null) {
+            try {
+                connector.disconnect();
+            }
+            catch (CommandException e) {
+                // just suppress the exception, the agent is going not to be working anyway
+            }
+        }
+        super.takeDown();
+    }
+
     /**
      * Starts managing a device. Initializes a connector to the device.
      */
