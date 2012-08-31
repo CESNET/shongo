@@ -22,6 +22,9 @@ our @EXPORT = qw(
 
 use Term::ReadLine::Zoid;
 use Term::ANSIColor;
+if ( $^O eq 'MSWin32' ) {
+    use Win32::Console::ANSI;
+}
 use Shongo::Common;
 
 #
