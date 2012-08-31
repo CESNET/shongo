@@ -20,7 +20,6 @@ our @EXPORT = qw(
     console_edit_bool
 );
 
-use Term::ReadLine::Zoid;
 use Term::ANSIColor;
 BEGIN {
     if ($^O eq "MSWin32")
@@ -85,7 +84,8 @@ sub console_print_table
 sub console_read
 {
     my ($message, $value) = @_;
-    my $term = Term::ReadLine::Zoid->new();
+    my $term = Term::ReadLine->new('test');
+    $term->ornaments(0);
     return $term->readline(colored(sprintf("%s: ", $message), "bold blue"), $value);
 }
 
