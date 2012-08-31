@@ -78,7 +78,7 @@ public class Connector
                 jadeAgents.add(agentName);
             }
         });
-        shell.addCommand("list", "List all connector instances", new CommandHandler()
+        shell.addCommand("list", "List all connector agent instances", new CommandHandler()
         {
             @Override
             public void perform(CommandLine commandLine)

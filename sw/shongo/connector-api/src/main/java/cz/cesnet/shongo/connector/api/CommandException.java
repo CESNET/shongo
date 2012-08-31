@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
 /**
- * An exception thrown by invalid commands.
+ * An exception thrown by invalid commands, i.e. commands that fail when executed.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */

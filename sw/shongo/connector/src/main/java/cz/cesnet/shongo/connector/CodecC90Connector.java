@@ -34,7 +34,7 @@ public class CodecC90Connector implements EndpointService
     public static final int MICROPHONES_COUNT = 8;
 
     public static void main(String[] args)
-            throws IOException, JSchException, InterruptedException, SAXException, ParserConfigurationException,
+            throws IOException, CommandException, InterruptedException, SAXException, ParserConfigurationException,
                    XPathExpressionException
     {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -143,11 +143,9 @@ public class CodecC90Connector implements EndpointService
      * @param address  address of the device
      * @param username username to use for authentication on the device
      * @param password password to use for authentication on the device
-     * @throws JSchException
-     * @throws IOException
      */
     public void connect(String address, String username, final String password)
-            throws JSchException, IOException
+            throws CommandException
     {
         connect(address, DEFAULT_PORT, username, password);
     }
@@ -159,24 +157,30 @@ public class CodecC90Connector implements EndpointService
      * @param port     device port to connect to
      * @param username username to use for authentication on the device
      * @param password password to use for authentication on the device
-     * @throws JSchException
-     * @throws IOException
      */
     public void connect(String address, int port, String username, final String password)
-            throws JSchException, IOException
+            throws CommandException
     {
-        JSch jsch = new JSch();
-        Session session = jsch.getSession(username, address, port);
-        session.setPassword(password);
-        // disable key checking - otherwise, the host key must be present in ~/.ssh/known_hosts
-        session.setConfig("StrictHostKeyChecking", "no");
-        session.connect();
-        channel = (ChannelShell) session.openChannel("shell");
-        commandStreamWriter = new OutputStreamWriter(channel.getOutputStream());
-        commandResultStream = channel.getInputStream();
-        channel.connect(); // runs a separate thread for handling the streams
+        try {
+            JSch jsch = new JSch();
+            Session session = jsch.getSession(username, address, port);
+            session.setPassword(password);
+            // disable key checking - otherwise, the host key must be present in ~/.ssh/known_hosts
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+            channel = (ChannelShell) session.openChannel("shell");
+            commandStreamWriter = new OutputStreamWriter(channel.getOutputStream());
+            commandResultStream = channel.getInputStream();
+            channel.connect(); // runs a separate thread for handling the streams
 
-        initSession();
+            initSession();
+        }
+        catch (JSchException e) {
+            throw new CommandException("Error in communication with the device", e);
+        }
+        catch (IOException e) {
+            throw new CommandException("Error connecting to the device", e);
+        }
     }
 
     private void initSession() throws IOException
@@ -193,12 +197,17 @@ public class CodecC90Connector implements EndpointService
 
     /**
      * Disconnects the connector from the managed device.
-     *
-     * @throws JSchException
      */
-    public void disconnect() throws JSchException
+    public void disconnect() throws CommandException
     {
-        Session session = channel.getSession();
+        Session session;
+        try {
+            session = channel.getSession();
+        }
+        catch (JSchException e) {
+            throw new CommandException("Error disconnecting from the device", e);
+        }
+
         channel.disconnect();
         if (session != null) {
             session.disconnect();
