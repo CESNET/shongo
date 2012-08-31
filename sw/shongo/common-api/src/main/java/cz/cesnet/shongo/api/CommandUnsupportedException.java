@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
 
 /**
  * An exception thrown when a command is not supported on a specific device.

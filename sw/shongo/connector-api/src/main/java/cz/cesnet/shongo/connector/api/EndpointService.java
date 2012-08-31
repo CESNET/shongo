@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
 
 /**
  * Set of functionality offered by endpoint devices.

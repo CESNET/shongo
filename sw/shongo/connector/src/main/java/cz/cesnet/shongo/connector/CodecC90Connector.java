@@ -5,9 +5,11 @@ import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.connector.api.CommandException;
-import cz.cesnet.shongo.connector.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
+import cz.cesnet.shongo.connector.api.ConnectorInitException;
+import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
@@ -34,7 +36,7 @@ public class CodecC90Connector implements EndpointService
     public static final int MICROPHONES_COUNT = 8;
 
     public static void main(String[] args)
-            throws IOException, CommandException, InterruptedException, SAXException, ParserConfigurationException,
+            throws IOException, CommandException, InterruptedException, ConnectorInitException, SAXException,
                    XPathExpressionException
     {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
@@ -87,6 +89,11 @@ public class CodecC90Connector implements EndpointService
     public static final int DEFAULT_PORT = 22;
 
     /**
+     * Info about the connector and the device.
+     */
+    private ConnectorInfo info = new ConnectorInfo("Cisco TelePresence System Codec C90 Connector");
+
+    /**
      * Shell channel open to the device.
      */
     private ChannelShell channel;
@@ -126,12 +133,17 @@ public class CodecC90Connector implements EndpointService
     }
 
 
-    public CodecC90Connector() throws ParserConfigurationException, XPathExpressionException
+    public CodecC90Connector() throws ConnectorInitException
     {
         if (!staticInitialized) {
             // NOTE: cannot be initialized in the static section since the possible exception
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            resultBuilder = factory.newDocumentBuilder();
+            try {
+                resultBuilder = factory.newDocumentBuilder();
+            }
+            catch (ParserConfigurationException e) {
+                throw new ConnectorInitException("CodecC90Connector initialization failed", e);
+            }
 
             xPathFactory = XPathFactory.newInstance();
         }
@@ -174,12 +186,20 @@ public class CodecC90Connector implements EndpointService
             channel.connect(); // runs a separate thread for handling the streams
 
             initSession();
+            initDeviceInfo();
+            info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
         }
         catch (JSchException e) {
             throw new CommandException("Error in communication with the device", e);
         }
         catch (IOException e) {
             throw new CommandException("Error connecting to the device", e);
+        }
+        catch (SAXException e) {
+            throw new CommandException("Command gave unexpected output", e);
+        }
+        catch (XPathExpressionException e) {
+            throw new CommandException("Error querying command output XML tree", e);
         }
     }
 
@@ -193,6 +213,29 @@ public class CodecC90Connector implements EndpointService
         readOutput();
 
         sendCommand("xpreferences outputmode xml");
+    }
+
+    private void initDeviceInfo() throws IOException, SAXException, XPathExpressionException
+    {
+        Document result = exec("xstatus SystemUnit");
+        DeviceInfo di = new DeviceInfo();
+
+        di.setName(getResultString(result, "/XmlDoc/Status/SystemUnit/ProductId"));
+        di.setDescription(getResultString(result, "/XmlDoc/Status/SystemUnit/ContactInfo"));
+
+        String version = getResultString(result, "/XmlDoc/Status/SystemUnit/Software/Version")
+                + " (released "
+                + getResultString(result, "/XmlDoc/Status/SystemUnit/Software/ReleaseDate")
+                + ")";
+        di.setSoftwareVersion(version);
+
+        String sn = "Module: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/Module/SerialNumber")
+                + ", MainBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/MainBoard/SerialNumber")
+                + ", VideoBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/VideoBoard/SerialNumber")
+                + ", AudioBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/AudioBoard/SerialNumber");
+        di.setSerialNumber(sn);
+
+        info.setDeviceInfo(di);
     }
 
     /**
@@ -214,6 +257,8 @@ public class CodecC90Connector implements EndpointService
         }
         commandStreamWriter = null;
         commandResultStream = null;
+
+        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
     }
 
     /**
@@ -441,6 +486,6 @@ reading:
     @Override
     public ConnectorInfo getConnectorInfo()
     {
-        return null; // FIXME: implement
+        return info;
     }
 }
