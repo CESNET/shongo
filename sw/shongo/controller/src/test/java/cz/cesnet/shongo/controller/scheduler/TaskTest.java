@@ -1,84 +1,133 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
+import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
+import cz.cesnet.shongo.controller.allocation.AllocatedItem;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.scheduler.Task;
+import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.Interval;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.*;
 
 /**
- * Tests for {@link Task}.
+ * Tests for {@link cz.cesnet.shongo.controller.scheduler.Task}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TaskTest
 {
-    /**
-     * @param arrays
-     * @return set of sets from array of arrays of {@link Technology}
-     */
-    private Set<Set<Technology>> buildSet(Technology[][] arrays)
+    private static class SimpleAllocatedEndpoint extends AllocatedItem implements AllocatedEndpoint
     {
-        Set<Set<Technology>> sets = new HashSet<Set<Technology>>();
-        for (Technology[] array : arrays) {
-            Set<Technology> set = new HashSet<Technology>();
-            for (Technology technology : array) {
-                set.add(technology);
+        private boolean standalone = false;
+        private Set<Technology> technologies = new HashSet<Technology>();
+
+        public SimpleAllocatedEndpoint(boolean standalone, Technology[] technologies)
+        {
+            this.standalone = standalone;
+            for (Technology technology : technologies) {
+                this.technologies.add(technology);
             }
-            sets.add(set);
         }
-        return sets;
+
+        public SimpleAllocatedEndpoint(Technology[] technologies)
+        {
+
+            this(false, technologies);
+        }
+
+        @Override
+        public int getCount()
+        {
+            return 1;
+        }
+
+        @Override
+        public Set<Technology> getSupportedTechnologies()
+        {
+            return technologies;
+        }
+
+        @Override
+        public boolean isStandalone()
+        {
+            return standalone;
+        }
     }
 
-    private static final Technology TECHNOLOGY1 = Technology.H323;
-    private static final Technology TECHNOLOGY2 = Technology.SIP;
-    private static final Technology TECHNOLOGY3 = Technology.ADOBE_CONNECT;
-    private static final Technology TECHNOLOGY4 = Technology.SKYPE;
-    private static final Technology TECHNOLOGY5 = Technology.BIG_BLUE_BUTTON;
-    private static final Technology TECHNOLOGY6 = Technology.OPEN_MEETINGS;
+    @Test
+    public void testFailures() throws Exception
+    {
+        Task task = new Task(Interval.parse("2012/2013"), new ResourceDatabase());
+
+        task.clear();
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
+        try {
+            task.createAllocatedCompartment();
+            fail("Exception about not enough requested ports should be thrown.");
+        } catch (FaultException exception) {
+        }
+
+        task.clear();
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.SIP}));
+        try {
+            task.createAllocatedCompartment();
+            fail("Exception about no available virtual room should be thrown.");
+        } catch (FaultException exception) {
+        }
+    }
 
     @Test
-    public void testGetTechnologiesForSingleVirtualRoom() throws Exception
+    public void testNoVirtualRoom() throws Exception
     {
-        Task task1 = new Task();
-        task1.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY1, TECHNOLOGY2}));
-        task1.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY3, TECHNOLOGY4}));
-        task1.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY5, TECHNOLOGY6}));
-        task1.mergeInterconnectableGroups();
-        assertEquals(buildSet(new Technology[][]{
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY5},
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY6},
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY4, TECHNOLOGY5},
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY4, TECHNOLOGY6},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY3, TECHNOLOGY5},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY3, TECHNOLOGY6},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY4, TECHNOLOGY5},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY4, TECHNOLOGY6},
-        }), task1.getInterconnectingTechnologies());
+        Task task = new Task(Interval.parse("2012/2013"), new ResourceDatabase());
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323, Technology.SIP}));
+        AllocatedCompartment allocatedCompartment = task.createAllocatedCompartment();
+        assertNotNull(allocatedCompartment);
+        assertEquals(2, allocatedCompartment.getAllocatedItems().size());
+        assertEquals(1, allocatedCompartment.getConnections().size());
+    }
 
-        Task task2 = new Task();
-        task2.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY1, TECHNOLOGY2}));
-        task2.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY1, TECHNOLOGY6}));
-        task2.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY5, TECHNOLOGY6}));
-        task2.getInterconnectingTechnologies();
-        assertEquals(buildSet(new Technology[][]{
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY6},
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY5},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY6}
-        }), task2.getInterconnectingTechnologies());
+    @Test
+    public void testSingleVirtualRoom() throws Exception
+    {
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.disablePersistedRequirement();
+        resourceDatabase.init();
 
-        Task task3 = new Task();
-        task3.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY1, TECHNOLOGY2}));
-        task3.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY2, TECHNOLOGY3}));
-        task3.addInterconnectableGroup(new InterconnectableGroup(new Technology[]{TECHNOLOGY4, TECHNOLOGY5}));
-        task3.getInterconnectingTechnologies();
-        assertEquals(buildSet(new Technology[][]{
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY4},
-                new Technology[]{TECHNOLOGY1, TECHNOLOGY3, TECHNOLOGY5},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY4},
-                new Technology[]{TECHNOLOGY2, TECHNOLOGY5},
-        }), task3.getInterconnectingTechnologies());
+        DeviceResource deviceResource = new DeviceResource();
+        deviceResource.setSchedulable(true);
+        deviceResource.addTechnology(Technology.H323);
+        deviceResource.addTechnology(Technology.SIP);
+        deviceResource.addCapability(new VirtualRoomsCapability(100));
+        resourceDatabase.addResource(deviceResource);
+
+        Task task = new Task(Interval.parse("2012/2013"), resourceDatabase);
+        AllocatedCompartment allocatedCompartment;
+
+        task.clear();
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(false, new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
+        allocatedCompartment = task.createAllocatedCompartment();
+        assertNotNull(allocatedCompartment);
+        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
+        assertEquals(2, allocatedCompartment.getConnections().size());
+
+        task.clear();
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.SIP}));
+        allocatedCompartment = task.createAllocatedCompartment();
+        assertNotNull(allocatedCompartment);
+        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
+        assertEquals(2, allocatedCompartment.getConnections().size());
     }
 }

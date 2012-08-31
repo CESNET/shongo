@@ -50,7 +50,7 @@ public class TransactionHelper
         public void rollback()
         {
             if (entityTransaction != null) {
-                entityTransaction.commit();
+                entityTransaction.rollback();
             }
         }
     }

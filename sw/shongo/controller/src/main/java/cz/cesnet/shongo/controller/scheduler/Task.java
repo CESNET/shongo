@@ -1,296 +1,420 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import com.jgraph.layout.JGraphFacade;
+import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ResourceDatabase;
-import cz.cesnet.shongo.controller.request.ExistingResourceSpecification;
-import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
-import cz.cesnet.shongo.controller.request.LookupResourceSpecification;
-import cz.cesnet.shongo.controller.request.ResourceSpecification;
+import cz.cesnet.shongo.controller.allocation.*;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
+import org.jgraph.JGraph;
+import org.jgrapht.UndirectedGraph;
+import org.jgrapht.ext.JGraphModelAdapter;
+import org.jgrapht.graph.SimpleGraph;
 import org.joda.time.Interval;
 
-import javax.persistence.EntityManager;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
 import java.util.*;
+import java.util.List;
 
 /**
- * Represents a scheduler task for allocating resources.
+ * Represents a scheduler task for {@link CompartmentRequest} which results into {@link AllocatedCompartment}.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Task
 {
     /**
-     * List of resource specification.
+     * Interval for which the task is performed.
      */
-    private List<ResourceSpecification> resourceSpecifications = new ArrayList<ResourceSpecification>();
+    private Interval interval;
 
     /**
-     * List of {@link InterconnectableGroup}.
+     * @see ResourceDatabase
      */
-    private List<InterconnectableGroup> interconnectableGroups = new ArrayList<InterconnectableGroup>();
+    private ResourceDatabase resourceDatabase;
 
     /**
-     * Set of resources which should be allocated.
+     * Set of already added resources to the task.
      */
     private Set<Resource> resources = new HashSet<Resource>();
 
     /**
-     * @return {@link #interconnectableGroups}
+     * List of all endpoints.
      */
-    public List<InterconnectableGroup> getInterconnectableGroups()
+    private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
+
+    /**
+     * List of all endpoints.
+     */
+    private List<AllocatedEndpoint> allocatedEndpoints = new ArrayList<AllocatedEndpoint>();
+
+    /**
+     * Total sum of endpoints (calculated as sum of {@link AllocatedEndpoint#getCount()}).
+     */
+    private int totalAllocatedEndpointCount;
+
+    /**
+     * Graph of connectivity between endpoints.
+     */
+    private UndirectedGraph<AllocatedEndpoint, ConnectivityEdge> connectivityGraph;
+
+    /**
+     * Constructor.
+     *
+     * @param interval         sets the {@link #interval}
+     * @param resourceDatabase sets the {@link #resourceDatabase}
+     */
+    public Task(Interval interval, ResourceDatabase resourceDatabase)
     {
-        return interconnectableGroups;
+        clear();
+
+        this.interval = interval;
+        this.resourceDatabase = resourceDatabase;
     }
 
     /**
-     * @param interconnectableGroup to be added to the {@link #interconnectableGroups}
+     * Clear all information added to the task.
      */
-    public void addInterconnectableGroup(InterconnectableGroup interconnectableGroup)
+    public void clear()
     {
-        interconnectableGroups.add(interconnectableGroup);
+        resources.clear();
+        allocatedItems.clear();
+        allocatedEndpoints.clear();
+        totalAllocatedEndpointCount = 0;
+        connectivityGraph = new SimpleGraph<AllocatedEndpoint, ConnectivityEdge>(ConnectivityEdge.class);
     }
 
     /**
+     * Add resource to the task
+     *
      * @param resourceSpecification
      */
-    public void addResourceSpecification(ResourceSpecification resourceSpecification)
+    public void addResource(ResourceSpecification resourceSpecification) throws FaultException
     {
-        resourceSpecifications.add(resourceSpecification);
+        if (resourceSpecification instanceof ExternalEndpointSpecification) {
+            AllocatedExternalEndpoint allocatedExternalEndpoint =
+                    new AllocatedExternalEndpoint((ExternalEndpointSpecification) resourceSpecification);
+            addAllocatedItem(allocatedExternalEndpoint);
+        }
+        else if (resourceSpecification instanceof ExistingResourceSpecification) {
+            ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
+            Resource resource = existingResource.getResource();
+            if (resources.contains(resource)) {
+                // Same resource is requested multiple times
+                throw new FaultException("Resource is requested multiple times in specified time slot:\n"
+                        + "  Resource: %s",
+                        resource.getId().toString());
+            }
+            if (!resource.isSchedulable()) {
+                // Requested resource cannot be allocated
+                throw new FaultException("Requested resource cannot be allocated (schedulable = false):\n"
+                        + "  Resource: %s",
+                        resource.getId().toString());
+            }
+            if (!resourceDatabase.isResourceAvailable(resource, interval)) {
+                // Requested resource is not available in requested slot
+                throw new FaultException("Requested resource is not available in specified time slot:\n"
+                        + " Time Slot: %s\n"
+                        + "  Resource: %s",
+                        TemporalHelper.formatInterval(interval),
+                        resource.getId().toString());
+            }
+            addAllocatedItemByResource(resource);
+        }
+        else if (resourceSpecification instanceof LookupResourceSpecification) {
+            LookupResourceSpecification lookupResource = (LookupResourceSpecification) resourceSpecification;
+            Set<Technology> technologies = lookupResource.getTechnologies();
+
+            // Lookup device resources
+            List<DeviceResource> deviceResources = resourceDatabase.findAvailableTerminal(interval, technologies);
+
+            // Select first available device resource
+            // TODO: Select best resource based on some criteria
+            DeviceResource deviceResource = null;
+            for (DeviceResource possibleDeviceResource : deviceResources) {
+                if (resources.contains(possibleDeviceResource)) {
+                    continue;
+                }
+                deviceResource = possibleDeviceResource;
+                break;
+            }
+
+            // If some was found
+            if (deviceResource != null) {
+                addAllocatedItemByResource(deviceResource);
+            }
+            else {
+                // Resource was not found
+                StringBuilder builder = new StringBuilder();
+                for (Technology technology : technologies) {
+                    if (builder.length() > 0) {
+                        builder.append(", ");
+                    }
+                    builder.append(technology.getName());
+                }
+                throw new FaultException(
+                        "No available resource was found for the following specification:\n"
+                                + "    Time Slot: %s\n"
+                                + " Technologies: %s",
+                        TemporalHelper.formatInterval(interval), builder.toString());
+            }
+        }
+        else {
+            throw new FaultException("Allocation of '%s' resource is not implemented yet.",
+                    resourceSpecification.getClass());
+        }
     }
 
     /**
-     * @param resource
-     * @return true if given {@code resource} was already added to the task,
-     *         false otherwise
-     */
-    public boolean hasResource(Resource resource)
-    {
-        return resources.contains(resource);
-    }
-
-    /**
-     * @return collection of all resources which were added to the task
-     */
-    public Collection<Resource> getResources()
-    {
-        return resources;
-    }
-
-    /**
-     * Fill {@link #interconnectableGroups} from {@link #resourceSpecifications}.
+     * Add requested endpoint to task.
      *
-     * @param requestedSlot
-     * @param entityManager
-     * @param resourceDatabase
+     * @param allocatedItem
+     */
+    public void addAllocatedItem(AllocatedItem allocatedItem)
+    {
+        allocatedItems.add(allocatedItem);
+
+        // Setup endpoints
+        if (allocatedItem instanceof AllocatedEndpoint) {
+            AllocatedEndpoint allocatedEndpoint = (AllocatedEndpoint) allocatedItem;
+            allocatedEndpoints.add(allocatedEndpoint);
+            totalAllocatedEndpointCount += allocatedEndpoint.getCount();
+
+            // Setup connectivity graph
+            connectivityGraph.addVertex(allocatedEndpoint);
+            for (AllocatedEndpoint existingEndpoint : connectivityGraph.vertexSet()) {
+                if (existingEndpoint == allocatedEndpoint) {
+                    continue;
+                }
+                Set<Technology> technologies = new HashSet<Technology>(allocatedEndpoint.getSupportedTechnologies());
+                technologies.retainAll(existingEndpoint.getSupportedTechnologies());
+                if (technologies.size() > 0) {
+                    connectivityGraph.addEdge(allocatedEndpoint, existingEndpoint, new ConnectivityEdge(technologies));
+                }
+            }
+        }
+    }
+
+    /**
+     * Create {@link AllocatedItem} from given {@code resource} and pass it to
+     * the {@link #addAllocatedItem(AllocatedItem)}.
+     *
+     * @param resource
+     */
+    private void addAllocatedItemByResource(Resource resource)
+    {
+        if (resource instanceof DeviceResource) {
+            AllocatedDevice allocatedDevice = new AllocatedDevice();
+            allocatedDevice.setResource(resource);
+            addAllocatedItem(allocatedDevice);
+        }
+        else {
+            AllocatedResource allocatedResource = new AllocatedResource();
+            allocatedResource.setResource(resource);
+            addAllocatedItem(allocatedResource);
+        }
+        resources.add(resource);
+    }
+
+    /**
+     * Find plan for connecting endpoints without virtual room.
+     *
+     * @return plan if possible, null otherwise
+     */
+    private AllocatedCompartment createNoVirtualRoomAllocatedCompartment()
+    {
+        // Only two standalone endpoints may be connected without virtual room
+        if (totalAllocatedEndpointCount != 2 || allocatedEndpoints.size() != 2) {
+            return null;
+        }
+        for (AllocatedEndpoint endpoint : allocatedEndpoints) {
+            if (!endpoint.isStandalone()) {
+                return null;
+            }
+        }
+
+        // Check connectivity
+        AllocatedEndpoint endpointFrom = allocatedEndpoints.get(0);
+        AllocatedEndpoint endpointTo = allocatedEndpoints.get(1);
+        ConnectivityEdge connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
+        if (connectivityEdge == null) {
+            AllocatedEndpoint endpointTemp = endpointFrom;
+            endpointFrom = endpointTo;
+            endpointTo = endpointTemp;
+            connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
+            if (connectivityEdge == null) {
+                return null;
+            }
+        }
+
+        // Create allocated compartment
+        AllocatedCompartment allocatedCompartment = new AllocatedCompartment();
+        for (AllocatedItem allocatedItem : allocatedItems) {
+            allocatedItem.setSlot(interval);
+            allocatedCompartment.addAllocatedItem(allocatedItem);
+        }
+        allocatedCompartment.addConnection(endpointFrom, endpointTo);
+        return allocatedCompartment;
+    }
+
+    /**
+     * @return collection of technology sets which interconnects all endpoints
+     */
+    private Collection<Set<Technology>> getSingleVirtualRoomPlanTechnologySets()
+    {
+        List<Set<Technology>> technologiesList = new ArrayList<Set<Technology>>();
+        for (AllocatedEndpoint endpoint : allocatedEndpoints) {
+            technologiesList.add(endpoint.getSupportedTechnologies());
+        }
+        return Technology.interconnect(technologiesList);
+    }
+
+    /**
+     * Find plan for connecting endpoints by a single virtual room
+     *
+     * @return plan if possible, null otherwise
+     */
+    private AllocatedCompartment createSingleVirtualRoomAllocatedCompartment()
+    {
+        Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
+
+        // Get available virtual rooms
+        List<AvailableVirtualRoom> availableVirtualRooms = resourceDatabase.findAvailableVirtualRoomsByVariants(
+                interval, totalAllocatedEndpointCount, technologySets);
+        if (availableVirtualRooms.size() == 0) {
+
+            return null;
+
+        }
+        // Sort virtual rooms from the most filled to the least filled
+        Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
+        {
+            @Override
+            public int compare(AvailableVirtualRoom first, AvailableVirtualRoom second)
+            {
+                return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
+            }
+        });
+        // Get the first virtual room
+        AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
+
+        // Create allocated compartment
+        AllocatedCompartment allocatedCompartment = new AllocatedCompartment();
+        AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
+        allocatedVirtualRoom.setSlot(interval);
+        allocatedVirtualRoom.setResource(availableVirtualRoom.getDeviceResource());
+        allocatedVirtualRoom.setPortCount(totalAllocatedEndpointCount);
+        allocatedCompartment.addAllocatedItem(allocatedVirtualRoom);
+        for (AllocatedItem allocatedItem : allocatedItems) {
+            allocatedItem.setSlot(interval);
+            allocatedCompartment.addAllocatedItem(allocatedItem);
+            if (allocatedItem instanceof AllocatedEndpoint) {
+                allocatedCompartment.addConnection(allocatedVirtualRoom, (AllocatedEndpoint) allocatedItem);
+            }
+        }
+        return allocatedCompartment;
+    }
+
+    /**
+     * @return created {@link AllocatedCompartment} if possible, null otherwise
      * @throws FaultException
      */
-    public void fillInterconnectableGroups(Interval requestedSlot, EntityManager entityManager,
-            ResourceDatabase resourceDatabase) throws FaultException
+    public AllocatedCompartment createAllocatedCompartment() throws FaultException
     {
-        // Create list of requested resources
-        List<ResourceSpecification> resourceSpecifications = new ArrayList<ResourceSpecification>();
-        for (ResourceSpecification resource : this.resourceSpecifications) {
-            resourceSpecifications.add(resource);
+        if (totalAllocatedEndpointCount <= 1) {
+            throw new FaultException("At least two devices/ports must be requested.");
         }
 
-        try {
-            // First process all external endpoint and existing resources
-            for (Iterator<ResourceSpecification> iterator = resourceSpecifications.iterator();
-                 iterator.hasNext(); ) {
-                ResourceSpecification resourceSpecification = iterator.next();
-                if (resourceSpecification instanceof ExternalEndpointSpecification) {
-                    ExternalEndpointSpecification externalEndpoint = (ExternalEndpointSpecification) resourceSpecification;
-                    interconnectableGroups.add(new InterconnectableGroup(externalEndpoint));
-                    iterator.remove();
-                }
-                else if (resourceSpecification instanceof ExistingResourceSpecification) {
-                    ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
-                    Resource resource = existingResource.getResource();
-                    if (hasResource(resource)) {
-                        // Same resource is requested multiple times
-                        throw new FaultException("Resource is requested multiple times in specified time slot:\n"
-                                + "  Resource: %s",
-                                resource.getId().toString());
-                    }
-                    if (!resource.isSchedulable()) {
-                        // Requested resource cannot be allocated
-                        throw new FaultException("Requested resource cannot be allocated (schedulable = false):\n"
-                                + "  Resource: %s",
-                                resource.getId().toString());
-                    }
-                    if (!resourceDatabase.isResourceAvailable(resource, requestedSlot)) {
-                        // Requested resource is not available in requested slot
-                        throw new FaultException("Requested resource is not available in specified time slot:\n"
-                                + " Time Slot: %s\n"
-                                + "  Resource: %s",
-                                TemporalHelper.formatInterval(requestedSlot),
-                                resource.getId().toString());
-                    }
-                    resources.add(resource);
-                    interconnectableGroups.add(new InterconnectableGroup(resource));
-                    iterator.remove();
-                }
-            }
-
-            // Then process all lookup resource specifications
-            for (Iterator<ResourceSpecification> iterator = resourceSpecifications.iterator();
-                 iterator.hasNext(); ) {
-                ResourceSpecification resourceSpecification = iterator.next();
-                if (resourceSpecification instanceof LookupResourceSpecification) {
-                    LookupResourceSpecification lookupResource = (LookupResourceSpecification) resourceSpecification;
-                    Set<Technology> technologies = lookupResource.getTechnologies();
-                    // Lookup device resources
-                    List<DeviceResource> deviceResources = resourceDatabase.findAvailableTerminal(requestedSlot,
-                            technologies);
-
-                    // Select first available device resource
-                    // TODO: Select best resource based on some criteria
-                    DeviceResource deviceResource = null;
-                    for (DeviceResource possibleDeviceResource : deviceResources) {
-                        if (hasResource(possibleDeviceResource)) {
-                            continue;
-                        }
-                        deviceResource = possibleDeviceResource;
-                        break;
-                    }
-
-                    // If some was found
-                    if (deviceResource != null) {
-                        resources.add(deviceResource);
-                        interconnectableGroups.add(new InterconnectableGroup(deviceResource));
-                    }
-                    else {
-                        // Resource was not found
-                        StringBuilder builder = new StringBuilder();
-                        for (Technology technology : technologies) {
-                            if (builder.length() > 0) {
-                                builder.append(", ");
-                            }
-                            builder.append(technology.getName());
-                        }
-                        throw new FaultException(
-                                "No available resource was found for the following specification:\n"
-                                        + "    Time Slot: %s\n"
-                                        + " Technologies: %s",
-                                TemporalHelper.formatInterval(requestedSlot), builder.toString());
-                    }
-                    iterator.remove();
-                }
-            }
-
-            // TODO: Allocate aliases for endpoint (if needed)
-
-            // Check if all specification was processed
-            if (resourceSpecifications.size() > 0) {
-                ResourceSpecification resourceSpecification = resourceSpecifications.get(0);
-                throw new FaultException("Allocation of '%s' resource is not implemented yet.",
-                        resourceSpecification.getClass());
-            }
+        AllocatedCompartment noVirtualRoomAllocatedCompartment = createNoVirtualRoomAllocatedCompartment();
+        if (noVirtualRoomAllocatedCompartment != null) {
+            return noVirtualRoomAllocatedCompartment;
         }
-        catch (InterconnectableGroup.DeviceResourceIsNotTerminalException exception) {
-            throw new FaultException("Requested resource is not terminal:\n"
-                    + "  Resource: %s",
-                    exception.getResource().getId().toString());
+
+        AllocatedCompartment singleVirtualRoomAllocatedCompartment = createSingleVirtualRoomAllocatedCompartment();
+        if (singleVirtualRoomAllocatedCompartment != null) {
+            return singleVirtualRoomAllocatedCompartment;
         }
+
+        // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
+
+        // No virtual rooms is available
+        throw new FaultException("No single virtual room was found for following specification:\n"
+                + "       Time slot: %s\n"
+                + "      Technology: %s\n"
+                + " Number of ports: %d",
+                TemporalHelper.formatInterval(interval),
+                Technology.formatTechnologySets(getSingleVirtualRoomPlanTechnologySets()),
+                totalAllocatedEndpointCount);
     }
 
     /**
-     * Merge compatible {@link #interconnectableGroups}
+     * Show current connectivity graph in dialog
      */
-    public void mergeInterconnectableGroups()
+    public void showConnectivityGraph()
     {
-        // TODO: Implement better merging, each to each and select the best result
+        JGraph graph = new JGraph(new JGraphModelAdapter<AllocatedEndpoint, ConnectivityEdge>(connectivityGraph));
 
-        for (int index = 0; index < interconnectableGroups.size(); index++) {
-            InterconnectableGroup taskItem = interconnectableGroups.get(index);
-            for (int mergeIndex = index + 1; mergeIndex < interconnectableGroups.size(); mergeIndex++) {
-                InterconnectableGroup mergeTaskItem = interconnectableGroups.get(mergeIndex);
-                if (taskItem.merge(mergeTaskItem)) {
-                    interconnectableGroups.remove(mergeIndex);
-                    mergeIndex--;
-                }
-            }
-        }
+        JGraphFacade graphFacade = new JGraphFacade(graph, graph.getSelectionCells());
+        graphFacade.setIgnoresUnconnectedCells(true);
+        graphFacade.setIgnoresCellsInGroups(true);
+        graphFacade.setIgnoresHiddenCells(true);
+        graphFacade.setDirected(false);
+        graphFacade.resetControlPoints();
+
+        JGraphSimpleLayout graphLayout = new JGraphSimpleLayout(JGraphSimpleLayout.TYPE_CIRCLE);
+        graphLayout.run(graphFacade);
+
+        Dimension dimension = new Dimension(graphLayout.getMaxx(), graphLayout.getMaxy());
+        Rectangle2D bounds = graphFacade.getCellBounds();
+        dimension.setSize(bounds.getWidth(), bounds.getHeight());
+        dimension.setSize(dimension.getWidth() + 50, dimension.getHeight() + 80);
+
+        Map nested = graphFacade.createNestedMap(true, true);
+        graph.getGraphLayoutCache().edit(nested);
+
+        JDialog dialog = new JDialog();
+        dialog.getContentPane().add(graph);
+        dialog.setSize(dimension);
+        dialog.setModal(true);
+        dialog.setVisible(true);
     }
 
     /**
-     * Recursive implementation of {@link #getInterconnectingTechnologies}.
-     * Each recursive level process single {@link InterconnectableGroup}.
-     *
-     * @param currentTechnologies        current (incomplete) variant
-     * @param interconnectableGroupIndex specifies recursive level
-     * @param result                     result
+     * Represents an edge in the connectivity graph of endpoints.
      */
-    private void getInterconnectingTechnologies(Set<Technology> currentTechnologies, int interconnectableGroupIndex,
-            Set<Set<Technology>> result)
+    private static class ConnectivityEdge
     {
-        // Stop recursion
-        if (interconnectableGroupIndex < 0) {
-            // Finally remove all technologies which are not needed
-            for (Iterator<Technology> iterator = currentTechnologies.iterator(); iterator.hasNext(); ) {
-                Technology possibleTechnology = iterator.next();
-                // Technology is not needed when each group is connected also by another technology
-                for (InterconnectableGroup interconnectableGroup : interconnectableGroups) {
-                    boolean connectedAlsoByAnotherTechnology = false;
-                    for (Technology technology : interconnectableGroup.getTechnologies()) {
-                        if (technology.equals(possibleTechnology)) {
-                            continue;
-                        }
-                        if (currentTechnologies.contains(technology)) {
-                            connectedAlsoByAnotherTechnology = true;
-                            break;
-                        }
-                    }
-                    // Group is connected only by this technology and thus it cannot be removed
-                    if (!connectedAlsoByAnotherTechnology) {
-                        possibleTechnology = null;
-                        break;
-                    }
-                }
-                // All groups are connected also  by another technology so we can remove possible technology
-                if (possibleTechnology != null) {
-                    iterator.remove();
-                }
-            }
-            result.add(currentTechnologies);
-            return;
+        /**
+         * Technologies by which two endpoints can be connected.
+         */
+        private Set<Technology> technologies;
+
+        /**
+         * @param technologies sets the {@link #technologies}
+         */
+        public ConnectivityEdge(Set<Technology> technologies)
+        {
+            this.technologies = technologies;
         }
 
-        // Get current group in recursion
-        InterconnectableGroup interconnectableGroup = interconnectableGroups.get(interconnectableGroupIndex);
-        // Build all variants of technology set for current group and call next recursive level
-        for (Technology technology : interconnectableGroup.getTechnologies()) {
-            // Build new instance of technologies
-            Set<Technology> newTechnologies = new HashSet<Technology>();
-            newTechnologies.addAll(currentTechnologies);
-            // Add new technology
-            newTechnologies.add(technology);
-            // Call next recursive level
-            getInterconnectingTechnologies(newTechnologies, interconnectableGroupIndex - 1, result);
+        /**
+         * @return {@link #technologies}
+         */
+        public Set<Technology> getTechnologies()
+        {
+            return technologies;
         }
-    }
 
-    /**
-     * @return all variants of technologies where each variant interconnects all groups
-     */
-    public Set<Set<Technology>> getInterconnectingTechnologies()
-    {
-        Set<Set<Technology>> technologiesSet = new HashSet<Set<Technology>>();
-        getInterconnectingTechnologies(new HashSet<Technology>(), interconnectableGroups.size() - 1,
-                technologiesSet);
-        return technologiesSet;
-    }
-
-    /**
-     * @return sum of port count from all {@link InterconnectableGroup}s
-     */
-    public int getTotalPortCount()
-    {
-        int portCount = 0;
-        for (InterconnectableGroup interconnectableGroup : interconnectableGroups) {
-            portCount += interconnectableGroup.getPortCount();
+        @Override
+        public String toString()
+        {
+            return Technology.formatTechnologies(technologies);
         }
-        return portCount;
     }
 }

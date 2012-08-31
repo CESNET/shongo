@@ -1,16 +1,15 @@
 package cz.cesnet.shongo.controller.allocation;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a special type of {@link AllocatedResource} an allocated {@link DeviceResource}.
@@ -18,7 +17,7 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AllocatedDevice extends AllocatedResource
+public class AllocatedDevice extends AllocatedResource implements AllocatedEndpoint
 {
     /**
      * List of persons which use the device in specified date/time slot.
@@ -89,5 +88,35 @@ public class AllocatedDevice extends AllocatedResource
             throw new IllegalArgumentException("Resource which is allocated must be device.");
         }
         super.setResource(resource);
+    }
+
+    /**
+     * @return {@link DeviceResource} which is allocated
+     */
+    @Transient
+    public DeviceResource getDeviceResource()
+    {
+        return (DeviceResource) getResource();
+    }
+
+    @Override
+    @Transient
+    public int getCount()
+    {
+        return 1;
+    }
+
+    @Override
+    @Transient
+    public Set<Technology> getSupportedTechnologies()
+    {
+        return getDeviceResource().getTechnologies();
+    }
+
+    @Override
+    @Transient
+    public boolean isStandalone()
+    {
+        return getDeviceResource().isStandaloneTerminal();
     }
 }

@@ -364,7 +364,8 @@ public class ReservationRequest extends PersistentObject
     }
 
     @PrePersist
-    protected void onCreate() {
+    protected void onCreate()
+    {
         created = DateTime.now();
     }
 

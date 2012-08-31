@@ -224,6 +224,17 @@ public class DeviceResource extends Resource
     }
 
     /**
+     * @return true if device resource is standalone terminal (can participate in video conferences and also
+     *         in 2-point video conferences),
+     *         false otherwise
+     */
+    @Transient
+    public boolean isStandaloneTerminal()
+    {
+        return hasCapability(StandaloneTerminalCapability.class);
+    }
+
+    /**
      * @param deviceCapabilityType
      * @return set of technologies which the device supports for capability of given {@code deviceCapabilityType}
      */

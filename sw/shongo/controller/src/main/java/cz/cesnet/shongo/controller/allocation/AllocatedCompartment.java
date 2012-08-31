@@ -1,13 +1,16 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents allocated resources for a single compartment request.
@@ -28,9 +31,14 @@ public class AllocatedCompartment extends PersistentObject
     private CompartmentRequest compartmentRequest;
 
     /**
-     * Resources that are allocated for the {@link #compartmentRequest}.
+     * Items that are allocated for the {@link #compartmentRequest}.
      */
-    private List<AllocatedResource> allocatedResources = new ArrayList<AllocatedResource>();
+    private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
+
+    /**
+     * List of connections which will be initiated in the plan.
+     */
+    List<Connection> connections = new ArrayList<Connection>();
 
     /**
      * @return {@link #reservation}
@@ -81,37 +89,88 @@ public class AllocatedCompartment extends PersistentObject
     }
 
     /**
-     * @return {@link #allocatedResources}
+     * @return {@link #allocatedItems}
      */
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "allocatedCompartment")
     @Access(AccessType.FIELD)
+    public List<AllocatedItem> getAllocatedItems()
+    {
+        return allocatedItems;
+    }
+
+    /**
+     * @return list of {@link AllocatedResource}s from the {@link #allocatedItems}
+     */
+    @Transient
     public List<AllocatedResource> getAllocatedResources()
     {
+        List<AllocatedResource> allocatedResources = new ArrayList<AllocatedResource>();
+        for (AllocatedItem allocatedItem : allocatedItems) {
+            if (allocatedItem instanceof AllocatedResource) {
+                allocatedResources.add((AllocatedResource) allocatedItem);
+            }
+        }
         return allocatedResources;
     }
 
     /**
-     * @param allocatedResource allocated resource to be added to the {@link #allocatedResources}
+     * @param allocatedItem allocated item to be added to the {@link #allocatedItems}
      */
-    public void addAllocatedResource(AllocatedResource allocatedResource)
+    public void addAllocatedItem(AllocatedItem allocatedItem)
     {
         // Manage bidirectional association
-        if (allocatedResources.contains(allocatedResource) == false) {
-            allocatedResources.add(allocatedResource);
-            allocatedResource.setAllocatedCompartment(this);
+        if (allocatedItems.contains(allocatedItem) == false) {
+            allocatedItems.add(allocatedItem);
+            allocatedItem.setAllocatedCompartment(this);
         }
     }
 
     /**
-     * @param allocatedResource allocated resource to be removed from the {@link #allocatedResources}
+     * @param allocatedItem allocated item to be removed from the {@link #allocatedItems}
      */
-    public void removeAllocatedResource(AllocatedResource allocatedResource)
+    public void removeAllocatedItem(AllocatedItem allocatedItem)
     {
         // Manage bidirectional association
-        if (allocatedResources.contains(allocatedResource)) {
-            allocatedResources.remove(allocatedResource);
-            allocatedResource.setAllocatedCompartment(null);
+        if (allocatedItems.contains(allocatedItem)) {
+            allocatedItems.remove(allocatedItem);
+            allocatedItem.setAllocatedCompartment(null);
         }
+    }
+
+    /**
+     * @return {@link #allocatedItems}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<Connection> getConnections()
+    {
+        return connections;
+    }
+
+    /**
+     * @param connection to be added to the {@link #connections}
+     */
+    public void addConnection(Connection connection)
+    {
+        connections.add(connection);
+    }
+
+    /**
+     * Add new connection which should be initiated by this endpoint.
+     *
+     * @param allocatedEndpointFrom
+     * @param allocatedEndpointTo
+     */
+    public void addConnection(AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo)
+    {
+        Set<Technology> technologies = new HashSet<Technology>(allocatedEndpointFrom.getSupportedTechnologies());
+        technologies.retainAll(allocatedEndpointTo.getSupportedTechnologies());
+        if (technologies.size() == 0) {
+            throw new IllegalArgumentException("Technologies must not be empty!");
+        }
+        // TODO: Select prefered technology
+        Technology technology = technologies.iterator().next();
+        addConnection(new Connection(allocatedEndpointFrom, allocatedEndpointTo, technology));
     }
 
     /**
@@ -125,7 +184,11 @@ public class AllocatedCompartment extends PersistentObject
         cz.cesnet.shongo.controller.api.AllocatedCompartment allocatedCompartmentApi =
                 new cz.cesnet.shongo.controller.api.AllocatedCompartment();
         allocatedCompartmentApi.setSlot(compartmentRequest.getRequestedSlot());
-        for (AllocatedResource allocatedResource : allocatedResources) {
+        for (AllocatedItem allocatedItem : allocatedItems) {
+            if (!(allocatedItem instanceof AllocatedResource)) {
+                continue;
+            }
+            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
             Resource resource = allocatedResource.getResource();
             if (allocatedResource instanceof AllocatedVirtualRoom) {
                 AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;

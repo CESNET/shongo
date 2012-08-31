@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -264,6 +265,12 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     }
 
     //@Test
+    public void testDependentResource() throws Exception
+    {
+        throw new TodoImplementException();
+    }
+
+    @Test
     public void testStandaloneTerminals() throws Exception
     {
         ResourceDatabase resourceDatabase = new ResourceDatabase();
@@ -359,7 +366,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         checkSuccessfulAllocation(reservationRequest, resourceDatabase);
     }
 
-   //@Test
+    //@Test
     public void testMultipleVirtualRooms() throws Exception
     {
         ResourceDatabase resourceDatabase = new ResourceDatabase();

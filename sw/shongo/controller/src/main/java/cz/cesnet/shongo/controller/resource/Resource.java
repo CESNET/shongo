@@ -409,7 +409,8 @@ public class Resource extends PersistentObject
         Resource resource;
         if (api.getTechnologies().size() > 0) {
             resource = new DeviceResource();
-        } else {
+        }
+        else {
             resource = new Resource();
         }
         resource.fromApi(api, entityManager, domain);

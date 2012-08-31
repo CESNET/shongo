@@ -1,17 +1,12 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.TransactionHelper;
-import cz.cesnet.shongo.controller.allocation.*;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.api.ControllerFault;
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
-import cz.cesnet.shongo.controller.request.ResourceSpecification;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.StandaloneTerminalCapability;
-import cz.cesnet.shongo.controller.scheduler.InterconnectableGroup;
 import cz.cesnet.shongo.controller.scheduler.Task;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
@@ -20,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.List;
 
 /**
  * Represents a component of a domain controller that is responsible for allocating resources
@@ -121,10 +116,6 @@ public class Scheduler extends Component
             allocatedCompartmentManager.delete(allocatedCompartment, resourceDatabase);
         }
 
-        // Schedule a new allocation
-        allocatedCompartment = new AllocatedCompartment();
-        allocatedCompartment.setCompartmentRequest(compartmentRequest);
-
         try {
             // Get requested slot and check it's maximum duration
             Interval requestedSlot = compartmentRequest.getRequestedSlot();
@@ -134,88 +125,21 @@ public class Scheduler extends Component
                         resourceDatabase.getDeviceAllocationMaximumDuration().toString());
             }
 
-            // Get map of requested resources with requested persons for them
-            Map<ResourceSpecification, List<Person>> requestedResourcesWithPersons =
-                    compartmentRequest.getRequestedResourcesWithPersons();
+            // Get list of requested resources
+            List<CompartmentRequest.RequestedResource> requestedResources =
+                    compartmentRequest.getRequestedResourcesForScheduler();
 
             // Initialize scheduler task (by adding all requested resources to it)
-            Task task = new Task();
-            for (ResourceSpecification resourceSpecification : requestedResourcesWithPersons.keySet()) {
-                task.addResourceSpecification(resourceSpecification);
+            Task task = new Task(requestedSlot, resourceDatabase);
+            for (CompartmentRequest.RequestedResource requestedResource : requestedResources) {
+                task.addResource(requestedResource.getResourceSpecification());
             }
 
-            // Perform scheduling task
-            task.fillInterconnectableGroups(requestedSlot, entityManager, resourceDatabase);
-            task.mergeInterconnectableGroups();
+            // Create new allocated compartment
+            allocatedCompartment = task.createAllocatedCompartment();
+            allocatedCompartment.setCompartmentRequest(compartmentRequest);
 
-            // Check some resources are requested
-            List<InterconnectableGroup> interconnectableGroups = task.getInterconnectableGroups();
-            if (interconnectableGroups.size() == 0) {
-                throw new FaultException("No resources are requested for allocation.");
-            }
-
-            // Check if virtual rooms is needed
-            boolean virtualRoomIsNeeded = true;
-            if (interconnectableGroups.size() == 1) {
-                InterconnectableGroup group = interconnectableGroups.get(0);
-                int portCount = group.getPortCount();
-                if (portCount < 2) {
-                    throw new FaultException("At least two devices/ports must be requested.");
-                }
-                else if (portCount == 2 && group.getDeviceResourcesCount(StandaloneTerminalCapability.class) == 2) {
-                    // No virtual room is needed
-                    virtualRoomIsNeeded = false;
-                }
-            }
-
-            // Allocate virtual room
-            if (virtualRoomIsNeeded) {
-                // Try to allocate single virtual room
-                int requestedPortCount = task.getTotalPortCount();
-                Set<Set<Technology>> technologiesVariants = task.getInterconnectingTechnologies();
-
-                // TODO: Try to use virtual rooms from special terminals
-
-                // Get available virtual rooms
-                List<AvailableVirtualRoom> availableVirtualRooms = resourceDatabase.findAvailableVirtualRoomsByVariants(
-                        requestedSlot, requestedPortCount, technologiesVariants);
-                if (availableVirtualRooms.size() == 0) {
-                    // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
-
-                    // No virtual rooms is available
-                    throw new FaultException("No single virtual room was found for following specification:\n"
-                            + "       Time slot: %s\n"
-                            + "      Technology: %s\n"
-                            + " Number of ports: %d",
-                            TemporalHelper.formatInterval(requestedSlot),
-                            Technology.formatTechnologySets(technologiesVariants),
-                            requestedPortCount);
-                }
-
-                // Sort virtual rooms from the most filled to the least filled
-                Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
-                {
-                    @Override
-                    public int compare(AvailableVirtualRoom first, AvailableVirtualRoom second)
-                    {
-                        return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
-                    }
-                });
-
-                // Allocate virtual room
-                AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
-                AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
-                allocatedVirtualRoom.setResource(availableVirtualRoom.getDeviceResource());
-                allocatedVirtualRoom.setSlot(requestedSlot);
-                allocatedVirtualRoom.setPortCount(requestedPortCount);
-                allocatedCompartment.addAllocatedResource(allocatedVirtualRoom);
-            }
-
-            // Allocated other resources
-            List<AllocatedResource> allocatedResources = allocateResources(task, requestedSlot);
-            for (AllocatedResource allocatedResource : allocatedResources) {
-                allocatedCompartment.addAllocatedResource(allocatedResource);
-            }
+            // TODO: Add persons for allocated devices
 
             // Create allocated compartment
             allocatedCompartmentManager.create(allocatedCompartment);
@@ -233,25 +157,5 @@ public class Scheduler extends Component
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED, exception.getMessage());
             compartmentRequestManager.update(compartmentRequest);
         }
-    }
-
-    private List<AllocatedResource> allocateResources(Task task, Interval requestedSlot)
-    {
-        List<AllocatedResource> allocatedResources = new ArrayList<AllocatedResource>();
-        for (Resource resource : task.getResources()) {
-            AllocatedResource allocatedResource;
-            if (resource instanceof DeviceResource) {
-                AllocatedDevice allocatedDevice = new AllocatedDevice();
-                // TODO: Add persons for allocated device
-                allocatedResource = allocatedDevice;
-            }
-            else {
-                allocatedResource = new AllocatedResource();
-            }
-            allocatedResource.setSlot(requestedSlot);
-            allocatedResource.setResource(resource);
-            allocatedResources.add(allocatedResource);
-        }
-        return allocatedResources;
     }
 }

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.scheduler.plan;
+package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.Technology;
 
@@ -9,15 +9,12 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Endpoint
+public interface AllocatedEndpoint
 {
     /**
      * @return number of the endpoints
      */
-    public int getCount()
-    {
-        return 1;
-    }
+    public int getCount();
 
     /**
      * @return set of technologies which are supported by the endpoint(s)
@@ -28,8 +25,5 @@ public abstract class Endpoint
      * @return true if device can participate in 2-point video conference without virtual room,
      *         false otherwise
      */
-    public boolean isStandalone()
-    {
-        return false;
-    }
+    public boolean isStandalone();
 }

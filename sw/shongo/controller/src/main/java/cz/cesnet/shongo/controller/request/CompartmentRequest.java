@@ -222,15 +222,17 @@ public class CompartmentRequest extends PersistentObject
     }
 
     /**
-     * @return map of requested resources as keys and list of requested persons for each resource as value
+     * @return list of {@link RequestedResource}s
      */
     @Transient
-    public Map<ResourceSpecification, List<Person>> getRequestedResourcesWithPersons()
+    public List<RequestedResource> getRequestedResourcesForScheduler()
     {
-        HashMap<ResourceSpecification, List<Person>> mapRequestedResourcesWithPersons =
-                new HashMap<ResourceSpecification, List<Person>>();
-        for (ResourceSpecification resourceSpecification : requestedResources) {
-            mapRequestedResourcesWithPersons.put(resourceSpecification, new ArrayList<Person>());
+        List<RequestedResource> requestedResources = new ArrayList<RequestedResource>();
+        Map<Long, RequestedResource> requestedResourceById = new HashMap<Long, RequestedResource>();
+        for (ResourceSpecification resourceSpecification : this.requestedResources) {
+            RequestedResource requestedResource = new RequestedResource(resourceSpecification);
+            requestedResources.add(requestedResource);
+            requestedResourceById.put(resourceSpecification.getId(), requestedResource);
         }
         for (PersonRequest personRequest : requestedPersons) {
             if (personRequest.getState() == PersonRequest.State.ACCEPTED) {
@@ -238,28 +240,39 @@ public class CompartmentRequest extends PersistentObject
                     throw new IllegalStateException("Person request '" + personRequest.getId()
                             + "' in compartment request '" + getId() + "' should have resource specified!");
                 }
-                List<Person> persons = mapRequestedResourcesWithPersons.get(personRequest.getResourceSpecification());
-                if (persons == null) {
+                RequestedResource requestedResource =
+                        requestedResourceById.get(personRequest.getResourceSpecification().getId());
+                if (requestedResource == null) {
                     throw new IllegalStateException("Resource '" + personRequest.getResourceSpecification().getId()
                             + "' specified in person request '" + personRequest.getId()
                             + "' doesn't exists in compartment request '" + getId() + "'!");
                 }
-                persons.add(personRequest.getPerson());
+                requestedResource.addPerson(personRequest.getPerson());
             }
         }
 
         // Remove all requested resources which have been requested with a not empty list of persons
         // and the current list of requested persons is empty (all persons rejected invitation)
-        Iterator<Map.Entry<ResourceSpecification, List<Person>>> iterator =
-                mapRequestedResourcesWithPersons.entrySet().iterator();
+        Iterator<RequestedResource> iterator = requestedResources.iterator();
         while (iterator.hasNext()) {
-            Map.Entry<ResourceSpecification, List<Person>> entry = iterator.next();
-            if (entry.getValue().size() == 0 && entry.getKey().getRequestedPersons().size() > 0) {
+            RequestedResource requestedResource = iterator.next();
+            if (requestedResource.getPersons().size() == 0
+                    && requestedResource.getResourceSpecification().getRequestedPersons().size() > 0) {
                 iterator.remove();
             }
         }
 
-        return mapRequestedResourcesWithPersons;
+        // Sort requested resources by priority
+        Collections.sort(requestedResources, new Comparator<RequestedResource>()
+        {
+            @Override
+            public int compare(RequestedResource first, RequestedResource second)
+            {
+                return Integer.valueOf(first.getPriority()).compareTo(second.getPriority());
+            }
+        });
+
+        return requestedResources;
     }
 
     /**
@@ -354,5 +367,63 @@ public class CompartmentRequest extends PersistentObject
         map.put("state", state.toString());
         addCollectionToMap(map, "persons", requestedPersons);
         addCollectionToMap(map, "resources", requestedResources);
+    }
+
+    /**
+     * Represents a requested resource which is used in scheduling.
+     */
+    public static class RequestedResource
+    {
+        /**
+         * {@link ResourceSpecification} of requested resource.
+         */
+        private ResourceSpecification resourceSpecification;
+
+        /**
+         * List of {@link Person}s which will use the requested resource in the video conference.
+         */
+        private List<Person> persons = new ArrayList<Person>();
+
+        /**
+         * Constructor.
+         *
+         * @param resourceSpecification sets the {@link #resourceSpecification}
+         */
+        public RequestedResource(ResourceSpecification resourceSpecification)
+        {
+            this.resourceSpecification = resourceSpecification;
+        }
+
+        /**
+         * @return {@link #resourceSpecification}
+         */
+        public ResourceSpecification getResourceSpecification()
+        {
+            return resourceSpecification;
+        }
+
+        /**
+         * @return {@link #persons}
+         */
+        public List<Person> getPersons()
+        {
+            return persons;
+        }
+
+        /**
+         * @param person person to be added to the {@link #persons}
+         */
+        public void addPerson(Person person)
+        {
+            persons.add(person);
+        }
+
+        /**
+         * @return priority of requested resource (less number means greater priority)
+         */
+        public int getPriority()
+        {
+            return (resourceSpecification instanceof ExistingResourceSpecification ? 0 : 1);
+        }
     }
 }
