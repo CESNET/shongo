@@ -156,24 +156,6 @@ public class AllocatedCompartment extends PersistentObject
     }
 
     /**
-     * Add new connection which should be initiated by this endpoint.
-     *
-     * @param allocatedEndpointFrom
-     * @param allocatedEndpointTo
-     */
-    public void addConnection(AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo)
-    {
-        Set<Technology> technologies = new HashSet<Technology>(allocatedEndpointFrom.getSupportedTechnologies());
-        technologies.retainAll(allocatedEndpointTo.getSupportedTechnologies());
-        if (technologies.size() == 0) {
-            throw new IllegalArgumentException("Technologies must not be empty!");
-        }
-        // TODO: Select prefered technology
-        Technology technology = technologies.iterator().next();
-        addConnection(new Connection(allocatedEndpointFrom, allocatedEndpointTo, technology));
-    }
-
-    /**
      * @param domain
      * @return allocated compartment converted to API
      */

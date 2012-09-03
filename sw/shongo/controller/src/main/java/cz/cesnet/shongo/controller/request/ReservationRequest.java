@@ -84,11 +84,6 @@ public class ReservationRequest extends PersistentObject
     private List<Compartment> requestedCompartments = new ArrayList<Compartment>();
 
     /**
-     * Specifies the default option who should initiate the call for all requested resources.
-     */
-    private CallInitiation callInitiation;
-
-    /**
      * Option that specifies whether inter-domain resource lookup can be performed.
      */
     private boolean interDomain;
@@ -283,24 +278,6 @@ public class ReservationRequest extends PersistentObject
         Compartment compartment = new Compartment();
         addRequestedCompartment(compartment);
         return compartment;
-    }
-
-    /**
-     * @return {@link #callInitiation}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public CallInitiation getCallInitiation()
-    {
-        return callInitiation;
-    }
-
-    /**
-     * @param callInitiation sets the {@link #callInitiation}
-     */
-    public void setCallInitiation(CallInitiation callInitiation)
-    {
-        this.callInitiation = callInitiation;
     }
 
     /**

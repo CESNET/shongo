@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -118,5 +119,18 @@ public class AllocatedDevice extends AllocatedResource implements AllocatedEndpo
     public boolean isStandalone()
     {
         return getDeviceResource().isStandaloneTerminal();
+    }
+
+    @Override
+    @Transient
+    public List<Alias> getAssignedAliases()
+    {
+        List<Alias> aliases = new ArrayList<Alias>();
+        TerminalCapability terminalCapability = getDeviceResource().getCapability(TerminalCapability.class);
+        if (terminalCapability != null) {
+            aliases.addAll(terminalCapability.getAliases());
+        }
+        aliases.addAll(this.aliases);
+        return aliases;
     }
 }

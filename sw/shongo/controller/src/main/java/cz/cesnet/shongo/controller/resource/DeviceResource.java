@@ -1,8 +1,11 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityValidationException;
+import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -234,56 +237,9 @@ public class DeviceResource extends Resource
         return hasCapability(StandaloneTerminalCapability.class);
     }
 
-    /**
-     * @param deviceCapabilityType
-     * @return set of technologies which the device supports for capability of given {@code deviceCapabilityType}
-     */
-    @Transient
-    public Set<Technology> getCapabilityTechnologies(Class<? extends DeviceCapability> deviceCapabilityType)
-    {
-        DeviceCapability deviceCapability = getCapability(deviceCapabilityType);
-        if (deviceCapability == null) {
-            throw new IllegalArgumentException(
-                    "Device doesn't contain capability '" + deviceCapabilityType.getCanonicalName() + "'.");
-        }
-        return getCapabilityTechnologies(deviceCapability);
-    }
-
-    /**
-     * @param deviceCapability
-     * @return set of technologies which the device supports for given {@code deviceCapability}
-     */
-    @Transient
-    public Set<Technology> getCapabilityTechnologies(DeviceCapability deviceCapability)
-    {
-        Set<Technology> technologies = deviceCapability.getTechnologies();
-        if (technologies.size() == 0) {
-            technologies = getTechnologies();
-        }
-        else {
-            if (technologies.retainAll(getTechnologies())) {
-                throw new IllegalStateException(
-                        "Capability contains technologies which aren't specified for the device resource.");
-            }
-        }
-        return Collections.unmodifiableSet(technologies);
-    }
-
     @Override
     public void validate() throws EntityValidationException
     {
-        for (Capability capability : getCapabilities()) {
-            if (capability instanceof DeviceCapability) {
-                DeviceCapability deviceCapability = (DeviceCapability) capability;
-                for (Technology technology : deviceCapability.getTechnologies()) {
-                    if (!hasTechnology(technology)) {
-                        throw new EntityValidationException(getClass(), getId(),
-                                "Capability '%s' has '%s' technology but resource doesn't.",
-                                deviceCapability.getClass().getCanonicalName(), technology.getCode());
-                    }
-                }
-            }
-        }
         super.validate();
     }
 
@@ -295,5 +251,80 @@ public class DeviceResource extends Resource
         map.put("callable", (isCallable() ? "true" : "false"));
         map.put("mode", (isManaged() ? "managed" : "unmanaged"));
         addCollectionToMap(map, "technologies", technologies);
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.Resource createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.DeviceResource();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.DeviceResource deviceResource =
+                (cz.cesnet.shongo.controller.api.DeviceResource) resource;
+        for (Technology technology : getTechnologies()) {
+            deviceResource.addTechnology(technology);
+        }
+
+        if (isManaged()) {
+            ManagedMode mode = (ManagedMode) getMode();
+            deviceResource.setMode(new cz.cesnet.shongo.controller.api.ManagedMode(mode.getConnectorAgentName()));
+        }
+        else {
+            deviceResource.setMode(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE);
+        }
+        super.toApi(resource, entityManager, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Resource api, EntityManager entityManager, Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) api;
+        // Create technologies
+        for (Technology technology : apiDevice.getTechnologies()) {
+            if (api.isCollectionItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,
+                    technology)) {
+                addTechnology(technology);
+            }
+        }
+        // Delete technologies
+        Set<Technology> technologies =
+                api.getCollectionItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+        for (Technology technology : technologies) {
+            removeTechnology(technology);
+        }
+
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.MODE)) {
+            Object mode = apiDevice.getMode();
+            if (mode instanceof String) {
+                if (mode.equals(cz.cesnet.shongo.controller.api.DeviceResource.UNMANAGED_MODE)) {
+                    setMode(null);
+                }
+                else {
+                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
+                            cz.cesnet.shongo.controller.api.DeviceResource.MODE, api.getClass(), mode);
+                }
+            }
+            else if (mode instanceof cz.cesnet.shongo.controller.api.ManagedMode) {
+                ManagedMode managedMode;
+                if (isManaged()) {
+                    managedMode = (ManagedMode) getMode();
+                }
+                else {
+                    managedMode = new ManagedMode();
+                    setMode(managedMode);
+                }
+                managedMode.setConnectorAgentName(
+                        ((cz.cesnet.shongo.controller.api.ManagedMode) mode).getConnectorAgentName());
+            }
+            else {
+                throw new FaultException(CommonFault.CLASS_ATTRIBUTE_WRONG_VALUE,
+                        cz.cesnet.shongo.controller.api.DeviceResource.MODE, api.getClass(), mode);
+            }
+        }
+        super.fromApi(api, entityManager, domain);
     }
 }

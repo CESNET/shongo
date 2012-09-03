@@ -12,7 +12,7 @@ public enum Technology
     /**
      * @see <a href="http://en.wikipedia.org/wiki/H.323">H.323</a>
      */
-    H323("H.323"),
+    H323("H.323", true),
 
     /**
      * @see <a href="http://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a>
@@ -38,13 +38,30 @@ public enum Technology
     private String name;
 
     /**
+     * Specifies whether connections by IP address are allowed.
+     */
+    private boolean allowedConnectionByIpAddress = false;
+
+    /**
      * Constructor.
      *
-     * @param name Sets the {@link #name}
+     * @param name sets the {@link #name}
      */
     private Technology(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param name                         sets the {@link #name}
+     * @param allowedConnectionByIpAddress sets the {@link #allowedConnectionByIpAddress}
+     */
+    private Technology(String name, boolean allowedConnectionByIpAddress)
+    {
+        this.name = name;
+        this.allowedConnectionByIpAddress = allowedConnectionByIpAddress;
     }
 
     /**
@@ -61,6 +78,14 @@ public enum Technology
     public String getName()
     {
         return name;
+    }
+
+    /**
+     * @return {@link #allowedConnectionByIpAddress}
+     */
+    public boolean isAllowedConnectionByIpAddress()
+    {
+        return allowedConnectionByIpAddress;
     }
 
     /**
@@ -117,7 +142,8 @@ public enum Technology
      * @param currentTechnologySet current (incomplete) variant
      * @param currentIndex         specifies recursive level
      */
-    private static void interconnect(List<Set<Technology>> inputTechnologySets, Set<Set<Technology>> outputTechnologySets,
+    private static void interconnect(List<Set<Technology>> inputTechnologySets,
+            Set<Set<Technology>> outputTechnologySets,
             Set<Technology> currentTechnologySet, int currentIndex)
     {
         // Stop recursion

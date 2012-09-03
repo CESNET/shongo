@@ -6,9 +6,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
@@ -50,6 +52,16 @@ public class Task
     private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
 
     /**
+     * Default call initiation.
+     */
+    private CallInitiation callInitiation = CallInitiation.TERMINAL;
+
+    /**
+     * Map of call initiations by {@link AllocatedItem}.
+     */
+    private Map<AllocatedItem, CallInitiation> callInitiationByAllocatedItem = new HashMap<AllocatedItem, CallInitiation>();
+
+    /**
      * List of all endpoints.
      */
     private List<AllocatedEndpoint> allocatedEndpoints = new ArrayList<AllocatedEndpoint>();
@@ -79,6 +91,17 @@ public class Task
     }
 
     /**
+     * @param callInitiation sets the {@link #callInitiation}
+     */
+    public void setCallInitiation(CallInitiation callInitiation)
+    {
+        if (callInitiation == null) {
+            throw new IllegalArgumentException("Call initiation must not be null.");
+        }
+        this.callInitiation = callInitiation;
+    }
+
+    /**
      * Clear all information added to the task.
      */
     public void clear()
@@ -100,7 +123,7 @@ public class Task
         if (resourceSpecification instanceof ExternalEndpointSpecification) {
             AllocatedExternalEndpoint allocatedExternalEndpoint =
                     new AllocatedExternalEndpoint((ExternalEndpointSpecification) resourceSpecification);
-            addAllocatedItem(allocatedExternalEndpoint);
+            addAllocatedItem(allocatedExternalEndpoint, resourceSpecification.getCallInitiation());
         }
         else if (resourceSpecification instanceof ExistingResourceSpecification) {
             ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
@@ -113,7 +136,7 @@ public class Task
             }
             if (!resource.isSchedulable()) {
                 // Requested resource cannot be allocated
-                throw new FaultException("Requested resource cannot be allocated (schedulable = false):\n"
+                throw new FaultException("Requested resource cannot be allocated because it is not schedulable:\n"
                         + "  Resource: %s",
                         resource.getId().toString());
             }
@@ -125,7 +148,7 @@ public class Task
                         TemporalHelper.formatInterval(interval),
                         resource.getId().toString());
             }
-            addAllocatedItemByResource(resource);
+            addAllocatedItemByResource(resource, resourceSpecification.getCallInitiation());
         }
         else if (resourceSpecification instanceof LookupResourceSpecification) {
             LookupResourceSpecification lookupResource = (LookupResourceSpecification) resourceSpecification;
@@ -147,7 +170,7 @@ public class Task
 
             // If some was found
             if (deviceResource != null) {
-                addAllocatedItemByResource(deviceResource);
+                addAllocatedItemByResource(deviceResource, resourceSpecification.getCallInitiation());
             }
             else {
                 // Resource was not found
@@ -172,13 +195,17 @@ public class Task
     }
 
     /**
-     * Add requested endpoint to task.
+     * Add requested {@code allocatedItem} to task.
      *
      * @param allocatedItem
+     * @param callInitiation
      */
-    public void addAllocatedItem(AllocatedItem allocatedItem)
+    public void addAllocatedItem(AllocatedItem allocatedItem, CallInitiation callInitiation)
     {
         allocatedItems.add(allocatedItem);
+        if (callInitiation != null) {
+            callInitiationByAllocatedItem.put(allocatedItem, callInitiation);
+        }
 
         // Setup endpoints
         if (allocatedItem instanceof AllocatedEndpoint) {
@@ -202,24 +229,160 @@ public class Task
     }
 
     /**
+     * Add requested {@code allocatedItem} to task.
+     *
+     * @param allocatedItem
+     */
+    public void addAllocatedItem(AllocatedItem allocatedItem)
+    {
+        addAllocatedItem(allocatedItem, null);
+    }
+
+    /**
      * Create {@link AllocatedItem} from given {@code resource} and pass it to
-     * the {@link #addAllocatedItem(AllocatedItem)}.
+     * the {@link #addAllocatedItem(AllocatedItem, CallInitiation)}.
      *
      * @param resource
      */
-    private void addAllocatedItemByResource(Resource resource)
+    private void addAllocatedItemByResource(Resource resource, CallInitiation callInitiation)
     {
         if (resource instanceof DeviceResource) {
             AllocatedDevice allocatedDevice = new AllocatedDevice();
             allocatedDevice.setResource(resource);
-            addAllocatedItem(allocatedDevice);
+            addAllocatedItem(allocatedDevice, callInitiation);
         }
         else {
             AllocatedResource allocatedResource = new AllocatedResource();
             allocatedResource.setResource(resource);
-            addAllocatedItem(allocatedResource);
+            addAllocatedItem(allocatedResource, callInitiation);
         }
         resources.add(resource);
+
+        // Add parent resource
+        Resource parentResource = resource.getParentResource();
+        if (parentResource != null && !resources.contains(parentResource)) {
+            addAllocatedItemByResource(parentResource, callInitiation);
+        }
+    }
+
+    /**
+     * Add new connection to the given {@code allocatedCompartment}.
+     *
+     * @param allocatedCompartment
+     * @param allocatedEndpointFrom
+     * @param allocatedEndpointTo
+     */
+    private void addConnectionToAllocatedCompartment(AllocatedCompartment allocatedCompartment,
+            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo)
+    {
+        AllocatedItem allocatedItemFrom = (AllocatedItem) allocatedEndpointFrom;
+        AllocatedItem allocatedItemTo = (AllocatedItem) allocatedEndpointTo;
+
+        // Determine call initiation from given endpoints
+        CallInitiation callInitiation = null;
+        CallInitiation callInitiationFrom = callInitiationByAllocatedItem.get(allocatedItemFrom);
+        CallInitiation callInitiationTo = callInitiationByAllocatedItem.get(allocatedItemTo);
+        if (callInitiationFrom != null) {
+            callInitiation = callInitiationFrom;
+        }
+        if (callInitiationTo != null) {
+            if (callInitiation == null) {
+                callInitiation = callInitiationTo;
+            }
+            else if (callInitiation != callInitiationTo) {
+                // Rewrite call initiation only when the second endpoint isn't virtual room and it want to be called
+                // from the virtual room
+                if (!(allocatedEndpointTo instanceof AllocatedVirtualRoom) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
+                    callInitiation = callInitiationTo;
+                }
+            }
+        }
+        // If no call initiation was specified for the endpoints, use the default
+        if (callInitiation == null) {
+            callInitiation = this.callInitiation;
+        }
+
+        // Change preferred order of endpoints based on call initiation
+        switch (callInitiation) {
+            case VIRTUAL_ROOM:
+                // If the call should be initiated by a virtual room and it is the second endpoint, exchange them
+                if (!(allocatedEndpointFrom instanceof AllocatedVirtualRoom) && allocatedEndpointTo instanceof AllocatedVirtualRoom) {
+                    AllocatedEndpoint allocatedEndpointTemp = allocatedEndpointFrom;
+                    allocatedEndpointFrom = allocatedEndpointTo;
+                    allocatedEndpointTo = allocatedEndpointTemp;
+                }
+                break;
+            case TERMINAL:
+                // If the call should be initiated by a terminal and it is the second endpoint, exchange them
+                if (allocatedEndpointFrom instanceof AllocatedVirtualRoom && !(allocatedEndpointTo instanceof AllocatedVirtualRoom)) {
+                    AllocatedEndpoint allocatedEndpointTemp = allocatedEndpointFrom;
+                    allocatedEndpointFrom = allocatedEndpointTo;
+                    allocatedEndpointTo = allocatedEndpointTemp;
+                }
+                break;
+            default:
+                throw new IllegalStateException("Unknown call initiation '" + callInitiation.toString() + "'.");
+        }
+
+        // If the second endpoint represents multiple endpoints, they should initiate the call
+        if (allocatedEndpointTo.getCount() > 1) {
+            // TODO: Allow specifying multiple aliases for external endpoints and use it for call initiation
+            AllocatedEndpoint allocatedEndpointTemp = allocatedEndpointFrom;
+            allocatedEndpointFrom = allocatedEndpointTo;
+            allocatedEndpointTo = allocatedEndpointTemp;
+        }
+
+        // Determine technology by which the resources will connect
+        Technology technology = null;
+        Set<Technology> technologies = new HashSet<Technology>(allocatedEndpointFrom.getSupportedTechnologies());
+        technologies.retainAll(allocatedEndpointTo.getSupportedTechnologies());
+        switch (technologies.size()) {
+            case 0:
+                // No common technology
+                throw new IllegalArgumentException(
+                        "Cannot connect endpoints because they doesn't have any common technology!");
+            case 1:
+                // One common technology
+                technology = technologies.iterator().next();
+                break;
+            default:
+                // Multiple common technologies, thus determine preferred technology
+                Technology preferredTechnology = null;
+                if (allocatedEndpointFrom instanceof AllocatedDevice) {
+                    AllocatedDevice allocatedDevice = (AllocatedDevice) allocatedEndpointFrom;
+                    preferredTechnology = allocatedDevice.getDeviceResource().getPreferredTechnology();
+                }
+                if (preferredTechnology == null && allocatedEndpointTo instanceof AllocatedDevice) {
+                    AllocatedDevice allocatedDevice = (AllocatedDevice) allocatedEndpointTo;
+                    preferredTechnology = allocatedDevice.getDeviceResource().getPreferredTechnology();
+                }
+                // Use preferred technology
+                if (technologies.contains(preferredTechnology)) {
+                    technology = preferredTechnology;
+                }
+                else {
+                    technology = technologies.iterator().next();
+                }
+        }
+
+        // todo:
+        if (true) {
+            throw new TodoImplementException();
+        }
+        if (allocatedEndpointTo.getCount() > 1) {
+
+        }
+
+        List<Alias> aliases = allocatedEndpointFrom.getAssignedAliases();
+        if (technology.isAllowedConnectionByIpAddress()) {
+
+        }
+
+        Connection connection = new Connection();
+        connection.setAllocatedEndpointFrom(allocatedItemFrom);
+        connection.setAllocatedEndpointTo(allocatedItemTo);
+        connection.setTechnology(technology);
+        allocatedCompartment.addConnection(connection);
     }
 
     /**
@@ -229,27 +392,36 @@ public class Task
      */
     private AllocatedCompartment createNoVirtualRoomAllocatedCompartment()
     {
-        // Only two standalone endpoints may be connected without virtual room
-        if (totalAllocatedEndpointCount != 2 || allocatedEndpoints.size() != 2) {
+        // Maximal two endpoints may be connected without virtual room
+        if (totalAllocatedEndpointCount > 2 || allocatedEndpoints.size() > 2) {
             return null;
         }
-        for (AllocatedEndpoint endpoint : allocatedEndpoints) {
-            if (!endpoint.isStandalone()) {
+
+        // Two endpoints must be standalone and interconnectable
+        AllocatedEndpoint endpointFrom = null;
+        AllocatedEndpoint endpointTo = null;
+        if (allocatedEndpoints.size() == 2) {
+            if (totalAllocatedEndpointCount != 2) {
+                throw new IllegalStateException();
+            }
+            endpointFrom = allocatedEndpoints.get(0);
+            endpointTo = allocatedEndpoints.get(1);
+
+            // Check if endpoints are standalone
+            if (!endpointFrom.isStandalone() || !endpointTo.isStandalone()) {
                 return null;
             }
-        }
 
-        // Check connectivity
-        AllocatedEndpoint endpointFrom = allocatedEndpoints.get(0);
-        AllocatedEndpoint endpointTo = allocatedEndpoints.get(1);
-        ConnectivityEdge connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
-        if (connectivityEdge == null) {
-            AllocatedEndpoint endpointTemp = endpointFrom;
-            endpointFrom = endpointTo;
-            endpointTo = endpointTemp;
-            connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
+            // Check connectivity
+            ConnectivityEdge connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
             if (connectivityEdge == null) {
-                return null;
+                AllocatedEndpoint endpointTemp = endpointFrom;
+                endpointFrom = endpointTo;
+                endpointTo = endpointTemp;
+                connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
+                if (connectivityEdge == null) {
+                    return null;
+                }
             }
         }
 
@@ -259,7 +431,10 @@ public class Task
             allocatedItem.setSlot(interval);
             allocatedCompartment.addAllocatedItem(allocatedItem);
         }
-        allocatedCompartment.addConnection(endpointFrom, endpointTo);
+        // Add connection between two standalone endpoints
+        if (endpointFrom != null && endpointTo != null) {
+            addConnectionToAllocatedCompartment(allocatedCompartment, endpointFrom, endpointTo);
+        }
         return allocatedCompartment;
     }
 
@@ -315,7 +490,8 @@ public class Task
             allocatedItem.setSlot(interval);
             allocatedCompartment.addAllocatedItem(allocatedItem);
             if (allocatedItem instanceof AllocatedEndpoint) {
-                allocatedCompartment.addConnection(allocatedVirtualRoom, (AllocatedEndpoint) allocatedItem);
+                addConnectionToAllocatedCompartment(allocatedCompartment, allocatedVirtualRoom,
+                        (AllocatedEndpoint) allocatedItem);
             }
         }
         return allocatedCompartment;
@@ -328,7 +504,16 @@ public class Task
     public AllocatedCompartment createAllocatedCompartment() throws FaultException
     {
         if (totalAllocatedEndpointCount <= 1) {
-            throw new FaultException("At least two devices/ports must be requested.");
+            // Check whether an existing resource is requested
+            boolean resourceRequested = false;
+            for (AllocatedItem allocatedItem : allocatedItems) {
+                if (allocatedItem instanceof AllocatedResource) {
+                    resourceRequested = true;
+                }
+            }
+            if (!resourceRequested) {
+                throw new FaultException("No resource is requested for scheduling.");
+            }
         }
 
         AllocatedCompartment noVirtualRoomAllocatedCompartment = createNoVirtualRoomAllocatedCompartment();

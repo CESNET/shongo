@@ -33,6 +33,12 @@ public class Compartment extends PersistentObject
     private List<Person> requestedPersons = new ArrayList<Person>();
 
     /**
+     * Specifies the default option who should initiate the call for all requested resources ({@code null} means
+     * that scheduler can decide it).
+     */
+    private CallInitiation callInitiation;
+
+    /**
      * @return {@link #reservationRequest}
      */
     @ManyToOne
@@ -166,6 +172,24 @@ public class Compartment extends PersistentObject
     public void removeRequestedPerson(Person requestedPerson)
     {
         requestedPersons.remove(requestedPerson);
+    }
+
+    /**
+     * @return {@link #callInitiation}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public CallInitiation getCallInitiation()
+    {
+        return callInitiation;
+    }
+
+    /**
+     * @param callInitiation sets the {@link #callInitiation}
+     */
+    public void setCallInitiation(CallInitiation callInitiation)
+    {
+        this.callInitiation = callInitiation;
     }
 
     @Override

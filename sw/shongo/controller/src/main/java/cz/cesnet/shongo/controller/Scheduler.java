@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.api.ControllerFault;
+import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
 import cz.cesnet.shongo.controller.scheduler.Task;
@@ -131,6 +132,10 @@ public class Scheduler extends Component
 
             // Initialize scheduler task (by adding all requested resources to it)
             Task task = new Task(requestedSlot, resourceDatabase);
+            CallInitiation callInitiation = compartmentRequest.getCompartment().getCallInitiation();
+            if (callInitiation != null) {
+                task.setCallInitiation(callInitiation);
+            }
             for (CompartmentRequest.RequestedResource requestedResource : requestedResources) {
                 task.addResource(requestedResource.getResourceSpecification());
             }

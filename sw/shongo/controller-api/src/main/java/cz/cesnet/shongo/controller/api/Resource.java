@@ -19,11 +19,6 @@ import java.util.Set;
 public class Resource extends IdentifiedChangeableObject
 {
     /**
-     * String representing unmanaged mode.
-     */
-    public static final String UNMANAGED_MODE = "UNMANAGED";
-
-    /**
      * Identifier of the resource.
      */
     private String identifier;
@@ -47,16 +42,6 @@ public class Resource extends IdentifiedChangeableObject
      * List of capabilities which the resource has.
      */
     public static final String CAPABILITIES = "capabilities";
-
-    /**
-     * Set of technologies which the resource supports.
-     */
-    public static final String TECHNOLOGIES = "technologies";
-
-    /**
-     * Specifies the mode of the resource.
-     */
-    public static final String MODE = "mode";
 
     /**
      * Specifies whether resource can be scheduled by a scheduler.
@@ -168,55 +153,6 @@ public class Resource extends IdentifiedChangeableObject
     public void removeCapability(Capability capability)
     {
         getPropertyStorage().removeCollectionItem(CAPABILITIES, capability);
-    }
-
-    /**
-     * @return {@link #TECHNOLOGIES}
-     */
-    public Set<Technology> getTechnologies()
-    {
-        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
-    }
-
-    /**
-     * @param technologies sets the {@link #TECHNOLOGIES}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
-    }
-
-    /**
-     * @param technology technology to be added to the {@link #TECHNOLOGIES}
-     */
-    public void addTechnology(Technology technology)
-    {
-        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
-    }
-
-    /**
-     * @return {@link #MODE}
-     */
-    @AllowedTypes({String.class, ManagedMode.class})
-    public Object getMode()
-    {
-        return getPropertyStorage().getValue(MODE);
-    }
-
-    /**
-     * @param mode sets the {@link #MODE}
-     */
-    public void setMode(Object mode)
-    {
-        getPropertyStorage().setValue(MODE, mode);
     }
 
     /**

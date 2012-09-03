@@ -86,7 +86,7 @@ public class TerminalCapability extends DeviceCapability
     {
         cz.cesnet.shongo.controller.api.TerminalCapability apiTerminalCapability =
                 (cz.cesnet.shongo.controller.api.TerminalCapability) api;
-        // Create/modify technologies
+        // Create/modify aliases
         for (cz.cesnet.shongo.api.Alias apiAlias : apiTerminalCapability.getAliases()) {
             Alias alias;
             if (api.isCollectionItemMarkedAsNew(apiTerminalCapability.ALIASES, apiAlias)) {
@@ -98,10 +98,10 @@ public class TerminalCapability extends DeviceCapability
             }
             alias.fromApi(apiAlias);
         }
-        // Delete technologies
-        Set<Technology> apiDeletedTechnologies = api.getCollectionItemsMarkedAsDeleted(api.TECHNOLOGIES);
-        for (Technology technology : apiDeletedTechnologies) {
-            removeTechnology(technology);
+        // Delete aliases
+        Set<Alias> apiDeletedAliases = api.getCollectionItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
+        for (Alias alias : apiDeletedAliases) {
+            removeAlias(alias);
         }
         super.fromApi(api, entityManager);
     }

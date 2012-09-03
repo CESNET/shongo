@@ -264,12 +264,6 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         assertEquals(1, allocatedCompartments.size());
     }
 
-    //@Test
-    public void testDependentResource() throws Exception
-    {
-        throw new TodoImplementException();
-    }
-
     @Test
     public void testStandaloneTerminals() throws Exception
     {

@@ -68,10 +68,10 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     private EntityManagerFactory entityManagerFactory;
 
     /**
-     * Specifies whether resources and allocations don't have to be persisted before are added to the resource database
-     * (useful for testing purposes).
+     * Specifies whether resources and allocations don't have to be persisted before they are added to the resource
+     * database (useful for testing purposes).
      */
-    private boolean disabledPersistedRequirement = false;
+    private boolean generateTestingIds = false;
 
     /**
      * Map of capability states by theirs types.
@@ -85,6 +85,24 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     private DeviceTopology deviceTopology = new DeviceTopology();
 
     /**
+     * Constructor.
+     */
+    public ResourceDatabase()
+    {
+    }
+
+    /**
+     * @return new instance of {@link ResourceDatabase} for testing purposes (without connection to the database)
+     */
+    public static ResourceDatabase createTestingResourceDatabase()
+    {
+        ResourceDatabase resourceDatabase = new ResourceDatabase();
+        resourceDatabase.generateTestingIds = true;
+        resourceDatabase.init();
+        return resourceDatabase;
+    }
+
+    /**
      * @return {@link #deviceTopology}
      */
     public DeviceTopology getDeviceTopology()
@@ -96,14 +114,6 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
         this.entityManagerFactory = entityManagerFactory;
-    }
-
-    /**
-     * Sets the {@link #disabledPersistedRequirement} option to {@code true}.
-     */
-    public void disablePersistedRequirement()
-    {
-        disabledPersistedRequirement = true;
     }
 
     @Override
@@ -197,13 +207,18 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         }
     }
 
+    /**
+     * @param persistentObject to be checked whether it is persisted (has {@link PersistentObject#id} filled)
+     */
     private void checkPersisted(PersistentObject persistentObject)
     {
         if (!persistentObject.isPersisted()) {
-            if (disabledPersistedRequirement) {
-                persistentObject.setDebugId();
+            // For testing purposes assign testing id
+            if (generateTestingIds) {
+                persistentObject.generateTestingId();
                 return;
             }
+            // Throw error that object is not persisted
             persistentObject.checkPersisted();
         }
     }
@@ -396,7 +411,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
             DeviceCapability deviceCapability = (DeviceCapability) capability;
 
             // Add the device resource to map of virtual room resources by technology
-            for (Technology technology : deviceResource.getCapabilityTechnologies(deviceCapability)) {
+            for (Technology technology : deviceResource.getTechnologies()) {
                 Set<Long> deviceResources = capabilityState.deviceResourcesByTechnology.get(technology);
                 if (deviceResources == null) {
                     deviceResources = new HashSet<Long>();

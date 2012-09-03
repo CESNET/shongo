@@ -2,8 +2,11 @@ package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -73,5 +76,12 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
     public boolean isStandalone()
     {
         return false;
+    }
+
+    @Override
+    @Transient
+    public List<Alias> getAssignedAliases()
+    {
+        return externalEndpointSpecification.getAliases();
     }
 }

@@ -28,10 +28,7 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         // -----------------------------------------------------
         // Create two MCUs and allocate some virtual rooms on it
         // -----------------------------------------------------
-
-        ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.disablePersistedRequirement();
-        resourceDatabase.init();
+        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
 
         DeviceResource mcu1 = new DeviceResource();
         mcu1.setName("mcu1");

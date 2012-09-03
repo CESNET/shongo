@@ -13,9 +13,6 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Capability;
 
-# Enumeration of technologies
-our $Technology = ordered_hash('H323' => 'H.323', 'SIP' => 'SIP', 'ADOBE_CONNECT' => 'Adobe Connect');
-
 #
 # Create a new instance of resource
 #
@@ -28,7 +25,6 @@ sub new()
     my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
-    $self->{'technologies'} = [];
     $self->{'capabilities'} = [];
 
     $self->to_xml_skip_attribute('childResourceIdentifiers');
@@ -52,22 +48,32 @@ sub create()
 {
     my ($self, $attributes) = @_;
 
+    $self->on_create($attributes);
+
+    while ( $self->modify_loop('creation of resource') ) {
+        console_print_info("Creating resource...");
+        my $response = Shongo::Controller->instance()->secure_request(
+            'Resource.createResource',
+            $self->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            return $response->value();
+        }
+    }
+    return undef;
+}
+
+#
+# On create
+#
+sub on_create
+{
+    my ($self, $attributes) = @_;
+
     $self->{'name'} = $attributes->{'name'};
     $self->{'schedulable'} = 0;
     $self->{'maxFuture'} = 'P4M';
     $self->modify_attributes(0);
-
-    # Parse technologies
-    if ( defined($attributes->{'technology'}) ) {
-        for ( my $index = 0; $index < @{$attributes->{'technology'}}; $index++ ) {
-            my $technology = $attributes->{'technology'}->[$index];
-            if ( defined($Technology->{$technology}) ) {
-                add_collection_item(\$self->{'technologies'}, $technology);
-            } else {
-                console_print_error("Illegal technology '%s' was specified!", $technology);
-            }
-        }
-    }
 
     # Parse capabilities
     if ( defined($attributes->{'capability'}) ) {
@@ -84,18 +90,6 @@ sub create()
             }
         }
     }
-
-    while ( $self->modify_loop('creation of resource') ) {
-        console_print_info("Creating resource...");
-        my $response = Shongo::Controller->instance()->secure_request(
-            'Resource.createResource',
-            $self->to_xml()
-        );
-        if ( !$response->is_fault() ) {
-            return $response->value();
-        }
-    }
-    return undef;
 }
 
 #
@@ -117,6 +111,11 @@ sub modify()
     }
 }
 
+sub on_modify()
+{
+    my ($self, $actions) = @_;
+}
+
 #
 # Run modify loop
 #
@@ -134,7 +133,7 @@ sub modify_loop()
                     return undef;
                 }
             );
-            append_technologies_actions(\@actions, \$self->{'technologies'});
+            $self->on_modify(\@actions);
             push(@actions, 'Add new capability' => sub {
                 my $capability = Shongo::Controller::API::Capability->new();
                 $capability = $capability->create();
@@ -177,7 +176,7 @@ sub modify_loop()
 #
 # @param $edit
 #
-sub modify_attributes()
+sub modify_attributes
 {
     my ($self, $edit) = @_;
 
@@ -189,61 +188,8 @@ sub modify_attributes()
     }
     $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0,
         $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
-
-    my $mode = 0;
-    if ( ref($self->{'mode'}) ) {
-        $mode = 1;
-    }
-    $mode = console_edit_enum('Select mode', ordered_hash(0 => 'Unmanaged', 1 => 'Managed'), $mode);
-    if ( $mode == 0 ) {
-        $self->{'mode'} = 'UNMANAGED';
-    } else {
-        my $connectorAgentName = undef;
-        if ( ref($self->{'mode'}) eq 'HASH' ) {
-            $connectorAgentName = $self->{'mode'}->{'connectorAgentName'};
-        }
-        $connectorAgentName = console_edit_value('Connector agent name', 1, undef, $connectorAgentName);
-        $self->{'mode'} = {'connectorAgentName' => $connectorAgentName};
-    }
     $self->{'maxFuture'} = console_edit_value('Maximum Future', 0,
         $Shongo::Common::DateTimePattern . '|' . $Shongo::Common::PeriodPattern, $self->{'maxFuture'});
-}
-
-#
-# Append actions for modifying technologies
-#
-# @static
-#
-sub append_technologies_actions()
-{
-    my ($actions, $technologies) = @_;
-
-    # Get available technologies
-    my $available_technologies = [];
-    my %technologies_hash = map { $_ => 1 } @{get_collection_items(${$technologies})};
-    foreach my $key (ordered_hash_keys($Technology)) {
-        if ( !exists($technologies_hash{$key}) ) {
-            push(@{$available_technologies}, $key => $Technology->{$key});
-        }
-    }
-    if ( get_collection_size($available_technologies) > 0 ) {
-        push(@{$actions}, 'Add new technology' => sub {
-            my $technology = console_read_enum('Select technology', ordered_hash($available_technologies));
-            if ( defined($technology) ) {
-                add_collection_item($technologies, $technology);
-            }
-            return undef;
-        });
-    }
-    if ( get_collection_size(${$technologies}) > 0 ) {
-        push(@{$actions}, 'Remove existing technology' => sub {
-            my $index = console_read_choice("Type a number of technology", 0, get_collection_size(${$technologies}));
-            if ( defined($index) ) {
-                remove_collection_item($technologies, $index - 1);
-            }
-            return undef;
-        });
-    }
 }
 
 # @Override
@@ -257,7 +203,7 @@ sub create_value_instance
 }
 
 # @Override
-sub to_string()
+sub to_string
 {
     my ($self) = @_;
 
@@ -272,15 +218,6 @@ sub to_string()
     }
     if ( defined($self->{'parentIdentifier'}) ) {
         $string .= "      Parent: $self->{'parentIdentifier'}\n";
-    }
-    if ( defined($self->{'mode'}) ) {
-        my $mode = '';
-        if ( $self->{'mode'} eq 'UNMANAGED' ) {
-            $mode = 'Unmanaged';
-        } elsif ( ref($self->{'mode'}) eq 'HASH' ) {
-            $mode = 'Managed(' . $self->{'mode'}->{'connectorAgentName'} . ')';
-        }
-        $string .= "        Mode: $mode\n";
     }
     if ( defined($self->{'childResourceIdentifiers'}) && scalar(@{$self->{'childResourceIdentifiers'}}) > 0 ) {
         $string .= "    Children: ";
@@ -298,30 +235,8 @@ sub to_string()
     if ( defined($self->{'maxFuture'}) ) {
         $string .= "  Max Future: $self->{'maxFuture'}\n";
     }
-    $string .= technologies_to_string($self->{'technologies'});
     $string .= $self->capabilities_to_string();
 
-    return $string;
-}
-
-#
-# Format technologies to string
-#
-sub technologies_to_string
-{
-    my ($technologies) = @_;
-
-    my $string = " Technologies:\n";
-    my $technologies_count = get_collection_size($technologies);
-    if ( $technologies_count > 0 ) {
-        for ( my $index = 0; $index < $technologies_count; $index++ ) {
-            my $technology = get_collection_item($technologies, $index);
-            $string .= sprintf("   %d) %s\n", $index + 1, $Technology->{$technology});
-        }
-    }
-    else {
-        $string .= "   -- None --\n";
-    }
     return $string;
 }
 

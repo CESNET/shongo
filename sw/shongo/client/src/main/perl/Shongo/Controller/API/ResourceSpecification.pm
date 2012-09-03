@@ -12,6 +12,7 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller::API::DeviceResource;
 
 #
 # Resource specificaiton types
@@ -63,7 +64,7 @@ sub modify()
 
     switch ($self->{'class'}) {
         case 'ExternalEndpointSpecification' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::Resource::Technology, $self->{'technology'});
+            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'count'} = console_edit_value("Count", 1, "\\d+", $self->{'count'});
         }
         case 'ExistingResourceSpecification' {
@@ -71,7 +72,7 @@ sub modify()
             return $self;
         }
         case 'LookupResourceSpecification' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::Resource::Technology, $self->{'technology'});
+            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
         }
     }
 }
@@ -85,7 +86,7 @@ sub to_string()
     switch ($self->{'class'}) {
         case 'ExternalEndpointSpecification' {
             $string .= sprintf("technology: %s, count: %d\n",
-                $Shongo::Controller::API::Resource::Technology->{$self->{'technology'}},
+                $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
                 $self->{'count'}
             );
         }
@@ -94,7 +95,7 @@ sub to_string()
         }
         case 'LookupResourceSpecification' {
             $string .= sprintf("technology: %s\n",
-                $Shongo::Controller::API::Resource::Technology->{$self->{'technology'}}
+                $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}}
             );
         }
         else {

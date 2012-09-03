@@ -12,7 +12,7 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Resource;
+use Shongo::Controller::API::DeviceResource;
 use Shongo::Controller::API::Alias;
 
 #
@@ -82,7 +82,7 @@ sub modify()
             $self->{'portCount'} = console_edit_value('Maximum number of ports', 0, '\\d+', $self->{'portCount'});
         }
         case 'RangeAliasProviderCapability' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::Resource::Technology, $self->{'technology'});
+            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'type'} = console_edit_enum("Select alias type", $Shongo::Controller::API::Alias::Type, $self->{'type'});
             $self->{'startValue'} = console_edit_value('Range start value', 0, '.+', $self->{'startValue'});
             $self->{'endValue'} = console_edit_value('Range end value', 0, '.+', $self->{'endValue'});
@@ -161,7 +161,7 @@ sub to_string()
         }
         case 'RangeAliasProviderCapability' {
             $string .= sprintf("technology: %s, type: %s, start: %s, end: %s",
-                $Shongo::Controller::API::Resource::Technology->{$self->{'technology'}},
+                $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
                 $Shongo::Controller::API::Alias::Type->{$self->{'type'}},
                 $self->{'startValue'},
                 $self->{'endValue'}

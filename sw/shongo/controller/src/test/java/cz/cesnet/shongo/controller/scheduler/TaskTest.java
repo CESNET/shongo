@@ -5,14 +5,15 @@ import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
-import cz.cesnet.shongo.controller.scheduler.Task;
+import cz.cesnet.shongo.controller.request.ExistingResourceSpecification;
+import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static junit.framework.Assert.*;
@@ -60,6 +61,12 @@ public class TaskTest
         {
             return standalone;
         }
+
+        @Override
+        public List<Alias> getAssignedAliases()
+        {
+            return new ArrayList<Alias>();
+        }
     }
 
     @Test
@@ -100,9 +107,7 @@ public class TaskTest
     @Test
     public void testSingleVirtualRoom() throws Exception
     {
-        ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.disablePersistedRequirement();
-        resourceDatabase.init();
+        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
 
         DeviceResource deviceResource = new DeviceResource();
         deviceResource.setSchedulable(true);
@@ -129,5 +134,47 @@ public class TaskTest
         assertNotNull(allocatedCompartment);
         assertEquals(3, allocatedCompartment.getAllocatedItems().size());
         assertEquals(2, allocatedCompartment.getConnections().size());
+    }
+
+    @Test
+    public void testDependentResource() throws Exception
+    {
+        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
+
+        Resource room = new Resource();
+        room.setSchedulable(true);
+        resourceDatabase.addResource(room);
+
+        DeviceResource terminal1 = new DeviceResource();
+        terminal1.setParentResource(room);
+        terminal1.setSchedulable(true);
+        terminal1.addTechnology(Technology.H323);
+        terminal1.addCapability(new StandaloneTerminalCapability());
+        resourceDatabase.addResource(terminal1);
+
+        DeviceResource terminal2 = new DeviceResource();
+        terminal2.setParentResource(room);
+        terminal2.setSchedulable(true);
+        terminal2.addTechnology(Technology.H323);
+        terminal2.addCapability(new StandaloneTerminalCapability());
+        resourceDatabase.addResource(terminal2);
+
+        Task task = new Task(Interval.parse("2012/2013"), resourceDatabase);
+        AllocatedCompartment allocatedCompartment;
+
+        task.clear();
+        task.addResource(new ExistingResourceSpecification(terminal1));
+        allocatedCompartment = task.createAllocatedCompartment();
+        assertNotNull(allocatedCompartment);
+        assertEquals(2, allocatedCompartment.getAllocatedItems().size());
+        assertEquals(0, allocatedCompartment.getConnections().size());
+
+        task.clear();
+        task.addResource(new ExistingResourceSpecification(terminal1));
+        task.addResource(new ExistingResourceSpecification(terminal2));
+        allocatedCompartment = task.createAllocatedCompartment();
+        assertNotNull(allocatedCompartment);
+        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
+        assertEquals(1, allocatedCompartment.getConnections().size());
     }
 }

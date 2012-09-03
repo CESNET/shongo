@@ -11,7 +11,7 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Resource;
+use Shongo::Controller::API::DeviceResource;
 
 # Enumeration of alias types
 our $Type = ordered_hash(
@@ -61,7 +61,7 @@ sub modify()
 {
     my ($self) = @_;
 
-    $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::Resource::Technology, $self->{'technology'});
+    $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
     $self->{'type'} = console_edit_enum("Select type of alias", $Type, $self->{'type'});
     $self->{'value'} = console_edit_value("Alias value", 1, $TypePattern->{$self->{'type'}}, $self->{'value'});
 }
@@ -72,7 +72,7 @@ sub to_string()
     my ($self) = @_;
 
     my $string = sprintf("Technology: %s, Type: %s, Value: %s",
-        $Shongo::Controller::API::Resource::Technology->{$self->{'technology'}},
+        $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
         $Type->{$self->{'type'}},
         $self->{'value'}
     );

@@ -27,7 +27,7 @@ public abstract class ResourceSpecification extends PersistentObject
     private List<Person> requestedPersons = new ArrayList<Person>();
 
     /**
-     * Defines who should initiate the call to this device.
+     * Defines who should initiate the call to this device ({@code null} means that the scheduler can decide it).
      */
     private CallInitiation callInitiation;
 
@@ -96,7 +96,7 @@ public abstract class ResourceSpecification extends PersistentObject
         super.fillDescriptionMap(map);
 
         addCollectionToMap(map, "requestedPersons", requestedPersons);
-        if (callInitiation != null && callInitiation != CallInitiation.DEFAULT) {
+        if (callInitiation != null) {
             map.put("callInitiation", callInitiation.toString());
         }
     }

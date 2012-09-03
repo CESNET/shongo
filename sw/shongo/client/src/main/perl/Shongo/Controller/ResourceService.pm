@@ -10,6 +10,8 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller::API::Resource;
+use Shongo::Controller::API::DeviceResource;
 
 #
 # Populate shell by options for management of resources.
@@ -113,7 +115,12 @@ sub modify_resource()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
+        my $resource = undef;
+        if ($result->value()->{'class'} eq 'DeviceResource') {
+            $resource = Shongo::Controller::API::DeviceResource->new()->from_xml($result);
+        } else {
+            $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
+        }
         if ( defined($resource) ) {
             $resource->modify();
         }
@@ -149,7 +156,7 @@ sub list_resources()
                 if ( length($technologies) ) {
                     $technologies .= ', ';
                 }
-                $technologies .= $Shongo::Controller::API::Resource::Technology->{$technology};
+                $technologies .= $Shongo::Controller::API::DeviceResource::Technology->{$technology};
             }
         }
         $table->add(
@@ -174,7 +181,12 @@ sub get_resource()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
+        my $resource = undef;
+        if ($result->value()->{'class'} eq 'DeviceResource') {
+            $resource = Shongo::Controller::API::DeviceResource->new()->from_xml($result);
+        } else {
+            $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
+        }
         if ( defined($resource) ) {
             printf("\n%s\n", $resource->to_string());
         }
