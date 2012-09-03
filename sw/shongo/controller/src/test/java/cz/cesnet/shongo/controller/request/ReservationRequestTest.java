@@ -51,6 +51,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             DeviceResource deviceResource = new DeviceResource();
             deviceResource.setName("MCU");
+            deviceResource.setAddress(Address.LOCALHOST);
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new VirtualRoomsCapability(100));
             deviceResource.setSchedulable(true);
@@ -272,6 +273,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         resourceDatabase.init();
 
         DeviceResource terminal1 = new DeviceResource();
+        terminal1.setAddress(Address.LOCALHOST);
         terminal1.addTechnology(Technology.H323);
         terminal1.addCapability(new StandaloneTerminalCapability());
         terminal1.setSchedulable(true);
@@ -301,6 +303,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         resourceDatabase.init();
 
         DeviceResource terminal1 = new DeviceResource();
+        terminal1.setAddress(Address.LOCALHOST);
         terminal1.addTechnology(Technology.H323);
         terminal1.addTechnology(Technology.SIP);
         terminal1.addCapability(new StandaloneTerminalCapability());
@@ -344,6 +347,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         resourceDatabase.addResource(terminal2, getEntityManager());
 
         DeviceResource mcu = new DeviceResource();
+        mcu.setAddress(Address.LOCALHOST);
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new VirtualRoomsCapability(10));

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
@@ -79,9 +80,22 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
     }
 
     @Override
+    public void assignAlias(Alias alias)
+    {
+        throw new IllegalStateException("Cannot assign alias to allocated external endpoint.");
+    }
+
+    @Override
     @Transient
     public List<Alias> getAssignedAliases()
     {
         return externalEndpointSpecification.getAliases();
+    }
+
+    @Override
+    @Transient
+    public Address getAddress()
+    {
+        return null;
     }
 }

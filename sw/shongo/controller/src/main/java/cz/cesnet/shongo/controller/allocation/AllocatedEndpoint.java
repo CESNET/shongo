@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 
 import java.util.List;
@@ -30,7 +31,17 @@ public interface AllocatedEndpoint
     public boolean isStandalone();
 
     /**
+     * @param alias to be assign to the endpoint
+     */
+    public void assignAlias(Alias alias);
+
+    /**
      * @return list of aliases for the endpoint(s)
      */
     public List<Alias> getAssignedAliases();
+
+    /**
+     * @return IP address or URL of the endpoint
+     */
+    Address getAddress();
 }

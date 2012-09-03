@@ -61,7 +61,6 @@ sub create()
         $self->{'class'} = $capability;
         $self->modify();
         return $self;
-
     }
     return undef;
 }

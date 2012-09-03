@@ -27,8 +27,18 @@ public class TaskTest
 {
     private static class SimpleAllocatedEndpoint extends AllocatedItem implements AllocatedEndpoint
     {
+        private Address address = null;
         private boolean standalone = false;
         private Set<Technology> technologies = new HashSet<Technology>();
+
+        public SimpleAllocatedEndpoint(Address address, boolean standalone, Technology[] technologies)
+        {
+            this.address = address;
+            this.standalone = standalone;
+            for (Technology technology : technologies) {
+                this.technologies.add(technology);
+            }
+        }
 
         public SimpleAllocatedEndpoint(boolean standalone, Technology[] technologies)
         {
@@ -40,7 +50,6 @@ public class TaskTest
 
         public SimpleAllocatedEndpoint(Technology[] technologies)
         {
-
             this(false, technologies);
         }
 
@@ -63,9 +72,21 @@ public class TaskTest
         }
 
         @Override
+        public void assignAlias(Alias alias)
+        {
+            throw new RuntimeException("TODO: Implement SimpleAllocatedEndpoint.assignAlias");
+        }
+
+        @Override
         public List<Alias> getAssignedAliases()
         {
             return new ArrayList<Alias>();
+        }
+
+        @Override
+        public Address getAddress()
+        {
+            return address;
         }
     }
 
@@ -90,14 +111,23 @@ public class TaskTest
             fail("Exception about no available virtual room should be thrown.");
         } catch (FaultException exception) {
         }
+
+        task.clear();
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
+        try {
+            task.createAllocatedCompartment();
+            fail("Exception about no alias available should be thrown.");
+        } catch (FaultException exception) {
+        }
     }
 
     @Test
     public void testNoVirtualRoom() throws Exception
     {
         Task task = new Task(Interval.parse("2012/2013"), new ResourceDatabase());
-        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
-        task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323, Technology.SIP}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
         AllocatedCompartment allocatedCompartment = task.createAllocatedCompartment();
         assertNotNull(allocatedCompartment);
         assertEquals(2, allocatedCompartment.getAllocatedItems().size());
@@ -110,6 +140,7 @@ public class TaskTest
         ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
 
         DeviceResource deviceResource = new DeviceResource();
+        deviceResource.setAddress(Address.LOCALHOST);
         deviceResource.setSchedulable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
@@ -137,6 +168,29 @@ public class TaskTest
     }
 
     @Test
+    public void testAliasAllocation() throws Exception
+    {
+        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
+
+        DeviceResource deviceResource = new DeviceResource();
+        deviceResource.setSchedulable(true);
+        deviceResource.addTechnology(Technology.H323);
+        deviceResource.addCapability(new VirtualRoomsCapability(100));
+        resourceDatabase.addResource(deviceResource);
+
+        Task task = new Task(Interval.parse("2012/2013"), resourceDatabase);
+        AllocatedCompartment allocatedCompartment;
+
+        task.clear();
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
+        task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
+        allocatedCompartment = task.createAllocatedCompartment();
+        assertNotNull(allocatedCompartment);
+        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
+        assertEquals(2, allocatedCompartment.getConnections().size());
+    }
+
+    @Test
     public void testDependentResource() throws Exception
     {
         ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
@@ -146,6 +200,7 @@ public class TaskTest
         resourceDatabase.addResource(room);
 
         DeviceResource terminal1 = new DeviceResource();
+        terminal1.setAddress(Address.LOCALHOST);
         terminal1.setParentResource(room);
         terminal1.setSchedulable(true);
         terminal1.addTechnology(Technology.H323);

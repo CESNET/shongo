@@ -26,7 +26,7 @@ public class DeviceResource extends Resource
     /**
      * Address on which the device is running (IP address or URL)
      */
-    private String address;
+    private Address address;
 
     /**
      * Set of technologies which the resource supports.
@@ -70,7 +70,7 @@ public class DeviceResource extends Resource
      * @return {@link #address}
      */
     @Column
-    public String getAddress()
+    public Address getAddress()
     {
         return address;
     }
@@ -86,7 +86,7 @@ public class DeviceResource extends Resource
     /**
      * @param address sets the {@link #address}
      */
-    public void setAddress(String address)
+    public void setAddress(Address address)
     {
         this.address = address;
     }

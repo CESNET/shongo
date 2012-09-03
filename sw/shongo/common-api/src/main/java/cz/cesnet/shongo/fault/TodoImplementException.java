@@ -25,6 +25,17 @@ public class TodoImplementException extends RuntimeException implements Fault
         super(String.format("TODO: Implement %s", description));
     }
 
+    /**
+     * Constructor.
+     *
+     * @param format  format for description what should be implemented
+     * @param objects parameters for format
+     */
+    public TodoImplementException(String format, Object... objects)
+    {
+        this(String.format(format, objects));
+    }
+
     @Override
     public int getCode()
     {

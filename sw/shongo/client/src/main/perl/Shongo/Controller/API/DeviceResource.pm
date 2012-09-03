@@ -131,11 +131,17 @@ sub append_technologies_actions()
 }
 
 # @Override
-sub to_string()
+sub to_string_name
+{
+    return "Device Resource";
+}
+
+# @Override
+sub to_string_attributes
 {
     my ($self) = @_;
-
-    my $string = Shongo::Controller::API::Resource::to_string(@_);
+    my $string = "";
+    my $string = Shongo::Controller::API::Resource::to_string_attributes(@_);
     if ( defined($self->{'mode'}) ) {
         my $mode = '';
         if ( $self->{'mode'} eq 'UNMANAGED' ) {
@@ -143,10 +149,18 @@ sub to_string()
         } elsif ( ref($self->{'mode'}) eq 'HASH' ) {
             $mode = 'Managed(' . $self->{'mode'}->{'connectorAgentName'} . ')';
         }
-        $string .= " Mode:\n   $mode\n";
+        $string .= "        Mode: $mode\n";
     }
-    $string .= technologies_to_string($self->{'technologies'});
+    return $string;
+}
 
+# @Override
+sub to_string_collections
+{
+    my ($self) = @_;
+    my $string = "";
+    $string .= technologies_to_string($self->{'technologies'});
+    $string .= Shongo::Controller::API::Resource::to_string_collections(@_);
     return $string;
 }
 
@@ -163,26 +177,6 @@ sub technologies_to_string
         for ( my $index = 0; $index < $technologies_count; $index++ ) {
             my $technology = get_collection_item($technologies, $index);
             $string .= sprintf("   %d) %s\n", $index + 1, $Technology->{$technology});
-        }
-    }
-    else {
-        $string .= "   -- None --\n";
-    }
-    return $string;
-}
-
-#
-# Format capabilities to string
-#
-sub capabilities_to_string()
-{
-    my ($self) = @_;
-
-    my $string = " Capabilities:\n";
-    if ( $self->get_capabilities_count() > 0 ) {
-        for ( my $index = 0; $index < $self->get_capabilities_count(); $index++ ) {
-            my $capability = get_collection_item($self->{'capabilities'}, $index);
-            $string .= sprintf("   %d) %s \n", $index + 1, $capability->to_string());
         }
     }
     else {

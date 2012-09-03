@@ -150,6 +150,18 @@ sub from_xml()
         $hash = $xml->value();
     }
 
+    if ( !ref($self) ) {
+        if ( exists $hash->{'class'} ) {
+            $self = eval('Shongo::Controller::API::' . $hash->{'class'} . '->new()');
+            if (!defined($self)) {
+                die("Cannot instantiate class '" . $hash->{'class'} . "'.");
+            }
+        } else {
+            var_dump($hash);
+            die("Cannot convert printed hash to object.");
+        }
+    }
+
     # Convert hash to object
     foreach my $name (keys %{$hash}) {
         my $value = $hash->{$name};
@@ -163,12 +175,38 @@ sub from_xml()
 #
 # @return string describing this object
 #
-sub to_string()
+sub to_string
 {
     my ($self) = @_;
 
-    my $string = " OBJECT\n";
+    my $string = " " . uc($self->to_string_name()) . "\n";
+    $string .= $self->to_string_attributes();
+    $string .= $self->to_string_collections();
     return $string;
+}
+
+#
+# @return name of the object
+#
+sub to_string_name
+{
+    return "OBJECT"
+}
+
+#
+# @return formatted attributes to string
+#
+sub to_string_attributes
+{
+    return "";
+}
+
+#
+# @return formatted collections to string
+#
+sub to_string_collections
+{
+    return "";
 }
 
 1;

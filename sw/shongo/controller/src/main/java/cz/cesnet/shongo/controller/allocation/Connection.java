@@ -11,7 +11,8 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Connection extends PersistentObject
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+public abstract class Connection extends PersistentObject
 {
     /**
      * Source endpoint.
@@ -22,33 +23,6 @@ public class Connection extends PersistentObject
      * Target endpoint.
      */
     private AllocatedItem allocatedEndpointTo;
-
-    /**
-     * Technology of connection.
-     */
-    private Technology technology;
-
-    /**
-     * Constructor.
-     */
-    public Connection()
-    {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param allocatedEndpointFrom sets the {@link #allocatedEndpointFrom}
-     * @param allocatedEndpointTo   sets the {@link #allocatedEndpointTo}
-     * @param technology            sets the {@link #technology}
-     */
-    public Connection(AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo,
-            Technology technology)
-    {
-        setAllocatedEndpointFrom((AllocatedItem) allocatedEndpointFrom);
-        setAllocatedEndpointFrom((AllocatedItem) allocatedEndpointTo);
-        setTechnology(technology);
-    }
 
     /**
      * @return {@link #allocatedEndpointFrom}
@@ -90,23 +64,5 @@ public class Connection extends PersistentObject
             throw new IllegalArgumentException("Given allocated item is not endpoint!");
         }
         this.allocatedEndpointTo = allocatedEndpointTo;
-    }
-
-    /**
-     * @return {@link #technology}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public Technology getTechnology()
-    {
-        return technology;
-    }
-
-    /**
-     * @param technology sets the {@link #technology}
-     */
-    public void setTechnology(Technology technology)
-    {
-        this.technology = technology;
     }
 }

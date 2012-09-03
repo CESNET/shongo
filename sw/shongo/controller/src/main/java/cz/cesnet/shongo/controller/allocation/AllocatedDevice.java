@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.controller.resource.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -123,6 +120,13 @@ public class AllocatedDevice extends AllocatedResource implements AllocatedEndpo
 
     @Override
     @Transient
+    public void assignAlias(Alias alias)
+    {
+        addAlias(alias);
+    }
+
+    @Override
+    @Transient
     public List<Alias> getAssignedAliases()
     {
         List<Alias> aliases = new ArrayList<Alias>();
@@ -132,5 +136,12 @@ public class AllocatedDevice extends AllocatedResource implements AllocatedEndpo
         }
         aliases.addAll(this.aliases);
         return aliases;
+    }
+
+    @Override
+    @Transient
+    public Address getAddress()
+    {
+        return getDeviceResource().getAddress();
     }
 }

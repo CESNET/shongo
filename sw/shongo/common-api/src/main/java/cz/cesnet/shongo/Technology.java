@@ -17,7 +17,7 @@ public enum Technology
     /**
      * @see <a href="http://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a>
      */
-    SIP("SIP"),
+    SIP("SIP", true),
 
     /**
      * @see <a href="http://www.adobe.com/products/adobeconnect.html">Adobe Connect</a>
@@ -38,9 +38,9 @@ public enum Technology
     private String name;
 
     /**
-     * Specifies whether connections by IP address are allowed.
+     * Specifies whether connections by IP address or URL are allowed.
      */
-    private boolean allowedConnectionByIpAddress = false;
+    private boolean allowedConnectionByAddress = false;
 
     /**
      * Constructor.
@@ -55,13 +55,13 @@ public enum Technology
     /**
      * Constructor.
      *
-     * @param name                         sets the {@link #name}
-     * @param allowedConnectionByIpAddress sets the {@link #allowedConnectionByIpAddress}
+     * @param name                       sets the {@link #name}
+     * @param allowedConnectionByAddress sets the {@link #allowedConnectionByAddress}
      */
-    private Technology(String name, boolean allowedConnectionByIpAddress)
+    private Technology(String name, boolean allowedConnectionByAddress)
     {
         this.name = name;
-        this.allowedConnectionByIpAddress = allowedConnectionByIpAddress;
+        this.allowedConnectionByAddress = allowedConnectionByAddress;
     }
 
     /**
@@ -81,11 +81,11 @@ public enum Technology
     }
 
     /**
-     * @return {@link #allowedConnectionByIpAddress}
+     * @return {@link #allowedConnectionByAddress}
      */
-    public boolean isAllowedConnectionByIpAddress()
+    public boolean isAllowedConnectionByAddress()
     {
-        return allowedConnectionByIpAddress;
+        return allowedConnectionByAddress;
     }
 
     /**

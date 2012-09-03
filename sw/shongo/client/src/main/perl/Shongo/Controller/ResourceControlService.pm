@@ -53,7 +53,7 @@ sub control_resource()
     if ( $result->is_fault ) {
         return;
     }
-    my $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
+    my $resource = Shongo::Controller::API::Resource->from_xml($result);
     my $resourceIdentifier = $resource->{'identifier'};
     if ( !(ref($resource->{'mode'}) eq 'HASH') ) {
         console_print_error("Resource '%s' is not managed!", $resourceIdentifier);

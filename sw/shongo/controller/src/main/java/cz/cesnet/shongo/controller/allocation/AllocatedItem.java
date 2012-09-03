@@ -8,7 +8,7 @@ import org.joda.time.Interval;
 import javax.persistence.*;
 
 /**
- * Represents an allocated {@link cz.cesnet.shongo.controller.resource.Resource} in an {@link cz.cesnet.shongo.controller.allocation.AllocatedCompartment}
+ * Represents an allocated item in an {@link AllocatedCompartment}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -17,7 +17,7 @@ import javax.persistence.*;
 public class AllocatedItem extends PersistentObject
 {
     /**
-     * {@link cz.cesnet.shongo.controller.allocation.AllocatedCompartment} for which the resource is allocated.
+     * {@link AllocatedCompartment} for which the resource is allocated.
      */
     private AllocatedCompartment allocatedCompartment;
 

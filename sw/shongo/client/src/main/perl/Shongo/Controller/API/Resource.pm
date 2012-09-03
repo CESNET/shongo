@@ -21,7 +21,7 @@ use Shongo::Controller::API::Capability;
 sub new()
 {
     my $class = shift;
-    my (%attributes) = @_;
+    my ($attributes) = @_;
     my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
@@ -203,12 +203,16 @@ sub create_value_instance
 }
 
 # @Override
-sub to_string
+sub to_string_name
+{
+    return "Resource";
+}
+
+# @Override
+sub to_string_attributes
 {
     my ($self) = @_;
-
-    my $string = " RESOURCE\n";
-
+    my $string = "";
     if ( defined($self->{'identifier'}) ) {
         $string .= "  Identifier: $self->{'identifier'}\n";
     }
@@ -221,29 +225,36 @@ sub to_string
     }
     if ( defined($self->{'childResourceIdentifiers'}) && scalar(@{$self->{'childResourceIdentifiers'}}) > 0 ) {
         $string .= "    Children: ";
-        my $index = 0;
-        foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
-            if ( $index > 0 ) {
-                $string .= ', ';
-            }
-            $string .= $identifier;
-            $index++;
-        }
-        $string .= "\n";
+         my $index = 0;
+         foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
+             if ( $index > 0 ) {
+                 $string .= ', ';
+             }
+             $string .= $identifier;
+             $index++;
+         }
+         $string .= "\n";
     }
     $string .= " Schedulable: $self->{'schedulable'}\n";
     if ( defined($self->{'maxFuture'}) ) {
         $string .= "  Max Future: $self->{'maxFuture'}\n";
     }
-    $string .= $self->capabilities_to_string();
+    return $string;
+}
 
+# @Override
+sub to_string_collections
+{
+    my ($self) = @_;
+    my $string = "";
+    $string .= $self->capabilities_to_string();
     return $string;
 }
 
 #
 # Format capabilities to string
 #
-sub capabilities_to_string()
+sub capabilities_to_string
 {
     my ($self) = @_;
 

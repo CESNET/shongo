@@ -273,34 +273,10 @@ public class Task
      * @param allocatedEndpointTo
      */
     private void addConnectionToAllocatedCompartment(AllocatedCompartment allocatedCompartment,
-            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo)
+            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo) throws FaultException
     {
-        AllocatedItem allocatedItemFrom = (AllocatedItem) allocatedEndpointFrom;
-        AllocatedItem allocatedItemTo = (AllocatedItem) allocatedEndpointTo;
-
         // Determine call initiation from given endpoints
-        CallInitiation callInitiation = null;
-        CallInitiation callInitiationFrom = callInitiationByAllocatedItem.get(allocatedItemFrom);
-        CallInitiation callInitiationTo = callInitiationByAllocatedItem.get(allocatedItemTo);
-        if (callInitiationFrom != null) {
-            callInitiation = callInitiationFrom;
-        }
-        if (callInitiationTo != null) {
-            if (callInitiation == null) {
-                callInitiation = callInitiationTo;
-            }
-            else if (callInitiation != callInitiationTo) {
-                // Rewrite call initiation only when the second endpoint isn't virtual room and it want to be called
-                // from the virtual room
-                if (!(allocatedEndpointTo instanceof AllocatedVirtualRoom) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
-                    callInitiation = callInitiationTo;
-                }
-            }
-        }
-        // If no call initiation was specified for the endpoints, use the default
-        if (callInitiation == null) {
-            callInitiation = this.callInitiation;
-        }
+        CallInitiation callInitiation = determineCallInitiation(allocatedEndpointFrom, allocatedEndpointTo);
 
         // Change preferred order of endpoints based on call initiation
         switch (callInitiation) {
@@ -322,14 +298,6 @@ public class Task
                 break;
             default:
                 throw new IllegalStateException("Unknown call initiation '" + callInitiation.toString() + "'.");
-        }
-
-        // If the second endpoint represents multiple endpoints, they should initiate the call
-        if (allocatedEndpointTo.getCount() > 1) {
-            // TODO: Allow specifying multiple aliases for external endpoints and use it for call initiation
-            AllocatedEndpoint allocatedEndpointTemp = allocatedEndpointFrom;
-            allocatedEndpointFrom = allocatedEndpointTo;
-            allocatedEndpointTo = allocatedEndpointTemp;
         }
 
         // Determine technology by which the resources will connect
@@ -365,24 +333,122 @@ public class Task
                 }
         }
 
-        // todo:
-        if (true) {
-            throw new TodoImplementException();
+        try {
+            addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointFrom, allocatedEndpointTo,
+                technology);
+        } catch (Exception exception) {
+            try {
+                addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointTo, allocatedEndpointFrom,
+                        technology);
+            } catch (Exception anotherException) {
+                if (exception instanceof RuntimeException) {
+                    throw (RuntimeException) exception;
+                } else if (exception instanceof FaultException) {
+                    throw (FaultException) exception;
+                } else {
+                    throw new IllegalStateException(exception);
+                }
+            }
         }
+
+    }
+
+    private void addConnectionToAllocatedCompartment(AllocatedCompartment allocatedCompartment,
+            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo, Technology technology)
+            throws FaultException
+    {
+        // Created connection
+        Connection connection = null;
+
+        // TODO: implement connections to multiple endpoints
         if (allocatedEndpointTo.getCount() > 1) {
-
+            throw new IllegalStateException("Cannot create connection to multiple endpoints.");
         }
 
-        List<Alias> aliases = allocatedEndpointFrom.getAssignedAliases();
-        if (technology.isAllowedConnectionByIpAddress()) {
-
+        // Find existing alias for connection
+        Alias alias = null;
+        List<Alias> aliases = allocatedEndpointTo.getAssignedAliases();
+        for (Alias possibleAlias : aliases) {
+            if (possibleAlias.getTechnology().equals(technology)) {
+                alias = possibleAlias;
+                break;
+            }
+        }
+        // Create connection by alias
+        if (alias != null) {
+            ConnectionByAlias connectionByAlias = new ConnectionByAlias();
+            connectionByAlias.setAlias(alias);
+            connection = connectionByAlias;
+        }
+        // Create connection by address
+        else if (technology.isAllowedConnectionByAddress() && allocatedEndpointTo.getAddress() != null) {
+            ConnectionByAddress connectionByAddress = new ConnectionByAddress();
+            connectionByAddress.setAddress(allocatedEndpointTo.getAddress());
+            connection = connectionByAddress;
+        }
+        else {
+            // Allocated alias for the target endpoint
+            AllocatedAlias allocatedAlias = allocateAlias((AllocatedItem) allocatedEndpointTo, technology);
+            allocatedEndpointTo.assignAlias(allocatedAlias.getAlias());
+            allocatedCompartment.addAllocatedItem(allocatedAlias);
+            // Create connection by the created alias
+            ConnectionByAlias connectionByAlias = new ConnectionByAlias();
+            connectionByAlias.setAlias(allocatedAlias.getAlias());
+            connection = connectionByAlias;
         }
 
-        Connection connection = new Connection();
-        connection.setAllocatedEndpointFrom(allocatedItemFrom);
-        connection.setAllocatedEndpointTo(allocatedItemTo);
-        connection.setTechnology(technology);
+        if (connection == null) {
+            throw new IllegalStateException("No connection can be created between endpoints.");
+        }
+
+        connection.setAllocatedEndpointFrom((AllocatedItem) allocatedEndpointFrom);
+        connection.setAllocatedEndpointTo((AllocatedItem) allocatedEndpointTo);
         allocatedCompartment.addConnection(connection);
+    }
+
+    /**
+     * Allocate new {@link Alias} for given {@code allocatedItemTo}.
+     *
+     * @param allocatedItemTo
+     * @param technology
+     * @return
+     * @throws FaultException
+     */
+    private AllocatedAlias allocateAlias(AllocatedItem allocatedItemTo, Technology technology) throws FaultException
+    {
+        throw new TodoImplementException("Allocate alias for technology '%s'.", technology.getName());
+    }
+
+    /**
+     * @param endpointFrom
+     * @param endpointTo
+     * @return call initiation from given {@link AllocatedItem}s
+     */
+    private CallInitiation determineCallInitiation(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo)
+    {
+        CallInitiation callInitiation = null;
+        CallInitiation callInitiationFrom = callInitiationByAllocatedItem.get(endpointFrom);
+        CallInitiation callInitiationTo = callInitiationByAllocatedItem.get(endpointTo);
+        if (callInitiationFrom != null) {
+            callInitiation = callInitiationFrom;
+        }
+        if (callInitiationTo != null) {
+            if (callInitiation == null) {
+                callInitiation = callInitiationTo;
+            }
+            else if (callInitiation != callInitiationTo) {
+                // Rewrite call initiation only when the second endpoint isn't virtual room and it want to be called
+                // from the virtual room
+                if (!(endpointTo instanceof AllocatedVirtualRoom) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
+                    callInitiation = callInitiationTo;
+                }
+            }
+        }
+        // If no call initiation was specified for the endpoints, use the default
+        if (callInitiation == null) {
+            callInitiation = this.callInitiation;
+        }
+        return callInitiation;
     }
 
     /**
@@ -390,7 +456,7 @@ public class Task
      *
      * @return plan if possible, null otherwise
      */
-    private AllocatedCompartment createNoVirtualRoomAllocatedCompartment()
+    private AllocatedCompartment createNoVirtualRoomAllocatedCompartment() throws FaultException
     {
         // Maximal two endpoints may be connected without virtual room
         if (totalAllocatedEndpointCount > 2 || allocatedEndpoints.size() > 2) {
@@ -455,7 +521,7 @@ public class Task
      *
      * @return plan if possible, null otherwise
      */
-    private AllocatedCompartment createSingleVirtualRoomAllocatedCompartment()
+    private AllocatedCompartment createSingleVirtualRoomAllocatedCompartment() throws FaultException
     {
         Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
 

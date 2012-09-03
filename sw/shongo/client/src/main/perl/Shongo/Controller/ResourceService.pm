@@ -97,7 +97,19 @@ sub create_resource()
 {
     my ($attributes) = @_;
 
-    my $identifier = Shongo::Controller::API::Resource->new()->create($attributes);
+    my $type = console_read_enum('Select type of resource', ordered_hash(
+        'Resource' => 'Other Resource',
+        'DeviceResource' => 'Device Resource'
+    ));
+    if ( !defined($type) ) {
+        return;
+    }
+    my $identifier = undef;
+    if ($type eq 'Resource') {
+        $identifier = Shongo::Controller::API::Resource->new()->create($attributes);
+    } elsif ($type eq 'DeviceResource') {
+        $identifier = Shongo::Controller::API::DeviceResource->new()->create($attributes);
+    }
     if ( defined($identifier) ) {
         console_print_info("Resource '%s' successfully created.", $identifier);
     }
@@ -115,12 +127,7 @@ sub modify_resource()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = undef;
-        if ($result->value()->{'class'} eq 'DeviceResource') {
-            $resource = Shongo::Controller::API::DeviceResource->new()->from_xml($result);
-        } else {
-            $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
-        }
+        my $resource = Shongo::Controller::API::Resource->from_xml($result);
         if ( defined($resource) ) {
             $resource->modify();
         }
@@ -181,12 +188,7 @@ sub get_resource()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = undef;
-        if ($result->value()->{'class'} eq 'DeviceResource') {
-            $resource = Shongo::Controller::API::DeviceResource->new()->from_xml($result);
-        } else {
-            $resource = Shongo::Controller::API::Resource->new()->from_xml($result);
-        }
+        my $resource = Shongo::Controller::API::Resource->from_xml($result);
         if ( defined($resource) ) {
             printf("\n%s\n", $resource->to_string());
         }
