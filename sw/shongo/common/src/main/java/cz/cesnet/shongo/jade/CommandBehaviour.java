@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.command.Command;
 import jade.core.behaviours.CyclicBehaviour;
 
@@ -35,7 +37,15 @@ public class CommandBehaviour extends CyclicBehaviour
 
         if (object instanceof Command) {
             Command command = (Command) object;
-            command.process(agent);
+            try {
+                command.process(agent);
+            }
+            catch (CommandException e) {
+                System.err.println("Error processing the command: " + e.getMessage());
+            }
+            catch (CommandUnsupportedException e) {
+                System.err.println("Error processing the command - it is not supported by the device");
+            }
         }
         else {
             throw new RuntimeException("CommandBehaviour can process only commands of class "

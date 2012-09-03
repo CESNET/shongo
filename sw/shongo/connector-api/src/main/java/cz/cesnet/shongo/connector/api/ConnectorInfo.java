@@ -23,10 +23,16 @@ public class ConnectorInfo
     }
 
     private String name;
-    private DeviceInfo device;
+    private DeviceInfo deviceInfo;
     private ConnectionState connectionState;
     private DeviceState deviceState;
 
+
+    public ConnectorInfo(String name)
+    {
+        this.name = name;
+        connectionState = ConnectionState.DISCONNECTED;
+    }
 
     /**
      * @return connection state to the device
@@ -47,17 +53,17 @@ public class ConnectorInfo
     /**
      * @return the device managed by this connector
      */
-    public DeviceInfo getDevice()
+    public DeviceInfo getDeviceInfo()
     {
-        return device;
+        return deviceInfo;
     }
 
     /**
-     * @param device the device managed by this connector (must be a resource of type ManagedDevice)
+     * @param deviceInfo the device managed by this connector (must be a resource of type ManagedDevice)
      */
-    public void setDevice(DeviceInfo device)
+    public void setDeviceInfo(DeviceInfo deviceInfo)
     {
-        this.device = device;
+        this.deviceInfo = deviceInfo;
     }
 
     /**
@@ -90,5 +96,15 @@ public class ConnectorInfo
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    @Override
+    public String toString()
+    {
+        String s = name + "; " + connectionState;
+        if (deviceInfo != null) {
+            s += "; (device: " + deviceInfo + ")";
+        }
+        return s;
     }
 }

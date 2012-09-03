@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -96,14 +97,16 @@ public class Connector
                 String[] args = commandLine.getArgs();
                 if (commandLine.getArgs().length < 2) {
                     shell.setPrompt("connector");
-                    shell.removeCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, null));
+                    shell.removeCommands(
+                            ConnectorContainerCommandSet.createContainerAgentCommandSet(jadeContainer, null));
                     return;
                 }
                 String agentName = args[1];
                 for (String agent : jadeAgents) {
                     if (agent.equals(agentName)) {
                         shell.setPrompt(agentName + "@connector");
-                        shell.addCommands(ContainerCommandSet.createContainerAgentCommandSet(jadeContainer, agentName));
+                        shell.addCommands(
+                                ConnectorContainerCommandSet.createContainerAgentCommandSet(jadeContainer, agentName));
 
                         return;
                     }

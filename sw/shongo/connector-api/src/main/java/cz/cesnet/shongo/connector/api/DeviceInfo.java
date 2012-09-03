@@ -9,6 +9,8 @@ public class DeviceInfo
 {
     String name;
     String description;
+    String serialNumber;
+    String softwareVersion;
 
     public String getDescription()
     {
@@ -28,5 +30,31 @@ public class DeviceInfo
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    public String getSerialNumber()
+    {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber)
+    {
+        this.serialNumber = serialNumber;
+    }
+
+    public String getSoftwareVersion()
+    {
+        return softwareVersion;
+    }
+
+    public void setSoftwareVersion(String softwareVersion)
+    {
+        this.softwareVersion = softwareVersion;
+    }
+
+    @Override
+    public String toString()
+    {
+        return name + "(" + description + ")";
     }
 }
