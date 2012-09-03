@@ -28,6 +28,7 @@ sub new()
     my $self = Shongo::Controller::API::Resource->new(@_);
     bless $self, $class;
 
+    $self->{'class'} = 'DeviceResource';
     $self->{'technologies'} = [];
 
     return $self;
