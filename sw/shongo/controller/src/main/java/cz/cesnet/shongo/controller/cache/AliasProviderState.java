@@ -1,7 +1,6 @@
-package cz.cesnet.shongo.controller.resource.database;
+package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 

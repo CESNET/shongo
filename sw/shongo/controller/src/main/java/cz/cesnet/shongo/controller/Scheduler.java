@@ -4,7 +4,6 @@ import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
@@ -30,16 +29,16 @@ public class Scheduler extends Component
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
     /**
-     * @see {@link ResourceDatabase}
+     * @see {@link Cache}
      */
-    private ResourceDatabase resourceDatabase;
+    private Cache cache;
 
     /**
-     * @param resourceDatabase sets the {@link #resourceDatabase}
+     * @param cache sets the {@link #cache}
      */
-    public void setResourceDatabase(ResourceDatabase resourceDatabase)
+    public void setCache(Cache cache)
     {
-        this.resourceDatabase = resourceDatabase;
+        this.cache = cache;
     }
 
     /**
@@ -48,11 +47,11 @@ public class Scheduler extends Component
      * @param entityManager
      * @param interval
      */
-    public static void createAndRun(Interval interval, EntityManager entityManager, ResourceDatabase resourceDatabase)
+    public static void createAndRun(Interval interval, EntityManager entityManager, Cache resourceDatabase)
             throws FaultException
     {
         Scheduler scheduler = new Scheduler();
-        scheduler.setResourceDatabase(resourceDatabase);
+        scheduler.setCache(resourceDatabase);
         scheduler.init();
         scheduler.run(interval, entityManager);
         scheduler.destroy();
@@ -71,11 +70,11 @@ public class Scheduler extends Component
 
         // Delete all allocated compartments which was marked for deletion
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        allocatedCompartmentManager.deleteAllMarked(resourceDatabase);
+        allocatedCompartmentManager.deleteAllMarked(cache);
 
         // Set current interval as working to resource database (it will reload allocations only when
         // the interval changes)
-        resourceDatabase.setWorkingInterval(interval, entityManager);
+        cache.setWorkingInterval(interval, entityManager);
 
         try {
             CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
@@ -115,16 +114,16 @@ public class Scheduler extends Component
         // TODO: Try to intelligently reallocate and not delete old allocation
         // Delete old allocation
         if (allocatedCompartment != null) {
-            allocatedCompartmentManager.delete(allocatedCompartment, resourceDatabase);
+            allocatedCompartmentManager.delete(allocatedCompartment, cache);
         }
 
         try {
             // Get requested slot and check it's maximum duration
             Interval requestedSlot = compartmentRequest.getRequestedSlot();
-            if (requestedSlot.toDuration().isLongerThan(resourceDatabase.getDeviceAllocationMaximumDuration())) {
+            if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
                 throw new FaultException("Requested slot '%s' is longer than maximum '%s'!",
                         requestedSlot.toPeriod().normalizedStandard().toString(),
-                        resourceDatabase.getDeviceAllocationMaximumDuration().toString());
+                        cache.getAllocatedResourceMaximumDuration().toString());
             }
 
             // Get list of requested resources
@@ -132,7 +131,7 @@ public class Scheduler extends Component
                     compartmentRequest.getRequestedResourcesForScheduler();
 
             // Initialize scheduler task (by adding all requested resources to it)
-            Task task = new Task(requestedSlot, resourceDatabase);
+            Task task = new Task(requestedSlot, cache);
             CallInitiation callInitiation = compartmentRequest.getCompartment().getCallInitiation();
             if (callInitiation != null) {
                 task.setCallInitiation(callInitiation);
@@ -152,7 +151,7 @@ public class Scheduler extends Component
 
             // Add allocated resources to the resource database
             for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
-                resourceDatabase.addAllocatedItem(allocatedItem);
+                cache.addAllocatedItem(allocatedItem);
             }
 
             // Set compartment state to allocated

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 
@@ -43,12 +43,12 @@ public class AllocatedCompartmentManager extends AbstractManager
     /**
      * @param allocatedCompartment to be deleted in the database
      */
-    public void delete(AllocatedCompartment allocatedCompartment, ResourceDatabase resourceDatabase)
+    public void delete(AllocatedCompartment allocatedCompartment, Cache cache)
     {
         // Remove all allocated virtual rooms from virtual rooms database
         List<AllocatedItem> allocatedItems = allocatedCompartment.getAllocatedItems();
         for (AllocatedItem allocatedItem : allocatedItems) {
-            resourceDatabase.removeAllocatedItem(allocatedItem);
+            cache.removeAllocatedItem(allocatedItem);
         }
         super.delete(allocatedCompartment);
     }
@@ -117,16 +117,16 @@ public class AllocatedCompartmentManager extends AbstractManager
     /**
      * Delete all allocated compartment which were marked by {@link #markedForDeletion(AllocatedCompartment)}.
      *
-     * @param resourceDatabase
+     * @param cache
      */
-    public void deleteAllMarked(ResourceDatabase resourceDatabase)
+    public void deleteAllMarked(Cache cache)
     {
         List<AllocatedCompartment> allocatedCompartments = entityManager.createQuery(
                 "SELECT allocation FROM AllocatedCompartment allocation WHERE allocation.compartmentRequest IS NULL",
                 AllocatedCompartment.class)
                 .getResultList();
         for (AllocatedCompartment allocatedCompartment : allocatedCompartments) {
-            delete(allocatedCompartment, resourceDatabase);
+            delete(allocatedCompartment, cache);
         }
     }
 }

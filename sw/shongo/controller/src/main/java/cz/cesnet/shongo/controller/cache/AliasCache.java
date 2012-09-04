@@ -1,20 +1,21 @@
-package cz.cesnet.shongo.controller.resource.database;
+package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 
+import javax.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * TODO:
+ * Represents a cache of allocated aliases.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasManager
+public class AliasCache extends AbstractCache
 {
     /**
      * Map of {@link AliasProviderCapability}s by resource identifier (used for removing all capabilities
@@ -28,8 +29,14 @@ public class AliasManager
      */
     private Map<Long, AliasProviderState> aliasProviderStateById = new HashMap<Long, AliasProviderState>();
 
+    @Override
+    protected void workingIntervalChanged(EntityManager entityManager)
+    {
+        // todo:
+    }
+
     /**
-     * Add new {@link AliasProviderCapability} to be managed by the {@link AliasManager}.
+     * Add new {@link AliasProviderCapability} to be managed by the {@link AliasCache}.
      *
      * @param aliasProviderCapability
      */
@@ -51,7 +58,7 @@ public class AliasManager
     }
 
     /**
-     * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link AliasManager}.
+     * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link AliasCache}.
      *
      * @param resource
      */

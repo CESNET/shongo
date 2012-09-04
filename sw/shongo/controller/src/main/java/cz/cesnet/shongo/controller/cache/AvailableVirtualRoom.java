@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.resource.database;
+package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 

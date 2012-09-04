@@ -24,17 +24,17 @@
     </bean>
 
     <!-- Components -->
-    <bean id="resourceDatabase" class="cz.cesnet.shongo.controller.ResourceDatabase"/>
+    <bean id="cache" class="cz.cesnet.shongo.controller.Cache"/>
     <bean id="preprocessor" class="cz.cesnet.shongo.controller.Preprocessor"/>
     <bean id="scheduler" class="cz.cesnet.shongo.controller.Scheduler">
-        <property name="resourceDatabase" ref="resourceDatabase"/>
+        <property name="cache" ref="cache"/>
     </bean>
     <bean id="executor" class="cz.cesnet.shongo.controller.Executor"/>
 
     <!-- Services -->
     <bean id="commonService" class="cz.cesnet.shongo.controller.api.CommonServiceImpl"/>
     <bean id="resourceService" class="cz.cesnet.shongo.controller.api.ResourceServiceImpl">
-        <property name="resourceDatabase" ref="resourceDatabase"/>
+        <property name="cache" ref="cache"/>
     </bean>
     <bean id="resourceControlService" class="cz.cesnet.shongo.controller.api.ResourceControlServiceImpl"/>
     <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl"/>

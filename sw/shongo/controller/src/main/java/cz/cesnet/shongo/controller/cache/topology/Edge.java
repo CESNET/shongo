@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.resource.database.topology;
+package cz.cesnet.shongo.controller.cache.topology;
 
 import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.Technology;

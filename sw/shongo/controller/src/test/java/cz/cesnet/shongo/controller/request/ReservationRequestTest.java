@@ -28,7 +28,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     public void test() throws Exception
     {
         // Resource database
-        ResourceDatabase resourceDatabase = null;
+        Cache cache = null;
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
         Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
@@ -44,9 +44,9 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Setup resource database
         // ------------------------
         {
-            resourceDatabase = new ResourceDatabase();
-            resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
-            resourceDatabase.init();
+            cache = new Cache();
+            cache.setEntityManagerFactory(getEntityManagerFactory());
+            cache.init();
 
             DeviceResource deviceResource = new DeviceResource();
             deviceResource.setName("MCU");
@@ -54,7 +54,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new VirtualRoomsCapability(100));
             deviceResource.setAllocatable(true);
-            resourceDatabase.addResource(deviceResource, getEntityManager());
+            cache.addResource(deviceResource, getEntityManager());
         }
 
         // ---------------------------
@@ -159,7 +159,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         {
             EntityManager entityManager = getEntityManager();
 
-            Scheduler.createAndRun(interval, entityManager, resourceDatabase);
+            Scheduler.createAndRun(interval, entityManager, cache);
 
             CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
             AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
@@ -195,7 +195,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, resourceDatabase);
+            Scheduler.createAndRun(interval, entityManager, cache);
 
             // Checks allocation failed
             CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
@@ -216,7 +216,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, resourceDatabase);
+            Scheduler.createAndRun(interval, entityManager, cache);
 
             // Checks allocated
             entityManager.refresh(compartmentRequest);
@@ -228,7 +228,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Clean-up
         // ------------------------
         {
-            resourceDatabase.destroy();
+            cache.destroy();
         }
     }
 
@@ -236,10 +236,10 @@ public class ReservationRequestTest extends AbstractDatabaseTest
      * Create reservation request in the database, allocate it and check if allocation succeeds
      *
      * @param reservationRequest
-     * @param resourceDatabase
+     * @param cache
      * @throws Exception
      */
-    private void checkSuccessfulAllocation(ReservationRequest reservationRequest, ResourceDatabase resourceDatabase)
+    private void checkSuccessfulAllocation(ReservationRequest reservationRequest, Cache cache)
             throws Exception
     {
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(getEntityManager());
@@ -247,7 +247,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
 
         Interval interval = Interval.parse("0/9999");
         Preprocessor.createAndRun(interval, getEntityManager());
-        Scheduler.createAndRun(interval, getEntityManager(), resourceDatabase);
+        Scheduler.createAndRun(interval, getEntityManager(), cache);
 
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
         List<CompartmentRequest> compartmentRequests =
@@ -267,22 +267,22 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     @Test
     public void testStandaloneTerminals() throws Exception
     {
-        ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
-        resourceDatabase.init();
+        Cache cache = new Cache();
+        cache.setEntityManagerFactory(getEntityManagerFactory());
+        cache.init();
 
         DeviceResource terminal1 = new DeviceResource();
         terminal1.setAddress(Address.LOCALHOST);
         terminal1.addTechnology(Technology.H323);
         terminal1.addCapability(new StandaloneTerminalCapability());
         terminal1.setAllocatable(true);
-        resourceDatabase.addResource(terminal1, getEntityManager());
+        cache.addResource(terminal1, getEntityManager());
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.H323);
         terminal2.addCapability(new StandaloneTerminalCapability());
         terminal2.setAllocatable(true);
-        resourceDatabase.addResource(terminal2, getEntityManager());
+        cache.addResource(terminal2, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
@@ -291,15 +291,15 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         compartment.addRequestedResource(new ExistingResourceSpecification(terminal1));
         compartment.addRequestedResource(new ExistingResourceSpecification(terminal2));
 
-        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+        checkSuccessfulAllocation(reservationRequest, cache);
     }
 
     @Test
     public void testMultipleTechnologyTerminals() throws Exception
     {
-        ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
-        resourceDatabase.init();
+        Cache cache = new Cache();
+        cache.setEntityManagerFactory(getEntityManagerFactory());
+        cache.init();
 
         DeviceResource terminal1 = new DeviceResource();
         terminal1.setAddress(Address.LOCALHOST);
@@ -307,14 +307,14 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         terminal1.addTechnology(Technology.SIP);
         terminal1.addCapability(new StandaloneTerminalCapability());
         terminal1.setAllocatable(true);
-        resourceDatabase.addResource(terminal1, getEntityManager());
+        cache.addResource(terminal1, getEntityManager());
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.H323);
         terminal2.addTechnology(Technology.ADOBE_CONNECT);
         terminal2.addCapability(new StandaloneTerminalCapability());
         terminal2.setAllocatable(true);
-        resourceDatabase.addResource(terminal2, getEntityManager());
+        cache.addResource(terminal2, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
@@ -323,27 +323,27 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         compartment.addRequestedResource(new ExistingResourceSpecification(terminal1));
         compartment.addRequestedResource(new ExistingResourceSpecification(terminal2));
 
-        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+        checkSuccessfulAllocation(reservationRequest, cache);
     }
 
     @Test
     public void testMultipleTechnologyVirtualRoom() throws Exception
     {
-        ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
-        resourceDatabase.init();
+        Cache cache = new Cache();
+        cache.setEntityManagerFactory(getEntityManagerFactory());
+        cache.init();
 
         DeviceResource terminal1 = new DeviceResource();
         terminal1.addTechnology(Technology.H323);
         terminal1.addCapability(new TerminalCapability());
         terminal1.setAllocatable(true);
-        resourceDatabase.addResource(terminal1, getEntityManager());
+        cache.addResource(terminal1, getEntityManager());
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.SIP);
         terminal2.addCapability(new TerminalCapability());
         terminal2.setAllocatable(true);
-        resourceDatabase.addResource(terminal2, getEntityManager());
+        cache.addResource(terminal2, getEntityManager());
 
         DeviceResource mcu = new DeviceResource();
         mcu.setAddress(Address.LOCALHOST);
@@ -351,7 +351,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new VirtualRoomsCapability(10));
         mcu.setAllocatable(true);
-        resourceDatabase.addResource(mcu, getEntityManager());
+        cache.addResource(mcu, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
@@ -360,25 +360,25 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         compartment.addRequestedResource(new ExistingResourceSpecification(terminal1));
         compartment.addRequestedResource(new ExistingResourceSpecification(terminal2));
 
-        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+        checkSuccessfulAllocation(reservationRequest, cache);
     }
 
     //@Test
     public void testMultipleVirtualRooms() throws Exception
     {
-        ResourceDatabase resourceDatabase = new ResourceDatabase();
-        resourceDatabase.setEntityManagerFactory(getEntityManagerFactory());
-        resourceDatabase.init();
+        Cache cache = new Cache();
+        cache.setEntityManagerFactory(getEntityManagerFactory());
+        cache.init();
 
         DeviceResource mcu1 = new DeviceResource();
         mcu1.addTechnology(Technology.H323);
         mcu1.addCapability(new VirtualRoomsCapability(6));
-        resourceDatabase.addResource(mcu1, getEntityManager());
+        cache.addResource(mcu1, getEntityManager());
 
         DeviceResource mcu2 = new DeviceResource();
         mcu2.addTechnology(Technology.H323);
         mcu2.addCapability(new VirtualRoomsCapability(6));
-        resourceDatabase.addResource(mcu2, getEntityManager());
+        cache.addResource(mcu2, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
@@ -386,6 +386,6 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         Compartment compartment = reservationRequest.addRequestedCompartment();
         compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 10));
 
-        checkSuccessfulAllocation(reservationRequest, resourceDatabase);
+        checkSuccessfulAllocation(reservationRequest, cache);
     }
 }

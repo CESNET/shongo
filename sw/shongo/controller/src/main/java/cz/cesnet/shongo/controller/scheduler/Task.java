@@ -3,12 +3,12 @@ package cz.cesnet.shongo.controller.scheduler;
 import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.resource.database.AvailableAlias;
-import cz.cesnet.shongo.controller.resource.database.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableAlias;
+import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.jgraph.JGraph;
@@ -36,9 +36,9 @@ public class Task
     private Interval interval;
 
     /**
-     * @see ResourceDatabase
+     * @see Cache
      */
-    private ResourceDatabase resourceDatabase;
+    private Cache cache;
 
     /**
      * Set of already added resources to the task.
@@ -81,14 +81,14 @@ public class Task
      * Constructor.
      *
      * @param interval         sets the {@link #interval}
-     * @param resourceDatabase sets the {@link #resourceDatabase}
+     * @param cache sets the {@link #cache}
      */
-    public Task(Interval interval, ResourceDatabase resourceDatabase)
+    public Task(Interval interval, Cache cache)
     {
         clear();
 
         this.interval = interval;
-        this.resourceDatabase = resourceDatabase;
+        this.cache = cache;
     }
 
     /**
@@ -141,7 +141,7 @@ public class Task
                         + "  Resource: %s",
                         resource.getId().toString());
             }
-            if (!resourceDatabase.isResourceAvailable(resource, interval)) {
+            if (!cache.isResourceAvailable(resource, interval)) {
                 // Requested resource is not available in requested slot
                 throw new FaultException("Requested resource is not available in specified time slot:\n"
                         + " Time Slot: %s\n"
@@ -156,7 +156,7 @@ public class Task
             Set<Technology> technologies = lookupResource.getTechnologies();
 
             // Lookup device resources
-            List<DeviceResource> deviceResources = resourceDatabase.findAvailableTerminal(interval, technologies);
+            List<DeviceResource> deviceResources = cache.findAvailableTerminal(interval, technologies);
 
             // Select first available device resource
             // TODO: Select best resource based on some criteria
@@ -430,13 +430,13 @@ public class Task
                     resource.getCapabilities(AliasProviderCapability.class);
             for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
                 if (aliasProviderCapability.getTechnology().equals(technology)) {
-                    resourceDatabase.getAvailableAlias(aliasProviderCapability, interval);
+                    cache.getAvailableAlias(aliasProviderCapability, interval);
                 }
             }
         }
         // Allocate alias from all resources in the resource database
         if (availableAlias == null) {
-            availableAlias = resourceDatabase.getAvailableAlias(technology, interval);
+            availableAlias = cache.getAvailableAlias(technology, interval);
         }
         if (availableAlias == null) {
             throw new FaultException(
@@ -559,7 +559,7 @@ public class Task
         Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
 
         // Get available virtual rooms
-        List<AvailableVirtualRoom> availableVirtualRooms = resourceDatabase.findAvailableVirtualRoomsByVariants(
+        List<AvailableVirtualRoom> availableVirtualRooms = cache.findAvailableVirtualRoomsByVariants(
                 interval, totalAllocatedEndpointCount, technologySets);
         if (availableVirtualRooms.size() == 0) {
 

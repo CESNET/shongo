@@ -1,11 +1,10 @@
-package cz.cesnet.shongo.controller.resource.database;
+package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.resource.Capability;
 import cz.cesnet.shongo.controller.resource.DeviceCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.util.TemporalHelper;
 
 import java.util.HashMap;
 import java.util.HashSet;

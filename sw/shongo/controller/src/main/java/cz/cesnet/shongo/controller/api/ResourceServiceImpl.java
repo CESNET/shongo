@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.ResourceDatabase;
-import cz.cesnet.shongo.controller.resource.database.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -26,9 +26,9 @@ public class ResourceServiceImpl extends Component
         implements ResourceService, Component.EntityManagerFactoryAware, Component.DomainAware
 {
     /**
-     * @see ResourceDatabase
+     * @see Cache
      */
-    private ResourceDatabase resourceDatabase;
+    private Cache cache;
 
     /**
      * @see javax.persistence.EntityManagerFactory
@@ -41,11 +41,11 @@ public class ResourceServiceImpl extends Component
     private cz.cesnet.shongo.controller.Domain domain;
 
     /**
-     * @param resourceDatabase sets the {@link #resourceDatabase}
+     * @param cache sets the {@link #cache}
      */
-    public void setResourceDatabase(ResourceDatabase resourceDatabase)
+    public void setCache(Cache cache)
     {
-        this.resourceDatabase = resourceDatabase;
+        this.cache = cache;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class ResourceServiceImpl extends Component
     @Override
     public void init(Configuration configuration)
     {
-        checkDependency(resourceDatabase, ResourceDatabase.class);
+        checkDependency(cache, Cache.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         super.init(configuration);
@@ -94,8 +94,8 @@ public class ResourceServiceImpl extends Component
         entityManager.getTransaction().commit();
 
         // Add resource to resource database
-        if (resourceDatabase != null) {
-            resourceDatabase.addResource(resourceImpl, entityManager);
+        if (cache != null) {
+            cache.addResource(resourceImpl, entityManager);
         }
 
         entityManager.close();
@@ -125,8 +125,8 @@ public class ResourceServiceImpl extends Component
         entityManager.getTransaction().commit();
 
         // Update resource in resource database
-        if (resourceDatabase != null) {
-            resourceDatabase.updateResource(resourceImpl, entityManager);
+        if (cache != null) {
+            cache.updateResource(resourceImpl, entityManager);
         }
 
         entityManager.close();
@@ -149,8 +149,8 @@ public class ResourceServiceImpl extends Component
         resourceManager.delete(resourceImpl);
 
         // Remove resource from resource database
-        if (resourceDatabase != null) {
-            resourceDatabase.removeResource(resourceImpl);
+        if (cache != null) {
+            cache.removeResource(resourceImpl);
         }
 
         entityManager.getTransaction().commit();
@@ -213,7 +213,7 @@ public class ResourceServiceImpl extends Component
     {
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
         if (interval == null) {
-            interval = resourceDatabase.getWorkingInterval();
+            interval = cache.getWorkingInterval();
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -227,7 +227,7 @@ public class ResourceServiceImpl extends Component
         ResourceAllocation resourceAllocation = null;
         if (resourceImpl instanceof DeviceResource && virtualRoomsCapability != null) {
             AvailableVirtualRoom availableVirtualRoom =
-                    resourceDatabase.getAvailableVirtualRoom(
+                    cache.getResourceCache().getAvailableVirtualRoom(
                             (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval);
             VirtualRoomsResourceAllocation allocation = new VirtualRoomsResourceAllocation();
             allocation.setMaximumPortCount(availableVirtualRoom.getMaximumPortCount());
@@ -243,7 +243,7 @@ public class ResourceServiceImpl extends Component
 
         // Fill it by current allocations
         Collection<cz.cesnet.shongo.controller.allocation.AllocatedResource> resourceAllocations =
-                resourceDatabase.getResourceAllocations(resourceId, interval);
+                cache.getResourceCache().getResourceAllocations(resourceId, interval);
         for (cz.cesnet.shongo.controller.allocation.AllocatedResource allocatedResourceImpl : resourceAllocations) {
             AllocatedResource allocatedResource;
             if (allocatedResourceImpl instanceof cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom) {

@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
@@ -29,7 +29,7 @@ public class TaskTest
     @Test
     public void testFailures() throws Exception
     {
-        Task task = new Task(Interval.parse("2012/2013"), new ResourceDatabase());
+        Task task = new Task(Interval.parse("2012/2013"), new Cache());
 
         task.clear();
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
@@ -61,7 +61,7 @@ public class TaskTest
     @Test
     public void testNoVirtualRoom() throws Exception
     {
-        Task task = new Task(Interval.parse("2012/2013"), new ResourceDatabase());
+        Task task = new Task(Interval.parse("2012/2013"), new Cache());
         task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
         AllocatedCompartment allocatedCompartment = task.createAllocatedCompartment();
@@ -73,7 +73,7 @@ public class TaskTest
     @Test
     public void testSingleVirtualRoom() throws Exception
     {
-        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
+        Cache cache = Cache.createTestingCache();
 
         DeviceResource deviceResource = new DeviceResource();
         deviceResource.setAddress(Address.LOCALHOST);
@@ -81,9 +81,9 @@ public class TaskTest
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
         deviceResource.addCapability(new VirtualRoomsCapability(100));
-        resourceDatabase.addResource(deviceResource);
+        cache.addResource(deviceResource);
 
-        Task task = new Task(Interval.parse("2012/2013"), resourceDatabase);
+        Task task = new Task(Interval.parse("2012/2013"), cache);
         AllocatedCompartment allocatedCompartment;
 
         task.clear();
@@ -106,21 +106,21 @@ public class TaskTest
     @Test
     public void testAliasAllocation() throws Exception
     {
-        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
+        Cache cache = Cache.createTestingCache();
 
         DeviceResource deviceResource = new DeviceResource();
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addCapability(new VirtualRoomsCapability(100));
         deviceResource.addCapability(new AliasProviderCapability(Technology.SIP, AliasType.URI, "XXX@cesnet.cz"));
-        resourceDatabase.addResource(deviceResource);
+        cache.addResource(deviceResource);
 
         Resource resource = new Resource();
         resource.setAllocatable(true);
         resource.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95XXX"));
-        resourceDatabase.addResource(resource);
+        cache.addResource(resource);
 
-        Task task = new Task(Interval.parse("2012/2013"), resourceDatabase);
+        Task task = new Task(Interval.parse("2012/2013"), cache);
         AllocatedCompartment allocatedCompartment;
 
         task.clear();
@@ -135,11 +135,11 @@ public class TaskTest
     @Test
     public void testDependentResource() throws Exception
     {
-        ResourceDatabase resourceDatabase = ResourceDatabase.createTestingResourceDatabase();
+        Cache cache = Cache.createTestingCache();
 
         Resource room = new Resource();
         room.setAllocatable(true);
-        resourceDatabase.addResource(room);
+        cache.addResource(room);
 
         DeviceResource terminal1 = new DeviceResource();
         terminal1.setAddress(Address.LOCALHOST);
@@ -147,16 +147,16 @@ public class TaskTest
         terminal1.setAllocatable(true);
         terminal1.addTechnology(Technology.H323);
         terminal1.addCapability(new StandaloneTerminalCapability());
-        resourceDatabase.addResource(terminal1);
+        cache.addResource(terminal1);
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.setParentResource(room);
         terminal2.setAllocatable(true);
         terminal2.addTechnology(Technology.H323);
         terminal2.addCapability(new StandaloneTerminalCapability());
-        resourceDatabase.addResource(terminal2);
+        cache.addResource(terminal2);
 
-        Task task = new Task(Interval.parse("2012/2013"), resourceDatabase);
+        Task task = new Task(Interval.parse("2012/2013"), cache);
         AllocatedCompartment allocatedCompartment;
 
         task.clear();

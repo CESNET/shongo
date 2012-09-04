@@ -24,7 +24,8 @@ public class Configuration extends CompositeConfiguration
     public static final String JADE_PLATFORM_ID = "jade.platform-id";
     public static final String WORKER_PERIOD = "worker.period";
     public static final String WORKER_INTERVAL = "worker.interval";
-    public static final String RESOURCE_DEVICE_ALLOCATION_MAX_DURATION = "resource.device-allocation.max-duration";
+    public static final String ALLOCATION_RESOURCE_MAX_DURATION = "allocation.resource-max-duration";
+    public static final String ALLOCATION_ALIAS_MAX_DURATION = "allocation.alias-max-duration";
 
     /**
      * @see {@link #getString(String)}
