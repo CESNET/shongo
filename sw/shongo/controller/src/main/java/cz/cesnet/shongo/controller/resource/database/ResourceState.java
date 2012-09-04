@@ -23,12 +23,12 @@ public class ResourceState
     /**
      * Already allocated {@link cz.cesnet.shongo.controller.allocation.AllocatedResource}s for the resource.
      */
-    private RangeSet<AllocatedResource, DateTime> allocations = new RangeSet<AllocatedResource, DateTime>();
+    private RangeSet<AllocatedResource, DateTime> allocatedResources = new RangeSet<AllocatedResource, DateTime>();
 
     /**
      * Map of {@link cz.cesnet.shongo.controller.allocation.AllocatedResource}s by the identifier.
      */
-    private Map<Long, AllocatedResource> allocationsById = new HashMap<Long, AllocatedResource>();
+    private Map<Long, AllocatedResource> allocatedResourcesById = new HashMap<Long, AllocatedResource>();
 
     /**
      * Constructor.
@@ -54,7 +54,7 @@ public class ResourceState
      */
     public Set<AllocatedResource> getAllocatedResources(Interval interval)
     {
-        return allocations.getValues(interval.getStart(), interval.getEnd());
+        return allocatedResources.getValues(interval.getStart(), interval.getEnd());
     }
 
     /**
@@ -65,8 +65,8 @@ public class ResourceState
         // TODO: check if allocation doesn't collide
 
         Interval slot = allocatedResource.getSlot();
-        allocationsById.put(allocatedResource.getId(), allocatedResource);
-        allocations.add(allocatedResource, slot.getStart(), slot.getEnd());
+        allocatedResourcesById.put(allocatedResource.getId(), allocatedResource);
+        allocatedResources.add(allocatedResource, slot.getStart(), slot.getEnd());
     }
 
     /**
@@ -74,12 +74,12 @@ public class ResourceState
      */
     public void removeAllocatedResource(Long allocatedResourceId)
     {
-        AllocatedResource allocatedResource = allocationsById.get(allocatedResourceId);
+        AllocatedResource allocatedResource = allocatedResourcesById.get(allocatedResourceId);
         if (allocatedResource == null) {
             throw new IllegalStateException("Allocated resource doesn't exist in the resource database.");
         }
-        allocations.remove(allocatedResource);
-        allocationsById.remove(allocatedResourceId);
+        allocatedResources.remove(allocatedResource);
+        allocatedResourcesById.remove(allocatedResourceId);
     }
 
     /**
@@ -87,7 +87,7 @@ public class ResourceState
      */
     public void clear()
     {
-        allocations.clear();
-        allocationsById.clear();
+        allocatedResources.clear();
+        allocatedResourcesById.clear();
     }
 }

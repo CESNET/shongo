@@ -99,21 +99,6 @@ public class AllocatedCompartment extends PersistentObject
     }
 
     /**
-     * @return list of {@link AllocatedResource}s from the {@link #allocatedItems}
-     */
-    @Transient
-    public List<AllocatedResource> getAllocatedResources()
-    {
-        List<AllocatedResource> allocatedResources = new ArrayList<AllocatedResource>();
-        for (AllocatedItem allocatedItem : allocatedItems) {
-            if (allocatedItem instanceof AllocatedResource) {
-                allocatedResources.add((AllocatedResource) allocatedItem);
-            }
-        }
-        return allocatedResources;
-    }
-
-    /**
      * @param allocatedItem allocated item to be added to the {@link #allocatedItems}
      */
     public void addAllocatedItem(AllocatedItem allocatedItem)

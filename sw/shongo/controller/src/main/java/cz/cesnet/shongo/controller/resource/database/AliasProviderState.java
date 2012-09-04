@@ -1,5 +1,10 @@
 package cz.cesnet.shongo.controller.resource.database;
 
+import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
+import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.util.RangeSet;
+import org.joda.time.DateTime;
+
 /**
  * TODO:
  *
@@ -7,4 +12,8 @@ package cz.cesnet.shongo.controller.resource.database;
  */
 public class AliasProviderState
 {
+    /**
+     * Already allocated {@link cz.cesnet.shongo.controller.allocation.AllocatedResource}s for the resource.
+     */
+    private RangeSet<AllocatedAlias, DateTime> allocatedAliases = new RangeSet<AllocatedAlias, DateTime>();
 }

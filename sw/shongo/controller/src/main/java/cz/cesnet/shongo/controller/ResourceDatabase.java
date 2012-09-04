@@ -2,11 +2,12 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
+import cz.cesnet.shongo.controller.allocation.AllocatedItem;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
-import cz.cesnet.shongo.controller.resource.database.*;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.resource.database.DeviceTopology;
+import cz.cesnet.shongo.controller.resource.database.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
@@ -366,29 +367,40 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     }
 
     /**
-     * @param allocatedResource to be added to the resource database
+     * @param allocatedItem to be added to the resource database
      */
-    public void addAllocatedResource(AllocatedResource allocatedResource)
+    public void addAllocatedItem(AllocatedItem allocatedItem)
     {
-        ResourceState resourceState = resourceStateById.get(allocatedResource.getResource().getId());
-        if (resourceState == null) {
-            throw new IllegalStateException("Resource which is allocated is not maintained by the resource database.");
+        checkPersisted(allocatedItem);
+        if (allocatedItem instanceof AllocatedResource) {
+            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
+            ResourceState resourceState = resourceStateById.get(allocatedResource.getResource().getId());
+            if (resourceState == null) {
+                throw new IllegalStateException("Resource is not maintained by the resource database.");
+            }
+            resourceState.addAllocatedResource(allocatedResource);
         }
-
-        checkPersisted(allocatedResource);
-        resourceState.addAllocatedResource(allocatedResource);
+        if (allocatedItem instanceof AllocatedAlias) {
+            aliasManager.addAllocatedAlias((AllocatedAlias) allocatedItem);
+        }
     }
 
     /**
-     * @param allocatedResource to be removed from the resource database
+     * @param allocatedItem to be removed from the resource database
      */
-    public void removeAllocatedResource(AllocatedResource allocatedResource)
+    public void removeAllocatedItem(AllocatedItem allocatedItem)
     {
-        ResourceState resourceState = resourceStateById.get(allocatedResource.getResource().getId());
-        if (resourceState == null) {
-            throw new IllegalStateException("Resource which is allocated is not maintained by the resource database.");
+        if (allocatedItem instanceof AllocatedResource) {
+            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
+            ResourceState resourceState = resourceStateById.get(allocatedResource.getResource().getId());
+            if (resourceState == null) {
+                throw new IllegalStateException("Resource is not maintained by the resource database.");
+            }
+            resourceState.removeAllocatedResource(allocatedItem.getId());
         }
-        resourceState.removeAllocatedResource(allocatedResource.getId());
+        else if (allocatedItem instanceof AllocatedAlias) {
+            aliasManager.removeAllocatedAlias((AllocatedAlias) allocatedItem);
+        }
     }
 
     /**
@@ -534,7 +546,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
             List<AllocatedResource> allocations =
                     resourceManager.listResourceAllocationsInInterval(resourceState.getResourceId(), workingInterval);
             for (AllocatedResource allocation : allocations) {
-                addAllocatedResource(allocation);
+                addAllocatedItem(allocation);
             }
         }
     }
@@ -777,6 +789,20 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      */
     public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval)
     {
+        Resource resource = aliasProviderCapability.getResource();
+        Long resourceId = resource.getId();
+
+        ResourceState resourceState = resourceStateById.get(resourceId);
+        if (resourceState == null) {
+            throw new IllegalArgumentException("Resource '" + resourceId + "' isn't added to the resource database.");
+        }
+        Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
+        for (AllocatedResource allocatedResource : allocatedResources) {
+
+        }
+        int usedPortCount = 0;
+
+
         return null;  //To change body of created methods use File | Settings | File Templates.
     }
 

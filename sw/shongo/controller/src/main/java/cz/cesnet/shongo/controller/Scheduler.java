@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedItem;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.CallInitiation;
@@ -150,8 +151,8 @@ public class Scheduler extends Component
             allocatedCompartmentManager.create(allocatedCompartment);
 
             // Add allocated resources to the resource database
-            for (AllocatedResource allocatedResource : allocatedCompartment.getAllocatedResources()) {
-                resourceDatabase.addAllocatedResource(allocatedResource);
+            for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+                resourceDatabase.addAllocatedItem(allocatedItem);
             }
 
             // Set compartment state to allocated

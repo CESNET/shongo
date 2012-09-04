@@ -41,7 +41,7 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         room1.setResource(mcu1);
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
         room1.setPortCount(25);
-        resourceDatabase.addAllocatedResource(room1);
+        resourceDatabase.addAllocatedItem(room1);
 
         DeviceResource mcu2 = new DeviceResource();
         mcu2.setName("mcu1");
@@ -55,13 +55,13 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         room2.setResource(mcu2);
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
         room2.setPortCount(50);
-        resourceDatabase.addAllocatedResource(room2);
+        resourceDatabase.addAllocatedItem(room2);
 
         AllocatedVirtualRoom room3 = new AllocatedVirtualRoom();
         room3.setResource(mcu2);
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
         room3.setPortCount(30);
-        resourceDatabase.addAllocatedResource(room3);
+        resourceDatabase.addAllocatedItem(room3);
 
         // ---------------------------------
         // Test find available virtual rooms

@@ -446,8 +446,8 @@ public class Task
                     TemporalHelper.formatInterval(interval), technology.getName());
         }
         AllocatedAlias allocatedAlias = new AllocatedAlias();
+        allocatedAlias.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
         allocatedAlias.setAlias(availableAlias.getAlias());
-        allocatedAlias.setResource(availableAlias.getResource());
         allocatedAlias.setSlot(interval);
         return allocatedAlias;
     }

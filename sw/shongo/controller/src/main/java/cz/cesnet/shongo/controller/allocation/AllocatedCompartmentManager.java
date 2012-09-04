@@ -46,9 +46,9 @@ public class AllocatedCompartmentManager extends AbstractManager
     public void delete(AllocatedCompartment allocatedCompartment, ResourceDatabase resourceDatabase)
     {
         // Remove all allocated virtual rooms from virtual rooms database
-        List<AllocatedResource> allocatedResources = allocatedCompartment.getAllocatedResources();
-        for (AllocatedResource allocatedResource : allocatedResources) {
-            resourceDatabase.removeAllocatedResource(allocatedResource);
+        List<AllocatedItem> allocatedItems = allocatedCompartment.getAllocatedItems();
+        for (AllocatedItem allocatedItem : allocatedItems) {
+            resourceDatabase.removeAllocatedItem(allocatedItem);
         }
         super.delete(allocatedCompartment);
     }

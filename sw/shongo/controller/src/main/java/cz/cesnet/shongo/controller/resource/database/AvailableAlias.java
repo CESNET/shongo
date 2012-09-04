@@ -1,22 +1,23 @@
 package cz.cesnet.shongo.controller.resource.database;
 
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 /**
- * Represents an available {@link cz.cesnet.shongo.controller.resource.Alias} in a {@link cz.cesnet.shongo.controller.resource.Resource} with {@link cz.cesnet.shongo.controller.resource.AliasProviderCapability}.
+ * Represents an available {@link Alias} in a {@link Resource} with {@link AliasProviderCapability}.
  */
 public class AvailableAlias
 {
     /**
-     * Available {@link cz.cesnet.shongo.controller.resource.Alias}
+     * Available {@link Alias}
      */
     private Alias alias;
 
     /**
-     * {@link cz.cesnet.shongo.controller.resource.Resource} in which the {@link #alias} is available.
+     * {@link AliasProviderCapability} in which the {@link #alias} is available.
      */
-    private Resource resource;
+    private AliasProviderCapability aliasProviderCapability;
 
     /**
      * @return {@link #alias}
@@ -35,18 +36,18 @@ public class AvailableAlias
     }
 
     /**
-     * @return {@link #resource}
+     * @return {@link #aliasProviderCapability}
      */
-    public Resource getResource()
+    public AliasProviderCapability getAliasProviderCapability()
     {
-        return resource;
+        return aliasProviderCapability;
     }
 
     /**
-     * @param resource sets the {@link #resource}
+     * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
      */
-    public void setResource(Resource resource)
+    public void setAliasProviderCapability(AliasProviderCapability aliasProviderCapability)
     {
-        this.resource = resource;
+        this.aliasProviderCapability = aliasProviderCapability;
     }
 }
