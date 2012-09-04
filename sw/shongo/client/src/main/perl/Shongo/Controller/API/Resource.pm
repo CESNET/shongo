@@ -71,7 +71,7 @@ sub on_create
     my ($self, $attributes) = @_;
 
     $self->{'name'} = $attributes->{'name'};
-    $self->{'schedulable'} = 0;
+    $self->{'allocatable'} = 0;
     $self->{'maxFuture'} = 'P4M';
     $self->modify_attributes(0);
 
@@ -182,7 +182,7 @@ sub modify_attributes
 
     $self->{'name'} = console_auto_value($edit, 'Name of the resource', 1, undef, $self->{'name'});
     $self->{'description'} = console_edit_value('Description of the resource', 0, undef, $self->{'description'});
-    $self->{'schedulable'} = console_edit_bool('Schedulable', 0, $self->{'schedulable'});
+    $self->{'allocatable'} = console_edit_bool('Allocatable', 0, $self->{'allocatable'});
     if (!$edit) {
         return;
     }
@@ -235,7 +235,7 @@ sub to_string_attributes
          }
          $string .= "\n";
     }
-    $string .= " Schedulable: $self->{'schedulable'}\n";
+    $string .= " Allocatable: $self->{'allocatable'}\n";
     if ( defined($self->{'maxFuture'}) ) {
         $string .= "  Max Future: $self->{'maxFuture'}\n";
     }

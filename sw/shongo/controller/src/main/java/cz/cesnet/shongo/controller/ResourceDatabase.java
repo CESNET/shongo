@@ -4,10 +4,9 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
-import cz.cesnet.shongo.controller.allocation.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.resource.database.*;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.resource.topology.DeviceTopology;
-import cz.cesnet.shongo.controller.util.RangeSet;
+import cz.cesnet.shongo.controller.resource.database.DeviceTopology;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
@@ -83,6 +82,11 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      * @see {@link DeviceTopology}
      */
     private DeviceTopology deviceTopology = new DeviceTopology();
+
+    /**
+     * @see {@link AliasManager}
+     */
+    private AliasManager aliasManager = new AliasManager();
 
     /**
      * Constructor.
@@ -265,14 +269,21 @@ public class ResourceDatabase extends Component implements Component.EntityManag
             // If device resource has terminal capability, add it to managed capabilities
             TerminalCapability terminalCapability = deviceResource.getCapability(TerminalCapability.class);
             if (terminalCapability != null) {
-                addResourceCapability(deviceResource, terminalCapability);
+                addResourceCapability(terminalCapability);
             }
 
             // If device resource has virtual rooms capability, add it to managed capabilities
             VirtualRoomsCapability virtualRoomsCapability = deviceResource.getCapability(VirtualRoomsCapability.class);
             if (virtualRoomsCapability != null) {
-                addResourceCapability(deviceResource, virtualRoomsCapability);
+                addResourceCapability(virtualRoomsCapability);
             }
+        }
+
+        // Add all alias provider capabilities to alias manager
+        List<AliasProviderCapability> aliasProviderCapabilities =
+                resource.getCapabilities(AliasProviderCapability.class);
+        for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
+            aliasManager.addAliasProvider(aliasProviderCapability);
         }
 
         // Update resource state
@@ -344,6 +355,9 @@ public class ResourceDatabase extends Component implements Component.EntityManag
             }
         }
 
+        // Remove all alias providers for the resource
+        aliasManager.removeAliasProviders(resource);
+
         // Remove the resource state
         resourceStateById.remove(resourceId);
 
@@ -360,12 +374,9 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         if (resourceState == null) {
             throw new IllegalStateException("Resource which is allocated is not maintained by the resource database.");
         }
-        Interval slot = allocatedResource.getSlot();
-        // TODO: check if allocation doesn't collide
-        resourceState.allocations.add(allocatedResource, slot.getStart(), slot.getEnd());
 
         checkPersisted(allocatedResource);
-        resourceState.allocationsById.put(allocatedResource.getId(), allocatedResource);
+        resourceState.addAllocatedResource(allocatedResource);
     }
 
     /**
@@ -377,49 +388,25 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         if (resourceState == null) {
             throw new IllegalStateException("Resource which is allocated is not maintained by the resource database.");
         }
-
-        allocatedResource = resourceState.allocationsById.get(allocatedResource.getId());
-        if (allocatedResource == null) {
-            throw new IllegalStateException("Allocated resource doesn't exist in the resource database.");
-        }
-        resourceState.allocations.remove(allocatedResource);
+        resourceState.removeAllocatedResource(allocatedResource.getId());
     }
 
     /**
      * Add resource capability to be managed and resource can be looked up by it.
      *
-     * @param resource
      * @param capability
      */
-    private void addResourceCapability(Resource resource, Capability capability)
+    private void addResourceCapability(Capability capability)
     {
-        Long resourceId = resource.getId();
         Class<? extends Capability> capabilityType = capability.getClass();
 
-        // Get capability state
+        // Get capability state and add the capability to it
         CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
         if (capabilityState == null) {
             capabilityState = new CapabilityState(capabilityType);
             capabilityStateByType.put(capabilityType, capabilityState);
         }
-
-        // Add the capability by it's resource to the map
-        capabilityState.capabilityByResourceId.put(resourceId, capability);
-
-        if (capability instanceof DeviceCapability) {
-            DeviceResource deviceResource = (DeviceResource) resource;
-            DeviceCapability deviceCapability = (DeviceCapability) capability;
-
-            // Add the device resource to map of virtual room resources by technology
-            for (Technology technology : deviceResource.getTechnologies()) {
-                Set<Long> deviceResources = capabilityState.deviceResourcesByTechnology.get(technology);
-                if (deviceResources == null) {
-                    deviceResources = new HashSet<Long>();
-                    capabilityState.deviceResourcesByTechnology.put(technology, deviceResources);
-                }
-                deviceResources.add(resourceId);
-            }
-        }
+        capabilityState.addCapability(capability);
     }
 
     /**
@@ -430,28 +417,12 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      */
     private void removeResourceCapability(Resource resource, Class<? extends Capability> capabilityType)
     {
-        Long resourceId = resource.getId();
-
         // Get capability state
         CapabilityState capabilityState = capabilityStateByType.get(capabilityType);
         if (capabilityState == null) {
             return;
         }
-
-        // Remove the device resource from the set of virtual room resources
-        capabilityState.capabilityByResourceId.remove(resourceId);
-
-        if (capabilityType.isAssignableFrom(DeviceCapability.class)) {
-            DeviceResource deviceResource = (DeviceResource) resource;
-
-            // Remove the device resource from map by technology
-            for (Technology technology : deviceResource.getTechnologies()) {
-                Set<Long> devices = capabilityState.deviceResourcesByTechnology.get(technology);
-                if (devices != null) {
-                    devices.remove(resourceId);
-                }
-            }
-        }
+        capabilityState.removeCapability(resource);
     }
 
     /**
@@ -465,7 +436,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         if (capabilityState == null) {
             return null;
         }
-        return capabilityType.cast(capabilityState.capabilityByResourceId.get(resourceId));
+        return capabilityType.cast(capabilityState.getCapability(resourceId));
     }
 
     /**
@@ -489,7 +460,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         if (capabilityState == null) {
             return new HashSet<Long>();
         }
-        return capabilityState.capabilityByResourceId.keySet();
+        return capabilityState.getResourceIds();
     }
 
     /**
@@ -510,7 +481,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         }
         Set<Long> devices = null;
         for (Technology technology : technologies) {
-            Set<Long> technologyDevices = capabilityState.deviceResourcesByTechnology.get(technology);
+            Set<Long> technologyDevices = capabilityState.getResourceIds(technology);
             if (devices == null) {
                 devices = new HashSet<Long>();
                 if (technologyDevices != null) {
@@ -555,13 +526,13 @@ public class ResourceDatabase extends Component implements Component.EntityManag
      */
     private void updateResourceState(ResourceState resourceState, EntityManager entityManager)
     {
-        resourceState.allocations.clear();
+        resourceState.clear();
 
         if (workingInterval != null) {
             // Get all allocated virtual rooms for the device and add them to the device state
             ResourceManager resourceManager = new ResourceManager(entityManager);
             List<AllocatedResource> allocations =
-                    resourceManager.listResourceAllocationsInInterval(resourceState.resourceId, workingInterval);
+                    resourceManager.listResourceAllocationsInInterval(resourceState.getResourceId(), workingInterval);
             for (AllocatedResource allocation : allocations) {
                 addAllocatedResource(allocation);
             }
@@ -597,14 +568,13 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     private boolean isResourceAndChildResourcesAvailableRecursive(Resource resource, Interval interval)
     {
         Long resourceId = resource.getId();
-        if (!resource.isSchedulable() || !resource.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
+        if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
             return false;
         }
         // Check only resources without virtual rooms
         if (!hasResourceCapability(resourceId, VirtualRoomsCapability.class)) {
             ResourceState resourceState = resourceStateById.get(resourceId);
-            Set<AllocatedResource> allocatedResources =
-                    resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
+            Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
             if (allocatedResources.size() > 0) {
                 return false;
             }
@@ -629,7 +599,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         if (resourceState == null) {
             throw new IllegalArgumentException("Resource '" + resourceId + "' isn't added to the resource database.");
         }
-        return resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
+        return resourceState.getAllocatedResources(interval);
     }
 
     /**
@@ -681,8 +651,7 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         if (virtualRoomsCapability == null) {
             throw new IllegalStateException("Device resource doesn't have VirtualRooms capability.");
         }
-        Set<AllocatedResource> allocatedResources =
-                resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
+        Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
         int usedPortCount = 0;
         for (AllocatedResource allocatedResource : allocatedResources) {
             if (!(allocatedResource instanceof AllocatedVirtualRoom)) {
@@ -714,13 +683,12 @@ public class ResourceDatabase extends Component implements Component.EntityManag
         List<AvailableVirtualRoom> availableVirtualRooms = new ArrayList<AvailableVirtualRoom>();
         for (Long deviceResourceId : deviceResources) {
             DeviceResource deviceResource = (DeviceResource) resourceById.get(deviceResourceId);
-            if (!deviceResource.isSchedulable() || !deviceResource
+            if (!deviceResource.isAllocatable() || !deviceResource
                     .isAvailableInFuture(interval.getEnd(), referenceDateTime)) {
                 continue;
             }
             ResourceState resourceState = resourceStateById.get(deviceResourceId);
-            Set<AllocatedResource> allocatedResources =
-                    resourceState.allocations.getValues(interval.getStart(), interval.getEnd());
+            Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
             int usedPortCount = 0;
             for (AllocatedResource allocatedResource : allocatedResources) {
                 if (!(allocatedResource instanceof AllocatedVirtualRoom)) {
@@ -801,64 +769,27 @@ public class ResourceDatabase extends Component implements Component.EntityManag
     }
 
     /**
-     * Current state of a resource.
+     * Find available alias in given {@code aliasProviderCapability}.
+     *
+     * @param aliasProviderCapability
+     * @param interval
+     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    private static class ResourceState
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval)
     {
-        /**
-         * Resource identifier.
-         */
-        private Long resourceId;
-
-        /**
-         * Already allocated {@link AllocatedResource} for the resource.
-         */
-        private RangeSet<AllocatedResource, DateTime> allocations = new RangeSet<AllocatedResource, DateTime>();
-
-        /**
-         * Map of {@link AllocatedResource}s by the resource's identifier.
-         */
-        private Map<Long, AllocatedResource> allocationsById = new HashMap<Long, AllocatedResource>();
-
-        /**
-         * Constructor.
-         *
-         * @param resourceId sets the {@link #resourceId}
-         */
-        public ResourceState(Long resourceId)
-        {
-            this.resourceId = resourceId;
-        }
+        return null;  //To change body of created methods use File | Settings | File Templates.
     }
 
     /**
-     * Current state of capability for all resources which have it.
+     * Find available alias in all resources in the database.
+     *
+     * @param technology
+     * @param interval
+     * @return available alias for given {@code technology} and {@code interval}
      */
-    public static class CapabilityState
+    public AvailableAlias getAvailableAlias(Technology technology, Interval interval)
     {
-        /**
-         * Type of capability for which the state is managed.
-         */
-        Class<? extends Capability> capabilityType;
-
-        /**
-         * Constructor.
-         *
-         * @param capabilityType sets the {@link #capabilityType}
-         */
-        public CapabilityState(Class<? extends Capability> capabilityType)
-        {
-            this.capabilityType = capabilityType;
-        }
-
-        /**
-         * Map of instances of {@link Capability} by resource identifier.
-         */
-        private Map<Long, Capability> capabilityByResourceId = new HashMap<Long, Capability>();
-
-        /**
-         * Map of device resources by theirs technology.
-         */
-        private Map<Technology, Set<Long>> deviceResourcesByTechnology = new HashMap<Technology, Set<Long>>();
+        return null;  //To change body of created methods use File | Settings | File Templates.
     }
+
 }

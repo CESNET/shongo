@@ -1,12 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.fault.FaultException;
-
-import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import javax.persistence.Entity;
 
 /**
  * Represents a capability that

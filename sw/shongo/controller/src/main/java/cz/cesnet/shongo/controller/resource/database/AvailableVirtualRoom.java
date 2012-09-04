@@ -1,17 +1,14 @@
-package cz.cesnet.shongo.controller.allocation;
+package cz.cesnet.shongo.controller.resource.database;
 
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 
-import java.util.Map;
-
 /**
- * Represents an available virtual room(s) in a device resource.
+ * Represents an available virtual room(s) in a {@link cz.cesnet.shongo.controller.resource.DeviceResource} with a {@link cz.cesnet.shongo.controller.resource.VirtualRoomsCapability}.
  */
-public class AvailableVirtualRoom extends PrintableObject
+public class AvailableVirtualRoom
 {
     /**
-     * Device resource in which the virtual room(s) is/are available.
+     * {@link cz.cesnet.shongo.controller.resource.DeviceResource} in which the virtual room(s) is/are available.
      */
     private DeviceResource deviceResource;
 
@@ -55,15 +52,6 @@ public class AvailableVirtualRoom extends PrintableObject
     public void setAvailablePortCount(Integer availablePortCount)
     {
         this.availablePortCount = availablePortCount;
-    }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, String> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("resource", deviceResource.toString());
-        map.put("portCount", Integer.valueOf(availablePortCount).toString());
     }
 
     /**

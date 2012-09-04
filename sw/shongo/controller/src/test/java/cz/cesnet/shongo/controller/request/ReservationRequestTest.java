@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
@@ -54,7 +53,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
             deviceResource.setAddress(Address.LOCALHOST);
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new VirtualRoomsCapability(100));
-            deviceResource.setSchedulable(true);
+            deviceResource.setAllocatable(true);
             resourceDatabase.addResource(deviceResource, getEntityManager());
         }
 
@@ -276,13 +275,13 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         terminal1.setAddress(Address.LOCALHOST);
         terminal1.addTechnology(Technology.H323);
         terminal1.addCapability(new StandaloneTerminalCapability());
-        terminal1.setSchedulable(true);
+        terminal1.setAllocatable(true);
         resourceDatabase.addResource(terminal1, getEntityManager());
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.H323);
         terminal2.addCapability(new StandaloneTerminalCapability());
-        terminal2.setSchedulable(true);
+        terminal2.setAllocatable(true);
         resourceDatabase.addResource(terminal2, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -307,14 +306,14 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         terminal1.addTechnology(Technology.H323);
         terminal1.addTechnology(Technology.SIP);
         terminal1.addCapability(new StandaloneTerminalCapability());
-        terminal1.setSchedulable(true);
+        terminal1.setAllocatable(true);
         resourceDatabase.addResource(terminal1, getEntityManager());
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.H323);
         terminal2.addTechnology(Technology.ADOBE_CONNECT);
         terminal2.addCapability(new StandaloneTerminalCapability());
-        terminal2.setSchedulable(true);
+        terminal2.setAllocatable(true);
         resourceDatabase.addResource(terminal2, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -337,13 +336,13 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         DeviceResource terminal1 = new DeviceResource();
         terminal1.addTechnology(Technology.H323);
         terminal1.addCapability(new TerminalCapability());
-        terminal1.setSchedulable(true);
+        terminal1.setAllocatable(true);
         resourceDatabase.addResource(terminal1, getEntityManager());
 
         DeviceResource terminal2 = new DeviceResource();
         terminal2.addTechnology(Technology.SIP);
         terminal2.addCapability(new TerminalCapability());
-        terminal2.setSchedulable(true);
+        terminal2.setAllocatable(true);
         resourceDatabase.addResource(terminal2, getEntityManager());
 
         DeviceResource mcu = new DeviceResource();
@@ -351,7 +350,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new VirtualRoomsCapability(10));
-        mcu.setSchedulable(true);
+        mcu.setAllocatable(true);
         resourceDatabase.addResource(mcu, getEntityManager());
 
         ReservationRequest reservationRequest = new ReservationRequest();

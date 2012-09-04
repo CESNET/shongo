@@ -79,8 +79,8 @@ public abstract class Capability extends PersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.TerminalCapability) {
             capability = new TerminalCapability();
         }
-        else if (api instanceof cz.cesnet.shongo.controller.api.RangeAliasProviderCapability) {
-            capability = new RangeAliasProviderCapability();
+        else if (api instanceof cz.cesnet.shongo.controller.api.AliasProviderCapability) {
+            capability = new AliasProviderCapability();
         }
         else {
             throw new TodoImplementException();

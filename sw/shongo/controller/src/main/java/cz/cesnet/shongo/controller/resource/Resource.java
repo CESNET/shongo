@@ -1,15 +1,16 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
-import cz.cesnet.shongo.fault.*;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.EntityValidationException;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -57,15 +58,15 @@ public class Resource extends PersistentObject
     private List<Person> administrators = new ArrayList<Person>();
 
     /**
-     * Defines a maximum future to which the resource is schedulable (e.g., can be set as relative date/time which
+     * Defines a maximum future to which the resource is allocatable (e.g., can be set as relative date/time which
      * means that resource can be always scheduled only e.g., to four month ahead).
      */
     private DateTimeSpecification maximumFuture;
 
     /**
-     * Specifies whether resource can be scheduled by scheduler.
+     * Specifies whether resource can be allocated by a scheduler.
      */
-    private boolean schedulable;
+    private boolean allocatable;
 
     /**
      * Allocations for the resource. Should be never accessed (used only for JPA query access which doesn't work
@@ -154,15 +155,36 @@ public class Resource extends PersistentObject
     /**
      * @param capabilityType
      * @return capability of given {@code capabilityType} if exits, null otherwise
+     * @throws IllegalStateException when multiple capabilities of given {@code capabilityType} exists
      */
     public <T extends Capability> T getCapability(Class<T> capabilityType)
     {
-        for (Capability capability : capabilities) {
-            if (capabilityType.isAssignableFrom(capability.getClass())) {
-                return capabilityType.cast(capability);
+        T capability = null;
+        for (Capability possibleCapability : capabilities) {
+            if (capabilityType.isAssignableFrom(possibleCapability.getClass())) {
+                if (capability != null) {
+                    throw new IllegalStateException("Multiple capabilities of type '" + capabilityType.getSimpleName()
+                            + "' exists in resource with id '" + getId().toString() + "'.");
+                }
+                capability = capabilityType.cast(possibleCapability);
             }
         }
-        return null;
+        return capability;
+    }
+
+    /**
+     * @param capabilityType
+     * @return list of capabilities with given {@code capabilityType}
+     */
+    public <T extends Capability> List<T> getCapabilities(Class<T> capabilityType)
+    {
+        List<T> capabilities = new ArrayList<T>();
+        for (Capability possibleCapability : this.capabilities) {
+            if (capabilityType.isAssignableFrom(possibleCapability.getClass())) {
+                capabilities.add(capabilityType.cast(possibleCapability));
+            }
+        }
+        return capabilities;
     }
 
     /**
@@ -312,20 +334,20 @@ public class Resource extends PersistentObject
     }
 
     /**
-     * @return {@link #schedulable}
+     * @return {@link #allocatable}
      */
     @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isSchedulable()
+    public boolean isAllocatable()
     {
-        return schedulable;
+        return allocatable;
     }
 
     /**
-     * @param schedulable sets the {@link #schedulable}
+     * @param allocatable sets the {@link #allocatable}
      */
-    public void setSchedulable(boolean schedulable)
+    public void setAllocatable(boolean allocatable)
     {
-        this.schedulable = schedulable;
+        this.allocatable = allocatable;
     }
 
     @Override
@@ -363,7 +385,7 @@ public class Resource extends PersistentObject
     {
         resource.setIdentifier(domain.formatIdentifier(getId()));
         resource.setName(getName());
-        resource.setSchedulable(isSchedulable());
+        resource.setAllocatable(isAllocatable());
         resource.setDescription(getDescription());
 
         DateTimeSpecification maxFuture = getMaximumFuture();
@@ -430,8 +452,8 @@ public class Resource extends PersistentObject
         if (api.isPropertyFilled(api.DESCRIPTION)) {
             setDescription(api.getDescription());
         }
-        if (api.isPropertyFilled(api.SCHEDULABLE)) {
-            setSchedulable(api.getSchedulable());
+        if (api.isPropertyFilled(api.ALLOCATABLE)) {
+            setAllocatable(api.getAllocatable());
         }
         if (api.isPropertyFilled(api.PARENT_RESOURCE_IDENTIFIER)) {
             Long newParentResourceId = null;

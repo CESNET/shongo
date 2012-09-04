@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 

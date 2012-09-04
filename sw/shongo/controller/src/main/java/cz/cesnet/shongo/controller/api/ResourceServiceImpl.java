@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.resource.database.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -225,7 +226,7 @@ public class ResourceServiceImpl extends Component
         // Setup resource allocation
         ResourceAllocation resourceAllocation = null;
         if (resourceImpl instanceof DeviceResource && virtualRoomsCapability != null) {
-            cz.cesnet.shongo.controller.allocation.AvailableVirtualRoom availableVirtualRoom =
+            AvailableVirtualRoom availableVirtualRoom =
                     resourceDatabase.getAvailableVirtualRoom(
                             (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval);
             VirtualRoomsResourceAllocation allocation = new VirtualRoomsResourceAllocation();

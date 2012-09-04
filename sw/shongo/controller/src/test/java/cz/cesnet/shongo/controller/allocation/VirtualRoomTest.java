@@ -3,14 +3,13 @@ package cz.cesnet.shongo.controller.allocation;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.ResourceDatabase;
+import cz.cesnet.shongo.controller.resource.database.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 
 import static junitx.framework.Assert.assertEquals;
@@ -35,7 +34,7 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         mcu1.addTechnology(Technology.H323);
         mcu1.addTechnology(Technology.ADOBE_CONNECT);
         mcu1.addCapability(new VirtualRoomsCapability(50));
-        mcu1.setSchedulable(true);
+        mcu1.setAllocatable(true);
         resourceDatabase.addResource(mcu1);
 
         AllocatedVirtualRoom room1 = new AllocatedVirtualRoom();
@@ -49,7 +48,7 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         mcu2.addTechnology(Technology.SIP);
         mcu2.addTechnology(Technology.ADOBE_CONNECT);
         mcu2.addCapability(new VirtualRoomsCapability(100));
-        mcu2.setSchedulable(true);
+        mcu2.setAllocatable(true);
         resourceDatabase.addResource(mcu2);
 
         AllocatedVirtualRoom room2 = new AllocatedVirtualRoom();

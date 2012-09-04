@@ -1,8 +1,10 @@
-package cz.cesnet.shongo.controller.resource.topology;
+package cz.cesnet.shongo.controller.resource.database;
 
 import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.database.topology.Edge;
+import cz.cesnet.shongo.controller.resource.database.topology.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +19,12 @@ import java.util.Set;
 public class DeviceTopology extends PrintableObject
 {
     /**
-     * List of {@link Node}s in device topology.
+     * List of {@link cz.cesnet.shongo.controller.resource.database.topology.Node}s in device topology.
      */
     private List<Node> nodes = new ArrayList<Node>();
 
     /**
-     * List of {@link Edge}s in device topology.
+     * List of {@link cz.cesnet.shongo.controller.resource.database.topology.Edge}s in device topology.
      */
     private List<Edge> edges = new ArrayList<Edge>();
 

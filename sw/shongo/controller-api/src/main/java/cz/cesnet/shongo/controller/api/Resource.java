@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
@@ -9,7 +8,6 @@ import org.joda.time.Period;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents an entity that can be scheduled.
@@ -46,7 +44,7 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * Specifies whether resource can be scheduled by a scheduler.
      */
-    public static final String SCHEDULABLE = "schedulable";
+    public static final String ALLOCATABLE = "allocatable";
 
     /**
      * Specifies the maximum future for which the resource can be scheduled.
@@ -156,19 +154,19 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #SCHEDULABLE}
+     * @return {@link #ALLOCATABLE}
      */
-    public Boolean getSchedulable()
+    public Boolean getAllocatable()
     {
-        return getPropertyStorage().getValue(SCHEDULABLE);
+        return getPropertyStorage().getValue(ALLOCATABLE);
     }
 
     /**
-     * @param schedulable sets the {@link #SCHEDULABLE}
+     * @param allocatable sets the {@link #ALLOCATABLE}
      */
-    public void setSchedulable(Boolean schedulable)
+    public void setAllocatable(Boolean allocatable)
     {
-        getPropertyStorage().setValue(SCHEDULABLE, schedulable);
+        getPropertyStorage().setValue(ALLOCATABLE, allocatable);
     }
 
     /**

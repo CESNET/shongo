@@ -9,7 +9,7 @@ import cz.cesnet.shongo.api.annotation.Required;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class RangeAliasProviderCapability extends Capability
+public class AliasProviderCapability extends Capability
 {
     /**
      * Technology of aliases.
@@ -24,12 +24,7 @@ public class RangeAliasProviderCapability extends Capability
     /**
      * Range starting value.
      */
-    public static final String START_VALUE = "startValue";
-
-    /**
-     * Range ending value.
-     */
-    public static final String END_VALUE = "endValue";
+    public static final String PATTERN = "pattern";
 
     /**
      * @return {@link #TECHNOLOGY}
@@ -66,36 +61,19 @@ public class RangeAliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #START_VALUE}
+     * @return {@link #PATTERN}
      */
     @Required
-    public String getStartValue()
+    public String getPattern()
     {
-        return getPropertyStorage().getValue(START_VALUE);
+        return getPropertyStorage().getValue(PATTERN);
     }
 
     /**
-     * @param startValue sets the {@link #START_VALUE}
+     * @param pattern sets the {@link #PATTERN}
      */
-    public void setStartValue(String startValue)
+    public void setPattern(String pattern)
     {
-        getPropertyStorage().setValue(START_VALUE, startValue);
-    }
-
-    /**
-     * @return {@link #END_VALUE}
-     */
-    @Required
-    public String getEndValue()
-    {
-        return getPropertyStorage().getValue(END_VALUE);
-    }
-
-    /**
-     * @param endValue sets the {@link #END_VALUE}
-     */
-    public void setEndValue(String endValue)
-    {
-        getPropertyStorage().setValue(END_VALUE, endValue);
+        getPropertyStorage().setValue(PATTERN, pattern);
     }
 }

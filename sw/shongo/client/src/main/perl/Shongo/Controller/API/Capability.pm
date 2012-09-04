@@ -22,7 +22,7 @@ our $Type = ordered_hash(
     'TerminalCapability' => 'Terminal',
     'StandaloneTerminalCapability' => 'Standalone Terminal',
     'VirtualRoomsCapability' => 'Virtual Rooms',
-    'RangeAliasProviderCapability' => 'Range Alias Provider'
+    'AliasProviderCapability' => 'Alias Provider'
 );
 
 #
@@ -80,11 +80,10 @@ sub modify()
         case 'VirtualRoomsCapability' {
             $self->{'portCount'} = console_edit_value('Maximum number of ports', 0, '\\d+', $self->{'portCount'});
         }
-        case 'RangeAliasProviderCapability' {
+        case 'AliasProviderCapability' {
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'type'} = console_edit_enum("Select alias type", $Shongo::Controller::API::Alias::Type, $self->{'type'});
-            $self->{'startValue'} = console_edit_value('Range start value', 0, '.+', $self->{'startValue'});
-            $self->{'endValue'} = console_edit_value('Range end value', 0, '.+', $self->{'endValue'});
+            $self->{'pattern'} = console_edit_value('Pattern', 0, '.+', $self->{'pattern'});
         }
     }
 }
@@ -158,12 +157,11 @@ sub to_string()
         case 'VirtualRoomsCapability' {
             $string .= sprintf("portCount: %s", $self->{'portCount'});
         }
-        case 'RangeAliasProviderCapability' {
-            $string .= sprintf("technology: %s, type: %s, start: %s, end: %s",
+        case 'AliasProviderCapability' {
+            $string .= sprintf("technology: %s, type: %s, pattern: %s",
                 $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
                 $Shongo::Controller::API::Alias::Type->{$self->{'type'}},
-                $self->{'startValue'},
-                $self->{'endValue'}
+                $self->{'pattern'}
             );
         }
         else {

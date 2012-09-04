@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.resource.topology;
+package cz.cesnet.shongo.controller.resource.database.topology;
 
 import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -66,7 +66,7 @@ public class Node extends PrintableObject
     /**
      * @param edge edge to be added to the {@link #incomingEdges}
      */
-    void addIncomingEdge(Edge edge)
+    public void addIncomingEdge(Edge edge)
     {
         incomingEdges.add(edge);
     }
@@ -82,7 +82,7 @@ public class Node extends PrintableObject
     /**
      * @param edge edge to be added to the {@link #outgoingEdges}
      */
-    void addOutgoingEdge(Edge edge)
+    public void addOutgoingEdge(Edge edge)
     {
         outgoingEdges.add(edge);
     }

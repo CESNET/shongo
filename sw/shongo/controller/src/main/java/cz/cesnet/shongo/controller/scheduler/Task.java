@@ -6,11 +6,10 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ResourceDatabase;
 import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.database.AvailableAlias;
+import cz.cesnet.shongo.controller.resource.database.AvailableVirtualRoom;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
@@ -47,29 +46,31 @@ public class Task
     private Set<Resource> resources = new HashSet<Resource>();
 
     /**
-     * List of all endpoints.
+     * List of all {@link AllocatedItem} added to the task.
      */
     private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
+
+    /**
+     * List of all {@link AllocatedEndpoint} added to the task.
+     */
+    private List<AllocatedEndpoint> allocatedEndpoints = new ArrayList<AllocatedEndpoint>();
+
+    /**
+     * Total sum of endpoints (calculated as sum of {@link AllocatedEndpoint#getCount()} because one
+     * {@link AllocatedEndpoint} can represent multiple endpoints).
+     */
+    private int totalAllocatedEndpointCount;
+
+    /**
+     * Map of call initiations by {@link AllocatedEndpoint}.
+     */
+    private Map<AllocatedEndpoint, CallInitiation> callInitiationByAllocatedItem =
+            new HashMap<AllocatedEndpoint, CallInitiation>();
 
     /**
      * Default call initiation.
      */
     private CallInitiation callInitiation = CallInitiation.TERMINAL;
-
-    /**
-     * Map of call initiations by {@link AllocatedItem}.
-     */
-    private Map<AllocatedItem, CallInitiation> callInitiationByAllocatedItem = new HashMap<AllocatedItem, CallInitiation>();
-
-    /**
-     * List of all endpoints.
-     */
-    private List<AllocatedEndpoint> allocatedEndpoints = new ArrayList<AllocatedEndpoint>();
-
-    /**
-     * Total sum of endpoints (calculated as sum of {@link AllocatedEndpoint#getCount()}).
-     */
-    private int totalAllocatedEndpointCount;
 
     /**
      * Graph of connectivity between endpoints.
@@ -134,9 +135,9 @@ public class Task
                         + "  Resource: %s",
                         resource.getId().toString());
             }
-            if (!resource.isSchedulable()) {
+            if (!resource.isAllocatable()) {
                 // Requested resource cannot be allocated
-                throw new FaultException("Requested resource cannot be allocated because it is not schedulable:\n"
+                throw new FaultException("Requested resource cannot be allocated because it is not allocatable:\n"
                         + "  Resource: %s",
                         resource.getId().toString());
             }
@@ -203,15 +204,15 @@ public class Task
     public void addAllocatedItem(AllocatedItem allocatedItem, CallInitiation callInitiation)
     {
         allocatedItems.add(allocatedItem);
-        if (callInitiation != null) {
-            callInitiationByAllocatedItem.put(allocatedItem, callInitiation);
-        }
 
         // Setup endpoints
         if (allocatedItem instanceof AllocatedEndpoint) {
             AllocatedEndpoint allocatedEndpoint = (AllocatedEndpoint) allocatedItem;
             allocatedEndpoints.add(allocatedEndpoint);
             totalAllocatedEndpointCount += allocatedEndpoint.getCount();
+            if (callInitiation != null) {
+                callInitiationByAllocatedItem.put(allocatedEndpoint, callInitiation);
+            }
 
             // Setup connectivity graph
             connectivityGraph.addVertex(allocatedEndpoint);
@@ -335,17 +336,21 @@ public class Task
 
         try {
             addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointFrom, allocatedEndpointTo,
-                technology);
-        } catch (Exception exception) {
+                    technology);
+        }
+        catch (Exception exception) {
             try {
                 addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointTo, allocatedEndpointFrom,
                         technology);
-            } catch (Exception anotherException) {
+            }
+            catch (Exception anotherException) {
                 if (exception instanceof RuntimeException) {
                     throw (RuntimeException) exception;
-                } else if (exception instanceof FaultException) {
+                }
+                else if (exception instanceof FaultException) {
                     throw (FaultException) exception;
-                } else {
+                }
+                else {
                     throw new IllegalStateException(exception);
                 }
             }
@@ -409,14 +414,42 @@ public class Task
     /**
      * Allocate new {@link Alias} for given {@code allocatedItemTo}.
      *
-     * @param allocatedItemTo
+     * @param allocatedItem
      * @param technology
      * @return
      * @throws FaultException
      */
-    private AllocatedAlias allocateAlias(AllocatedItem allocatedItemTo, Technology technology) throws FaultException
+    private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws FaultException
     {
-        throw new TodoImplementException("Allocate alias for technology '%s'.", technology.getName());
+        AvailableAlias availableAlias = null;
+        // First try to allocate alias from a resource capabilities
+        if (allocatedItem instanceof AllocatedResource) {
+            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
+            Resource resource = allocatedResource.getResource();
+            List<AliasProviderCapability> aliasProviderCapabilities =
+                    resource.getCapabilities(AliasProviderCapability.class);
+            for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
+                if (aliasProviderCapability.getTechnology().equals(technology)) {
+                    resourceDatabase.getAvailableAlias(aliasProviderCapability, interval);
+                }
+            }
+        }
+        // Allocate alias from all resources in the resource database
+        if (availableAlias == null) {
+            availableAlias = resourceDatabase.getAvailableAlias(technology, interval);
+        }
+        if (availableAlias == null) {
+            throw new FaultException(
+                    "No available alias was found for the following specification:\n"
+                            + "  Time Slot: %s\n"
+                            + " Technology: %s",
+                    TemporalHelper.formatInterval(interval), technology.getName());
+        }
+        AllocatedAlias allocatedAlias = new AllocatedAlias();
+        allocatedAlias.setAlias(availableAlias.getAlias());
+        allocatedAlias.setResource(availableAlias.getResource());
+        allocatedAlias.setSlot(interval);
+        return allocatedAlias;
     }
 
     /**
