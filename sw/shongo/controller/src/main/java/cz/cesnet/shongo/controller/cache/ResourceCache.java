@@ -204,7 +204,7 @@ public class ResourceCache extends AbstractCache
         if (resourceState == null) {
             throw new IllegalStateException("Resource is not maintained by the resource database.");
         }
-        resourceState.removeAllocatedResource(allocatedResource.getId());
+        resourceState.removeAllocatedResource(allocatedResource);
     }
 
     /**

@@ -32,7 +32,8 @@ public class AliasCache extends AbstractCache
     @Override
     protected void workingIntervalChanged(EntityManager entityManager)
     {
-        // todo:
+        // todo: load alias provide capabilities
+        // todo: load allocated aliases
     }
 
     /**
@@ -76,7 +77,11 @@ public class AliasCache extends AbstractCache
         aliasProviderCapabilitiesByResourceId.remove(resourceId);
     }
 
-
+    /**
+     * Add new managed {@link AllocatedAlias}.
+     *
+     * @param allocatedAlias
+     */
     public void addAllocatedAlias(AllocatedAlias allocatedAlias)
     {
         Long aliasProviderId = allocatedAlias.getAliasProviderCapability().getId();
@@ -84,10 +89,14 @@ public class AliasCache extends AbstractCache
         if (aliasProviderState == null) {
             throw new IllegalStateException("Alias provider is not maintained by the alias manager.");
         }
-
-        // todo:
+        aliasProviderState.addAllocatedAlias(allocatedAlias);
     }
 
+    /**
+     * Remove existing managed {@link AllocatedAlias}.
+     *
+     * @param allocatedAlias
+     */
     public void removeAllocatedAlias(AllocatedAlias allocatedAlias)
     {
         Long aliasProviderId = allocatedAlias.getAliasProviderCapability().getId();
@@ -95,7 +104,6 @@ public class AliasCache extends AbstractCache
         if (aliasProviderState == null) {
             throw new IllegalStateException("Alias provider is not maintained by the alias manager.");
         }
-
-        // todo:
+        aliasProviderState.removeAllocatedAlias(allocatedAlias);
     }
 }

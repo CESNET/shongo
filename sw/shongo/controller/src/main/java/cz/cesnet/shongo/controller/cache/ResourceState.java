@@ -70,13 +70,14 @@ public class ResourceState
     }
 
     /**
-     * @param allocatedResourceId to be removed from the {@link ResourceState}
+     * @param allocatedResource to be removed from the {@link ResourceState}
      */
-    public void removeAllocatedResource(Long allocatedResourceId)
+    public void removeAllocatedResource(AllocatedResource allocatedResource)
     {
-        AllocatedResource allocatedResource = allocatedResourcesById.get(allocatedResourceId);
+        Long allocatedResourceId = allocatedResource.getId();
+        allocatedResource = allocatedResourcesById.get(allocatedResourceId);
         if (allocatedResource == null) {
-            throw new IllegalStateException("Allocated resource doesn't exist in the resource database.");
+            throw new IllegalStateException("Allocated resource doesn't exist in the cache.");
         }
         allocatedResources.remove(allocatedResource);
         allocatedResourcesById.remove(allocatedResourceId);
