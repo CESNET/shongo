@@ -73,8 +73,10 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
 
         // Remove all states for alias providers
         Set<AliasProviderCapability> aliasProviderCapabilities = aliasProviderCapabilitiesByResourceId.get(resourceId);
-        for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-            removeObject(aliasProviderCapability);
+        if (aliasProviderCapabilities != null) {
+            for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
+                removeObject(aliasProviderCapability);
+            }
         }
     }
 
