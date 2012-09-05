@@ -172,6 +172,19 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
+     * @param capabilityType
+     * @return list of all capabilities of given {@code capabilityType}
+     */
+    public <T extends Capability> List<T> listCapabilities(Class<T> capabilityType)
+    {
+        List<T> capabilities = entityManager.createQuery("SELECT capability"
+                + " FROM " + capabilityType.getSimpleName() + " capability"
+                + " WHERE capability.resource IS NOT NULL", capabilityType)
+                .getResultList();
+        return capabilities;
+    }
+
+    /**
      * @param resourceId
      * @param interval
      * @return list of all resource allocations for resource with given {@code resourceId} which intersects

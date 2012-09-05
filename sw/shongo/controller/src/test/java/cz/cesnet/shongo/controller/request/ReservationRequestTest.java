@@ -27,7 +27,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     @Test
     public void test() throws Exception
     {
-        // Resource database
+        // Cache
         Cache cache = null;
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
@@ -40,9 +40,9 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         // Identifier for compartment request which is created from reservation request
         Long compartmentRequestId = null;
 
-        // ------------------------
-        // Setup resource database
-        // ------------------------
+        // ------------
+        // Setup cache
+        // ------------
         {
             cache = new Cache();
             cache.setEntityManagerFactory(getEntityManagerFactory());

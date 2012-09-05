@@ -93,7 +93,7 @@ public class ResourceServiceImpl extends Component
 
         entityManager.getTransaction().commit();
 
-        // Add resource to resource database
+        // Add resource to the cache
         if (cache != null) {
             cache.addResource(resourceImpl, entityManager);
         }
@@ -124,7 +124,7 @@ public class ResourceServiceImpl extends Component
 
         entityManager.getTransaction().commit();
 
-        // Update resource in resource database
+        // Update resource in the cache
         if (cache != null) {
             cache.updateResource(resourceImpl, entityManager);
         }
@@ -148,7 +148,7 @@ public class ResourceServiceImpl extends Component
         // Delete the resource
         resourceManager.delete(resourceImpl);
 
-        // Remove resource from resource database
+        // Remove resource from the cache
         if (cache != null) {
             cache.removeResource(resourceImpl);
         }
@@ -243,7 +243,7 @@ public class ResourceServiceImpl extends Component
 
         // Fill it by current allocations
         Collection<cz.cesnet.shongo.controller.allocation.AllocatedResource> resourceAllocations =
-                cache.getResourceCache().getResourceAllocations(resourceId, interval);
+                cache.getResourceCache().getResourceAllocations(resourceImpl, interval);
         for (cz.cesnet.shongo.controller.allocation.AllocatedResource allocatedResourceImpl : resourceAllocations) {
             AllocatedResource allocatedResource;
             if (allocatedResourceImpl instanceof cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom) {
