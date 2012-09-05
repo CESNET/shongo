@@ -252,7 +252,7 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
     {
         // Get all allocated virtual rooms for the device and add them to the device state
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<AllocatedResource> allocations = resourceManager.listResourceAllocationsInInterval(
+        List<AllocatedResource> allocations = resourceManager.listAllocatedResourcesInInterval(
                 resource.getId(), getWorkingInterval());
         for (AllocatedResource allocatedResource : allocations) {
             addAllocation(resource, allocatedResource);

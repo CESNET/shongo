@@ -103,7 +103,7 @@ public class TaskTest
         assertEquals(2, allocatedCompartment.getConnections().size());
     }
 
-    @Test
+    //@Test
     public void testAliasAllocation() throws Exception
     {
         Cache cache = Cache.createTestingCache();

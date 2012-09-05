@@ -82,8 +82,12 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
     protected void updateObjectState(AliasProviderCapability object, Interval workingInterval,
             EntityManager entityManager)
     {
-        // todo: load allocated aliases
-
-        throw new RuntimeException("TODO: Implement AliasCache.updateObjectState");
+        // Get all allocated virtual rooms for the device and add them to the device state
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        List<AllocatedAlias> allocations = resourceManager.listAllocatedAliasesInInterval(object.getId(),
+                getWorkingInterval());
+        for (AllocatedAlias allocatedAlias : allocations) {
+            addAllocation(object, allocatedAlias);
+        }
     }
 }
