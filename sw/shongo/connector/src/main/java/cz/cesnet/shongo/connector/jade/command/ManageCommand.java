@@ -102,7 +102,7 @@ public class ManageCommand implements cz.cesnet.shongo.jade.command.Command
     }
 
     @Override
-    public boolean process(Agent agent) throws CommandException
+    public void process(Agent agent) throws CommandException
     {
         ConnectorAgent connAgent = (ConnectorAgent) agent;
         if (connAgent == null) {
@@ -122,7 +122,5 @@ public class ManageCommand implements cz.cesnet.shongo.jade.command.Command
         catch (ConnectorInitException e) {
             throw new CommandException("Error initializing the connector", e);
         }
-
-        return true;
     }
 }

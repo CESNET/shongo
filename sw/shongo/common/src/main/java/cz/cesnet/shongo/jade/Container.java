@@ -414,7 +414,9 @@ public class Container
     /**
      * Perform command on local agent.
      *
-     * @param command
+     * Passes the command to the agent by means of the O2A channel (see JADE documentation).
+     *
+     * @param command    command to be performed by an agent
      */
     public void performCommand(String agentName, Command command)
     {

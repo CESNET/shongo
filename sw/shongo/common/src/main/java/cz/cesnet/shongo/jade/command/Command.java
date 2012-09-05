@@ -5,7 +5,7 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.Agent;
 
 /**
- * Represents a command that can be processed on a JADE agent.
+ * Represents a command for a JADE agent.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -16,5 +16,5 @@ public interface Command
      *
      * @param agent
      */
-    public boolean process(Agent agent) throws CommandException, CommandUnsupportedException;
+    public void process(Agent agent) throws CommandException, CommandUnsupportedException;
 }
