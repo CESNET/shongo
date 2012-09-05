@@ -1,6 +1,12 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.ontology.Message;
+import cz.cesnet.shongo.jade.ontology.ShongoOntology;
+import jade.content.AgentAction;
+import jade.content.Concept;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.core.AID;
@@ -80,13 +86,16 @@ public class Agent extends jade.core.Agent
 
         logger.debug("Agent [{}] is ready!", getAID().getName());
 
-        // Register language
+        // Register content language
         getContentManager().registerLanguage(new SLCodec());
+
+        // Register ontology used by Shongo
+        getContentManager().registerOntology(ShongoOntology.getInstance());
 
         // Agent will accept objects from container
         setEnabledO2ACommunication(true, 0);
 
-        // Each agent is able to process commands and receive messages
+        // Each agent is able to process commands passed via O2A channel and receive JADE messages
         addBehaviour(new CommandBehaviour());
         addBehaviour(new ReceiverBehaviour());
 
@@ -211,5 +220,29 @@ public class Agent extends jade.core.Agent
             logger.error("Failed to find agents by a service", exception);
         }
         return new AID[0];
+    }
+
+    /**
+     * Handles an agent action request.
+     *
+     * @param action    agent action to be performed
+     * @param sender    sender of the action request
+     * @return return value of the performed command (null if the command does not return anything)
+     * @throws UnknownActionException
+     */
+    public Concept handleAgentAction(AgentAction action, AID sender)
+            throws UnknownActionException, CommandException, CommandUnsupportedException
+    {
+        if (action == null) {
+            throw new NullPointerException("action");
+        }
+
+        if (action instanceof Message) {
+            Message message = (Message) action;
+            System.out.println("Message from " + sender.getName() + ": " + message.getMessage() + "\n\n");
+            return null;
+        }
+
+        throw new UnknownActionException(action);
     }
 }

@@ -35,22 +35,24 @@ public class CommandBehaviour extends CyclicBehaviour
             return;
         }
 
-        if (object instanceof Command) {
-            Command command = (Command) object;
-            try {
-                command.process(agent);
-            }
-            catch (CommandException e) {
-                System.err.println("Error processing the command: " + e.getMessage());
-            }
-            catch (CommandUnsupportedException e) {
-                System.err.println("Error processing the command - it is not supported by the device");
-            }
-        }
-        else {
+        if (!(object instanceof Command)) {
             throw new RuntimeException("CommandBehaviour can process only commands of class "
                     + Command.class.getCanonicalName() + " but "
                     + object.getClass().getCanonicalName() + " was presented.");
+        }
+
+        Command command = (Command) object;
+        try {
+            command.process(agent);
+        }
+        catch (CommandException e) {
+            System.err.println("Error processing the command: " + e.getMessage());
+            if (e.getCause() != null) {
+                e.getCause().printStackTrace();
+            }
+        }
+        catch (CommandUnsupportedException e) {
+            System.err.println("Error processing the command - it is not supported by the device");
         }
     }
 }

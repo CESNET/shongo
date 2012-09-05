@@ -9,6 +9,8 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.jade.command.SendCommand;
+import cz.cesnet.shongo.jade.ontology.Dial;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -73,9 +75,9 @@ public class ResourceControlServiceImpl extends Component
     {
         String agentName = getAgentName(deviceResourceIdentifier);
 
-        // TODO: use controllerAgent to invoke some connector API
+        controllerAgent.performCommand(agentName, SendCommand.createSendCommand(agentName, new Dial(target)));
 
-        return String.format("Dialing in '%s' for '%s'...OK", agentName, target);
+        return String.format("Dialing in '%s' for '%s'...", agentName, target);
     }
 
     /**

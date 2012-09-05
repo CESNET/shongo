@@ -1,9 +1,16 @@
 package cz.cesnet.shongo.jade.command;
 
+import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.ontology.Message;
+import cz.cesnet.shongo.jade.ontology.ShongoOntology;
+import jade.content.AgentAction;
 import jade.content.Concept;
+import jade.content.ContentElement;
+import jade.content.lang.Codec;
 import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
@@ -11,9 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Send message command for a JADE agent.
+ * A command for a JADE agent to send a concept (agent action, message, ...) to an agent via JADE middleware.
+ *
+ * The SL codec and Shongo ontology is used to encode the message.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class SendCommand implements Command
 {
@@ -28,41 +38,59 @@ public class SendCommand implements Command
     private Concept concept;
 
     /**
-     * Construct command that send message to another agent.
+     * Construct command that sends a concept to another agent.
      */
-    public SendCommand()
+    public SendCommand(int performative)
     {
+        this.performative = performative;
+    }
+
+    public static SendCommand createSendCommand(String performerName, AgentAction action)
+    {
+        AID agentId;
+        if (performerName.contains("@")) {
+            agentId = new AID(performerName, AID.ISGUID);
+        }
+        else {
+            agentId = new AID(performerName, AID.ISLOCALNAME);
+        }
+
+        return createSendCommand(agentId, action);
     }
 
     /**
-     * Create send command for sending simple text message
+     * Create a command for sending an action request to another agent.
      *
-     * @param agentName
-     * @param message
-     * @return send command
+     * @param performer    ID of agent who should perform the action
+     * @param action       action to be performed
+     * @return a prepared send command which, performed on an agent, sends the action request from this agent
      */
-    public static SendCommand createSendMessage(String agentName, String message)
+    public static SendCommand createSendCommand(AID performer, AgentAction action)
     {
-        SendCommand sendCommand = new SendCommand();
+        SendCommand sendCommand = new SendCommand(ACLMessage.INFORM);
 
-        AID agentId = null;
-        if (agentName.indexOf("@") != -1) {
-            agentId = new AID(agentName, AID.ISGUID);
-        }
-        else {
-            agentId = new AID(agentName, AID.ISLOCALNAME);
-        }
-        sendCommand.setRecipient(agentId);
-        sendCommand.setPerformative(ACLMessage.INFORM);
-        sendCommand.setContent(null, new Message(message));
+        sendCommand.setRecipient(performer);
+        sendCommand.setContent(ShongoOntology.getInstance(), action);
 
         return sendCommand;
     }
 
     /**
+     * Create send command for sending simple text message
+     *
+     * @param agentName    name of agent to send the message to
+     * @param message      text of the message
+     * @return send command
+     */
+    public static SendCommand createSendMessage(String agentName, String message)
+    {
+        return createSendCommand(agentName, new Message(message));
+    }
+
+    /**
      * Get recipient.
      *
-     * @return recipient
+     * @return the intended recipient of the message
      */
     public AID getRecipient()
     {
@@ -72,7 +100,7 @@ public class SendCommand implements Command
     /**
      * Set recipient.
      *
-     * @param recipient
+     * @param recipient    the intended recipient of the message
      */
     public void setRecipient(AID recipient)
     {
@@ -127,44 +155,41 @@ public class SendCommand implements Command
      */
     public void setContent(Ontology ontology, Concept concept)
     {
+        if (ontology == null) {
+            throw new NullPointerException("ontology");
+        }
         this.ontology = ontology;
         this.concept = concept;
     }
 
     @Override
-    public boolean process(Agent agent)
+    public void process(Agent agent) throws CommandException
     {
+        if (concept == null) {
+            throw new NullPointerException("concept is null, nothing to send");
+        }
+        if (ontology == null) {
+            throw new NullPointerException("ontology is null, I do not know how to encode the message");
+        }
+
         ACLMessage msg = new ACLMessage(performative);
         msg.addReceiver(recipient);
         msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-        if (ontology != null) {
-            msg.setOntology(ontology.getName());
-        }
-
+        msg.setOntology(ontology.getName());
         msg.setSender(agent.getAID());
-        if (getConcept() instanceof Message) {
-            msg.setContent(((Message) getConcept()).getMessage());
-        }
-        else {
-            throw new RuntimeException("Concept " + getConcept().getClass().getCanonicalName() + " is not supported!");
-        }
 
-        /*ContentElement content = new Action(agent.getAID(), getConcept());
+        ContentElement content = new Action(agent.getAID(), concept);
         try {
             agent.getContentManager().fillContent(msg, content);
         }
         catch (Codec.CodecException e) {
-            e.printStackTrace();
-            return false;
+            throw new CommandException("Error in composing the command message.", e);
         }
         catch (OntologyException e) {
-            e.printStackTrace();
-            return false;
-        }*/
+            throw new CommandException("Error in composing the command message.", e);
+        }
 
         logger.info("{} -> {}: {}\n", new Object[]{agent.getAID().getName(), recipient.getName(), msg.toString()});
         agent.send(msg);
-
-        return true;
     }
 }

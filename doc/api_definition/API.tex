@@ -759,8 +759,8 @@ Each failure in API is reported by |faultCode| (number value) and |faultString| 
 
 \ApiFailure{99} A part of request is not implemented yet. An application log must be checked for more details.
 
-\end{ApiFailures}                
-                
+\end{ApiFailures}
+
 These are only common faults that are independent on specific API section. Other business logic faults can be generated and are described in appropriate API section.
 
 
@@ -1085,7 +1085,7 @@ If date/time slot contains |PeriodicDateTime|, all periodic events can be listed
 Base class for all specific capabilities which a device resource can support. A device resource can support zero, one or multiple capabilities.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
-Set of technologies for which the capability is supported by the device. 
+Set of technologies for which the capability is supported by the device.
 If the set is empty all device technologies are supported.
 \end{ApiClassAttributes}
 
@@ -1115,7 +1115,7 @@ This class represents a complete resource definition. This class is used for cre
 \ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent resource identifier in which is the resource located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the resource.
 \ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
-Set of technologies which are supported by the resource. If the set is not empty the resource is considered as device resource and thus it can participate in videoconferences. 
+Set of technologies which are supported by the resource. If the set is not empty the resource is considered as device resource and thus it can participate in videoconferences.
 \ApiClassAttribute{capabilities}{Capability[]}{\ApiOptional} Capabilities of the resource.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
 \ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
@@ -1338,13 +1338,13 @@ The ontology used by all agents consists of concepts, predicates, and agent acti
 \begin{description}
 \item[An agent action,] tagged by |jade.content.AgentAction| interface, expresses a request what should the receiving agent do. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters.
 \item[A predicate,] tagged by |jade.content.Predicate| interface, expresses a claim about a fact. In this API, we use just two predicates defined in the JADE framework, for the purpose of expressing result of a command. We use no custom predicates.
-\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such a class must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
+\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such a class must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.jade.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
 \end{description}
 
 
 For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
 \begin{verbatim}
-package cz.cesnet.shongo.ontology;
+package cz.cesnet.shongo.jade.ontology;
 
 public class SetMicrophoneLevel implements AgentAction {
     private int level = 0;
@@ -1367,7 +1367,7 @@ The |setMicrophoneLevel| call implementation instantiates a new |SetMicrophoneLe
  :language  fipa-sl  :ontology  shongo-ontology )
 \end{verbatim}
 
-The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined in \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.ontology| interface and be tagged by the |Concept| interface.
+The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined in \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.jade.ontology| interface and be tagged by the |Concept| interface.
 
 An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
 
@@ -1941,7 +1941,7 @@ Consider the following command required by this API:
 
 The following classes should be defined to represent the command and all objects used by it:
 \begin{verbatim}
-package cz.cesnet.shongo.ontology;
+package cz.cesnet.shongo.jade.ontology;
 
 public class ListRoomUsers implements AgentAction {
     private SecurityToken token;
