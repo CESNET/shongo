@@ -453,8 +453,15 @@ public class Controller
             @Override
             public void perform(CommandLine commandLine)
             {
-                DatabaseManagerSwing databaseManager = new DatabaseManagerSwing();
-                databaseManager.main();
+                DatabaseManagerSwing databaseManager = null;
+                try {
+                    databaseManager = new DatabaseManagerSwing();
+                    databaseManager.main();
+                }
+                catch (Exception exception) {
+                    logger.error("Cannot start database manager!", exception);
+                    return;
+                }
 
                 try {
                     EntityManager entityManager = entityManagerFactory.createEntityManager();
