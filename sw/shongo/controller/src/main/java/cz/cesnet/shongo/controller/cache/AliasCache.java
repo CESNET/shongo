@@ -3,20 +3,23 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
+import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents a cache of allocated aliases.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasCache extends AbstractCache
+public class AliasCache extends AbstractAllocationCache<AliasProviderCapability, AllocatedAlias>
 {
+    private static Logger logger = LoggerFactory.getLogger(AliasCache.class);
+
     /**
      * Map of {@link AliasProviderCapability}s by resource identifier (used for removing all capabilities
      * of a given resource).
@@ -24,24 +27,20 @@ public class AliasCache extends AbstractCache
     private Map<Long, Set<AliasProviderCapability>> aliasProviderCapabilitiesByResourceId =
             new HashMap<Long, Set<AliasProviderCapability>>();
 
-    /**
-     * Map of {@link AliasProviderState} by identifier of {@link AliasProviderCapability}.
-     */
-    private Map<Long, AliasProviderState> aliasProviderStateById = new HashMap<Long, AliasProviderState>();
-
     @Override
-    protected void workingIntervalChanged(EntityManager entityManager)
+    public void loadObjects(EntityManager entityManager)
     {
-        // todo: load alias provide capabilities
-        // todo: load allocated aliases
+        logger.debug("Loading alias providers...");
+
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        List<AliasProviderCapability> aliasProviders = resourceManager.listCapabilities(AliasProviderCapability.class);
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
+            addObject(aliasProvider, entityManager);
+        }
     }
 
-    /**
-     * Add new {@link AliasProviderCapability} to be managed by the {@link AliasCache}.
-     *
-     * @param aliasProviderCapability
-     */
-    public void addAliasProvider(AliasProviderCapability aliasProviderCapability)
+    @Override
+    public void addObject(AliasProviderCapability aliasProviderCapability, EntityManager entityManager)
     {
         Resource resource = aliasProviderCapability.getResource();
         Long resourceId = resource.getId();
@@ -54,8 +53,13 @@ public class AliasCache extends AbstractCache
         }
         aliasProviderCapabilities.add(aliasProviderCapability);
 
-        // Create alias provider state for given capability
-        aliasProviderStateById.put(aliasProviderCapability.getId(), new AliasProviderState());
+        super.addObject(aliasProviderCapability, entityManager);
+    }
+
+    @Override
+    public void removeObject(AliasProviderCapability object)
+    {
+        super.removeObject(object);
     }
 
     /**
@@ -69,41 +73,23 @@ public class AliasCache extends AbstractCache
 
         // Remove all states for alias providers
         Set<AliasProviderCapability> aliasProviderCapabilities = aliasProviderCapabilitiesByResourceId.get(resourceId);
-        for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-            aliasProviderStateById.remove(aliasProviderCapability.getId());
+        if (aliasProviderCapabilities != null) {
+            for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
+                removeObject(aliasProviderCapability);
+            }
         }
-
-        // Remove all capabilities by resource identifier
-        aliasProviderCapabilitiesByResourceId.remove(resourceId);
     }
 
-    /**
-     * Add new managed {@link AllocatedAlias}.
-     *
-     * @param allocatedAlias
-     */
-    public void addAllocatedAlias(AllocatedAlias allocatedAlias)
+    @Override
+    protected void updateObjectState(AliasProviderCapability object, Interval workingInterval,
+            EntityManager entityManager)
     {
-        Long aliasProviderId = allocatedAlias.getAliasProviderCapability().getId();
-        AliasProviderState aliasProviderState = aliasProviderStateById.get(aliasProviderId);
-        if (aliasProviderState == null) {
-            throw new IllegalStateException("Alias provider is not maintained by the alias manager.");
+        // Get all allocated virtual rooms for the device and add them to the device state
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        List<AllocatedAlias> allocations = resourceManager.listAllocatedAliasesInInterval(object.getId(),
+                getWorkingInterval());
+        for (AllocatedAlias allocatedAlias : allocations) {
+            addAllocation(object, allocatedAlias);
         }
-        aliasProviderState.addAllocatedAlias(allocatedAlias);
-    }
-
-    /**
-     * Remove existing managed {@link AllocatedAlias}.
-     *
-     * @param allocatedAlias
-     */
-    public void removeAllocatedAlias(AllocatedAlias allocatedAlias)
-    {
-        Long aliasProviderId = allocatedAlias.getAliasProviderCapability().getId();
-        AliasProviderState aliasProviderState = aliasProviderStateById.get(aliasProviderId);
-        if (aliasProviderState == null) {
-            throw new IllegalStateException("Alias provider is not maintained by the alias manager.");
-        }
-        aliasProviderState.removeAllocatedAlias(allocatedAlias);
     }
 }

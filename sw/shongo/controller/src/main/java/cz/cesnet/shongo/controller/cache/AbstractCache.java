@@ -1,60 +1,64 @@
 package cz.cesnet.shongo.controller.cache;
 
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
+import cz.cesnet.shongo.PersistentObject;
 
 import javax.persistence.EntityManager;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Represents an abstract cache.
  *
+ * @param <T> type of cached object
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractCache
+public abstract class AbstractCache<T extends PersistentObject>
 {
     /**
-     * Working interval for which are loaded allocated virtual rooms.
+     * Map of cached objects by theirs identifiers.
      */
-    private Interval workingInterval;
+    protected Map<Long, T> objectById = new HashMap<Long, T>();
 
     /**
-     * Represents a reference data time which is a rounded now().
-     */
-    private DateTime referenceDateTime;
-
-    /**
-     * @return {@link #workingInterval}
-     */
-    protected Interval getWorkingInterval()
-    {
-        return workingInterval;
-    }
-
-    /**
-     * @return {@link #referenceDateTime}
-     */
-    protected DateTime getReferenceDateTime()
-    {
-        return referenceDateTime;
-    }
-
-    /**
-     * @param workingInterval sets the {@link #workingInterval}
-     * @param entityManager   used for reloading allocations of resources for the new interval
-     */
-    public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
-    {
-        if (!workingInterval.equals(this.workingInterval)) {
-            this.workingInterval = workingInterval;
-            this.referenceDateTime = workingInterval.getStart();
-            workingIntervalChanged(entityManager);
-        }
-    }
-
-    /**
-     * Method called when {@link #workingInterval} is changed.
+     * Load cached objects from the database.
      *
      * @param entityManager
      */
-    protected abstract void workingIntervalChanged(EntityManager entityManager);
+    public abstract void loadObjects(EntityManager entityManager);
+
+    /**
+     * @param objectId identifier of a cached object
+     * @return cached object with given {@code objectId}
+     */
+    public T getObject(Long objectId)
+    {
+        return objectById.get(objectId);
+    }
+
+    /**
+     * @param object to be added to the cache
+     */
+    public void addObject(T object)
+    {
+        object.checkPersisted();
+        Long objectId = object.getId();
+        if (objectById.containsKey(objectId)) {
+            throw new IllegalArgumentException(
+                    object.getClass().getSimpleName() + " '" + objectId + "' is already in the cache!");
+        }
+        objectById.put(objectId, object);
+    }
+
+    /**
+     * @param object to be removed from the cache
+     */
+    public void removeObject(T object)
+    {
+        Long objectId = object.getId();
+        if (!objectById.containsKey(objectId)) {
+            throw new IllegalArgumentException(
+                    object.getClass().getSimpleName() + " '" + objectId + "' isn't in the cache!");
+        }
+        objectById.remove(objectId);
+    }
 }

@@ -72,7 +72,7 @@ public class Scheduler extends Component
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
         allocatedCompartmentManager.deleteAllMarked(cache);
 
-        // Set current interval as working to resource database (it will reload allocations only when
+        // Set current interval as working to the cache (it will reload allocations only when
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
 
@@ -149,7 +149,7 @@ public class Scheduler extends Component
             // Create allocated compartment
             allocatedCompartmentManager.create(allocatedCompartment);
 
-            // Add allocated resources to the resource database
+            // Add allocated items to the cache
             for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
                 cache.addAllocatedItem(allocatedItem);
             }

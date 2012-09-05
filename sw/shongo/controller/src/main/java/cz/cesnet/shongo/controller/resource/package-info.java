@@ -1,5 +1,5 @@
 /**
- * Package contains the implementation of resource database for a domain controller.
+ * Package contains the implementation of resources for a domain controller.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

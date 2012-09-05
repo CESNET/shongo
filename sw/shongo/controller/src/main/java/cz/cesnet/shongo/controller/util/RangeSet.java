@@ -6,8 +6,8 @@ import java.util.*;
  * Set of values. Each value has assigned range to which it belongs. Methods for retrieving values based on
  * whether they belongs to specific range are provided.
  *
- * @param <V>
- * @param <R>
+ * @param <V> type of values in the set
+ * @param <R> type of ranges
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class RangeSet<V, R> implements Iterable<V>

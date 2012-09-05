@@ -434,7 +434,7 @@ public class Task
                 }
             }
         }
-        // Allocate alias from all resources in the resource database
+        // Allocate alias from all resources in the cache
         if (availableAlias == null) {
             availableAlias = cache.getAvailableAlias(technology, interval);
         }

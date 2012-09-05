@@ -195,7 +195,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            resourceCache.loadResources(entityManager);
+            resourceCache.loadObjects(entityManager);
+            aliasCache.loadObjects(entityManager);
         }
     }
 
@@ -235,16 +236,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             ResourceManager resourceManager = new ResourceManager(entityManager);
             resourceManager.create(resource);
         }
-        checkPersisted(resource);
 
         // Add resource to resource cache
-        resourceCache.addResource(resource, entityManager);
+        checkPersisted(resource);
+        resourceCache.addObject(resource, entityManager);
 
         // Add all alias provider capabilities to alias manager
         List<AliasProviderCapability> aliasProviderCapabilities =
                 resource.getCapabilities(AliasProviderCapability.class);
         for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-            aliasCache.addAliasProvider(aliasProviderCapability);
+            checkPersisted(aliasProviderCapability);
+            aliasCache.addObject(aliasProviderCapability, entityManager);
         }
     }
 
@@ -257,7 +259,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * Update resource in the resource database.
+     * Update resource in the cache.
      *
      * @param resource
      * @param entityManager entity manager used for loading of resource allocations from the database
@@ -269,43 +271,47 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             addResource(resource, entityManager);
         }
         catch (FaultException exception) {
-            throw new IllegalStateException("Failed to update resource in the resource database.", exception);
+            throw new IllegalStateException("Failed to update resource in the resource cache.", exception);
         }
     }
 
     public void removeResource(Resource resource)
     {
         // Remove resource from resource cache
-        resourceCache.removeResource(resource);
+        resourceCache.removeObject(resource);
 
         // Remove all alias providers for the resource
         aliasCache.removeAliasProviders(resource);
     }
 
     /**
-     * @param allocatedItem to be added to the resource database
+     * @param allocatedItem to be added to the cache
      */
     public void addAllocatedItem(AllocatedItem allocatedItem)
     {
         checkPersisted(allocatedItem);
         if (allocatedItem instanceof AllocatedResource) {
-            resourceCache.addAllocatedResource((AllocatedResource) allocatedItem);
+            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
+            resourceCache.addAllocation(allocatedResource.getResource(), allocatedResource);
         }
         if (allocatedItem instanceof AllocatedAlias) {
-            aliasCache.addAllocatedAlias((AllocatedAlias) allocatedItem);
+            AllocatedAlias allocatedAlias = (AllocatedAlias) allocatedItem;
+            aliasCache.addAllocation(allocatedAlias.getAliasProviderCapability(), allocatedAlias);
         }
     }
 
     /**
-     * @param allocatedItem to be removed from the resource database
+     * @param allocatedItem to be removed from the cache
      */
     public void removeAllocatedItem(AllocatedItem allocatedItem)
     {
         if (allocatedItem instanceof AllocatedResource) {
-            resourceCache.removeAllocatedResource((AllocatedResource) allocatedItem);
+            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
+            resourceCache.removeAllocation(allocatedResource.getResource(), allocatedResource);
         }
         if (allocatedItem instanceof AllocatedAlias) {
-            aliasCache.removeAllocatedAlias((AllocatedAlias) allocatedItem);
+            AllocatedAlias allocatedAlias = (AllocatedAlias) allocatedItem;
+            aliasCache.removeAllocation(allocatedAlias.getAliasProviderCapability(), allocatedAlias);
         }
     }
 
@@ -339,9 +345,9 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         List<DeviceResource> deviceResources = new ArrayList<DeviceResource>();
         for (Long terminalId : terminals) {
-            DeviceResource deviceResource = (DeviceResource) resourceCache.getResource(terminalId);
+            DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(terminalId);
             if (deviceResource == null) {
-                throw new IllegalStateException("Device resource should be added to the resource database.");
+                throw new IllegalStateException("Device resource should be added to the cache.");
             }
             if (isResourceAvailable(deviceResource, interval)) {
                 deviceResources.add(deviceResource);

@@ -195,6 +195,9 @@ public class Shell extends CommandSet
      */
     private boolean parserCommandLine(String line)
     {
+        if (line == null) {
+            return false;
+        }
         if (line.isEmpty()) {
             return true;
         }

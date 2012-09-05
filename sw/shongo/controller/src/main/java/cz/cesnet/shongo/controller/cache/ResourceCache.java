@@ -23,19 +23,9 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceCache extends AbstractCache
+public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedResource>
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceCache.class);
-
-    /**
-     * List of all resources in resource database by theirs id.
-     */
-    private Map<Long, Resource> resourceById = new HashMap<Long, Resource>();
-
-    /**
-     * Map of device resource states by theirs identifiers.
-     */
-    private Map<Long, ResourceState> resourceStateById = new HashMap<Long, ResourceState>();
 
     /**
      * Map of capability states by theirs types.
@@ -63,61 +53,27 @@ public class ResourceCache extends AbstractCache
         return deviceTopology;
     }
 
-    public void loadResources(EntityManager entityManager)
+    /**
+     * Load resources from the database.
+     *
+     * @param entityManager
+     */
+    @Override
+    public void loadObjects(EntityManager entityManager)
     {
         logger.debug("Loading resources...");
 
-        // Load all resources from db
         ResourceManager resourceManager = new ResourceManager(entityManager);
         List<Resource> resourceList = resourceManager.list();
-
         for (Resource resource : resourceList) {
-            addResource(resource, entityManager);
+            addObject(resource, entityManager);
         }
     }
 
     @Override
-    protected void workingIntervalChanged(EntityManager entityManager)
+    public void addObject(Resource resource, EntityManager entityManager)
     {
-        // Remove all allocated virtual rooms from all resources and add it again for the new interval
-        for (ResourceState resourceState : resourceStateById.values()) {
-            updateResourceState(resourceState, entityManager);
-        }
-    }
-
-    /**
-     * @param resourceId
-     * @return resource with given {@code resourceId}
-     */
-    public Resource getResource(Long resourceId)
-    {
-        return resourceById.get(resourceId);
-    }
-
-    /**
-     * Add new resource to the resource database. If the resource is not persisted yet it is created in the database.
-     *
-     * @param resource      resource to be added to the resource database
-     * @param entityManager entity manager used for storing not persisted resource to the database and
-     *                      for loading resource allocations
-     */
-    public void addResource(Resource resource, EntityManager entityManager)
-    {
-        resource.checkPersisted();
-        Long resourceId = resource.getId();
-        if (resourceById.containsKey(resourceId)) {
-            throw new IllegalArgumentException("Resource '" + resourceId + "' is already in the database!");
-        }
-
-        // Add resource to list of all resources
-        resourceById.put(resource.getId(), resource);
-
-        // Get resource state
-        ResourceState resourceState = resourceStateById.get(resourceId);
-        if (resourceState == null) {
-            resourceState = new ResourceState(resourceId);
-            resourceStateById.put(resourceId, resourceState);
-        }
+        super.addObject(resource, entityManager);
 
         // If resource is a device
         if (resource instanceof DeviceResource) {
@@ -138,25 +94,11 @@ public class ResourceCache extends AbstractCache
                 addResourceCapability(virtualRoomsCapability);
             }
         }
-
-        // Update resource state
-        if (entityManager != null) {
-            updateResourceState(resourceState, entityManager);
-        }
     }
 
-    /**
-     * Delete resource from the resource database
-     *
-     * @param resource
-     */
-    public void removeResource(Resource resource)
+    @Override
+    public void removeObject(Resource resource)
     {
-        Long resourceId = resource.getId();
-        if (resourceById.containsKey(resourceId) == false) {
-            throw new IllegalArgumentException("Resource '" + resourceId + "' is not in the resource database!");
-        }
-
         // If resource is a device
         if (resource instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) resource;
@@ -174,37 +116,7 @@ public class ResourceCache extends AbstractCache
                 removeResourceCapability(deviceResource, VirtualRoomsCapability.class);
             }
         }
-
-        // Remove the resource state
-        resourceStateById.remove(resourceId);
-
-        // Remove resource from the list of all resources
-        resourceById.remove(resourceId);
-    }
-
-    /**
-     * @param allocatedResource to be added to the resource database
-     */
-    public void addAllocatedResource(AllocatedResource allocatedResource)
-    {
-        allocatedResource.checkPersisted();
-        ResourceState resourceState = resourceStateById.get(allocatedResource.getResource().getId());
-        if (resourceState == null) {
-            throw new IllegalStateException("Resource is not maintained by the resource database.");
-        }
-        resourceState.addAllocatedResource(allocatedResource);
-    }
-
-    /**
-     * @param allocatedResource to be removed from the resource database
-     */
-    public void removeAllocatedResource(AllocatedResource allocatedResource)
-    {
-        ResourceState resourceState = resourceStateById.get(allocatedResource.getResource().getId());
-        if (resourceState == null) {
-            throw new IllegalStateException("Resource is not maintained by the resource database.");
-        }
-        resourceState.removeAllocatedResource(allocatedResource);
+        super.removeObject(resource);
     }
 
     /**
@@ -334,24 +246,16 @@ public class ResourceCache extends AbstractCache
         return devices;
     }
 
-    /**
-     * Remove all allocations for the given resource and add them again for current working interval.
-     *
-     * @param resourceState
-     * @param entityManager
-     */
-    private void updateResourceState(ResourceState resourceState, EntityManager entityManager)
+    @Override
+    protected void updateObjectState(Resource resource, Interval workingInterval,
+            EntityManager entityManager)
     {
-        resourceState.clear();
-
-        if (getWorkingInterval() != null) {
-            // Get all allocated virtual rooms for the device and add them to the device state
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            List<AllocatedResource> allocations = resourceManager.listResourceAllocationsInInterval(
-                    resourceState.getResourceId(), getWorkingInterval());
-            for (AllocatedResource allocation : allocations) {
-                addAllocatedResource(allocation);
-            }
+        // Get all allocated virtual rooms for the device and add them to the device state
+        ResourceManager resourceManager = new ResourceManager(entityManager);
+        List<AllocatedResource> allocations = resourceManager.listAllocatedResourcesInInterval(
+                resource.getId(), getWorkingInterval());
+        for (AllocatedResource allocatedResource : allocations) {
+            addAllocation(resource, allocatedResource);
         }
     }
 
@@ -365,14 +269,13 @@ public class ResourceCache extends AbstractCache
      */
     public boolean isResourceAndChildResourcesAvailableRecursive(Resource resource, Interval interval)
     {
-        Long resourceId = resource.getId();
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return false;
         }
         // Check only resources without virtual rooms
-        if (!hasResourceCapability(resourceId, VirtualRoomsCapability.class)) {
-            ResourceState resourceState = resourceStateById.get(resourceId);
-            Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
+        if (!hasResourceCapability(resource.getId(), VirtualRoomsCapability.class)) {
+            ObjectState<AllocatedResource> resourceState = getObjectState(resource);
+            Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval);
             if (allocatedResources.size() > 0) {
                 return false;
             }
@@ -387,17 +290,14 @@ public class ResourceCache extends AbstractCache
     }
 
     /**
-     * @param resourceId
+     * @param resource
      * @param interval
      * @return collection of allocations for resource with given {@code resourceId} in given {@code interval}
      */
-    public Collection<AllocatedResource> getResourceAllocations(Long resourceId, Interval interval)
+    public Collection<AllocatedResource> getResourceAllocations(Resource resource, Interval interval)
     {
-        ResourceState resourceState = resourceStateById.get(resourceId);
-        if (resourceState == null) {
-            throw new IllegalArgumentException("Resource '" + resourceId + "' isn't added to the resource database.");
-        }
-        return resourceState.getAllocatedResources(interval);
+        ObjectState<AllocatedResource> resourceState = getObjectState(resource);
+        return resourceState.getAllocations(interval);
     }
 
     /**
@@ -407,17 +307,13 @@ public class ResourceCache extends AbstractCache
      */
     public AvailableVirtualRoom getAvailableVirtualRoom(DeviceResource deviceResource, Interval interval)
     {
-        ResourceState resourceState = resourceStateById.get(deviceResource.getId());
-        if (resourceState == null) {
-            throw new IllegalArgumentException("Resource '" + deviceResource.getId()
-                    + "' is not device or isn't added to the resource database.");
-        }
+        ObjectState<AllocatedResource> resourceState = getObjectState(deviceResource);
         VirtualRoomsCapability virtualRoomsCapability
                 = getResourceCapability(deviceResource.getId(), VirtualRoomsCapability.class);
         if (virtualRoomsCapability == null) {
             throw new IllegalStateException("Device resource doesn't have VirtualRooms capability.");
         }
-        Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
+        Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval);
         int usedPortCount = 0;
         for (AllocatedResource allocatedResource : allocatedResources) {
             if (!(allocatedResource instanceof AllocatedVirtualRoom)) {
@@ -448,13 +344,13 @@ public class ResourceCache extends AbstractCache
     {
         List<AvailableVirtualRoom> availableVirtualRooms = new ArrayList<AvailableVirtualRoom>();
         for (Long deviceResourceId : deviceResources) {
-            DeviceResource deviceResource = (DeviceResource) resourceById.get(deviceResourceId);
+            DeviceResource deviceResource = (DeviceResource) getObject(deviceResourceId);
             if (!deviceResource.isAllocatable() || !deviceResource
                     .isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
                 continue;
             }
-            ResourceState resourceState = resourceStateById.get(deviceResourceId);
-            Set<AllocatedResource> allocatedResources = resourceState.getAllocatedResources(interval);
+            ObjectState<AllocatedResource> resourceState = getObjectState(deviceResource);
+            Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval);
             int usedPortCount = 0;
             for (AllocatedResource allocatedResource : allocatedResources) {
                 if (!(allocatedResource instanceof AllocatedVirtualRoom)) {

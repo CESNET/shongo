@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -172,12 +173,44 @@ public class ResourceManager extends AbstractManager
     }
 
     /**
+     * @param capabilityType
+     * @return list of all capabilities of given {@code capabilityType}
+     */
+    public <T extends Capability> List<T> listCapabilities(Class<T> capabilityType)
+    {
+        List<T> capabilities = entityManager.createQuery("SELECT capability"
+                + " FROM " + capabilityType.getSimpleName() + " capability"
+                + " WHERE capability.resource IS NOT NULL", capabilityType)
+                .getResultList();
+        return capabilities;
+    }
+
+    /**
+     * @param aliasProviderCapabilityId
+     * @param interval
+     * @return list of all alias allocations for alias provider with given {@code aliasProviderCapabilityId}
+     *         which intersects given {@code interval}
+     */
+    public List<AllocatedAlias> listAllocatedAliasesInInterval(Long aliasProviderCapabilityId, Interval interval)
+    {
+        List<AllocatedAlias> allocatedResourceList = entityManager.createQuery("SELECT allocation"
+                + " FROM AllocatedAlias allocation"
+                + " WHERE allocation.aliasProviderCapability.id = :id"
+                + " AND NOT(allocation.slotStart >= :end OR allocation.slotEnd <= :start)", AllocatedAlias.class)
+                .setParameter("id", aliasProviderCapabilityId)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return allocatedResourceList;
+    }
+
+    /**
      * @param resourceId
      * @param interval
      * @return list of all resource allocations for resource with given {@code resourceId} which intersects
      *         given {@code interval}
      */
-    public List<AllocatedResource> listResourceAllocationsInInterval(Long resourceId, Interval interval)
+    public List<AllocatedResource> listAllocatedResourcesInInterval(Long resourceId, Interval interval)
     {
         List<AllocatedResource> allocatedResourceList = entityManager.createQuery("SELECT allocation"
                 + " FROM AllocatedResource allocation"
