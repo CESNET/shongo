@@ -1,16 +1,14 @@
 package cz.cesnet.shongo.connector;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.EndpointService;
+import cz.cesnet.shongo.connector.api.MultipointService;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownActionException;
-import cz.cesnet.shongo.jade.ontology.Dial;
+import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
 import jade.content.AgentAction;
 import jade.content.Concept;
 import jade.core.AID;
@@ -95,20 +93,26 @@ public class ConnectorAgent extends Agent
     public Concept handleAgentAction(AgentAction action, AID sender)
             throws UnknownActionException, CommandException, CommandUnsupportedException
     {
-        if (action instanceof Dial) {
-            Dial cmd = (Dial) action;
-
-            EndpointService endpoint = (EndpointService) connector;
-            if (endpoint == null) {
-                throw new CommandUnsupportedException("The " + Dial.class + " is supported only on an endpoint.");
-            }
-
-            logger.info("Dialing " + cmd.getNumber());
-            endpoint.dial(new Alias(Technology.H323, AliasType.E164, cmd.getNumber()));
-
-            return null;
+        if (action instanceof ConnectorAgentAction) {
+            return ((ConnectorAgentAction) action).exec(connector);
         }
 
         return super.handleAgentAction(action, sender);
+    }
+
+    private EndpointService getEndpoint() throws CommandUnsupportedException
+    {
+        if (!(connector instanceof EndpointService)) {
+            throw new CommandUnsupportedException("The command is implemented only on an endpoint.");
+        }
+        return (EndpointService) connector;
+    }
+
+    private MultipointService getMultipoint() throws CommandUnsupportedException
+    {
+        if (!(connector instanceof MultipointService)) {
+            throw new CommandUnsupportedException("The command is implemented only on an endpoint.");
+        }
+        return (MultipointService) connector;
     }
 }

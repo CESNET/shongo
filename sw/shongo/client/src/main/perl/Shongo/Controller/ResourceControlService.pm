@@ -79,7 +79,14 @@ sub control_resource()
                 my ($shell, $params, @args) = @_;
                 resource_dial($resourceIdentifier, $args[0]);
             }
-        }
+        },
+        "standby" => {
+            desc => "Switch to the standby mode",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_standby($resourceIdentifier, $args[0]);
+            }
+        },
     });
     $shell->run();
 }
@@ -92,6 +99,20 @@ sub resource_dial
         'ResourceControl.dial',
         RPC::XML::string->new($resourceIdentifier),
         RPC::XML::string->new($target)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    printf("%s\n", $result->value());
+}
+
+sub resource_standby
+{
+    my ($resourceIdentifier, $target) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.standBy',
+        RPC::XML::string->new($resourceIdentifier)
     );
     if ( $result->is_fault ) {
         return;
