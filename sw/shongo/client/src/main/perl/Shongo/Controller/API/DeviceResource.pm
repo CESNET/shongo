@@ -141,7 +141,6 @@ sub to_string_name
 sub to_string_attributes
 {
     my ($self) = @_;
-    my $string = "";
     my $string = Shongo::Controller::API::Resource::to_string_attributes(@_);
     if ( defined($self->{'mode'}) ) {
         my $mode = '';
