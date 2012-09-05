@@ -423,14 +423,12 @@ reading:
     @Override
     public void mute() throws CommandException
     {
-        // TODO: test that it really mutes the device
         issueCommand(new Command("xCommand Audio Microphones Mute"));
     }
 
     @Override
     public void unmute() throws CommandException
     {
-        // TODO: test that it really unmutes the device
         issueCommand(new Command("xCommand Audio Microphones Unmute"));
     }
 
