@@ -16,6 +16,8 @@ import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
 import org.jgrapht.graph.SimpleGraph;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +32,8 @@ import java.util.List;
  */
 public class Task
 {
+    private static Logger logger = LoggerFactory.getLogger(Task.class);
+
     /**
      * Interval for which the task is performed.
      */
@@ -339,6 +343,7 @@ public class Task
                     technology);
         }
         catch (Exception exception) {
+            logger.debug("Failed to create connection between two endpoints. Trying opposite direction.", exception);
             try {
                 addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointTo, allocatedEndpointFrom,
                         technology);
@@ -421,6 +426,8 @@ public class Task
      */
     private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws FaultException
     {
+        // TODO: remember already allocated aliases and disable them
+
         AvailableAlias availableAlias = null;
         // First try to allocate alias from a resource capabilities
         if (allocatedItem instanceof AllocatedResource) {

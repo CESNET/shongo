@@ -72,7 +72,7 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
      */
     protected void workingIntervalChanged(EntityManager entityManager)
     {
-        for (T object : objectById.values()) {
+        for (T object : getObjects()) {
             updateObjectState(object, entityManager);
         }
     }

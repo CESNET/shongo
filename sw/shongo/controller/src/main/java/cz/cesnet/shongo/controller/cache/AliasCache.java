@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,5 +89,30 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
         for (AllocatedAlias allocatedAlias : allocations) {
             addAllocation(object, allocatedAlias);
         }
+    }
+
+    /**
+     * Find available alias in given {@code aliasProviderCapability}.
+     *
+     * @param aliasProviderCapability
+     * @param interval
+     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
+     */
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval)
+    {
+        ObjectState<AllocatedAlias> aliasProviderState = getObjectState(aliasProviderCapability);
+        Set<AllocatedAlias> allocatedAliases = aliasProviderState.getAllocations(interval);
+        AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
+        for (AllocatedAlias allocatedAlias : allocatedAliases) {
+            aliasGenerator.addAlias(allocatedAlias.getAlias());
+        }
+        Alias alias = aliasGenerator.generate();
+        if (alias == null) {
+            return null;
+        }
+        AvailableAlias availableAlias = new AvailableAlias();
+        availableAlias.setAliasProviderCapability(aliasProviderCapability);
+        availableAlias.setAlias(alias);
+        return availableAlias;
     }
 }

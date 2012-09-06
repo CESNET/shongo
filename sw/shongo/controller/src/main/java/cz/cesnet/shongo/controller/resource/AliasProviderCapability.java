@@ -138,4 +138,10 @@ public class AliasProviderCapability extends Capability
         }
         super.fromApi(api, entityManager);
     }
+
+    @Transient
+    public AliasGenerator getAliasGenerator()
+    {
+        return new AliasPatternGenerator(technology, type, pattern);
+    }
 }

@@ -420,12 +420,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      */
     public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval)
     {
-        Resource resource = aliasProviderCapability.getResource();
-        Long resourceId = resource.getId();
-
-        // todo:
-
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        return aliasCache.getAvailableAlias(aliasProviderCapability, interval);
     }
 
     /**
@@ -437,8 +432,15 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      */
     public AvailableAlias getAvailableAlias(Technology technology, Interval interval)
     {
-        // todo:
-
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
+            if (!aliasProviderCapability.getTechnology().equals(technology)) {
+                continue;
+            }
+            AvailableAlias availableAlias = aliasCache.getAvailableAlias(aliasProviderCapability, interval);
+            if (availableAlias != null) {
+                return availableAlias;
+            }
+        }
+        return null;
     }
 }

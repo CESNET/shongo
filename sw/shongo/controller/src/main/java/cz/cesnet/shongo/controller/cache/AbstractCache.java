@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.PersistentObject;
 
 import javax.persistence.EntityManager;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public abstract class AbstractCache<T extends PersistentObject>
     /**
      * Map of cached objects by theirs identifiers.
      */
-    protected Map<Long, T> objectById = new HashMap<Long, T>();
+    private Map<Long, T> objectById = new HashMap<Long, T>();
 
     /**
      * Load cached objects from the database.
@@ -33,6 +34,14 @@ public abstract class AbstractCache<T extends PersistentObject>
     public T getObject(Long objectId)
     {
         return objectById.get(objectId);
+    }
+
+    /**
+     * @return collection of all cached objects
+     */
+    public Collection<T> getObjects()
+    {
+        return objectById.values();
     }
 
     /**
