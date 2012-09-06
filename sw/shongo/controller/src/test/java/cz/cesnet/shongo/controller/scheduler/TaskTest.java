@@ -21,13 +21,13 @@ import java.util.Set;
 import static junit.framework.Assert.*;
 
 /**
- * Tests for {@link cz.cesnet.shongo.controller.scheduler.Task}
+ * Tests for {@link Task}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class TaskTest
 {
-    /*@Test
+    @Test
     public void testFailures() throws Exception
     {
         Task task = new Task(Interval.parse("2012/2013"), new Cache());
@@ -102,7 +102,7 @@ public class TaskTest
         assertNotNull(allocatedCompartment);
         assertEquals(3, allocatedCompartment.getAllocatedItems().size());
         assertEquals(2, allocatedCompartment.getConnections().size());
-    }*/
+    }
 
     @Test
     public void testAliasAllocation() throws Exception
@@ -154,7 +154,7 @@ public class TaskTest
         }
     }
 
-    /*@Test
+    @Test
     public void testDependentResource() throws Exception
     {
         Cache cache = Cache.createTestingCache();
@@ -195,7 +195,7 @@ public class TaskTest
         assertNotNull(allocatedCompartment);
         assertEquals(3, allocatedCompartment.getAllocatedItems().size());
         assertEquals(1, allocatedCompartment.getConnections().size());
-    }*/
+    }
 
     private static class SimpleAllocatedEndpoint extends AllocatedItem implements AllocatedEndpoint
     {

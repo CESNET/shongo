@@ -82,7 +82,7 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
     protected void updateObjectState(AliasProviderCapability object, Interval workingInterval,
             EntityManager entityManager)
     {
-        // Get all allocated virtual rooms for the device and add them to the device state
+        // Get all allocated aliases for the alias provider and add them to the device state
         ResourceManager resourceManager = new ResourceManager(entityManager);
         List<AllocatedAlias> allocations = resourceManager.listAllocatedAliasesInInterval(object.getId(),
                 getWorkingInterval());
@@ -96,12 +96,14 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
      *
      * @param aliasProviderCapability
      * @param interval
+     * @param transaction
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval)
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval,
+            Transaction transaction)
     {
         ObjectState<AllocatedAlias> aliasProviderState = getObjectState(aliasProviderCapability);
-        Set<AllocatedAlias> allocatedAliases = aliasProviderState.getAllocations(interval);
+        Set<AllocatedAlias> allocatedAliases = aliasProviderState.getAllocations(interval, transaction);
         AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
         for (AllocatedAlias allocatedAlias : allocatedAliases) {
             aliasGenerator.addAlias(allocatedAlias.getAlias());
@@ -114,5 +116,13 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
         availableAlias.setAliasProviderCapability(aliasProviderCapability);
         availableAlias.setAlias(alias);
         return availableAlias;
+    }
+
+    /**
+     * Transaction for {@link AliasCache}.
+     */
+    public static class Transaction
+            extends AbstractAllocationCache.Transaction<AllocatedAlias>
+    {
     }
 }

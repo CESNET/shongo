@@ -7,9 +7,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an abstract cache.
@@ -227,6 +225,19 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         }
 
         /**
+         * @param interval
+         * @return list of allocations for cached object in given {@code interval}
+         */
+        public Set<A> getAllocations(Interval interval, Transaction<A> transaction)
+        {
+            Set<A> allocations = getAllocations(interval);
+            if (transaction != null) {
+                transaction.applyAllocations(objectId, allocations);
+            }
+            return allocations;
+        }
+
+        /**
          * @param allocation to be added to the {@link ObjectState}
          */
         public void addAllocation(A allocation)
@@ -259,6 +270,29 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         {
             allocations.clear();
             allocationById.clear();
+        }
+    }
+
+    public static class Transaction<A extends AllocatedItem>
+    {
+        private Map<Long, Set<A>> allocationsByObjectId = new HashMap<Long, Set<A>>();
+
+        public void addAllocation(Long objectId, A allocation)
+        {
+            Set<A> allocations = allocationsByObjectId.get(objectId);
+            if (allocations == null) {
+                allocations = new HashSet<A>();
+                allocationsByObjectId.put(objectId, allocations);
+            }
+            allocations.add(allocation);
+        }
+
+        public void applyAllocations(Long objectId, Collection<A> allocations)
+        {
+            Set<A> allocationsToApply = allocationsByObjectId.get(objectId);
+            if (allocationsToApply != null) {
+                allocations.addAll(allocationsToApply);
+            }
         }
     }
 }

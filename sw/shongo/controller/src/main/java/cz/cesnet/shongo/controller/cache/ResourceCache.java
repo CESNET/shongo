@@ -260,29 +260,49 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
     }
 
     /**
-     * Checks whether {@code resource} and all it's children are available (recursive).
-     * Device resources with {@link cz.cesnet.shongo.controller.resource.VirtualRoomsCapability} can be available even if theirs capacity is fully used.
+     * Checks whether {@code resource} is available. Device resources with {@link VirtualRoomsCapability} can
+     * be available even if theirs capacity is fully used.
      *
      * @param resource
      * @param interval
-     * @return true if given {@code resource} is available, false otherwise
+     * @param transaction
+     * @return true if given {@code resource} is available,
+     *         false otherwise
      */
-    public boolean isResourceAndChildResourcesAvailableRecursive(Resource resource, Interval interval)
+    public boolean isResourceAvailable(Resource resource, Interval interval, Transaction transaction)
     {
+        // Check if resource can be allocated and if it is available in the future
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return false;
         }
-        // Check only resources without virtual rooms
+        // Check if resource is not already allocated (only resources without virtual rooms capability, resources with
+        // virtual rooms capability are available always)
         if (!hasResourceCapability(resource.getId(), VirtualRoomsCapability.class)) {
             ObjectState<AllocatedResource> resourceState = getObjectState(resource);
-            Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval);
+            Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval, transaction);
             if (allocatedResources.size() > 0) {
                 return false;
             }
         }
-        // Check child resources
+        return true;
+    }
+
+    /**
+     * Checks whether all children for {@code resource} are available (recursive).
+     *
+     * @param resource
+     * @param interval
+     * @param transaction
+     * @return true if children from given {@code resource} are available (recursive),
+     *         false otherwise
+     */
+    public boolean isChildResourcesAvailable(Resource resource, Interval interval, Transaction transaction)
+    {
         for (Resource childResource : resource.getChildResources()) {
-            if (!isResourceAndChildResourcesAvailableRecursive(childResource, interval)) {
+            if (!isResourceAvailable(childResource, interval, transaction)) {
+                return false;
+            }
+            if (!isChildResourcesAvailable(childResource, interval, transaction)) {
                 return false;
             }
         }
@@ -375,5 +395,13 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
             }
         }
         return availableVirtualRooms;
+    }
+
+    /**
+     * Transaction for {@link ResourceCache}.
+     */
+    public static class Transaction
+            extends AbstractAllocationCache.Transaction<AllocatedResource>
+    {
     }
 }
