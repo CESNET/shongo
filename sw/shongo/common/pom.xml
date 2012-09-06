@@ -23,6 +23,13 @@
             <version>1.0</version>
         </dependency>
 
+        <!-- FIXME: the common module should not probably be dependent on connector-api => move the API interfaces to common-api? -->
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>connector-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!-- Joda Time is used as implementation of date/times/periods/intervals -->
         <dependency>
             <groupId>joda-time</groupId>
