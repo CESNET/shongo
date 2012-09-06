@@ -361,7 +361,7 @@ sub to_string()
         $string .= " Identifier: $self->{'identifier'}\n";
     }
     if ( defined($self->{'created'}) ) {
-        $string .= "    Created: $self->{'created'}\n";
+        $string .= "    Created: " . format_datetime($self->{'created'}) . "\n";
     }
     $string .= "       Type: $Type->{$self->{'type'}}\n";
     $string .= "       Name: $self->{'name'}\n";

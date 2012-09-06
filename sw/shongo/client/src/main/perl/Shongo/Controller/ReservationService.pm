@@ -143,14 +143,21 @@ sub list_reservations()
     if ( $response->is_fault() ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Created', \' | ', 'Type', \' | ', 'Name', \' | ', 'Purpose', \' | ', 'Earliest Slot', \' |');
+    my $table = Text::Table->new(
+        \'| ', 'Identifier',
+        \' | ', 'Created',
+        \' | ', 'Type',
+        \' | ', 'Name',
+        #\' | ', 'Purpose',
+        \' | ', 'Earliest Slot', \' |'
+    );
     foreach my $reservation_request (@{$response->value()}) {
         $table->add(
             $reservation_request->{'identifier'},
-            format_datetime($reservation_request->{'created'}),
+            format_date($reservation_request->{'created'}),
             $Shongo::Controller::API::ReservationRequest::Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
-            $Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
+            #$Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             format_interval($reservation_request->{'earliestSlot'})
         );
     }

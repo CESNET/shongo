@@ -79,7 +79,7 @@ sub populate()
                         get_resource_allocation($identifier, $params->{'options'}->{'interval'});
                     }
                 } else {
-                    get_resource_allocation();
+                    get_resource_allocation(undef, $params->{'options'}->{'interval'});
                 }
             }
         },
@@ -233,6 +233,9 @@ sub get_resource_allocation()
             printf(" VirtualRoom(portCount: %d)", $allocation->{'portCount'});
         }
         print("\n");
+    }
+    if ($index == 0) {
+        print("  -- None -- \n");
     }
     print("\n");
 }
