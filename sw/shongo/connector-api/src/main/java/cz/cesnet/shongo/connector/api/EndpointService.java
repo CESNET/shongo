@@ -18,8 +18,23 @@ public interface EndpointService extends CommonService
      * Dials a server.
      *
      * @param server server address to dial
+     * @return call ID (suitable for further control of the call)
      */
-    void dial(Alias server) throws CommandException, CommandUnsupportedException;
+    int dial(Alias server) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Hangs up a call.
+     * TODO: block until the call is really hung up?
+     *
+     * @param callId    ID of the call to hang up; previously returned by dial()
+     */
+    void hangUp(int callId) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Hangs up all calls.
+     * TODO: block until all calls are really hung up? (would simplify CodecC90Connector.standBy())
+     */
+    void hangUpAll() throws CommandException, CommandUnsupportedException;
 
     /**
      * Resets the device.

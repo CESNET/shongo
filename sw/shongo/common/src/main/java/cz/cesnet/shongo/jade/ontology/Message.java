@@ -33,6 +33,6 @@ public class Message implements AgentAction
     @Override
     public String toString()
     {
-        return message;
+        return String.format("Message agent action (%s)", message);
     }
 }

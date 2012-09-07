@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.jade.command;
 
+import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.ConnectorAgent;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.connector.api.CommonService;
@@ -113,7 +114,7 @@ public class ManageCommand implements cz.cesnet.shongo.jade.command.Command
             connAgent.manage(connectorClass, deviceAddress, devicePort, authUsername, authPassword);
             // TEMP: execute in separate commands?
             CommonService conn = connAgent.getConnector();
-            conn.connect(deviceAddress, devicePort, authUsername, authPassword);
+            conn.connect(new Address(deviceAddress, devicePort), authUsername, authPassword);
             System.out.println("Connector ready");
             ConnectorInfo info = conn.getConnectorInfo();
             System.out.println("Connector info:");

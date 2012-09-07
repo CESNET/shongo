@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.util.Address;
+
 /**
  * Information about a connector.
  *
@@ -24,6 +26,7 @@ public class ConnectorInfo
 
     private String name;
     private DeviceInfo deviceInfo;
+    private Address deviceAddress;
     private ConnectionState connectionState;
     private DeviceState deviceState;
 
@@ -64,6 +67,16 @@ public class ConnectorInfo
     public void setDeviceInfo(DeviceInfo deviceInfo)
     {
         this.deviceInfo = deviceInfo;
+    }
+
+    public Address getDeviceAddress()
+    {
+        return deviceAddress;
+    }
+
+    public void setDeviceAddress(Address deviceAddress)
+    {
+        this.deviceAddress = deviceAddress;
     }
 
     /**
