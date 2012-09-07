@@ -71,7 +71,7 @@ sub to_string()
 {
     my ($self) = @_;
 
-    my $string = sprintf("Technology: %s, Type: %s, Value: %s",
+    my $string = sprintf("technology: %s, type: %s, value: %s",
         $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
         $Type->{$self->{'type'}},
         $self->{'value'}

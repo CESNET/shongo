@@ -22,9 +22,19 @@ public class AliasProviderCapability extends Capability
     public static final String TYPE = "type";
 
     /**
-     * Range starting value.
+     * Pattern for aliases.
+     * <p/>
+     * Examples:
+     * 1) "95[ddd]"     will generate 95001, 95002, 95003, ...
+     * 2) "95[dd]2[dd]" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
      */
     public static final String PATTERN = "pattern";
+
+    /**
+     * Specifies whether alias provider is restricted only to the owner resource or all resources can use the provider
+     * for alias allocation.
+     */
+    public static final String RESTRICTED_TO_OWNER_RESOURCE = "restrictedToOwnerResource";
 
     /**
      * @return {@link #TECHNOLOGY}
@@ -75,5 +85,21 @@ public class AliasProviderCapability extends Capability
     public void setPattern(String pattern)
     {
         getPropertyStorage().setValue(PATTERN, pattern);
+    }
+
+    /**
+     * @return {@link #RESTRICTED_TO_OWNER_RESOURCE}
+     */
+    public Boolean getRestrictedToOwnerResource()
+    {
+        return (Boolean) getPropertyStorage().getValue(RESTRICTED_TO_OWNER_RESOURCE);
+    }
+
+    /**
+     * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
+     */
+    public void setRestrictedToOwnerResource(Boolean restrictedToOwnerResource)
+    {
+        getPropertyStorage().setValue(RESTRICTED_TO_OWNER_RESOURCE, restrictedToOwnerResource);
     }
 }

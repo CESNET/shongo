@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -151,15 +152,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     TemporalHelper.formatInterval(workingInterval));
             this.workingInterval = workingInterval;
 
+            DateTime referenceDateTime = workingInterval.getStart();
+
             Interval resourceWorkingInterval = new Interval(
                     workingInterval.getStart().minus(allocatedResourceMaximumDuration),
                     workingInterval.getEnd().plus(allocatedResourceMaximumDuration));
-            resourceCache.setWorkingInterval(resourceWorkingInterval, entityManager);
+            resourceCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
 
             Interval aliasWorkingInterval = new Interval(
                     workingInterval.getStart().minus(allocatedAliasMaximumDuration),
                     workingInterval.getEnd().plus(allocatedAliasMaximumDuration));
-            aliasCache.setWorkingInterval(aliasWorkingInterval, entityManager);
+            aliasCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
         }
     }
 
@@ -449,6 +452,9 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public AvailableAlias getAvailableAlias(Transaction transaction, Technology technology, Interval interval)
     {
         for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
+            if (aliasProviderCapability.isRestrictedToOwnerResource()) {
+                continue;
+            }
             if (!aliasProviderCapability.getTechnology().equals(technology)) {
                 continue;
             }

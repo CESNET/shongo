@@ -436,8 +436,6 @@ public class Task
      */
     private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws FaultException
     {
-        // TODO: remember already allocated aliases and disable them
-
         AvailableAlias availableAlias = null;
         // First try to allocate alias from a resource capabilities
         if (allocatedItem instanceof AllocatedResource) {
@@ -447,7 +445,7 @@ public class Task
                     resource.getCapabilities(AliasProviderCapability.class);
             for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
                 if (aliasProviderCapability.getTechnology().equals(technology)) {
-                    cache.getAvailableAlias(aliasProviderCapability, interval, cacheTransaction);
+                    availableAlias = cache.getAvailableAlias(aliasProviderCapability, interval, cacheTransaction);
                 }
             }
         }

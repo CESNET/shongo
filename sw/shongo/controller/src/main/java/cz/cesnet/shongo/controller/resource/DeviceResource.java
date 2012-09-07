@@ -288,7 +288,8 @@ public class DeviceResource extends Resource
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
             if (apiDevice.getAddress() == null) {
                 setAddress(null);
-            } else {
+            }
+            else {
                 setAddress(new Address(apiDevice.getAddress()));
             }
         }

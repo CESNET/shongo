@@ -12,6 +12,7 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Resource;
 use Shongo::Controller::API::DeviceResource;
+use Shongo::Controller::API::Alias;
 
 #
 # Populate shell by options for management of resources.
@@ -231,6 +232,10 @@ sub get_resource_allocation()
         printf(" %d) %s", $index, format_interval($allocation->{'slot'}));
         if ( $allocation->{'class'} eq 'AllocatedVirtualRoom') {
             printf(" VirtualRoom(portCount: %d)", $allocation->{'portCount'});
+        }
+        if ( $allocation->{'class'} eq 'AllocatedAlias') {
+            my $alias = Shongo::Controller::API::Alias->from_xml($allocation->{'alias'});
+            printf(" Alias(%s)", $alias->to_string());
         }
         print("\n");
     }

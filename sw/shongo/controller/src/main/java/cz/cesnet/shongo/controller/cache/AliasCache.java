@@ -82,6 +82,7 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
             for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
                 removeObject(aliasProviderCapability);
             }
+            aliasProviderCapabilities.clear();
         }
     }
 
@@ -109,6 +110,12 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
     public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval,
             Transaction transaction)
     {
+        // Check if resource can be allocated and if it is available in the future
+        Resource resource = aliasProviderCapability.getResource();
+        if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
+            return null;
+        }
+
         ObjectState<AllocatedAlias> aliasProviderState = getObjectState(aliasProviderCapability);
         Set<AllocatedAlias> allocatedAliases = aliasProviderState.getAllocations(interval, transaction);
         AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();

@@ -2,13 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
-import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**

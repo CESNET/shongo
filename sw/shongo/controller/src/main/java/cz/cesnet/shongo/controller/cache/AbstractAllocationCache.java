@@ -49,18 +49,25 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
      */
     public DateTime getReferenceDateTime()
     {
+        if (referenceDateTime == null) {
+            return DateTime.now();
+        }
         return referenceDateTime;
     }
 
     /**
-     * @param workingInterval sets the {@link #workingInterval}
-     * @param entityManager   used for reloading allocations of resources for the new interval
+     * @param workingInterval   sets the {@link #workingInterval}
+     * @param referenceDateTime sets the {@link #referenceDateTime}
+     * @param entityManager     used for reloading allocations of resources for the new interval
      */
-    public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
+    public void setWorkingInterval(Interval workingInterval, DateTime referenceDateTime, EntityManager entityManager)
     {
         if (!workingInterval.equals(this.workingInterval)) {
             this.workingInterval = workingInterval;
-            this.referenceDateTime = workingInterval.getStart();
+            if (referenceDateTime == null) {
+                referenceDateTime = workingInterval.getStart();
+            }
+            this.referenceDateTime = referenceDateTime;
             workingIntervalChanged(entityManager);
         }
     }

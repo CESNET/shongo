@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
+import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExistingResourceSpecification;
 import cz.cesnet.shongo.controller.resource.*;

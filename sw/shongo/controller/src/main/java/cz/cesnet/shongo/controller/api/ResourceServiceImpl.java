@@ -9,7 +9,9 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -215,8 +217,7 @@ public class ResourceServiceImpl extends Component
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
-                throw new IllegalStateException(
-                        "Cache doesn't have the working interval set, wait a moment and try again.");
+                interval = new Interval(DateTime.now(), Period.days(31));
             }
         }
 
@@ -245,25 +246,22 @@ public class ResourceServiceImpl extends Component
         resourceAllocation.setName(resourceImpl.getName());
         resourceAllocation.setInterval(interval);
 
-        // Fill it by current allocations
+        // Fill resource allocations
         Collection<cz.cesnet.shongo.controller.allocation.AllocatedResource> resourceAllocations =
-                cache.getResourceCache().getResourceAllocations(resourceImpl, interval);
+                resourceManager.listAllocatedResourcesInInterval(resourceId, interval);
         for (cz.cesnet.shongo.controller.allocation.AllocatedResource allocatedResourceImpl : resourceAllocations) {
-            AllocatedResource allocatedResource;
-            if (allocatedResourceImpl instanceof cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom) {
-                cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom allocatedVirtualRoomImpl =
-                        (cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom) allocatedResourceImpl;
-                AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
-                allocatedVirtualRoom.setPortCount(allocatedVirtualRoomImpl.getPortCount());
-                allocatedResource = allocatedVirtualRoom;
+            resourceAllocation.addAllocation(allocatedResourceImpl.toApi(domain));
+        }
+
+        // Fill alias allocations
+        List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
+                resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
+        for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
+            List<cz.cesnet.shongo.controller.allocation.AllocatedAlias> allocatedAliasImpls =
+                    resourceManager.listAllocatedAliasesInInterval(aliasProvider.getId(), interval);
+            for (cz.cesnet.shongo.controller.allocation.AllocatedAlias allocatedAliasImpl : allocatedAliasImpls) {
+                resourceAllocation.addAllocation(allocatedAliasImpl.toApi(domain));
             }
-            else {
-                allocatedResource = new AllocatedResource();
-            }
-            allocatedResource.setIdentifier(resourceAllocation.getIdentifier());
-            allocatedResource.setName(resourceAllocation.getName());
-            allocatedResource.setSlot(allocatedResourceImpl.getSlot());
-            resourceAllocation.addAllocation(allocatedResource);
         }
 
         return resourceAllocation;

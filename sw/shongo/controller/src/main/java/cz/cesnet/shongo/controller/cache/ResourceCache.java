@@ -312,17 +312,6 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
     }
 
     /**
-     * @param resource
-     * @param interval
-     * @return collection of allocations for resource with given {@code resourceId} in given {@code interval}
-     */
-    public Collection<AllocatedResource> getResourceAllocations(Resource resource, Interval interval)
-    {
-        ObjectState<AllocatedResource> resourceState = getObjectState(resource);
-        return resourceState.getAllocations(interval);
-    }
-
-    /**
      * @param deviceResource
      * @param interval
      * @return {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom} for given {@code deviceResource} in given {@code interval}

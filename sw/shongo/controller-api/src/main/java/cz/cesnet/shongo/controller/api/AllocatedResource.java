@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import org.joda.time.Interval;
-
 /**
  * Represents an allocation of a {@link Resource} for a {@link Compartment} in the {@link ReservationRequest}.
  *
