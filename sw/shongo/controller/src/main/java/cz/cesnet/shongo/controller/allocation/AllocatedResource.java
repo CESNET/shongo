@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.Access;
@@ -36,5 +37,21 @@ public class AllocatedResource extends AllocatedItem
     public void setResource(Resource resource)
     {
         this.resource = resource;
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.AllocatedItem createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.AllocatedResource();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.AllocatedItem api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.AllocatedResource apiAllocatedResource =
+                (cz.cesnet.shongo.controller.api.AllocatedResource) api;
+        apiAllocatedResource.setIdentifier(domain.formatIdentifier(resource.getId()));
+        apiAllocatedResource.setName(resource.getName());
+        super.toApi(api, domain);
     }
 }

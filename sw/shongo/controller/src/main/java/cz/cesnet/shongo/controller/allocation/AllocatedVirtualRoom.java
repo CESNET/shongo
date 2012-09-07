@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.allocation;
 
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.AllocatedItem;
+
 import javax.persistence.Entity;
 
 /**
@@ -29,5 +32,20 @@ public class AllocatedVirtualRoom extends AllocatedDevice
     public void setPortCount(Integer portCount)
     {
         this.portCount = portCount;
+    }
+
+    @Override
+    protected AllocatedItem createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.AllocatedVirtualRoom();
+    }
+
+    @Override
+    protected void toApi(AllocatedItem api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.AllocatedVirtualRoom apiAllocatedVirtualRoom =
+                (cz.cesnet.shongo.controller.api.AllocatedVirtualRoom) api;
+        apiAllocatedVirtualRoom.setPortCount(getPortCount());
+        super.toApi(api, domain);
     }
 }

@@ -21,6 +21,25 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     public static final String COUNT = "count";
 
     /**
+     * Constructor.
+     */
+    public ExternalEndpointSpecification()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #TECHNOLOGY}
+     * @param count      sets the {@link #COUNT}
+     */
+    public ExternalEndpointSpecification(Technology technology, int count)
+    {
+        setTechnology(technology);
+        setCount(count);
+    }
+
+    /**
      * @return {@link #TECHNOLOGY}
      */
     @Required

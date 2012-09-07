@@ -214,6 +214,10 @@ public class ResourceServiceImpl extends Component
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
         if (interval == null) {
             interval = cache.getWorkingInterval();
+            if (interval == null) {
+                throw new IllegalStateException(
+                        "Cache doesn't have the working interval set, wait a moment and try again.");
+            }
         }
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();

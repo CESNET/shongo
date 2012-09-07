@@ -1,8 +1,15 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.AllocatedItem;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -95,6 +102,23 @@ public class AllocatedDevice extends AllocatedResource implements AllocatedEndpo
     public DeviceResource getDeviceResource()
     {
         return (DeviceResource) getResource();
+    }
+
+    @Override
+    protected AllocatedItem createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.AllocatedDevice();
+    }
+
+    @Override
+    protected void toApi(AllocatedItem api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.AllocatedDevice apiAllocatedDevice =
+                (cz.cesnet.shongo.controller.api.AllocatedDevice) api;
+        for (Alias alias : aliases) {
+            apiAllocatedDevice.addAlias(alias.toApi());
+        }
+        super.toApi(api, domain);
     }
 
     @Override

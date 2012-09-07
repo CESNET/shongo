@@ -60,6 +60,13 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
         super.removeObject(object);
     }
 
+    @Override
+    public void clear()
+    {
+        aliasProviderCapabilitiesByResourceId.clear();
+        super.clear();
+    }
+
     /**
      * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link AliasCache}.
      *

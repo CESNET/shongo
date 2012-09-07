@@ -14,12 +14,6 @@ import java.util.*;
 /**
  * Represents a cache for all resources in efficient form. It also holds
  * allocation information about resources which are used , e.g., by scheduler.
- * <p/>
- * Resources must be explicitly added by {@link #addResource(Resource, EntityManager)} or automatically loaded in
- * {@link #loadResources(EntityManager)}.
- * <p/>
- * Database holds only allocations inside the {@link #workingInterval} If the {@link #workingInterval} isn't set
- * the database of allocations will be empty (it is not desirable to load all allocations for the entire time span).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -36,7 +30,7 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
     /**
      * @see {@link cz.cesnet.shongo.controller.cache.DeviceTopology}
      */
-    private DeviceTopology deviceTopology = new DeviceTopology();
+    private DeviceTopology deviceTopology;
 
     /**
      * Constructor.
@@ -117,6 +111,14 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
             }
         }
         super.removeObject(resource);
+    }
+
+    @Override
+    public void clear()
+    {
+        deviceTopology = new DeviceTopology();
+        capabilityStateByType.clear();
+        super.clear();
     }
 
     /**

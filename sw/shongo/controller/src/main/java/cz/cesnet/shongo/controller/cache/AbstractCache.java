@@ -70,4 +70,12 @@ public abstract class AbstractCache<T extends PersistentObject>
         }
         objectById.remove(objectId);
     }
+
+    /**
+     * Clear cache.
+     */
+    public void clear()
+    {
+        objectById.clear();
+    }
 }

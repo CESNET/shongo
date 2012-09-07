@@ -59,6 +59,12 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
     }
 
     @Override
+    protected cz.cesnet.shongo.controller.api.AllocatedItem createApi()
+    {
+        return null;
+    }
+
+    @Override
     @Transient
     public int getCount()
     {

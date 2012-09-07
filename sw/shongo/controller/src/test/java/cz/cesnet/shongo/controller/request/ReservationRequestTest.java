@@ -224,6 +224,25 @@ public class ReservationRequestTest extends AbstractDatabaseTest
                     CompartmentRequest.State.ALLOCATED, compartmentRequest.getState());
         }
 
+        // ---------------------------
+        // Delete reservation request
+        // ---------------------------
+        {
+            EntityManager entityManager = getEntityManager();
+
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
+            // Delete reservation request
+            entityManager.getTransaction().begin();
+            ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
+            reservationRequestManager.delete(reservationRequest);
+            entityManager.getTransaction().commit();
+
+            // Pre-process and schedule
+            Preprocessor.createAndRun(interval, entityManager);
+            Scheduler.createAndRun(interval, entityManager, cache);
+        }
+
         // ------------------------
         // Clean-up
         // ------------------------
@@ -366,6 +385,8 @@ public class ReservationRequestTest extends AbstractDatabaseTest
     //@Test
     public void testMultipleVirtualRooms() throws Exception
     {
+        // TODO: Implement scheduling of multiple virtual rooms
+
         Cache cache = new Cache();
         cache.setEntityManagerFactory(getEntityManagerFactory());
         cache.init();

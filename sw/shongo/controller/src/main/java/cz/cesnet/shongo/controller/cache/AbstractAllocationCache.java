@@ -10,7 +10,9 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents an abstract cache.
+ * Represents an abstract cache. Cache holds only allocations inside the {@link #workingInterval} If the
+ * {@link #workingInterval} isn't set the cache of allocations will be empty (it is not desirable to load all
+ * allocations for the entire time span).
  *
  * @param <T> type of cached object
  * @param <A> type of allocation for cached object
@@ -112,6 +114,13 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         objectStateById.remove(object.getId());
 
         super.removeObject(object);
+    }
+
+    @Override
+    public void clear()
+    {
+        objectStateById.clear();
+        super.clear();
     }
 
     /**

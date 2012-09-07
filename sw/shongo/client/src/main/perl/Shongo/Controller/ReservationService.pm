@@ -12,6 +12,7 @@ use Text::Table;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::ReservationRequest;
+use Shongo::Controller::API::Alias;
 
 #
 # Populate shell by options for management of reservations.
@@ -206,16 +207,32 @@ sub get_reservation_allocation()
     foreach my $allocated_compartment (@{$allocated_compartments}) {
         $index++;
         printf("%d) %s\n", $index, format_interval($allocated_compartment->{'slot'}));
-        foreach my $allocated_resource (@{$allocated_compartment->{'allocatedResources'}}) {
+        foreach my $allocated_resource (@{$allocated_compartment->{'allocatedItems'}}) {
             my $class = $allocated_resource->{'class'};
-            print("   -");
-            if ( $class eq 'AllocatedVirtualRoom') {
-                printf("%s (%s) VirtualRoom(portCount: %d)", $allocated_resource->{'name'},
-                    $allocated_resource->{'identifier'}, $allocated_resource->{'portCount'});
-            } else {
-                printf("%s (%s)", $allocated_resource->{'name'}, $allocated_resource->{'identifier'});
+            my $skip = 0;
+            if ( $class eq 'AllocatedResource') {
+                printf("   -%s (%s)", $allocated_resource->{'name'}, $allocated_resource->{'identifier'});
             }
-            print("\n");
+            elsif ( $class eq 'AllocatedDevice') {
+                printf("   -%s (%s)", $allocated_resource->{'name'}, $allocated_resource->{'identifier'});
+            }
+            elsif ( $class eq 'AllocatedVirtualRoom') {
+                printf("   -%s (%s) VirtualRoom(portCount: %d)", $allocated_resource->{'name'},
+                    $allocated_resource->{'identifier'}, $allocated_resource->{'portCount'});
+            }
+            else {
+                $skip = 1;
+            }
+
+            if ( $skip == 0 ) {
+                if (defined($allocated_resource->{'aliases'})) {
+                    foreach my $alias (@{$allocated_resource->{'aliases'}}) {
+                        $alias = Shongo::Controller::API::Alias->from_xml($alias);
+                        print("\n      * Allocated Alias (" . $alias->to_string() . ")");
+                    }
+                }
+                print("\n");
+            }
         }
     }
     print("\n");

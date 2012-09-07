@@ -192,12 +192,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         if (aliasMaxDuration != null) {
             setAllocatedAliasMaximumDuration(aliasMaxDuration);
         }
-
-        if (entityManagerFactory != null) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            resourceCache.loadObjects(entityManager);
-            aliasCache.loadObjects(entityManager);
-        }
+        reset(entityManagerFactory != null ? entityManagerFactory.createEntityManager() : null);
     }
 
     @Override
@@ -206,6 +201,21 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         logger.debug("Stopping cache...");
 
         super.destroy();
+    }
+
+    /**
+     * Reload cache from given {@code entityManager}.
+     *
+     * @param entityManager which will be used for reloading
+     */
+    public void reset(EntityManager entityManager)
+    {
+        resourceCache.clear();
+        aliasCache.clear();
+        if (entityManager != null) {
+            resourceCache.loadObjects(entityManager);
+            aliasCache.loadObjects(entityManager);
+        }
     }
 
     /**
