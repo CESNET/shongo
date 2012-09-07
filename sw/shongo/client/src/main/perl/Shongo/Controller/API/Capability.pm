@@ -84,6 +84,7 @@ sub modify()
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'type'} = console_edit_enum("Select alias type", $Shongo::Controller::API::Alias::Type, $self->{'type'});
             $self->{'pattern'} = console_edit_value('Pattern', 0, '.+', $self->{'pattern'});
+            $self->{'restrictedToOwnerResource'} = console_edit_bool('Restricted only to owner resource', 0, $self->{'restrictedToOwnerResource'});
         }
     }
 }
@@ -161,8 +162,11 @@ sub to_string()
             $string .= sprintf("technology: %s, type: %s, pattern: %s",
                 $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
                 $Shongo::Controller::API::Alias::Type->{$self->{'type'}},
-                $self->{'pattern'}
+                $self->{'pattern'},
             );
+            if ($self->{'restrictedToOwnerResource'} == 1) {
+                $string .= ', restricted';
+            }
         }
         else {
             $string .= sprintf("unknown capability ");

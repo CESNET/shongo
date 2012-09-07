@@ -30,7 +30,7 @@ public class ResourceAllocation
     /**
      * Allocations of the resource.
      */
-    private List<AllocatedResource> allocations = new ArrayList<AllocatedResource>();
+    private List<AllocatedItem> allocations = new ArrayList<AllocatedItem>();
 
     /**
      * @return {@link #identifier}
@@ -83,7 +83,7 @@ public class ResourceAllocation
     /**
      * @return {@link #allocations}
      */
-    public List<AllocatedResource> getAllocations()
+    public List<AllocatedItem> getAllocations()
     {
         return allocations;
     }
@@ -91,7 +91,7 @@ public class ResourceAllocation
     /**
      * @param allocations sets the {@link #allocations}
      */
-    public void setAllocations(List<AllocatedResource> allocations)
+    public void setAllocations(List<AllocatedItem> allocations)
     {
         this.allocations = allocations;
     }
@@ -99,7 +99,7 @@ public class ResourceAllocation
     /**
      * @param allocation to be added to the {@link #allocations}
      */
-    public void addAllocation(AllocatedResource allocation)
+    public void addAllocation(AllocatedItem allocation)
     {
         allocations.add(allocation);
     }

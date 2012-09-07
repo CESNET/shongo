@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceException;
 import java.util.List;
 
 /**
@@ -91,6 +92,7 @@ public class Scheduler extends Component
         }
         catch (Exception exception) {
             transaction.rollback();
+            cache.reset(entityManager);
             throw new FaultException(exception, ControllerFault.SCHEDULER_FAILED);
         }
     }

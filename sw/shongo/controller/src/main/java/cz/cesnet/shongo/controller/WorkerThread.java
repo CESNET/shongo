@@ -126,8 +126,10 @@ public class WorkerThread extends Thread
             entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
-            entityManager.getTransaction().rollback();
             logger.error("Preprocessor failed: ", exception);
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
         }
 
         try {
@@ -136,8 +138,10 @@ public class WorkerThread extends Thread
             entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
-            entityManager.getTransaction().rollback();
             logger.error("Scheduler failed: ", exception);
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
         }
 
         entityManager.close();

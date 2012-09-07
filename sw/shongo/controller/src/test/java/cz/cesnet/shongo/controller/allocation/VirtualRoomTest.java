@@ -15,7 +15,7 @@ import java.util.List;
 import static junitx.framework.Assert.assertEquals;
 
 /**
- * TODO:
+ * Tests for caching of virtual rooms by {@link Cache}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

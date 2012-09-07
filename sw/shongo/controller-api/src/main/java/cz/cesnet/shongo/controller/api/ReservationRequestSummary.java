@@ -70,6 +70,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     {
         return created;
     }
+
     /**
      * @param created sets the {@link #created}
      */

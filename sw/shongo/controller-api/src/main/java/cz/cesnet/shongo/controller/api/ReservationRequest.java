@@ -97,6 +97,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
     {
         return created;
     }
+
     /**
      * @param created sets the {@link #created}
      */

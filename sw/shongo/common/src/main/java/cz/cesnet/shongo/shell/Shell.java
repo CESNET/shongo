@@ -282,9 +282,12 @@ public class Shell extends CommandSet
                 thread.start();
             }
             catch (Exception exception) {
+                logger.error("Failed to run re-prompt thread for shell.", exception);
             }
         }
-        thread.at = System.nanoTime() + 1000000;
+        if (thread != null) {
+            thread.at = System.nanoTime() + 1000000;
+        }
     }
 
     /**

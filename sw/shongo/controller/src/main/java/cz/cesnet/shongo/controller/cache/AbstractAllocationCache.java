@@ -7,12 +7,12 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Represents an abstract cache.
+ * Represents an abstract cache. Cache holds only allocations inside the {@link #workingInterval} If the
+ * {@link #workingInterval} isn't set the cache of allocations will be empty (it is not desirable to load all
+ * allocations for the entire time span).
  *
  * @param <T> type of cached object
  * @param <A> type of allocation for cached object
@@ -49,18 +49,25 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
      */
     public DateTime getReferenceDateTime()
     {
+        if (referenceDateTime == null) {
+            return DateTime.now();
+        }
         return referenceDateTime;
     }
 
     /**
-     * @param workingInterval sets the {@link #workingInterval}
-     * @param entityManager   used for reloading allocations of resources for the new interval
+     * @param workingInterval   sets the {@link #workingInterval}
+     * @param referenceDateTime sets the {@link #referenceDateTime}
+     * @param entityManager     used for reloading allocations of resources for the new interval
      */
-    public void setWorkingInterval(Interval workingInterval, EntityManager entityManager)
+    public void setWorkingInterval(Interval workingInterval, DateTime referenceDateTime, EntityManager entityManager)
     {
         if (!workingInterval.equals(this.workingInterval)) {
             this.workingInterval = workingInterval;
-            this.referenceDateTime = workingInterval.getStart();
+            if (referenceDateTime == null) {
+                referenceDateTime = workingInterval.getStart();
+            }
+            this.referenceDateTime = referenceDateTime;
             workingIntervalChanged(entityManager);
         }
     }
@@ -72,7 +79,7 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
      */
     protected void workingIntervalChanged(EntityManager entityManager)
     {
-        for (T object : objectById.values()) {
+        for (T object : getObjects()) {
             updateObjectState(object, entityManager);
         }
     }
@@ -114,6 +121,13 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         objectStateById.remove(object.getId());
 
         super.removeObject(object);
+    }
+
+    @Override
+    public void clear()
+    {
+        objectStateById.clear();
+        super.clear();
     }
 
     /**
@@ -227,6 +241,19 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         }
 
         /**
+         * @param interval
+         * @return list of allocations for cached object in given {@code interval}
+         */
+        public Set<A> getAllocations(Interval interval, Transaction<A> transaction)
+        {
+            Set<A> allocations = getAllocations(interval);
+            if (transaction != null) {
+                transaction.applyAllocations(objectId, allocations);
+            }
+            return allocations;
+        }
+
+        /**
          * @param allocation to be added to the {@link ObjectState}
          */
         public void addAllocation(A allocation)
@@ -259,6 +286,29 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         {
             allocations.clear();
             allocationById.clear();
+        }
+    }
+
+    public static class Transaction<A extends AllocatedItem>
+    {
+        private Map<Long, Set<A>> allocationsByObjectId = new HashMap<Long, Set<A>>();
+
+        public void addAllocation(Long objectId, A allocation)
+        {
+            Set<A> allocations = allocationsByObjectId.get(objectId);
+            if (allocations == null) {
+                allocations = new HashSet<A>();
+                allocationsByObjectId.put(objectId, allocations);
+            }
+            allocations.add(allocation);
+        }
+
+        public void applyAllocations(Long objectId, Collection<A> allocations)
+        {
+            Set<A> allocationsToApply = allocationsByObjectId.get(objectId);
+            if (allocationsToApply != null) {
+                allocations.addAll(allocationsToApply);
+            }
         }
     }
 }

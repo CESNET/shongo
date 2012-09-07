@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.util.Map;
 
 /**
  * Represents a specific technology alias.
@@ -147,5 +148,14 @@ public class Alias extends PersistentObject
         if (api.getValue() != null) {
             setValue(api.getValue());
         }
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, String> map)
+    {
+        super.fillDescriptionMap(map);
+        map.put("technology", technology.getName());
+        map.put("type", type.toString());
+        map.put("value", value);
     }
 }

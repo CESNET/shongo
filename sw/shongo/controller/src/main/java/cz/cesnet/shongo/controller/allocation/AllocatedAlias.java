@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -46,7 +47,7 @@ public class AllocatedAlias extends AllocatedItem
     /**
      * @return {@link #alias}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public Alias getAlias()
     {
@@ -59,5 +60,20 @@ public class AllocatedAlias extends AllocatedItem
     public void setAlias(Alias alias)
     {
         this.alias = alias;
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.AllocatedItem createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.AllocatedAlias();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.AllocatedItem api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.AllocatedAlias apiAllocatedAlias =
+                (cz.cesnet.shongo.controller.api.AllocatedAlias) api;
+        apiAllocatedAlias.setAlias(getAlias().toApi());
+        super.toApi(api, domain);
     }
 }

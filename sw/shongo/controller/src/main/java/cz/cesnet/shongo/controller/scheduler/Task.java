@@ -5,10 +5,13 @@ import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.*;
-import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.jgraph.JGraph;
@@ -16,6 +19,8 @@ import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
 import org.jgrapht.graph.SimpleGraph;
 import org.joda.time.Interval;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -30,6 +35,8 @@ import java.util.List;
  */
 public class Task
 {
+    private static Logger logger = LoggerFactory.getLogger(Task.class);
+
     /**
      * Interval for which the task is performed.
      */
@@ -41,9 +48,9 @@ public class Task
     private Cache cache;
 
     /**
-     * Set of already added resources to the task.
+     * @see {@link Cache.Transaction}
      */
-    private Set<Resource> resources = new HashSet<Resource>();
+    Cache.Transaction cacheTransaction;
 
     /**
      * List of all {@link AllocatedItem} added to the task.
@@ -80,8 +87,8 @@ public class Task
     /**
      * Constructor.
      *
-     * @param interval         sets the {@link #interval}
-     * @param cache sets the {@link #cache}
+     * @param interval sets the {@link #interval}
+     * @param cache    sets the {@link #cache}
      */
     public Task(Interval interval, Cache cache)
     {
@@ -107,7 +114,7 @@ public class Task
      */
     public void clear()
     {
-        resources.clear();
+        cacheTransaction = new Cache.Transaction();
         allocatedItems.clear();
         allocatedEndpoints.clear();
         totalAllocatedEndpointCount = 0;
@@ -129,7 +136,7 @@ public class Task
         else if (resourceSpecification instanceof ExistingResourceSpecification) {
             ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
             Resource resource = existingResource.getResource();
-            if (resources.contains(resource)) {
+            if (cacheTransaction.containsResource(resource)) {
                 // Same resource is requested multiple times
                 throw new FaultException("Resource is requested multiple times in specified time slot:\n"
                         + "  Resource: %s",
@@ -141,7 +148,7 @@ public class Task
                         + "  Resource: %s",
                         resource.getId().toString());
             }
-            if (!cache.isResourceAvailable(resource, interval)) {
+            if (!cache.isResourceAvailable(resource, interval, cacheTransaction)) {
                 // Requested resource is not available in requested slot
                 throw new FaultException("Requested resource is not available in specified time slot:\n"
                         + " Time Slot: %s\n"
@@ -156,15 +163,13 @@ public class Task
             Set<Technology> technologies = lookupResource.getTechnologies();
 
             // Lookup device resources
-            List<DeviceResource> deviceResources = cache.findAvailableTerminal(interval, technologies);
+            List<DeviceResource> deviceResources = cache.findAvailableTerminal(interval, technologies,
+                    cacheTransaction);
 
             // Select first available device resource
             // TODO: Select best resource based on some criteria
             DeviceResource deviceResource = null;
             for (DeviceResource possibleDeviceResource : deviceResources) {
-                if (resources.contains(possibleDeviceResource)) {
-                    continue;
-                }
                 deviceResource = possibleDeviceResource;
                 break;
             }
@@ -204,6 +209,7 @@ public class Task
     public void addAllocatedItem(AllocatedItem allocatedItem, CallInitiation callInitiation)
     {
         allocatedItems.add(allocatedItem);
+        cacheTransaction.addAllocationItem(allocatedItem);
 
         // Setup endpoints
         if (allocatedItem instanceof AllocatedEndpoint) {
@@ -257,11 +263,10 @@ public class Task
             allocatedResource.setResource(resource);
             addAllocatedItem(allocatedResource, callInitiation);
         }
-        resources.add(resource);
 
         // Add parent resource
         Resource parentResource = resource.getParentResource();
-        if (parentResource != null && !resources.contains(parentResource)) {
+        if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
             addAllocatedItemByResource(parentResource, callInitiation);
         }
     }
@@ -339,6 +344,7 @@ public class Task
                     technology);
         }
         catch (Exception exception) {
+            logger.debug("Failed to create connection between two endpoints. Trying opposite direction.", exception);
             try {
                 addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointTo, allocatedEndpointFrom,
                         technology);
@@ -358,6 +364,15 @@ public class Task
 
     }
 
+    /**
+     * Add new connection to the given {@code allocatedCompartment}.
+     *
+     * @param allocatedCompartment
+     * @param allocatedEndpointFrom
+     * @param allocatedEndpointTo
+     * @param technology
+     * @throws FaultException
+     */
     private void addConnectionToAllocatedCompartment(AllocatedCompartment allocatedCompartment,
             AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo, Technology technology)
             throws FaultException
@@ -430,13 +445,13 @@ public class Task
                     resource.getCapabilities(AliasProviderCapability.class);
             for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
                 if (aliasProviderCapability.getTechnology().equals(technology)) {
-                    cache.getAvailableAlias(aliasProviderCapability, interval);
+                    availableAlias = cache.getAvailableAlias(aliasProviderCapability, interval, cacheTransaction);
                 }
             }
         }
         // Allocate alias from all resources in the cache
         if (availableAlias == null) {
-            availableAlias = cache.getAvailableAlias(technology, interval);
+            availableAlias = cache.getAvailableAlias(cacheTransaction, technology, interval);
         }
         if (availableAlias == null) {
             throw new FaultException(
@@ -449,6 +464,9 @@ public class Task
         allocatedAlias.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
         allocatedAlias.setAlias(availableAlias.getAlias());
         allocatedAlias.setSlot(interval);
+
+        cacheTransaction.addAllocationItem(allocatedAlias);
+
         return allocatedAlias;
     }
 

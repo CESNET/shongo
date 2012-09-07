@@ -77,6 +77,8 @@ sub modify_attributes()
 
     Shongo::Controller::API::Resource::modify_attributes(@_);
 
+    $self->{'address'} = console_edit_value('Address', 0, undef, $self->{'address'});
+
     my $mode = 0;
     if ( ref($self->{'mode'}) ) {
         $mode = 1;
@@ -142,6 +144,9 @@ sub to_string_attributes
 {
     my ($self) = @_;
     my $string = Shongo::Controller::API::Resource::to_string_attributes(@_);
+    if ( defined($self->{'address'}) ) {
+        $string .= "     Address: $self->{'address'}\n";
+    }
     if ( defined($self->{'mode'}) ) {
         my $mode = '';
         if ( $self->{'mode'} eq 'UNMANAGED' ) {

@@ -1,13 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
-import org.joda.time.Interval;
-
 /**
  * Represents an allocation of a {@link Resource} for a {@link Compartment} in the {@link ReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocatedResource
+public class AllocatedResource extends AllocatedItem
 {
     /**
      * Unique identifier of the resource.
@@ -18,11 +16,6 @@ public class AllocatedResource
      * Name of the resource.
      */
     private String name;
-
-    /**
-     * Slot fot which the resource is allocated.
-     */
-    private Interval slot;
 
     /**
      * @return {@link #identifier}
@@ -54,21 +47,5 @@ public class AllocatedResource
     public void setName(String name)
     {
         this.name = name;
-    }
-
-    /**
-     * @return {@link #slot}
-     */
-    public Interval getSlot()
-    {
-        return slot;
-    }
-
-    /**
-     * @param slot sets the {@link #slot}
-     */
-    public void setSlot(Interval slot)
-    {
-        this.slot = slot;
     }
 }

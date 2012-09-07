@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.Domain;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -126,5 +127,34 @@ public class AllocatedItem extends PersistentObject
     {
         setSlotStart(start);
         setSlotEnd(end);
+    }
+
+    /**
+     * @return converted capability to API
+     */
+    public final cz.cesnet.shongo.controller.api.AllocatedItem toApi(Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.AllocatedItem api = createApi();
+        if (api == null) {
+            return null;
+        }
+        toApi(api, domain);
+        return api;
+    }
+
+    /**
+     * @return new instance of API for this object
+     */
+    protected cz.cesnet.shongo.controller.api.AllocatedItem createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.AllocatedItem();
+    }
+
+    /**
+     * @param api to be filled from this object
+     */
+    protected void toApi(cz.cesnet.shongo.controller.api.AllocatedItem api, Domain domain)
+    {
+        api.setSlot(getSlot());
     }
 }

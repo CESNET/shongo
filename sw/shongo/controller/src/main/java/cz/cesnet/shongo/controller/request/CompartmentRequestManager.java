@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
+import cz.cesnet.shongo.controller.allocation.AllocatedItem;
 import cz.cesnet.shongo.controller.common.Person;
 import org.joda.time.Interval;
 
@@ -331,6 +333,12 @@ public class CompartmentRequestManager extends AbstractManager
         AllocatedCompartment allocatedCompartment =
                 allocatedCompartmentManager.getByCompartmentRequest(compartmentRequest.getId());
         if (allocatedCompartment != null) {
+            for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+                if (allocatedItem instanceof AllocatedExternalEndpoint) {
+                    AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) allocatedItem;
+                    allocatedExternalEndpoint.setExternalEndpointSpecification(null);
+                }
+            }
             allocatedCompartmentManager.markedForDeletion(allocatedCompartment);
         }
         super.delete(compartmentRequest);

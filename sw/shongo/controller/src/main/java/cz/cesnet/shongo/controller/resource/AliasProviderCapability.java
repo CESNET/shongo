@@ -26,9 +26,19 @@ public class AliasProviderCapability extends Capability
     private AliasType type;
 
     /**
-     * Prefix of aliases.
+     * Pattern for aliases.
+     * <p/>
+     * Examples:
+     * 1) "95[ddd]"     will generate 95001, 95002, 95003, ...
+     * 2) "95[dd]2[dd]" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
      */
     private String pattern;
+
+    /**
+     * Specifies whether alias provider is restricted only to the owner resource or all resources can use the provider
+     * for alias allocation.
+     */
+    private boolean restrictedToOwnerResource;
 
     /**
      * Constructor.
@@ -49,6 +59,23 @@ public class AliasProviderCapability extends Capability
         this.technology = technology;
         this.type = type;
         this.pattern = pattern;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology                sets the {@link #technology}
+     * @param type                      sets the {@link #type}
+     * @param pattern                   sets the {@link #pattern}
+     * @param restrictedToOwnerResource sets the {@link #restrictedToOwnerResource}
+     */
+    public AliasProviderCapability(Technology technology, AliasType type, String pattern,
+            boolean restrictedToOwnerResource)
+    {
+        this.technology = technology;
+        this.type = type;
+        this.pattern = pattern;
+        this.restrictedToOwnerResource = restrictedToOwnerResource;
     }
 
     /**
@@ -104,6 +131,23 @@ public class AliasProviderCapability extends Capability
         this.pattern = pattern;
     }
 
+    /**
+     * @return {@link #restrictedToOwnerResource}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isRestrictedToOwnerResource()
+    {
+        return restrictedToOwnerResource;
+    }
+
+    /**
+     * @param restrictedToOwnerResource sets the {@link #restrictedToOwnerResource}
+     */
+    public void setRestrictedToOwnerResource(boolean restrictedToOwnerResource)
+    {
+        this.restrictedToOwnerResource = restrictedToOwnerResource;
+    }
+
     @Override
     protected cz.cesnet.shongo.controller.api.Capability createApi()
     {
@@ -118,6 +162,7 @@ public class AliasProviderCapability extends Capability
         apiAliasProvider.setTechnology(getTechnology());
         apiAliasProvider.setType(getType());
         apiAliasProvider.setPattern(getPattern());
+        apiAliasProvider.setRestrictedToOwnerResource(isRestrictedToOwnerResource());
         super.toApi(api);
     }
 
@@ -136,6 +181,15 @@ public class AliasProviderCapability extends Capability
         if (apiAliasProvider.isPropertyFilled(apiAliasProvider.PATTERN)) {
             setPattern(apiAliasProvider.getPattern());
         }
+        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.RESTRICTED_TO_OWNER_RESOURCE)) {
+            setRestrictedToOwnerResource(apiAliasProvider.getRestrictedToOwnerResource());
+        }
         super.fromApi(api, entityManager);
+    }
+
+    @Transient
+    public AliasGenerator getAliasGenerator()
+    {
+        return new AliasPatternGenerator(technology, type, pattern);
     }
 }

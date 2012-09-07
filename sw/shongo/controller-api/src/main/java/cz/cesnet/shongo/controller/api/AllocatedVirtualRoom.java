@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocatedVirtualRoom extends AllocatedResource
+public class AllocatedVirtualRoom extends AllocatedDevice
 {
     /**
      * Number of ports available for the virtual room.

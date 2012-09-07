@@ -18,9 +18,9 @@ public class AllocatedCompartment
     private Interval slot;
 
     /**
-     * Resource which are allocated for a compartment.
+     * Items which are allocated for a compartment.
      */
-    private List<AllocatedResource> allocatedResources = new ArrayList<AllocatedResource>();
+    private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
 
     /**
      * @return {@link #slot}
@@ -39,26 +39,26 @@ public class AllocatedCompartment
     }
 
     /**
-     * @return {@link #allocatedResources}
+     * @return {@link #allocatedItems}
      */
-    public List<AllocatedResource> getAllocatedResources()
+    public List<AllocatedItem> getAllocatedItems()
     {
-        return allocatedResources;
+        return allocatedItems;
     }
 
     /**
-     * @param allocatedResources sets the {@link #allocatedResources}
+     * @param allocatedItems sets the {@link #allocatedItems}
      */
-    public void setAllocatedResources(List<AllocatedResource> allocatedResources)
+    public void setAllocatedItems(List<AllocatedItem> allocatedItems)
     {
-        this.allocatedResources = allocatedResources;
+        this.allocatedItems = allocatedItems;
     }
 
     /**
-     * @param allocatedResource to be added to the {@link #allocatedResources}
+     * @param allocatedItem to be added to the {@link #allocatedItems}
      */
-    public void addAllocatedResource(AllocatedResource allocatedResource)
+    public void addAllocatedItem(AllocatedItem allocatedItem)
     {
-        allocatedResources.add(allocatedResource);
+        allocatedItems.add(allocatedItem);
     }
 }

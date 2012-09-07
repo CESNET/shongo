@@ -1,16 +1,13 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Represents allocated resources for a single compartment request.
@@ -148,34 +145,15 @@ public class AllocatedCompartment extends PersistentObject
     {
         CompartmentRequest compartmentRequest = getCompartmentRequest();
 
-        cz.cesnet.shongo.controller.api.AllocatedCompartment allocatedCompartmentApi =
+        cz.cesnet.shongo.controller.api.AllocatedCompartment apiAllocatedCompartment =
                 new cz.cesnet.shongo.controller.api.AllocatedCompartment();
-        allocatedCompartmentApi.setSlot(compartmentRequest.getRequestedSlot());
+        apiAllocatedCompartment.setSlot(compartmentRequest.getRequestedSlot());
         for (AllocatedItem allocatedItem : allocatedItems) {
-            if (!(allocatedItem instanceof AllocatedResource)) {
-                continue;
-            }
-            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
-            Resource resource = allocatedResource.getResource();
-            if (allocatedResource instanceof AllocatedVirtualRoom) {
-                AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;
-                cz.cesnet.shongo.controller.api.AllocatedVirtualRoom allocatedVirtualRoomApi =
-                        new cz.cesnet.shongo.controller.api.AllocatedVirtualRoom();
-                allocatedVirtualRoomApi.setIdentifier(domain.formatIdentifier(resource.getId()));
-                allocatedVirtualRoomApi.setName(resource.getName());
-                allocatedVirtualRoomApi.setSlot(compartmentRequest.getRequestedSlot());
-                allocatedVirtualRoomApi.setPortCount(allocatedVirtualRoom.getPortCount());
-                allocatedCompartmentApi.addAllocatedResource(allocatedVirtualRoomApi);
-            }
-            else {
-                cz.cesnet.shongo.controller.api.AllocatedResource allocatedResourceApi =
-                        new cz.cesnet.shongo.controller.api.AllocatedResource();
-                allocatedResourceApi.setIdentifier(domain.formatIdentifier(resource.getId()));
-                allocatedResourceApi.setName(resource.getName());
-                allocatedResourceApi.setSlot(compartmentRequest.getRequestedSlot());
-                allocatedCompartmentApi.addAllocatedResource(allocatedResourceApi);
+            cz.cesnet.shongo.controller.api.AllocatedItem apiAllocatedItem = allocatedItem.toApi(domain);
+            if (apiAllocatedItem != null) {
+                apiAllocatedCompartment.addAllocatedItem(apiAllocatedItem);
             }
         }
-        return allocatedCompartmentApi;
+        return apiAllocatedCompartment;
     }
 }

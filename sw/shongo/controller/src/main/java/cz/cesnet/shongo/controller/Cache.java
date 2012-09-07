@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -151,15 +152,17 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     TemporalHelper.formatInterval(workingInterval));
             this.workingInterval = workingInterval;
 
+            DateTime referenceDateTime = workingInterval.getStart();
+
             Interval resourceWorkingInterval = new Interval(
                     workingInterval.getStart().minus(allocatedResourceMaximumDuration),
                     workingInterval.getEnd().plus(allocatedResourceMaximumDuration));
-            resourceCache.setWorkingInterval(resourceWorkingInterval, entityManager);
+            resourceCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
 
             Interval aliasWorkingInterval = new Interval(
                     workingInterval.getStart().minus(allocatedAliasMaximumDuration),
                     workingInterval.getEnd().plus(allocatedAliasMaximumDuration));
-            aliasCache.setWorkingInterval(aliasWorkingInterval, entityManager);
+            aliasCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
         }
     }
 
@@ -192,12 +195,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         if (aliasMaxDuration != null) {
             setAllocatedAliasMaximumDuration(aliasMaxDuration);
         }
-
-        if (entityManagerFactory != null) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            resourceCache.loadObjects(entityManager);
-            aliasCache.loadObjects(entityManager);
-        }
+        reset(entityManagerFactory != null ? entityManagerFactory.createEntityManager() : null);
     }
 
     @Override
@@ -206,6 +204,21 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         logger.debug("Stopping cache...");
 
         super.destroy();
+    }
+
+    /**
+     * Reload cache from given {@code entityManager}.
+     *
+     * @param entityManager which will be used for reloading
+     */
+    public void reset(EntityManager entityManager)
+    {
+        resourceCache.clear();
+        aliasCache.clear();
+        if (entityManager != null) {
+            resourceCache.loadObjects(entityManager);
+            aliasCache.loadObjects(entityManager);
+        }
     }
 
     /**
@@ -323,22 +336,25 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param interval
      * @return true if given {@code resource} is available, false otherwise
      */
-    public boolean isResourceAvailable(Resource resource, Interval interval)
+    public boolean isResourceAvailable(Resource resource, Interval interval, Transaction transaction)
     {
         // Get top parent resource and checks whether it is available
         Resource parentResource = resource;
         while (parentResource.getParentResource() != null) {
             parentResource = parentResource.getParentResource();
         }
-        return resourceCache.isResourceAndChildResourcesAvailableRecursive(parentResource, interval);
+        return resourceCache.isResourceAvailable(resource, interval, transaction.getResourceCacheTransaction())
+                && resourceCache.isChildResourcesAvailable(parentResource, interval, null);
     }
 
     /**
      * @param interval
      * @param technologies
+     * @param transaction
      * @return list of available terminals
      */
-    public List<DeviceResource> findAvailableTerminal(Interval interval, Set<Technology> technologies)
+    public List<DeviceResource> findAvailableTerminal(Interval interval, Set<Technology> technologies,
+            Transaction transaction)
     {
         Set<Long> terminals = resourceCache.getDeviceResourcesByCapabilityTechnologies(TerminalCapability.class,
                 technologies);
@@ -349,7 +365,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             if (deviceResource == null) {
                 throw new IllegalStateException("Device resource should be added to the cache.");
             }
-            if (isResourceAvailable(deviceResource, interval)) {
+            if (isResourceAvailable(deviceResource, interval, transaction)) {
                 deviceResources.add(deviceResource);
             }
         }
@@ -416,16 +432,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      *
      * @param aliasProviderCapability
      * @param interval
+     * @param transaction
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval)
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval,
+            Transaction transaction)
     {
-        Resource resource = aliasProviderCapability.getResource();
-        Long resourceId = resource.getId();
-
-        // todo:
-
-        return null;  //To change body of created methods use File | Settings | File Templates.
+        return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
     }
 
     /**
@@ -433,12 +446,89 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      *
      * @param technology
      * @param interval
+     * @param transaction
      * @return available alias for given {@code technology} and {@code interval}
      */
-    public AvailableAlias getAvailableAlias(Technology technology, Interval interval)
+    public AvailableAlias getAvailableAlias(Transaction transaction, Technology technology, Interval interval)
     {
-        // todo:
+        for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
+            if (aliasProviderCapability.isRestrictedToOwnerResource()) {
+                continue;
+            }
+            if (!aliasProviderCapability.getTechnology().equals(technology)) {
+                continue;
+            }
+            AvailableAlias availableAlias = aliasCache.getAvailableAlias(aliasProviderCapability, interval,
+                    transaction.getAliasCacheTransaction());
+            if (availableAlias != null) {
+                return availableAlias;
+            }
+        }
+        return null;
+    }
 
-        return null;  //To change body of created methods use File | Settings | File Templates.
+    /**
+     * Transaction for the {@link Cache}.
+     */
+    public static class Transaction
+    {
+        /**
+         * @see {@link ResourceCache.Transaction}
+         */
+        private ResourceCache.Transaction resourceCacheTransaction = new ResourceCache.Transaction();
+
+        /**
+         * @see {@link AliasCache.Transaction}
+         */
+        private AliasCache.Transaction aliasCacheTransaction = new AliasCache.Transaction();
+
+        /**
+         * Set of resources referenced from {@link AllocatedResource}s in the transaction.
+         */
+        private Set<Resource> referencedResources = new HashSet<Resource>();
+
+        /**
+         * @param allocatedItem to be added to the transaction
+         */
+        public void addAllocationItem(AllocatedItem allocatedItem)
+        {
+            if (allocatedItem instanceof AllocatedResource) {
+                AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
+                Resource resource = allocatedResource.getResource();
+                resourceCacheTransaction.addAllocation(resource.getId(), allocatedResource);
+                referencedResources.add(resource);
+            }
+            if (allocatedItem instanceof AllocatedAlias) {
+                AllocatedAlias allocatedAlias = (AllocatedAlias) allocatedItem;
+                aliasCacheTransaction.addAllocation(
+                        allocatedAlias.getAliasProviderCapability().getId(), allocatedAlias);
+            }
+        }
+
+        /**
+         * @return {@link #resourceCacheTransaction}
+         */
+        public ResourceCache.Transaction getResourceCacheTransaction()
+        {
+            return resourceCacheTransaction;
+        }
+
+        /**
+         * @return {@link #aliasCacheTransaction}
+         */
+        public AliasCache.Transaction getAliasCacheTransaction()
+        {
+            return aliasCacheTransaction;
+        }
+
+        /**
+         * @param resource to be checked
+         * @return true if given resource was referenced by any {@link AllocatedResource} added to the transaction,
+         *         false otherwise
+         */
+        public boolean containsResource(Resource resource)
+        {
+            return referencedResources.contains(resource);
+        }
     }
 }

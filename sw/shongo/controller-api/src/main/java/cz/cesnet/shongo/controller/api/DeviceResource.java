@@ -2,13 +2,8 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
-import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,6 +19,11 @@ public class DeviceResource extends Resource
     public static final String UNMANAGED_MODE = "UNMANAGED";
 
     /**
+     * Address on which the device is running (IP address or URL).
+     */
+    public static final String ADDRESS = "address";
+
+    /**
      * Set of technologies which the resource supports.
      */
     public static final String TECHNOLOGIES = "technologies";
@@ -32,6 +32,22 @@ public class DeviceResource extends Resource
      * Specifies the mode of the resource.
      */
     public static final String MODE = "mode";
+
+    /**
+     * @return {@link #ADDRESS}
+     */
+    public String getAddress()
+    {
+        return getPropertyStorage().getValue(ADDRESS);
+    }
+
+    /**
+     * @param address sets the {@link #ADDRESS}
+     */
+    public void setAddress(String address)
+    {
+        getPropertyStorage().setValue(ADDRESS, address);
+    }
 
     /**
      * @return {@link #TECHNOLOGIES}

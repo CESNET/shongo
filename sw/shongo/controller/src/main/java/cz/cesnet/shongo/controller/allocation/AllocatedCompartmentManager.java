@@ -49,6 +49,7 @@ public class AllocatedCompartmentManager extends AbstractManager
         List<AllocatedItem> allocatedItems = allocatedCompartment.getAllocatedItems();
         for (AllocatedItem allocatedItem : allocatedItems) {
             cache.removeAllocatedItem(allocatedItem);
+            //super.delete(allocatedItem);
         }
         super.delete(allocatedCompartment);
     }

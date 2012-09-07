@@ -4,7 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 /**
- * TODO:
+ * Represents a physical address of a device (IP address or URL).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

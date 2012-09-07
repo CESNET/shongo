@@ -264,10 +264,12 @@ public class DeviceResource extends Resource
     {
         cz.cesnet.shongo.controller.api.DeviceResource deviceResource =
                 (cz.cesnet.shongo.controller.api.DeviceResource) resource;
+        if (address != null) {
+            deviceResource.setAddress(address.getValue());
+        }
         for (Technology technology : getTechnologies()) {
             deviceResource.addTechnology(technology);
         }
-
         if (isManaged()) {
             ManagedMode mode = (ManagedMode) getMode();
             deviceResource.setMode(new cz.cesnet.shongo.controller.api.ManagedMode(mode.getConnectorAgentName()));
@@ -283,6 +285,15 @@ public class DeviceResource extends Resource
             throws FaultException
     {
         cz.cesnet.shongo.controller.api.DeviceResource apiDevice = (cz.cesnet.shongo.controller.api.DeviceResource) api;
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.DeviceResource.ADDRESS)) {
+            if (apiDevice.getAddress() == null) {
+                setAddress(null);
+            }
+            else {
+                setAddress(new Address(apiDevice.getAddress()));
+            }
+        }
+
         // Create technologies
         for (Technology technology : apiDevice.getTechnologies()) {
             if (api.isCollectionItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,

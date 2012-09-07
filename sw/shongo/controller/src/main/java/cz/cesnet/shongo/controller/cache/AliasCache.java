@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +60,13 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
         super.removeObject(object);
     }
 
+    @Override
+    public void clear()
+    {
+        aliasProviderCapabilitiesByResourceId.clear();
+        super.clear();
+    }
+
     /**
      * Remove all managed {@link AliasProviderCapability}s from given {@code resource} from the {@link AliasCache}.
      *
@@ -77,6 +82,7 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
             for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
                 removeObject(aliasProviderCapability);
             }
+            aliasProviderCapabilities.clear();
         }
     }
 
@@ -84,12 +90,53 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
     protected void updateObjectState(AliasProviderCapability object, Interval workingInterval,
             EntityManager entityManager)
     {
-        // Get all allocated virtual rooms for the device and add them to the device state
+        // Get all allocated aliases for the alias provider and add them to the device state
         ResourceManager resourceManager = new ResourceManager(entityManager);
         List<AllocatedAlias> allocations = resourceManager.listAllocatedAliasesInInterval(object.getId(),
                 getWorkingInterval());
         for (AllocatedAlias allocatedAlias : allocations) {
             addAllocation(object, allocatedAlias);
         }
+    }
+
+    /**
+     * Find available alias in given {@code aliasProviderCapability}.
+     *
+     * @param aliasProviderCapability
+     * @param interval
+     * @param transaction
+     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
+     */
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval,
+            Transaction transaction)
+    {
+        // Check if resource can be allocated and if it is available in the future
+        Resource resource = aliasProviderCapability.getResource();
+        if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
+            return null;
+        }
+
+        ObjectState<AllocatedAlias> aliasProviderState = getObjectState(aliasProviderCapability);
+        Set<AllocatedAlias> allocatedAliases = aliasProviderState.getAllocations(interval, transaction);
+        AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
+        for (AllocatedAlias allocatedAlias : allocatedAliases) {
+            aliasGenerator.addAlias(allocatedAlias.getAlias());
+        }
+        Alias alias = aliasGenerator.generate();
+        if (alias == null) {
+            return null;
+        }
+        AvailableAlias availableAlias = new AvailableAlias();
+        availableAlias.setAliasProviderCapability(aliasProviderCapability);
+        availableAlias.setAlias(alias);
+        return availableAlias;
+    }
+
+    /**
+     * Transaction for {@link AliasCache}.
+     */
+    public static class Transaction
+            extends AbstractAllocationCache.Transaction<AllocatedAlias>
+    {
     }
 }
