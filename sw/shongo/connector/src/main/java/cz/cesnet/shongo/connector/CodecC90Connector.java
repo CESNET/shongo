@@ -7,10 +7,13 @@ import com.jcraft.jsch.Session;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -18,6 +21,12 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
@@ -32,12 +41,25 @@ import java.util.Map;
  */
 public class CodecC90Connector implements EndpointService
 {
+    private static Logger logger = LoggerFactory.getLogger(CodecC90Connector.class);
+
 
     public static final int MICROPHONES_COUNT = 8;
 
+    /**
+     * An example of interaction with the device.
+     *
+     * @param args
+     * @throws IOException
+     * @throws CommandException
+     * @throws InterruptedException
+     * @throws ConnectorInitException
+     * @throws SAXException
+     * @throws XPathExpressionException
+     */
     public static void main(String[] args)
             throws IOException, CommandException, InterruptedException, ConnectorInitException, SAXException,
-                   XPathExpressionException
+                   XPathExpressionException, TransformerException
     {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
@@ -70,15 +92,30 @@ public class CodecC90Connector implements EndpointService
         }
 
         final CodecC90Connector conn = new CodecC90Connector();
-        conn.connect(address, username, password);
+        conn.connect(new Address(address), username, password);
 
-        Document result = conn.exec("xstatus SystemUnit uptimefs");
+        Document result = conn.exec("xstatus SystemUnit uptime");
+        System.out.println("result:");
+        printDocument(result, System.out);
         if (isError(result)) {
             System.err.println("Error: " + getErrorMessage(result));
             System.exit(1);
         }
-
         System.out.println("Uptime: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Uptime"));
+        System.out.println();
+
+        Document calls = conn.exec("xStatus Call");
+        System.out.println("calls:");
+        printDocument(calls, System.out);
+        boolean activeCalls = !getResultString(calls, "/XmlDoc/Status/*").isEmpty();
+        if (activeCalls) {
+            System.out.println("There are some active calls");
+        }
+        else {
+            System.out.println("There is no active call at the moment");
+        }
+        System.out.println();
+
         System.out.println("All done, disconnecting");
         conn.disconnect();
     }
@@ -150,32 +187,22 @@ public class CodecC90Connector implements EndpointService
     }
 
     /**
-     * Connects the connector to the managed device on the default port.
-     *
-     * @param address  address of the device
-     * @param username username to use for authentication on the device
-     * @param password password to use for authentication on the device
-     */
-    public void connect(String address, String username, final String password)
-            throws CommandException
-    {
-        connect(address, DEFAULT_PORT, username, password);
-    }
-
-    /**
      * Connects the connector to the managed device.
      *
-     * @param address  address of the device
-     * @param port     device port to connect to
+     * @param address  device address to connect to
      * @param username username to use for authentication on the device
      * @param password password to use for authentication on the device
      */
-    public void connect(String address, int port, String username, final String password)
+    public void connect(Address address, String username, final String password)
             throws CommandException
     {
+        if (address.getPort() == Address.DEFAULT_PORT) {
+            address.setPort(DEFAULT_PORT);
+        }
+
         try {
             JSch jsch = new JSch();
-            Session session = jsch.getSession(username, address, port);
+            Session session = jsch.getSession(username, address.getHost(), address.getPort());
             session.setPassword(password);
             // disable key checking - otherwise, the host key must be present in ~/.ssh/known_hosts
             session.setConfig("StrictHostKeyChecking", "no");
@@ -188,6 +215,7 @@ public class CodecC90Connector implements EndpointService
             initSession();
             initDeviceInfo();
             info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
+            info.setDeviceAddress(address);
         }
         catch (JSchException e) {
             throw new CommandException("Error in communication with the device", e);
@@ -231,8 +259,10 @@ public class CodecC90Connector implements EndpointService
 
         String sn = "Module: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/Module/SerialNumber")
                 + ", MainBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/MainBoard/SerialNumber")
-                + ", VideoBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/VideoBoard/SerialNumber")
-                + ", AudioBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/AudioBoard/SerialNumber");
+                + ", VideoBoard: " + getResultString(result,
+                "/XmlDoc/Status/SystemUnit/Hardware/VideoBoard/SerialNumber")
+                + ", AudioBoard: " + getResultString(result,
+                "/XmlDoc/Status/SystemUnit/Hardware/AudioBoard/SerialNumber");
         di.setSerialNumber(sn);
 
         info.setDeviceInfo(di);
@@ -359,7 +389,13 @@ reading:
         String reason = getResultString(result, "/XmlDoc/Status[@status='Error']/Reason");
         String xPath = getResultString(result, "/XmlDoc/Status[@status='Error']/XPath");
         if (!reason.isEmpty() || !xPath.isEmpty()) {
-            return reason + " (XPath: " + xPath + ")";
+            return reason + (xPath.isEmpty() ? "" : " (XPath: " + xPath + ")");
+        }
+
+        String description = getResultString(result, "/XmlDoc/*[@status='Error']/Description");
+        if (!description.isEmpty()) {
+            String cause = getResultString(result, "/XmlDoc/*[@status='Error']/Cause");
+            return description + (cause.isEmpty() ? "" : String.format(" (Cause: %s)", cause));
         }
 
         String usage = getResultString(result, "/XmlDoc/*[@status='ParameterError']/../Usage");
@@ -380,12 +416,20 @@ reading:
      */
     private Document issueCommand(Command command) throws CommandException
     {
+        logger.info(String.format("%s issuing command %s on %s", CodecC90Connector.class, command,
+                info.getDeviceAddress()));
+
         try {
             Document result = exec(command.toString());
             if (isError(result)) {
+                logger.info(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(),
+                        getErrorMessage(result)));
                 throw new CommandException(getErrorMessage(result));
             }
-            return result;
+            else {
+                logger.info(String.format("Command %s succeeded on %s", command, info.getDeviceAddress()));
+                return result;
+            }
         }
         catch (IOException e) {
             throw new RuntimeException("Command issuing error", e);
@@ -399,7 +443,7 @@ reading:
     }
 
     @Override
-    public void dial(Alias server) throws CommandException
+    public int dial(Alias server) throws CommandException
     {
         Command command = new Command("xCommand Dial");
         command.setParameter("Number", server.getValue());
@@ -408,8 +452,27 @@ reading:
         // NOTE: the BookingId parameter could be used to identify the reservation for which this dial is issued in call
         //       logs; other connectors are missing such a feature, however, so do we
 
+        Document result = issueCommand(command);
+        try {
+            return Integer.valueOf(getResultString(result, "/XmlDoc/DialResult/CallId"));
+        }
+        catch (XPathExpressionException e) {
+            throw new CommandException("Program error in parsing the command result.", e);
+        }
+    }
+
+    @Override
+    public void hangUp(int callId) throws CommandException
+    {
+        Command command = new Command("xCommand Call Disconnect");
+        command.setParameter("CallId", String.valueOf(callId));
         issueCommand(command);
-        // NOTE: the CallId returned by the command could be used for something
+    }
+
+    @Override
+    public void hangUpAll() throws CommandException
+    {
+        issueCommand(new Command("xCommand Call DisconnectAll"));
     }
 
     @Override
@@ -423,14 +486,12 @@ reading:
     @Override
     public void mute() throws CommandException
     {
-        // TODO: test that it really mutes the device
         issueCommand(new Command("xCommand Audio Microphones Mute"));
     }
 
     @Override
     public void unmute() throws CommandException
     {
-        // TODO: test that it really unmutes the device
         issueCommand(new Command("xCommand Audio Microphones Unmute"));
     }
 
@@ -480,6 +541,32 @@ reading:
     @Override
     public void standBy() throws CommandException
     {
+        if (true /* TODO: if there are some active calls (maintain the device state) */) {
+            // must hang up first for the command to work properly; otherwise, the command succeeds, but the device is
+            //   not in the stand by state
+            hangUpAll();
+
+            // and we also must wait until all calls are really hung up; until then, the standby command has no effect
+            final int attemptsLimit = 50;
+            for (int i = 0; i < attemptsLimit; i++) {
+                try {
+                    Thread.sleep(100); // wait awhile; who knows for how long to be sure, though :-(
+                }
+                catch (InterruptedException e) {
+                    // ignore - the calls are checked anyway and possibly sleeping again
+                }
+                Document calls = issueCommand(new Command("xStatus Call"));
+                try {
+                    if (getResultString(calls, "/XmlDoc/Status/*").isEmpty()) {
+                        break;
+                    }
+                }
+                catch (XPathExpressionException e) {
+                    throw new CommandException("Program error in command execution.", e);
+                }
+            }
+        }
+
         issueCommand(new Command("xCommand Standby Activate"));
     }
 
@@ -487,5 +574,29 @@ reading:
     public ConnectorInfo getConnectorInfo()
     {
         return info;
+    }
+
+    /**
+     * Just for debugging purposes, for printing results of commands.
+     * <p/>
+     * Taken from: http://stackoverflow.com/questions/2325388/java-shortest-way-to-pretty-print-to-stdout-a-org-w3c-dom-document
+     *
+     * @param doc
+     * @param out
+     * @throws IOException
+     * @throws TransformerException
+     */
+    private static void printDocument(Document doc, OutputStream out) throws IOException, TransformerException
+    {
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = tf.newTransformer();
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+        transformer.transform(new DOMSource(doc),
+                new StreamResult(new OutputStreamWriter(out, "UTF-8")));
     }
 }

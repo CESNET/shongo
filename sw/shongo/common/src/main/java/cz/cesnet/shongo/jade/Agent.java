@@ -6,7 +6,6 @@ import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.Message;
 import cz.cesnet.shongo.jade.ontology.ShongoOntology;
 import jade.content.AgentAction;
-import jade.content.Concept;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.core.AID;
@@ -230,7 +229,7 @@ public class Agent extends jade.core.Agent
      * @return return value of the performed command (null if the command does not return anything)
      * @throws UnknownActionException
      */
-    public Concept handleAgentAction(AgentAction action, AID sender)
+    public Object handleAgentAction(AgentAction action, AID sender)
             throws UnknownActionException, CommandException, CommandUnsupportedException
     {
         if (action == null) {

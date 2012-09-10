@@ -6,7 +6,8 @@ import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.EndpointService;
 import cz.cesnet.shongo.connector.api.MultipointService;
 import jade.content.AgentAction;
-import jade.content.Concept;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A common ancestor for all agent actions used by Shongo.
@@ -17,15 +18,19 @@ import jade.content.Concept;
  */
 public abstract class ConnectorAgentAction implements AgentAction
 {
+    protected static Logger logger = LoggerFactory.getLogger(ConnectorAgentAction.class);
+
+
     /**
      * Executes the action on a given connector.
      *
      * @param connector    a connector on which the action should be executed
-     * @return the result of the action, or NULL if the action does not return anything
+     * @return the result of the action, or NULL if the action does not return anything; should be a concept or a Java
+     *         class encapsulating a primitive type (e.g., Integer, ...)
      * @throws CommandException
      * @throws CommandUnsupportedException
      */
-    public abstract Concept exec(CommonService connector) throws CommandException, CommandUnsupportedException;
+    public abstract Object exec(CommonService connector) throws CommandException, CommandUnsupportedException;
 
 
     /**

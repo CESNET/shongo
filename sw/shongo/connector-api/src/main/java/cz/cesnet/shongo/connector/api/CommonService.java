@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.util.Address;
 
 /**
  * Common connector API.
@@ -12,13 +13,12 @@ public interface CommonService
     /**
      * Connects to the device.
      *
-     * @param address     address of the device to connect to
-     * @param port        port on the device to connect to
+     * @param address     device address to connect to
      * @param username    username for authentication on the device
      * @param password    password for authentication on the device
      * @throws cz.cesnet.shongo.api.CommandException
      */
-    void connect(String address, int port, String username, final String password) throws CommandException;
+    void connect(Address address, String username, final String password) throws CommandException;
 
     /**
      * Disconnects from the device.

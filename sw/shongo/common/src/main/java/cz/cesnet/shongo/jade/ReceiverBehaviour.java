@@ -53,12 +53,15 @@ public class ReceiverBehaviour extends CyclicBehaviour
 
     private void onReceiveMessage(ACLMessage msg)
     {
+        // FIXME: refactor; think over what messages may be received and process them systematically
+
         if (msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD) {
             logger.error("The recipient did not understand the message:\n" + msg);
             return;
         }
         if (msg.getPerformative() == ACLMessage.FAILURE) {
             logger.error("Execution of the command failed:\n" + msg);
+            // TODO: process the error; it might contain Result with a CommandError as the value (for an example of an error, try dialing a number for several times, initiating multiple calls at a time)
             return;
         }
 
@@ -69,18 +72,17 @@ public class ReceiverBehaviour extends CyclicBehaviour
         ContentManager cm = myAgent.getContentManager();
         try {
             ContentElement contentElement = cm.extractContent(msg);
-            Action act = (Action) contentElement;
-            if (act != null) {
+            if (contentElement instanceof Action) {
+                Action act = (Action) contentElement;
                 Concept action = act.getAction();
                 if (action instanceof AgentAction) {
-                    Concept actionRetVal = null;
                     try {
-                        actionRetVal = myShongoAgent.handleAgentAction((AgentAction) action, msg.getSender());
+                        Object actionRetVal = myShongoAgent.handleAgentAction((AgentAction) action, msg.getSender());
                         if (msg.getPerformative() == ACLMessage.INFORM) {
                             return; // do not reply to inform messages
                         }
                         // respond to the caller - either with the command return value or saying it was OK
-                        ContentElement response = (actionRetVal == null ? new Done() : new Result(act, actionRetVal));
+                        ContentElement response = (actionRetVal == null ? new Done(act) : new Result(act, actionRetVal));
                         cm.fillContent(reply, response);
                     }
                     catch (CommandException e) {
@@ -95,9 +97,37 @@ public class ReceiverBehaviour extends CyclicBehaviour
                     }
                 }
                 else {
-                    // other concepts than AgentAction are not recognized
+                    // other actions than AgentAction are not recognized
                     reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
                 }
+            }
+            else if (contentElement instanceof Result) {
+                Result result = (Result) contentElement;
+
+                // log some meaningful message
+                String logMsg = String.format("Received a result of type %s, value %s.", result.getValue().getClass(), result.getValue());
+                if (result.getAction() instanceof Action) {
+                    Action action = (Action) result.getAction();
+                    logMsg += " It is the result of action: " + action.getAction();
+                }
+                logger.info(logMsg);
+
+                // TODO: process the result of a previous command - result.getValue();
+                return; // do not reply to results of actions
+            }
+            else if (contentElement instanceof Done) {
+                Done done = (Done) contentElement;
+
+                // log some meaningful message
+                String logMsg = "Received confirmation of successful execution of an action.";
+                if (done.getAction() instanceof Action) {
+                    Action action = (Action) done.getAction();
+                    logMsg += " It is the result of action: " + action.getAction();
+                }
+                logger.info(logMsg);
+
+                // TODO: process the info
+                return; // do not reply to results of actions
             }
             else {
                 reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
@@ -116,6 +146,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
 
+        logger.info(String.format("%s sending reply: %s", myAgent.getName(), reply));
         myAgent.send(reply);
     }
 

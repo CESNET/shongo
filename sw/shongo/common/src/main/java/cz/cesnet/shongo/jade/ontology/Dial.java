@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import jade.content.Concept;
 
 /**
  * Command to dial a device.
@@ -15,30 +14,43 @@ import jade.content.Concept;
  */
 public class Dial extends ConnectorAgentAction
 {
-    private String number;
+    private Alias alias;
 
     public Dial()
     {
     }
 
-    public Dial(String number)
+    public Dial(Alias alias)
     {
-        this.number = number;
+        this.alias = alias;
     }
 
-    public String getNumber()
+    // FIXME: enforce the technology, alias type and number in the API, instead just a number
+    public Dial(String h323Number)
     {
-        return number;
+        alias = new Alias(Technology.H323, AliasType.E164, h323Number);
     }
 
-    public void setNumber(String number)
+    public Alias getAlias()
     {
-        this.number = number;
+        return alias;
     }
 
-    public Concept exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    public void setAlias(Alias alias)
     {
-        getEndpoint(connector).dial(new Alias(Technology.H323, AliasType.E164, number));
-        return null;
+        this.alias = alias;
+    }
+
+    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
+    {
+        logger.info(String.format("Dialing %s:%s", alias.getTechnology(), alias.getValue()));
+        return getEndpoint(connector).dial(alias);
+    }
+
+    public String toString()
+    {
+        return String.format("Dial agent action (technology: %s, alias type: %s, value: %s)",
+                alias.getTechnology(), alias.getType(), alias.getValue()
+                );
     }
 }

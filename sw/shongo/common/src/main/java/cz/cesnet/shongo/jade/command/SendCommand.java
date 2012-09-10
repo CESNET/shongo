@@ -67,7 +67,7 @@ public class SendCommand implements Command
      */
     public static SendCommand createSendCommand(AID performer, AgentAction action)
     {
-        SendCommand sendCommand = new SendCommand(ACLMessage.INFORM);
+        SendCommand sendCommand = new SendCommand(ACLMessage.REQUEST);
 
         sendCommand.setRecipient(performer);
         sendCommand.setContent(ShongoOntology.getInstance(), action);

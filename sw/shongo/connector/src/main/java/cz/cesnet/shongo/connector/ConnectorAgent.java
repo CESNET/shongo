@@ -10,7 +10,6 @@ import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownActionException;
 import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
 import jade.content.AgentAction;
-import jade.content.Concept;
 import jade.core.AID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +89,7 @@ public class ConnectorAgent extends Agent
     }
 
     @Override
-    public Concept handleAgentAction(AgentAction action, AID sender)
+    public Object handleAgentAction(AgentAction action, AID sender)
             throws UnknownActionException, CommandException, CommandUnsupportedException
     {
         if (action instanceof ConnectorAgentAction) {
