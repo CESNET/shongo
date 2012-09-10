@@ -444,7 +444,7 @@ public class CompartmentRequestManager extends AbstractManager
     /**
      * @param compartmentId
      * @param interval
-     * @return list of existing compartments request from a given compartment taking place in given interval
+     * @return list of existing compartments request from a given compartment starting in given interval
      */
     public List<CompartmentRequest> listByCompartment(Long compartmentId, Interval interval)
     {
@@ -461,7 +461,7 @@ public class CompartmentRequestManager extends AbstractManager
 
     /**
      * @param interval
-     * @return list of existing complete compartments request taking place in given interval
+     * @return list of existing complete compartments request starting in given interval
      */
     public List<CompartmentRequest> listCompleted(Interval interval)
     {

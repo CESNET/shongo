@@ -69,13 +69,13 @@ public class Scheduler extends Component
 
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
-        // Delete all allocated compartments which was marked for deletion
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        allocatedCompartmentManager.deleteAllMarked(cache);
-
         // Set current interval as working to the cache (it will reload allocations only when
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
+
+        // Delete all allocated compartments which was marked for deletion
+        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+        allocatedCompartmentManager.deleteAllMarked(cache);
 
         try {
             CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);

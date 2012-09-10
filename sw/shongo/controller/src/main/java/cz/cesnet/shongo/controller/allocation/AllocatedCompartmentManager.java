@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -49,7 +50,6 @@ public class AllocatedCompartmentManager extends AbstractManager
         List<AllocatedItem> allocatedItems = allocatedCompartment.getAllocatedItems();
         for (AllocatedItem allocatedItem : allocatedItems) {
             cache.removeAllocatedItem(allocatedItem);
-            //super.delete(allocatedItem);
         }
         super.delete(allocatedCompartment);
     }
@@ -64,7 +64,7 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
-     * @param compartmentRequestId
+     * @param compartmentRequestId for {@link CompartmentRequest}
      * @return {@link AllocatedCompartment} for {@link CompartmentRequest} with given {@code compartmentRequestId}
      *         or null if doesn't exists
      */
@@ -83,8 +83,10 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
-     * @param reservationRequestId
-     * @return list of all allocated compartments for reservation request with given {@code reservationRequestId}
+     * @param reservationRequestId for {@link ReservationRequest} from which the {@link AllocatedCompartment}s should be
+     *                             returned.
+     * @return list of {@link AllocatedCompartment}s from {@link ReservationRequest} with
+     *         given {@code reservationRequestId}
      */
     public List<AllocatedCompartment> listByReservationRequest(Long reservationRequestId)
     {
@@ -98,8 +100,24 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
-     * @param reservationRequest
-     * @return list of all allocated compartments for given {@code reservationRequest}
+     * @param interval in which the requested {@link AllocatedCompartment}s should start
+     * @return list of {@link AllocatedCompartment}s starting in given {@code interval}
+     */
+    public List<AllocatedCompartment> listByInterval(Interval interval)
+    {
+        List<AllocatedCompartment> allocatedCompartments = entityManager.createQuery(
+                "SELECT allocatedCompartment FROM AllocatedCompartment allocatedCompartment "
+                        + "WHERE allocatedCompartment.compartmentRequest.requestedSlot.start BETWEEN :start AND :end",
+                AllocatedCompartment.class)
+                .setParameter("start", interval.getStart())
+                .setParameter("end", interval.getEnd())
+                .getResultList();
+        return allocatedCompartments;
+    }
+
+    /**
+     * @param reservationRequest for which the {@link AllocatedCompartment}s should be returned
+     * @return list of {@link AllocatedCompartment}s for given {@code reservationRequest}
      */
     public List<AllocatedCompartment> listByReservationRequest(ReservationRequest reservationRequest)
     {
@@ -107,7 +125,7 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
-     * @param allocatedCompartment allocated compartment to be marked for deletion
+     * @param allocatedCompartment to be marked for deletion
      */
     public void markedForDeletion(AllocatedCompartment allocatedCompartment)
     {
@@ -116,9 +134,9 @@ public class AllocatedCompartmentManager extends AbstractManager
     }
 
     /**
-     * Delete all allocated compartment which were marked by {@link #markedForDeletion(AllocatedCompartment)}.
+     * Delete {@link AllocatedCompartment}s which were marked by {@link #markedForDeletion(AllocatedCompartment)}.
      *
-     * @param cache
+     * @param cache from which the {@link AllocatedCompartment}s are also deleted
      */
     public void deleteAllMarked(Cache cache)
     {
