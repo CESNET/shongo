@@ -23,6 +23,11 @@ public class FaultException extends Exception implements Fault
      */
     int code;
 
+    public FaultException()
+    {
+        this.code = CommonFault.UNKNOWN_FAULT;
+    }
+
     /**
      * Constructor.
      *

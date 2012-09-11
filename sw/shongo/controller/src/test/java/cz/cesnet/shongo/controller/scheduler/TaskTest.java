@@ -2,11 +2,13 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExistingResourceSpecification;
 import cz.cesnet.shongo.controller.resource.*;
@@ -38,7 +40,7 @@ public class TaskTest
         try {
             task.createAllocatedCompartment();
             fail("Exception about not enough requested ports should be thrown.");
-        } catch (FaultException exception) {
+        } catch (ReportException exception) {
         }
 
         task.clear();
@@ -47,7 +49,7 @@ public class TaskTest
         try {
             task.createAllocatedCompartment();
             fail("Exception about no available virtual room should be thrown.");
-        } catch (FaultException exception) {
+        } catch (ReportException exception) {
         }
 
         task.clear();
@@ -56,7 +58,7 @@ public class TaskTest
         try {
             task.createAllocatedCompartment();
             fail("Exception about no alias available should be thrown.");
-        } catch (FaultException exception) {
+        } catch (ReportException exception) {
         }
     }
 
@@ -151,7 +153,7 @@ public class TaskTest
             task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.SIP}));
             allocatedCompartment = task.createAllocatedCompartment();
             fail("Only one SIP alias should be possible to allocate.");
-        } catch (FaultException exception) {
+        } catch (ReportException exception) {
         }
     }
 

@@ -5,10 +5,12 @@ import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
 import cz.cesnet.shongo.controller.api.ControllerFault;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.CompartmentRequest;
 import cz.cesnet.shongo.controller.request.CompartmentRequestManager;
 import cz.cesnet.shongo.controller.scheduler.Task;
+import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -16,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
 import java.util.List;
 
 /**
@@ -123,9 +124,8 @@ public class Scheduler extends Component
             // Get requested slot and check it's maximum duration
             Interval requestedSlot = compartmentRequest.getRequestedSlot();
             if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
-                throw new FaultException("Requested slot '%s' is longer than maximum '%s'!",
-                        requestedSlot.toPeriod().normalizedStandard().toString(),
-                        cache.getAllocatedResourceMaximumDuration().toString());
+                throw new DurationLongerThanMaximumReport(requestedSlot.toPeriod().normalizedStandard(),
+                        cache.getAllocatedResourceMaximumDuration().toPeriod().normalizedStandard()).exception();
             }
 
             // Get list of requested resources
@@ -160,7 +160,7 @@ public class Scheduler extends Component
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATED);
             compartmentRequestManager.update(compartmentRequest);
         }
-        catch (FaultException exception) {
+        catch (ReportException exception) {
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED, exception.getMessage());
             compartmentRequestManager.update(compartmentRequest);
         }

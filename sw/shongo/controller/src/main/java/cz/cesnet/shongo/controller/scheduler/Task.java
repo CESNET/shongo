@@ -7,13 +7,15 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.report.*;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.util.TemporalHelper;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -38,6 +40,11 @@ public class Task
     private static Logger logger = LoggerFactory.getLogger(Task.class);
 
     /**
+     * List of reports.
+     */
+    private List<Report> reports = new ArrayList<Report>();
+
+    /**
      * Interval for which the task is performed.
      */
     private Interval interval;
@@ -50,7 +57,7 @@ public class Task
     /**
      * @see {@link Cache.Transaction}
      */
-    Cache.Transaction cacheTransaction;
+    private Cache.Transaction cacheTransaction;
 
     /**
      * List of all {@link AllocatedItem} added to the task.
@@ -99,6 +106,14 @@ public class Task
     }
 
     /**
+     * @return {@link #reports}
+     */
+    public List<Report> getReports()
+    {
+        return reports;
+    }
+
+    /**
      * @param callInitiation sets the {@link #callInitiation}
      */
     public void setCallInitiation(CallInitiation callInitiation)
@@ -126,7 +141,7 @@ public class Task
      *
      * @param resourceSpecification
      */
-    public void addResource(ResourceSpecification resourceSpecification) throws FaultException
+    public void addResource(ResourceSpecification resourceSpecification) throws ReportException
     {
         if (resourceSpecification instanceof ExternalEndpointSpecification) {
             AllocatedExternalEndpoint allocatedExternalEndpoint =
@@ -138,23 +153,15 @@ public class Task
             Resource resource = existingResource.getResource();
             if (cacheTransaction.containsResource(resource)) {
                 // Same resource is requested multiple times
-                throw new FaultException("Resource is requested multiple times in specified time slot:\n"
-                        + "  Resource: %s",
-                        resource.getId().toString());
+                throw new ResourceRequestedMultipleTimesReport(resource).exception();
             }
             if (!resource.isAllocatable()) {
                 // Requested resource cannot be allocated
-                throw new FaultException("Requested resource cannot be allocated because it is not allocatable:\n"
-                        + "  Resource: %s",
-                        resource.getId().toString());
+                throw new ResourceNotAllocatableReport(resource).exception();
             }
             if (!cache.isResourceAvailable(resource, interval, cacheTransaction)) {
                 // Requested resource is not available in requested slot
-                throw new FaultException("Requested resource is not available in specified time slot:\n"
-                        + " Time Slot: %s\n"
-                        + "  Resource: %s",
-                        TemporalHelper.formatInterval(interval),
-                        resource.getId().toString());
+                throw new ResourceNotAvailableReport(resource).exception();
             }
             addAllocatedItemByResource(resource, resourceSpecification.getCallInitiation());
         }
@@ -179,24 +186,12 @@ public class Task
                 addAllocatedItemByResource(deviceResource, resourceSpecification.getCallInitiation());
             }
             else {
-                // Resource was not found
-                StringBuilder builder = new StringBuilder();
-                for (Technology technology : technologies) {
-                    if (builder.length() > 0) {
-                        builder.append(", ");
-                    }
-                    builder.append(technology.getName());
-                }
-                throw new FaultException(
-                        "No available resource was found for the following specification:\n"
-                                + "    Time Slot: %s\n"
-                                + " Technologies: %s",
-                        TemporalHelper.formatInterval(interval), builder.toString());
+                throw new ResourceNotFoundReport(technologies).exception();
             }
         }
         else {
-            throw new FaultException("Allocation of '%s' resource is not implemented yet.",
-                    resourceSpecification.getClass());
+            throw new IllegalStateException(String.format("Allocation of '%s' resource is not implemented yet.",
+                    resourceSpecification.getClass()));
         }
     }
 
@@ -279,7 +274,7 @@ public class Task
      * @param allocatedEndpointTo
      */
     private void addConnectionToAllocatedCompartment(AllocatedCompartment allocatedCompartment,
-            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo) throws FaultException
+            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo) throws ReportException
     {
         // Determine call initiation from given endpoints
         CallInitiation callInitiation = determineCallInitiation(allocatedEndpointFrom, allocatedEndpointTo);
@@ -339,29 +334,26 @@ public class Task
                 }
         }
 
+        Report connection = new CreateConnectionBetweenReport(allocatedEndpointFrom, allocatedEndpointTo, technology);
         try {
             addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointFrom, allocatedEndpointTo,
                     technology);
         }
-        catch (Exception exception) {
-            logger.debug("Failed to create connection between two endpoints. Trying opposite direction.", exception);
+        catch (ReportException firstException) {
+            connection.addChildMessage(firstException.getReport());
             try {
                 addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointTo, allocatedEndpointFrom,
                         technology);
             }
-            catch (Exception anotherException) {
-                if (exception instanceof RuntimeException) {
-                    throw (RuntimeException) exception;
-                }
-                else if (exception instanceof FaultException) {
-                    throw (FaultException) exception;
-                }
-                else {
-                    throw new IllegalStateException(exception);
-                }
+            catch (ReportException secondException) {
+                connection.addChildMessage(secondException.getReport());
+                Report connectionFailed = new CannotCreateConnectionBetweenReport(allocatedEndpointFrom,
+                        allocatedEndpointTo);
+                connectionFailed.addChildMessage(connection);
+                throw connectionFailed.exception();
             }
         }
-
+        reports.add(connection);
     }
 
     /**
@@ -375,14 +367,14 @@ public class Task
      */
     private void addConnectionToAllocatedCompartment(AllocatedCompartment allocatedCompartment,
             AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo, Technology technology)
-            throws FaultException
+            throws ReportException
     {
         // Created connection
         Connection connection = null;
 
         // TODO: implement connections to multiple endpoints
         if (allocatedEndpointTo.getCount() > 1) {
-            throw new IllegalStateException("Cannot create connection to multiple endpoints.");
+            throw new CannotCreateConnectionFromToMultipleReport(allocatedEndpointFrom, allocatedEndpointTo).exception();
         }
 
         // Find existing alias for connection
@@ -408,17 +400,23 @@ public class Task
         }
         else {
             // Allocated alias for the target endpoint
-            AllocatedAlias allocatedAlias = allocateAlias((AllocatedItem) allocatedEndpointTo, technology);
-            allocatedEndpointTo.assignAlias(allocatedAlias.getAlias());
-            allocatedCompartment.addAllocatedItem(allocatedAlias);
-            // Create connection by the created alias
-            ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-            connectionByAlias.setAlias(allocatedAlias.getAlias());
-            connection = connectionByAlias;
+            try {
+                AllocatedAlias allocatedAlias = allocateAlias((AllocatedItem) allocatedEndpointTo, technology);
+                allocatedEndpointTo.assignAlias(allocatedAlias.getAlias());
+                allocatedCompartment.addAllocatedItem(allocatedAlias);
+                // Create connection by the created alias
+                ConnectionByAlias connectionByAlias = new ConnectionByAlias();
+                connectionByAlias.setAlias(allocatedAlias.getAlias());
+                connection = connectionByAlias;
+            } catch (ReportException exception) {
+                Report report = new CannotCreateConnectionFromToReport(allocatedEndpointFrom, allocatedEndpointTo);
+                report.addChildMessage(exception.getReport());
+                throw report.exception();
+            }
         }
 
         if (connection == null) {
-            throw new IllegalStateException("No connection can be created between endpoints.");
+            throw new CannotCreateConnectionFromToReport(allocatedEndpointFrom, allocatedEndpointTo).exception();
         }
 
         connection.setAllocatedEndpointFrom((AllocatedItem) allocatedEndpointFrom);
@@ -434,7 +432,7 @@ public class Task
      * @return
      * @throws FaultException
      */
-    private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws FaultException
+    private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws ReportException
     {
         AvailableAlias availableAlias = null;
         // First try to allocate alias from a resource capabilities
@@ -454,11 +452,7 @@ public class Task
             availableAlias = cache.getAvailableAlias(cacheTransaction, technology, interval);
         }
         if (availableAlias == null) {
-            throw new FaultException(
-                    "No available alias was found for the following specification:\n"
-                            + "  Time Slot: %s\n"
-                            + " Technology: %s",
-                    TemporalHelper.formatInterval(interval), technology.getName());
+            throw new NoAvailableAliasReport(technology).exception();
         }
         AllocatedAlias allocatedAlias = new AllocatedAlias();
         allocatedAlias.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
@@ -507,7 +501,7 @@ public class Task
      *
      * @return plan if possible, null otherwise
      */
-    private AllocatedCompartment createNoVirtualRoomAllocatedCompartment() throws FaultException
+    private AllocatedCompartment createNoVirtualRoomAllocatedCompartment() throws ReportException
     {
         // Maximal two endpoints may be connected without virtual room
         if (totalAllocatedEndpointCount > 2 || allocatedEndpoints.size() > 2) {
@@ -539,6 +533,12 @@ public class Task
                 if (connectivityEdge == null) {
                     return null;
                 }
+            }
+        } else {
+            // Only allocated resource is allowed
+            AllocatedEndpoint allocatedEndpoint = allocatedEndpoints.get(0);
+            if (!(allocatedEndpoint instanceof AllocatedResource)) {
+                return null;
             }
         }
 
@@ -572,7 +572,7 @@ public class Task
      *
      * @return plan if possible, null otherwise
      */
-    private AllocatedCompartment createSingleVirtualRoomAllocatedCompartment() throws FaultException
+    private AllocatedCompartment createSingleVirtualRoomAllocatedCompartment() throws ReportException
     {
         Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
 
@@ -618,7 +618,7 @@ public class Task
      * @return created {@link AllocatedCompartment} if possible, null otherwise
      * @throws FaultException
      */
-    public AllocatedCompartment createAllocatedCompartment() throws FaultException
+    public AllocatedCompartment createAllocatedCompartment() throws ReportException
     {
         if (totalAllocatedEndpointCount <= 1) {
             // Check whether an existing resource is requested
@@ -629,7 +629,7 @@ public class Task
                 }
             }
             if (!resourceRequested) {
-                throw new FaultException("No resource is requested for scheduling.");
+                throw new NotEnoughEndpointInCompartmentReport().exception();
             }
         }
 
@@ -645,14 +645,8 @@ public class Task
 
         // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
 
-        // No virtual rooms is available
-        throw new FaultException("No single virtual room was found for following specification:\n"
-                + "       Time slot: %s\n"
-                + "      Technology: %s\n"
-                + " Number of ports: %d",
-                TemporalHelper.formatInterval(interval),
-                Technology.formatTechnologySets(getSingleVirtualRoomPlanTechnologySets()),
-                totalAllocatedEndpointCount);
+        throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(), totalAllocatedEndpointCount)
+                .exception();
     }
 
     /**
@@ -685,6 +679,11 @@ public class Task
         dialog.setSize(dimension);
         dialog.setModal(true);
         dialog.setVisible(true);
+    }
+
+    public void printReports()
+    {
+
     }
 
     /**

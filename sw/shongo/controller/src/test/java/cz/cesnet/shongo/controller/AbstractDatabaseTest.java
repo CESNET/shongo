@@ -62,6 +62,8 @@ public abstract class AbstractDatabaseTest
     @After
     public void after()
     {
-        entityManagerFactory.close();
+        if (entityManagerFactory != null) {
+            entityManagerFactory.close();
+        }
     }
 }

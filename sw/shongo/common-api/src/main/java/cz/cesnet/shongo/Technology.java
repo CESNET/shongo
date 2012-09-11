@@ -116,24 +116,6 @@ public enum Technology
     }
 
     /**
-     * @return formatted given {@code #technologies} as string
-     */
-    public static String formatTechnologySets(Collection<Set<Technology>> technologySets)
-    {
-        StringBuilder builder = new StringBuilder();
-        for (Set<Technology> technologies : technologySets) {
-            if (builder.length() > 0) {
-                builder.append(", ");
-            }
-            builder.append("[");
-            builder.append(formatTechnologies(technologies));
-            builder.append("]");
-        }
-        return builder.toString();
-    }
-
-
-    /**
      * Recursive implementation of {@link #interconnect(java.util.List)}. Each recursion level process single
      * {@link Set<Technology>} from {@code inputTechnologySets} (at {@code currentIndex}).
      *
