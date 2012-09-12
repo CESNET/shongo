@@ -49,7 +49,7 @@ public class AllocatingVirtualRoomReport extends AbstractResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Allocating virtual room on %s for %d ports.",
+        return String.format("Allocating virtual room in %s for %d ports.",
                 getResourceAsString(), getPortCount());
     }
 }

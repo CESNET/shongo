@@ -22,6 +22,23 @@ public class AllocatedResource extends AllocatedItem
     private Resource resource;
 
     /**
+     * Constructor.
+     */
+    public AllocatedResource()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param resource sets the {@link #resource}
+     */
+    public AllocatedResource(Resource resource)
+    {
+        setResource(resource);
+    }
+
+    /**
      * @return {@link #resource}
      */
     @ManyToOne

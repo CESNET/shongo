@@ -50,7 +50,7 @@ public abstract class AbstractConnectionReport extends Report
     {
         if (allocatedEndpoint instanceof AllocatedVirtualRoom) {
             AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedEndpoint;
-            return String.format("virtual room on %s",
+            return String.format("virtual room in %s",
                     AbstractResourceReport.formatResource(allocatedVirtualRoom.getResource()));
         }
         if (allocatedEndpoint instanceof AllocatedResource) {

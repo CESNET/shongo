@@ -35,6 +35,23 @@ public class AllocatedDevice extends AllocatedResource implements AllocatedEndpo
     private List<Alias> aliases = new ArrayList<Alias>();
 
     /**
+     * Constructor.
+     */
+    public AllocatedDevice()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param deviceResource sets the {@link #setResource(cz.cesnet.shongo.controller.resource.Resource)}
+     */
+    public AllocatedDevice(DeviceResource deviceResource)
+    {
+        super(deviceResource);
+    }
+
+    /**
      * @return {@link #persons}
      */
     @OneToMany

@@ -4,13 +4,12 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
-import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedItem;
+import cz.cesnet.shongo.controller.allocation.*;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExistingResourceSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -105,6 +104,31 @@ public class TaskTest
         assertNotNull(allocatedCompartment);
         assertEquals(3, allocatedCompartment.getAllocatedItems().size());
         assertEquals(2, allocatedCompartment.getConnections().size());
+    }
+
+    @Test
+    public void testSingleVirtualRoomFromMultipleEndpoints() throws Exception
+    {
+        Cache cache = Cache.createTestingCache();
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setAllocatable(true);
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(100));
+        mcu.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95[ddd]"));
+        cache.addResource(mcu);
+
+        DeviceResource terminal = new DeviceResource();
+        terminal.setAllocatable(true);
+        terminal.setTechnology(Technology.H323);
+        terminal.addCapability(new StandaloneTerminalCapability());
+        cache.addResource(terminal);
+
+        Task task = new Task(Interval.parse("2012/2013"), cache);
+        task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 50)));
+        task.addAllocatedItem(new AllocatedDevice(terminal));
+        AllocatedCompartment allocatedCompartment = task.createAllocatedCompartment();
+        assertEquals(4, allocatedCompartment.getAllocatedItems().size());
     }
 
     @Test

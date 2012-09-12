@@ -88,7 +88,7 @@ public class NoAvailableVirtualRoomReport extends Report
     @Transient
     public String getText()
     {
-        return String.format("No single virtual room was found for following specification:\n"
+        return String.format("No virtual room was found for the following specification:\n"
                 + "      Technology: %s\n"
                 + " Number of ports: %d",
                 technologySetsToString(),
