@@ -6,9 +6,8 @@ import cz.cesnet.shongo.controller.report.Report;
 import javax.persistence.*;
 
 /**
- * TODO:
- *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see {@link #getText()}
  */
 @Entity
 public class NoAvailableAliasReport extends Report

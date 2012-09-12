@@ -325,7 +325,7 @@ public class ReservationRequest extends IdentifiedChangeableObject
         /**
          * Description of state.
          */
-        private String stateDescription;
+        private String stateReport;
 
         /**
          * @return {@link #slot}
@@ -360,19 +360,19 @@ public class ReservationRequest extends IdentifiedChangeableObject
         }
 
         /**
-         * @return {@link #stateDescription}
+         * @return {@link #stateReport}
          */
-        public String getStateDescription()
+        public String getStateReport()
         {
-            return stateDescription;
+            return stateReport;
         }
 
         /**
-         * @param stateDescription sets the {@link #stateDescription}
+         * @param stateReport sets the {@link #stateReport}
          */
-        public void setStateDescription(String stateDescription)
+        public void setStateReport(String stateReport)
         {
-            this.stateDescription = stateDescription;
+            this.stateReport = stateReport;
         }
     }
 }

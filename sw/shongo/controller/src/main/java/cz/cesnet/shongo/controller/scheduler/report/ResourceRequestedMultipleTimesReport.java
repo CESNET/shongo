@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.resource.Resource;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
 public class ResourceRequestedMultipleTimesReport extends AbstractResourceReport
@@ -33,6 +33,6 @@ public class ResourceRequestedMultipleTimesReport extends AbstractResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Resource %s is requested multiple times.", getResource());
+        return String.format("Resource %s is requested multiple times.", getResourceAsString());
     }
 }

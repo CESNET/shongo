@@ -1,15 +1,13 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedItem;
-import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
 public class CannotCreateConnectionFromToReport extends AbstractConnectionReport

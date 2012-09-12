@@ -3,13 +3,15 @@ package cz.cesnet.shongo.controller.scheduler.report;
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
 import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
 import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
 
 /**
+ * Represents a {@link Report} for connection between two {@link AllocatedEndpoint}s.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
  */
 @Entity
 public abstract class AbstractConnectionReport extends Report
@@ -46,18 +48,22 @@ public abstract class AbstractConnectionReport extends Report
     @Transient
     private String getEndpoint(AllocatedEndpoint allocatedEndpoint)
     {
+        if (allocatedEndpoint instanceof AllocatedVirtualRoom) {
+            AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedEndpoint;
+            return String.format("virtual room on %s",
+                    AbstractResourceReport.formatResource(allocatedVirtualRoom.getResource()));
+        }
         if (allocatedEndpoint instanceof AllocatedResource) {
             AllocatedResource allocatedResource = (AllocatedResource) allocatedEndpoint;
-            return "resource(id: " + allocatedResource.getResource().getId() + ")";
+            return AbstractResourceReport.formatResource(allocatedResource.getResource());
         }
         else if (allocatedEndpoint instanceof AllocatedExternalEndpoint) {
             AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) allocatedEndpoint;
-            return "external endpoint(count: "
-                    + allocatedExternalEndpoint.getExternalEndpointSpecification().getCount() + ")";
+            return String.format("external endpoint(count: %d)",
+                    allocatedExternalEndpoint.getExternalEndpointSpecification().getCount());
         }
         else {
-            throw new IllegalArgumentException("Unknown type of allocated endpoint '"
-                    + allocatedEndpoint.getClass().getSimpleName() + "'.");
+            return allocatedEndpoint.toString();
         }
     }
 

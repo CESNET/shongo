@@ -7,7 +7,7 @@ import javax.persistence.Transient;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
 public class ResourceNotAvailableReport extends AbstractResourceReport
@@ -33,6 +33,6 @@ public class ResourceNotAvailableReport extends AbstractResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Resource %s is not available.", getResource());
+        return String.format("Resource %s is not available.", getResourceAsString());
     }
 }

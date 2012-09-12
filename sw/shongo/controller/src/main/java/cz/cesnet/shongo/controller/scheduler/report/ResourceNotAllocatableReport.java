@@ -7,7 +7,7 @@ import javax.persistence.Transient;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
 public class ResourceNotAllocatableReport extends AbstractResourceReport
@@ -33,6 +33,6 @@ public class ResourceNotAllocatableReport extends AbstractResourceReport
     @Transient
     public String getText()
     {
-        return String.format("Resource %s is not allocatable.", getResource());
+        return String.format("Resource %s is not allocatable.", getResourceAsString());
     }
 }

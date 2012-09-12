@@ -107,6 +107,8 @@ public class Scheduler extends Component
     {
         logger.info("Allocating compartment request '{}'...", compartmentRequest.getId());
 
+        compartmentRequest.clearReports();
+
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
 
@@ -120,9 +122,14 @@ public class Scheduler extends Component
             allocatedCompartmentManager.delete(allocatedCompartment, cache);
         }
 
+        // Get requested slot and check it's maximum duration
+        Interval requestedSlot = compartmentRequest.getRequestedSlot();
+
+        // Create new scheduler task
+        Task task = new Task(requestedSlot, cache);
+
         try {
-            // Get requested slot and check it's maximum duration
-            Interval requestedSlot = compartmentRequest.getRequestedSlot();
+
             if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
                 throw new DurationLongerThanMaximumReport(requestedSlot.toPeriod().normalizedStandard(),
                         cache.getAllocatedResourceMaximumDuration().toPeriod().normalizedStandard()).exception();
@@ -133,7 +140,7 @@ public class Scheduler extends Component
                     compartmentRequest.getRequestedResourcesForScheduler();
 
             // Initialize scheduler task (by adding all requested resources to it)
-            Task task = new Task(requestedSlot, cache);
+
             CallInitiation callInitiation = compartmentRequest.getCompartment().getCallInitiation();
             if (callInitiation != null) {
                 task.setCallInitiation(callInitiation);
@@ -158,11 +165,13 @@ public class Scheduler extends Component
 
             // Set compartment state to allocated
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATED);
+            compartmentRequest.setReports(task.getReports());
             compartmentRequestManager.update(compartmentRequest);
         }
         catch (ReportException exception) {
-            compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED, exception.getMessage());
-            compartmentRequestManager.update(compartmentRequest);
+            compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED);
+            compartmentRequest.setReports(task.getReports());
+            compartmentRequest.addReport(exception.getReport());
         }
     }
 }

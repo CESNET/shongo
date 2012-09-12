@@ -1,16 +1,15 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 
 /**
+ * Represents a {@link Report} for {@link Resource} processed by scheduler.
+ *
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
  */
 @Entity
 public abstract class AbstractResourceReport extends Report
@@ -18,7 +17,7 @@ public abstract class AbstractResourceReport extends Report
     /**
      * Identification of resource.
      */
-    private String resource;
+    private Resource resource;
 
     /**
      * Constructor.
@@ -34,16 +33,36 @@ public abstract class AbstractResourceReport extends Report
      */
     public AbstractResourceReport(Resource resource)
     {
-        this.resource = "resource(id: " + resource.getId() + ")";;
+        this.resource = resource;
     }
 
     /**
      * @return {@link #resource}
      */
-    @Column
+    @OneToOne
     @Access(AccessType.FIELD)
-    public String getResource()
+    public Resource getResource()
     {
         return resource;
+    }
+
+    @Transient
+    public String getResourceAsString()
+    {
+        return formatResource(resource);
+    }
+
+    /**
+     * @param resource
+     * @return formatted resource
+     */
+    public static String formatResource(Resource resource)
+    {
+        if (resource == null) {
+            return "null";
+        }
+        return String.format("%s(id: %d)",
+                (resource instanceof DeviceResource ? "device" : "resource"),
+                resource.getId());
     }
 }

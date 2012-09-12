@@ -2,8 +2,6 @@ package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.util.TemporalHelper;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -12,9 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * TODO:
- *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @see {@link #getText()}
  */
 @Entity
 public class NoAvailableVirtualRoomReport extends Report
@@ -61,11 +58,13 @@ public class NoAvailableVirtualRoomReport extends Report
     }
 
     /**
-     * @param technologySets sets the {@link #technologySets}
+     * @return {@link #portCount}
      */
-    public void setTechnologySets(List<TechnologySet> technologySets)
+    @Column
+    @Access(AccessType.FIELD)
+    public Integer getPortCount()
     {
-        this.technologySets = technologySets;
+        return portCount;
     }
 
     /**

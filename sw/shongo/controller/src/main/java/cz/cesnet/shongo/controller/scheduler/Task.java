@@ -137,6 +137,14 @@ public class Task
     }
 
     /**
+     * @param report to be added to the {@link #reports}
+     */
+    private void addReport(Report report)
+    {
+        reports.add(report);
+    }
+
+    /**
      * Add resource to the task
      *
      * @param resourceSpecification
@@ -334,7 +342,7 @@ public class Task
                 }
         }
 
-        Report connection = new CreateConnectionBetweenReport(allocatedEndpointFrom, allocatedEndpointTo, technology);
+        Report connection = new CreatingConnectionBetweenReport(allocatedEndpointFrom, allocatedEndpointTo, technology);
         try {
             addConnectionToAllocatedCompartment(allocatedCompartment, allocatedEndpointFrom, allocatedEndpointTo,
                     technology);
@@ -353,7 +361,7 @@ public class Task
                 throw connectionFailed.exception();
             }
         }
-        reports.add(connection);
+        addReport(connection);
     }
 
     /**
@@ -596,12 +604,15 @@ public class Task
         // Get the first virtual room
         AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
 
-        // Create allocated compartment
-        AllocatedCompartment allocatedCompartment = new AllocatedCompartment();
+        // Create allocated virtual room
         AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
         allocatedVirtualRoom.setSlot(interval);
         allocatedVirtualRoom.setResource(availableVirtualRoom.getDeviceResource());
         allocatedVirtualRoom.setPortCount(totalAllocatedEndpointCount);
+        addReport(new AllocatingVirtualRoomReport(allocatedVirtualRoom));
+
+        // Create allocated compartment
+        AllocatedCompartment allocatedCompartment = new AllocatedCompartment();
         allocatedCompartment.addAllocatedItem(allocatedVirtualRoom);
         for (AllocatedItem allocatedItem : allocatedItems) {
             allocatedItem.setSlot(interval);

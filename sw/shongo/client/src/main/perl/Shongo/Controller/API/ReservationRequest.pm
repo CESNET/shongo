@@ -350,6 +350,57 @@ sub modify_compartments
 }
 
 #
+# Format report
+#
+sub format_report($)
+{
+    my ($report) = @_;
+    my $max_line_width = get_term_width() - 7;
+    my @lines = split("\n", $report);
+    $report = '';
+    # Process each line from report
+    for ( my $index = 0; $index < scalar(@lines); $index++ ) {
+        my $line = $lines[$index];
+        my $nextLine = $lines[$index + 1];
+        if ( length($report) > 0 ) {
+            $report .= "\n";
+        }
+
+        # Calculate new line indent
+        my $indent = '';
+        if ( $line =~ /(^[| ]*\+?)(-+)/ ) {
+            my $start = $1;
+            $indent = $1 . $2;
+            $indent =~ s/[-]/ /g;
+
+            $start =~ s/[\+]/|/g;
+            if ( $nextLine =~ /^\Q$start/ ) {
+                $indent =~ s/\+/|/g;
+            }
+            else {
+                $indent =~ s/\+/ /g;
+            }
+        }
+
+        # Break line to multiple lines
+        while ( length($line) > $max_line_width ) {
+            my $index = rindex($line, " ", $max_line_width);
+            if ($index == -1) {
+                $index = $max_line_width;
+            }
+            $report .= substr($line, 0, $index);
+            $report .= "\n". $indent;
+            $line = substr($line, $index + 1);
+        }
+
+        # Append the rest
+        $report .= $line;
+    }
+
+    return $report;
+}
+
+#
 # Convert object to string
 #
 sub to_string()
@@ -378,15 +429,15 @@ sub to_string()
             my $state = $RequestState->{$processedSlots->{'state'}};
             $string .= sprintf("   %d) %s (%s)\n", $index + 1, format_interval($slot), $state);
 
-            my $stateDescription = $processedSlots->{'stateDescription'};
-            if ( defined($stateDescription) ) {
+            my $stateReport = format_report($processedSlots->{'stateReport'});
+            if ( defined($stateReport) ) {
                 my $color = 'blue';
                 if ( $processedSlots->{'state'} eq 'ALLOCATION_FAILED' ) {
                     $color = 'red';
                 }
-                $stateDescription =~ s/\n/\n      /g;
-                $stateDescription =~ s/\n      $/\n/g;
-                $string .= sprintf("      %s\n", colored($stateDescription, $color));
+                $stateReport =~ s/\n/\n      /g;
+                $stateReport =~ s/\n      $/\n/g;
+                $string .= sprintf("      %s\n", colored($stateReport, $color));
             }
         }
     }

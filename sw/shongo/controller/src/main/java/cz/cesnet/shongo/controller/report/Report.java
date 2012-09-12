@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a report for the scheduler.
+ * Represents a report (e.g., text message) describing some event concerning {@link ReportableObject}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -85,6 +85,9 @@ public abstract class Report
         return childReports;
     }
 
+    /**
+     * @param childReports sets the {@link #childReports}
+     */
     public void setChildReports(List<Report> childReports)
     {
         this.childReports = childReports;
@@ -126,8 +129,21 @@ public abstract class Report
     @Override
     public String toString()
     {
+        return getReport();
+    }
+
+    /**
+     * @return formatted text and help of the {@link Report}
+     */
+    @Transient
+    public String getReport()
+    {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(getText());
+
+        String text = getText();
+        text = text.replace("\n", "\n ");
+        stringBuilder.append("-");
+        stringBuilder.append(text);
 
         String help = getHelp();
         if (help != null) {
@@ -139,16 +155,19 @@ public abstract class Report
             int childReportsCount = childReports.size();
             for (int index = 0; index < childReportsCount; index++) {
                 stringBuilder.append("\n |");
-                String childReportString = childReports.get(index).toString();
+                String childReportString = childReports.get(index).getReport();
                 childReportString = childReportString.replace("\n",
-                        (index < (childReportsCount - 1) ? "\n |   " : "\n    "));
-                stringBuilder.append("\n +-- ");
+                        (index < (childReportsCount - 1) ? "\n |  " : "\n    "));
+                stringBuilder.append("\n +-");
                 stringBuilder.append(childReportString);
             }
         }
         return stringBuilder.toString();
     }
 
+    /**
+     * @return {@link ReportException} with this {@link Report} as description
+     */
     public ReportException exception()
     {
         return new ReportException(this);

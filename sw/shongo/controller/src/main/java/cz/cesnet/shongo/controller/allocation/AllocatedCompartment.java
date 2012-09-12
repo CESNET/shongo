@@ -88,7 +88,7 @@ public class AllocatedCompartment extends PersistentObject
     /**
      * @return {@link #allocatedItems}
      */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "allocatedCompartment")
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public List<AllocatedItem> getAllocatedItems()
     {
@@ -100,11 +100,7 @@ public class AllocatedCompartment extends PersistentObject
      */
     public void addAllocatedItem(AllocatedItem allocatedItem)
     {
-        // Manage bidirectional association
-        if (allocatedItems.contains(allocatedItem) == false) {
-            allocatedItems.add(allocatedItem);
-            allocatedItem.setAllocatedCompartment(this);
-        }
+        allocatedItems.add(allocatedItem);
     }
 
     /**
@@ -112,11 +108,7 @@ public class AllocatedCompartment extends PersistentObject
      */
     public void removeAllocatedItem(AllocatedItem allocatedItem)
     {
-        // Manage bidirectional association
-        if (allocatedItems.contains(allocatedItem)) {
-            allocatedItems.remove(allocatedItem);
-            allocatedItem.setAllocatedCompartment(null);
-        }
+        allocatedItems.remove(allocatedItem);
     }
 
     /**

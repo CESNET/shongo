@@ -277,7 +277,7 @@ public class ReservationRequestTest extends AbstractDatabaseTest
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(getEntityManager());
         List<AllocatedCompartment> allocatedCompartments = allocatedCompartmentManager.listByReservationRequest(reservationRequest);
         if (allocatedCompartments.size() == 0) {
-            System.err.println(compartmentRequest.getStateDescription());
+            System.err.println(compartmentRequest.getReportText());
             Thread.sleep(100);
         }
         assertEquals(1, allocatedCompartments.size());

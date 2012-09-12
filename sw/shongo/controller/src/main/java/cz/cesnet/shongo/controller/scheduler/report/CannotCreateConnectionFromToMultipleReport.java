@@ -7,7 +7,7 @@ import javax.persistence.Transient;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
 public class CannotCreateConnectionFromToMultipleReport extends AbstractConnectionReport

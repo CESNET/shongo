@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.request.report.PersonWithoutEndpointReport;
+import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.report.ReportableObject;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -15,7 +17,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class CompartmentRequest extends PersistentObject
+public class CompartmentRequest extends ReportableObject
 {
     /**
      * Enumeration of compartment request state.
@@ -92,11 +94,6 @@ public class CompartmentRequest extends PersistentObject
      * State of the compartment request.
      */
     private State state;
-
-    /**
-     * Description of the current compartment request state (e.g., the reason of {@link State#ALLOCATION_FAILED}).
-     */
-    private String stateDescription;
 
     /**
      * @return {@link #compartment}
@@ -291,28 +288,6 @@ public class CompartmentRequest extends PersistentObject
     public void setState(State state)
     {
         this.state = state;
-        this.stateDescription = null;
-    }
-
-    /**
-     * @param state            sets the {@link #state}
-     * @param stateDescription {@link #stateDescription}
-     */
-    public void setState(State state, String stateDescription)
-    {
-        this.state = state;
-        this.stateDescription = stateDescription;
-    }
-
-    /**
-     * @return {@link #stateDescription}
-     */
-    @Column
-    @Lob
-    @Access(AccessType.FIELD)
-    public String getStateDescription()
-    {
-        return stateDescription;
     }
 
     /**
@@ -338,23 +313,23 @@ public class CompartmentRequest extends PersistentObject
      */
     public void updateStateByRequestedPersons()
     {
-        State state = getState();
-        StringBuilder stateDescription = new StringBuilder();
-        if (state == null || state == State.NOT_COMPLETE) {
-            state = State.COMPLETE;
+        State newState = getState();
+        if (newState == null || newState == State.NOT_COMPLETE) {
+            newState = State.COMPLETE;
         }
+        List<Report> reports = new ArrayList<Report>();
         for (PersonRequest personRequest : requestedPersons) {
             PersonRequest.State personRequestState = personRequest.getState();
             if (personRequestState == PersonRequest.State.NOT_ASKED
                     || personRequestState == PersonRequest.State.ASKED) {
-                state = State.NOT_COMPLETE;
-
-                Person person = personRequest.getPerson();
-                stateDescription.append(String.format("%s (%s) hasn't selected an endpoint yet.\n",
-                        person.getName(), person.getEmail()));
+                newState = State.NOT_COMPLETE;
+                reports.add(new PersonWithoutEndpointReport(personRequest.getPerson()));
             }
         }
-        setState(state, (stateDescription.length() > 0 ? stateDescription.toString() : null));
+        if (newState != getState()) {
+            setState(newState);
+            setReports(reports);
+        }
     }
 
     @Override

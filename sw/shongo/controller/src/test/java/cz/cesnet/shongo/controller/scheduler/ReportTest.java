@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
@@ -8,25 +7,10 @@ import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Address;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
-import cz.cesnet.shongo.controller.scheduler.report.NoAvailableVirtualRoomReport;
-import cz.cesnet.shongo.controller.scheduler.report.NotEnoughEndpointInCompartmentReport;
-import org.hibernate.Session;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
-import org.hsqldb.util.DatabaseManagerSwing;
 import org.joda.time.Interval;
 import org.junit.Test;
-
-import javax.persistence.EntityManager;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static junit.framework.Assert.assertEquals;
 
 /**
  * Tests for {@link cz.cesnet.shongo.controller.scheduler.Task}

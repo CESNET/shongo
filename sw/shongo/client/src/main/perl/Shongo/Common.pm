@@ -15,7 +15,7 @@ our @EXPORT = qw(
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
     format_datetime format_date format_datetime_partial format_interval
     var_dump
-    get_home_directory
+    get_home_directory get_term_width
 );
 
 use DateTime::Format::ISO8601;
@@ -287,6 +287,16 @@ sub var_dump
 sub get_home_directory
 {
     return File::HomeDir->my_home;
+}
+
+#
+# Get terminal width
+#
+sub get_term_width
+{
+    use Term::ReadKey;
+    my ($wchar, $hchar, $wpixels, $hpixels) = GetTerminalSize();
+    return $wchar
 }
 
 1;

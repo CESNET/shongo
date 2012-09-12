@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -10,7 +9,7 @@ import java.util.Set;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
 public class ResourceNotFoundReport extends Report

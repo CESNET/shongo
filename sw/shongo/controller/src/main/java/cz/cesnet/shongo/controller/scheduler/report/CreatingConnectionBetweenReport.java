@@ -4,15 +4,13 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
- * @see {@link #toString()}
+ * @see {@link #getText()}
  */
 @Entity
-public class CreateConnectionBetweenReport extends AbstractConnectionReport
+public class CreatingConnectionBetweenReport extends AbstractConnectionReport
 {
     /**
      * Set of technologies.
@@ -22,7 +20,7 @@ public class CreateConnectionBetweenReport extends AbstractConnectionReport
     /**
      * Constructor.
      */
-    public CreateConnectionBetweenReport()
+    public CreatingConnectionBetweenReport()
     {
     }
 
@@ -32,7 +30,7 @@ public class CreateConnectionBetweenReport extends AbstractConnectionReport
      * @param endpointFrom
      * @param endpointTo
      */
-    public CreateConnectionBetweenReport(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo,
+    public CreatingConnectionBetweenReport(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo,
             Technology technology)
     {
         super(endpointFrom, endpointTo);

@@ -33,35 +33,6 @@ public class AllocatedItem extends PersistentObject
     private DateTime slotEnd;
 
     /**
-     * @return {@link #allocatedCompartment}
-     */
-    @ManyToOne
-    @Access(AccessType.FIELD)
-    public AllocatedCompartment getAllocatedCompartment()
-    {
-        return allocatedCompartment;
-    }
-
-    /**
-     * @param allocatedCompartment sets the {@link #allocatedCompartment}
-     */
-    public void setAllocatedCompartment(AllocatedCompartment allocatedCompartment)
-    {
-        // Manage bidirectional association
-        if (allocatedCompartment != this.allocatedCompartment) {
-            if (this.allocatedCompartment != null) {
-                AllocatedCompartment oldAllocatedCompartment = this.allocatedCompartment;
-                this.allocatedCompartment = null;
-                oldAllocatedCompartment.removeAllocatedItem(this);
-            }
-            if (allocatedCompartment != null) {
-                this.allocatedCompartment = allocatedCompartment;
-                this.allocatedCompartment.addAllocatedItem(this);
-            }
-        }
-    }
-
-    /**
      * @return {@link #slotStart}
      */
     @Column

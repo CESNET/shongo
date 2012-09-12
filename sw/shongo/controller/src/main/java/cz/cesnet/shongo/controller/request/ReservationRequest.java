@@ -398,7 +398,7 @@ public class ReservationRequest extends PersistentObject
                     request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_ALLOCATED);
                     break;
             }
-            request.setStateDescription(compartmentRequest.getStateDescription());
+            request.setStateReport(compartmentRequest.getReportText());
             reservationRequest.addRequest(request);
         }
 
