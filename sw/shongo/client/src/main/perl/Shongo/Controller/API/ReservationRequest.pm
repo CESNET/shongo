@@ -355,7 +355,7 @@ sub modify_compartments
 sub format_report($)
 {
     my ($report) = @_;
-    my $max_line_width = get_term_width() - 7;
+    my $max_line_width = get_term_width() - 6;
     my @lines = split("\n", $report);
     $report = '';
     # Process each line from report
@@ -374,7 +374,7 @@ sub format_report($)
             $indent =~ s/[-]/ /g;
 
             $start =~ s/[\+]/|/g;
-            if ( $nextLine =~ /^\Q$start/ ) {
+            if ( defined($nextLine) && $nextLine =~ /^\Q$start/ ) {
                 $indent =~ s/\+/|/g;
             }
             else {
@@ -435,9 +435,9 @@ sub to_string()
                 if ( $processedSlots->{'state'} eq 'ALLOCATION_FAILED' ) {
                     $color = 'red';
                 }
-                $stateReport =~ s/\n/\n      /g;
-                $stateReport =~ s/\n      $/\n/g;
-                $string .= sprintf("      %s\n", colored($stateReport, $color));
+                $stateReport =~ s/\n/\n     /g;
+                $stateReport =~ s/\n     $/\n/g;
+                $string .= sprintf("     %s\n", colored($stateReport, $color));
             }
         }
     }
