@@ -34,7 +34,7 @@ public class TaskTest
         task.clear();
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         try {
-            task.createAllocatedCompartment();
+            task.createReservation();
             fail("Exception about not enough requested ports should be thrown.");
         } catch (ReportException exception) {
         }
@@ -43,7 +43,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.SIP}));
         try {
-            task.createAllocatedCompartment();
+            task.createReservation();
             fail("Exception about no available virtual room should be thrown.");
         } catch (ReportException exception) {
         }
@@ -52,7 +52,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         try {
-            task.createAllocatedCompartment();
+            task.createReservation();
             fail("Exception about no alias available should be thrown.");
         } catch (ReportException exception) {
         }
@@ -64,10 +64,10 @@ public class TaskTest
         Task task = new Task(Interval.parse("2012/2013"), new Cache());
         task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
-        AllocatedCompartment allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(2, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(1, allocatedCompartment.getConnections().size());
+        Reservation reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(2, reservation.getAllocatedItems().size());
+        assertEquals(1, reservation.getConnections().size());
     }
 
     @Test
@@ -84,23 +84,23 @@ public class TaskTest
         cache.addResource(deviceResource);
 
         Task task = new Task(Interval.parse("2012/2013"), cache);
-        AllocatedCompartment allocatedCompartment;
+        Reservation reservation;
 
         task.clear();
         task.addAllocatedItem(new SimpleAllocatedEndpoint(false, new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
-        allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(2, allocatedCompartment.getConnections().size());
+        reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(3, reservation.getAllocatedItems().size());
+        assertEquals(2, reservation.getConnections().size());
 
         task.clear();
         task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.SIP}));
-        allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(2, allocatedCompartment.getConnections().size());
+        reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(3, reservation.getAllocatedItems().size());
+        assertEquals(2, reservation.getConnections().size());
     }
 
     @Test
@@ -124,8 +124,8 @@ public class TaskTest
         Task task = new Task(Interval.parse("2012/2013"), cache);
         task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 50)));
         task.addAllocatedItem(new AllocatedDevice(terminal));
-        AllocatedCompartment allocatedCompartment = task.createAllocatedCompartment();
-        assertEquals(4, allocatedCompartment.getAllocatedItems().size());
+        Reservation reservation = task.createReservation();
+        assertEquals(4, reservation.getAllocatedItems().size());
     }
 
     @Test
@@ -147,32 +147,32 @@ public class TaskTest
         cache.addResource(resource);
 
         Task task = new Task(Interval.parse("2012/2013"), cache);
-        AllocatedCompartment allocatedCompartment;
+        Reservation reservation;
 
         task.clear();
         task.setCallInitiation(CallInitiation.TERMINAL);
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
-        allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(4, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(2, allocatedCompartment.getConnections().size());
+        reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(4, reservation.getAllocatedItems().size());
+        assertEquals(2, reservation.getConnections().size());
 
         task.clear();
         task.setCallInitiation(CallInitiation.VIRTUAL_ROOM);
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
-        allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(5, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(2, allocatedCompartment.getConnections().size());
+        reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(5, reservation.getAllocatedItems().size());
+        assertEquals(2, reservation.getConnections().size());
 
         try {
             task.clear();
             task.setCallInitiation(CallInitiation.VIRTUAL_ROOM);
             task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.SIP}));
             task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.SIP}));
-            allocatedCompartment = task.createAllocatedCompartment();
+            reservation = task.createReservation();
             fail("Only one SIP alias should be possible to allocate.");
         } catch (ReportException exception) {
         }
@@ -203,22 +203,22 @@ public class TaskTest
         cache.addResource(terminal2);
 
         Task task = new Task(Interval.parse("2012/2013"), cache);
-        AllocatedCompartment allocatedCompartment;
+        Reservation reservation;
 
         task.clear();
         task.addResource(new ExistingEndpointSpecification(terminal1));
-        allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(2, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(0, allocatedCompartment.getConnections().size());
+        reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(2, reservation.getAllocatedItems().size());
+        assertEquals(0, reservation.getConnections().size());
 
         task.clear();
         task.addResource(new ExistingEndpointSpecification(terminal1));
         task.addResource(new ExistingEndpointSpecification(terminal2));
-        allocatedCompartment = task.createAllocatedCompartment();
-        assertNotNull(allocatedCompartment);
-        assertEquals(3, allocatedCompartment.getAllocatedItems().size());
-        assertEquals(1, allocatedCompartment.getConnections().size());
+        reservation = task.createReservation();
+        assertNotNull(reservation);
+        assertEquals(3, reservation.getAllocatedItems().size());
+        assertEquals(1, reservation.getConnections().size());
     }
 
     private static class SimpleAllocatedEndpoint extends AllocatedItem implements AllocatedEndpoint

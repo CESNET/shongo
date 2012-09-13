@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Represents an abstract specification of any target for a {@link ReservationRequest}.
@@ -36,6 +37,7 @@ public abstract class Specification extends PersistentObject
     /**
      * @return current {@link State} of the {@link Specification}
      */
+    @Transient
     public State getCurrentState()
     {
         return State.READY;

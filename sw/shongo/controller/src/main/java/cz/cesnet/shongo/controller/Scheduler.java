@@ -1,16 +1,18 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
+import cz.cesnet.shongo.controller.allocation.Reservation;
+import cz.cesnet.shongo.controller.allocation.ReservationManager;
 import cz.cesnet.shongo.controller.allocation.AllocatedItem;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CallInitiation;
-import cz.cesnet.shongo.controller.oldrequest.CompartmentRequestManager;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.scheduler.Task;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -20,8 +22,8 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 /**
- * Represents a component of a domain controller that is responsible for allocating resources
- * from a {@link CompartmentRequest} to the {@link AllocatedCompartment}.
+ * Represents a component of a domain controller that is responsible for allocating {@link ReservationRequest}
+ * to the {@link Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -73,19 +75,20 @@ public class Scheduler extends Component
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
 
-        // Delete all allocated compartments which was marked for deletion
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        allocatedCompartmentManager.deleteAllMarked(cache);
+        // Delete all reservations which was marked for deletion
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        reservationManager.deleteAllMarked(cache);
 
         try {
-            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-            List<CompartmentRequest> compartmentRequests = compartmentRequestManager.listCompleted(interval);
+            ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
+            List<ReservationRequest> reservationRequests =
+                    compartmentRequestManager.listCompletedReservationRequests(interval);
 
             // TODO: Process permanent first
             // TODO: Apply some other priority to compartment requests
 
-            for (CompartmentRequest compartmentRequest : compartmentRequests) {
-                allocateCompartmentRequest(compartmentRequest, entityManager);
+            for (ReservationRequest reservationRequest : reservationRequests) {
+                allocateReservationRequest(reservationRequest, entityManager);
             }
 
             transaction.commit();
@@ -98,36 +101,36 @@ public class Scheduler extends Component
     }
 
     /**
-     * Allocate compartment request.
+     * Allocate given {@code reservationRequest}.
      *
-     * @param compartmentRequest
+     * @param reservationRequest to be allocated
      */
-    private void allocateCompartmentRequest(CompartmentRequest compartmentRequest, EntityManager entityManager)
+    private void allocateReservationRequest(ReservationRequest reservationRequest, EntityManager entityManager)
     {
-        logger.info("Allocating compartment request '{}'...", compartmentRequest.getId());
+        logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
-        compartmentRequest.clearReports();
+        reservationRequest.clearReports();
 
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
 
-        // Get existing allocated compartment
-        AllocatedCompartment allocatedCompartment =
-                allocatedCompartmentManager.getByCompartmentRequest(compartmentRequest);
+        // Get existing reservation
+        Reservation reservation = reservationManager.getByReservationRequest(reservationRequest);
 
-        // TODO: Try to intelligently reallocate and not delete old allocation
-        // Delete old allocation
-        if (allocatedCompartment != null) {
-            allocatedCompartmentManager.delete(allocatedCompartment, cache);
+        // TODO: Try to intelligently reallocate and not delete old reservation
+        // Delete old reservation
+        if (reservation != null) {
+            reservationManager.delete(reservation, cache);
         }
 
         // Get requested slot and check it's maximum duration
-        Interval requestedSlot = compartmentRequest.getRequestedSlot();
+        Interval requestedSlot = reservationRequest.getRequestedSlot();
 
         // Create new scheduler task
         Task task = new Task(requestedSlot, cache);
 
-        try {
+        throw new TodoImplementException();
+        /*try {
 
             if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
                 throw new DurationLongerThanMaximumReport(requestedSlot.toPeriod().normalizedStandard(),
@@ -149,28 +152,28 @@ public class Scheduler extends Component
             }
 
             // Create new allocated compartment
-            allocatedCompartment = task.createAllocatedCompartment();
-            allocatedCompartment.setCompartmentRequest(compartmentRequest);
+            reservation = task.createReservation();
+            reservation.setCompartmentRequest(compartmentRequest);
 
             // TODO: Add persons for allocated devices
 
             // Create allocated compartment
-            allocatedCompartmentManager.create(allocatedCompartment);
+            reservationManager.create(reservation);
 
             // Add allocated items to the cache
-            for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+            for (AllocatedItem allocatedItem : reservation.getAllocatedItems()) {
                 cache.addAllocatedItem(allocatedItem);
             }
 
             // Set compartment state to allocated
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATED);
             compartmentRequest.setReports(task.getReports());
-            compartmentRequestManager.update(compartmentRequest);
+            reservationRequestManager.update(compartmentRequest);
         }
         catch (ReportException exception) {
             compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED);
             compartmentRequest.setReports(task.getReports());
             compartmentRequest.addReport(exception.getReport());
-        }
+        }*/
     }
 }

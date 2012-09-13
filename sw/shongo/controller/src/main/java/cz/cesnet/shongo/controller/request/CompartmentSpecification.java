@@ -24,7 +24,7 @@ public class CompartmentSpecification extends Specification
     /**
      * List of specifications for targets which are requested to participate in compartment.
      */
-    private List<Specification> requestedSpecifications = new ArrayList<Specification>();
+    private List<Specification> specifications = new ArrayList<Specification>();
 
     /**
      * Specifies the default option who should initiate the call ({@code null} means
@@ -33,13 +33,14 @@ public class CompartmentSpecification extends Specification
     private CallInitiation callInitiation;
 
     /**
-     * @return {@link #requestedSpecifications}
+     * @return {@link #specifications}
      */
     @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name="child_specification_id")
     @Access(AccessType.FIELD)
-    public List<Specification> getRequestedSpecifications()
+    public List<Specification> getSpecifications()
     {
-        return Collections.unmodifiableList(requestedSpecifications);
+        return Collections.unmodifiableList(specifications);
     }
 
     /**
@@ -47,30 +48,46 @@ public class CompartmentSpecification extends Specification
      * @return {@link Specification} with given {@code id}
      * @throws EntityNotFoundException when the {@link Specification} doesn't exist
      */
-    private Specification getRequestedSpecificationById(Long id) throws EntityNotFoundException
+    private Specification getSpecificationById(Long id) throws EntityNotFoundException
     {
-        for (Specification requestedSpecification : requestedSpecifications) {
-            if (requestedSpecification.getId().equals(id)) {
-                return requestedSpecification;
+        for (Specification specification : specifications) {
+            if (specification.getId().equals(id)) {
+                return specification;
             }
         }
         throw new EntityNotFoundException(Specification.class, id);
     }
 
     /**
-     * @param requestedSpecification to be added to the {@link #requestedSpecifications}
+     * @param specification to be searched in the {@link CompartmentSpecification}
+     * @return true if the {@link CompartmentSpecification} contains given {@code specification},
+     *         false otherwise
      */
-    public void addRequestedSpecification(Specification requestedSpecification)
+    public boolean containsSpecification(Specification specification)
     {
-        requestedSpecifications.add(requestedSpecification);
+        Long specificationId = specification.getId();
+        for (Specification requestedSpecification : specifications) {
+            if (requestedSpecification.getId().equals(specificationId)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
-     * @param requestedSpecification to be removed from the {@link #requestedSpecifications}
+     * @param specification to be added to the {@link #specifications}
      */
-    public void removeRequestedSpecification(Specification requestedSpecification)
+    public void addSpecification(Specification specification)
     {
-        requestedSpecifications.remove(requestedSpecification);
+        specifications.add(specification);
+    }
+
+    /**
+     * @param specification to be removed from the {@link #specifications}
+     */
+    public void removeSpecification(Specification specification)
+    {
+        specifications.remove(specification);
     }
 
     /**
@@ -92,10 +109,11 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
+    @Transient
     public State getCurrentState()
     {
         State state = State.READY;
-        for (Specification requestedSpecification : requestedSpecifications) {
+        for (Specification requestedSpecification : specifications) {
             if (requestedSpecification.getCurrentState().equals(State.NOT_READY)) {
                 state = State.NOT_READY;
                 break;
@@ -178,6 +196,6 @@ public class CompartmentSpecification extends Specification
         super.fillDescriptionMap(map);
 
         map.put("callInitiation", callInitiation.toString());
-        addCollectionToMap(map, "specifications", requestedSpecifications);
+        addCollectionToMap(map, "specifications", specifications);
     }
 }

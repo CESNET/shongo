@@ -399,6 +399,80 @@ public class Preprocessor extends Component
     }
 
     /**
+     * Add requested resource to compartment request (and also all persons that are requested for the resource).
+     *
+     * @param compartmentRequest    {@link CompartmentRequest} to which the requested resource should be added
+     * @param resourceSpecification {@link ResourceSpecification} of the requested resource
+     * @param personSet             set of persons that have already been added to the compartment request
+     * @param personRequestMap      map of person request that have already been added to the compartment request
+     */
+    /*private void addRequestedResource(CompartmentRequest compartmentRequest,
+            ResourceSpecification resourceSpecification, Set<Person> personSet,
+            Map<Long, PersonRequest> personRequestMap)
+    {
+        compartmentRequest.addRequestedResource(resourceSpecification);
+        for (Person person : resourceSpecification.getRequestedPersons()) {
+            addRequestedPerson(compartmentRequest, person, resourceSpecification, personSet, personRequestMap);
+        }
+    }*/
+
+    /**
+     * Add requested person to compartment request.
+     *
+     * @param compartmentRequest    {@link CompartmentRequest} to which the requested person should be added
+     * @param person                requested {@link Person} to add
+     * @param resourceSpecification {@link ResourceSpecification} for the resource which the person use for connecting
+     *                              to the compartment (can be <code>null</code>).
+     * @param personSet             set of persons that have already been added to the compartment request
+     * @param personRequestMap      map of person request that have already been added to the compartment request
+     */
+    /*private void addRequestedPerson(CompartmentRequest compartmentRequest, Person person,
+            ResourceSpecification resourceSpecification, Set<Person> personSet,
+            Map<Long, PersonRequest> personRequestMap)
+    {
+        // Check whether person isn't already added to compartment request
+        if (personSet.contains(person)) {
+            throw new IllegalStateException("Person '" + person.toString()
+                    + "' has already been added to compartment request!");
+        }
+
+        // Create person request in compartment request
+        PersonRequest personRequest = new PersonRequest();
+        personRequest.setPerson(person);
+        personRequest.setState(PersonRequest.State.NOT_ASKED);
+        if (resourceSpecification != null) {
+            personRequest.setResourceSpecification(resourceSpecification);
+        }
+        compartmentRequest.addRequestedPerson(personRequest);
+
+        if (personSet != null) {
+            personSet.add(person);
+        }
+        if (personRequestMap != null) {
+            personRequestMap.put(person.getId(), personRequest);
+        }
+    }*/
+
+    /**
+     * Remove the person request from the compartment request.
+     *
+     * @param compartmentRequest {@link CompartmentRequest} from which the requested person should be removed
+     * @param personRequest      {@link PersonRequest} which should be removed
+     */
+    /*private void removeRequestedPerson(CompartmentRequest compartmentRequest, PersonRequest personRequest)
+    {
+        if (personRequest.getState() == PersonRequest.State.NOT_ASKED) {
+            compartmentRequest.removeRequestedPerson(personRequest);
+        }
+        else {
+            throw new IllegalStateException("Cannot remove person request from compartment request "
+                    + "which was initiated by removing requested person from compartment, "
+                    + "because the person has already been asked "
+                    + "whether he will accepts the invitation.");
+        }
+    }*/
+
+    /**
      * Run preprocessor on given {@code entityManager} and interval.
      *
      * @param entityManager

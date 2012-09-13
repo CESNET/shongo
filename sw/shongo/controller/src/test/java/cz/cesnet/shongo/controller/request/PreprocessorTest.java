@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.oldrequest.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -21,8 +20,8 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Tests for using {@link Preprocessor} that synchronizes {@link cz.cesnet.shongo.controller.oldrequest.CompartmentRequest}(s)
- * with {@link cz.cesnet.shongo.controller.oldrequest.ReservationRequest}(s).
+ * Tests for using {@link Preprocessor} that synchronizes {@link ReservationRequestSet}(s)
+ * with {@link ReservationRequest}(s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -34,78 +33,81 @@ public class PreprocessorTest extends AbstractDatabaseTest
         EntityManager entityManager = getEntityManager();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
 
         // Create reservation request
-        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
-        reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));
-        reservationRequest.addRequestedSlot(new PeriodicDateTimeSpecification(
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setType(ReservationRequestType.NORMAL);
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification(
+                "2012-06-01T15"),
+                Period.parse("PT1H"));
+        reservationRequestSet.addRequestedSlot(new PeriodicDateTimeSpecification(
                 DateTime.parse("2012-07-01T14:00"), Period.parse("P1W"), LocalDate.parse("2012-07-15")),
                 Period.parse("PT2H"));
         // First compartment
-        Compartment requestCompartment = reservationRequest.addRequestedCompartment();
-        requestCompartment.addRequestedResource(new ExternalEndpointSpecification(Technology.SIP));
-        ResourceSpecification resourceSpecification = new ExternalEndpointSpecification(Technology.H323);
-        resourceSpecification.addRequestedPerson(new Person("Martin Srom", "martin.srom@cesnet.cz"));
-        requestCompartment.addRequestedResource(resourceSpecification);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.SIP));
+        EndpointSpecification endpointSpecification = new ExternalEndpointSpecification(Technology.H323);
+        endpointSpecification.addPerson(new Person("Martin Srom", "martin.srom@cesnet.cz"));
+        compartmentSpecification.addSpecification(endpointSpecification);
+        reservationRequestSet.addRequestedSpecification(compartmentSpecification);
         // Second compartment
-        requestCompartment = reservationRequest.addRequestedCompartment();
-        requestCompartment.addRequestedResource(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
+        compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
+        reservationRequestSet.addRequestedSpecification(compartmentSpecification);
 
         // Save it
-        reservationRequestManager.create(reservationRequest);
+        reservationRequestManager.create(reservationRequestSet);
 
         // Run preprocessor
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")), entityManager);
-        assertEquals(2, compartmentRequestManager.listByReservationRequest(reservationRequest).size());
+        assertEquals(2, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
-        assertEquals(4, compartmentRequestManager.listByReservationRequest(reservationRequest).size());
+        assertEquals(4, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
-        assertEquals(6, compartmentRequestManager.listByReservationRequest(reservationRequest).size());
+        assertEquals(6, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
 
         // Check created compartments
-        List<CompartmentRequest> compartmentRequestList =
-                compartmentRequestManager.listByReservationRequest(reservationRequest);
-        assertEquals(6, compartmentRequestList.size());
+        List<ReservationRequest> reservationRequests =
+                reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(6, reservationRequests.size());
         assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
-                compartmentRequestList.get(0).getRequestedSlot());
+                reservationRequests.get(0).getRequestedSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
-                compartmentRequestList.get(2).getRequestedSlot());
+                reservationRequests.get(2).getRequestedSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
-                compartmentRequestList.get(4).getRequestedSlot());
+                reservationRequests.get(4).getRequestedSlot());
 
         // Modify reservation request
-        reservationRequest.setPurpose(ReservationRequestPurpose.EDUCATION);
-        reservationRequest.removeRequestedSlot(reservationRequest.getRequestedSlots().get(0));
-        reservationRequest.removeRequestedCompartment(reservationRequest.getRequestedCompartments().get(1));
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
+        reservationRequestSet.removeRequestedSlot(reservationRequestSet.getRequestedSlots().get(0));
+        reservationRequestSet.removeRequestedSpecification(reservationRequestSet.getRequestedSpecifications().get(1));
 
         // Update request
-        reservationRequestManager.update(reservationRequest);
+        reservationRequestManager.update(reservationRequestSet);
 
         // Run preprocessor
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
 
         // Check modified compartments
-        compartmentRequestList = compartmentRequestManager.listByReservationRequest(reservationRequest);
-        assertEquals(2, compartmentRequestList.size());
+        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(2, reservationRequests.size());
         assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
-                compartmentRequestList.get(0).getRequestedSlot());
+                reservationRequests.get(0).getRequestedSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
-                compartmentRequestList.get(1).getRequestedSlot());
+                reservationRequests.get(1).getRequestedSlot());
 
         // List all reservation requests and theirs compartment requests
         /*List<ReservationRequest> rrList = reservationRequestManager.list();
         for (ReservationRequest rr : rrList) {
             System.err.println(rr.toString());
 
-            List<CompartmentRequest> crList = compartmentRequestManager.listByReservationRequest(rr);
-            for (CompartmentRequest cr : crList) {
+            List<ReservationRequest> crList = ReservationRequestManager.listByReservationRequest(rr);
+            for (ReservationRequest cr : crList) {
                 System.err.println(cr.toString());
             }
         }*/

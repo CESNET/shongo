@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
@@ -89,12 +90,11 @@ public class ReservationRequestManager extends AbstractManager
             // Clear state
             ReservationRequestSetStateManager.clear(entityManager, reservationRequestSet);
         }
-        else if (abstractReservationRequest instanceof ReservationRequest)
-        {
+        else if (abstractReservationRequest instanceof ReservationRequest) {
             throw new TodoImplementException();
             /*AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
             AllocatedCompartment allocatedCompartment =
-                    allocatedCompartmentManager.getByCompartmentRequest(compartmentRequest.getId());
+                    allocatedCompartmentManager.getByReservationRequest(compartmentRequest.getId());
             if (allocatedCompartment != null) {
                 for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
                     if (allocatedItem instanceof AllocatedExternalEndpoint) {
@@ -120,7 +120,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
-                    "SELECT request FROM ReservationRequest request WHERE request.id = :id",
+                    "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.id = :id",
                     ReservationRequest.class).setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservationRequest;
@@ -139,7 +140,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         try {
             ReservationRequestSet reservationRequestSet = entityManager.createQuery(
-                    "SELECT request FROM ReservationRequestSet request WHERE request.id = :id",
+                    "SELECT reservationRequest FROM ReservationRequestSet reservationRequest"
+                            + " WHERE reservationRequest.id = :id",
                     ReservationRequestSet.class).setParameter("id", reservationRequestSetId)
                     .getSingleResult();
             return reservationRequestSet;
@@ -155,7 +157,8 @@ public class ReservationRequestManager extends AbstractManager
     public List<ReservationRequest> list()
     {
         List<ReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT request FROM ReservationRequest request", ReservationRequest.class)
+                .createQuery("SELECT reservationRequest FROM ReservationRequest reservationRequest",
+                        ReservationRequest.class)
                 .getResultList();
         return reservationRequestList;
     }
@@ -166,127 +169,53 @@ public class ReservationRequestManager extends AbstractManager
     public List<ReservationRequestSet> listNotPreprocessedReservationRequestSets(Interval interval)
     {
         List<ReservationRequestSet> reservationRequestList = entityManager
-                .createQuery("SELECT request FROM ReservationRequestSet request WHERE request NOT IN (" +
-                        "SELECT state.reservationRequestSet FROM ReservationRequestSetPreprocessedState state "
-                        + "WHERE state.start <= :from AND state.end >= :to)",
+                .createQuery("SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
+                        + " WHERE reservationRequestSet NOT IN ("
+                        + " SELECT state.reservationRequestSet FROM ReservationRequestSetPreprocessedState state"
+                        + " WHERE state.start <= :from AND state.end >= :to)",
                         ReservationRequestSet.class).setParameter("from", interval.getStart())
                 .setParameter("to", interval.getEnd())
                 .getResultList();
         return reservationRequestList;
     }
 
-
-
-
     /**
-     * Add requested resource to compartment request (and also all persons that are requested for the resource).
-     *
-     * @param compartmentRequest    {@link CompartmentRequest} to which the requested resource should be added
-     * @param resourceSpecification {@link ResourceSpecification} of the requested resource
-     * @param personSet             set of persons that have already been added to the compartment request
-     * @param personRequestMap      map of person request that have already been added to the compartment request
+     * @param reservationRequestId of the {@link ReservationRequest}
+     * @return {@link ReservationRequest} with given identifier
+     * @throws IllegalArgumentException when the {@link ReservationRequest} doesn't exist
      */
-    private void addRequestedResource(CompartmentRequest compartmentRequest,
-            ResourceSpecification resourceSpecification, Set<Person> personSet,
-            Map<Long, PersonRequest> personRequestMap)
+    public ReservationRequest getReservationRequestNotNull(Long reservationRequestId) throws IllegalArgumentException
     {
-        compartmentRequest.addRequestedResource(resourceSpecification);
-        for (Person person : resourceSpecification.getRequestedPersons()) {
-            addRequestedPerson(compartmentRequest, person, resourceSpecification, personSet, personRequestMap);
+        try {
+            return getReservationRequest(reservationRequestId);
+        }
+        catch (EntityNotFoundException e) {
+            throw new IllegalArgumentException("Reservation request '" + reservationRequestId + "' doesn't exist!");
         }
     }
 
     /**
-     * Add requested person to compartment request.
-     *
-     * @param compartmentRequest    {@link CompartmentRequest} to which the requested person should be added
-     * @param person                requested {@link Person} to add
-     * @param resourceSpecification {@link ResourceSpecification} for the resource which the person use for connecting
-     *                              to the compartment (can be <code>null</code>).
-     * @param personSet             set of persons that have already been added to the compartment request
-     * @param personRequestMap      map of person request that have already been added to the compartment request
+     * @param reservationRequestSet from which the {@link ReservationRequest}s should be returned
+     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place
      */
-    private void addRequestedPerson(CompartmentRequest compartmentRequest, Person person,
-            ResourceSpecification resourceSpecification, Set<Person> personSet,
-            Map<Long, PersonRequest> personRequestMap)
+    public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet)
     {
-        // Check whether person isn't already added to compartment request
-        if (personSet.contains(person)) {
-            throw new IllegalStateException("Person '" + person.toString()
-                    + "' has already been added to compartment request!");
-        }
-
-        // Create person request in compartment request
-        PersonRequest personRequest = new PersonRequest();
-        personRequest.setPerson(person);
-        personRequest.setState(PersonRequest.State.NOT_ASKED);
-        if (resourceSpecification != null) {
-            personRequest.setResourceSpecification(resourceSpecification);
-        }
-        compartmentRequest.addRequestedPerson(personRequest);
-
-        if (personSet != null) {
-            personSet.add(person);
-        }
-        if (personRequestMap != null) {
-            personRequestMap.put(person.getId(), personRequest);
-        }
+        return listReservationRequestsBySet(reservationRequestSet.getId());
     }
 
     /**
-     * Remove the person request from the compartment request.
-     *
-     * @param compartmentRequest {@link CompartmentRequest} from which the requested person should be removed
-     * @param personRequest      {@link PersonRequest} which should be removed
+     * @param reservationRequestSetId of the {@link ReservationRequestSet} from which the {@link ReservationRequest}s
+     *                                should be returned
+     * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet}
      */
-    private void removeRequestedPerson(CompartmentRequest compartmentRequest, PersonRequest personRequest)
+    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId)
     {
-        if (personRequest.getState() == PersonRequest.State.NOT_ASKED) {
-            compartmentRequest.removeRequestedPerson(personRequest);
-        }
-        else {
-            throw new IllegalStateException("Cannot remove person request from compartment request "
-                    + "which was initiated by removing requested person from compartment, "
-                    + "because the person has already been asked "
-                    + "whether he will accepts the invitation.");
-        }
-    }
-
-    /**
-     * @param compartmentRequestId identifier for {@link CompartmentRequest}
-     * @return {@link CompartmentRequest} with given identifier
-     * @throws IllegalArgumentException when the compartment doesn't exist
-     */
-    public CompartmentRequest getNotNull(Long compartmentRequestId) throws IllegalArgumentException
-    {
-        CompartmentRequest compartmentRequest = get(compartmentRequestId);
-        if (compartmentRequest == null) {
-            throw new IllegalArgumentException("Compartment request '" + compartmentRequestId + "' doesn't exist!");
-        }
-        return compartmentRequest;
-    }
-
-    /**
-     * @param reservationRequest
-     * @return list of existing compartment requests for a {@link ReservationRequest}
-     */
-    public List<CompartmentRequest> listByReservationRequest(ReservationRequest reservationRequest)
-    {
-        return listByReservationRequest(reservationRequest.getId());
-    }
-
-    /**
-     * @param reservationRequestId
-     * @return list of existing compartment requests for a {@link ReservationRequest}
-     */
-    public List<CompartmentRequest> listByReservationRequest(Long reservationRequestId)
-    {
-        // Get existing compartment requests for compartment
-        List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT request FROM CompartmentRequest request "
-                        + "WHERE request.reservationRequest.id = :id "
-                        + "ORDER BY request.requestedSlot.start", CompartmentRequest.class)
-                .setParameter("id", reservationRequestId)
+        List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
+                "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
+                        + " LEFT JOIN reservationRequestSet.reservationRequest reservationRequest"
+                        + " WHERE reservationRequestSet.id = :id "
+                        + " ORDER BY reservationRequest.requestedSlotStart", ReservationRequest.class)
+                .setParameter("id", reservationRequestSetId)
                 .getResultList();
         return compartmentRequestList;
     }
@@ -300,7 +229,7 @@ public class ReservationRequestManager extends AbstractManager
     public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet,
             Interval interval)
     {
-        return listByReservationRequest(reservationRequestSet.getId(), interval);
+        return listReservationRequestsBySet(reservationRequestSet.getId(), interval);
     }
 
     /**
@@ -310,14 +239,14 @@ public class ReservationRequestManager extends AbstractManager
      * @return list of existing {@link ReservationRequest}s for a {@link ReservationRequestSet} taking place in
      *         given {@code interval}
      */
-    public List<ReservationRequest> listByReservationRequest(Long reservationRequestSetId, Interval interval)
+    public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId, Interval interval)
     {
-        // Get existing reservation requests for the set
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT request FROM ReservationRequestSet set "
-                        + "LEFT JOIN set.reservationRequest request"
-                        + "WHERE set.id = :id "
-                        + "AND request.requestedSlot.start BETWEEN :start AND :end", ReservationRequest.class)
+                "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
+                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                        + " WHERE reservationRequestSet.id = :id "
+                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end",
+                ReservationRequest.class)
                 .setParameter("id", reservationRequestSetId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
@@ -328,7 +257,7 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param specification which should be specified in the {@link ReservationRequest}
      * @param interval      in which the {@link ReservationRequest} should take place
-     * @return list of existing {@link ReservationRequest}s from a given {@link Specification} taking place
+     * @return list of existing {@link ReservationRequest}s specifying given {@link Specification} and taking place
      *         in given interval
      */
     public List<ReservationRequest> listReservationRequestsBySpecification(Specification specification,
@@ -340,15 +269,16 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @param specificationId of the {@link Specification} which should be specified in the {@link ReservationRequest}
      * @param interval        in which the {@link ReservationRequest} should take place
-     * @return list of existing {@link ReservationRequest}s from a given {@link Specification} taking place
+     * @return list of existing {@link ReservationRequest}s specifying given {@link Specification} and taking place
      *         in given interval
      */
     public List<ReservationRequest> listReservationRequestsBySpecification(Long specificationId, Interval interval)
     {
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT request FROM ReservationRequest request "
-                        + "WHERE request.requestedSpecification.id = :id "
-                        + "AND request.requestedSlot.start BETWEEN :start AND :end", ReservationRequest.class)
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.requestedSpecification.id = :id"
+                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end",
+                ReservationRequest.class)
                 .setParameter("id", specificationId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
@@ -358,15 +288,16 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param interval
-     * @return list of existing complete compartments request starting in given interval
+     * @return list of existing {@link ReservationRequest}s in {@link ReservationRequest.State#COMPLETE} state and
+     *         starting in given interval
      */
-    public List<CompartmentRequest> listCompleted(Interval interval)
+    public List<ReservationRequest> listCompletedReservationRequests(Interval interval)
     {
-        List<CompartmentRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT request FROM CompartmentRequest request "
-                        + "WHERE request.state = :state "
-                        + "AND request.requestedSlot.start BETWEEN :start AND :end", CompartmentRequest.class)
-                .setParameter("state", CompartmentRequest.State.COMPLETE)
+        List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.state = :state"
+                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end", ReservationRequest.class)
+                .setParameter("state", ReservationRequest.State.COMPLETE)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
@@ -374,73 +305,103 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param compartmentRequestId
-     * @param personId
-     * @param resourceSpecification
+     * @param specification {@link Specification} which is searched
+     * @param personId      identifier for {@link Person} for which the search is performed
+     * @return {@link PersonSpecification} from given {@link Specification} that references {@link Person}
+     *         with given identifier
+     * @throws IllegalArgumentException when {@link PersonSpecification} isn't found
      */
-    public void selectResourceForPersonRequest(Long compartmentRequestId, Long personId,
-            ResourceSpecification resourceSpecification)
-    {
-        CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
-        PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
-        if (!compartmentRequest.containsRequestedResource(resourceSpecification)) {
-            compartmentRequest.addRequestedResource(resourceSpecification);
-        }
-        personRequest.setResourceSpecification(resourceSpecification);
-        update(compartmentRequest);
-    }
-
-    /**
-     * Accept the invitation for specified person to participate in the specified compartment.
-     *
-     * @param compartmentRequestId identifier for {@link CompartmentRequest}
-     * @param personId             identifier for {@link cz.cesnet.shongo.controller.common.Person}
-     * @throws IllegalStateException when person hasn't selected resource by he will connect to the compartment yet
-     */
-    public void acceptPersonRequest(Long compartmentRequestId, Long personId) throws IllegalStateException
-    {
-        CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
-        PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
-        if (personRequest.getResourceSpecification() == null) {
-            throw new IllegalStateException("Cannot accept person '" + personId + "' to compartment request '"
-                    + compartmentRequestId + "' because person hasn't selected the device be which he will connect "
-                    + "to the compartment yet!");
-        }
-        personRequest.setState(PersonRequest.State.ACCEPTED);
-        compartmentRequest.updateStateByRequestedPersons();
-        update(compartmentRequest);
-    }
-
-    /**
-     * Reject the invitation for specified person to participate in the specified compartment.
-     *
-     * @param compartmentRequestId identifier for {@link CompartmentRequest}
-     * @param personId             identifier for {@link cz.cesnet.shongo.controller.common.Person}
-     */
-    public void rejectPersonRequest(Long compartmentRequestId, Long personId)
-    {
-        CompartmentRequest compartmentRequest = getNotNull(compartmentRequestId);
-        PersonRequest personRequest = getPersonRequest(compartmentRequest, personId);
-        personRequest.setState(PersonRequest.State.REJECTED);
-        compartmentRequest.updateStateByRequestedPersons();
-        update(compartmentRequest);
-    }
-
-    /**
-     * @param compartmentRequest {@link CompartmentRequest} which is searched
-     * @param personId           identifier for {@link cz.cesnet.shongo.controller.common.Person} for which the search is performed
-     * @return {@link PersonRequest} from given {@link CompartmentRequest} that references person with given identifier
-     * @throws IllegalArgumentException when {@link PersonRequest} is not found
-     */
-    private PersonRequest getPersonRequest(CompartmentRequest compartmentRequest, Long personId)
+    private PersonSpecification getPersonSpecification(Specification specification, Long personId)
             throws IllegalArgumentException
     {
-        for (PersonRequest personRequest : compartmentRequest.getRequestedPersons()) {
-            if (personRequest.getPerson().getId().equals(personId)) {
-                return personRequest;
+        if (specification instanceof PersonSpecification) {
+            PersonSpecification personSpecification = (PersonSpecification) specification;
+            if (personSpecification.getPerson().getId().equals(personId)) {
+                return personSpecification;
             }
         }
-        throw new IllegalArgumentException("Requested person '" + personId + "' doesn't exist in compartment request '"
-                + compartmentRequest.getId() + "'!");
+        else if (specification instanceof CompartmentSpecification) {
+            CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
+            for (Specification requestedSpecification : compartmentSpecification.getSpecifications()) {
+                PersonSpecification personSpecification = getPersonSpecification(requestedSpecification, personId);
+                if (personSpecification != null) {
+                    return personSpecification;
+                }
+            }
+        }
+        throw new IllegalArgumentException(
+                String.format("Requested person '%d' doesn't exist in specification '%d'!",
+                        personId, specification.getId()));
+    }
+
+    /**
+     * @param reservationRequest {@link ReservationRequest} which is searched
+     * @param personId           identifier for {@link Person} for which the search is performed
+     * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link Person}
+     *         with given identifier
+     * @throws IllegalArgumentException when {@link PersonSpecification} isn't found
+     */
+    private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
+            throws IllegalArgumentException
+    {
+        return getPersonSpecification(reservationRequest.getRequestedSpecification(), personId);
+    }
+
+    /**
+     * Accept the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
+     *
+     * @param reservationRequestId identifier for {@link ReservationRequest}
+     * @param personId             identifier for {@link Person}
+     * @throws IllegalStateException when {@link Person} hasn't selected resource by he will connect to
+     *                               the video conference yet
+     */
+    public void acceptPersonRequest(Long reservationRequestId, Long personId) throws IllegalStateException
+    {
+        ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
+        PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
+        if (personSpecification.getEndpointSpecification() == null) {
+            throw new IllegalStateException(
+                    String.format("Cannot accept person '%d' to compartment request '%d' because person hasn't "
+                            + "selected the device be which he will connect to the compartment yet!",
+                            personId, reservationRequestId));
+        }
+        personSpecification.setInvitationState(PersonSpecification.InvitationState.INVITATION_ACCEPTED);
+        reservationRequest.updateStateBySpecifications();
+        update(reservationRequest);
+    }
+
+    /**
+     * Reject the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
+     *
+     * @param reservationRequestId identifier for {@link ReservationRequest}
+     * @param personId             identifier for {@link Person}
+     */
+    public void rejectPersonRequest(Long reservationRequestId, Long personId)
+    {
+        ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
+        PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
+        personSpecification.setInvitationState(PersonSpecification.InvitationState.INVITATION_REJECTED);
+        reservationRequest.updateStateBySpecifications();
+        update(reservationRequest);
+    }
+
+    /**
+     * @param reservationRequestId
+     * @param personId
+     * @param endpointSpecification
+     */
+    public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
+            EndpointSpecification endpointSpecification)
+    {
+        ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
+        PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
+
+        CompartmentSpecification compartmentSpecification =
+                (CompartmentSpecification) reservationRequest.getRequestedSpecification();
+        if (!compartmentSpecification.containsSpecification(endpointSpecification)) {
+            compartmentSpecification.addSpecification(endpointSpecification);
+        }
+        personSpecification.setEndpointSpecification(endpointSpecification);
+        update(reservationRequest);
     }
 }

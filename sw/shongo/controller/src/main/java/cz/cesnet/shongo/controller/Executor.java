@@ -97,8 +97,9 @@ public class Executor extends Component implements Component.WithThread, Compone
         Interval interval = new Interval(
                 DateTime.now().minus(Period.minutes(1)), DateTime.now().plus(Period.minutes(2)));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        List<AllocatedCompartment> allocatedCompartments = allocatedCompartmentManager.listByInterval(interval);
+        ReservationManager allocatedCompartmentManager = new ReservationManager(entityManager);
+        throw new IllegalStateException("TODO: implement");
+        /*List<AllocatedCompartment> allocatedCompartments = allocatedCompartmentManager.listByInterval(interval);
         for (AllocatedCompartment allocatedCompartment : allocatedCompartments) {
             Long allocatedCompartmentId = allocatedCompartment.getId();
             if (executorsById.containsKey(allocatedCompartmentId)) {
@@ -107,7 +108,7 @@ public class Executor extends Component implements Component.WithThread, Compone
             AllocatedCompartmentExecutor executor = new AllocatedCompartmentExecutor(allocatedCompartment);
             executor.start();
             executorsById.put(allocatedCompartmentId, executor);
-        }
+        }*/
     }
 
     /**
@@ -126,7 +127,7 @@ public class Executor extends Component implements Component.WithThread, Compone
         public AllocatedCompartmentExecutor(AllocatedCompartment allocatedCompartment)
         {
             this.allocatedCompartment = allocatedCompartment;
-            this.interval = allocatedCompartment.getCompartmentRequest().getRequestedSlot();
+            this.interval = allocatedCompartment.getSlot();
             setName(String.format("Executor-%d", allocatedCompartment.getId()));
         }
 
@@ -146,8 +147,10 @@ public class Executor extends Component implements Component.WithThread, Compone
 
             logger.info("Starting video conference for allocated compartment '{}'...", allocatedCompartment.getId());
 
+            throw new IllegalStateException("TODO:");
+
             // Create virtual rooms
-            for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+            /*for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
                 boolean virtualRoom = false;
                 if (allocatedItem instanceof AllocatedVirtualRoom) {
                     virtualRoom = true;
@@ -241,7 +244,7 @@ public class Executor extends Component implements Component.WithThread, Compone
                             deviceResource.getId()));
                     logger.debug(message.toString());
                 }
-            }
+            }*/
         }
     }
 }

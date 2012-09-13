@@ -102,12 +102,13 @@ public class PersonSpecification extends Specification
     /**
      * @param state sets the {@link #invitationState}
      */
-    public void setState(InvitationState state)
+    public void setInvitationState(InvitationState state)
     {
         this.invitationState = state;
     }
 
     @Override
+    @Transient
     public State getCurrentState()
     {
         switch (invitationState) {

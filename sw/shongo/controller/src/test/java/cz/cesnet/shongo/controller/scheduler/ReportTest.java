@@ -35,7 +35,7 @@ public class ReportTest
         task.clear();
         task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 2)));
         task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 1)));
-        task.createAllocatedCompartment();
+        task.createReservation();
 
         for (Report report : task.getReports()) {
             System.out.println(report.toString());

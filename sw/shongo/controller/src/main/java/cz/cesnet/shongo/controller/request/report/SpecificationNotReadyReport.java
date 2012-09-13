@@ -6,9 +6,7 @@ import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.PersonSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -43,6 +41,7 @@ public class SpecificationNotReadyReport extends Report
      * @return {@link #specification}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public Specification getSpecification()
     {
         return specification;
@@ -63,7 +62,7 @@ public class SpecificationNotReadyReport extends Report
         else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
             StringBuilder stringBuilder = new StringBuilder();
-            for (Specification requestedSpecification : compartmentSpecification.getRequestedSpecifications()) {
+            for (Specification requestedSpecification : compartmentSpecification.getSpecifications()) {
                 if (stringBuilder.length() > 0 ) {
                     stringBuilder.append("\n");
                 }

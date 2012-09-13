@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
 import cz.cesnet.shongo.controller.report.Report;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
@@ -18,11 +20,14 @@ import java.util.Map;
 public class ReservationRequest extends AbstractReservationRequest
 {
     /**
-     * Date/time slot for which the reservation is requested.
+     * Start date/time from which the reservation is requested.
      */
-    @Embedded
-    @Access(AccessType.FIELD)
-    private DateTimeSlot requestedSlot;
+    private DateTime requestedSlotStart;
+
+    /**
+     * End date/time to which the reservation is requested.
+     */
+    private DateTime requestedSlotEnd;
 
     /**
      * {@link Specification} of target which is requested for a reservation.
@@ -35,21 +40,60 @@ public class ReservationRequest extends AbstractReservationRequest
     private State state;
 
     /**
-     * @return {@link #requestedSlot} as {@link Interval}
+     * @return {@link #requestedSlotStart}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getRequestedSlotStart()
+    {
+        return requestedSlotStart;
+    }
+
+    /**
+     * @param requestedSlotStart sets the {@link #requestedSlotStart}
+     */
+    public void setRequestedSlotStart(DateTime requestedSlotStart)
+    {
+        this.requestedSlotStart = requestedSlotStart;
+    }
+
+    /**
+     * @return {@link #requestedSlotEnd}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getRequestedSlotEnd()
+    {
+        return requestedSlotEnd;
+    }
+
+    /**
+     * @param requestedSlotEnd sets the {@link #requestedSlotEnd}
+     */
+    public void setRequestedSlotEnd(DateTime requestedSlotEnd)
+    {
+        this.requestedSlotEnd = requestedSlotEnd;
+    }
+
+    /**
+     * @return requested slot ({@link #requestedSlotStart}, {@link #requestedSlotEnd})
      */
     @Transient
     public Interval getRequestedSlot()
     {
-        return requestedSlot.getInterval();
+        return new Interval(requestedSlotStart, requestedSlotEnd);
     }
 
     /**
-     * @param requestedSlot sets the {@link #requestedSlot} from {@link Interval}
+     * @param requestedSlot sets the requested slot
      */
     @Transient
     public void setRequestedSlot(Interval requestedSlot)
     {
-        this.requestedSlot.setInterval(requestedSlot);
+        setRequestedSlotStart(requestedSlot.getStart());
+        setRequestedSlotEnd(requestedSlot.getEnd());
     }
 
     /**

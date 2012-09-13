@@ -2,9 +2,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.oldrequest.*;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
-import cz.cesnet.shongo.controller.request.ReservationRequestSetStateManager;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -20,9 +21,14 @@ public class Reservation extends PersistentObject
     private ReservationRequest reservationRequest;
 
     /**
-     * List of {@link AllocatedCompartment}s that are allocated for the reservation request.
+     * Items that are allocated for the {@link #reservationRequest}.
      */
-    private List<AllocatedCompartment> allocatedCompartments = new ArrayList<AllocatedCompartment>();
+    private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
+
+    /**
+     * List of connections which will be initiated in the plan.
+     */
+    List<Connection> connections = new ArrayList<Connection>();
 
     /**
      * @return {@link #reservationRequest}
@@ -37,42 +43,72 @@ public class Reservation extends PersistentObject
     /**
      * @param reservationRequest sets the {@link #reservationRequest}
      */
-    private void setReservationRequest(ReservationRequest reservationRequest)
+    public void setReservationRequest(ReservationRequest reservationRequest)
     {
         this.reservationRequest = reservationRequest;
     }
 
     /**
-     * @return {@link #allocatedCompartments}
+     * @return {@link #allocatedItems}
      */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservation")
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<AllocatedCompartment> getAllocatedCompartments()
+    public List<AllocatedItem> getAllocatedItems()
     {
-        return allocatedCompartments;
+        return allocatedItems;
     }
 
     /**
-     * @param allocatedCompartment allocated compartment to be added to the {@link #allocatedCompartments}
+     * @param allocatedItem allocated item to be added to the {@link #allocatedItems}
      */
-    public void addAllocatedCompartment(AllocatedCompartment allocatedCompartment)
+    public void addAllocatedItem(AllocatedItem allocatedItem)
     {
-        // Manage bidirectional association
-        if (allocatedCompartments.contains(allocatedCompartment) == false) {
-            allocatedCompartments.add(allocatedCompartment);
-            allocatedCompartment.setReservation(this);
-        }
+        allocatedItems.add(allocatedItem);
     }
 
     /**
-     * @param allocatedCompartment allocated compartment to be removed from the {@link #allocatedCompartments}
+     * @param allocatedItem allocated item to be removed from the {@link #allocatedItems}
      */
-    public void removeAllocatedCompartment(AllocatedCompartment allocatedCompartment)
+    public void removeAllocatedItem(AllocatedItem allocatedItem)
     {
-        // Manage bidirectional association
-        if (allocatedCompartments.contains(allocatedCompartment)) {
-            allocatedCompartments.remove(allocatedCompartment);
-            allocatedCompartment.setReservation(null);
-        }
+        allocatedItems.remove(allocatedItem);
     }
+
+    /**
+     * @return {@link #allocatedItems}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<Connection> getConnections()
+    {
+        return connections;
+    }
+
+    /**
+     * @param connection to be added to the {@link #connections}
+     */
+    public void addConnection(Connection connection)
+    {
+        connections.add(connection);
+    }
+
+    /**
+     * @param domain
+     * @return allocated compartment converted to API
+     */
+    /*public cz.cesnet.shongo.controller.api.AllocatedCompartment toApi(Domain domain)
+    {
+        CompartmentRequest compartmentRequest = getCompartmentRequest();
+
+        cz.cesnet.shongo.controller.api.AllocatedCompartment apiAllocatedCompartment =
+                new cz.cesnet.shongo.controller.api.AllocatedCompartment();
+        apiAllocatedCompartment.setSlot(compartmentRequest.getRequestedSlot());
+        for (AllocatedItem allocatedItem : allocatedItems) {
+            cz.cesnet.shongo.controller.api.AllocatedItem apiAllocatedItem = allocatedItem.toApi(domain);
+            if (apiAllocatedItem != null) {
+                apiAllocatedCompartment.addAllocatedItem(apiAllocatedItem);
+            }
+        }
+        return apiAllocatedCompartment;
+    }*/
 }

@@ -2,17 +2,11 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import cz.cesnet.shongo.fault.FaultException;
-import org.joda.time.Interval;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Reservation service implementation
@@ -63,7 +57,8 @@ public class ReservationServiceImpl extends Component
     public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException
     {
-        reservationRequest.setupNewEntity();
+        throw new TodoImplementException();
+        /*reservationRequest.setupNewEntity();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -82,14 +77,15 @@ public class ReservationServiceImpl extends Component
         entityManager.close();
 
         // Return reservation request identifier
-        return domain.formatIdentifier(reservationRequestImpl.getId());
+        return domain.formatIdentifier(reservationRequestImpl.getId());*/
     }
 
     @Override
     public void modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
             throws FaultException
     {
-        Long reservationRequestId = domain.parseIdentifier(reservationRequest.getIdentifier());
+        throw new TodoImplementException();
+        /*Long reservationRequestId = domain.parseIdentifier(reservationRequest.getIdentifier());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -106,13 +102,14 @@ public class ReservationServiceImpl extends Component
         reservationRequestManager.update(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
-        entityManager.close();
+        entityManager.close();*/
     }
 
     @Override
     public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier) throws FaultException
     {
-        Long requestId = domain.parseIdentifier(reservationRequestIdentifier);
+        throw new TodoImplementException();
+        /*Long requestId = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -126,13 +123,14 @@ public class ReservationServiceImpl extends Component
         reservationRequestManager.delete(requestImpl);
 
         entityManager.getTransaction().commit();
-        entityManager.close();
+        entityManager.close();*/
     }
 
     @Override
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
     {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        throw new TodoImplementException();
+        /*EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         List<cz.cesnet.shongo.controller.oldrequest.ReservationRequest> list = reservationRequestManager.list();
@@ -160,14 +158,15 @@ public class ReservationServiceImpl extends Component
 
         entityManager.close();
 
-        return summaryList;
+        return summaryList;*/
     }
 
     @Override
     public ReservationRequest getReservationRequest(SecurityToken token,
             String reservationRequestIdentifier) throws FaultException
     {
-        Long id = domain.parseIdentifier(reservationRequestIdentifier);
+        throw new TodoImplementException();
+        /*Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -177,14 +176,15 @@ public class ReservationServiceImpl extends Component
 
         entityManager.close();
 
-        return request;
+        return request;*/
     }
 
     @Override
     public Collection<AllocatedCompartment> listAllocatedCompartments(SecurityToken token,
             String reservationRequestIdentifier) throws FaultException
     {
-        Long id = domain.parseIdentifier(reservationRequestIdentifier);
+        throw new TodoImplementException();
+        /*Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
@@ -198,6 +198,6 @@ public class ReservationServiceImpl extends Component
 
         entityManager.close();
 
-        return allocatedCompartmentList;
+        return allocatedCompartmentList;*/
     }
 }
