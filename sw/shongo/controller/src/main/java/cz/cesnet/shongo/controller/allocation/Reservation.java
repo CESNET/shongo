@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
 
 import javax.persistence.*;
 import java.util.ArrayList;

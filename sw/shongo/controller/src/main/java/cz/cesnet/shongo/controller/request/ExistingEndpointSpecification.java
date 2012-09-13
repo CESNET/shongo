@@ -1,12 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.ResourceManager;
-import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.OneToOne;
 
 /**
@@ -15,7 +11,7 @@ import javax.persistence.OneToOne;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ExistingResourceSpecification extends ResourceSpecification
+public class ExistingEndpointSpecification extends EndpointSpecification
 {
     /**
      * Specific resource.
@@ -25,7 +21,7 @@ public class ExistingResourceSpecification extends ResourceSpecification
     /**
      * Constructor.
      */
-    public ExistingResourceSpecification()
+    public ExistingEndpointSpecification()
     {
     }
 
@@ -34,7 +30,7 @@ public class ExistingResourceSpecification extends ResourceSpecification
      *
      * @param resource sets the {@link #resource}
      */
-    public ExistingResourceSpecification(Resource resource)
+    public ExistingEndpointSpecification(Resource resource)
     {
         this.resource = resource;
     }
@@ -56,7 +52,7 @@ public class ExistingResourceSpecification extends ResourceSpecification
         this.resource = resource;
     }
 
-    @Override
+    /*@Override
     public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExistingResourceSpecification api =
@@ -81,5 +77,5 @@ public class ExistingResourceSpecification extends ResourceSpecification
             setResource(resourceManager.get(resourceId));
         }
         super.fromApi(api, entityManager, domain);
-    }
+    }*/
 }

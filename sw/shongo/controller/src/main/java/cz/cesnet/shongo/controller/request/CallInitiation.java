@@ -8,12 +8,12 @@ package cz.cesnet.shongo.controller.request;
 public enum CallInitiation
 {
     /**
-     * Terminal should initiate the call to virtual room.
+     * A terminal should initiate the call to a virtual room.
      */
     TERMINAL,
 
     /**
-     * Virtual room should initiate the call to terminal.
+     * A virtual room should initiate the call to a terminal.
      */
     VIRTUAL_ROOM
 }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
@@ -68,8 +69,8 @@ public class ReservationServiceImpl extends Component
         entityManager.getTransaction().begin();
 
         // Create reservation request
-        cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
-                new cz.cesnet.shongo.controller.request.ReservationRequest();
+        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequestImpl =
+                new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
 
         reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
 
@@ -96,7 +97,7 @@ public class ReservationServiceImpl extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // Get reservation request
-        cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
 
         // Synchronize it from API
@@ -119,7 +120,7 @@ public class ReservationServiceImpl extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // Get reservation request
-        cz.cesnet.shongo.controller.request.ReservationRequest requestImpl = reservationRequestManager.get(requestId);
+        cz.cesnet.shongo.controller.oldrequest.ReservationRequest requestImpl = reservationRequestManager.get(requestId);
 
         // Delete the request
         reservationRequestManager.delete(requestImpl);
@@ -134,14 +135,14 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.request.ReservationRequest> list = reservationRequestManager.list();
+        List<cz.cesnet.shongo.controller.oldrequest.ReservationRequest> list = reservationRequestManager.list();
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
-        for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : list) {
+        for (cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest : list) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
             summary.setIdentifier(domain.formatIdentifier(reservationRequest.getId()));
 
             Interval earliestSlot = null;
-            for (cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequest.getRequestedSlots()) {
+            for (DateTimeSlotSpecification slot : reservationRequest.getRequestedSlots()) {
                 Interval interval = slot.getEarliest(null);
                 if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                     earliestSlot = interval;
@@ -171,7 +172,7 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        cz.cesnet.shongo.controller.request.ReservationRequest requestImpl = reservationRequestManager.get(id);
+        cz.cesnet.shongo.controller.oldrequest.ReservationRequest requestImpl = reservationRequestManager.get(id);
         ReservationRequest request = requestImpl.toApi(entityManager, domain);
 
         entityManager.close();

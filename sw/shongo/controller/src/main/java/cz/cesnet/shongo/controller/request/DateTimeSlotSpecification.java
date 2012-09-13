@@ -1,7 +1,10 @@
-package cz.cesnet.shongo.controller.common;
+package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.api.PeriodicDateTime;
+import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
@@ -15,13 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a time slot.
+ * Specification for one or multiple {@link DateTimeSlot}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public class DateTimeSlot extends PersistentObject
+public class DateTimeSlotSpecification extends PersistentObject
 {
     /**
      * Maximum number of enumerated date/times. If {@link #enumerate} exceeds that number
@@ -47,7 +50,7 @@ public class DateTimeSlot extends PersistentObject
     /**
      * Constructor.
      */
-    public DateTimeSlot()
+    public DateTimeSlotSpecification()
     {
     }
 
@@ -57,7 +60,7 @@ public class DateTimeSlot extends PersistentObject
      * @param dateTime Time slot date/time, can be absolute or relative date/time
      * @param duration Time slot duration (e.g., two hours)
      */
-    public DateTimeSlot(DateTimeSpecification dateTime, Period duration)
+    public DateTimeSlotSpecification(DateTimeSpecification dateTime, Period duration)
     {
         if (dateTime == null) {
             throw new IllegalArgumentException("Date/time must not be null!");
@@ -271,11 +274,11 @@ public class DateTimeSlot extends PersistentObject
         if (this == object) {
             return true;
         }
-        if (object == null || (object instanceof DateTimeSlot) == false) {
+        if (object == null || (object instanceof DateTimeSlotSpecification) == false) {
             return false;
         }
 
-        DateTimeSlot slot = (DateTimeSlot) object;
+        DateTimeSlotSpecification slot = (DateTimeSlotSpecification) object;
         if (getId() != null) {
             return getId().equals(slot.getId());
         }

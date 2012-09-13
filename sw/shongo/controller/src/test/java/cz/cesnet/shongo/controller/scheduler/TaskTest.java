@@ -2,16 +2,13 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.*;
-import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CallInitiation;
-import cz.cesnet.shongo.controller.request.ExistingResourceSpecification;
+import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -209,15 +206,15 @@ public class TaskTest
         AllocatedCompartment allocatedCompartment;
 
         task.clear();
-        task.addResource(new ExistingResourceSpecification(terminal1));
+        task.addResource(new ExistingEndpointSpecification(terminal1));
         allocatedCompartment = task.createAllocatedCompartment();
         assertNotNull(allocatedCompartment);
         assertEquals(2, allocatedCompartment.getAllocatedItems().size());
         assertEquals(0, allocatedCompartment.getConnections().size());
 
         task.clear();
-        task.addResource(new ExistingResourceSpecification(terminal1));
-        task.addResource(new ExistingResourceSpecification(terminal2));
+        task.addResource(new ExistingEndpointSpecification(terminal1));
+        task.addResource(new ExistingEndpointSpecification(terminal2));
         allocatedCompartment = task.createAllocatedCompartment();
         assertNotNull(allocatedCompartment);
         assertEquals(3, allocatedCompartment.getAllocatedItems().size());

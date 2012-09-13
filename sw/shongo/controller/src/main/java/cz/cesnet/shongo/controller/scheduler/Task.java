@@ -9,7 +9,10 @@ import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.CallInitiation;
+import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.request.LookupEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -156,8 +159,8 @@ public class Task
                     new AllocatedExternalEndpoint((ExternalEndpointSpecification) resourceSpecification);
             addAllocatedItem(allocatedExternalEndpoint, resourceSpecification.getCallInitiation());
         }
-        else if (resourceSpecification instanceof ExistingResourceSpecification) {
-            ExistingResourceSpecification existingResource = (ExistingResourceSpecification) resourceSpecification;
+        else if (resourceSpecification instanceof ExistingEndpointSpecification) {
+            ExistingEndpointSpecification existingResource = (ExistingEndpointSpecification) resourceSpecification;
             Resource resource = existingResource.getResource();
             if (cacheTransaction.containsResource(resource)) {
                 // Same resource is requested multiple times
@@ -173,8 +176,8 @@ public class Task
             }
             addAllocatedItemByResource(resource, resourceSpecification.getCallInitiation());
         }
-        else if (resourceSpecification instanceof LookupResourceSpecification) {
-            LookupResourceSpecification lookupResource = (LookupResourceSpecification) resourceSpecification;
+        else if (resourceSpecification instanceof LookupEndpointSpecification) {
+            LookupEndpointSpecification lookupResource = (LookupEndpointSpecification) resourceSpecification;
             Set<Technology> technologies = lookupResource.getTechnologies();
 
             // Lookup device resources

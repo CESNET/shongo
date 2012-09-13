@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.oldrequest.*;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -20,8 +21,8 @@ import java.util.List;
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Tests for using {@link Preprocessor} that synchronizes {@link CompartmentRequest}(s)
- * with {@link ReservationRequest}(s).
+ * Tests for using {@link Preprocessor} that synchronizes {@link cz.cesnet.shongo.controller.oldrequest.CompartmentRequest}(s)
+ * with {@link cz.cesnet.shongo.controller.oldrequest.ReservationRequest}(s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -36,7 +37,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
 
         // Create reservation request
-        ReservationRequest reservationRequest = new ReservationRequest();
+        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), Period.parse("PT1H"));

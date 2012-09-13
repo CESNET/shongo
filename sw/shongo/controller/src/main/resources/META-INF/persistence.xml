@@ -17,7 +17,7 @@
         <class>cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification</class>
         <class>cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification</class>
         <class>cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification$Rule</class>
-        <class>cz.cesnet.shongo.controller.common.DateTimeSlot</class>
+        <class>cz.cesnet.shongo.controller.request.DateTimeSlotSpecification</class>
         <class>cz.cesnet.shongo.controller.common.Person</class>
 
         <!-- Hibernate configuration -->

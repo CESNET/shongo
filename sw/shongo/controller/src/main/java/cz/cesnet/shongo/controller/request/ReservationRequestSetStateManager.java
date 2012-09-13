@@ -16,7 +16,7 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Embeddable
-public class ReservationRequestStateManager extends AbstractManager
+public class ReservationRequestSetStateManager extends AbstractManager
 {
     /**
      * Date/time value that represents "infinite". Is used for preprocessed state's interval end
@@ -25,26 +25,27 @@ public class ReservationRequestStateManager extends AbstractManager
     public static final DateTime MAXIMUM_INTERVAL_END = DateTime.parse("9999-12-31T23:59:59");
 
     /**
-     * {@link ReservationRequest} for which the states are managed.
+     * {@link ReservationRequestSet} for which the states are managed.
      */
-    private ReservationRequest reservationRequest;
+    private ReservationRequestSet reservationRequestSet;
 
     /**
      * List of reservation request preprocessed states.
      */
-    List<ReservationRequestPreprocessedState> preprocessedStates = new ArrayList<ReservationRequestPreprocessedState>();
+    List<ReservationRequestSetPreprocessedState> preprocessedStates = new ArrayList<ReservationRequestSetPreprocessedState>();
 
     /**
      * Construct manager for reservation request state.
      *
      * @param entityManager
      */
-    public ReservationRequestStateManager(EntityManager entityManager, ReservationRequest reservationRequest)
+    public ReservationRequestSetStateManager(EntityManager entityManager,
+            ReservationRequestSet reservationRequestSet)
     {
         super(entityManager);
 
-        // Keep reservation request reference
-        this.reservationRequest = reservationRequest;
+        // Keep reference to reservation request
+        this.reservationRequestSet = reservationRequestSet;
 
         loadStates();
     }
@@ -55,14 +56,14 @@ public class ReservationRequestStateManager extends AbstractManager
     private void loadStates()
     {
         // Load all existing preprocessed states
-        preprocessedStates = entityManager.createQuery("SELECT state FROM ReservationRequestPreprocessedState state "
-                + "WHERE state.reservationRequest = :reservationRequest ORDER BY state.start",
-                ReservationRequestPreprocessedState.class)
-                .setParameter("reservationRequest", reservationRequest).getResultList();
+        preprocessedStates = entityManager.createQuery("SELECT state FROM ReservationRequestSetPreprocessedState state "
+                + "WHERE state.reservationRequestSet = :reservationRequestSet ORDER BY state.start",
+                ReservationRequestSetPreprocessedState.class)
+                .setParameter("reservationRequestSet", reservationRequestSet).getResultList();
 
         // Check whether they don't overlap
         for (int index = 0; index < preprocessedStates.size(); index++) {
-            ReservationRequestPreprocessedState preprocessedState = preprocessedStates.get(index);
+            ReservationRequestSetPreprocessedState preprocessedState = preprocessedStates.get(index);
             DateTime recordStart = preprocessedState.getStart();
             DateTime recordEnd = preprocessedState.getEnd();
             if (recordStart.isAfter(recordEnd)) {
@@ -70,7 +71,7 @@ public class ReservationRequestStateManager extends AbstractManager
                         + recordStart.toString() + ", end=" + recordEnd.toString() + ")!");
             }
             if (index >= 1) {
-                ReservationRequestPreprocessedState previousPreprocessedState = preprocessedStates.get(index - 1);
+                ReservationRequestSetPreprocessedState previousPreprocessedState = preprocessedStates.get(index - 1);
                 if (!recordStart.isAfter(previousPreprocessedState.getEnd())) {
                     throw new IllegalArgumentException(
                             "Interval 'start' should be after previous interval 'end' (start="
@@ -103,16 +104,17 @@ public class ReservationRequestStateManager extends AbstractManager
     /**
      * @param state
      */
-    public void setState(ReservationRequest.State state)
+    public void setState(ReservationRequestSet.State state)
     {
-        if (state == ReservationRequest.State.NOT_PREPROCESSED) {
-            for (ReservationRequestPreprocessedState preprocessedState : preprocessedStates) {
+        if (state == ReservationRequestSet.State.NOT_PREPROCESSED) {
+            for (ReservationRequestSetPreprocessedState preprocessedState : preprocessedStates) {
                 delete(preprocessedState);
             }
             preprocessedStates.clear();
         }
         else {
-            throw new IllegalArgumentException("Cannot set " + ReservationRequest.State.PREPROCESSED.toString()
+            throw new IllegalArgumentException("Cannot set " + ReservationRequestSet
+                    .State.PREPROCESSED.toString()
                     + "for the whole time interval!");
         }
     }
@@ -123,7 +125,7 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param state
      * @param interval
      */
-    public void setState(ReservationRequest.State state, Interval interval)
+    public void setState(ReservationRequestSet.State state, Interval interval)
     {
         setState(state, interval.getStart(), interval.getEnd());
     }
@@ -135,7 +137,7 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param start
      * @param end
      */
-    public void setState(ReservationRequest.State state, DateTime start, DateTime end)
+    public void setState(ReservationRequestSet.State state, DateTime start, DateTime end)
     {
         if (start == null || end == null) {
             throw new IllegalArgumentException("Interval 'start' and 'end' should not be empty!");
@@ -151,9 +153,9 @@ public class ReservationRequestStateManager extends AbstractManager
         // Add the record before first
         if (preprocessedStates.size() == 0 || end.isBefore(preprocessedStates.get(0).getStart())) {
             // Skip the not-preprocessed
-            if (state == ReservationRequest.State.PREPROCESSED) {
-                ReservationRequestPreprocessedState preprocessedState = new ReservationRequestPreprocessedState();
-                preprocessedState.setReservationRequest(reservationRequest);
+            if (state == ReservationRequestSet.State.PREPROCESSED) {
+                ReservationRequestSetPreprocessedState preprocessedState = new ReservationRequestSetPreprocessedState();
+                preprocessedState.setReservationRequestSet(reservationRequestSet);
                 preprocessedState.setInterval(new Interval(start, end));
                 create(preprocessedState);
                 preprocessedStates.add(0, preprocessedState);
@@ -162,9 +164,9 @@ public class ReservationRequestStateManager extends AbstractManager
         // Add the record after last
         else if (start.isAfter(preprocessedStates.get(preprocessedStates.size() - 1).getEnd())) {
             // Skip the not-preprocessed
-            if (state == ReservationRequest.State.PREPROCESSED) {
-                ReservationRequestPreprocessedState preprocessedState = new ReservationRequestPreprocessedState();
-                preprocessedState.setReservationRequest(reservationRequest);
+            if (state == ReservationRequestSet.State.PREPROCESSED) {
+                ReservationRequestSetPreprocessedState preprocessedState = new ReservationRequestSetPreprocessedState();
+                preprocessedState.setReservationRequestSet(reservationRequestSet);
                 preprocessedState.setInterval(new Interval(start, end));
                 create(preprocessedState);
                 preprocessedStates.add(preprocessedState);
@@ -172,10 +174,10 @@ public class ReservationRequestStateManager extends AbstractManager
         }
         else {
             // For preprocessed state, a record can be created or some records can be merged
-            if (state == ReservationRequest.State.PREPROCESSED) {
-                ReservationRequestPreprocessedState newPreprocessedState = null;
+            if (state == ReservationRequestSet.State.PREPROCESSED) {
+                ReservationRequestSetPreprocessedState newPreprocessedState = null;
                 for (int index = 0; index < preprocessedStates.size(); index++) {
-                    ReservationRequestPreprocessedState preprocessedState = preprocessedStates.get(index);
+                    ReservationRequestSetPreprocessedState preprocessedState = preprocessedStates.get(index);
 
                     // Compute statements
                     boolean startIsBeforeOrEqual = !start.isAfter(preprocessedState.getStart());
@@ -229,7 +231,7 @@ public class ReservationRequestStateManager extends AbstractManager
             // For non-preprocessed state some records may be erased
             else {
                 for (int index = 0; index < preprocessedStates.size(); index++) {
-                    ReservationRequestPreprocessedState preprocessedState = preprocessedStates.get(index);
+                    ReservationRequestSetPreprocessedState preprocessedState = preprocessedStates.get(index);
 
                     // Compute statements
                     boolean startIsBeforeOrEqual = !start.isAfter(preprocessedState.getStart());
@@ -257,8 +259,8 @@ public class ReservationRequestStateManager extends AbstractManager
                     // If the interval is inside the record, split the record
                     else if (startIsInside && endIsInside) {
                         index++;
-                        ReservationRequestPreprocessedState newPreprocessedState = new ReservationRequestPreprocessedState();
-                        newPreprocessedState.setReservationRequest(reservationRequest);
+                        ReservationRequestSetPreprocessedState newPreprocessedState = new ReservationRequestSetPreprocessedState();
+                        newPreprocessedState.setReservationRequestSet(reservationRequestSet);
                         newPreprocessedState.setInterval(new Interval(end, preprocessedState.getEnd()));
                         create(newPreprocessedState);
                         preprocessedStates.add(index, newPreprocessedState);
@@ -274,42 +276,42 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param dateTime
      * @return state of reservation request at given date/time
      */
-    public ReservationRequest.State getState(DateTime dateTime)
+    public ReservationRequestSet.State getState(DateTime dateTime)
     {
-        for (ReservationRequestPreprocessedState preprocessedState : preprocessedStates) {
+        for (ReservationRequestSetPreprocessedState preprocessedState : preprocessedStates) {
             if (!dateTime.isBefore(preprocessedState.getStart()) && !dateTime.isAfter(preprocessedState.getEnd())) {
-                return ReservationRequest.State.PREPROCESSED;
+                return ReservationRequestSet.State.PREPROCESSED;
             }
         }
-        return ReservationRequest.State.NOT_PREPROCESSED;
+        return ReservationRequestSet.State.NOT_PREPROCESSED;
     }
 
     /**
-     * If both states are found the {@link ReservationRequest.State#NOT_PREPROCESSED} is returned.
+     * If both states are found the {@link ReservationRequestSet.State#NOT_PREPROCESSED} is returned.
      *
      * @param start
      * @param end
      * @return state of reservation request in given interval
      */
-    public ReservationRequest.State getState(DateTime start, DateTime end)
+    public ReservationRequestSet.State getState(DateTime start, DateTime end)
     {
         return getState(new Interval(start, end));
     }
 
     /**
-     * If both states are present the {@link ReservationRequest.State#NOT_PREPROCESSED} is returned.
+     * If both states are present the {@link ReservationRequestSet.State#NOT_PREPROCESSED} is returned.
      *
      * @param interval
      * @return state of reservation request in given interval
      */
-    public ReservationRequest.State getState(Interval interval)
+    public ReservationRequestSet.State getState(Interval interval)
     {
-        for (ReservationRequestPreprocessedState preprocessedState : preprocessedStates) {
+        for (ReservationRequestSetPreprocessedState preprocessedState : preprocessedStates) {
             if (preprocessedState.getInterval().contains(interval)) {
-                return ReservationRequest.State.PREPROCESSED;
+                return ReservationRequestSet.State.PREPROCESSED;
             }
         }
-        return ReservationRequest.State.NOT_PREPROCESSED;
+        return ReservationRequestSet.State.NOT_PREPROCESSED;
     }
 
     /**
@@ -318,7 +320,7 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param end
      * @return sub-interval from given interval where the reservation request has given state
      */
-    public Interval getInterval(ReservationRequest.State state, DateTime start, DateTime end)
+    public Interval getInterval(ReservationRequestSet.State state, DateTime start, DateTime end)
     {
         return getInterval(state, new Interval(start, end));
     }
@@ -328,15 +330,15 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param interval
      * @return sub-interval from given interval where the reservation request has given state
      */
-    public Interval getInterval(ReservationRequest.State state, Interval interval)
+    public Interval getInterval(ReservationRequestSet.State state, Interval interval)
     {
         DateTime intervalStart = null;
         DateTime intervalEnd = null;
 
-        if (state == ReservationRequest.State.NOT_PREPROCESSED) {
+        if (state == ReservationRequestSet.State.NOT_PREPROCESSED) {
             intervalStart = interval.getStart();
             intervalEnd = interval.getEnd();
-            for (ReservationRequestPreprocessedState preprocessedState : preprocessedStates) {
+            for (ReservationRequestSetPreprocessedState preprocessedState : preprocessedStates) {
                 boolean startIsInside = !intervalStart.isBefore(preprocessedState.getStart())
                         && intervalStart.isBefore(preprocessedState.getEnd());
                 boolean endIsInside = intervalEnd.isAfter(preprocessedState.getStart())
@@ -371,11 +373,11 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param reservationRequest
      * @param state
      */
-    public static void setState(EntityManager entityManager, ReservationRequest reservationRequest,
-            ReservationRequest.State state)
+    public static void setState(EntityManager entityManager, ReservationRequestSet reservationRequest,
+            ReservationRequestSet.State state)
     {
-        ReservationRequestStateManager stateManager =
-                new ReservationRequestStateManager(entityManager, reservationRequest);
+        ReservationRequestSetStateManager stateManager =
+                new ReservationRequestSetStateManager(entityManager, reservationRequest);
         stateManager.setState(state);
     }
 
@@ -387,11 +389,11 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param state
      * @param interval
      */
-    public static void setState(EntityManager entityManager, ReservationRequest reservationRequest,
-            ReservationRequest.State state, Interval interval)
+    public static void setState(EntityManager entityManager, ReservationRequestSet reservationRequest,
+            ReservationRequestSet.State state, Interval interval)
     {
-        ReservationRequestStateManager stateManager =
-                new ReservationRequestStateManager(entityManager, reservationRequest);
+        ReservationRequestSetStateManager stateManager =
+                new ReservationRequestSetStateManager(entityManager, reservationRequest);
         stateManager.setState(state, interval);
     }
 
@@ -401,10 +403,10 @@ public class ReservationRequestStateManager extends AbstractManager
      * @param entityManager
      * @param reservationRequest
      */
-    public static void clear(EntityManager entityManager, ReservationRequest reservationRequest)
+    public static void clear(EntityManager entityManager, ReservationRequestSet reservationRequest)
     {
-        ReservationRequestStateManager stateManager =
-                new ReservationRequestStateManager(entityManager, reservationRequest);
-        stateManager.setState(ReservationRequest.State.NOT_PREPROCESSED);
+        ReservationRequestSetStateManager stateManager =
+                new ReservationRequestSetStateManager(entityManager, reservationRequest);
+        stateManager.setState(ReservationRequestSet.State.NOT_PREPROCESSED);
     }
 }

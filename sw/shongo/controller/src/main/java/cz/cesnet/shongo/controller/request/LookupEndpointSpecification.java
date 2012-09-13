@@ -1,9 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -12,12 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents parameters for device which will be lookup and used in the compartment.
+ * Represents {@link EndpointSpecification} as parameters for endpoint which will be lookup.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class LookupResourceSpecification extends ResourceSpecification
+public class LookupEndpointSpecification extends EndpointSpecification
 {
     /**
      * Set of technologies which the resource must support.
@@ -27,7 +24,7 @@ public class LookupResourceSpecification extends ResourceSpecification
     /**
      * Constructor.
      */
-    public LookupResourceSpecification()
+    public LookupEndpointSpecification()
     {
     }
 
@@ -36,7 +33,7 @@ public class LookupResourceSpecification extends ResourceSpecification
      *
      * @param technology
      */
-    public LookupResourceSpecification(Technology technology)
+    public LookupEndpointSpecification(Technology technology)
     {
         addTechnology(technology);
     }
@@ -76,7 +73,7 @@ public class LookupResourceSpecification extends ResourceSpecification
         addCollectionToMap(map, "technologies", technologies);
     }
 
-    @Override
+    /*@Override
     public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
     {
         cz.cesnet.shongo.controller.api.LookupResourceSpecification api =
@@ -105,5 +102,5 @@ public class LookupResourceSpecification extends ResourceSpecification
             addTechnology(apiExternalEndpoint.getTechnology());
         }
         super.fromApi(api, entityManager, domain);
-    }
+    }*/
 }

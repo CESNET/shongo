@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.oldrequest.CompartmentRequestManager;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -14,8 +15,8 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests for creating/updating {@link CompartmentRequest}(s) based on {@link Compartment}
- * from {@link ReservationRequest}.
+ * Tests for creating/updating {@link cz.cesnet.shongo.controller.oldrequest.CompartmentRequest}(s) based on {@link cz.cesnet.shongo.controller.oldrequest.Compartment}
+ * from {@link cz.cesnet.shongo.controller.oldrequest.ReservationRequest}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

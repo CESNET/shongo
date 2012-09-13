@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class ReportableObject extends PersistentObject
+public abstract class ReportablePersistentObject extends PersistentObject
 {
     /**
      * List of report for this object.

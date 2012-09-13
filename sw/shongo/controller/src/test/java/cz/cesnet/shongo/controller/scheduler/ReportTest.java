@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
 import cz.cesnet.shongo.controller.report.Report;

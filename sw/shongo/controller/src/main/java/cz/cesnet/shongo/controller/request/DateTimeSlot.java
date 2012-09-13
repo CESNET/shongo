@@ -7,12 +7,13 @@ import org.joda.time.Interval;
 import javax.persistence.*;
 
 /**
- * Represents a interval (time slot).
+ * Represents a interval (time slot) which is saved as two fields {@link #start} and {@link #end}
+ * to allow database filtering based on each field.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Embeddable
-public class Slot
+public class DateTimeSlot
 {
     /**
      * Interval start date/time.

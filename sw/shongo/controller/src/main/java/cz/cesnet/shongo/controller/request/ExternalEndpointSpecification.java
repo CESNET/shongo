@@ -1,21 +1,18 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.*;
 
 /**
- * Represents an external (not existing) endpoint(s) specification for the compartment.
+ * Represents an external (not existing) {@link EndpointSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ExternalEndpointSpecification extends ResourceSpecification
+public class ExternalEndpointSpecification extends EndpointSpecification
 {
     /**
      * Number of external endpoints of the same type.
@@ -173,7 +170,7 @@ public class ExternalEndpointSpecification extends ResourceSpecification
         }
     }
 
-    @Override
+    /*@Override
     public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification api =
@@ -207,5 +204,5 @@ public class ExternalEndpointSpecification extends ResourceSpecification
             setCount(apiExternalEndpoint.getCount());
         }
         super.fromApi(api, entityManager, domain);
-    }
+    }*/
 }

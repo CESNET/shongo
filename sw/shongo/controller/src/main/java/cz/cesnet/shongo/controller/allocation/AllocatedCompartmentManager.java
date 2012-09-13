@@ -2,8 +2,6 @@ package cz.cesnet.shongo.controller.allocation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.request.CompartmentRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;

@@ -11,17 +11,17 @@ import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**
- * Represents a {@link ReservationRequest.State#PREPROCESSED} state of a reservation request for a specific interval.
+ * Represents a {@link ReservationRequestSet.State#PREPROCESSED} state of a reservation request for a specific interval.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequestPreprocessedState extends PersistentObject
+public class ReservationRequestSetPreprocessedState extends PersistentObject
 {
     /**
      * Reservation request to which the state belongs.
      */
-    private ReservationRequest reservationRequest;
+    private ReservationRequestSet reservationRequestSet;
 
     /**
      * Interval start date/time.
@@ -34,20 +34,20 @@ public class ReservationRequestPreprocessedState extends PersistentObject
     private DateTime end;
 
     /**
-     * @return {@link #reservationRequest}
+     * @return {@link #reservationRequestSet}
      */
     @OneToOne
-    public ReservationRequest getReservationRequest()
+    public ReservationRequestSet getReservationRequestSet()
     {
-        return reservationRequest;
+        return reservationRequestSet;
     }
 
     /**
-     * @param reservationRequest sets the {@link #reservationRequest}
+     * @param reservationRequestSet sets the {@link #reservationRequestSet}
      */
-    public void setReservationRequest(ReservationRequest reservationRequest)
+    public void setReservationRequestSet(ReservationRequestSet reservationRequestSet)
     {
-        this.reservationRequest = reservationRequest;
+        this.reservationRequestSet = reservationRequestSet;
     }
 
     /**
