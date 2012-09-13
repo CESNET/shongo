@@ -99,7 +99,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #requestedSpecification}
      */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     public Specification getRequestedSpecification()
     {
         return requestedSpecification;
@@ -195,13 +195,13 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("state", getState().toString());
-        map.put("slot", getRequestedSlot().toString());
-        map.put("specification", getRequestedSpecification().toString());
+        map.put("state", getState());
+        map.put("slot", getRequestedSlot());
+        map.put("specification", getRequestedSpecification());
     }
 
     /**

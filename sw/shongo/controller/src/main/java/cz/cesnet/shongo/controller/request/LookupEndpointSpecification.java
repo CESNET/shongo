@@ -66,11 +66,11 @@ public class LookupEndpointSpecification extends EndpointSpecification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        addCollectionToMap(map, "technologies", technologies);
+        map.put("technologies", technologies);
     }
 
     /*@Override

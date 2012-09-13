@@ -191,11 +191,11 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("callInitiation", callInitiation.toString());
-        addCollectionToMap(map, "specifications", specifications);
+        map.put("callInitiation", callInitiation);
+        map.put("specifications", specifications);
     }
 }

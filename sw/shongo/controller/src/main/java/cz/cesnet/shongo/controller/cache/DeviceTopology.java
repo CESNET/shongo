@@ -130,11 +130,11 @@ public class DeviceTopology extends PrintableObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        addCollectionToMap(map, "nodes", nodes);
-        addCollectionToMap(map, "edges", edges);
+        map.put("nodes", nodes);
+        map.put("edges", edges);
     }
 }

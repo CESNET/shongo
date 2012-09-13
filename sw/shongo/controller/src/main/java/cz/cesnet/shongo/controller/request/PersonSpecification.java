@@ -122,12 +122,12 @@ public class PersonSpecification extends Specification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
         map.put("person", person.toString());
-        map.put("endpoint", (endpointSpecification != null ? endpointSpecification.getId().toString() : null));
-        map.put("invitationState", invitationState.toString());
+        map.put("endpoint", endpointSpecification);
+        map.put("invitationState", invitationState);
     }
 }

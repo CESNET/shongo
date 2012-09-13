@@ -45,7 +45,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * List of {@link Specification}s for targets which are requested for a reservation.
      */
-    private List<Specification> requestedSpecifications = new ArrayList<Specification>();
+    private List<Specification> specifications = new ArrayList<Specification>();
 
     /**
      * List of created {@link ReservationRequest}s.
@@ -94,7 +94,19 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void addRequestedSlot(DateTimeSpecification dateTime, Period duration)
     {
-        requestedSlots.add(new DateTimeSlotSpecification(dateTime, duration));
+        addRequestedSlot(new DateTimeSlotSpecification(dateTime, duration));
+    }
+
+    /**
+     * Add new {@link DateTimeSlotSpecification} constructed from {@code dateTime} and {@code duration} to
+     * the {@link #requestedSlots}.
+     *
+     * @param dateTime slot date/time
+     * @param duration slot duration
+     */
+    public void addRequestedSlot(DateTimeSpecification dateTime, String duration)
+    {
+        addRequestedSlot(new DateTimeSlotSpecification(dateTime, Period.parse(duration)));
     }
 
     /**
@@ -106,13 +118,13 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #requestedSpecifications}
+     * @return {@link #specifications}
      */
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<Specification> getRequestedSpecifications()
+    public List<Specification> getSpecifications()
     {
-        return Collections.unmodifiableList(requestedSpecifications);
+        return Collections.unmodifiableList(specifications);
     }
 
     /**
@@ -120,9 +132,9 @@ public class ReservationRequestSet extends AbstractReservationRequest
      * @return {@link Specification} with given {@code id}
      * @throws EntityNotFoundException when the {@link Specification} doesn't exist
      */
-    public Specification getRequestedSpecificationById(Long id) throws EntityNotFoundException
+    public Specification getSpecificationById(Long id) throws EntityNotFoundException
     {
-        for (Specification specification : requestedSpecifications) {
+        for (Specification specification : specifications) {
             if (specification.getId().equals(id)) {
                 return specification;
             }
@@ -131,19 +143,19 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     /**
-     * @param specification to be added to the {@link #requestedSpecifications}
+     * @param specification to be added to the {@link #specifications}
      */
-    public void addRequestedSpecification(Specification specification)
+    public void addSpecification(Specification specification)
     {
-        requestedSpecifications.add(specification);
+        specifications.add(specification);
     }
 
     /**
-     * @param specification to be removed from the {@link #requestedSpecifications}
+     * @param specification to be removed from the {@link #specifications}
      */
-    public void removeRequestedSpecification(Specification specification)
+    public void removeSpecification(Specification specification)
     {
-        requestedSpecifications.remove(specification);
+        specifications.remove(specification);
     }
 
     /**
@@ -218,11 +230,11 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        addCollectionToMap(map, "slots", requestedSlots);
-        addCollectionToMap(map, "specifications", requestedSpecifications);
+        map.put("slots", requestedSlots);
+        map.put("specifications", specifications);
     }
 }

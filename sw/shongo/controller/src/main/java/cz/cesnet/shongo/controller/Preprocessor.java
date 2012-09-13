@@ -4,7 +4,6 @@ import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -120,7 +119,10 @@ public class Preprocessor extends Component
         Set<Long> specifications = new HashSet<Long>();
 
         // Reservation requests are synchronized per specification from the set
-        for (Specification specification : reservationRequestSet.getRequestedSpecifications()) {
+        for (Specification specification : reservationRequestSet.getSpecifications()) {
+            if (specification == null) {
+                throw new IllegalStateException("Specification should not be null!");
+            }
             // List existing reservation requests for the set in the interval
             List<ReservationRequest> reservationRequestsForSpecification =
                     reservationRequestManager.listReservationRequestsBySpecification(specification, interval);
@@ -140,22 +142,25 @@ public class Preprocessor extends Component
                 // Modify existing reservation request
                 if (map.containsKey(slot)) {
                     ReservationRequest reservationRequest = map.get(slot);
-                    if (true) {
-                        throw new TodoImplementException("Update reservation request");
-                    }
                     reservationRequest.synchronizeFrom(reservationRequestSet);
+                    updateReservationRequest(reservationRequest, specification);
+
+                    // Remove the slot from the map for the corresponding reservation request to not be deleted
                     map.remove(slot);
                 }
                 // Create new reservation request
                 else {
-                    ReservationRequest reservationRequest = createReservationRequest(specification, slot,
-                            reservationRequestManager);
+                    ReservationRequest reservationRequest = new ReservationRequest();
+                    reservationRequest.setRequestedSlot(slot);
                     reservationRequest.synchronizeFrom(reservationRequestSet);
+                    updateReservationRequest(reservationRequest, specification);
+                    reservationRequestSet.addReservationRequest(reservationRequest);
                 }
             }
 
-            // All compartment requests that remains in map must be deleted
+            // All reservation requests that remains in map must be deleted
             for (ReservationRequest reservationRequest : map.values()) {
+                reservationRequestSet.removeReservationRequest(reservationRequest);
                 reservationRequestManager.delete(reservationRequest);
             }
 
@@ -164,6 +169,7 @@ public class Preprocessor extends Component
 
         // All reservation requests that remains in list of all must be deleted
         for (ReservationRequest reservationRequest : reservationRequests) {
+            reservationRequestSet.removeReservationRequest(reservationRequest);
             reservationRequestManager.delete(reservationRequest);
 
             // If referenced specification isn't in reservation request any more
@@ -173,6 +179,9 @@ public class Preprocessor extends Component
                 entityManager.remove(specification);
             }
         }
+
+        // Update reservation request
+        reservationRequestManager.update(reservationRequestSet);
 
         // When the reservation request hasn't got any future requested slot, the preprocessed state
         // is until "infinite".
@@ -186,44 +195,6 @@ public class Preprocessor extends Component
     }
 
     /**
-     * Create a new {@link ReservationRequest} for a reservation request.
-     *
-     * @param specification   compartment which will be requested in the compartment request
-     * @param requestedSlot date/time slot for which the compartment request will be created
-     * @return created compartment request
-     */
-    public static ReservationRequest createReservationRequest(Specification specification, Interval requestedSlot,
-            ReservationRequestManager reservationRequestManager)
-    {
-        // Create compartment request
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setRequestedSpecification(specification);
-        reservationRequest.setRequestedSlot(requestedSlot);
-
-        // TOdO: set params
-
-        // Set of all requested persons
-        /*Set<Person> personSet = new HashSet<Person>();
-
-        // Add requested resources and requested persons by these resources
-        for (ResourceSpecification resourceSpecification : compartment.getRequestedResources()) {
-            addRequestedResource(compartmentRequest, resourceSpecification, personSet, null);
-        }
-
-        // Add directly requested persons
-        for (Person person : compartment.getRequestedPersons()) {
-            addRequestedPerson(compartmentRequest, person, null, personSet, null);
-        }*/
-
-        // Set proper state
-        reservationRequest.updateStateBySpecifications();
-
-        reservationRequestManager.create(reservationRequest);
-
-        return reservationRequest;
-    }
-
-    /**
      * Modify compartment request according to compartment.
      *
      * @param reservationRequest
@@ -231,11 +202,14 @@ public class Preprocessor extends Component
      * @return true if some change(s) were made in the compartment request,
      *         false otherwise
      */
-    public static boolean updateReservationRequest(ReservationRequest reservationRequest, Specification specification,
-            ReservationRequestManager reservationRequestManager)
+    public static boolean updateReservationRequest(ReservationRequest reservationRequest, Specification specification)
     {
         // Tracks whether the compartment request was modified
         boolean modified = false;
+        if (reservationRequest.getRequestedSpecification() == null) {
+            reservationRequest.setRequestedSpecification(specification);
+            modified = true;
+        }
 
         // Build set of requested persons that is used to not allow same persons to be requested for a single
         // compartment request
@@ -393,7 +367,7 @@ public class Preprocessor extends Component
             reservationRequest.updateStateByRequestedPersons();
         }
 
-        reservationRequestManager.update(reservationRequest);*/
+        */
 
         return modified;
     }

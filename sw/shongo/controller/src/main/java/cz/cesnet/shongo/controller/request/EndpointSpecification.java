@@ -88,11 +88,11 @@ public abstract class EndpointSpecification extends Specification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("callInitiation", (callInitiation != null ? callInitiation.toString() : null));
-        addCollectionToMap(map, "requestedPersons", persons);
+        map.put("callInitiation", callInitiation);
+        map.put("requestedPersons", persons);
     }
 }

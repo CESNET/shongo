@@ -244,13 +244,13 @@ public class DeviceResource extends Resource
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
         map.put("callable", (isCallable() ? "true" : "false"));
         map.put("mode", (isManaged() ? "managed" : "unmanaged"));
-        addCollectionToMap(map, "technologies", technologies);
+        map.put("technologies", technologies);
     }
 
     @Override

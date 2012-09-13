@@ -87,7 +87,7 @@ public abstract class PersistentObject extends PrintableObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 

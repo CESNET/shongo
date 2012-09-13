@@ -160,14 +160,12 @@ public class ExternalEndpointSpecification extends EndpointSpecification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        addCollectionToMap(map, "technologies", technologies);
-        if (count != 1) {
-            map.put("count", Integer.toString(count));
-        }
+        map.put("technologies", technologies);
+        map.put("count", count);
     }
 
     /*@Override

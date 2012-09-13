@@ -309,7 +309,7 @@ public class DateTimeSlotSpecification extends PersistentObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
@@ -332,7 +332,7 @@ public class DateTimeSlotSpecification extends PersistentObject
                 break;
             }
         }
-        addCollectionToMap(map, "enumerated", slots);
+        map.put("enumerated", slots);
     }
 
     /**

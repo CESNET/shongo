@@ -349,13 +349,11 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("type", getType().toString());
-        if (getPurpose() != null) {
-            map.put("purpose", getPurpose().toString());
-        }
+        map.put("type", getType());
+        map.put("purpose", getPurpose());
     }
 }

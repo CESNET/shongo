@@ -540,7 +540,7 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
@@ -560,6 +560,6 @@ public class PeriodicDateTimeSpecification extends DateTimeSpecification
                 break;
             }
         }
-        addCollectionToMap(map, "enumerated", dateTimes);
+        map.put("enumerated", dateTimes);
     }
 }

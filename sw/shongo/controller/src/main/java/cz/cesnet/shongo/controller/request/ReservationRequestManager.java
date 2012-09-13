@@ -1,6 +1,10 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
+import cz.cesnet.shongo.controller.allocation.AllocatedItem;
+import cz.cesnet.shongo.controller.allocation.Reservation;
+import cz.cesnet.shongo.controller.allocation.ReservationManager;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -91,19 +95,18 @@ public class ReservationRequestManager extends AbstractManager
             ReservationRequestSetStateManager.clear(entityManager, reservationRequestSet);
         }
         else if (abstractReservationRequest instanceof ReservationRequest) {
-            throw new TodoImplementException();
-            /*AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-            AllocatedCompartment allocatedCompartment =
-                    allocatedCompartmentManager.getByReservationRequest(compartmentRequest.getId());
-            if (allocatedCompartment != null) {
-                for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            Reservation reservation = reservationManager.getByReservationRequest(reservationRequest);
+            if (reservation != null) {
+                for (AllocatedItem allocatedItem : reservation.getAllocatedItems()) {
                     if (allocatedItem instanceof AllocatedExternalEndpoint) {
                         AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) allocatedItem;
                         allocatedExternalEndpoint.setExternalEndpointSpecification(null);
                     }
                 }
-                allocatedCompartmentManager.markedForDeletion(allocatedCompartment);
-            }*/
+                reservationManager.markedForDeletion(reservation);
+            }
         }
 
         super.delete(abstractReservationRequest);
@@ -211,9 +214,11 @@ public class ReservationRequestManager extends AbstractManager
     public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId)
     {
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.reservationRequest reservationRequest"
-                        + " WHERE reservationRequestSet.id = :id "
+                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + " WHERE reservationRequest.id IN("
+                        + " SELECT reservationRequest.id FROM ReservationRequestSet reservationRequestSet"
+                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                        + " WHERE reservationRequestSet.id = :id)"
                         + " ORDER BY reservationRequest.requestedSlotStart", ReservationRequest.class)
                 .setParameter("id", reservationRequestSetId)
                 .getResultList();
@@ -296,7 +301,8 @@ public class ReservationRequestManager extends AbstractManager
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :state"
-                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end", ReservationRequest.class)
+                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end",
+                ReservationRequest.class)
                 .setParameter("state", ReservationRequest.State.COMPLETE)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
