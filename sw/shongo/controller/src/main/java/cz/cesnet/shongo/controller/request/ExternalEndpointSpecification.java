@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.resource.Alias;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.*;
@@ -110,6 +111,14 @@ public class ExternalEndpointSpecification extends EndpointSpecification
     }
 
     /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
+    /**
      * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
@@ -144,6 +153,14 @@ public class ExternalEndpointSpecification extends EndpointSpecification
     }
 
     /**
+     * @param aliases sets the {@link #aliases}
+     */
+    public void setAliases(List<Alias> aliases)
+    {
+        this.aliases = aliases;
+    }
+
+    /**
      * @param alias alias to be added to the {@link #aliases}
      */
     public void addAlias(Alias alias)
@@ -157,6 +174,23 @@ public class ExternalEndpointSpecification extends EndpointSpecification
     public void removeAlias(Alias alias)
     {
         aliases.remove(alias);
+    }
+
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
+
+        boolean modified = super.synchronizeFrom(specification);
+        modified |= !ObjectUtils.equals(getTechnologies(), externalEndpointSpecification.getTechnologies())
+                || !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount())
+                || !ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases());
+
+        setTechnologies(externalEndpointSpecification.getTechnologies());
+        setCount(externalEndpointSpecification.getCount());
+        setAliases(externalEndpointSpecification.getAliases());
+
+        return modified;
     }
 
     @Override

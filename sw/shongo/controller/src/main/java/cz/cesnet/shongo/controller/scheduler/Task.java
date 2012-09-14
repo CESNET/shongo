@@ -5,7 +5,6 @@ import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.allocation.*;
-import cz.cesnet.shongo.controller.allocation.Reservation;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.report.Report;
@@ -384,7 +383,8 @@ public class Task
 
         // TODO: implement connections to multiple endpoints
         if (allocatedEndpointTo.getCount() > 1) {
-            throw new CannotCreateConnectionFromToMultipleReport(allocatedEndpointFrom, allocatedEndpointTo).exception();
+            throw new CannotCreateConnectionFromToMultipleReport(allocatedEndpointFrom, allocatedEndpointTo)
+                    .exception();
         }
 
         // Find existing alias for connection
@@ -418,7 +418,8 @@ public class Task
                 ConnectionByAlias connectionByAlias = new ConnectionByAlias();
                 connectionByAlias.setAlias(allocatedAlias.getAlias());
                 connection = connectionByAlias;
-            } catch (ReportException exception) {
+            }
+            catch (ReportException exception) {
                 Report report = new CannotCreateConnectionFromToReport(allocatedEndpointFrom, allocatedEndpointTo);
                 report.addChildMessage(exception.getReport());
                 throw report.exception();
@@ -544,7 +545,8 @@ public class Task
                     return null;
                 }
             }
-        } else {
+        }
+        else {
             // Only allocated resource is allowed
             AllocatedEndpoint allocatedEndpoint = allocatedEndpoints.get(0);
             if (!(allocatedEndpoint instanceof AllocatedResource)) {

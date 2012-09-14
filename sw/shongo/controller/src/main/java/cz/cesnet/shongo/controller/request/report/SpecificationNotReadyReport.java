@@ -63,7 +63,7 @@ public class SpecificationNotReadyReport extends Report
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
             StringBuilder stringBuilder = new StringBuilder();
             for (Specification requestedSpecification : compartmentSpecification.getSpecifications()) {
-                if (stringBuilder.length() > 0 ) {
+                if (stringBuilder.length() > 0) {
                     stringBuilder.append("\n");
                 }
                 stringBuilder.append(formatSpecification(requestedSpecification));

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
@@ -152,18 +153,25 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * Synchronize properies from given {@code abstractReservationRequest}.
+     * Synchronize properties from given {@code abstractReservationRequest}.
      *
      * @param abstractReservationRequest from which will be copied all properties values to
      *                                   this {@link AbstractReservationRequest}
+     * @return true if some modification was made
      */
-    public void synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
+    public boolean synchronizeFrom(AbstractReservationRequest abstractReservationRequest)
     {
+        boolean modified = !ObjectUtils.equals(getType(), abstractReservationRequest.getType())
+                || !ObjectUtils.equals(getPurpose(), abstractReservationRequest.getPurpose())
+                || !ObjectUtils.equals(getName(), abstractReservationRequest.getName())
+                || !ObjectUtils.equals(getDescription(), abstractReservationRequest.getDescription())
+                || !ObjectUtils.equals(isInterDomain(), abstractReservationRequest.isInterDomain());
         setType(abstractReservationRequest.getType());
         setPurpose(abstractReservationRequest.getPurpose());
         setName(abstractReservationRequest.getName());
         setDescription(abstractReservationRequest.getDescription());
         setInterDomain(abstractReservationRequest.isInterDomain());
+        return modified;
     }
 
     @PrePersist

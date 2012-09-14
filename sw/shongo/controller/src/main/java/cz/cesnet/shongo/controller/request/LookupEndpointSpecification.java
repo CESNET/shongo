@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.Collections;
@@ -50,6 +51,14 @@ public class LookupEndpointSpecification extends EndpointSpecification
     }
 
     /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
+    /**
      * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
@@ -63,6 +72,19 @@ public class LookupEndpointSpecification extends EndpointSpecification
     public void removeTechnology(Technology technology)
     {
         technologies.remove(technology);
+    }
+
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        LookupEndpointSpecification lookupEndpointSpecification = (LookupEndpointSpecification) specification;
+
+        boolean modified = super.synchronizeFrom(specification);
+        modified |= !ObjectUtils.equals(getTechnologies(), lookupEndpointSpecification.getTechnologies());
+
+        setTechnologies(lookupEndpointSpecification.getTechnologies());
+
+        return modified;
     }
 
     @Override

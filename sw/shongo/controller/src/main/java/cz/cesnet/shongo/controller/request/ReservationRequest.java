@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -32,7 +33,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * {@link Specification} of target which is requested for a reservation.
      */
-    private Specification requestedSpecification;
+    private Specification specification;
 
     /**
      * State of the compartment request.
@@ -97,20 +98,20 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #requestedSpecification}
+     * @return {@link #specification}
      */
     @ManyToOne(cascade = CascadeType.ALL)
-    public Specification getRequestedSpecification()
+    public Specification getSpecification()
     {
-        return requestedSpecification;
+        return specification;
     }
 
     /**
-     * @param requestedSpecification sets the {@link #requestedSpecification}
+     * @param specification sets the {@link #specification}
      */
-    public void setRequestedSpecification(Specification requestedSpecification)
+    public void setSpecification(Specification specification)
     {
-        this.requestedSpecification = requestedSpecification;
+        this.specification = specification;
     }
 
     /**
@@ -132,12 +133,12 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * Update state of the {@link ReservationRequest} based on {@link #requestedSpecification}.
+     * Update state of the {@link ReservationRequest} based on {@link #specification}.
      * <p/>
-     * If any requested person has {@link cz.cesnet.shongo.controller.oldrequest.PersonRequest.State#NOT_ASKED} or
-     * {@link cz.cesnet.shongo.controller.oldrequest.PersonRequest.State#ASKED} state the state of compartment request
-     * is set to {@link State#NOT_COMPLETE}. Otherwise the state is not changed
-     * or forced to {@link State#COMPLETE} in incorrect cases.
+     * If {@link #specification} is instance of {@link StatefulSpecification} and it's
+     * {@link StatefulSpecification#getCurrentState()} is {@link StatefulSpecification.State#NOT_READY}
+     * the state of {@link ReservationRequest} is set to {@link State#NOT_COMPLETE}.
+     * Otherwise the state is not changed or forced to {@link State#COMPLETE} in incorrect cases.
      *
      * @see State
      */
@@ -148,10 +149,14 @@ public class ReservationRequest extends AbstractReservationRequest
             newState = State.COMPLETE;
         }
         List<Report> reports = new ArrayList<Report>();
-        if (requestedSpecification.getCurrentState().equals(Specification.State.NOT_READY)) {
-            newState = State.NOT_COMPLETE;
-            reports.add(new SpecificationNotReadyReport(requestedSpecification));
+        if (specification instanceof StatefulSpecification) {
+            StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+            if (statefulSpecification.getCurrentState().equals(StatefulSpecification.State.NOT_READY)) {
+                newState = State.NOT_COMPLETE;
+                reports.add(new SpecificationNotReadyReport(specification));
+            }
         }
+
         if (newState != getState()) {
             setState(newState);
             setReports(reports);
@@ -164,32 +169,36 @@ public class ReservationRequest extends AbstractReservationRequest
     public static enum State
     {
         /**
-         * Some of requested persons has {@link PersonRequest.State#NOT_ASKED}
-         * or {@link PersonRequest.State#ASKED} state.
+         * Specification is instance of {@link StatefulSpecification} and it's
+         * {@link StatefulSpecification#getCurrentState()} is {@link StatefulSpecification.State#NOT_READY}.
          * <p/>
-         * A compartment request in {@link #NOT_COMPLETE} state become {@link #COMPLETE}
-         * when all requested person accepts or rejects the invitation.
+         * A {@link ReservationRequest} in {@link #NOT_COMPLETE} state become {@link #COMPLETE} when
+         * the {@link Specification} become {@link StatefulSpecification.State#READY}
+         * or {@link StatefulSpecification.State#SKIP}.
          */
         NOT_COMPLETE,
 
         /**
-         * All of the requested persons have {@link PersonRequest.State#ACCEPTED}
-         * or {@link PersonRequest.State#REJECTED} state. The compartment request
-         * hasn't been allocated by a scheduler yet or the request has been modified so
-         * the scheduler must reallocate it.
+         * Specification is not instance of {@link StatefulSpecification} or it has
+         * {@link StatefulSpecification#getCurrentState()} {@link StatefulSpecification.State#READY} or
+         * {@link StatefulSpecification.State#SKIP}.
          * <p/>
-         * A scheduler processes only {@link #COMPLETE} compartment requests.
+         * The {@link ReservationRequest} hasn't been allocated by the {@link Scheduler} yet or
+         * the {@link ReservationRequest} has been modified so the {@link Scheduler} must reallocate it.
+         * <p/>
+         * The {@link Scheduler} processes only {@link #COMPLETE} {@link ReservationRequest}s.
          */
         COMPLETE,
 
         /**
-         * All requested resources by compartment request has been allocated. If the compartment
-         * request becomes modified, it's state changes back to {@link #COMPLETE}.
+         * {@link ReservationRequest} has been successfully allocated. If the {@link ReservationRequest} becomes
+         * modified, it's state changes back to {@link #COMPLETE}.
          */
         ALLOCATED,
 
         /**
-         * Allocation failed because some resources cannot be allocated.
+         * Allocation of the {@link ReservationRequest} failed. The reason can be found from
+         * the {@link ReservationRequest#getReports()}
          */
         ALLOCATION_FAILED
     }
@@ -201,7 +210,7 @@ public class ReservationRequest extends AbstractReservationRequest
 
         map.put("state", getState());
         map.put("slot", getRequestedSlot());
-        map.put("specification", getRequestedSpecification());
+        map.put("specification", getSpecification());
     }
 
     /**

@@ -3,7 +3,8 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 
 import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
 /**
  * Represents an abstract specification of any target for a {@link ReservationRequest}.
@@ -11,37 +12,17 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Specification extends PersistentObject
 {
     /**
-     * State of {@link Specification}.
+     * Synchronize properties from given {@code specification}.
+     *
+     * @param specification from which will be copied all properties values to
+     *                      this {@link Specification}
+     * @return true if some modification was made
      */
-    public static enum State
-    {
-        /**
-         * {@link Specification} is ready for scheduling.
-         */
-        READY,
-
-        /**
-         * {@link Specification} is not ready for scheduling.
-         */
-        NOT_READY,
-
-        /**
-         * {@link Specification} should be skipped from scheduling.
-         */
-        SKIP
-    }
-
-    /**
-     * @return current {@link State} of the {@link Specification}
-     */
-    @Transient
-    public State getCurrentState()
-    {
-        return State.READY;
-    }
+    public abstract boolean synchronizeFrom(Specification specification);
 
     /*public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException;
 

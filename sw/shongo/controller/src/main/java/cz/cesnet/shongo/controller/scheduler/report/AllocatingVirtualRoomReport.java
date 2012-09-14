@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
-import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
 

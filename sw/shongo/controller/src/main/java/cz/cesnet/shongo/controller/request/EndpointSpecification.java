@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -85,6 +86,19 @@ public abstract class EndpointSpecification extends Specification
     public void setCallInitiation(CallInitiation callInitiation)
     {
         this.callInitiation = callInitiation;
+    }
+
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
+
+        boolean modified = false;
+        modified |= !ObjectUtils.equals(getCallInitiation(), endpointSpecification.getCallInitiation());
+
+        setCallInitiation(endpointSpecification.getCallInitiation());
+
+        return modified;
     }
 
     @Override

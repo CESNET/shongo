@@ -104,7 +104,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     }
 
     @Test
-    public void testCloningSpecifications() throws Exception
+    public void testClonedStatefulSpecifications() throws Exception
     {
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -114,7 +114,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-02"), "PT1H");
-        reservationRequestSet.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addSpecification(new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+        reservationRequestSet.addSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
         Preprocessor.createAndRun(new Interval(
@@ -123,8 +126,90 @@ public class PreprocessorTest extends AbstractDatabaseTest
         List<ReservationRequest> reservationRequests =
                 reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(2, reservationRequests.size());
-        // Specifications in reservation requests should be different database instances
-        assertThat(reservationRequests.get(0).getRequestedSpecification().getId(),
-                is(not(reservationRequests.get(1).getRequestedSpecification().getId())));
+        assertThat("Compartment specifications in reservation requests created from single reservation request set"
+                + " should be different database instances.",
+                reservationRequests.get(0).getSpecification().getId(),
+                is(not(reservationRequests.get(1).getSpecification().getId())));
+        CompartmentSpecification compartmentSpecification1 =
+                (CompartmentSpecification) reservationRequests.get(0).getSpecification();
+        CompartmentSpecification compartmentSpecification2 =
+                (CompartmentSpecification) reservationRequests.get(1).getSpecification();
+        assertEquals("External endpoint specifications in reservation requests created from single"
+                + " reservation request set should be same database instances.",
+                compartmentSpecification1.getSpecifications().get(0).getId(),
+                compartmentSpecification2.getSpecifications().get(0).getId());
+        assertThat("Person specifications in reservation requests created from single reservation request set"
+                + " should be different database instances.",
+                compartmentSpecification1.getSpecifications().get(1).getId(),
+                is(not(compartmentSpecification2.getSpecifications().get(1).getId())));
+    }
+
+    @Test
+    public void testModification() throws Exception
+    {
+        Interval preprocessorInterval = new Interval(DateTime.parse("2012-01-01"), DateTime.parse("2012-01-03"));
+        List<ReservationRequest> reservationRequests = null;
+        CompartmentSpecification createdCompartmentSpecification = null;
+
+        EntityManager entityManager = getEntityManager();
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
+        // -------------------------------
+        // Create reservation request set
+        // -------------------------------
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setType(ReservationRequestType.NORMAL);
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addSpecification(new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+        reservationRequestSet.addSpecification(compartmentSpecification);
+        reservationRequestManager.create(reservationRequestSet);
+
+        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+
+        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(1, reservationRequests.size());
+        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
+        assertEquals(2, createdCompartmentSpecification.getSpecifications().size());
+
+        // -------------------------------
+        // Modify reservation request set
+        // -------------------------------
+        compartmentSpecification.removeSpecification(compartmentSpecification.getSpecifications().get(1));
+        reservationRequestManager.update(reservationRequestSet);
+
+        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+
+        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(1, reservationRequests.size());
+        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
+        assertEquals("Specification should be deleted from the created reservation request",
+                1, createdCompartmentSpecification.getSpecifications().size());
+
+        compartmentSpecification.addSpecification(new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+        reservationRequestManager.update(reservationRequestSet);
+
+        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+
+        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(1, reservationRequests.size());
+        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
+        assertEquals("Specification should be added to the created reservation request",
+                2, createdCompartmentSpecification.getSpecifications().size());
+
+        ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).setPerson(
+                new Person("Ondrej Bouda", "bouda@cesnet.cz"));
+        reservationRequestManager.update(reservationRequestSet);
+
+        Preprocessor.createAndRun(preprocessorInterval, entityManager);
+
+        reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(1, reservationRequests.size());
+        createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
+        assertEquals("Specification should be updated to the created reservation request",
+                ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).getPerson(),
+                ((PersonSpecification) createdCompartmentSpecification.getSpecifications().get(1)).getPerson());
     }
 }

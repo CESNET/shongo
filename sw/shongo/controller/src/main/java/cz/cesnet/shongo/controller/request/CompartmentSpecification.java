@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class CompartmentSpecification extends Specification
+public class CompartmentSpecification extends Specification implements StatefulSpecification, CompositeSpecification
 {
     /**
      * List of specifications for targets which are requested to participate in compartment.
@@ -35,8 +36,7 @@ public class CompartmentSpecification extends Specification
     /**
      * @return {@link #specifications}
      */
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name="child_specification_id")
+    @ManyToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public List<Specification> getSpecifications()
     {
@@ -66,8 +66,8 @@ public class CompartmentSpecification extends Specification
     public boolean containsSpecification(Specification specification)
     {
         Long specificationId = specification.getId();
-        for (Specification requestedSpecification : specifications) {
-            if (requestedSpecification.getId().equals(specificationId)) {
+        for (Specification possibleSpecification : specifications) {
+            if (possibleSpecification.getId().equals(specificationId)) {
                 return true;
             }
         }
@@ -113,13 +113,36 @@ public class CompartmentSpecification extends Specification
     public State getCurrentState()
     {
         State state = State.READY;
-        for (Specification requestedSpecification : specifications) {
-            if (requestedSpecification.getCurrentState().equals(State.NOT_READY)) {
-                state = State.NOT_READY;
-                break;
+        for (Specification specification : specifications) {
+            if (specification instanceof StatefulSpecification) {
+                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+                if (statefulSpecification.getCurrentState().equals(State.NOT_READY)) {
+                    state = State.NOT_READY;
+                    break;
+                }
             }
         }
         return state;
+    }
+
+    @Override
+    public CompartmentSpecification clone(Map<Specification, Specification> originalSpecifications)
+    {
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.setCallInitiation(getCallInitiation());
+        for (Specification specification : specifications) {
+            if (specification instanceof StatefulSpecification) {
+                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+                compartmentSpecification.addSpecification(statefulSpecification.clone(originalSpecifications));
+            }
+            else {
+                compartmentSpecification.addSpecification(specification);
+            }
+        }
+
+        originalSpecifications.put(compartmentSpecification, this);
+
+        return compartmentSpecification;
     }
 
     /**
@@ -188,6 +211,19 @@ public class CompartmentSpecification extends Specification
         for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : apiDeletedResources) {
             removeRequestedResource(getRequestedResourceById(apiResource.getId().longValue()));
         }*/
+    }
+
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
+
+        boolean modified = false;
+        modified |= !ObjectUtils.equals(getCallInitiation(), compartmentSpecification.getCallInitiation());
+
+        setCallInitiation(compartmentSpecification.getCallInitiation());
+
+        return modified;
     }
 
     @Override

@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.allocation.Reservation;
 import cz.cesnet.shongo.controller.allocation.ReservationManager;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -246,7 +245,7 @@ public class ReservationRequestManager extends AbstractManager
      */
     public List<ReservationRequest> listReservationRequestsBySet(Long reservationRequestSetId, Interval interval)
     {
-        List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
+        List<ReservationRequest> reservationRequests = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
                         + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
                         + " WHERE reservationRequestSet.id = :id "
@@ -256,39 +255,7 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
-        return compartmentRequestList;
-    }
-
-    /**
-     * @param specification which should be specified in the {@link ReservationRequest}
-     * @param interval      in which the {@link ReservationRequest} should take place
-     * @return list of existing {@link ReservationRequest}s specifying given {@link Specification} and taking place
-     *         in given interval
-     */
-    public List<ReservationRequest> listReservationRequestsBySpecification(Specification specification,
-            Interval interval)
-    {
-        return listReservationRequestsBySpecification(specification.getId(), interval);
-    }
-
-    /**
-     * @param specificationId of the {@link Specification} which should be specified in the {@link ReservationRequest}
-     * @param interval        in which the {@link ReservationRequest} should take place
-     * @return list of existing {@link ReservationRequest}s specifying given {@link Specification} and taking place
-     *         in given interval
-     */
-    public List<ReservationRequest> listReservationRequestsBySpecification(Long specificationId, Interval interval)
-    {
-        List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
-                "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.requestedSpecification.id = :id"
-                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end",
-                ReservationRequest.class)
-                .setParameter("id", specificationId)
-                .setParameter("start", interval.getStart())
-                .setParameter("end", interval.getEnd())
-                .getResultList();
-        return compartmentRequestList;
+        return reservationRequests;
     }
 
     /**
@@ -328,8 +295,8 @@ public class ReservationRequestManager extends AbstractManager
         }
         else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
-            for (Specification requestedSpecification : compartmentSpecification.getSpecifications()) {
-                PersonSpecification personSpecification = getPersonSpecification(requestedSpecification, personId);
+            for (Specification childSpecification : compartmentSpecification.getSpecifications()) {
+                PersonSpecification personSpecification = getPersonSpecification(childSpecification, personId);
                 if (personSpecification != null) {
                     return personSpecification;
                 }
@@ -350,7 +317,7 @@ public class ReservationRequestManager extends AbstractManager
     private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
             throws IllegalArgumentException
     {
-        return getPersonSpecification(reservationRequest.getRequestedSpecification(), personId);
+        return getPersonSpecification(reservationRequest.getSpecification(), personId);
     }
 
     /**
@@ -403,7 +370,7 @@ public class ReservationRequestManager extends AbstractManager
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
 
         CompartmentSpecification compartmentSpecification =
-                (CompartmentSpecification) reservationRequest.getRequestedSpecification();
+                (CompartmentSpecification) reservationRequest.getSpecification();
         if (!compartmentSpecification.containsSpecification(endpointSpecification)) {
             compartmentSpecification.addSpecification(endpointSpecification);
         }

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 
 import cz.cesnet.shongo.controller.common.Person;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.Map;
@@ -12,34 +13,8 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PersonSpecification extends Specification
+public class PersonSpecification extends Specification implements StatefulSpecification
 {
-    /**
-     * State of contacting the person.
-     */
-    public static enum InvitationState
-    {
-        /**
-         * Person hasn't been invited yet.
-         */
-        INVITATION_NOT_SENT,
-
-        /**
-         * Person has been invited but the person hasn't replied yet.
-         */
-        INVITATION_SENT,
-
-        /**
-         * Person has accepted the invitation.
-         */
-        INVITATION_ACCEPTED,
-
-        /**
-         * Person has rejected the invitation.
-         */
-        INVITATION_REJECTED
-    }
-
     /**
      * Requested person.
      */
@@ -56,9 +31,26 @@ public class PersonSpecification extends Specification
     private InvitationState invitationState;
 
     /**
+     * Constructor.
+     */
+    public PersonSpecification()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param person sets the {@link #person}
+     */
+    public PersonSpecification(Person person)
+    {
+        this.person = person;
+    }
+
+    /**
      * @return {@link #person}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     public Person getPerson()
     {
         return person;
@@ -75,7 +67,7 @@ public class PersonSpecification extends Specification
     /**
      * @return {@link #endpointSpecification}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     public EndpointSpecification getEndpointSpecification()
     {
         return endpointSpecification;
@@ -122,6 +114,36 @@ public class PersonSpecification extends Specification
     }
 
     @Override
+    public PersonSpecification clone(Map<Specification, Specification> originalSpecifications)
+    {
+        PersonSpecification personSpecification = new PersonSpecification();
+        personSpecification.setPerson(getPerson());
+        personSpecification.setEndpointSpecification(getEndpointSpecification());
+        personSpecification.setInvitationState(getInvitationState());
+
+        originalSpecifications.put(personSpecification, this);
+
+        return personSpecification;
+    }
+
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        PersonSpecification personSpecification = (PersonSpecification) specification;
+
+        boolean modified = false;
+        modified |= !ObjectUtils.equals(getPerson(), personSpecification.getPerson())
+                || !ObjectUtils.equals(getEndpointSpecification(), personSpecification.getEndpointSpecification())
+                || !ObjectUtils.equals(getInvitationState(), personSpecification.getInvitationState());
+
+        setPerson(personSpecification.getPerson());
+        setEndpointSpecification(personSpecification.getEndpointSpecification());
+        setInvitationState(personSpecification.getInvitationState());
+
+        return modified;
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
@@ -129,5 +151,31 @@ public class PersonSpecification extends Specification
         map.put("person", person.toString());
         map.put("endpoint", endpointSpecification);
         map.put("invitationState", invitationState);
+    }
+
+    /**
+     * State of contacting the person.
+     */
+    public static enum InvitationState
+    {
+        /**
+         * Person hasn't been invited yet.
+         */
+        INVITATION_NOT_SENT,
+
+        /**
+         * Person has been invited but the person hasn't replied yet.
+         */
+        INVITATION_SENT,
+
+        /**
+         * Person has accepted the invitation.
+         */
+        INVITATION_ACCEPTED,
+
+        /**
+         * Person has rejected the invitation.
+         */
+        INVITATION_REJECTED
     }
 }

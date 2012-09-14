@@ -115,6 +115,23 @@ public class Preprocessor extends Component
         List<ReservationRequest> reservationRequests =
                 reservationRequestManager.listReservationRequestsBySet(reservationRequestSet, interval);
 
+        // Build map of reservation requests by original specification
+        Map<Specification, Set<ReservationRequest>> reservationRequestsByOriginalSpecification =
+                new HashMap<Specification, Set<ReservationRequest>>();
+        for (ReservationRequest reservationRequest : reservationRequests) {
+            Specification originalSpecification = reservationRequestSet.getOriginalSpecifications()
+                    .get(reservationRequest.getSpecification());
+            if (originalSpecification == null) {
+                originalSpecification = reservationRequest.getSpecification();
+            }
+            Set<ReservationRequest> set = reservationRequestsByOriginalSpecification.get(originalSpecification);
+            if (set == null) {
+                set = new HashSet<ReservationRequest>();
+                reservationRequestsByOriginalSpecification.put(originalSpecification, set);
+            }
+            set.add(reservationRequest);
+        }
+
         // Build set of existing specifications for the set
         Set<Long> specifications = new HashSet<Long>();
 
@@ -124,15 +141,17 @@ public class Preprocessor extends Component
                 throw new IllegalStateException("Specification should not be null!");
             }
             // List existing reservation requests for the set in the interval
-            List<ReservationRequest> reservationRequestsForSpecification =
-                    reservationRequestManager.listReservationRequestsBySpecification(specification, interval);
+            Set<ReservationRequest> reservationRequestsForSpecification =
+                    reservationRequestsByOriginalSpecification.get(specification);
 
             // Create map of reservation requests with date/time slot as key
             // and remove reservation request from list of all reservation request
             Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
-            for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
-                map.put(reservationRequest.getRequestedSlot(), reservationRequest);
-                reservationRequests.remove(reservationRequest);
+            if (reservationRequestsForSpecification != null) {
+                for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
+                    map.put(reservationRequest.getRequestedSlot(), reservationRequest);
+                    reservationRequests.remove(reservationRequest);
+                }
             }
 
             // For each requested slot we must create or modify reservation request.
@@ -142,8 +161,7 @@ public class Preprocessor extends Component
                 // Modify existing reservation request
                 if (map.containsKey(slot)) {
                     ReservationRequest reservationRequest = map.get(slot);
-                    reservationRequest.synchronizeFrom(reservationRequestSet);
-                    updateReservationRequest(reservationRequest, specification);
+                    updateReservationRequest(reservationRequest, reservationRequestSet, specification);
 
                     // Remove the slot from the map for the corresponding reservation request to not be deleted
                     map.remove(slot);
@@ -152,8 +170,7 @@ public class Preprocessor extends Component
                 else {
                     ReservationRequest reservationRequest = new ReservationRequest();
                     reservationRequest.setRequestedSlot(slot);
-                    reservationRequest.synchronizeFrom(reservationRequestSet);
-                    updateReservationRequest(reservationRequest, specification);
+                    updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);
                 }
             }
@@ -173,7 +190,7 @@ public class Preprocessor extends Component
             reservationRequestManager.delete(reservationRequest);
 
             // If referenced specification isn't in reservation request any more
-            Specification specification = reservationRequest.getRequestedSpecification();
+            Specification specification = reservationRequest.getSpecification();
             if (!specifications.contains(specification)) {
                 // Remove the specification too
                 entityManager.remove(specification);
@@ -195,20 +212,99 @@ public class Preprocessor extends Component
     }
 
     /**
-     * Modify compartment request according to compartment.
+     * Update given {@code specification} according to given {@code specificationFrom}.
+     *
+     * @param specification
+     * @param specificationFrom
+     * @param reservationRequestSet
+     * @return true if some change(s) were made in the {@link Specification}
+     *         false otherwise
+     */
+    private static boolean updateSpecification(Specification specification, Specification specificationFrom,
+            ReservationRequestSet reservationRequestSet)
+    {
+        boolean modified = false;
+        modified |= specification.synchronizeFrom(specificationFrom);
+        if (specification instanceof CompositeSpecification) {
+            CompositeSpecification compositeSpecification = (CompositeSpecification) specification;
+            CompositeSpecification compositeSpecificationFrom = (CompositeSpecification) specificationFrom;
+
+            // Get map of original specifications by cloned specifications
+            Map<Specification, Specification> originalSpecifications = reservationRequestSet
+                    .getOriginalSpecifications();
+
+            // Build set of new specifications
+            Set<Specification> newSpecifications = new HashSet<Specification>();
+            for (Specification newSpecification : compositeSpecificationFrom.getSpecifications()) {
+                newSpecifications.add(newSpecification);
+            }
+
+            // Update or delete child specifications
+            Set<Specification> deletedSpecifications = new HashSet<Specification>();
+            for (Specification childSpecification : compositeSpecification.getSpecifications()) {
+                Specification originalSpecification = originalSpecifications.get(childSpecification);
+                if (originalSpecification == null) {
+                    originalSpecification = childSpecification;
+                }
+                if (newSpecifications.contains(originalSpecification)) {
+                    modified |= updateSpecification(childSpecification, originalSpecification, reservationRequestSet);
+                    newSpecifications.remove(originalSpecification);
+                }
+                else {
+                    deletedSpecifications.add(childSpecification);
+                }
+            }
+            for (Specification deletedSpecification : deletedSpecifications) {
+                compositeSpecification.removeSpecification(deletedSpecification);
+                modified = true;
+            }
+
+            // Add new child specifications
+            for (Specification newSpecification : newSpecifications) {
+                if (newSpecification instanceof StatefulSpecification) {
+                    StatefulSpecification newStatefulSpecification = (StatefulSpecification) newSpecification;
+                    compositeSpecification.addSpecification(newStatefulSpecification.clone(originalSpecifications));
+                }
+                else {
+                    compositeSpecification.addSpecification(newSpecification);
+                }
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    /**
+     * Update given {@code reservationRequest} according to given {@code specification}.
      *
      * @param reservationRequest
      * @param specification
-     * @return true if some change(s) were made in the compartment request,
+     * @return true if some change(s) were made in the {@link ReservationRequest}
      *         false otherwise
      */
-    public static boolean updateReservationRequest(ReservationRequest reservationRequest, Specification specification)
+    private static boolean updateReservationRequest(ReservationRequest reservationRequest,
+            ReservationRequestSet reservationRequestSet, Specification specification)
     {
         // Tracks whether the compartment request was modified
         boolean modified = false;
-        if (reservationRequest.getRequestedSpecification() == null) {
-            reservationRequest.setRequestedSpecification(specification);
+        modified |= reservationRequest.synchronizeFrom(reservationRequestSet);
+
+        Specification oldSpecification = reservationRequest.getSpecification();
+        if (oldSpecification == null || oldSpecification.getClass() != specification.getClass()) {
+            // Setup new specification
+            if (specification instanceof StatefulSpecification) {
+                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+                reservationRequest.setSpecification(
+                        statefulSpecification.clone(reservationRequestSet.getOriginalSpecifications()));
+            }
+            else {
+                reservationRequest.setSpecification(specification);
+            }
             modified = true;
+        }
+        else {
+            // Check specification for modifications
+            modified |= updateSpecification(oldSpecification, specification, reservationRequestSet);
         }
 
         // Build set of requested persons that is used to not allow same persons to be requested for a single

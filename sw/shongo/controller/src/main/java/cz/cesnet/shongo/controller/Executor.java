@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.allocation.*;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
+import cz.cesnet.shongo.controller.allocation.ReservationManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**

@@ -7,10 +7,7 @@ import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a specification of one or multiple {@link ReservationRequest}.
@@ -51,6 +48,15 @@ public class ReservationRequestSet extends AbstractReservationRequest
      * List of created {@link ReservationRequest}s.
      */
     private List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
+
+    /**
+     * Map of original instances of the {@link Specification} by the cloned instances.
+     * <p/>
+     * When a {@link ReservationRequest} is created from the {@link ReservationRequestSet} for a {@link Specification}
+     * from the {@link #specifications} all instances which are {@link StatefulSpecification} are cloned and we must
+     * keep the references from cloned instances to the original instances for synchronizing.
+     */
+    private Map<Specification, Specification> originalSpecifications = new HashMap<Specification, Specification>();
 
     /**
      * @return {@link #requestedSlots}
@@ -155,6 +161,14 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void removeSpecification(Specification specification)
     {
+        final Iterator<Specification> iterator = originalSpecifications.keySet().iterator();
+        while (iterator.hasNext()) {
+            Specification clonedSpecification = iterator.next();
+            Specification originalSpecification = originalSpecifications.get(clonedSpecification);
+            if (originalSpecification == specification) {
+                iterator.remove();
+            }
+        }
         specifications.remove(specification);
     }
 
@@ -226,7 +240,34 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void removeReservationRequest(ReservationRequest reservationRequest)
     {
+        removedClonedSpecification(reservationRequest.getSpecification());
         reservationRequests.remove(reservationRequest);
+    }
+
+    /**
+     * @return {@link #originalSpecifications}
+     */
+    @ManyToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public Map<Specification, Specification> getOriginalSpecifications()
+    {
+        return originalSpecifications;
+    }
+
+    /**
+     * @param clonedSpecification to be removed from the {@link #originalSpecifications}
+     */
+    public void removedClonedSpecification(Specification clonedSpecification)
+    {
+        if (clonedSpecification instanceof StatefulSpecification) {
+            originalSpecifications.remove(clonedSpecification);
+        }
+        if (clonedSpecification instanceof CompositeSpecification) {
+            CompositeSpecification compositeSpecification = (CompartmentSpecification) clonedSpecification;
+            for (Specification specification : compositeSpecification.getSpecifications()) {
+                removedClonedSpecification(specification);
+            }
+        }
     }
 
     @Override
