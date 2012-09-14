@@ -16,12 +16,12 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ReservationTask<T extends Specification>
+public abstract class ReservationTask<S extends Specification, R extends Reservation>
 {
     /**
      * @see {@link Specification}
      */
-    private T specification;
+    private S specification;
 
     /**
      * Context.
@@ -29,9 +29,14 @@ public abstract class ReservationTask<T extends Specification>
     private Context context;
 
     /**
+     * List of child {@link Reservation}.
+     */
+    private List<Reservation> childReservations = new ArrayList<Reservation>();
+
+    /**
      * Constructor.
      */
-    public ReservationTask(T specification, Context context)
+    public ReservationTask(S specification, Context context)
     {
         this.specification = specification;
         this.context = context;
@@ -40,9 +45,17 @@ public abstract class ReservationTask<T extends Specification>
     /**
      * @return {@link #specification}
      */
-    protected T getSpecification()
+    protected S getSpecification()
     {
         return specification;
+    }
+
+    /**
+     * @return {@link #context}
+     */
+    public Context getContext()
+    {
+        return context;
     }
 
     /**
@@ -86,22 +99,80 @@ public abstract class ReservationTask<T extends Specification>
     }
 
     /**
+     * @return {@link #childReservations}
+     */
+    protected List<Reservation> getChildReservations()
+    {
+        return childReservations;
+    }
+
+    /**
+     * @param reservation to be added to the {@link #childReservations}
+     */
+    protected void addChildReservation(Reservation reservation, Specification specification)
+    {
+        childReservations.add(reservation);
+        getCacheTransaction().addReservation(reservation);
+    }
+
+    /**
+     * Add child {@link Specification} to the task.
+     *
+     * @param specification child {@link Specification} to be added
+     */
+    public Reservation addChildSpecification(Specification specification)
+            throws ReportException
+    {
+        ReservationTask reservationTask = specification.createReservationTask(getContext());
+        Reservation reservation = reservationTask.perform();
+        addChildReservation(reservation, specification);
+        return reservation;
+    }
+
+    /**
+     * Add child {@link Specification} to the task.
+     *
+     * @param specification child {@link Specification} to be added
+     */
+    public <R extends Reservation> R addChildSpecification(Specification specification, Class<R> reservationClass)
+            throws ReportException
+    {
+        Reservation reservation = addChildSpecification(specification);
+        return reservationClass.cast(reservation);
+    }
+
+    /**
      * Perform the {@link ReservationTask}.
      *
-     * @param specification
      * @return created {@link Reservation}
      * @throws ReportException when the {@link ReservationTask} failed
      */
-    public final Reservation perform(Specification specification) throws ReportException
+    public final R perform() throws ReportException
     {
-        return createReservation(specification);
+        R reservation = createReservation(getSpecification());
+
+        // Add reservation to the cache
+        getCacheTransaction().addReservation(reservation);
+
+        return reservation;
+    }
+
+    /**
+     * Perform the {@link ReservationTask}.
+     *
+     * @return created {@link Reservation}
+     * @throws ReportException when the {@link ReservationTask} failed
+     */
+    public final <R> R perform(Class<R> reservationClass) throws ReportException
+    {
+        return reservationClass.cast(perform());
     }
 
     /**
      * @return created {@link Reservation}
      * @throws ReportException when the {@link Reservation} cannot be created
      */
-    protected abstract Reservation createReservation(Specification specification) throws ReportException;
+    protected abstract R createReservation(S specification) throws ReportException;
 
     /**
      * Context for the {@link ReservationTask}.
@@ -132,7 +203,7 @@ public abstract class ReservationTask<T extends Specification>
          * Constructor.
          *
          * @param interval sets the {@link #interval}
-         * @param cache sets the {@link #cache}
+         * @param cache    sets the {@link #cache}
          */
         public Context(Interval interval, Cache cache)
         {

@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -32,6 +34,23 @@ public class CompartmentSpecification extends Specification implements StatefulS
      * that {@link Scheduler} can decide it).
      */
     private CallInitiation callInitiation;
+
+    /**
+     * Constructor.
+     */
+    public CompartmentSpecification()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param callInitiation sets the {@link #callInitiation}
+     */
+    public CompartmentSpecification(CallInitiation callInitiation)
+    {
+        this.callInitiation = callInitiation;
+    }
 
     /**
      * @return {@link #specifications}
@@ -145,6 +164,25 @@ public class CompartmentSpecification extends Specification implements StatefulS
         return compartmentSpecification;
     }
 
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
+
+        boolean modified = false;
+        modified |= !ObjectUtils.equals(getCallInitiation(), compartmentSpecification.getCallInitiation());
+
+        setCallInitiation(compartmentSpecification.getCallInitiation());
+
+        return modified;
+    }
+
+    @Override
+    public CompartmentReservationTask createReservationTask(ReservationTask.Context context)
+    {
+        return new CompartmentReservationTask(this, context);
+    }
+
     /**
      * @param domain
      * @return compartment converted to API
@@ -211,19 +249,6 @@ public class CompartmentSpecification extends Specification implements StatefulS
         for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : apiDeletedResources) {
             removeRequestedResource(getRequestedResourceById(apiResource.getId().longValue()));
         }*/
-    }
-
-    @Override
-    public boolean synchronizeFrom(Specification specification)
-    {
-        CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
-
-        boolean modified = false;
-        modified |= !ObjectUtils.equals(getCallInitiation(), compartmentSpecification.getCallInitiation());
-
-        setCallInitiation(compartmentSpecification.getCallInitiation());
-
-        return modified;
     }
 
     @Override

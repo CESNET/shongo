@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.scheduler.ExternalEndpointReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -191,6 +193,12 @@ public class ExternalEndpointSpecification extends EndpointSpecification
         setAliases(externalEndpointSpecification.getAliases());
 
         return modified;
+    }
+
+    @Override
+    public ReservationTask createReservationTask(ReservationTask.Context context)
+    {
+        return new ExternalEndpointReservationTask(this, context);
     }
 
     @Override

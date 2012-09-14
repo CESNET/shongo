@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedItem;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -136,8 +135,9 @@ public class ReservationManager extends AbstractManager
      */
     public void markedForDeletion(Reservation reservation)
     {
-        if (true)
+        if (true) {
             throw new TodoImplementException();
+        }
         //reservation.setReservationRequest(null);
         update(reservation);
     }

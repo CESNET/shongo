@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.util;
 
-import cz.cesnet.shongo.controller.util.RangeSet;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;

@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -39,6 +40,11 @@ public class ReservationRequest extends AbstractReservationRequest
      * State of the compartment request.
      */
     private State state;
+
+    /**
+     * Allocated {@link Reservation} for the {@link ReservationRequest}.
+     */
+    private Reservation reservation;
 
     /**
      * @return {@link #requestedSlotStart}
@@ -130,6 +136,24 @@ public class ReservationRequest extends AbstractReservationRequest
     public void setState(State state)
     {
         this.state = state;
+    }
+
+    /**
+     * @return {@link #reservation}
+     */
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    public Reservation getReservation()
+    {
+        return reservation;
+    }
+
+    /**
+     * @param reservation sets the {@link #reservation}
+     */
+    public void setReservation(Reservation reservation)
+    {
+        this.reservation = reservation;
     }
 
     /**

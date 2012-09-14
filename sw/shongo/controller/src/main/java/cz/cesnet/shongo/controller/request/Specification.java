@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
@@ -23,6 +24,11 @@ public abstract class Specification extends PersistentObject
      * @return true if some modification was made
      */
     public abstract boolean synchronizeFrom(Specification specification);
+
+    /**
+     * @return new instance of {@link ReservationTask} for this {@link Specification}.
+     */
+    public abstract ReservationTask createReservationTask(ReservationTask.Context context);
 
     /*public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException;
 

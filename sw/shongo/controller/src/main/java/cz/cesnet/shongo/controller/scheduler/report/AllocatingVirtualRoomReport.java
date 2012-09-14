@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.allocationaold.AllocatedVirtualRoom;
+import cz.cesnet.shongo.controller.compartment.VirtualRoom;
+import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
 
@@ -9,12 +10,12 @@ import javax.persistence.*;
  * @see {@link #getText()}
  */
 @Entity
-public class AllocatingVirtualRoomReport extends AbstractResourceReport
+public class AllocatingVirtualRoomReport extends Report
 {
     /**
      * Virtual room port count.
      */
-    private Integer portCount;
+    private VirtualRoom virtualRoom;
 
     /**
      * Constructor.
@@ -26,22 +27,21 @@ public class AllocatingVirtualRoomReport extends AbstractResourceReport
     /**
      * Constructor.
      *
-     * @param allocatedVirtualRoom
+     * @param virtualRoom
      */
-    public AllocatingVirtualRoomReport(AllocatedVirtualRoom allocatedVirtualRoom)
+    public AllocatingVirtualRoomReport(VirtualRoom virtualRoom)
     {
-        super(allocatedVirtualRoom.getDeviceResource());
-        this.portCount = allocatedVirtualRoom.getPortCount();
+        this.virtualRoom = virtualRoom;
     }
 
     /**
-     * @return {@link #portCount}
+     * @return {@link #virtualRoom}
      */
-    @Column
+    @OneToOne
     @Access(AccessType.FIELD)
-    public Integer getPortCount()
+    public VirtualRoom getVirtualRoom()
     {
-        return portCount;
+        return virtualRoom;
     }
 
     @Override
@@ -49,6 +49,6 @@ public class AllocatingVirtualRoomReport extends AbstractResourceReport
     public String getText()
     {
         return String.format("Allocating virtual room in %s for %d ports.",
-                getResourceAsString(), getPortCount());
+                virtualRoom.getReportDescription(), virtualRoom.getPortCount());
     }
 }

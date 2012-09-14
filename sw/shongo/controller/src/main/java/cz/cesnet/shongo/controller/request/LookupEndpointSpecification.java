@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.scheduler.LookupEndpointReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -85,6 +87,12 @@ public class LookupEndpointSpecification extends EndpointSpecification
         setTechnologies(lookupEndpointSpecification.getTechnologies());
 
         return modified;
+    }
+
+    @Override
+    public ReservationTask createReservationTask(ReservationTask.Context context)
+    {
+        return new LookupEndpointReservationTask(this, context);
     }
 
     @Override

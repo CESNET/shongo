@@ -1,11 +1,10 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.compartment.Compartment;
-import cz.cesnet.shongo.controller.compartment.Connection;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
 
 /**
  * Represents a {@link Reservation} for a {@link Compartment}.

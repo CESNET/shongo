@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.api.ControllerFault;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
@@ -122,53 +125,35 @@ public class Scheduler extends Component
         Interval requestedSlot = reservationRequest.getRequestedSlot();
 
         // Create new scheduler task
-        Task task = new Task(requestedSlot, cache);
-
-        throw new TodoImplementException();
-        /*try {
-
+        ReservationTask.Context context = new ReservationTask.Context(requestedSlot, cache);
+        ReservationTask reservationTask = reservationRequest.getSpecification().createReservationTask(context);
+        try {
             if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
                 throw new DurationLongerThanMaximumReport(requestedSlot.toPeriod().normalizedStandard(),
                         cache.getAllocatedResourceMaximumDuration().toPeriod().normalizedStandard()).exception();
             }
 
-            // Get list of requested resources
-            List<CompartmentRequest.RequestedResource> requestedResources =
-                    compartmentRequest.getRequestedResourcesForScheduler();
-
-            // Initialize scheduler task (by adding all requested resources to it)
-
-            CallInitiation callInitiation = compartmentRequest.getCompartment().getCallInitiation();
-            if (callInitiation != null) {
-                task.setCallInitiation(callInitiation);
-            }
-            for (CompartmentRequest.RequestedResource requestedResource : requestedResources) {
-                task.addResource(requestedResource.getResourceSpecification());
-            }
-
-            // Create new allocated compartment
-            reservation = task.createReservation();
-            reservation.setCompartmentRequest(compartmentRequest);
-
+            reservation = reservationTask.perform();
             // TODO: Add persons for allocated devices
-
-            // Create allocated compartment
             reservationManager.create(reservation);
 
-            // Add allocated items to the cache
-            for (AllocatedItem allocatedItem : reservation.getChildReservations()) {
-                cache.addAllocatedItem(allocatedItem);
+            // Update cache
+            for (Reservation childReservation : reservation.getChildReservations()) {
+                throw new TodoImplementException();
+                //cache.addAllocatedItem(childReservation);
             }
 
-            // Set compartment state to allocated
-            compartmentRequest.setState(CompartmentRequest.State.ALLOCATED);
-            compartmentRequest.setReports(task.getReports());
-            reservationRequestManager.update(compartmentRequest);
+            // Update reservation request
+            reservationRequest.setReservation(reservation);
+            reservationRequest.setState(ReservationRequest.State.ALLOCATED);
+            reservationRequest.setReports(reservationTask.getReports());
+            reservationRequestManager.update(reservationRequest);
+
         }
         catch (ReportException exception) {
-            compartmentRequest.setState(CompartmentRequest.State.ALLOCATION_FAILED);
-            compartmentRequest.setReports(task.getReports());
-            compartmentRequest.addReport(exception.getReport());
-        }*/
+            reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
+            reservationRequest.setReports(reservationTask.getReports());
+            reservationRequest.addReport(exception.getReport());
+        }
     }
 }

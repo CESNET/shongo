@@ -3,21 +3,19 @@ package cz.cesnet.shongo.controller.scheduler;
 import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.allocationaold.*;
-import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
-import cz.cesnet.shongo.controller.compartment.Connection;
-import cz.cesnet.shongo.controller.compartment.ConnectionByAddress;
-import cz.cesnet.shongo.controller.compartment.ConnectionByAlias;
+import cz.cesnet.shongo.controller.compartment.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
+import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -36,47 +34,57 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CompartmentReservationTask extends ReservationTask<CompartmentSpecification>
+public class CompartmentReservationTask extends ReservationTask<CompartmentSpecification, CompartmentReservation>
 {
     private static Logger logger = LoggerFactory.getLogger(CompartmentReservationTask.class);
 
     /**
-     * List of all {@link cz.cesnet.shongo.controller.allocationaold.AllocatedItem} added to the task.
+     * {@link Compartment} which is created by the {@link CompartmentReservationTask}.
      */
-    private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
+    private Compartment compartment = new Compartment();
 
     /**
-     * List of all {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint} added to the task.
+     * Map of call initiations by {@link Endpoint}.
      */
-    private List<AllocatedEndpoint> allocatedEndpoints = new ArrayList<AllocatedEndpoint>();
-
-    /**
-     * Total sum of endpoints (calculated as sum of {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint#getCount()} because one
-     * {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint} can represent multiple endpoints).
-     */
-    private int totalAllocatedEndpointCount = 0;
-
-    /**
-     * Map of call initiations by {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint}.
-     */
-    private Map<AllocatedEndpoint, CallInitiation> callInitiationByAllocatedItem =
-            new HashMap<AllocatedEndpoint, CallInitiation>();
+    private Map<Endpoint, CallInitiation> callInitiationByAllocatedItem =
+            new HashMap<Endpoint, CallInitiation>();
 
     /**
      * Graph of connectivity between endpoints.
      */
-    private UndirectedGraph<AllocatedEndpoint, ConnectivityEdge> connectivityGraph =
-            new SimpleGraph<AllocatedEndpoint, ConnectivityEdge>(ConnectivityEdge.class);
+    private UndirectedGraph<Endpoint, ConnectivityEdge> connectivityGraph =
+            new SimpleGraph<Endpoint, ConnectivityEdge>(ConnectivityEdge.class);
 
     /**
      * Constructor.
      *
-     * @param compartmentSpecification sets the {@link #context}
-     * @param context                  sets the {@link #specification}
+     * @param context sets the {@link #context}
      */
-    public CompartmentReservationTask(CompartmentSpecification compartmentSpecification, Context context)
+    public CompartmentReservationTask(Context context)
     {
-        super(compartmentSpecification, context);
+        super(new CompartmentSpecification(), context);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param context        sets the {@link #context}
+     * @param callInitiation sets the default {@link CallInitiation}
+     */
+    public CompartmentReservationTask(Context context, CallInitiation callInitiation)
+    {
+        super(new CompartmentSpecification(callInitiation), context);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param specification sets the {@link #specification}
+     * @param context       sets the {@link #context}
+     */
+    public CompartmentReservationTask(CompartmentSpecification specification, Context context)
+    {
+        super(specification, context);
     }
 
     /**
@@ -91,166 +99,65 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
         return callInitiation;
     }
 
-    /**
-     * Add resource to the task
-     *
-     * @param specification
-     */
-    public void addResource(Specification specification) throws ReportException
+    @Override
+    protected void addChildReservation(Reservation reservation, Specification specification)
     {
-        if (specification instanceof ExternalEndpointSpecification) {
-            ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
-            AllocatedExternalEndpoint allocatedExternalEndpoint =
-                    new AllocatedExternalEndpoint(externalEndpointSpecification);
-            addAllocatedItem(allocatedExternalEndpoint, externalEndpointSpecification.getCallInitiation());
-        }
-        else if (specification instanceof ExistingEndpointSpecification) {
-            ExistingEndpointSpecification existingResource = (ExistingEndpointSpecification) specification;
-            Resource resource = existingResource.getResource();
-            if (cacheTransaction.containsResource(resource)) {
-                // Same resource is requested multiple times
-                throw new ResourceRequestedMultipleTimesReport(resource).exception();
-            }
-            if (!resource.isAllocatable()) {
-                // Requested resource cannot be allocated
-                throw new ResourceNotAllocatableReport(resource).exception();
-            }
-            if (!cache.isResourceAvailable(resource, interval, cacheTransaction)) {
-                // Requested resource is not available in requested slot
-                throw new ResourceNotAvailableReport(resource).exception();
-            }
-            addAllocatedItemByResource(resource, existingResource.getCallInitiation());
-        }
-        else if (specification instanceof LookupEndpointSpecification) {
-            LookupEndpointSpecification lookupResource = (LookupEndpointSpecification) specification;
-            Set<Technology> technologies = lookupResource.getTechnologies();
+        super.addChildReservation(reservation, specification);
 
-            // Lookup device resources
-            List<DeviceResource> deviceResources = cache.findAvailableTerminal(interval, technologies,
-                    cacheTransaction);
+        if (reservation instanceof EndpointReservation) {
+            EndpointReservation endpointReservation = (EndpointReservation) reservation;
+            EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
+            Endpoint endpoint = endpointReservation.getEndpoint();
 
-            // Select first available device resource
-            // TODO: Select best resource based on some criteria
-            DeviceResource deviceResource = null;
-            for (DeviceResource possibleDeviceResource : deviceResources) {
-                deviceResource = possibleDeviceResource;
-                break;
-            }
+            compartment.addEndpoint(endpoint);
 
-            // If some was found
-            if (deviceResource != null) {
-                addAllocatedItemByResource(deviceResource, lookupResource.getCallInitiation());
-            }
-            else {
-                throw new ResourceNotFoundReport(technologies).exception();
-            }
-        }
-        else {
-            throw new IllegalStateException(String.format("Allocation of '%s' resource is not implemented yet.",
-                    specification.getClass()));
-        }
-    }
-
-    /**
-     * Add requested {@code allocatedItem} to task.
-     *
-     * @param allocatedItem
-     * @param callInitiation
-     */
-    public void addAllocatedItem(AllocatedItem allocatedItem, CallInitiation callInitiation)
-    {
-        allocatedItems.add(allocatedItem);
-        cacheTransaction.addAllocationItem(allocatedItem);
-
-        // Setup endpoints
-        if (allocatedItem instanceof AllocatedEndpoint) {
-            AllocatedEndpoint allocatedEndpoint = (AllocatedEndpoint) allocatedItem;
-            allocatedEndpoints.add(allocatedEndpoint);
-            totalAllocatedEndpointCount += allocatedEndpoint.getCount();
+            CallInitiation callInitiation = endpointSpecification.getCallInitiation();
             if (callInitiation != null) {
-                callInitiationByAllocatedItem.put(allocatedEndpoint, callInitiation);
+                callInitiationByAllocatedItem.put(endpoint, callInitiation);
             }
 
             // Setup connectivity graph
-            connectivityGraph.addVertex(allocatedEndpoint);
-            for (AllocatedEndpoint existingEndpoint : connectivityGraph.vertexSet()) {
-                if (existingEndpoint == allocatedEndpoint) {
+            connectivityGraph.addVertex(endpoint);
+            for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
+                if (existingEndpoint == endpoint) {
                     continue;
                 }
-                Set<Technology> technologies = new HashSet<Technology>(allocatedEndpoint.getSupportedTechnologies());
+                Set<Technology> technologies = new HashSet<Technology>(endpoint.getSupportedTechnologies());
                 technologies.retainAll(existingEndpoint.getSupportedTechnologies());
                 if (technologies.size() > 0) {
-                    connectivityGraph.addEdge(allocatedEndpoint, existingEndpoint, new ConnectivityEdge(technologies));
+                    connectivityGraph.addEdge(endpoint, existingEndpoint, new ConnectivityEdge(technologies));
                 }
             }
         }
     }
 
     /**
-     * Add requested {@code allocatedItem} to task.
+     * Add new connection to the {@link #compartment}.
      *
-     * @param allocatedItem
+     * @param endpointFrom
+     * @param endpointTo
      */
-    public void addAllocatedItem(AllocatedItem allocatedItem)
-    {
-        addAllocatedItem(allocatedItem, null);
-    }
-
-    /**
-     * Create {@link cz.cesnet.shongo.controller.allocationaold.AllocatedItem} from given {@code resource} and pass it to
-     * the {@link #addAllocatedItem(cz.cesnet.shongo.controller.allocationaold.AllocatedItem, cz.cesnet.shongo.controller.request.CallInitiation)}.
-     *
-     * @param resource
-     */
-    private void addAllocatedItemByResource(Resource resource, CallInitiation callInitiation)
-    {
-        if (resource instanceof DeviceResource) {
-            AllocatedDevice allocatedDevice = new AllocatedDevice();
-            allocatedDevice.setResource(resource);
-            addAllocatedItem(allocatedDevice, callInitiation);
-        }
-        else {
-            AllocatedResource allocatedResource = new AllocatedResource();
-            allocatedResource.setResource(resource);
-            addAllocatedItem(allocatedResource, callInitiation);
-        }
-
-        // Add parent resource
-        Resource parentResource = resource.getParentResource();
-        if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
-            addAllocatedItemByResource(parentResource, callInitiation);
-        }
-    }
-
-    /**
-     * Add new connection to the given {@code reservation}.
-     *
-     * @param reservation
-     * @param allocatedEndpointFrom
-     * @param allocatedEndpointTo
-     */
-    private void addConnectionToReservation(Reservation reservation,
-            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo) throws ReportException
+    private void addConnection(Endpoint endpointFrom, Endpoint endpointTo) throws ReportException
     {
         // Determine call initiation from given endpoints
-        CallInitiation callInitiation = determineCallInitiation(allocatedEndpointFrom, allocatedEndpointTo);
+        CallInitiation callInitiation = determineCallInitiation(endpointFrom, endpointTo);
 
         // Change preferred order of endpoints based on call initiation
         switch (callInitiation) {
             case VIRTUAL_ROOM:
                 // If the call should be initiated by a virtual room and it is the second endpoint, exchange them
-                if (!(allocatedEndpointFrom instanceof AllocatedVirtualRoom) && allocatedEndpointTo instanceof AllocatedVirtualRoom) {
-                    AllocatedEndpoint allocatedEndpointTemp = allocatedEndpointFrom;
-                    allocatedEndpointFrom = allocatedEndpointTo;
-                    allocatedEndpointTo = allocatedEndpointTemp;
+                if (!(endpointFrom instanceof VirtualRoom) && endpointTo instanceof VirtualRoom) {
+                    Endpoint endpointTmp = endpointFrom;
+                    endpointFrom = endpointTo;
+                    endpointTo = endpointTmp;
                 }
                 break;
             case TERMINAL:
                 // If the call should be initiated by a terminal and it is the second endpoint, exchange them
-                if (allocatedEndpointFrom instanceof AllocatedVirtualRoom && !(allocatedEndpointTo instanceof AllocatedVirtualRoom)) {
-                    AllocatedEndpoint allocatedEndpointTemp = allocatedEndpointFrom;
-                    allocatedEndpointFrom = allocatedEndpointTo;
-                    allocatedEndpointTo = allocatedEndpointTemp;
+                if (endpointFrom instanceof VirtualRoom && !(endpointTo instanceof VirtualRoom)) {
+                    Endpoint endpointTmp = endpointFrom;
+                    endpointFrom = endpointTo;
+                    endpointTo = endpointTmp;
                 }
                 break;
             default:
@@ -259,8 +166,8 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
 
         // Determine technology by which the resources will connect
         Technology technology = null;
-        Set<Technology> technologies = new HashSet<Technology>(allocatedEndpointFrom.getSupportedTechnologies());
-        technologies.retainAll(allocatedEndpointTo.getSupportedTechnologies());
+        Set<Technology> technologies = new HashSet<Technology>(endpointFrom.getSupportedTechnologies());
+        technologies.retainAll(endpointTo.getSupportedTechnologies());
         switch (technologies.size()) {
             case 0:
                 // No common technology
@@ -273,13 +180,13 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
             default:
                 // Multiple common technologies, thus determine preferred technology
                 Technology preferredTechnology = null;
-                if (allocatedEndpointFrom instanceof AllocatedDevice) {
-                    AllocatedDevice allocatedDevice = (AllocatedDevice) allocatedEndpointFrom;
-                    preferredTechnology = allocatedDevice.getDeviceResource().getPreferredTechnology();
+                if (endpointFrom instanceof DeviceResourceEndpoint) {
+                    DeviceResourceEndpoint deviceResourceEndpoint = (DeviceResourceEndpoint) endpointFrom;
+                    preferredTechnology = deviceResourceEndpoint.getDeviceResource().getPreferredTechnology();
                 }
-                if (preferredTechnology == null && allocatedEndpointTo instanceof AllocatedDevice) {
-                    AllocatedDevice allocatedDevice = (AllocatedDevice) allocatedEndpointTo;
-                    preferredTechnology = allocatedDevice.getDeviceResource().getPreferredTechnology();
+                if (preferredTechnology == null && endpointTo instanceof DeviceResourceEndpoint) {
+                    DeviceResourceEndpoint deviceResourceEndpoint = (DeviceResourceEndpoint) endpointTo;
+                    preferredTechnology = deviceResourceEndpoint.getDeviceResource().getPreferredTechnology();
                 }
                 // Use preferred technology
                 if (technologies.contains(preferredTechnology)) {
@@ -290,21 +197,18 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
                 }
         }
 
-        Report connection = new CreatingConnectionBetweenReport(allocatedEndpointFrom, allocatedEndpointTo, technology);
+        Report connection = new CreatingConnectionBetweenReport(endpointFrom, endpointTo, technology);
         try {
-            addConnectionToReservation(reservation, allocatedEndpointFrom, allocatedEndpointTo,
-                    technology);
+            addConnection(endpointFrom, endpointTo, technology);
         }
         catch (ReportException firstException) {
             connection.addChildMessage(firstException.getReport());
             try {
-                addConnectionToReservation(reservation, allocatedEndpointTo, allocatedEndpointFrom,
-                        technology);
+                addConnection(endpointTo, endpointFrom, technology);
             }
             catch (ReportException secondException) {
                 connection.addChildMessage(secondException.getReport());
-                Report connectionFailed = new CannotCreateConnectionBetweenReport(allocatedEndpointFrom,
-                        allocatedEndpointTo);
+                Report connectionFailed = new CannotCreateConnectionBetweenReport(endpointFrom, endpointTo);
                 connectionFailed.addChildMessage(connection);
                 throw connectionFailed.exception();
             }
@@ -315,29 +219,25 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
     /**
      * Add new connection to the given {@code reservation}.
      *
-     * @param reservation
-     * @param allocatedEndpointFrom
-     * @param allocatedEndpointTo
+     * @param endpointFrom
+     * @param endpointTo
      * @param technology
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *
+     * @throws ReportException
      */
-    private void addConnectionToReservation(Reservation reservation,
-            AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo, Technology technology)
+    private void addConnection(Endpoint endpointFrom, Endpoint endpointTo, Technology technology)
             throws ReportException
     {
         // Created connection
         Connection connection = null;
 
         // TODO: implement connections to multiple endpoints
-        if (allocatedEndpointTo.getCount() > 1) {
-            throw new CannotCreateConnectionFromToMultipleReport(allocatedEndpointFrom, allocatedEndpointTo)
-                    .exception();
+        if (endpointTo.getCount() > 1) {
+            throw new CannotCreateConnectionFromToMultipleReport(endpointFrom, endpointTo).exception();
         }
 
         // Find existing alias for connection
         Alias alias = null;
-        List<Alias> aliases = allocatedEndpointTo.getAssignedAliases();
+        List<Alias> aliases = endpointTo.getAssignedAliases();
         for (Alias possibleAlias : aliases) {
             if (possibleAlias.getTechnology().equals(technology)) {
                 alias = possibleAlias;
@@ -351,85 +251,52 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
             connection = connectionByAlias;
         }
         // Create connection by address
-        else if (technology.isAllowedConnectionByAddress() && allocatedEndpointTo.getAddress() != null) {
+        else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null) {
             ConnectionByAddress connectionByAddress = new ConnectionByAddress();
-            connectionByAddress.setAddress(allocatedEndpointTo.getAddress());
+            connectionByAddress.setAddress(endpointTo.getAddress());
             connection = connectionByAddress;
         }
         else {
-            // Allocated alias for the target endpoint
+            // Allocate alias for the target endpoint
             try {
-                AllocatedAlias allocatedAlias = allocateAlias((AllocatedItem) allocatedEndpointTo, technology);
-                allocatedEndpointTo.assignAlias(allocatedAlias.getAlias());
-                reservation.addAllocatedItem(allocatedAlias);
+                Resource resource = null;
+                if (endpointTo instanceof DeviceResourceEndpoint) {
+                    DeviceResourceEndpoint deviceResourceEndpoint = (DeviceResourceEndpoint) endpointTo;
+                    resource = deviceResourceEndpoint.getDeviceResource();
+                }
+                AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
+                AliasReservation aliasReservation = addChildSpecification(aliasSpecification, AliasReservation.class);
+
+                // Assign alias to endpoint
+                endpointTo.assignAlias(aliasReservation.getAlias());
+
                 // Create connection by the created alias
                 ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-                connectionByAlias.setAlias(allocatedAlias.getAlias());
+                connectionByAlias.setAlias(aliasReservation.getAlias());
                 connection = connectionByAlias;
             }
             catch (ReportException exception) {
-                Report report = new CannotCreateConnectionFromToReport(allocatedEndpointFrom, allocatedEndpointTo);
+                Report report = new CannotCreateConnectionFromToReport(endpointFrom, endpointTo);
                 report.addChildMessage(exception.getReport());
                 throw report.exception();
             }
         }
 
         if (connection == null) {
-            throw new CannotCreateConnectionFromToReport(allocatedEndpointFrom, allocatedEndpointTo).exception();
+            throw new CannotCreateConnectionFromToReport(endpointFrom, endpointTo).exception();
         }
 
-        connection.setEndpointFrom((AllocatedItem) allocatedEndpointFrom);
-        connection.setEndpointTo((AllocatedItem) allocatedEndpointTo);
-        reservation.addConnection(connection);
+        connection.setEndpointFrom(endpointFrom);
+        connection.setEndpointTo(endpointTo);
+        compartment.addConnection(connection);
     }
 
     /**
-     * Allocate new {@link cz.cesnet.shongo.controller.resource.Alias} for given {@code allocatedItemTo}.
-     *
-     * @param allocatedItem
-     * @param technology
-     * @return
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *
+     * @param endpointFrom first {@link Endpoint}
+     * @param endpointTo   second {@link Endpoint}
+     * @return {@link CallInitiation} from given {@link Endpoint}s
      */
-    private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws ReportException
-    {
-        AvailableAlias availableAlias = null;
-        // First try to allocate alias from a resource capabilities
-        if (allocatedItem instanceof AllocatedResource) {
-            AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
-            Resource resource = allocatedResource.getResource();
-            List<AliasProviderCapability> aliasProviderCapabilities =
-                    resource.getCapabilities(AliasProviderCapability.class);
-            for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-                if (aliasProviderCapability.getTechnology().equals(technology)) {
-                    availableAlias = cache.getAvailableAlias(aliasProviderCapability, interval, cacheTransaction);
-                }
-            }
-        }
-        // Allocate alias from all resources in the cache
-        if (availableAlias == null) {
-            availableAlias = cache.getAvailableAlias(cacheTransaction, technology, interval);
-        }
-        if (availableAlias == null) {
-            throw new NoAvailableAliasReport(technology).exception();
-        }
-        AllocatedAlias allocatedAlias = new AllocatedAlias();
-        allocatedAlias.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
-        allocatedAlias.setAlias(availableAlias.getAlias());
-        allocatedAlias.setSlot(interval);
-
-        cacheTransaction.addAllocationItem(allocatedAlias);
-
-        return allocatedAlias;
-    }
-
-    /**
-     * @param endpointFrom
-     * @param endpointTo
-     * @return call initiation from given {@link cz.cesnet.shongo.controller.allocationaold.AllocatedItem}s
-     */
-    private CallInitiation determineCallInitiation(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo)
+    private CallInitiation determineCallInitiation(Endpoint endpointFrom, Endpoint endpointTo)
     {
         CallInitiation callInitiation = null;
         CallInitiation callInitiationFrom = callInitiationByAllocatedItem.get(endpointFrom);
@@ -444,7 +311,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
             else if (callInitiation != callInitiationTo) {
                 // Rewrite call initiation only when the second endpoint isn't virtual room and it want to be called
                 // from the virtual room
-                if (!(endpointTo instanceof AllocatedVirtualRoom) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
+                if (!(endpointTo instanceof VirtualRoom) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
                     callInitiation = callInitiationTo;
                 }
             }
@@ -461,22 +328,23 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
      *
      * @return plan if possible, null otherwise
      */
-    private Reservation createNovirtualRoomReservation() throws ReportException
+    private CompartmentReservation createNoVirtualRoomReservation() throws ReportException
     {
+        List<Endpoint> endpoints = compartment.getEndpoints();
         // Maximal two endpoints may be connected without virtual room
-        if (totalAllocatedEndpointCount > 2 || allocatedEndpoints.size() > 2) {
+        if (compartment.getTotalEndpointCount() > 2 || endpoints.size() > 2) {
             return null;
         }
 
         // Two endpoints must be standalone and interconnectable
-        AllocatedEndpoint endpointFrom = null;
-        AllocatedEndpoint endpointTo = null;
-        if (allocatedEndpoints.size() == 2) {
-            if (totalAllocatedEndpointCount != 2) {
+        Endpoint endpointFrom = null;
+        Endpoint endpointTo = null;
+        if (endpoints.size() == 2) {
+            if (compartment.getTotalEndpointCount() != 2) {
                 throw new IllegalStateException();
             }
-            endpointFrom = allocatedEndpoints.get(0);
-            endpointTo = allocatedEndpoints.get(1);
+            endpointFrom = endpoints.get(0);
+            endpointTo = endpoints.get(1);
 
             // Check if endpoints are standalone
             if (!endpointFrom.isStandalone() || !endpointTo.isStandalone()) {
@@ -486,7 +354,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
             // Check connectivity
             ConnectivityEdge connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
             if (connectivityEdge == null) {
-                AllocatedEndpoint endpointTemp = endpointFrom;
+                Endpoint endpointTemp = endpointFrom;
                 endpointFrom = endpointTo;
                 endpointTo = endpointTemp;
                 connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
@@ -497,23 +365,22 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
         }
         else {
             // Only allocated resource is allowed
-            AllocatedEndpoint allocatedEndpoint = allocatedEndpoints.get(0);
-            if (!(allocatedEndpoint instanceof AllocatedResource)) {
+            Endpoint allocatedEndpoint = endpoints.get(0);
+            if (!(allocatedEndpoint instanceof DeviceResourceEndpoint)) {
                 return null;
             }
         }
 
         // Create allocated compartment
-        Reservation allocatedCompartment = new Reservation();
-        for (AllocatedItem allocatedItem : allocatedItems) {
-            allocatedItem.setSlot(interval);
-            allocatedCompartment.addAllocatedItem(allocatedItem);
+        CompartmentReservation compartmentReservation = new CompartmentReservation();
+        for (Reservation childReservation : getChildReservations()) {
+            compartmentReservation.addChildReservation(childReservation);
         }
         // Add connection between two standalone endpoints
         if (endpointFrom != null && endpointTo != null) {
-            addConnectionToReservation(allocatedCompartment, endpointFrom, endpointTo);
+            addConnection(endpointFrom, endpointTo);
         }
-        return allocatedCompartment;
+        return compartmentReservation;
     }
 
     /**
@@ -522,7 +389,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
     private Collection<Set<Technology>> getSingleVirtualRoomPlanTechnologySets()
     {
         List<Set<Technology>> technologiesList = new ArrayList<Set<Technology>>();
-        for (AllocatedEndpoint endpoint : allocatedEndpoints) {
+        for (Endpoint endpoint : compartment.getEndpoints()) {
             technologiesList.add(endpoint.getSupportedTechnologies());
         }
         return Technology.interconnect(technologiesList);
@@ -533,13 +400,13 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
      *
      * @return plan if possible, null otherwise
      */
-    private Reservation createSingleVirtualRoomReservation() throws ReportException
+    private CompartmentReservation createSingleVirtualRoomReservation() throws ReportException
     {
         Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
 
         // Get available virtual rooms
-        List<AvailableVirtualRoom> availableVirtualRooms = cache.findAvailableVirtualRoomsByVariants(
-                interval, totalAllocatedEndpointCount, technologySets);
+        List<AvailableVirtualRoom> availableVirtualRooms = getCache().findAvailableVirtualRoomsByVariants(
+                getInterval(), compartment.getTotalEndpointCount(), technologySets);
         if (availableVirtualRooms.size() == 0) {
 
             return null;
@@ -558,24 +425,25 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
         AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
 
         // Create allocated virtual room
-        AllocatedVirtualRoom allocatedVirtualRoom = new AllocatedVirtualRoom();
-        allocatedVirtualRoom.setSlot(interval);
-        allocatedVirtualRoom.setResource(availableVirtualRoom.getDeviceResource());
-        allocatedVirtualRoom.setPortCount(totalAllocatedEndpointCount);
-        addReport(new AllocatingVirtualRoomReport(allocatedVirtualRoom));
+        VirtualRoom virtualRoom = new VirtualRoom();
+        if (true) {
+            throw new TodoImplementException();
+        }
+        //virtualRoom.setResource(availableVirtualRoom.getDeviceResource());
+        //virtualRoom.setPortCount(totalAllocatedEndpointCount);
+        compartment.addEndpoint(virtualRoom);
+        addReport(new AllocatingVirtualRoomReport(virtualRoom));
 
         // Create allocated compartment
-        Reservation reservation = new Reservation();
-        reservation.addAllocatedItem(allocatedVirtualRoom);
-        for (AllocatedItem allocatedItem : allocatedItems) {
-            allocatedItem.setSlot(interval);
-            reservation.addAllocatedItem(allocatedItem);
-            if (allocatedItem instanceof AllocatedEndpoint) {
-                addConnectionToReservation(reservation, allocatedVirtualRoom,
-                        (AllocatedEndpoint) allocatedItem);
+        CompartmentReservation compartmentReservation = new CompartmentReservation();
+        compartmentReservation.setCompartment(compartment);
+        for (Reservation childReservation : getChildReservations()) {
+            compartmentReservation.addChildReservation(childReservation);
+            if (childReservation instanceof EndpointReservation) {
+                addConnection(virtualRoom, ((EndpointReservation) childReservation).getEndpoint());
             }
         }
-        return reservation;
+        return compartmentReservation;
     }
 
     /**
@@ -583,7 +451,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
      */
     public void showConnectivityGraph()
     {
-        JGraph graph = new JGraph(new JGraphModelAdapter<AllocatedEndpoint, ConnectivityEdge>(connectivityGraph));
+        JGraph graph = new JGraph(new JGraphModelAdapter<Endpoint, ConnectivityEdge>(connectivityGraph));
 
         JGraphFacade graphFacade = new JGraphFacade(graph, graph.getSelectionCells());
         graphFacade.setIgnoresUnconnectedCells(true);
@@ -611,40 +479,42 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
     }
 
     @Override
-    protected Reservation createReservation(Specification specification) throws ReportException
+    protected CompartmentReservation createReservation(CompartmentSpecification specification) throws ReportException
     {
-        CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
-        for (Specification childSpecification : compartmentSpecification.getSpecifications()) {
-            addAllocatedItem(childSpecification);
+        for (Specification childSpecification : specification.getSpecifications()) {
+            addChildSpecification(childSpecification);
         }
 
-        if (totalAllocatedEndpointCount <= 1) {
+        if (compartment.getTotalEndpointCount() <= 1) {
             // Check whether an existing resource is requested
             boolean resourceRequested = false;
-            for (AllocatedItem allocatedItem : allocatedItems) {
-                if (allocatedItem instanceof AllocatedResource) {
-                    resourceRequested = true;
+            for (Reservation childReservation : getChildReservations()) {
+                if (true) {
+                    throw new TodoImplementException();
                 }
+                //if (childReservation instanceof AllocatedResource) {
+                //    resourceRequested = true;
+                //}
             }
             if (!resourceRequested) {
                 throw new NotEnoughEndpointInCompartmentReport().exception();
             }
         }
 
-        Reservation noVirtualRoomReservation = createNovirtualRoomReservation();
+        CompartmentReservation noVirtualRoomReservation = createNoVirtualRoomReservation();
         if (noVirtualRoomReservation != null) {
             return noVirtualRoomReservation;
         }
 
-        Reservation singleVirtualRoomReservation = createSingleVirtualRoomReservation();
+        CompartmentReservation singleVirtualRoomReservation = createSingleVirtualRoomReservation();
         if (singleVirtualRoomReservation != null) {
             return singleVirtualRoomReservation;
         }
 
         // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
 
-        throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(), totalAllocatedEndpointCount)
-                .exception();
+        throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(),
+                compartment.getTotalEndpointCount()).exception();
     }
 
     /**

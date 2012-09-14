@@ -1,17 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.common.Person;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
-import org.joda.time.Period;
-import org.junit.Test;
-
-import javax.persistence.EntityManager;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.fail;
 
 /**
  * Tests for creating/updating {@link cz.cesnet.shongo.controller.oldrequest.CompartmentRequest}(s) based on {@link cz.cesnet.shongo.controller.oldrequest.Compartment}

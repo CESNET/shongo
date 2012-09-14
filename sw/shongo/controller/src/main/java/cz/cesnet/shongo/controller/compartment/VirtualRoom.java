@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.compartment;
 
+import cz.cesnet.shongo.fault.TodoImplementException;
+
 import javax.persistence.Entity;
 
 /**
@@ -10,4 +12,11 @@ import javax.persistence.Entity;
 @Entity
 public class VirtualRoom extends Endpoint
 {
+    /**
+     * @return {@link #portCount}
+     */
+    public Integer getPortCount()
+    {
+        throw new TodoImplementException();
+    }
 }

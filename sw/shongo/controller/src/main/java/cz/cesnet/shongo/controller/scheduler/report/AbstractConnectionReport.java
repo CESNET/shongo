@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedExternalEndpoint;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedVirtualRoom;
+import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
@@ -19,12 +17,12 @@ public abstract class AbstractConnectionReport extends Report
     /**
      * Identification of source endpoint.
      */
-    private String endpointFrom;
+    private Endpoint endpointFrom;
 
     /**
      * Identification of target endpoint.
      */
-    private String endpointTo;
+    private Endpoint endpointTo;
 
     /**
      * Constructor.
@@ -39,51 +37,47 @@ public abstract class AbstractConnectionReport extends Report
      * @param endpointFrom
      * @param endpointTo
      */
-    public AbstractConnectionReport(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo)
+    public AbstractConnectionReport(Endpoint endpointFrom, Endpoint endpointTo)
     {
-        this.endpointFrom = getEndpoint(endpointFrom);
-        this.endpointTo = getEndpoint(endpointTo);
-    }
-
-    @Transient
-    private String getEndpoint(AllocatedEndpoint allocatedEndpoint)
-    {
-        if (allocatedEndpoint instanceof AllocatedVirtualRoom) {
-            AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedEndpoint;
-            return String.format("virtual room in %s",
-                    AbstractResourceReport.formatResource(allocatedVirtualRoom.getResource()));
-        }
-        if (allocatedEndpoint instanceof AllocatedResource) {
-            AllocatedResource allocatedResource = (AllocatedResource) allocatedEndpoint;
-            return AbstractResourceReport.formatResource(allocatedResource.getResource());
-        }
-        else if (allocatedEndpoint instanceof AllocatedExternalEndpoint) {
-            AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) allocatedEndpoint;
-            return String.format("external endpoint(count: %d)",
-                    allocatedExternalEndpoint.getExternalEndpointSpecification().getCount());
-        }
-        else {
-            return allocatedEndpoint.toString();
-        }
+        this.endpointFrom = endpointFrom;
+        this.endpointTo = endpointTo;
     }
 
     /**
      * @return {@link #endpointFrom}
      */
-    @Column
+    @OneToOne
     @Access(AccessType.FIELD)
-    public String getEndpointFrom()
+    public Endpoint getEndpointFrom()
     {
         return endpointFrom;
     }
 
     /**
+     * @return {@link #endpointFrom} as string
+     */
+    @Transient
+    public String getEndpointFromAsString()
+    {
+        return endpointFrom.getReportDescription();
+    }
+
+    /**
      * @return {@link #endpointTo}
      */
-    @Column
+    @OneToOne
     @Access(AccessType.FIELD)
-    public String getEndpointTo()
+    public Endpoint getEndpointTo()
     {
         return endpointTo;
+    }
+
+    /**
+     * @return {@link #endpointFrom} as string
+     */
+    @Transient
+    public String getEndpointToAsString()
+    {
+        return endpointTo.getReportDescription();
     }
 }

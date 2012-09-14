@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint;
+import cz.cesnet.shongo.controller.compartment.Endpoint;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -25,7 +25,7 @@ public class CannotCreateConnectionFromToReport extends AbstractConnectionReport
      * @param endpointFrom
      * @param endpointTo
      */
-    public CannotCreateConnectionFromToReport(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo)
+    public CannotCreateConnectionFromToReport(Endpoint endpointFrom, Endpoint endpointTo)
     {
         super(endpointFrom, endpointTo);
     }
@@ -34,6 +34,7 @@ public class CannotCreateConnectionFromToReport extends AbstractConnectionReport
     @Transient
     public String getText()
     {
-        return String.format("Cannot create connection from %s to %s.", getEndpointFrom(), getEndpointTo());
+        return String.format("Cannot create connection from %s to %s.", getEndpointFromAsString(),
+                getEndpointToAsString());
     }
 }

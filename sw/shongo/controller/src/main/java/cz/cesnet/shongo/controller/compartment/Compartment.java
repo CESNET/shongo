@@ -27,6 +27,12 @@ public class Compartment extends PersistentObject
     private List<Connection> connections = new ArrayList<Connection>();
 
     /**
+     * Total sum of endpoints (calculated as sum of {@link Endpoint#getCount()} because one
+     * {@link Endpoint} can represent multiple endpoints).
+     */
+    private int totalEndpointCount = 0;
+
+    /**
      * @return {@link #endpoints}
      */
     @OneToMany(cascade = CascadeType.ALL)
@@ -42,6 +48,9 @@ public class Compartment extends PersistentObject
     public void addEndpoint(Endpoint endpoint)
     {
         endpoints.add(endpoint);
+
+        // Update total endpoint count
+        totalEndpointCount += endpoint.getCount();
     }
 
     /**
@@ -49,6 +58,9 @@ public class Compartment extends PersistentObject
      */
     public void removeEndpoint(Endpoint endpoint)
     {
+        // Update total endpoint count
+        totalEndpointCount -= endpoint.getCount();
+
         endpoints.remove(endpoint);
     }
 
@@ -76,5 +88,13 @@ public class Compartment extends PersistentObject
     public void removeConnection(Connection connection)
     {
         connections.remove(connection);
+    }
+
+    /**
+     * @return {@link #totalEndpointCount}
+     */
+    public int getTotalEndpointCount()
+    {
+        return totalEndpointCount;
     }
 }

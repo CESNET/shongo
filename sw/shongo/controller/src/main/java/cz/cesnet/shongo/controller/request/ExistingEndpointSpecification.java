@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.ExistingEndpointReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -50,6 +53,25 @@ public class ExistingEndpointSpecification extends EndpointSpecification
     public void setResource(Resource resource)
     {
         this.resource = resource;
+    }
+
+    @Override
+    public boolean synchronizeFrom(Specification specification)
+    {
+        ExistingEndpointSpecification existingEndpointSpecification = (ExistingEndpointSpecification) specification;
+
+        boolean modified = super.synchronizeFrom(specification);
+        modified |= !ObjectUtils.equals(getResource(), existingEndpointSpecification.getResource());
+
+        setResource(existingEndpointSpecification.getResource());
+
+        return modified;
+    }
+
+    @Override
+    public ReservationTask createReservationTask(ReservationTask.Context context)
+    {
+        return new ExistingEndpointReservationTask(this, context);
     }
 
     /*@Override

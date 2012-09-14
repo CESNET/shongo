@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller.request;
 
 
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.scheduler.PersonReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import org.apache.commons.lang.ObjectUtils;
-import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.Map;
@@ -157,11 +158,17 @@ public class PersonSpecification extends Specification implements StatefulSpecif
     }
 
     @Override
+    public ReservationTask createReservationTask(ReservationTask.Context context)
+    {
+        return new PersonReservationTask(this, context);
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("person", person.toString());
+        map.put("person", person);
         map.put("endpoint", endpointSpecification);
         map.put("invitationState", invitationState);
     }

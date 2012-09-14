@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedExternalEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -12,7 +12,7 @@ import org.joda.time.Interval;
 import org.junit.Test;
 
 /**
- * Tests for {@link cz.cesnet.shongo.controller.scheduler.Task}
+ * Tests for {@link cz.cesnet.shongo.controller.scheduler.ReservationTask}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -30,14 +30,14 @@ public class ReportTest
         deviceResource.addCapability(new VirtualRoomsCapability(100));
         cache.addResource(deviceResource);
 
-        Task task = new Task(Interval.parse("2012/2013"), cache);
+        ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
 
-        task.clear();
-        task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 2)));
-        task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 1)));
-        task.createReservation();
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 1));
+        CompartmentReservationTask reservationTask = compartmentSpecification.createReservationTask(context);
 
-        for (Report report : task.getReports()) {
+        for (Report report : reservationTask.getReports()) {
             System.out.println(report.toString());
         }
     }

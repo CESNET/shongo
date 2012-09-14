@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.cache.AliasCache;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
@@ -488,11 +489,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         private Set<Resource> referencedResources = new HashSet<Resource>();
 
         /**
-         * @param allocatedItem to be added to the transaction
+         * @param reservation to be added to the transaction
          */
-        public void addAllocationItem(AllocatedItem allocatedItem)
+        public void addReservation(Reservation reservation)
         {
-            if (allocatedItem instanceof AllocatedResource) {
+            /*if (allocatedItem instanceof AllocatedResource) {
                 AllocatedResource allocatedResource = (AllocatedResource) allocatedItem;
                 Resource resource = allocatedResource.getResource();
                 resourceCacheTransaction.addAllocation(resource.getId(), allocatedResource);
@@ -502,7 +503,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                 AllocatedAlias allocatedAlias = (AllocatedAlias) allocatedItem;
                 aliasCacheTransaction.addAllocation(
                         allocatedAlias.getAliasProviderCapability().getId(), allocatedAlias);
-            }
+            }*/
         }
 
         /**
