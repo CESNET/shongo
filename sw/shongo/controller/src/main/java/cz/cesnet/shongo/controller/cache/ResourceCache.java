@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
-import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedVirtualRoom;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;

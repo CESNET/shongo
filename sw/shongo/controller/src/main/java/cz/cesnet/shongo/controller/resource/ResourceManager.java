@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedAlias;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;

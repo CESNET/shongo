@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.allocation;
+package cz.cesnet.shongo.controller.allocationaold;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.AllocatedItem;

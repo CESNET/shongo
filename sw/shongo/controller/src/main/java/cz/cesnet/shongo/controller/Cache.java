@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
-import cz.cesnet.shongo.controller.allocation.AllocatedItem;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedAlias;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedItem;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
 import cz.cesnet.shongo.controller.cache.AliasCache;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;

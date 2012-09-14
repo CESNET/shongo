@@ -1,9 +1,11 @@
-package cz.cesnet.shongo.controller.allocation;
+package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedItem;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -47,9 +49,10 @@ public class ReservationManager extends AbstractManager
     public void delete(Reservation Reservation, Cache cache)
     {
         // Remove all allocated virtual rooms from virtual rooms database
-        List<AllocatedItem> allocatedItems = Reservation.getAllocatedItems();
-        for (AllocatedItem allocatedItem : allocatedItems) {
-            cache.removeAllocatedItem(allocatedItem);
+        List<Reservation> childReservations = Reservation.getChildReservations();
+        for (Reservation childReservation : childReservations) {
+            throw new TodoImplementException();
+            //cache.removeAllocatedItem(childReservation);
         }
         super.delete(Reservation);
     }
@@ -133,7 +136,9 @@ public class ReservationManager extends AbstractManager
      */
     public void markedForDeletion(Reservation reservation)
     {
-        reservation.setReservationRequest(null);
+        if (true)
+            throw new TodoImplementException();
+        //reservation.setReservationRequest(null);
         update(reservation);
     }
 

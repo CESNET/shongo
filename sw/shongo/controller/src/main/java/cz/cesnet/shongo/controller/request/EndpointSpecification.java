@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO:
+ * Represents a {@link Specification} for an endpoint which can participate in a conference.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -19,7 +19,7 @@ import java.util.Map;
 public abstract class EndpointSpecification extends Specification
 {
     /**
-     * Persons that use the endpoint to connect into video conference.
+     * Persons that use the endpoint to participate in a conference.
      */
     private List<Person> persons = new ArrayList<Person>();
 

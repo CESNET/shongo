@@ -3,12 +3,12 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
-import cz.cesnet.shongo.controller.allocation.ReservationManager;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
@@ -23,7 +23,7 @@ import static junit.framework.Assert.*;
  */
 public class ReservationRequestSetTest extends AbstractDatabaseTest
 {
-    /*@Test
+    @Test
     public void test() throws Exception
     {
         // Cache
@@ -34,10 +34,10 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Identifiers for persons which are requested to participate in the compartment
         Long personId1 = null;
         Long personId2 = null;
-        // Identifier for reservation request which is created
+        // Identifier for reservation request set which is created
+        Long reservationRequestSetId = null;
+        // Identifier for reservation request which is created from the reservation request set
         Long reservationRequestId = null;
-        // Identifier for compartment request which is created from reservation request
-        Long compartmentRequestId = null;
 
         // ------------
         // Setup cache
@@ -63,31 +63,31 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
             entityManager.getTransaction().begin();
 
-            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
-            reservationRequest.setType(ReservationRequestType.NORMAL);
-            reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-            reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"),
-                    new Period("PT2H"));
-            Compartment compartment = reservationRequest.addRequestedCompartment();
+            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            reservationRequestSet.setType(ReservationRequestType.NORMAL);
+            reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+            reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+            CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
             // Requests 3 guests
-            compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 3));
+            compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 3));
             // Request specific persons, the first will use specified H.323 endpoint and
             // the second must select an endpoint then
             Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
             Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
-            compartment.addRequestedPerson(person1,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080085")));
-            compartment.addRequestedPerson(person2);
+            compartmentSpecification.addSpecification(new PersonSpecification(person1,
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080085"))));
+            compartmentSpecification.addSpecification(new PersonSpecification(person2));
+            reservationRequestSet.addSpecification(compartmentSpecification);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            reservationRequestManager.create(reservationRequest);
+            reservationRequestManager.create(reservationRequestSet);
 
             personId1 = person1.getId();
             assertNotNull("The person should have assigned identifier", personId1);
             personId2 = person2.getId();
             assertNotNull("The person should have assigned identifier", personId2);
-            reservationRequestId = reservationRequest.getId();
-            assertNotNull("The reservation request should have assigned identifier", reservationRequestId);
+            reservationRequestSetId = reservationRequestSet.getId();
+            assertNotNull("The reservation request set should have assigned identifier", reservationRequestSetId);
 
             entityManager.getTransaction().commit();
             entityManager.close();
@@ -100,21 +100,20 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            assertNotNull("The reservation request should be stored in database",
-                    reservationRequestManager.get(reservationRequestId));
+            assertNotNull("The reservation request set should be stored in database",
+                    reservationRequestManager.getReservationRequestSet(reservationRequestSetId));
 
             Preprocessor.createAndRun(interval, entityManager);
 
-            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-            List<CompartmentRequest> compartmentRequestList =
-                    compartmentRequestManager.listByReservationRequest(reservationRequestId);
-            assertEquals("One compartment request should be created for the reservation request", 1,
+            List<ReservationRequest> compartmentRequestList =
+                    reservationRequestManager.listReservationRequestsBySet(reservationRequestSetId);
+            assertEquals("One reservation request should be created for the reservation request set", 1,
                     compartmentRequestList.size());
-            assertEquals("No complete compartment requests should be present", 0,
-                    compartmentRequestManager.listCompleted(interval).size());
+            assertEquals("No complete reservation requests should be present", 0,
+                    reservationRequestManager.listCompletedReservationRequests(interval).size());
 
-            compartmentRequestId = compartmentRequestList.get(0).getId();
-            assertNotNull("The compartment request should have assigned identifier", compartmentRequestId);
+            reservationRequestId = compartmentRequestList.get(0).getId();
+            assertNotNull("The compartment request should have assigned identifier", reservationRequestId);
 
             entityManager.close();
         }
@@ -126,27 +125,27 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
             entityManager.getTransaction().begin();
 
-            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
             // First person rejects
-            compartmentRequestManager.rejectPersonRequest(compartmentRequestId, personId1);
-            assertEquals("No complete compartment requests should be present", 0,
-                    compartmentRequestManager.listCompleted(interval).size());
+            reservationRequestManager.rejectPersonRequest(reservationRequestId, personId1);
+            assertEquals("No complete reservation requests should be present", 0,
+                    reservationRequestManager.listCompletedReservationRequests(interval).size());
 
             // Second person accepts and fails because he must select an endpoint first
             try {
-                compartmentRequestManager.acceptPersonRequest(compartmentRequestId, personId2);
+                reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
                 fail("Person shouldn't accept the invitation because he should have selected an endpoint first!");
             }
             catch (IllegalStateException exception) {
             }
 
             // Second person accepts
-            compartmentRequestManager.selectResourceForPersonRequest(compartmentRequestId, personId2,
+            reservationRequestManager.selectEndpointForPersonSpecification(reservationRequestId, personId2,
                     new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080086")));
-            compartmentRequestManager.acceptPersonRequest(compartmentRequestId, personId2);
-            assertEquals("One complete compartment request should be present", 1,
-                    compartmentRequestManager.listCompleted(interval).size());
+            reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
+            assertEquals("One complete reservation request should be present", 1,
+                    reservationRequestManager.listCompletedReservationRequests(interval).size());
 
             entityManager.getTransaction().commit();
             entityManager.close();
@@ -160,16 +159,16 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             Scheduler.createAndRun(interval, entityManager, cache);
 
-            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-            ReservationManager allocatedCompartmentManager = new ReservationManager(entityManager);
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            ReservationManager reservationManager = new ReservationManager(entityManager);
 
-            CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
-            assertEquals("Compartment request should be in ALLOCATED state.",
-                    CompartmentRequest.State.ALLOCATED, compartmentRequest.getState());
+            ReservationRequest reservationRequest =
+                    reservationRequestManager.getReservationRequest(reservationRequestId);
+            assertEquals("Reservation request should be in ALLOCATED state.",
+                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
 
-            AllocatedCompartment allocatedCompartment =
-                    allocatedCompartmentManager.getByReservationRequest(compartmentRequestId);
-            assertNotNull("Allocated compartment should be created for the compartment request", allocatedCompartment);
+            Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
+            assertNotNull("Reservation should be created for the reservation request", reservation);
 
             entityManager.close();
         }
@@ -177,7 +176,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // ---------------------------
         // Modify compartment request
         // ---------------------------
-        {
+        /*{
             EntityManager entityManager = getEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -186,7 +185,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Add new requested resource to exceed the maximum number of ports
             entityManager.getTransaction().begin();
-            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
+            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestSetId);
             Compartment compartment = reservationRequest.getRequestedCompartments().get(0);
             compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 100));
             reservationRequestManager.update(reservationRequest);
@@ -197,11 +196,11 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             Scheduler.createAndRun(interval, entityManager, cache);
 
             // Checks allocation failed
-            CompartmentRequest compartmentRequest = compartmentRequestManager.get(compartmentRequestId);
+            CompartmentRequest compartmentRequest = compartmentRequestManager.get(reservationRequestId);
             assertEquals("Compartment request should be in ALLOCATION_FAILED state.",
                     CompartmentRequest.State.ALLOCATION_FAILED, compartmentRequest.getState());
             AllocatedCompartment allocatedCompartment =
-                    allocatedCompartmentManager.getByReservationRequest(compartmentRequestId);
+                    allocatedCompartmentManager.getByReservationRequest(reservationRequestId);
             assertNull("Allocated compartment should not be created for the compartment request",
                     allocatedCompartment);
 
@@ -233,7 +232,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Delete reservation request
             entityManager.getTransaction().begin();
-            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestId);
+            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestSetId);
             reservationRequestManager.delete(reservationRequest);
             entityManager.getTransaction().commit();
 
@@ -247,8 +246,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // ------------------------
         {
             cache.destroy();
-        }
-    }*/
+        }*/
+    }
 
     /**
      * Create reservation request in the database, allocate it and check if allocation succeeds

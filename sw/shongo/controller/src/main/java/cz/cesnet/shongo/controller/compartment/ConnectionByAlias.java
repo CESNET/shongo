@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.allocation;
+package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.controller.resource.Alias;
 
@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
 /**
- * Represents a {@link Connection} by alias.
+ * Represents a {@link Connection} by which is establish by a {@link Alias}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -16,7 +16,7 @@ import javax.persistence.OneToOne;
 public class ConnectionByAlias extends Connection
 {
     /**
-     * {@link Alias} for the {@link Connection#allocatedEndpointTo}.
+     * {@link Alias} of the {@link Connection#endpointTo}.
      */
     private Alias alias;
 

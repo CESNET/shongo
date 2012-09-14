@@ -1,12 +1,11 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
-import cz.cesnet.shongo.controller.allocation.Reservation;
-import cz.cesnet.shongo.controller.allocation.ReservationManager;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
-import cz.cesnet.shongo.controller.scheduler.Task;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
@@ -157,7 +156,7 @@ public class Scheduler extends Component
             reservationManager.create(reservation);
 
             // Add allocated items to the cache
-            for (AllocatedItem allocatedItem : reservation.getAllocatedItems()) {
+            for (AllocatedItem allocatedItem : reservation.getChildReservations()) {
                 cache.addAllocatedItem(allocatedItem);
             }
 

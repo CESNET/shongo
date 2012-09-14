@@ -13,11 +13,8 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents a component for a domain controller that is started before scheduler.
- * The component process "not-preprocessed" reservation requests and enumerate them
- * to compartment requests that are scheduled by a scheduler.
- * <p/>
- * Without preprocessor, the scheduler doesn't have any input compartment requests.
+ * Represents a {@link Component} that is responsible for enumerating {@link ReservationRequestSet}s
+ * to {@link ReservationRequest}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -97,7 +94,7 @@ public class Preprocessor extends Component
     }
 
     /**
-     * Synchronize (create/modify/delete) compartment requests from a single persisted reservation request.
+     * Synchronize (create/modify/delete) {@link ReservationRequest}s from a single {@link ReservationRequestSet}.
      */
     private void processReservationRequestSet(ReservationRequestSet reservationRequestSet, Interval interval,
             EntityManager entityManager)
@@ -285,7 +282,7 @@ public class Preprocessor extends Component
     private static boolean updateReservationRequest(ReservationRequest reservationRequest,
             ReservationRequestSet reservationRequestSet, Specification specification)
     {
-        // Tracks whether the compartment request was modified
+        // Tracks whether the reservation request was modified
         boolean modified = false;
         modified |= reservationRequest.synchronizeFrom(reservationRequestSet);
 
@@ -307,240 +304,8 @@ public class Preprocessor extends Component
             modified |= updateSpecification(oldSpecification, specification, reservationRequestSet);
         }
 
-        // Build set of requested persons that is used to not allow same persons to be requested for a single
-        // compartment request
-        /*Set<Person> personSet = new HashSet<Person>();
-        for (PersonRequest personRequest : reservationRequest.getRequestedPersons()) {
-            Person person = personRequest.getPerson();
-            if (personSet.contains(person)) {
-                throw new IllegalArgumentException("Compartment request contains two same requested persons ('"
-                        + person.toString() + "')!");
-            }
-            personSet.add(person);
-        }
-
-        // Build map of person requests that is used for merging new/deleted persons from compartment to existing
-        // person requests in compartment request and for removing person requests that are no more requested
-        Map<Long, PersonRequest> personRequestMap = new HashMap<Long, PersonRequest>();
-        for (PersonRequest personRequest : reservationRequest.getRequestedPersons()) {
-            Person person = personRequest.getPerson();
-            if (personRequestMap.containsKey(person.getId())) {
-                throw new IllegalArgumentException("Compartment request has two same person requests ('"
-                        + personRequestMap.get(person).toString() + "' and '" + personRequest + "')!");
-            }
-            personRequestMap.put(person.getId(), personRequest);
-        }
-
-        // Build map of existing requested resources that is used for detecting whether resource specification exists
-        // in the compartment request and to remove resource specifications that are no more requested
-        Map<Long, ResourceSpecification> resourceSpecificationMap = new HashMap<Long, ResourceSpecification>();
-        for (ResourceSpecification resourceSpecification : reservationRequest.getRequestedResources()) {
-            if (resourceSpecificationMap.containsKey(resourceSpecification.getId())) {
-                throw new IllegalArgumentException("Compartment request has two same requested resources ('"
-                        + resourceSpecification.toString() + "')!");
-            }
-            resourceSpecificationMap.put(resourceSpecification.getId(), resourceSpecification);
-        }
-
-        // Check all requested resources from the compartment
-        for (ResourceSpecification resourceSpecification : compartment.getRequestedResources()) {
-            if (resourceSpecificationMap.containsKey(resourceSpecification.getId())) {
-                // Resource specification exists so check it's requested persons
-                for (Person person : resourceSpecification.getRequestedPersons()) {
-                    if (personSet.contains(person)) {
-                        // Requested person exists so check if it is assigned to proper resource
-                        PersonRequest personRequest = null;
-                        // Find person request in linear time
-                        // TODO: Find person request by building map before the main for loop to improve performance
-                        for (PersonRequest possiblePersonRequest : reservationRequest.getRequestedPersons()) {
-                            if (possiblePersonRequest.getPerson().equals(person)) {
-                                personRequest = possiblePersonRequest;
-                                break;
-                            }
-                        }
-                        if (personRequest == null) {
-                            throw new IllegalStateException("Person request was not found but should be "
-                                    + "because person was found in person set!");
-                        }
-                        // TODO: Update person (it could be modified in compartment but stills it equaled)
-                        if (personRequest.getResourceSpecification() == resourceSpecification) {
-                            // Existing person request references the right resource specification, thus do nothing
-                        }
-                        else {
-                            // Existing person request references wrong resource specification
-                            if (personRequest.getState() == PersonRequest.State.NOT_ASKED) {
-                                personRequest.setResourceSpecification(resourceSpecification);
-                                modified = true;
-                                // TODO: If old resource spec. doesn't has any requested persons consider to remove it
-                            }
-                            else if (personRequest.getState() == PersonRequest.State.ASKED) {
-                                modified = true;
-                                throw new IllegalStateException("Cannot change requested person resource "
-                                        + "in compartment request because the person has already been asked "
-                                        + "whether he will accepts the invitation.");
-                            }
-                            else if (personRequest.getState() == PersonRequest.State.ACCEPTED) {
-                                // Do nothing he selected other resource
-                            }
-                            else if (personRequest.getState() == PersonRequest.State.REJECTED) {
-                                // Do nothing he don't want to collaborate
-                            }
-                            else {
-                                throw new IllegalStateException(
-                                        "Unknown state " + personRequest.getState().toString() + "!");
-                            }
-                        }
-                    }
-                    else {
-                        // Requested person doesn't exist so add new requested person
-                        addRequestedPerson(reservationRequest, person, resourceSpecification, personSet,
-                                personRequestMap);
-                        modified = true;
-                    }
-                }
-
-                // Resource specification is modified
-                modified = true;
-            }
-            else {
-                // Resource specification doesn't exists so add it
-                addRequestedResource(reservationRequest, resourceSpecification, personSet, personRequestMap);
-                modified = true;
-            }
-
-            // Remove resource specification from map
-            resourceSpecificationMap.remove(resourceSpecification.getId());
-        }
-
-        // Check all directly requested persons from the compartment
-        for (Person person : compartment.getRequestedPersons()) {
-            if (!personSet.contains(person)) {
-                // Requested person doesn't exist so add new requested person
-                addRequestedPerson(reservationRequest, person, null, personSet, personRequestMap);
-                modified = true;
-                personRequestMap.remove(person.getId());
-            }
-
-            // Remove the requested person from the map for the person not be deleted
-            personRequestMap.remove(person.getId());
-        }
-
-        // Remove all person requests from map that are requested from compartment resources to not be deleted
-        for (ResourceSpecification resourceSpecification : compartment.getRequestedResources()) {
-            for (Person person : resourceSpecification.getRequestedPersons()) {
-                personRequestMap.remove(person.getId());
-            }
-        }
-
-        // All person requests that remains in map should be deleted because they aren't specified
-        // in the compartment any more
-        for (PersonRequest personRequest : personRequestMap.values()) {
-            removeRequestedPerson(reservationRequest, personRequest);
-            modified = true;
-        }
-
-        // Remove some resources from the map to not be deleted
-        for (PersonRequest personRequest : reservationRequest.getRequestedPersons()) {
-            // Requested person could selected resources that wasn't
-            // specified in compartment so we must remove them from map to not be deleted
-            ResourceSpecification resourceSpecification = personRequest.getResourceSpecification();
-            if (resourceSpecification != null && resourceSpecificationMap.containsKey(resourceSpecification.getId())) {
-                resourceSpecificationMap.remove(resourceSpecification.getId());
-            }
-        }
-
-        // All resources that remains in map should be deleted because they aren't specified
-        // in the compartment any more or they aren't specified by any not deleted person requests
-        for (ResourceSpecification resourceSpecification : resourceSpecificationMap.values()) {
-            reservationRequest.removeRequestedResource(resourceSpecification);
-            modified = true;
-        }
-
-        // If the compartment request was modified, we must remove the allocated state from it
-        // and set the new state based on requested persons
-        if (modified) {
-            reservationRequest.clearState();
-            reservationRequest.updateStateByRequestedPersons();
-        }
-
-        */
-
         return modified;
     }
-
-    /**
-     * Add requested resource to compartment request (and also all persons that are requested for the resource).
-     *
-     * @param compartmentRequest    {@link CompartmentRequest} to which the requested resource should be added
-     * @param resourceSpecification {@link ResourceSpecification} of the requested resource
-     * @param personSet             set of persons that have already been added to the compartment request
-     * @param personRequestMap      map of person request that have already been added to the compartment request
-     */
-    /*private void addRequestedResource(CompartmentRequest compartmentRequest,
-            ResourceSpecification resourceSpecification, Set<Person> personSet,
-            Map<Long, PersonRequest> personRequestMap)
-    {
-        compartmentRequest.addRequestedResource(resourceSpecification);
-        for (Person person : resourceSpecification.getRequestedPersons()) {
-            addRequestedPerson(compartmentRequest, person, resourceSpecification, personSet, personRequestMap);
-        }
-    }*/
-
-    /**
-     * Add requested person to compartment request.
-     *
-     * @param compartmentRequest    {@link CompartmentRequest} to which the requested person should be added
-     * @param person                requested {@link Person} to add
-     * @param resourceSpecification {@link ResourceSpecification} for the resource which the person use for connecting
-     *                              to the compartment (can be <code>null</code>).
-     * @param personSet             set of persons that have already been added to the compartment request
-     * @param personRequestMap      map of person request that have already been added to the compartment request
-     */
-    /*private void addRequestedPerson(CompartmentRequest compartmentRequest, Person person,
-            ResourceSpecification resourceSpecification, Set<Person> personSet,
-            Map<Long, PersonRequest> personRequestMap)
-    {
-        // Check whether person isn't already added to compartment request
-        if (personSet.contains(person)) {
-            throw new IllegalStateException("Person '" + person.toString()
-                    + "' has already been added to compartment request!");
-        }
-
-        // Create person request in compartment request
-        PersonRequest personRequest = new PersonRequest();
-        personRequest.setPerson(person);
-        personRequest.setState(PersonRequest.State.NOT_ASKED);
-        if (resourceSpecification != null) {
-            personRequest.setResourceSpecification(resourceSpecification);
-        }
-        compartmentRequest.addRequestedPerson(personRequest);
-
-        if (personSet != null) {
-            personSet.add(person);
-        }
-        if (personRequestMap != null) {
-            personRequestMap.put(person.getId(), personRequest);
-        }
-    }*/
-
-    /**
-     * Remove the person request from the compartment request.
-     *
-     * @param compartmentRequest {@link CompartmentRequest} from which the requested person should be removed
-     * @param personRequest      {@link PersonRequest} which should be removed
-     */
-    /*private void removeRequestedPerson(CompartmentRequest compartmentRequest, PersonRequest personRequest)
-    {
-        if (personRequest.getState() == PersonRequest.State.NOT_ASKED) {
-            compartmentRequest.removeRequestedPerson(personRequest);
-        }
-        else {
-            throw new IllegalStateException("Cannot remove person request from compartment request "
-                    + "which was initiated by removing requested person from compartment, "
-                    + "because the person has already been asked "
-                    + "whether he will accepts the invitation.");
-        }
-    }*/
 
     /**
      * Run preprocessor on given {@code entityManager} and interval.

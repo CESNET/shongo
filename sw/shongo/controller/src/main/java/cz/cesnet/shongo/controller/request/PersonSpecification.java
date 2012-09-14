@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.common.Person;
 import org.apache.commons.lang.ObjectUtils;
+import org.joda.time.DateTime;
 
 import javax.persistence.*;
 import java.util.Map;
@@ -45,6 +46,18 @@ public class PersonSpecification extends Specification implements StatefulSpecif
     public PersonSpecification(Person person)
     {
         this.person = person;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param person                sets the {@link #person}
+     * @param endpointSpecification sets the {@link #endpointSpecification}
+     */
+    public PersonSpecification(Person person, EndpointSpecification endpointSpecification)
+    {
+        this.person = person;
+        this.endpointSpecification = endpointSpecification;
     }
 
     /**
@@ -151,6 +164,14 @@ public class PersonSpecification extends Specification implements StatefulSpecif
         map.put("person", person.toString());
         map.put("endpoint", endpointSpecification);
         map.put("invitationState", invitationState);
+    }
+
+    @PrePersist
+    protected void onCreate()
+    {
+        if (invitationState == null) {
+            invitationState = InvitationState.INVITATION_NOT_SENT;
+        }
     }
 
     /**

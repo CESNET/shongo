@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedExternalEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Address;

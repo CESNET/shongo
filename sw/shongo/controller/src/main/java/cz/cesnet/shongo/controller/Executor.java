@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartment;
-import cz.cesnet.shongo.controller.allocation.ReservationManager;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedCompartment;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -148,7 +148,7 @@ public class Executor extends Component implements Component.WithThread, Compone
             throw new IllegalStateException("TODO:");
 
             // Create virtual rooms
-            /*for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+            /*for (AllocatedItem allocatedItem : allocatedCompartment.getChildReservations()) {
                 boolean virtualRoom = false;
                 if (allocatedItem instanceof AllocatedVirtualRoom) {
                     virtualRoom = true;
@@ -178,7 +178,7 @@ public class Executor extends Component implements Component.WithThread, Compone
             // Connect devices
             for (Connection connection : allocatedCompartment.getConnections()) {
                 String endpointFromString = "unknown device";
-                AllocatedItem endpointFrom = connection.getAllocatedEndpointFrom();
+                AllocatedItem endpointFrom = connection.getEndpointFrom();
                 if (endpointFrom instanceof AllocatedDevice) {
                     AllocatedDevice allocatedDevice = (AllocatedDevice) endpointFrom;
                     endpointFromString = String.format("device '%d'", allocatedDevice.getDeviceResource().getId());
@@ -220,7 +220,7 @@ public class Executor extends Component implements Component.WithThread, Compone
             // Disconnect devices
             for (Connection connection : allocatedCompartment.getConnections()) {
                 String endpointFromString = "unknown device";
-                AllocatedItem endpointFrom = connection.getAllocatedEndpointFrom();
+                AllocatedItem endpointFrom = connection.getEndpointFrom();
                 if (endpointFrom instanceof AllocatedDevice) {
                     AllocatedDevice allocatedDevice = (AllocatedDevice) endpointFrom;
                     endpointFromString = String.format("device '%d'", allocatedDevice.getDeviceResource().getId());
@@ -233,7 +233,7 @@ public class Executor extends Component implements Component.WithThread, Compone
                 logger.debug(message.toString());
             }
             // Stop virtual rooms
-            for (AllocatedItem allocatedItem : allocatedCompartment.getAllocatedItems()) {
+            for (AllocatedItem allocatedItem : allocatedCompartment.getChildReservations()) {
                 if (allocatedItem instanceof AllocatedVirtualRoom) {
                     AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedItem;
                     DeviceResource deviceResource = allocatedVirtualRoom.getDeviceResource();

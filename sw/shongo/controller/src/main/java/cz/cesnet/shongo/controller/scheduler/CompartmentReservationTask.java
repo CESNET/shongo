@@ -3,24 +3,25 @@ package cz.cesnet.shongo.controller.scheduler;
 import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.allocation.*;
+import cz.cesnet.shongo.controller.allocationaold.*;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.compartment.Connection;
+import cz.cesnet.shongo.controller.compartment.ConnectionByAddress;
+import cz.cesnet.shongo.controller.compartment.ConnectionByAlias;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
-import cz.cesnet.shongo.fault.FaultException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
 import org.jgrapht.graph.SimpleGraph;
-import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,117 +32,63 @@ import java.util.*;
 import java.util.List;
 
 /**
- * Represents a scheduler task for {@link CompartmentRequest} which results into {@link AllocatedCompartment}.
+ * Represents {@link ReservationTask} for a {@link CompartmentSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Task
+public class CompartmentReservationTask extends ReservationTask<CompartmentSpecification>
 {
-    private static Logger logger = LoggerFactory.getLogger(Task.class);
+    private static Logger logger = LoggerFactory.getLogger(CompartmentReservationTask.class);
 
     /**
-     * List of reports.
-     */
-    private List<Report> reports = new ArrayList<Report>();
-
-    /**
-     * Interval for which the task is performed.
-     */
-    private Interval interval;
-
-    /**
-     * @see Cache
-     */
-    private Cache cache;
-
-    /**
-     * @see {@link Cache.Transaction}
-     */
-    private Cache.Transaction cacheTransaction;
-
-    /**
-     * List of all {@link AllocatedItem} added to the task.
+     * List of all {@link cz.cesnet.shongo.controller.allocationaold.AllocatedItem} added to the task.
      */
     private List<AllocatedItem> allocatedItems = new ArrayList<AllocatedItem>();
 
     /**
-     * List of all {@link AllocatedEndpoint} added to the task.
+     * List of all {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint} added to the task.
      */
     private List<AllocatedEndpoint> allocatedEndpoints = new ArrayList<AllocatedEndpoint>();
 
     /**
-     * Total sum of endpoints (calculated as sum of {@link AllocatedEndpoint#getCount()} because one
-     * {@link AllocatedEndpoint} can represent multiple endpoints).
+     * Total sum of endpoints (calculated as sum of {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint#getCount()} because one
+     * {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint} can represent multiple endpoints).
      */
-    private int totalAllocatedEndpointCount;
+    private int totalAllocatedEndpointCount = 0;
 
     /**
-     * Map of call initiations by {@link AllocatedEndpoint}.
+     * Map of call initiations by {@link cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint}.
      */
     private Map<AllocatedEndpoint, CallInitiation> callInitiationByAllocatedItem =
             new HashMap<AllocatedEndpoint, CallInitiation>();
 
     /**
-     * Default call initiation.
-     */
-    private CallInitiation callInitiation = CallInitiation.TERMINAL;
-
-    /**
      * Graph of connectivity between endpoints.
      */
-    private UndirectedGraph<AllocatedEndpoint, ConnectivityEdge> connectivityGraph;
+    private UndirectedGraph<AllocatedEndpoint, ConnectivityEdge> connectivityGraph =
+            new SimpleGraph<AllocatedEndpoint, ConnectivityEdge>(ConnectivityEdge.class);
 
     /**
      * Constructor.
      *
-     * @param interval sets the {@link #interval}
-     * @param cache    sets the {@link #cache}
+     * @param compartmentSpecification sets the {@link #context}
+     * @param context                  sets the {@link #specification}
      */
-    public Task(Interval interval, Cache cache)
+    public CompartmentReservationTask(CompartmentSpecification compartmentSpecification, Context context)
     {
-        clear();
-
-        this.interval = interval;
-        this.cache = cache;
+        super(compartmentSpecification, context);
     }
 
     /**
-     * @return {@link #reports}
+     * @return default {@link CallInitiation}
      */
-    public List<Report> getReports()
+    public CallInitiation getCallInitiation()
     {
-        return reports;
-    }
-
-    /**
-     * @param callInitiation sets the {@link #callInitiation}
-     */
-    public void setCallInitiation(CallInitiation callInitiation)
-    {
+        CallInitiation callInitiation = getSpecification().getCallInitiation();
         if (callInitiation == null) {
-            throw new IllegalArgumentException("Call initiation must not be null.");
+            callInitiation = CallInitiation.TERMINAL;
         }
-        this.callInitiation = callInitiation;
-    }
-
-    /**
-     * Clear all information added to the task.
-     */
-    public void clear()
-    {
-        cacheTransaction = new Cache.Transaction();
-        allocatedItems.clear();
-        allocatedEndpoints.clear();
-        totalAllocatedEndpointCount = 0;
-        connectivityGraph = new SimpleGraph<AllocatedEndpoint, ConnectivityEdge>(ConnectivityEdge.class);
-    }
-
-    /**
-     * @param report to be added to the {@link #reports}
-     */
-    private void addReport(Report report)
-    {
-        reports.add(report);
+        return callInitiation;
     }
 
     /**
@@ -250,8 +197,8 @@ public class Task
     }
 
     /**
-     * Create {@link AllocatedItem} from given {@code resource} and pass it to
-     * the {@link #addAllocatedItem(AllocatedItem, CallInitiation)}.
+     * Create {@link cz.cesnet.shongo.controller.allocationaold.AllocatedItem} from given {@code resource} and pass it to
+     * the {@link #addAllocatedItem(cz.cesnet.shongo.controller.allocationaold.AllocatedItem, cz.cesnet.shongo.controller.request.CallInitiation)}.
      *
      * @param resource
      */
@@ -372,7 +319,8 @@ public class Task
      * @param allocatedEndpointFrom
      * @param allocatedEndpointTo
      * @param technology
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.FaultException
+     *
      */
     private void addConnectionToReservation(Reservation reservation,
             AllocatedEndpoint allocatedEndpointFrom, AllocatedEndpoint allocatedEndpointTo, Technology technology)
@@ -430,18 +378,19 @@ public class Task
             throw new CannotCreateConnectionFromToReport(allocatedEndpointFrom, allocatedEndpointTo).exception();
         }
 
-        connection.setAllocatedEndpointFrom((AllocatedItem) allocatedEndpointFrom);
-        connection.setAllocatedEndpointTo((AllocatedItem) allocatedEndpointTo);
+        connection.setEndpointFrom((AllocatedItem) allocatedEndpointFrom);
+        connection.setEndpointTo((AllocatedItem) allocatedEndpointTo);
         reservation.addConnection(connection);
     }
 
     /**
-     * Allocate new {@link Alias} for given {@code allocatedItemTo}.
+     * Allocate new {@link cz.cesnet.shongo.controller.resource.Alias} for given {@code allocatedItemTo}.
      *
      * @param allocatedItem
      * @param technology
      * @return
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.FaultException
+     *
      */
     private AllocatedAlias allocateAlias(AllocatedItem allocatedItem, Technology technology) throws ReportException
     {
@@ -478,7 +427,7 @@ public class Task
     /**
      * @param endpointFrom
      * @param endpointTo
-     * @return call initiation from given {@link AllocatedItem}s
+     * @return call initiation from given {@link cz.cesnet.shongo.controller.allocationaold.AllocatedItem}s
      */
     private CallInitiation determineCallInitiation(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo)
     {
@@ -502,7 +451,7 @@ public class Task
         }
         // If no call initiation was specified for the endpoints, use the default
         if (callInitiation == null) {
-            callInitiation = this.callInitiation;
+            callInitiation = this.getCallInitiation();
         }
         return callInitiation;
     }
@@ -630,41 +579,6 @@ public class Task
     }
 
     /**
-     * @return created {@link Reservation} if possible, null otherwise
-     * @throws FaultException
-     */
-    public Reservation createReservation() throws ReportException
-    {
-        if (totalAllocatedEndpointCount <= 1) {
-            // Check whether an existing resource is requested
-            boolean resourceRequested = false;
-            for (AllocatedItem allocatedItem : allocatedItems) {
-                if (allocatedItem instanceof AllocatedResource) {
-                    resourceRequested = true;
-                }
-            }
-            if (!resourceRequested) {
-                throw new NotEnoughEndpointInCompartmentReport().exception();
-            }
-        }
-
-        Reservation noVirtualRoomReservation = createNovirtualRoomReservation();
-        if (noVirtualRoomReservation != null) {
-            return noVirtualRoomReservation;
-        }
-
-        Reservation singleVirtualRoomReservation = createSingleVirtualRoomReservation();
-        if (singleVirtualRoomReservation != null) {
-            return singleVirtualRoomReservation;
-        }
-
-        // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
-
-        throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(), totalAllocatedEndpointCount)
-                .exception();
-    }
-
-    /**
      * Show current connectivity graph in dialog
      */
     public void showConnectivityGraph()
@@ -696,9 +610,41 @@ public class Task
         dialog.setVisible(true);
     }
 
-    public void printReports()
+    @Override
+    protected Reservation createReservation(Specification specification) throws ReportException
     {
+        CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
+        for (Specification childSpecification : compartmentSpecification.getSpecifications()) {
+            addAllocatedItem(childSpecification);
+        }
 
+        if (totalAllocatedEndpointCount <= 1) {
+            // Check whether an existing resource is requested
+            boolean resourceRequested = false;
+            for (AllocatedItem allocatedItem : allocatedItems) {
+                if (allocatedItem instanceof AllocatedResource) {
+                    resourceRequested = true;
+                }
+            }
+            if (!resourceRequested) {
+                throw new NotEnoughEndpointInCompartmentReport().exception();
+            }
+        }
+
+        Reservation noVirtualRoomReservation = createNovirtualRoomReservation();
+        if (noVirtualRoomReservation != null) {
+            return noVirtualRoomReservation;
+        }
+
+        Reservation singleVirtualRoomReservation = createSingleVirtualRoomReservation();
+        if (singleVirtualRoomReservation != null) {
+            return singleVirtualRoomReservation;
+        }
+
+        // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
+
+        throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(), totalAllocatedEndpointCount)
+                .exception();
     }
 
     /**

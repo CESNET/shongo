@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.cache;
 
-import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedAlias;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;

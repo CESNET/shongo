@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;

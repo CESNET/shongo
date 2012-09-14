@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.allocation;
+package cz.cesnet.shongo.controller.allocationaold;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents an allocated {@link cz.cesnet.shongo.controller.resource.Resource} in an {@link cz.cesnet.shongo.controller.allocation.AllocatedCompartment}
+ * Represents an allocated {@link cz.cesnet.shongo.controller.resource.Resource} in an {@link cz.cesnet.shongo.controller.allocationaold.AllocatedCompartment}
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

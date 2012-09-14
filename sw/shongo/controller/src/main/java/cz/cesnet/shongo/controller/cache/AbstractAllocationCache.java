@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.allocation.AllocatedItem;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedItem;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;

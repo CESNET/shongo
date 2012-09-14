@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedItem;
-import cz.cesnet.shongo.controller.allocation.Reservation;
-import cz.cesnet.shongo.controller.allocation.ReservationManager;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedExternalEndpoint;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -98,11 +98,12 @@ public class ReservationRequestManager extends AbstractManager
             ReservationManager reservationManager = new ReservationManager(entityManager);
             Reservation reservation = reservationManager.getByReservationRequest(reservationRequest);
             if (reservation != null) {
-                for (AllocatedItem allocatedItem : reservation.getAllocatedItems()) {
-                    if (allocatedItem instanceof AllocatedExternalEndpoint) {
-                        AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) allocatedItem;
+                for (Reservation childReservation : reservation.getChildReservations()) {
+                    throw new TodoImplementException();
+                    /*if (childReservation instanceof AllocatedExternalEndpoint) {
+                        AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) childReservation;
                         allocatedExternalEndpoint.setExternalEndpointSpecification(null);
-                    }
+                    }*/
                 }
                 reservationManager.markedForDeletion(reservation);
             }
@@ -281,8 +282,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param specification {@link Specification} which is searched
      * @param personId      identifier for {@link Person} for which the search is performed
      * @return {@link PersonSpecification} from given {@link Specification} that references {@link Person}
-     *         with given identifier
-     * @throws IllegalArgumentException when {@link PersonSpecification} isn't found
+     *         with given identifier if exists, null otherwise
      */
     private PersonSpecification getPersonSpecification(Specification specification, Long personId)
             throws IllegalArgumentException
@@ -302,9 +302,7 @@ public class ReservationRequestManager extends AbstractManager
                 }
             }
         }
-        throw new IllegalArgumentException(
-                String.format("Requested person '%d' doesn't exist in specification '%d'!",
-                        personId, specification.getId()));
+        return null;
     }
 
     /**
@@ -317,7 +315,14 @@ public class ReservationRequestManager extends AbstractManager
     private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
             throws IllegalArgumentException
     {
-        return getPersonSpecification(reservationRequest.getSpecification(), personId);
+        Specification specification = reservationRequest.getSpecification();
+        PersonSpecification personSpecification = getPersonSpecification(specification, personId);
+        if (personSpecification == null) {
+            throw new IllegalArgumentException(
+                    String.format("Requested person '%d' doesn't exist in specification '%d'!",
+                            personId, specification.getId()));
+        }
+        return personSpecification;
     }
 
     /**

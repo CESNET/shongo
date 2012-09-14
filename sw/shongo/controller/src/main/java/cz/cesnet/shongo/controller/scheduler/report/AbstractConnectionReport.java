@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedExternalEndpoint;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
-import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedExternalEndpoint;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
+import cz.cesnet.shongo.controller.allocationaold.AllocatedVirtualRoom;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;

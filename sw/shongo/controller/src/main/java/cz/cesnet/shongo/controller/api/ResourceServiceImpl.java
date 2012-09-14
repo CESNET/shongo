@@ -247,9 +247,9 @@ public class ResourceServiceImpl extends Component
         resourceAllocation.setInterval(interval);
 
         // Fill resource allocations
-        Collection<cz.cesnet.shongo.controller.allocation.AllocatedResource> resourceAllocations =
+        Collection<cz.cesnet.shongo.controller.allocationaold.AllocatedResource> resourceAllocations =
                 resourceManager.listAllocatedResourcesInInterval(resourceId, interval);
-        for (cz.cesnet.shongo.controller.allocation.AllocatedResource allocatedResourceImpl : resourceAllocations) {
+        for (cz.cesnet.shongo.controller.allocationaold.AllocatedResource allocatedResourceImpl : resourceAllocations) {
             resourceAllocation.addAllocation(allocatedResourceImpl.toApi(domain));
         }
 
@@ -257,9 +257,9 @@ public class ResourceServiceImpl extends Component
         List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
                 resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
         for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
-            List<cz.cesnet.shongo.controller.allocation.AllocatedAlias> allocatedAliasImpls =
+            List<cz.cesnet.shongo.controller.allocationaold.AllocatedAlias> allocatedAliasImpls =
                     resourceManager.listAllocatedAliasesInInterval(aliasProvider.getId(), interval);
-            for (cz.cesnet.shongo.controller.allocation.AllocatedAlias allocatedAliasImpl : allocatedAliasImpls) {
+            for (cz.cesnet.shongo.controller.allocationaold.AllocatedAlias allocatedAliasImpl : allocatedAliasImpls) {
                 resourceAllocation.addAllocation(allocatedAliasImpl.toApi(domain));
             }
         }

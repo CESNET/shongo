@@ -3,11 +3,12 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.allocation.*;
+import cz.cesnet.shongo.controller.allocationaold.*;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
         Reservation reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(2, reservation.getAllocatedItems().size());
+        assertEquals(2, reservation.getChildReservations().size());
         assertEquals(1, reservation.getConnections().size());
     }
 
@@ -91,7 +92,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.H323}));
         reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getAllocatedItems().size());
+        assertEquals(3, reservation.getChildReservations().size());
         assertEquals(2, reservation.getConnections().size());
 
         task.clear();
@@ -99,7 +100,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(true, new Technology[]{Technology.SIP}));
         reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getAllocatedItems().size());
+        assertEquals(3, reservation.getChildReservations().size());
         assertEquals(2, reservation.getConnections().size());
     }
 
@@ -125,7 +126,7 @@ public class TaskTest
         task.addAllocatedItem(new AllocatedExternalEndpoint(new ExternalEndpointSpecification(Technology.H323, 50)));
         task.addAllocatedItem(new AllocatedDevice(terminal));
         Reservation reservation = task.createReservation();
-        assertEquals(4, reservation.getAllocatedItems().size());
+        assertEquals(4, reservation.getChildReservations().size());
     }
 
     @Test
@@ -155,7 +156,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(4, reservation.getAllocatedItems().size());
+        assertEquals(4, reservation.getChildReservations().size());
         assertEquals(2, reservation.getConnections().size());
 
         task.clear();
@@ -164,7 +165,7 @@ public class TaskTest
         task.addAllocatedItem(new SimpleAllocatedEndpoint(new Technology[]{Technology.H323}));
         reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(5, reservation.getAllocatedItems().size());
+        assertEquals(5, reservation.getChildReservations().size());
         assertEquals(2, reservation.getConnections().size());
 
         try {
@@ -209,7 +210,7 @@ public class TaskTest
         task.addResource(new ExistingEndpointSpecification(terminal1));
         reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(2, reservation.getAllocatedItems().size());
+        assertEquals(2, reservation.getChildReservations().size());
         assertEquals(0, reservation.getConnections().size());
 
         task.clear();
@@ -217,7 +218,7 @@ public class TaskTest
         task.addResource(new ExistingEndpointSpecification(terminal2));
         reservation = task.createReservation();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getAllocatedItems().size());
+        assertEquals(3, reservation.getChildReservations().size());
         assertEquals(1, reservation.getConnections().size());
     }
 

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.allocation;
+package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.resource.Address;
@@ -10,7 +10,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
 /**
- * Represents a {@link Connection} by alias.
+ * Represents a {@link Connection} by which is establish by a {@link Alias}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -18,12 +18,12 @@ import javax.persistence.Enumerated;
 public class ConnectionByAddress extends Connection
 {
     /**
-     * {@link Alias} for the {@link Connection#allocatedEndpointTo}.
+     * {@link Technology} for the {@link Connection}.
      */
     private Technology technology;
 
     /**
-     * IP address or URL.
+     * IP address or URL of the {@link Connection#endpointTo}.
      */
     private Address address;
 
