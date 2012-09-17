@@ -10,8 +10,8 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
-import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
@@ -34,20 +34,19 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CompartmentReservationTask extends ReservationTask<CompartmentSpecification, CompartmentReservation>
+public class CompartmentReservationTask extends ReservationTask<CompartmentReservation>
 {
     private static Logger logger = LoggerFactory.getLogger(CompartmentReservationTask.class);
+
+    /**
+     * {@see {@link CompartmentSpecification}}.
+     */
+    private CompartmentSpecification compartmentSpecification;
 
     /**
      * {@link Compartment} which is created by the {@link CompartmentReservationTask}.
      */
     private Compartment compartment = new Compartment();
-
-    /**
-     * Map of call initiations by {@link Endpoint}.
-     */
-    private Map<Endpoint, CallInitiation> callInitiationByAllocatedItem =
-            new HashMap<Endpoint, CallInitiation>();
 
     /**
      * Graph of connectivity between endpoints.
@@ -62,7 +61,8 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
      */
     public CompartmentReservationTask(Context context)
     {
-        super(new CompartmentSpecification(), context);
+        super(context);
+        this.compartmentSpecification = new CompartmentSpecification();
     }
 
     /**
@@ -73,18 +73,20 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
      */
     public CompartmentReservationTask(Context context, CallInitiation callInitiation)
     {
-        super(new CompartmentSpecification(callInitiation), context);
+        super(context);
+        this.compartmentSpecification = new CompartmentSpecification(callInitiation);
     }
 
     /**
      * Constructor.
      *
-     * @param specification sets the {@link #specification}
+     * @param specification sets the {@link #compartmentSpecification}
      * @param context       sets the {@link #context}
      */
     public CompartmentReservationTask(CompartmentSpecification specification, Context context)
     {
-        super(specification, context);
+        super(context);
+        this.compartmentSpecification = specification;
     }
 
     /**
@@ -92,41 +94,63 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
      */
     public CallInitiation getCallInitiation()
     {
-        CallInitiation callInitiation = getSpecification().getCallInitiation();
+        CallInitiation callInitiation = compartmentSpecification.getCallInitiation();
         if (callInitiation == null) {
             callInitiation = CallInitiation.TERMINAL;
         }
         return callInitiation;
     }
 
-    @Override
-    protected void addChildReservation(Reservation reservation, Specification specification)
+    /**
+     * Add child {@link Specification}.
+     *
+     * @param childSpecification
+     * @throws ReportException
+     */
+    public void addChildSpecification(Specification childSpecification) throws ReportException
     {
-        super.addChildReservation(reservation, specification);
+        if (childSpecification instanceof ReservationTaskProvider) {
+            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) childSpecification;
+            addChildReservation(reservationTaskProvider);
+        }
+        else if (childSpecification instanceof EndpointProvider) {
+            EndpointProvider endpointProvider = (EndpointProvider) childSpecification;
+            addEndpoint(endpointProvider.createEndpoint());
+        }
+        else {
+            throw new IllegalArgumentException(String.format("%s is not supported by the %s.",
+                    childSpecification.getClass().getSimpleName(), getClass().getSimpleName()));
+        }
+    }
 
-        if (reservation instanceof EndpointReservation) {
-            EndpointReservation endpointReservation = (EndpointReservation) reservation;
-            EndpointSpecification endpointSpecification = (EndpointSpecification) specification;
-            Endpoint endpoint = endpointReservation.getEndpoint();
+    @Override
+    public void addChildReservation(Reservation reservation)
+    {
+        super.addChildReservation(reservation);
 
-            compartment.addEndpoint(endpoint);
+        if (reservation instanceof EndpointProvider) {
+            EndpointProvider endpointProvider = (EndpointProvider) reservation;
+            addEndpoint(endpointProvider.createEndpoint());
+        }
+    }
 
-            CallInitiation callInitiation = endpointSpecification.getCallInitiation();
-            if (callInitiation != null) {
-                callInitiationByAllocatedItem.put(endpoint, callInitiation);
+    /**
+     * @param endpoint to be added to the {@link #compartment}
+     */
+    private void addEndpoint(Endpoint endpoint)
+    {
+        compartment.addEndpoint(endpoint);
+
+        // Setup connectivity graph
+        connectivityGraph.addVertex(endpoint);
+        for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
+            if (existingEndpoint == endpoint) {
+                continue;
             }
-
-            // Setup connectivity graph
-            connectivityGraph.addVertex(endpoint);
-            for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
-                if (existingEndpoint == endpoint) {
-                    continue;
-                }
-                Set<Technology> technologies = new HashSet<Technology>(endpoint.getSupportedTechnologies());
-                technologies.retainAll(existingEndpoint.getSupportedTechnologies());
-                if (technologies.size() > 0) {
-                    connectivityGraph.addEdge(endpoint, existingEndpoint, new ConnectivityEdge(technologies));
-                }
+            Set<Technology> technologies = new HashSet<Technology>(endpoint.getTechnologies());
+            technologies.retainAll(existingEndpoint.getTechnologies());
+            if (technologies.size() > 0) {
+                connectivityGraph.addEdge(endpoint, existingEndpoint, new ConnectivityEdge(technologies));
             }
         }
     }
@@ -166,8 +190,8 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
 
         // Determine technology by which the resources will connect
         Technology technology = null;
-        Set<Technology> technologies = new HashSet<Technology>(endpointFrom.getSupportedTechnologies());
-        technologies.retainAll(endpointTo.getSupportedTechnologies());
+        Set<Technology> technologies = new HashSet<Technology>(endpointFrom.getTechnologies());
+        technologies.retainAll(endpointTo.getTechnologies());
         switch (technologies.size()) {
             case 0:
                 // No common technology
@@ -180,12 +204,12 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
             default:
                 // Multiple common technologies, thus determine preferred technology
                 Technology preferredTechnology = null;
-                if (endpointFrom instanceof DeviceResourceEndpoint) {
-                    DeviceResourceEndpoint deviceResourceEndpoint = (DeviceResourceEndpoint) endpointFrom;
+                if (endpointFrom instanceof ResourceEndpoint) {
+                    ResourceEndpoint deviceResourceEndpoint = (ResourceEndpoint) endpointFrom;
                     preferredTechnology = deviceResourceEndpoint.getDeviceResource().getPreferredTechnology();
                 }
-                if (preferredTechnology == null && endpointTo instanceof DeviceResourceEndpoint) {
-                    DeviceResourceEndpoint deviceResourceEndpoint = (DeviceResourceEndpoint) endpointTo;
+                if (preferredTechnology == null && endpointTo instanceof ResourceEndpoint) {
+                    ResourceEndpoint deviceResourceEndpoint = (ResourceEndpoint) endpointTo;
                     preferredTechnology = deviceResourceEndpoint.getDeviceResource().getPreferredTechnology();
                 }
                 // Use preferred technology
@@ -237,7 +261,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
 
         // Find existing alias for connection
         Alias alias = null;
-        List<Alias> aliases = endpointTo.getAssignedAliases();
+        List<Alias> aliases = endpointTo.getAliases();
         for (Alias possibleAlias : aliases) {
             if (possibleAlias.getTechnology().equals(technology)) {
                 alias = possibleAlias;
@@ -260,15 +284,15 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
             // Allocate alias for the target endpoint
             try {
                 Resource resource = null;
-                if (endpointTo instanceof DeviceResourceEndpoint) {
-                    DeviceResourceEndpoint deviceResourceEndpoint = (DeviceResourceEndpoint) endpointTo;
+                if (endpointTo instanceof ResourceEndpoint) {
+                    ResourceEndpoint deviceResourceEndpoint = (ResourceEndpoint) endpointTo;
                     resource = deviceResourceEndpoint.getDeviceResource();
                 }
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
-                AliasReservation aliasReservation = addChildSpecification(aliasSpecification, AliasReservation.class);
+                AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
 
                 // Assign alias to endpoint
-                endpointTo.assignAlias(aliasReservation.getAlias());
+                endpointTo.addAlias(aliasReservation.getAlias());
 
                 // Create connection by the created alias
                 ConnectionByAlias connectionByAlias = new ConnectionByAlias();
@@ -299,8 +323,8 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
     private CallInitiation determineCallInitiation(Endpoint endpointFrom, Endpoint endpointTo)
     {
         CallInitiation callInitiation = null;
-        CallInitiation callInitiationFrom = callInitiationByAllocatedItem.get(endpointFrom);
-        CallInitiation callInitiationTo = callInitiationByAllocatedItem.get(endpointTo);
+        CallInitiation callInitiationFrom = endpointFrom.getCallInitiation();
+        CallInitiation callInitiationTo = endpointTo.getCallInitiation();
         if (callInitiationFrom != null) {
             callInitiation = callInitiationFrom;
         }
@@ -366,13 +390,14 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
         else {
             // Only allocated resource is allowed
             Endpoint allocatedEndpoint = endpoints.get(0);
-            if (!(allocatedEndpoint instanceof DeviceResourceEndpoint)) {
+            if (!(allocatedEndpoint instanceof ResourceEndpoint)) {
                 return null;
             }
         }
 
         // Create allocated compartment
         CompartmentReservation compartmentReservation = new CompartmentReservation();
+        compartmentReservation.setCompartment(compartment);
         for (Reservation childReservation : getChildReservations()) {
             compartmentReservation.addChildReservation(childReservation);
         }
@@ -390,7 +415,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
     {
         List<Set<Technology>> technologiesList = new ArrayList<Set<Technology>>();
         for (Endpoint endpoint : compartment.getEndpoints()) {
-            technologiesList.add(endpoint.getSupportedTechnologies());
+            technologiesList.add(endpoint.getTechnologies());
         }
         return Technology.interconnect(technologiesList);
     }
@@ -424,25 +449,28 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
         // Get the first virtual room
         AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
 
-        // Create allocated virtual room
-        VirtualRoom virtualRoom = new VirtualRoom();
-        if (true) {
-            throw new TodoImplementException();
-        }
-        //virtualRoom.setResource(availableVirtualRoom.getDeviceResource());
-        //virtualRoom.setPortCount(totalAllocatedEndpointCount);
-        compartment.addEndpoint(virtualRoom);
-        addReport(new AllocatingVirtualRoomReport(virtualRoom));
+        // Create virtual room reservation
+        VirtualRoomReservation virtualRoomReservation = new VirtualRoomReservation();
+        virtualRoomReservation.setSlot(getInterval());
+        virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
+        virtualRoomReservation.setPortCount(compartment.getTotalEndpointCount());
 
-        // Create allocated compartment
+        // Add virtual room to compartment
+        VirtualRoom virtualRoom = new ResourceVirtualRoom(virtualRoomReservation);
+        compartment.addVirtualRoom(virtualRoom);
+        addReport(new AllocatingVirtualRoomReport(virtualRoom));
+        for (Endpoint endpoint : compartment.getEndpoints()) {
+            addConnection(virtualRoom, endpoint);
+        }
+
+        // Create compartment reservation
         CompartmentReservation compartmentReservation = new CompartmentReservation();
         compartmentReservation.setCompartment(compartment);
+        compartmentReservation.addChildReservation(virtualRoomReservation);
         for (Reservation childReservation : getChildReservations()) {
             compartmentReservation.addChildReservation(childReservation);
-            if (childReservation instanceof EndpointReservation) {
-                addConnection(virtualRoom, ((EndpointReservation) childReservation).getEndpoint());
-            }
         }
+
         return compartmentReservation;
     }
 
@@ -479,22 +507,19 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentSpeci
     }
 
     @Override
-    protected CompartmentReservation createReservation(CompartmentSpecification specification) throws ReportException
+    protected CompartmentReservation createReservation() throws ReportException
     {
-        for (Specification childSpecification : specification.getSpecifications()) {
+        for (Specification childSpecification : compartmentSpecification.getSpecifications()) {
             addChildSpecification(childSpecification);
         }
 
         if (compartment.getTotalEndpointCount() <= 1) {
             // Check whether an existing resource is requested
             boolean resourceRequested = false;
-            for (Reservation childReservation : getChildReservations()) {
-                if (true) {
-                    throw new TodoImplementException();
+            for (Endpoint endpoint : compartment.getEndpoints()) {
+                if (endpoint instanceof ResourceEndpoint || endpoint instanceof ResourceVirtualRoom) {
+                    resourceRequested = true;
                 }
-                //if (childReservation instanceof AllocatedResource) {
-                //    resourceRequested = true;
-                //}
             }
             if (!resourceRequested) {
                 throw new NotEnoughEndpointInCompartmentReport().exception();

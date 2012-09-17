@@ -4,13 +4,11 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
+import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.request.CallInitiation;
-import cz.cesnet.shongo.controller.request.EndpointSpecification;
-import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
-import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
-import cz.cesnet.shongo.controller.reservation.EndpointReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.junit.Test;
@@ -37,7 +35,7 @@ public class CompartmentReservationTaskTest
         CompartmentReservationTask compartmentReservationTask;
 
         compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
         try {
             compartmentReservationTask.perform();
@@ -47,9 +45,9 @@ public class CompartmentReservationTaskTest
         }
 
         compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(new Technology[]{Technology.SIP}));
         try {
             compartmentReservationTask.perform();
@@ -59,9 +57,9 @@ public class CompartmentReservationTaskTest
         }
 
         compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         try {
             compartmentReservationTask.perform();
@@ -76,9 +74,9 @@ public class CompartmentReservationTaskTest
     {
         ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), new Cache());
         CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
         CompartmentReservation reservation = compartmentReservationTask.perform(CompartmentReservation.class);
         assertNotNull(reservation);
@@ -104,9 +102,9 @@ public class CompartmentReservationTaskTest
         CompartmentReservation compartmentReservation;
 
         compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(false, new Technology[]{Technology.H323}));
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         compartmentReservation = compartmentReservationTask.perform(CompartmentReservation.class);
         assertNotNull(compartmentReservation);
@@ -114,9 +112,9 @@ public class CompartmentReservationTaskTest
         assertEquals(2, compartmentReservation.getCompartment().getConnections().size());
 
         compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
-        compartmentReservationTask.addChildSpecification(
+        compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.SIP}));
         compartmentReservation = compartmentReservationTask.perform(CompartmentReservation.class);
         assertNotNull(compartmentReservation);
@@ -148,7 +146,9 @@ public class CompartmentReservationTaskTest
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal));
         CompartmentReservation compartmentReservation = compartmentReservationTask
                 .perform(CompartmentReservation.class);
-        assertEquals(4, compartmentReservation.getChildReservations().size());
+        assertEquals(3, compartmentReservation.getChildReservations().size());
+        assertEquals(2, compartmentReservation.getCompartment().getEndpoints().size());
+        assertEquals(1, compartmentReservation.getCompartment().getVirtualRooms().size());
     }
 
     @Test
@@ -250,7 +250,7 @@ public class CompartmentReservationTaskTest
         assertEquals(1, compartmentReservation.getCompartment().getConnections().size());
     }
 
-    private static class SimpleEndpointSpecification extends EndpointSpecification
+    private static class SimpleEndpointSpecification extends Specification implements ReservationTaskProvider
     {
         private Address address = null;
         private boolean standalone = false;
@@ -278,61 +278,65 @@ public class CompartmentReservationTaskTest
             this(false, technologies);
         }
 
+
+
         @Override
         public ReservationTask createReservationTask(ReservationTask.Context context)
         {
-            return new ReservationTask<SimpleEndpointSpecification, EndpointReservation>(this, context)
+            return new ReservationTask<Reservation>(context)
             {
-                @Override
-                protected EndpointReservation createReservation(SimpleEndpointSpecification specification)
-                        throws ReportException
+                class SimpleEndpointReservation extends Reservation implements EndpointProvider
                 {
-                    return new EndpointReservation()
+                    private Endpoint endpoint = new Endpoint()
                     {
-                        private Endpoint endpoint = new Endpoint()
+                        @Override
+                        public int getCount()
                         {
-                            @Override
-                            public int getCount()
-                            {
-                                return 1;
-                            }
-
-                            @Override
-                            public Set<Technology> getSupportedTechnologies()
-                            {
-                                return technologies;
-                            }
-
-                            @Override
-                            public boolean isStandalone()
-                            {
-                                return standalone;
-                            }
-
-                            @Override
-                            public void assignAlias(Alias alias)
-                            {
-                            }
-
-                            @Override
-                            public List<Alias> getAssignedAliases()
-                            {
-                                return new ArrayList<Alias>();
-                            }
-
-                            @Override
-                            public Address getAddress()
-                            {
-                                return address;
-                            }
-                        };
+                            return 1;
+                        }
 
                         @Override
-                        public Endpoint getEndpoint()
+                        public Set<Technology> getTechnologies()
                         {
-                            return endpoint;
+                            return technologies;
+                        }
+
+                        @Override
+                        public boolean isStandalone()
+                        {
+                            return standalone;
+                        }
+
+                        @Override
+                        public void addAlias(Alias alias)
+                        {
+                        }
+
+                        @Override
+                        public List<Alias> getAliases()
+                        {
+                            return new ArrayList<Alias>();
+                        }
+
+                        @Override
+                        public Address getAddress()
+                        {
+                            return address;
                         }
                     };
+
+                    @Override
+                    public Endpoint createEndpoint()
+                    {
+                        return endpoint;
+                    }
+                }
+
+                @Override
+                protected Reservation createReservation()
+                        throws ReportException
+                {
+                    return new SimpleEndpointReservation();
                 }
             };
         }

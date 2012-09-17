@@ -2,12 +2,16 @@ package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.Transient;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +22,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class Endpoint extends PersistentObject
 {
     /**
@@ -26,7 +31,7 @@ public abstract class Endpoint extends PersistentObject
     @Transient
     public int getCount()
     {
-        throw new TodoImplementException();
+        return 1;
     }
 
     /**
@@ -34,10 +39,7 @@ public abstract class Endpoint extends PersistentObject
      */
 
     @Transient
-    public Set<Technology> getSupportedTechnologies()
-    {
-        throw new TodoImplementException();
-    }
+    public abstract Set<Technology> getTechnologies();
 
     /**
      * @return true if device can participate in 2-point video conference without virtual room,
@@ -46,25 +48,20 @@ public abstract class Endpoint extends PersistentObject
     @Transient
     public boolean isStandalone()
     {
-        throw new TodoImplementException();
+        return false;
     }
 
     /**
      * @param alias to be assign to the {@link Endpoint}
      */
-    public void assignAlias(Alias alias)
-    {
-        throw new TodoImplementException();
-    }
+    @Transient
+    public abstract void addAlias(Alias alias);
 
     /**
      * @return list of aliases for the {@link Endpoint}
      */
     @Transient
-    public List<Alias> getAssignedAliases()
-    {
-        throw new TodoImplementException();
-    }
+    public abstract List<Alias> getAliases();
 
     /**
      * @return IP address or URL of the {@link Endpoint}
@@ -72,7 +69,7 @@ public abstract class Endpoint extends PersistentObject
     @Transient
     public Address getAddress()
     {
-        throw new TodoImplementException();
+        return null;
     }
 
     /**
@@ -81,23 +78,16 @@ public abstract class Endpoint extends PersistentObject
     @Transient
     public String getReportDescription()
     {
-        /*if (endpoint instanceof VirtualRoom) {
-            VirtualRoom virtualRoom = (VirtualRoom) endpoint;
-            return String.format("virtual room in %s",
-                    AbstractResourceReport.formatResource(virtualRoom.getResource()));
-        }
-        if (endpoint instanceof AllocatedResource) {
-            AllocatedResource allocatedResource = (AllocatedResource) endpoint;
-            return AbstractResourceReport.formatResource(allocatedResource.getResource());
-        }
-        else if (endpoint instanceof AllocatedExternalEndpoint) {
-            AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) endpoint;
-            return String.format("external endpoint(count: %d)",
-                    allocatedExternalEndpoint.getExternalEndpointSpecification().getCount());
-        }
-        else {
-            return endpoint.toString();
-        }*/
-        throw new TodoImplementException();
+        return toString();
+    }
+
+    /**
+     * Defines who should initiate the call to this endpoint ({@code null} means that the {@link Scheduler}
+     * can decide it).
+     */
+    @Transient
+    public CallInitiation getCallInitiation()
+    {
+        return null;
     }
 }

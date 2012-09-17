@@ -3,14 +3,20 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.cache.AvailableAlias;
+import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.scheduler.AliasReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,7 +25,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AliasSpecification extends Specification
+public class AliasSpecification extends Specification implements ReservationTaskProvider
 {
     /**
      * {@link Technology} for the {@link Alias}.
@@ -148,9 +154,46 @@ public class AliasSpecification extends Specification
     }
 
     @Override
-    public AliasReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask<AliasReservation> createReservationTask(ReservationTask.Context context)
     {
-        return new AliasReservationTask(this, context);
+        return new ReservationTask<AliasReservation>(context) {
+
+            @Override
+            protected AliasReservation createReservation() throws ReportException
+            {
+                if (getAliasType() != null) {
+                    throw new TodoImplementException("Allocating alias by alias type!");
+                }
+
+                AvailableAlias availableAlias = null;
+                // First try to allocate alias from a resource capabilities
+                Resource resource = getResource();
+                if (resource != null) {
+                    List<AliasProviderCapability> aliasProviderCapabilities =
+                            resource.getCapabilities(AliasProviderCapability.class);
+
+                    for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
+                        if (aliasProviderCapability.getTechnology().equals(getTechnology())) {
+                            availableAlias = getCache().getAvailableAlias(
+                                    aliasProviderCapability, getInterval(), getCacheTransaction());
+                        }
+                    }
+                }
+                // Allocate alias from all resources in the cache
+                if (availableAlias == null) {
+                    availableAlias = getCache().getAvailableAlias(
+                            getCacheTransaction(), getTechnology(), getInterval());
+                }
+                if (availableAlias == null) {
+                    throw new NoAvailableAliasReport(getTechnology()).exception();
+                }
+                AliasReservation aliasReservation = new AliasReservation();
+                aliasReservation.setSlot(getInterval());
+                aliasReservation.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
+                aliasReservation.setAlias(availableAlias.getAlias());
+                return aliasReservation;
+            }
+        };
     }
 
     @Override

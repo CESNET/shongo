@@ -16,13 +16,8 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ReservationTask<S extends Specification, R extends Reservation>
+public abstract class ReservationTask<R extends Reservation>
 {
-    /**
-     * @see {@link Specification}
-     */
-    private S specification;
-
     /**
      * Context.
      */
@@ -36,18 +31,9 @@ public abstract class ReservationTask<S extends Specification, R extends Reserva
     /**
      * Constructor.
      */
-    public ReservationTask(S specification, Context context)
+    public ReservationTask(Context context)
     {
-        this.specification = specification;
         this.context = context;
-    }
-
-    /**
-     * @return {@link #specification}
-     */
-    protected S getSpecification()
-    {
-        return specification;
     }
 
     /**
@@ -109,35 +95,38 @@ public abstract class ReservationTask<S extends Specification, R extends Reserva
     /**
      * @param reservation to be added to the {@link #childReservations}
      */
-    protected void addChildReservation(Reservation reservation, Specification specification)
+    public void addChildReservation(Reservation reservation)
     {
         childReservations.add(reservation);
         getCacheTransaction().addReservation(reservation);
     }
 
     /**
-     * Add child {@link Specification} to the task.
+     * Add child {@link Reservation} to the task allocated from a {@link ReservationTask} created from given
+     * {@code reservationTaskProvider}.
      *
-     * @param specification child {@link Specification} to be added
+     * @param reservationTaskProvider used for creating {@link ReservationTask}
      */
-    public Reservation addChildSpecification(Specification specification)
+    public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
             throws ReportException
     {
-        ReservationTask reservationTask = specification.createReservationTask(getContext());
+        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getContext());
         Reservation reservation = reservationTask.perform();
-        addChildReservation(reservation, specification);
+        addChildReservation(reservation);
         return reservation;
     }
 
     /**
-     * Add child {@link Specification} to the task.
+     * Add child {@link Reservation} to the task allocated from a {@link ReservationTask} created from given
+     * {@code reservationTaskProvider}.
      *
-     * @param specification child {@link Specification} to be added
+     * @param reservationTaskProvider used for creating {@link ReservationTask}
      */
-    public <R extends Reservation> R addChildSpecification(Specification specification, Class<R> reservationClass)
+    public final <R extends Reservation> R addChildReservation(ReservationTaskProvider reservationTaskProvider,
+            Class<R> reservationClass)
             throws ReportException
     {
-        Reservation reservation = addChildSpecification(specification);
+        Reservation reservation = addChildReservation(reservationTaskProvider);
         return reservationClass.cast(reservation);
     }
 
@@ -149,7 +138,7 @@ public abstract class ReservationTask<S extends Specification, R extends Reserva
      */
     public final R perform() throws ReportException
     {
-        R reservation = createReservation(getSpecification());
+        R reservation = createReservation();
 
         // Add reservation to the cache
         getCacheTransaction().addReservation(reservation);
@@ -172,7 +161,7 @@ public abstract class ReservationTask<S extends Specification, R extends Reserva
      * @return created {@link Reservation}
      * @throws ReportException when the {@link Reservation} cannot be created
      */
-    protected abstract R createReservation(S specification) throws ReportException;
+    protected abstract R createReservation() throws ReportException;
 
     /**
      * Context for the {@link ReservationTask}.

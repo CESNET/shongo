@@ -28,7 +28,7 @@ public abstract class Connection extends PersistentObject
      * @return {@link #endpointFrom}
      */
     @ManyToOne
-    @JoinColumn(name = "allocated_endpoint_from_id")
+    @JoinColumn(name = "endpoint_from_id")
     public Endpoint getEndpointFrom()
     {
         return endpointFrom;
@@ -46,7 +46,7 @@ public abstract class Connection extends PersistentObject
      * @return {@link #endpointTo}
      */
     @ManyToOne
-    @JoinColumn(name = "allocated_endpoint_to_id")
+    @JoinColumn(name = "endpoint_to_id")
     public Endpoint getEndpointTo()
     {
         return endpointTo;

@@ -1,15 +1,17 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.scheduler.LookupEndpointReservationTask;
+import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotFoundReport;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents {@link EndpointSpecification} as parameters for endpoint which will be lookup.
@@ -17,7 +19,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class LookupEndpointSpecification extends EndpointSpecification
+public class LookupEndpointSpecification extends EndpointSpecification implements ReservationTaskProvider
 {
     /**
      * Set of technologies which the resource must support.
@@ -90,9 +92,36 @@ public class LookupEndpointSpecification extends EndpointSpecification
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public ReservationTask<ResourceReservation> createReservationTask(ReservationTask.Context context)
     {
-        return new LookupEndpointReservationTask(this, context);
+        return new ReservationTask<ResourceReservation>(context){
+
+            @Override
+            protected ResourceReservation createReservation() throws ReportException
+            {
+                Set<Technology> technologies = getTechnologies();
+
+                // Lookup device resources
+                List<DeviceResource> deviceResources = getCache().findAvailableTerminal(getInterval(), technologies,
+                        getCacheTransaction());
+
+                // Select first available device resource
+                // TODO: Select best resource based on some criteria
+                DeviceResource deviceResource = null;
+                for (DeviceResource possibleDeviceResource : deviceResources) {
+                    deviceResource = possibleDeviceResource;
+                    break;
+                }
+
+                // If some was found
+                if (deviceResource != null) {
+                    throw new TodoImplementException();
+                }
+                else {
+                    throw new ResourceNotFoundReport(technologies).exception();
+                }
+            }
+        };
     }
 
     @Override

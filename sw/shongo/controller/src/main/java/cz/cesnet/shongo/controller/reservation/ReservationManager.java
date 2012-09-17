@@ -73,8 +73,10 @@ public class ReservationManager extends AbstractManager
     {
         try {
             Reservation reservation = entityManager.createQuery(
-                    "SELECT reservation FROM Reservation reservation WHERE reservation.reservationRequest.id = :id",
-                    Reservation.class).setParameter("id", reservationRequestId)
+                    "SELECT reservation FROM Reservation reservation WHERE reservation.id IN("
+                            + " SELECT reservationRequest.reservation.id FROM ReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.id = :id)", Reservation.class)
+                    .setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservation;
         }
@@ -103,8 +105,8 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> allocatedCompartments = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " WHERE reservation.reservationRequest.id IN ("
-                        + " SELECT reservationRequest.id FROM ReservationRequestSet reservationRequestSet"
+                        + " WHERE reservation.id IN ("
+                        + " SELECT reservationRequest.reservation.id FROM ReservationRequestSet reservationRequestSet"
                         + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
                         + " WHERE reservationRequestSet.id = :id)",
                 Reservation.class)
@@ -121,7 +123,7 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> allocatedCompartments = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation "
-                        + "WHERE reservation.reservationRequest.requestedSlot.start BETWEEN :start AND :end",
+                        + "WHERE reservation.slotStart BETWEEN :start AND :end",
                 Reservation.class)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
@@ -129,28 +131,16 @@ public class ReservationManager extends AbstractManager
         return allocatedCompartments;
     }
 
-
     /**
-     * @param reservation to be marked for deletion
-     */
-    public void markedForDeletion(Reservation reservation)
-    {
-        if (true) {
-            throw new TodoImplementException();
-        }
-        //reservation.setReservationRequest(null);
-        update(reservation);
-    }
-
-    /**
-     * Delete {@link Reservation}s which were marked by {@link #markedForDeletion(Reservation)}.
+     * Delete {@link Reservation}s which aren't allocated for any {@link ReservationRequest}.
      *
      * @param cache from which the {@link Reservation}s are also deleted
      */
-    public void deleteAllMarked(Cache cache)
+    public void deleteAllNotReferencedByReservationRequest(Cache cache)
     {
         List<Reservation> reservations = entityManager.createQuery(
-                "SELECT reservation FROM Reservation reservation WHERE reservation.reservationRequest IS NULL",
+                "SELECT reservation FROM Reservation reservation WHERE reservation.id NOT IN("
+                        + " SELECT reservationRequest.reservation.id FROM ReservationRequest reservationRequest)",
                 Reservation.class)
                 .getResultList();
         for (Reservation reservation : reservations) {

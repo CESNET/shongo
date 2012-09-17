@@ -92,21 +92,6 @@ public class ReservationRequestManager extends AbstractManager
             // Clear state
             ReservationRequestSetStateManager.clear(entityManager, reservationRequestSet);
         }
-        else if (abstractReservationRequest instanceof ReservationRequest) {
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            ReservationManager reservationManager = new ReservationManager(entityManager);
-            Reservation reservation = reservationManager.getByReservationRequest(reservationRequest);
-            if (reservation != null) {
-                for (Reservation childReservation : reservation.getChildReservations()) {
-                    throw new TodoImplementException();
-                    /*if (childReservation instanceof AllocatedExternalEndpoint) {
-                        AllocatedExternalEndpoint allocatedExternalEndpoint = (AllocatedExternalEndpoint) childReservation;
-                        allocatedExternalEndpoint.setExternalEndpointSpecification(null);
-                    }*/
-                }
-                reservationManager.markedForDeletion(reservation);
-            }
-        }
 
         super.delete(abstractReservationRequest);
 

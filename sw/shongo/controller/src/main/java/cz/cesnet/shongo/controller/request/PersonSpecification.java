@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller.request;
 
 
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.scheduler.PersonReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -15,7 +16,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PersonSpecification extends Specification implements StatefulSpecification
+public class PersonSpecification extends Specification implements StatefulSpecification, ReservationTaskProvider
 {
     /**
      * Requested person.
@@ -160,7 +161,7 @@ public class PersonSpecification extends Specification implements StatefulSpecif
     @Override
     public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        return new PersonReservationTask(this, context);
+        throw new TodoImplementException();
     }
 
     @Override

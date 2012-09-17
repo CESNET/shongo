@@ -23,12 +23,10 @@ public abstract class Specification extends PersistentObject
      *                      this {@link Specification}
      * @return true if some modification was made
      */
-    public abstract boolean synchronizeFrom(Specification specification);
-
-    /**
-     * @return new instance of {@link ReservationTask} for this {@link Specification}.
-     */
-    public abstract ReservationTask createReservationTask(ReservationTask.Context context);
+    public boolean synchronizeFrom(Specification specification)
+    {
+        return false;
+    }
 
     /*public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException;
 

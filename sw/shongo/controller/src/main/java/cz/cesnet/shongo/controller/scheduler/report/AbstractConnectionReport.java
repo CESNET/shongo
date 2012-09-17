@@ -48,6 +48,7 @@ public abstract class AbstractConnectionReport extends Report
      */
     @OneToOne
     @Access(AccessType.FIELD)
+    @JoinColumn(name = "endpoint_from_id")
     public Endpoint getEndpointFrom()
     {
         return endpointFrom;
@@ -67,6 +68,7 @@ public abstract class AbstractConnectionReport extends Report
      */
     @OneToOne
     @Access(AccessType.FIELD)
+    @JoinColumn(name = "endpoint_to_id")
     public Endpoint getEndpointTo()
     {
         return endpointTo;

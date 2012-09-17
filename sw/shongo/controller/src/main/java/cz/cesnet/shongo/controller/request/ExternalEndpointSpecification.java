@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.compartment.Endpoint;
+import cz.cesnet.shongo.controller.compartment.EndpointProvider;
+import cz.cesnet.shongo.controller.compartment.ExternalEndpoint;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.scheduler.ExternalEndpointReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -15,7 +18,7 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ExternalEndpointSpecification extends EndpointSpecification
+public class ExternalEndpointSpecification extends EndpointSpecification implements EndpointProvider
 {
     /**
      * Number of external endpoints of the same type.
@@ -196,9 +199,9 @@ public class ExternalEndpointSpecification extends EndpointSpecification
     }
 
     @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
+    public Endpoint createEndpoint()
     {
-        return new ExternalEndpointReservationTask(this, context);
+        return new ExternalEndpoint(this);
     }
 
     @Override

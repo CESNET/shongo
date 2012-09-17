@@ -1,31 +1,35 @@
-package cz.cesnet.shongo.controller.allocationaold;
+package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Represents an allocated {@link cz.cesnet.shongo.controller.resource.Resource} in an {@link cz.cesnet.shongo.controller.allocationaold.AllocatedCompartment}
+ * Represents an entity (or multiple entities) which can participate in a {@link Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class AllocatedExternalEndpoint extends AllocatedItem implements AllocatedEndpoint
+public class ExternalEndpoint extends Endpoint
 {
     /**
-     * {@link ExternalEndpointSpecification} which is allocated.
+     * {@link ExternalEndpointSpecification} for the {@link ExternalEndpoint}.
      */
     private ExternalEndpointSpecification externalEndpointSpecification;
 
     /**
      * Constructor.
      */
-    public AllocatedExternalEndpoint()
+    public ExternalEndpoint()
     {
     }
 
@@ -34,7 +38,7 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
      *
      * @param externalEndpointSpecification sets the {@link #externalEndpointSpecification}
      */
-    public AllocatedExternalEndpoint(ExternalEndpointSpecification externalEndpointSpecification)
+    public ExternalEndpoint(ExternalEndpointSpecification externalEndpointSpecification)
     {
         this.externalEndpointSpecification = externalEndpointSpecification;
     }
@@ -43,7 +47,6 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
      * @return {@link #externalEndpointSpecification}
      */
     @ManyToOne
-    @Access(AccessType.FIELD)
     public ExternalEndpointSpecification getExternalEndpointSpecification()
     {
         return externalEndpointSpecification;
@@ -58,12 +61,6 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
     }
 
     @Override
-    protected cz.cesnet.shongo.controller.api.AllocatedItem createApi()
-    {
-        return null;
-    }
-
-    @Override
     @Transient
     public int getCount()
     {
@@ -72,34 +69,37 @@ public class AllocatedExternalEndpoint extends AllocatedItem implements Allocate
 
     @Override
     @Transient
-    public Set<Technology> getSupportedTechnologies()
+    public Set<Technology> getTechnologies()
     {
         return externalEndpointSpecification.getTechnologies();
     }
 
     @Override
-    public boolean isStandalone()
-    {
-        return false;
-    }
-
-    @Override
-    public void assignAlias(Alias alias)
+    @Transient
+    public void addAlias(Alias alias)
     {
         throw new IllegalStateException("Cannot assign alias to allocated external endpoint.");
     }
 
     @Override
     @Transient
-    public List<Alias> getAssignedAliases()
+    public List<Alias> getAliases()
     {
         return externalEndpointSpecification.getAliases();
     }
 
     @Override
     @Transient
-    public Address getAddress()
+    public String getReportDescription()
     {
-        return null;
+        return String.format("external endpoint(count: %d)",
+                externalEndpointSpecification.getCount());
+    }
+
+    @Override
+    @Transient
+    public CallInitiation getCallInitiation()
+    {
+        return externalEndpointSpecification.getCallInitiation();
     }
 }

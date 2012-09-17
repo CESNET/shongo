@@ -205,7 +205,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @return {@link #reservationRequests}
      */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public List<ReservationRequest> getReservationRequests()
     {

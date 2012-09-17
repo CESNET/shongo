@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -22,7 +23,8 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class CompartmentSpecification extends Specification implements StatefulSpecification, CompositeSpecification
+public class CompartmentSpecification extends Specification
+        implements StatefulSpecification, CompositeSpecification, ReservationTaskProvider
 {
     /**
      * List of specifications for targets which are requested to participate in compartment.

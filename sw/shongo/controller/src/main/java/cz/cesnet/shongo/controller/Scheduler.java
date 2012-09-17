@@ -5,9 +5,11 @@ import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -75,7 +77,7 @@ public class Scheduler extends Component
 
         // Delete all reservations which was marked for deletion
         ReservationManager reservationManager = new ReservationManager(entityManager);
-        reservationManager.deleteAllMarked(cache);
+        reservationManager.deleteAllNotReferencedByReservationRequest(cache);
 
         try {
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
@@ -126,7 +128,18 @@ public class Scheduler extends Component
 
         // Create new scheduler task
         ReservationTask.Context context = new ReservationTask.Context(requestedSlot, cache);
-        ReservationTask reservationTask = reservationRequest.getSpecification().createReservationTask(context);
+        ReservationTask reservationTask;
+        Specification specification = reservationRequest.getSpecification();
+        if (specification instanceof ReservationTaskProvider) {
+            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
+            reservationTask = reservationTaskProvider.createReservationTask(context);
+        }
+        else {
+            throw new IllegalStateException(String.format("Cannot allocate reservation request '%s'"
+                    + " because the specification of type '%s' is not supposed to be allocated.",
+                    reservationRequest.getId(), specification.getClass().getSimpleName()));
+        }
+
         try {
             if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
                 throw new DurationLongerThanMaximumReport(requestedSlot.toPeriod().normalizedStandard(),

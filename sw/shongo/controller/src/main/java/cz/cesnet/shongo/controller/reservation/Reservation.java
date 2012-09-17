@@ -106,6 +106,7 @@ public abstract class Reservation extends PersistentObject
      */
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
+    @JoinColumn(name = "child_reservation_id")
     public List<Reservation> getChildReservations()
     {
         return childReservations;

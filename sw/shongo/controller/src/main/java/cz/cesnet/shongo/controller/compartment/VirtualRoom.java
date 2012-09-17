@@ -1,8 +1,7 @@
 package cz.cesnet.shongo.controller.compartment;
 
-import cz.cesnet.shongo.fault.TodoImplementException;
-
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Represents an {@link Endpoint} which is able to interconnect multiple other {@link Endpoint}s.
@@ -10,13 +9,11 @@ import javax.persistence.Entity;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class VirtualRoom extends Endpoint
+public abstract class VirtualRoom extends Endpoint
 {
     /**
-     * @return {@link #portCount}
+     * @return port count of the {@link VirtualRoom}
      */
-    public Integer getPortCount()
-    {
-        throw new TodoImplementException();
-    }
+    @Transient
+    public abstract Integer getPortCount();
 }

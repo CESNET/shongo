@@ -17,12 +17,17 @@ import java.util.List;
 public class Compartment extends PersistentObject
 {
     /**
-     * List of {@link Endpoint} which participates in the {@link Compartment}.
+     * List of {@link Endpoint}s which participates in the {@link Compartment}.
      */
     private List<Endpoint> endpoints = new ArrayList<Endpoint>();
 
     /**
-     * List of {@link Connection} which are established in the {@link Compartment}.
+     * List of {@link VirtualRoom}s which participates in the {@link Compartment}.
+     */
+    private List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
+
+    /**
+     * List of {@link Connection}s which are established in the {@link Compartment}.
      */
     private List<Connection> connections = new ArrayList<Connection>();
 
@@ -65,6 +70,32 @@ public class Compartment extends PersistentObject
     }
 
     /**
+     * @return {@link #virtualRooms}
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public List<VirtualRoom> getVirtualRooms()
+    {
+        return virtualRooms;
+    }
+
+    /**
+     * @param virtualRoom to be added to the {@link #virtualRooms}
+     */
+    public void addVirtualRoom(VirtualRoom virtualRoom)
+    {
+        virtualRooms.add(virtualRoom);
+    }
+
+    /**
+     * @param virtualRoom to be removed from the {@link #virtualRooms}
+     */
+    public void removeVirtualRoom(VirtualRoom virtualRoom)
+    {
+        virtualRooms.remove(virtualRoom);
+    }
+
+    /**
      * @return {@link #connections}
      */
     @OneToMany(cascade = CascadeType.ALL)
@@ -93,6 +124,8 @@ public class Compartment extends PersistentObject
     /**
      * @return {@link #totalEndpointCount}
      */
+    @Column
+    @Access(AccessType.FIELD)
     public int getTotalEndpointCount()
     {
         return totalEndpointCount;

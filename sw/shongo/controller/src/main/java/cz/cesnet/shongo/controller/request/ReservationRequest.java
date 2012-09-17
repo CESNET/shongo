@@ -141,7 +141,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #reservation}
      */
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public Reservation getReservation()
     {
