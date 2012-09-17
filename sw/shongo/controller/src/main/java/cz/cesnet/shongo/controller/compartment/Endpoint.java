@@ -3,16 +3,14 @@ package cz.cesnet.shongo.controller.compartment;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Transient;
+import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,6 +23,68 @@ import java.util.Set;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public abstract class Endpoint extends PersistentObject
 {
+    /**
+     * List of {@link Person}s which use the {@link Endpoint} in the {@link Compartment}.
+     */
+    private List<Person> persons = new ArrayList<Person>();
+
+    /**
+     * {@link Alias}es that are additionally assigned to the {@link Endpoint}.
+     */
+    private List<Alias> aliases = new ArrayList<Alias>();
+
+    /**
+     * @return {@link #persons}
+     */
+    @OneToMany
+    @Access(AccessType.FIELD)
+    public List<Person> getPersons()
+    {
+        return persons;
+    }
+
+    /**
+     * @param person to be added to the {@link #persons}
+     */
+    public void addPerson(Person person)
+    {
+        persons.add(person);
+    }
+
+    /**
+     * @param person to be removed from the {@link #persons}
+     */
+    public void removePerson(Person person)
+    {
+        persons.remove(person);
+    }
+
+    /**
+     * @return {@link #aliases}
+     */
+    @OneToMany
+    @Access(AccessType.FIELD)
+    public List<Alias> getAliases()
+    {
+        return aliases;
+    }
+
+    /**
+     * @param alias alias to be added to the {@link #aliases}
+     */
+    public void addAlias(Alias alias)
+    {
+        aliases.add(alias);
+    }
+
+    /**
+     * @param alias alias to be removed from the {@link #aliases}
+     */
+    public void removeAlias(Alias alias)
+    {
+        aliases.remove(alias);
+    }
+
     /**
      * @return number of the endpoints which the {@link Endpoint} represents.
      */
@@ -50,18 +110,6 @@ public abstract class Endpoint extends PersistentObject
     {
         return false;
     }
-
-    /**
-     * @param alias to be assign to the {@link Endpoint}
-     */
-    @Transient
-    public abstract void addAlias(Alias alias);
-
-    /**
-     * @return list of aliases for the {@link Endpoint}
-     */
-    @Transient
-    public abstract List<Alias> getAliases();
 
     /**
      * @return IP address or URL of the {@link Endpoint}

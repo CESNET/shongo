@@ -29,6 +29,11 @@ public abstract class Reservation extends PersistentObject
     private DateTime slotEnd;
 
     /**
+     * Parent {@link Reservation}.
+     */
+    private Reservation parentReservation;
+
+    /**
      * Child {@link Reservation}s that are allocated for the {@link Reservation}.
      */
     private List<Reservation> childReservations = new ArrayList<Reservation>();
@@ -102,11 +107,38 @@ public abstract class Reservation extends PersistentObject
     }
 
     /**
+     * @return {@link #parentReservation}
+     */
+    @ManyToOne
+    public Reservation getParentReservation()
+    {
+        return parentReservation;
+    }
+
+    /**
+     * @param parentReservation sets the {@link #parentReservation}
+     */
+    public void setParentReservation(Reservation parentReservation)
+    {
+        // Manage bidirectional association
+        if (parentReservation != this.parentReservation) {
+            if (this.parentReservation != null) {
+                Reservation oldParentReservation = this.parentReservation;
+                this.parentReservation = null;
+                oldParentReservation.removeChildReservation(this);
+            }
+            if (parentReservation != null) {
+                this.parentReservation = parentReservation;
+                this.parentReservation.addChildReservation(this);
+            }
+        }
+    }
+
+    /**
      * @return {@link #childReservations}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "parentReservation")
     @Access(AccessType.FIELD)
-    @JoinColumn(name = "child_reservation_id")
     public List<Reservation> getChildReservations()
     {
         return childReservations;
@@ -117,7 +149,11 @@ public abstract class Reservation extends PersistentObject
      */
     public void addChildReservation(Reservation reservation)
     {
-        childReservations.add(reservation);
+        // Manage bidirectional association
+        if (childReservations.contains(reservation) == false) {
+            childReservations.add(reservation);
+            reservation.setParentReservation(this);
+        }
     }
 
     /**
@@ -125,6 +161,33 @@ public abstract class Reservation extends PersistentObject
      */
     public void removeChildReservation(Reservation reservation)
     {
-        childReservations.remove(reservation);
+        // Manage bidirectional association
+        if (childReservations.contains(reservation)) {
+            childReservations.remove(reservation);
+            reservation.setParentReservation(null);
+        }
+    }
+
+    /**
+     * @return child {@link Reservation}s, theirs child {@link Reservation}, etc. (recursive)
+     */
+    @Transient
+    public List<Reservation> getNestedReservations()
+    {
+        List<Reservation> reservations = new ArrayList<Reservation>();
+        getNestedReservations(reservations);
+        return reservations;
+    }
+
+    /**
+     * @param reservations to which will be added child {@link Reservation}s, theirs child {@link Reservation}, etc.
+     */
+    @Transient
+    private void getNestedReservations(List<Reservation> reservations)
+    {
+        for (Reservation childReservation : childReservations) {
+            reservations.add(childReservation);
+            childReservation.getNestedReservations(reservations);
+        }
     }
 }

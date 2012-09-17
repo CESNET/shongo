@@ -65,6 +65,35 @@ public class CompartmentSpecification extends Specification
     }
 
     /**
+     * @return all {@link #specifications} which aren't instance of {@link StatefulSpecification} or which are instance
+     *         of {@link StatefulSpecification} and theirs current state is {@link StatefulSpecification.State#READY}.
+     * @throws IllegalStateException when specification is instance of {@link StatefulSpecification} and when then it's
+     *                               state is {@link StatefulSpecification.State#NOT_READY}
+     */
+    @Transient
+    public List<Specification> getReadySpecifications()
+    {
+        List<Specification> specifications = new ArrayList<Specification>();
+        for (Specification specification : this.specifications) {
+            if (specification instanceof StatefulSpecification) {
+                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+                switch (statefulSpecification.getCurrentState()) {
+                    case SKIP:
+                        continue;
+                    case READY:
+                        break;
+                    default:
+                        throw new IllegalStateException(String.format("%s should not be in %s state.",
+                                specification.getClass().getSimpleName(),
+                                statefulSpecification.getCurrentState().toString()));
+                }
+            }
+            specifications.add(specification);
+        }
+        return specifications;
+    }
+
+    /**
      * @param id of the requested {@link Specification}
      * @return {@link Specification} with given {@code id}
      * @throws EntityNotFoundException when the {@link Specification} doesn't exist

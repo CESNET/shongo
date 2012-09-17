@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedItem;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.RangeSet;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -10,15 +10,15 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents an abstract cache. Cache holds only allocations inside the {@link #workingInterval} If the
- * {@link #workingInterval} isn't set the cache of allocations will be empty (it is not desirable to load all
- * allocations for the entire time span).
+ * Represents an abstract cache. Cache holds only reservations inside the {@link #workingInterval} If the
+ * {@link #workingInterval} isn't set the cache of reservations will be empty (it is not desirable to load all
+ * reservations for the entire time span).
  *
  * @param <T> type of cached object
- * @param <A> type of allocation for cached object
+ * @param <R> type of reservation for cached object
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class AbstractAllocationCache<T extends PersistentObject, A extends AllocatedItem>
+public abstract class AbstractReservationCache<T extends PersistentObject, R extends Reservation>
         extends AbstractCache<T>
 {
     /**
@@ -34,7 +34,7 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
     /**
      * Map of cached object states by theirs identifiers.
      */
-    private Map<Long, ObjectState<A>> objectStateById = new HashMap<Long, ObjectState<A>>();
+    private Map<Long, ObjectState<R>> objectStateById = new HashMap<Long, ObjectState<R>>();
 
     /**
      * @return {@link #workingInterval}
@@ -58,7 +58,7 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
     /**
      * @param workingInterval   sets the {@link #workingInterval}
      * @param referenceDateTime sets the {@link #referenceDateTime}
-     * @param entityManager     used for reloading allocations of resources for the new interval
+     * @param entityManager     used for reloading reservations of resources for the new interval
      */
     public void setWorkingInterval(Interval workingInterval, DateTime referenceDateTime, EntityManager entityManager)
     {
@@ -87,9 +87,9 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
     /**
      * @return new state for given {@code object}
      */
-    protected ObjectState<A> createObjectState()
+    protected ObjectState<R> createObjectState()
     {
-        return new ObjectState<A>();
+        return new ObjectState<R>();
     }
 
     /**
@@ -101,7 +101,7 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         super.addObject(object);
 
         Long objectId = object.getId();
-        ObjectState<A> objectState = createObjectState();
+        ObjectState<R> objectState = createObjectState();
         objectState.setObjectId(objectId);
         objectStateById.put(objectId, objectState);
         if (entityManager != null) {
@@ -135,10 +135,10 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
      * @return state for given {@code object}
      * @throws IllegalArgumentException when state cannot be found
      */
-    protected ObjectState<A> getObjectState(T object)
+    protected ObjectState<R> getObjectState(T object)
     {
         Long objectId = object.getId();
-        ObjectState<A> objectState = objectStateById.get(objectId);
+        ObjectState<R> objectState = objectStateById.get(objectId);
         if (objectState == null) {
             throw new IllegalArgumentException(
                     object.getClass().getSimpleName() + " '" + objectId + "' isn't in the cache!");
@@ -147,24 +147,24 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
     }
 
     /**
-     * @param object     for which the {@code allocation} is added
-     * @param allocation to be added to the cache
+     * @param object      for which the {@code reservation} is added
+     * @param reservation to be added to the cache
      */
-    public void addAllocation(T object, A allocation)
+    public void addReservation(T object, R reservation)
     {
-        allocation.checkPersisted();
-        ObjectState<A> objectState = getObjectState(object);
-        objectState.addAllocation(allocation);
+        reservation.checkPersisted();
+        ObjectState<R> objectState = getObjectState(object);
+        objectState.addReservation(reservation);
     }
 
     /**
-     * @param object     for which the {@code allocation} is removed
-     * @param allocation to be removed from the cache
+     * @param object      for which the {@code reservation} is removed
+     * @param reservation to be removed from the cache
      */
-    public void removeAllocation(T object, A allocation)
+    public void removeReservation(T object, R reservation)
     {
-        ObjectState<A> objectState = getObjectState(object);
-        objectState.removeAllocation(allocation);
+        ObjectState<R> objectState = getObjectState(object);
+        objectState.removeReservation(reservation);
     }
 
     /**
@@ -175,7 +175,7 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
      */
     private void updateObjectState(T object, EntityManager entityManager)
     {
-        ObjectState<A> objectState = getObjectState(object);
+        ObjectState<R> objectState = getObjectState(object);
         objectState.clear();
 
         if (workingInterval != null) {
@@ -196,9 +196,9 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
     /**
      * Represents a cached object state.
      *
-     * @param <A> type of allocation for cached object
+     * @param <R> type of reservation for cached object
      */
-    public static class ObjectState<A extends AllocatedItem>
+    public static class ObjectState<R extends Reservation>
     {
         /**
          * Identifier of the cached object.
@@ -206,14 +206,14 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
         private Long objectId;
 
         /**
-         * Allocations for the cached object.
+         * {@link Reservation}s for the cached object.
          */
-        private RangeSet<A, DateTime> allocations = new RangeSet<A, DateTime>();
+        private RangeSet<R, DateTime> reservations = new RangeSet<R, DateTime>();
 
         /**
-         * Map of allocations by the identifier.
+         * Map of reservations by the identifier.
          */
-        private Map<Long, A> allocationById = new HashMap<Long, A>();
+        private Map<Long, R> reservationsById = new HashMap<Long, R>();
 
         /**
          * @return {@link #objectId}
@@ -233,81 +233,97 @@ public abstract class AbstractAllocationCache<T extends PersistentObject, A exte
 
         /**
          * @param interval
-         * @return list of allocations for cached object in given {@code interval}
+         * @return list of reservations for cached object in given {@code interval}
          */
-        public Set<A> getAllocations(Interval interval)
+        public Set<R> getReservations(Interval interval)
         {
-            return allocations.getValues(interval.getStart(), interval.getEnd());
+            return reservations.getValues(interval.getStart(), interval.getEnd());
         }
 
         /**
          * @param interval
-         * @return list of allocations for cached object in given {@code interval}
+         * @return list of reservations for cached object in given {@code interval}
          */
-        public Set<A> getAllocations(Interval interval, Transaction<A> transaction)
+        public Set<R> getReservations(Interval interval, Transaction<R> transaction)
         {
-            Set<A> allocations = getAllocations(interval);
+            Set<R> reservations = getReservations(interval);
             if (transaction != null) {
-                transaction.applyAllocations(objectId, allocations);
+                transaction.applyReservations(objectId, reservations);
             }
-            return allocations;
+            return reservations;
         }
 
         /**
-         * @param allocation to be added to the {@link ObjectState}
+         * @param reservation to be added to the {@link ObjectState}
          */
-        public void addAllocation(A allocation)
+        public void addReservation(R reservation)
         {
-            // TODO: check if allocation doesn't collide
+            // TODO: check if reservation doesn't collide
 
-            Interval slot = allocation.getSlot();
-            allocationById.put(allocation.getId(), allocation);
-            allocations.add(allocation, slot.getStart(), slot.getEnd());
+            Interval slot = reservation.getSlot();
+            reservationsById.put(reservation.getId(), reservation);
+            reservations.add(reservation, slot.getStart(), slot.getEnd());
         }
 
         /**
-         * @param allocation to be removed from the {@link ObjectState}
+         * @param reservation to be removed from the {@link ObjectState}
          */
-        public void removeAllocation(A allocation)
+        public void removeReservation(R reservation)
         {
-            Long allocationId = allocation.getId();
-            allocation = allocationById.get(allocationId);
-            if (allocation == null) {
-                throw new IllegalStateException("Allocation doesn't exist in the cache.");
+            Long reservationId = reservation.getId();
+            reservation = reservationsById.get(reservationId);
+            if (reservation == null) {
+                throw new IllegalStateException("Reservation doesn't exist in the cache.");
             }
-            allocations.remove(allocation);
-            allocationById.remove(allocationId);
+            reservations.remove(reservation);
+            reservationsById.remove(reservationId);
         }
 
         /**
-         * Clear all allocations from the {@link ObjectState}.
+         * Clear all reservations from the {@link ObjectState}.
          */
         public void clear()
         {
-            allocations.clear();
-            allocationById.clear();
+            reservations.clear();
+            reservationsById.clear();
         }
     }
 
-    public static class Transaction<A extends AllocatedItem>
+    /**
+     * Represents a transaction inside {@link AbstractReservationCache}.
+     */
+    public static class Transaction<R extends Reservation>
     {
-        private Map<Long, Set<A>> allocationsByObjectId = new HashMap<Long, Set<A>>();
+        /**
+         * Additional reservations in the {@link Transaction}.
+         */
+        private Map<Long, Set<R>> reservationsByObjectId = new HashMap<Long, Set<R>>();
 
-        public void addAllocation(Long objectId, A allocation)
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be added to the {@link Transaction}
+         */
+        public void addReservation(Long objectId, R reservation)
         {
-            Set<A> allocations = allocationsByObjectId.get(objectId);
-            if (allocations == null) {
-                allocations = new HashSet<A>();
-                allocationsByObjectId.put(objectId, allocations);
+            Set<R> reservations = reservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                reservations = new HashSet<R>();
+                reservationsByObjectId.put(objectId, reservations);
             }
-            allocations.add(allocation);
+            reservations.add(reservation);
         }
 
-        public void applyAllocations(Long objectId, Collection<A> allocations)
+        /**
+         * Apply {@link Transaction} to given {@code reservations} for given object with given {@code objectId}.
+         *
+         * @param objectId     for which the {@link Transaction} should apply
+         * @param reservations to which the {@link Transaction} should apply
+         */
+        public void applyReservations(Long objectId, Collection<R> reservations)
         {
-            Set<A> allocationsToApply = allocationsByObjectId.get(objectId);
-            if (allocationsToApply != null) {
-                allocations.addAll(allocationsToApply);
+            Set<R> reservationsToApply = reservationsByObjectId.get(objectId);
+            if (reservationsToApply != null) {
+                reservations.addAll(reservationsToApply);
             }
         }
     }

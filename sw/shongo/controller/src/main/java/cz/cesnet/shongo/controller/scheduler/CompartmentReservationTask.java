@@ -15,7 +15,6 @@ import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.jgraph.JGraph;
 import org.jgrapht.UndirectedGraph;
 import org.jgrapht.ext.JGraphModelAdapter;
@@ -397,6 +396,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
 
         // Create allocated compartment
         CompartmentReservation compartmentReservation = new CompartmentReservation();
+        compartmentReservation.setSlot(getInterval());
         compartmentReservation.setCompartment(compartment);
         for (Reservation childReservation : getChildReservations()) {
             compartmentReservation.addChildReservation(childReservation);
@@ -465,6 +465,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
 
         // Create compartment reservation
         CompartmentReservation compartmentReservation = new CompartmentReservation();
+        compartmentReservation.setSlot(getInterval());
         compartmentReservation.setCompartment(compartment);
         compartmentReservation.addChildReservation(virtualRoomReservation);
         for (Reservation childReservation : getChildReservations()) {
@@ -509,8 +510,25 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     @Override
     protected CompartmentReservation createReservation() throws ReportException
     {
-        for (Specification childSpecification : compartmentSpecification.getSpecifications()) {
-            addChildSpecification(childSpecification);
+        Set<Specification> specifications = new HashSet<Specification>();
+        List<PersonSpecification> personSpecifications = new ArrayList<PersonSpecification>();
+        for (Specification specification : compartmentSpecification.getReadySpecifications()) {
+            if (specification instanceof PersonSpecification) {
+                personSpecifications.add((PersonSpecification) specification);
+            }
+            else {
+                specifications.add(specification);
+            }
+        }
+        for (PersonSpecification personSpecification : personSpecifications) {
+            EndpointSpecification endpointSpecification = personSpecification.getEndpointSpecification();
+            if (!personSpecifications.contains(endpointSpecification)) {
+                specifications.add(endpointSpecification);
+            }
+            // TODO: Add persons for allocated devices
+        }
+        for (Specification specification : specifications) {
+            addChildSpecification(specification);
         }
 
         if (compartment.getTotalEndpointCount() <= 1) {

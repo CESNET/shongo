@@ -147,13 +147,11 @@ public class Scheduler extends Component
             }
 
             reservation = reservationTask.perform();
-            // TODO: Add persons for allocated devices
             reservationManager.create(reservation);
 
             // Update cache
             for (Reservation childReservation : reservation.getChildReservations()) {
-                throw new TodoImplementException();
-                //cache.addAllocatedItem(childReservation);
+                cache.addReservation(childReservation);
             }
 
             // Update reservation request

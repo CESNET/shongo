@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -20,7 +21,7 @@ import java.util.List;
 import static junit.framework.Assert.*;
 
 /**
- * Test for processing {@link cz.cesnet.shongo.controller.oldrequest.ReservationRequest} by controller.
+ * Test for processing {@link ReservationRequestSet} by {@link Preprocessor} and {@link Scheduler}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -179,40 +180,40 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // ---------------------------
         // Modify compartment request
         // ---------------------------
-        /*{
+        {
             EntityManager entityManager = getEntityManager();
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-            ReservationManager allocatedCompartmentManager = new ReservationManager(entityManager);
+            ReservationManager reservationManager = new ReservationManager(entityManager);
 
             // Add new requested resource to exceed the maximum number of ports
             entityManager.getTransaction().begin();
-            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestSetId);
-            Compartment compartment = reservationRequest.getRequestedCompartments().get(0);
-            compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 100));
-            reservationRequestManager.update(reservationRequest);
+            ReservationRequestSet reservationRequestSet = reservationRequestManager.getReservationRequestSet(
+                    reservationRequestSetId);
+            CompartmentSpecification compartmentSpecification =
+                    (CompartmentSpecification) reservationRequestSet.getSpecifications().get(0);
+            compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 100));
+            reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
+
             Scheduler.createAndRun(interval, entityManager, cache);
 
             // Checks allocation failed
-            CompartmentRequest compartmentRequest = compartmentRequestManager.get(reservationRequestId);
-            assertEquals("Compartment request should be in ALLOCATION_FAILED state.",
-                    CompartmentRequest.State.ALLOCATION_FAILED, compartmentRequest.getState());
-            AllocatedCompartment allocatedCompartment =
-                    allocatedCompartmentManager.getByReservationRequest(reservationRequestId);
-            assertNull("Allocated compartment should not be created for the compartment request",
-                    allocatedCompartment);
+            ReservationRequest reservationRequest = reservationRequestManager.getReservationRequest(reservationRequestId);
+            assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
+                    ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
+            Reservation reservation = reservationManager.getByReservationRequest(reservationRequestId);
+            assertNull("Reservation should not be created for the reservation request", reservation);
 
-            // Modify requested resources to not exceed the maximum number of ports
+            // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();
             ExternalEndpointSpecification externalEndpointSpecification =
-                    (ExternalEndpointSpecification) compartment.getRequestedResources().get(2);
+                    (ExternalEndpointSpecification) compartmentSpecification.getSpecifications().get(2);
             externalEndpointSpecification.setCount(96);
-            reservationRequestManager.update(reservationRequest);
+            reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
 
             // Pre-process and schedule compartment request
@@ -220,9 +221,9 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             Scheduler.createAndRun(interval, entityManager, cache);
 
             // Checks allocated
-            entityManager.refresh(compartmentRequest);
-            assertEquals("Compartment request should be in ALLOCATED state.",
-                    CompartmentRequest.State.ALLOCATED, compartmentRequest.getState());
+            entityManager.refresh(reservationRequest);
+            assertEquals("Reservation request should be in ALLOCATED state.",
+                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
         }
 
         // ---------------------------
@@ -235,8 +236,9 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Delete reservation request
             entityManager.getTransaction().begin();
-            cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = reservationRequestManager.get(reservationRequestSetId);
-            reservationRequestManager.delete(reservationRequest);
+            ReservationRequestSet reservationRequestSet =
+                    reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
+            reservationRequestManager.delete(reservationRequestSet);
             entityManager.getTransaction().commit();
 
             // Pre-process and schedule
@@ -249,7 +251,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // ------------------------
         {
             cache.destroy();
-        }*/
+        }
     }
 
     /**

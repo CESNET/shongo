@@ -139,6 +139,14 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
+     * Clear {@link #state}, useful for removing {@link State#ALLOCATED} state.
+     */
+    public void clearState()
+    {
+        this.state = null;
+    }
+
+    /**
      * @return {@link #reservation}
      */
     @OneToOne(cascade = CascadeType.ALL)

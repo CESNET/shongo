@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.joda.time.DateTime;
@@ -37,11 +38,11 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         mcu1.setAllocatable(true);
         cache.addResource(mcu1);
 
-        AllocatedVirtualRoom room1 = new AllocatedVirtualRoom();
+        VirtualRoomReservation room1 = new VirtualRoomReservation();
         room1.setResource(mcu1);
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
         room1.setPortCount(25);
-        cache.addAllocatedItem(room1);
+        cache.addReservation(room1);
 
         DeviceResource mcu2 = new DeviceResource();
         mcu2.setName("mcu1");
@@ -51,17 +52,17 @@ public class VirtualRoomTest extends AbstractDatabaseTest
         mcu2.setAllocatable(true);
         cache.addResource(mcu2);
 
-        AllocatedVirtualRoom room2 = new AllocatedVirtualRoom();
+        VirtualRoomReservation room2 = new VirtualRoomReservation();
         room2.setResource(mcu2);
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
         room2.setPortCount(50);
-        cache.addAllocatedItem(room2);
+        cache.addReservation(room2);
 
-        AllocatedVirtualRoom room3 = new AllocatedVirtualRoom();
+        VirtualRoomReservation room3 = new VirtualRoomReservation();
         room3.setResource(mcu2);
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
         room3.setPortCount(30);
-        cache.addAllocatedItem(room3);
+        cache.addReservation(room3);
 
         // ---------------------------------
         // Test find available virtual rooms

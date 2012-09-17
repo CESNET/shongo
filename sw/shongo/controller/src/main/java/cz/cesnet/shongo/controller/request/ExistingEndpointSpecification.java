@@ -11,7 +11,6 @@ import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotEndpoint;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.Entity;
@@ -104,6 +103,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
                 EndpointReservation endpointReservation = new EndpointReservation();
                 endpointReservation.setSlot(getInterval());
                 endpointReservation.setResource(resource);
+                endpointReservation.addChildReservationsForResourceParents(getCacheTransaction());
                 return endpointReservation;
             }
         };

@@ -1,21 +1,22 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.compartment.Endpoint;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 
 /**
- * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link cz.cesnet.shongo.controller.compartment.Endpoint}.
+ * Represents a {@link Reservation} for a {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
 public class ResourceReservation extends Reservation
 {
+    /**
+     * {@link Resource} which is allocated.
+     */
     private Resource resource;
 
     /**
@@ -33,5 +34,25 @@ public class ResourceReservation extends Reservation
     public void setResource(Resource resource)
     {
         this.resource = resource;
+    }
+
+    /**
+     * Add child {@link Reservation}s for all {@link Resource} parents.
+     *
+     * @param cacheTransaction to be checked if the resource parent isn't already there
+     */
+    public void addChildReservationsForResourceParents(Cache.Transaction cacheTransaction)
+    {
+        Resource parentResource = resource.getParentResource();
+        if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
+            ResourceReservation resourceReservation = new ResourceReservation();
+            resourceReservation.setSlot(getSlot());
+            resourceReservation.setResource(parentResource);
+            addChildReservation(resourceReservation);
+
+            cacheTransaction.addReservation(resourceReservation);
+
+            resourceReservation.addChildReservationsForResourceParents(cacheTransaction);
+        }
     }
 }

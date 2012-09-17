@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -155,21 +157,29 @@ public class Preprocessor extends Component
             // If we find date/time slot in prepared map we modify the corresponding request
             // and remove it from map, otherwise we create a new reservation request.
             for (Interval slot : slots) {
+                ReservationRequest reservationRequest;
                 // Modify existing reservation request
                 if (map.containsKey(slot)) {
-                    ReservationRequest reservationRequest = map.get(slot);
-                    updateReservationRequest(reservationRequest, reservationRequestSet, specification);
+                    reservationRequest = map.get(slot);
+                    if ( updateReservationRequest(reservationRequest, reservationRequestSet, specification) ) {
+                        // Reservation request was modified, so we must clear it's state
+                        reservationRequest.clearState();
+                        // And if allocated reservation exists, we remove reference to it and it will be deleted
+                        // at the start of the Scheduler
+                        reservationRequest.setReservation(null);
+                    }
 
                     // Remove the slot from the map for the corresponding reservation request to not be deleted
                     map.remove(slot);
                 }
                 // Create new reservation request
                 else {
-                    ReservationRequest reservationRequest = new ReservationRequest();
+                    reservationRequest = new ReservationRequest();
                     reservationRequest.setRequestedSlot(slot);
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);
                 }
+                reservationRequest.updateStateBySpecifications();
             }
 
             // All reservation requests that remains in map must be deleted

@@ -86,13 +86,6 @@ public class ResourceVirtualRoom extends VirtualRoom
 
     @Override
     @Transient
-    public void addAlias(Alias alias)
-    {
-        virtualRoomReservation.addAlias(alias);
-    }
-
-    @Override
-    @Transient
     public List<Alias> getAliases()
     {
         List<Alias> aliases = new ArrayList<Alias>();
@@ -100,7 +93,7 @@ public class ResourceVirtualRoom extends VirtualRoom
         if (terminalCapability != null) {
             aliases.addAll(terminalCapability.getAliases());
         }
-        aliases.addAll(virtualRoomReservation.getAliases());
+        aliases.addAll(super.getAliases());
         return aliases;
     }
 
@@ -112,11 +105,11 @@ public class ResourceVirtualRoom extends VirtualRoom
     }
 
     @Override
+    @Transient
     public String getReportDescription()
     {
         return String.format("virtual room in %s",
                 AbstractResourceReport.formatResource(getDeviceResource()));
-
     }
 
     @Override

@@ -97,10 +97,11 @@ public class CompartmentReservationTaskTest
         deviceResource.addCapability(new VirtualRoomsCapability(100));
         cache.addResource(deviceResource);
 
-        ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
+        ReservationTask.Context context;
         CompartmentReservationTask compartmentReservationTask;
         CompartmentReservation compartmentReservation;
 
+        context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         compartmentReservationTask = new CompartmentReservationTask(context);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(false, new Technology[]{Technology.H323}));
@@ -111,6 +112,7 @@ public class CompartmentReservationTaskTest
         assertEquals(3, compartmentReservation.getChildReservations().size());
         assertEquals(2, compartmentReservation.getCompartment().getConnections().size());
 
+        context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         compartmentReservationTask = new CompartmentReservationTask(context);
         compartmentReservationTask.addChildReservation(
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
@@ -169,10 +171,11 @@ public class CompartmentReservationTaskTest
         resource.addCapability(new AliasProviderCapability(Technology.SIP, AliasType.URI, "001@cesnet.cz"));
         cache.addResource(resource);
 
-        ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
+        ReservationTask.Context context;
         CompartmentReservationTask compartmentReservationTask;
         CompartmentReservation compartmentReservation;
 
+        context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.TERMINAL);
         compartmentReservationTask.addChildSpecification(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
@@ -183,6 +186,7 @@ public class CompartmentReservationTaskTest
         assertEquals(4, compartmentReservation.getChildReservations().size());
         assertEquals(2, compartmentReservation.getCompartment().getConnections().size());
 
+        context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.VIRTUAL_ROOM);
         compartmentReservationTask.addChildSpecification(
                 new SimpleEndpointSpecification(new Technology[]{Technology.H323}));
@@ -194,6 +198,7 @@ public class CompartmentReservationTaskTest
         assertEquals(2, compartmentReservation.getCompartment().getConnections().size());
 
         try {
+            context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
             compartmentReservationTask = new CompartmentReservationTask(context, CallInitiation.VIRTUAL_ROOM);
             compartmentReservationTask.addChildSpecification(
                     new SimpleEndpointSpecification(new Technology[]{Technology.SIP}));
@@ -230,23 +235,25 @@ public class CompartmentReservationTaskTest
         terminal2.addCapability(new StandaloneTerminalCapability());
         cache.addResource(terminal2);
 
-        ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
+        ReservationTask.Context context;
         CompartmentReservationTask compartmentReservationTask;
         CompartmentReservation compartmentReservation;
 
+        context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         compartmentReservationTask = new CompartmentReservationTask(context);
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal1));
         compartmentReservation = compartmentReservationTask.perform(CompartmentReservation.class);
         assertNotNull(compartmentReservation);
-        assertEquals(2, compartmentReservation.getChildReservations().size());
+        assertEquals(2, compartmentReservation.getNestedReservations().size());
         assertEquals(0, compartmentReservation.getCompartment().getConnections().size());
 
+        context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         compartmentReservationTask = new CompartmentReservationTask(context);
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal1));
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         compartmentReservation = compartmentReservationTask.perform(CompartmentReservation.class);
         assertNotNull(compartmentReservation);
-        assertEquals(3, compartmentReservation.getChildReservations().size());
+        assertEquals(3, compartmentReservation.getNestedReservations().size());
         assertEquals(1, compartmentReservation.getCompartment().getConnections().size());
     }
 

@@ -1,0 +1,65 @@
+package cz.cesnet.shongo.controller.util;
+
+import org.hibernate.Session;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.service.jdbc.connections.spi.ConnectionProvider;
+import org.hsqldb.util.DatabaseManagerSwing;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.persistence.EntityManager;
+import java.sql.Connection;
+
+/**
+ * Database helper.
+ *
+ * @author Martin Srom <martin.srom@cesnet.cz>
+ */
+public class DatabaseHelper
+{
+    private static Logger logger = LoggerFactory.getLogger(DatabaseHelper.class);
+
+    private static DatabaseManagerSwing databaseManager;
+
+    /**
+     * @param entityManager
+     * @return {@link DatabaseManagerSwing}
+     */
+    public static void runDatabaseManager(EntityManager entityManager)
+    {
+        try {
+            databaseManager = new DatabaseManagerSwing();
+            databaseManager.main();
+        }
+        catch (Exception exception) {
+            logger.error("Cannot start database manager!", exception);
+            return;
+        }
+
+        try {
+            Session session = (Session) entityManager.getDelegate();
+            SessionFactoryImplementor sessionFactory = (SessionFactoryImplementor) session.getSessionFactory();
+            ConnectionProvider connectionProvider = sessionFactory.getConnectionProvider();
+            Connection connection = connectionProvider.getConnection();
+            databaseManager.connect(connection);
+        }
+        catch (Exception exception) {
+            logger.error("Cannot connect to current database!", exception);
+        }
+    }
+
+    /**
+     * Wait for {@link #databaseManager} to close.
+     */
+    public static void waitForDatabaseManagerToClose()
+    {
+        while (true || databaseManager.isValid()) {
+            try {
+                Thread.sleep(500);
+            }
+            catch (InterruptedException exception) {
+                logger.error("Failed to wait for database manager to close.", exception);
+            }
+        }
+    }
+}

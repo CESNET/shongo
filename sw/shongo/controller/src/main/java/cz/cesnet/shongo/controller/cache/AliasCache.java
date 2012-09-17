@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.cache;
 
-import cz.cesnet.shongo.controller.allocationaold.AllocatedAlias;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -10,11 +10,11 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents a cache of allocated aliases.
+ * Represents a cache of {@link AliasReservation}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasCache extends AbstractAllocationCache<AliasProviderCapability, AllocatedAlias>
+public class AliasCache extends AbstractReservationCache<AliasProviderCapability, AliasReservation>
 {
     private static Logger logger = LoggerFactory.getLogger(AliasCache.class);
 
@@ -92,10 +92,10 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
     {
         // Get all allocated aliases for the alias provider and add them to the device state
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<AllocatedAlias> allocations = resourceManager.listAllocatedAliasesInInterval(object.getId(),
+        List<AliasReservation> aliasReservations = resourceManager.listAliasReservationsInInterval(object.getId(),
                 getWorkingInterval());
-        for (AllocatedAlias allocatedAlias : allocations) {
-            addAllocation(object, allocatedAlias);
+        for (AliasReservation aliasReservation : aliasReservations) {
+            addReservation(object, aliasReservation);
         }
     }
 
@@ -116,11 +116,11 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
             return null;
         }
 
-        ObjectState<AllocatedAlias> aliasProviderState = getObjectState(aliasProviderCapability);
-        Set<AllocatedAlias> allocatedAliases = aliasProviderState.getAllocations(interval, transaction);
+        ObjectState<AliasReservation> aliasProviderState = getObjectState(aliasProviderCapability);
+        Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
         AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
-        for (AllocatedAlias allocatedAlias : allocatedAliases) {
-            aliasGenerator.addAlias(allocatedAlias.getAlias());
+        for (AliasReservation aliasReservation : allocatedAliases) {
+            aliasGenerator.addAlias(aliasReservation.getAlias());
         }
         Alias alias = aliasGenerator.generate();
         if (alias == null) {
@@ -136,7 +136,7 @@ public class AliasCache extends AbstractAllocationCache<AliasProviderCapability,
      * Transaction for {@link AliasCache}.
      */
     public static class Transaction
-            extends AbstractAllocationCache.Transaction<AllocatedAlias>
+            extends AbstractReservationCache.Transaction<AliasReservation>
     {
     }
 }

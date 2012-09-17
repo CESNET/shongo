@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PersonSpecification extends Specification implements StatefulSpecification, ReservationTaskProvider
+public class PersonSpecification extends Specification implements StatefulSpecification
 {
     /**
      * Requested person.
@@ -147,21 +147,23 @@ public class PersonSpecification extends Specification implements StatefulSpecif
         PersonSpecification personSpecification = (PersonSpecification) specification;
 
         boolean modified = false;
-        modified |= !ObjectUtils.equals(getPerson(), personSpecification.getPerson())
-                || !ObjectUtils.equals(getEndpointSpecification(), personSpecification.getEndpointSpecification())
-                || !ObjectUtils.equals(getInvitationState(), personSpecification.getInvitationState());
+        modified |= !ObjectUtils.equals(getPerson(), personSpecification.getPerson());
 
         setPerson(personSpecification.getPerson());
-        setEndpointSpecification(personSpecification.getEndpointSpecification());
-        setInvitationState(personSpecification.getInvitationState());
+
+        if (getEndpointSpecification() != personSpecification.getEndpointSpecification()) {
+            // We want make change only in the following scenarios
+            if (getEndpointSpecification() == null || invitationState != InvitationState.INVITATION_ACCEPTED) {
+                setEndpointSpecification(personSpecification.getEndpointSpecification());
+                modified = true;
+            }
+        }
+
+        if (modified) {
+            setInvitationState(InvitationState.INVITATION_NOT_SENT);
+        }
 
         return modified;
-    }
-
-    @Override
-    public ReservationTask createReservationTask(ReservationTask.Context context)
-    {
-        throw new TodoImplementException();
     }
 
     @Override

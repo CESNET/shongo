@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -115,7 +116,11 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
 
                 // If some was found
                 if (deviceResource != null) {
-                    throw new TodoImplementException();
+                    EndpointReservation endpointReservation = new EndpointReservation();
+                    endpointReservation.setSlot(getInterval());
+                    endpointReservation.setResource(deviceResource);
+                    endpointReservation.addChildReservationsForResourceParents(getCacheTransaction());
+                    return endpointReservation;
                 }
                 else {
                     throw new ResourceNotFoundReport(technologies).exception();

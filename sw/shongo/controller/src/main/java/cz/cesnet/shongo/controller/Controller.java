@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.controller.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -452,27 +453,7 @@ public class Controller
             @Override
             public void perform(CommandLine commandLine)
             {
-                DatabaseManagerSwing databaseManager = null;
-                try {
-                    databaseManager = new DatabaseManagerSwing();
-                    databaseManager.main();
-                }
-                catch (Exception exception) {
-                    logger.error("Cannot start database manager!", exception);
-                    return;
-                }
-
-                try {
-                    EntityManager entityManager = entityManagerFactory.createEntityManager();
-                    Session session = (Session) entityManager.getDelegate();
-                    SessionFactoryImplementor sessionFactory = (SessionFactoryImplementor) session.getSessionFactory();
-                    ConnectionProvider connectionProvider = sessionFactory.getConnectionProvider();
-                    Connection connection = connectionProvider.getConnection();
-                    databaseManager.connect(connection);
-                }
-                catch (Exception exception) {
-                    logger.error("Cannot connect to current database!", exception);
-                }
+                DatabaseHelper.runDatabaseManager(entityManagerFactory.createEntityManager());
             }
         });
         shell.run();

@@ -82,13 +82,6 @@ public class ResourceEndpoint extends Endpoint
 
     @Override
     @Transient
-    public void addAlias(Alias alias)
-    {
-        endpointReservation.addAlias(alias);
-    }
-
-    @Override
-    @Transient
     public List<Alias> getAliases()
     {
         List<Alias> aliases = new ArrayList<Alias>();
@@ -96,7 +89,7 @@ public class ResourceEndpoint extends Endpoint
         if (terminalCapability != null) {
             aliases.addAll(terminalCapability.getAliases());
         }
-        aliases.addAll(endpointReservation.getAliases());
+        aliases.addAll(super.getAliases());
         return aliases;
     }
 
