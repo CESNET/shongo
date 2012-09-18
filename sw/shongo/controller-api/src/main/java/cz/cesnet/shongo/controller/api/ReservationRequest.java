@@ -1,13 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,57 +10,27 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequest extends IdentifiedChangeableObject
+public class ReservationRequest extends AbstractReservationRequest
 {
-    /**
-     * Identifier of the resource.
-     */
-    private String identifier;
-
-    /**
-     * Date/time when the reservation request was created.
-     */
-    private DateTime created;
-
-    /**
-     * @see ReservationRequestType
-     */
-    public static final String TYPE = "type";
-
-    /**
-     * Name of the reservation request.
-     */
-    public static final String NAME = "name";
-
-    /**
-     * @see ReservationRequestPurpose
-     */
-    public static final String PURPOSE = "purpose";
-
-    /**
-     * Description of the reservation request.
-     */
-    public static final String DESCRIPTION = "description";
-
     /**
      * Collection of {@link DateTimeSlot} for which the reservation is requested.
      */
-    public static final String SLOTS = "slots";
+    public static final String SLOT = "slot";
 
     /**
-     * Collection of {@link Compartment} which are requested for the reservation.
+     * Collection of {@link CompartmentSpecification} which are requested for the reservation.
      */
-    public static final String COMPARTMENTS = "compartments";
+    public static final String SPECIFICATION = "specification";
 
     /**
-     * Specifies whether the scheduler should try allocate resources from other domains.
+     * State of processed slot.
      */
-    public static final String INTER_DOMAIN = "interDomain";
+    private State state;
 
     /**
-     * List of {@link Request} which are already processed for the reservation.
+     * Description of state.
      */
-    private List<Request> requests = new ArrayList<Request>();
+    private String stateReport;
 
     /**
      * Constructor.
@@ -75,304 +40,79 @@ public class ReservationRequest extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
-
-    /**
-     * @return {@link #created}
-     */
-    public DateTime getCreated()
-    {
-        return created;
-    }
-
-    /**
-     * @param created sets the {@link #created}
-     */
-    public void setCreated(DateTime created)
-    {
-        this.created = created;
-    }
-
-    /**
-     * @return {@link #TYPE}
+     * @return {@link #SLOT}
      */
     @Required
-    public ReservationRequestType getType()
+    public Interval getSlot()
     {
-        return getPropertyStorage().getValue(TYPE);
+        return getPropertyStorage().getValue(SLOT);
     }
 
     /**
-     * @param type sets the {@link #TYPE}
+     * @param slot sets the {@link #SLOT}
      */
-    public void setType(ReservationRequestType type)
+    public void setSlot(Interval slot)
     {
-        getPropertyStorage().setValue(TYPE, type);
+        getPropertyStorage().setValue(SLOT, slot);
     }
 
     /**
-     * @return {@link #NAME}
-     */
-    public String getName()
-    {
-        return getPropertyStorage().getValue(NAME);
-    }
-
-    /**
-     * @param name sets the {@link #NAME}
-     */
-    public void setName(String name)
-    {
-        getPropertyStorage().setValue(NAME, name);
-    }
-
-    /**
-     * @return {@link #PURPOSE}
+     * @return {@link #SPECIFICATION}
      */
     @Required
-    public ReservationRequestPurpose getPurpose()
+    public Specification getSpecification()
     {
-        return getPropertyStorage().getValue(PURPOSE);
+        return getPropertyStorage().getValue(SPECIFICATION);
     }
 
     /**
-     * @param purpose sets the {@link #PURPOSE}
+     * @param specification sets the {@link #SPECIFICATION}
      */
-    public void setPurpose(ReservationRequestPurpose purpose)
+    public void setSpecification(Specification specification)
     {
-        getPropertyStorage().setValue(PURPOSE, purpose);
+        getPropertyStorage().setValue(SPECIFICATION, specification);
     }
 
     /**
-     * @return {@link #DESCRIPTION}
+     * @return {@link #state}
      */
-    public String getDescription()
+    public State getState()
     {
-        return getPropertyStorage().getValue(DESCRIPTION);
+        return state;
     }
 
     /**
-     * @param description sets the {@link #DESCRIPTION}
+     * @param state sets the {@link #state}
      */
-    public void setDescription(String description)
+    public void setState(State state)
     {
-        getPropertyStorage().setValue(DESCRIPTION, description);
+        this.state = state;
     }
 
     /**
-     * @return {@link #SLOTS}
+     * @return {@link #stateReport}
      */
-    @Required
-    public List<DateTimeSlot> getSlots()
+    public String getStateReport()
     {
-        return getPropertyStorage().getCollection(SLOTS, List.class);
+        return stateReport;
     }
 
     /**
-     * @param slots sets the {@link #SLOTS}
+     * @param stateReport sets the {@link #stateReport}
      */
-    public void setSlots(List<DateTimeSlot> slots)
+    public void setStateReport(String stateReport)
     {
-        getPropertyStorage().setCollection(SLOTS, slots);
+        this.stateReport = stateReport;
     }
 
     /**
-     * Add new slot to the {@link #SLOTS}.
-     *
-     * @param dateTimeSlot
+     * State of the {@link ReservationRequest}.
      */
-    public void addSlot(DateTimeSlot dateTimeSlot)
+    public static enum State
     {
-        getPropertyStorage().addCollectionItem(SLOTS, dateTimeSlot, List.class);
-    }
-
-    /**
-     * Add new slot to the {@link #SLOTS}.
-     *
-     * @param start
-     * @param duration
-     */
-    public void addSlot(Object start, Period duration)
-    {
-        DateTimeSlot dateTimeSlot = new DateTimeSlot(start, duration);
-        addSlot(dateTimeSlot);
-    }
-
-    /**
-     * @param dateTimeSlot slot to be removed from the {@link #SLOTS}
-     */
-    public void removeSlot(DateTimeSlot dateTimeSlot)
-    {
-        getPropertyStorage().removeCollectionItem(SLOTS, dateTimeSlot);
-    }
-
-    /**
-     * @return {@link #COMPARTMENTS}
-     */
-    @Required
-    public List<Compartment> getCompartments()
-    {
-        return getPropertyStorage().getCollection(COMPARTMENTS, List.class);
-    }
-
-    /**
-     * @param compartments sets the {@link #COMPARTMENTS}
-     */
-    public void setCompartments(List<Compartment> compartments)
-    {
-        getPropertyStorage().setCollection(COMPARTMENTS, compartments);
-    }
-
-    /**
-     * @param compartment compartment to be added to the {@link #COMPARTMENTS}
-     */
-    public void addCompartment(Compartment compartment)
-    {
-        getPropertyStorage().addCollectionItem(COMPARTMENTS, compartment, List.class);
-    }
-
-    /**
-     * @return newly added {@link Compartment} to the {@link #COMPARTMENTS}
-     */
-    public Compartment addCompartment()
-    {
-        Compartment compartment = new Compartment();
-        addCompartment(compartment);
-        return compartment;
-    }
-
-    /**
-     * @param compartment compartment to be removed from the {@link #COMPARTMENTS}
-     */
-    public void removeCompartment(Compartment compartment)
-    {
-        getPropertyStorage().removeCollectionItem(COMPARTMENTS, compartment);
-    }
-
-    /**
-     * @return {@link #INTER_DOMAIN}
-     */
-    public Boolean getInterDomain()
-    {
-        return getPropertyStorage().getValue(INTER_DOMAIN);
-    }
-
-    /**
-     * @param interDomain sets the {@link #INTER_DOMAIN}
-     */
-    public void setInterDomain(Boolean interDomain)
-    {
-        getPropertyStorage().setValue(INTER_DOMAIN, interDomain);
-    }
-
-    /**
-     * @return {@link #requests}
-     */
-    public List<Request> getRequests()
-    {
-        return requests;
-    }
-
-    /**
-     * @param request slot to be added to the {@link #requests}
-     */
-    public void addRequest(Request request)
-    {
-        requests.add(request);
-    }
-
-    /**
-     * Represents a single already processed slot that is requested by reservation request.
-     *
-     * @author Martin Srom <martin.srom@cesnet.cz>
-     */
-    public static class Request
-    {
-        /**
-         * State of processed slot.
-         */
-        public static enum State
-        {
-            NOT_COMPLETE,
-            NOT_ALLOCATED,
-            ALLOCATED,
-            ALLOCATION_FAILED
-        }
-
-        /**
-         * Slot date/time and duration.
-         */
-        private Interval slot;
-
-        /**
-         * State of processed slot.
-         */
-        private State state;
-
-        /**
-         * Description of state.
-         */
-        private String stateReport;
-
-        /**
-         * @return {@link #slot}
-         */
-        public Interval getSlot()
-        {
-            return slot;
-        }
-
-        /**
-         * @param slot sets the {@link #slot}
-         */
-        public void setSlot(Interval slot)
-        {
-            this.slot = slot;
-        }
-
-        /**
-         * @return {@link #state}
-         */
-        public State getState()
-        {
-            return state;
-        }
-
-        /**
-         * @param state sets the {@link #state}
-         */
-        public void setState(State state)
-        {
-            this.state = state;
-        }
-
-        /**
-         * @return {@link #stateReport}
-         */
-        public String getStateReport()
-        {
-            return stateReport;
-        }
-
-        /**
-         * @param stateReport sets the {@link #stateReport}
-         */
-        public void setStateReport(String stateReport)
-        {
-            this.stateReport = stateReport;
-        }
+        NOT_COMPLETE,
+        NOT_ALLOCATED,
+        ALLOCATED,
+        ALLOCATION_FAILED
     }
 }

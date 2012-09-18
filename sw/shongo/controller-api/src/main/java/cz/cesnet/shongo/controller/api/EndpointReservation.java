@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents an allocation of a {@link DeviceResource} for a {@link Compartment} in the {@link ReservationRequest}.
+ * Represents a {@link ResourceReservation} for an endpoint {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocatedDevice extends AllocatedResource
+public class EndpointReservation extends ResourceReservation
 {
     /**
-     * Aliases that are additionally assigned to the device.
+     * {@link Alias}es that are additionally assigned to the device.
      */
     private List<Alias> aliases = new ArrayList<Alias>();
 

@@ -4,11 +4,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.Required;
 
 /**
- * Special type of requested resource for external endpoints.
+ * {@link Specification} for external endpoint(s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExternalEndpointSpecification extends ResourceSpecification
+public class ExternalEndpointSpecification extends Specification
 {
     /**
      * Technology of the resource.

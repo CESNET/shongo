@@ -63,20 +63,17 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     @Test
     public void testCreateReservationRequest() throws Exception
     {
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
-        reservationRequest.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setType(ReservationRequestType.NORMAL);
+        reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
+        reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
                 Period.parse("PT2H"));
-        Compartment compartment = reservationRequest.addCompartment();
-        compartment.addPerson("Martin Srom", "srom@cesnet.cz");
-        compartment.addResource(Technology.H323, 2, new Person[]{
-                new Person("Ondrej Bouda", "bouda@cesnet.cz"),
-                new Person("Petr Holub", "hopet@cesnet.cz")
-        });
+        CompartmentSpecification compartment = reservationRequestSet.addSpecification(new CompartmentSpecification());
+        compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
+        compartment.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
 
-        String identifier = reservationService.createReservationRequest(new SecurityToken(), reservationRequest);
+        String identifier = reservationService.createReservationRequest(new SecurityToken(), reservationRequestSet);
         assertEquals("shongo:cz.cesnet:1", identifier);
     }
 
@@ -159,58 +156,65 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         // Create reservation request
         // ---------------------------
         {
-            ReservationRequest reservationRequest = new ReservationRequest();
-            reservationRequest.setType(ReservationRequestType.NORMAL);
-            reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-            reservationRequest.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
-            reservationRequest.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
+            ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            reservationRequestSet.setType(ReservationRequestType.NORMAL);
+            reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
+            reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
+            reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
                     Period.parse("PT2H"));
-            Compartment compartment = reservationRequest.addCompartment();
-            compartment.addPerson("Martin Srom", "srom@cesnet.cz");
+            CompartmentSpecification compartmentSpecification =
+                    reservationRequestSet.addSpecification(new CompartmentSpecification());
+            compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
 
-            identifier = reservationService.createReservationRequest(securityToken, reservationRequest);
+            identifier = reservationService.createReservationRequest(securityToken, reservationRequestSet);
             assertNotNull(identifier);
 
-            reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
-            assertNotNull(reservationRequest);
-            assertEquals(ReservationRequestType.NORMAL, reservationRequest.getType());
-            assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequest.getPurpose());
-            assertEquals(2, reservationRequest.getSlots().size());
-            assertEquals(1, reservationRequest.getCompartments().size());
+            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(securityToken,
+                    identifier);
+            assertNotNull(reservationRequestSet);
+            assertEquals(ReservationRequestType.NORMAL, reservationRequestSet.getType());
+            assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequestSet.getPurpose());
+            assertEquals(2, reservationRequestSet.getSlots().size());
+            assertEquals(1, reservationRequestSet.getSpecifications().size());
         }
 
         // ---------------------------
         // Modify reservation request
         // ---------------------------
         {
-            ReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
-            reservationRequest.setType(ReservationRequestType.PERMANENT);
-            reservationRequest.setPurpose(null);
-            reservationRequest.removeSlot(reservationRequest.getSlots().iterator().next());
-            Compartment compartment = reservationRequest.addCompartment();
-            reservationRequest.removeCompartment(compartment);
+            ReservationRequestSet reservationRequestSet =
+                    (ReservationRequestSet) reservationService.getReservationRequest(securityToken, identifier);
+            reservationRequestSet.setType(ReservationRequestType.PERMANENT);
+            reservationRequestSet.setPurpose(null);
+            reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
+            CompartmentSpecification compartmentSpecification =
+                    reservationRequestSet.addSpecification(new CompartmentSpecification());
+            reservationRequestSet.removeSpecification(compartmentSpecification);
 
-            reservationService.modifyReservationRequest(securityToken, reservationRequest);
+            reservationService.modifyReservationRequest(securityToken, reservationRequestSet);
 
-            reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
-            assertNotNull(reservationRequest);
-            assertEquals(ReservationRequestType.PERMANENT, reservationRequest.getType());
-            assertEquals(null, reservationRequest.getPurpose());
-            assertEquals(1, reservationRequest.getSlots().size());
-            assertEquals(1, reservationRequest.getCompartments().size());
+            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(securityToken,
+                    identifier);
+            assertNotNull(reservationRequestSet);
+            assertEquals(ReservationRequestType.PERMANENT, reservationRequestSet.getType());
+            assertEquals(null, reservationRequestSet.getPurpose());
+            assertEquals(1, reservationRequestSet.getSlots().size());
+            assertEquals(1, reservationRequestSet.getSpecifications().size());
         }
 
         // ---------------------------
         // Delete reservation request
         // ---------------------------
         {
-            ReservationRequest reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
-            assertNotNull(reservationRequest);
+            ReservationRequestSet reservationRequestSet =
+                    (ReservationRequestSet) reservationService.getReservationRequest(securityToken, identifier);
+            assertNotNull(reservationRequestSet);
 
             reservationService.deleteReservationRequest(securityToken, identifier);
 
             try {
-                reservationRequest = reservationService.getReservationRequest(securityToken, identifier);
+                reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(securityToken,
+                        identifier);
                 fail("Exception that record doesn't exists should be thrown.");
             }
             catch (EntityNotFoundException exception) {

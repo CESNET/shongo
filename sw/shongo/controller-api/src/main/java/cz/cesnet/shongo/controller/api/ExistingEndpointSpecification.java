@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.Required;
 
 /**
- * Special type of requested resource for specific known resource.
+ * {@link Specification} for existing endpoint {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExistingResourceSpecification extends ResourceSpecification
+public class ExistingEndpointSpecification extends Specification
 {
     /**
      * The resource identifier.

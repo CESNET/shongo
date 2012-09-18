@@ -54,7 +54,7 @@ public class ReservationServiceImpl extends Component
 
 
     @Override
-    public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
+    public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
     {
         throw new TodoImplementException();
@@ -81,7 +81,7 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public void modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
+    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
     {
         throw new TodoImplementException();
@@ -162,8 +162,8 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public ReservationRequest getReservationRequest(SecurityToken token,
-            String reservationRequestIdentifier) throws FaultException
+    public ReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
+            throws FaultException
     {
         throw new TodoImplementException();
         /*Long id = domain.parseIdentifier(reservationRequestIdentifier);
@@ -180,8 +180,8 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Collection<AllocatedCompartment> listAllocatedCompartments(SecurityToken token,
-            String reservationRequestIdentifier) throws FaultException
+    public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestIdentifier)
+            throws FaultException
     {
         throw new TodoImplementException();
         /*Long id = domain.parseIdentifier(reservationRequestIdentifier);

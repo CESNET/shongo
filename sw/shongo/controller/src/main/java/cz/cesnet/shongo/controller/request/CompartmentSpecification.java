@@ -198,7 +198,7 @@ public class CompartmentSpecification extends Specification
      * @param domain
      * @return compartment converted to API
      */
-    public cz.cesnet.shongo.controller.api.Compartment toApi(Domain domain) throws FaultException
+    public cz.cesnet.shongo.controller.api.CompartmentSpecification toApi(Domain domain) throws FaultException
     {
         throw new TodoImplementException();
         /*cz.cesnet.shongo.controller.api.Compartment compartment = new cz.cesnet.shongo.controller.api.Compartment();
@@ -207,7 +207,7 @@ public class CompartmentSpecification extends Specification
             compartment.addPerson(person.toApi());
         }
         for (ResourceSpecification resourceSpecification : getRequestedResources()) {
-            compartment.addResource(resourceSpecification.toApi(domain));
+            compartment.addSpecification(resourceSpecification.toApi(domain));
         }
         return compartment;*/
     }
@@ -221,7 +221,7 @@ public class CompartmentSpecification extends Specification
      * @throws cz.cesnet.shongo.fault.FaultException
      *
      */
-    public <API extends cz.cesnet.shongo.controller.api.Compartment>
+    public <API extends cz.cesnet.shongo.controller.api.CompartmentSpecification>
     void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
     {
         throw new TodoImplementException();
@@ -245,8 +245,8 @@ public class CompartmentSpecification extends Specification
         }
 
         // Create/modify requested resources
-        for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : api.getResources()) {
-            if (api.isCollectionItemMarkedAsNew(API.RESOURCES, apiResource)) {
+        for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : api.getSpecifications()) {
+            if (api.isCollectionItemMarkedAsNew(API.SPECIFICATIONS, apiResource)) {
                 addRequestedResource(ResourceSpecification.fromAPI(apiResource, entityManager, domain));
             }
             else {
@@ -256,7 +256,7 @@ public class CompartmentSpecification extends Specification
         }
         // Delete requested resources
         Set<cz.cesnet.shongo.controller.api.ResourceSpecification> apiDeletedResources =
-                api.getCollectionItemsMarkedAsDeleted(API.RESOURCES);
+                api.getCollectionItemsMarkedAsDeleted(API.SPECIFICATIONS);
         for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : apiDeletedResources) {
             removeRequestedResource(getRequestedResourceById(apiResource.getId().longValue()));
         }*/

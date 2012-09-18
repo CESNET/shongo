@@ -305,7 +305,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         }
 
         // Create/modify requested compartments
-        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : api.getCompartments()) {
+        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : api.getSpecifications()) {
             // Create/modify requested compartment
             Compartment compartment = null;
             if (api.isCollectionItemMarkedAsNew(API.COMPARTMENTS, apiCompartment)) {

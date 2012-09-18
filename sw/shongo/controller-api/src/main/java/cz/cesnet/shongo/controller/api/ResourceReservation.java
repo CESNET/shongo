@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
 /**
- * Represents an allocation of a {@link Resource} for a {@link Compartment} in the {@link ReservationRequest}.
+ * Represents a {@link Reservation} for a {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocatedResource extends AllocatedItem
+public class ResourceReservation extends Reservation
 {
     /**
      * Unique identifier of the resource.

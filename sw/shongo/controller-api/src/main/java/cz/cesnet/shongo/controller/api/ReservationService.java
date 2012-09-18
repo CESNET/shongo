@@ -20,11 +20,10 @@ public interface ReservationService extends Service
      *
      * @param token              token of the user requesting the operation
      * @param reservationRequest reservation request; should contains all attributes marked as {@link Required}
-     *                           in {@link ReservationRequest}
      * @return the created reservation request identifier
      */
     @API
-    public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
+    public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException;
 
     /**
@@ -34,7 +33,7 @@ public interface ReservationService extends Service
      * @param reservationRequest reservation request with attributes to be modified
      */
     @API
-    public void modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
+    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException;
 
     /**
@@ -63,7 +62,7 @@ public interface ReservationService extends Service
      * @param reservationRequestIdentifier identifier of the reservation request to get
      */
     @API
-    public ReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
+    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
             throws FaultException;
 
     /**
@@ -73,6 +72,6 @@ public interface ReservationService extends Service
      * @throws FaultException
      */
     @API
-    public Collection<AllocatedCompartment> listAllocatedCompartments(SecurityToken token,
+    public Collection<Reservation> listReservations(SecurityToken token,
             String reservationRequestIdentifier) throws FaultException;
 }

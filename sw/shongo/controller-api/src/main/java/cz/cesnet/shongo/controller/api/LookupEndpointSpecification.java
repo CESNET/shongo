@@ -4,11 +4,11 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.Required;
 
 /**
- * Special type of requested resource which searches for available resource.
+ * {@link Specification} which searches for available endpoint {@link Resource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class LookupResourceSpecification extends ResourceSpecification
+public class LookupEndpointSpecification extends Specification
 {
     /**
      * Technology of the resource.

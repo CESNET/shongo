@@ -3,14 +3,14 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.Alias;
 
 /**
- * Represents an allocated alias.
+ * Represents a {@link Reservation} for an {@link Alias}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocatedAlias extends AllocatedItem
+public class AliasReservation extends Reservation
 {
     /**
-     * Alias which is allocated.
+     * {@link Alias} which is allocated.
      */
     private Alias alias;
 

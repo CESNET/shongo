@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
 /**
- * Special type of {@link AllocatedResource} which represents an allocated virtual room.
+ * Represents a {@link EndpointReservation} for a virtual room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AllocatedVirtualRoom extends AllocatedDevice
+public class VirtualRoomReservation extends EndpointReservation
 {
     /**
      * Number of ports available for the virtual room.

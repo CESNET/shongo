@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.api.AllocatedCompartment;
 import cz.cesnet.shongo.controller.compartment.Compartment;
 import cz.cesnet.shongo.controller.compartment.CompartmentExecutor;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
@@ -29,7 +28,7 @@ public class Executor extends Component implements Component.WithThread, Compone
     private static Logger logger = LoggerFactory.getLogger(Executor.class);
 
     /**
-     * {@link EntityManagerFactory} used for loading {@link AllocatedCompartment}s for execution.
+     * {@link EntityManagerFactory} used for loading {@link cz.cesnet.shongo.controller.api.Reservation}s for execution.
      */
     private EntityManagerFactory entityManagerFactory;
 
@@ -39,7 +38,7 @@ public class Executor extends Component implements Component.WithThread, Compone
     private Duration period = Duration.parse("PT15S");
 
     /**
-     * Set of {@link AllocatedCompartment} identifiers which have been already executed.
+     * Set of {@link cz.cesnet.shongo.controller.api.Reservation} identifiers which have been already executed.
      */
     private Map<Long, CompartmentExecutor> executorsById = new HashMap<Long, CompartmentExecutor>();
 
@@ -91,7 +90,7 @@ public class Executor extends Component implements Component.WithThread, Compone
     }
 
     /**
-     * Execute {@link AllocatedCompartment}s which should be executed.
+     * Execute {@link cz.cesnet.shongo.controller.api.Reservation}s which should be executed.
      */
     private void execute()
     {
