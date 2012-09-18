@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.allocationaold;
+package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;

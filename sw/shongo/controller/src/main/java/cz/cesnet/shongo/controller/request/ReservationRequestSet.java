@@ -259,9 +259,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
      */
     public void removedClonedSpecification(Specification clonedSpecification)
     {
-        if (clonedSpecification instanceof StatefulSpecification) {
-            originalSpecifications.remove(clonedSpecification);
-        }
+        originalSpecifications.remove(clonedSpecification);
         if (clonedSpecification instanceof CompositeSpecification) {
             CompositeSpecification compositeSpecification = (CompartmentSpecification) clonedSpecification;
             for (Specification specification : compositeSpecification.getSpecifications()) {

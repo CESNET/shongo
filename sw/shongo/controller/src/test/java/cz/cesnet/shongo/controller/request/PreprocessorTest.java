@@ -134,10 +134,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         CompartmentSpecification compartmentSpecification2 =
                 (CompartmentSpecification) reservationRequests.get(1).getSpecification();
-        assertEquals("External endpoint specifications in reservation requests created from single"
-                + " reservation request set should be same database instances.",
+        assertThat("External endpoint specifications in reservation requests created from single"
+                + " reservation request set should be different database instances.",
                 compartmentSpecification1.getSpecifications().get(0).getId(),
-                compartmentSpecification2.getSpecifications().get(0).getId());
+                is(not(compartmentSpecification2.getSpecifications().get(0).getId())));
         assertThat("Person specifications in reservation requests created from single reservation request set"
                 + " should be different database instances.",
                 compartmentSpecification1.getSpecifications().get(1).getId(),

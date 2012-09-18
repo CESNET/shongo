@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import java.util.Map;
 
 /**
  * Represents an abstract specification of any target for a {@link ReservationRequest}.
@@ -26,6 +28,29 @@ public abstract class Specification extends PersistentObject
     public boolean synchronizeFrom(Specification specification)
     {
         return false;
+    }
+
+    /**
+     * @param originalSpecifications map of original {@link Specification} instances by the cloned instances which should
+     *                               be populated by this cloning
+     * @return cloned instance of {@link StatefulSpecification}. If the {@link StatefulSpecification} contains some
+     *         child {@link StatefulSpecification} they should be recursively cloned too.
+     */
+    public Specification clone(Map<Specification, Specification> originalSpecifications)
+    {
+        Specification newSpecification = ClassHelper.createInstanceFromClassRuntime(getClass());
+        newSpecification.synchronizeFrom(this);
+        if (this instanceof CompositeSpecification) {
+            CompositeSpecification compositeSpecification = (CompositeSpecification) this;
+            CompositeSpecification newCompositeSpecification = (CompositeSpecification) newSpecification;
+            for (Specification childSpecification : compositeSpecification.getSpecifications()) {
+                newCompositeSpecification.addSpecification(childSpecification.clone(originalSpecifications));
+            }
+        }
+
+        originalSpecifications.put(newSpecification, this);
+
+        return newSpecification;
     }
 
     /*public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException;

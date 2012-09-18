@@ -7,11 +7,7 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.resource.Address;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
+import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -211,7 +207,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();
             ExternalEndpointSpecification externalEndpointSpecification =
-                    (ExternalEndpointSpecification) compartmentSpecification.getSpecifications().get(2);
+                    (ExternalEndpointSpecification) compartmentSpecification.getSpecifications().get(3);
             externalEndpointSpecification.setCount(96);
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
@@ -257,36 +253,37 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
     /**
      * Create reservation request in the database, allocate it and check if allocation succeeds
      *
-     * @param reservationRequest
+     * @param reservationRequestSet
      * @param cache
      * @throws Exception
      */
-    /*private void checkSuccessfulAllocation(ReservationRequest reservationRequest, Cache cache)
+    private void checkSuccessfulAllocation(ReservationRequestSet reservationRequestSet, Cache cache)
             throws Exception
     {
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(getEntityManager());
-        reservationRequestManager.create(reservationRequest);
+        reservationRequestManager.create(reservationRequestSet);
 
         Interval interval = Interval.parse("0/9999");
         Preprocessor.createAndRun(interval, getEntityManager());
         Scheduler.createAndRun(interval, getEntityManager(), cache);
 
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(getEntityManager());
-        List<CompartmentRequest> compartmentRequests =
-                compartmentRequestManager.listByReservationRequest(reservationRequest);
-        assertEquals(1, compartmentRequests.size());
-        CompartmentRequest compartmentRequest = compartmentRequests.get(0);
+        List<ReservationRequest> reservationRequests =
+                reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
+        assertEquals(1, reservationRequests.size());
+        ReservationRequest reservationRequest = reservationRequests.get(0);
 
-        ReservationManager allocatedCompartmentManager = new ReservationManager(getEntityManager());
-        List<AllocatedCompartment> allocatedCompartments = allocatedCompartmentManager.listByReservationRequest(reservationRequest);
-        if (allocatedCompartments.size() == 0) {
-            System.err.println(compartmentRequest.getReportText());
+        ReservationManager reservationManager = new ReservationManager(getEntityManager());
+        List<Reservation> reservations = reservationManager.listByReservationRequestSet(reservationRequestSet);
+        if (reservations.size() == 0) {
+            System.err.println(reservationRequest.getReportText());
             Thread.sleep(100);
         }
-        assertEquals(1, allocatedCompartments.size());
-    }*/
+        assertEquals("Reservation request should be in ALLOCATED state.",
+                ReservationRequest.State.ALLOCATED, reservationRequest.getState());
+        assertEquals("Reservation should be allocated for the reservation request.", 1, reservations.size());
+    }
 
-    /*@Test
+    @Test
     public void testStandaloneTerminals() throws Exception
     {
         Cache cache = new Cache();
@@ -306,14 +303,15 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         terminal2.setAllocatable(true);
         cache.addResource(terminal2, getEntityManager());
 
-        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
-        reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
-        Compartment compartment = reservationRequest.addRequestedCompartment();
-        compartment.addRequestedResource(new ExistingEndpointSpecification(terminal1));
-        compartment.addRequestedResource(new ExistingEndpointSpecification(terminal2));
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setType(ReservationRequestType.NORMAL);
+        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal1));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal2));
+        reservationRequestSet.addSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequestSet, cache);
     }
 
     @Test
@@ -338,14 +336,15 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         terminal2.setAllocatable(true);
         cache.addResource(terminal2, getEntityManager());
 
-        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
-        reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
-        Compartment compartment = reservationRequest.addRequestedCompartment();
-        compartment.addRequestedResource(new ExistingEndpointSpecification(terminal1));
-        compartment.addRequestedResource(new ExistingEndpointSpecification(terminal2));
+        ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setType(ReservationRequestType.NORMAL);
+        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal1));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal2));
+        reservationRequestSet.addSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequestSet, cache);
     }
 
     @Test
@@ -375,12 +374,13 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         mcu.setAllocatable(true);
         cache.addResource(mcu, getEntityManager());
 
-        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
-        Compartment compartment = reservationRequest.addRequestedCompartment();
-        compartment.addRequestedResource(new ExistingEndpointSpecification(terminal1));
-        compartment.addRequestedResource(new ExistingEndpointSpecification(terminal2));
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal1));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal2));
+        reservationRequest.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequest, cache);
     }
@@ -404,12 +404,13 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         mcu2.addCapability(new VirtualRoomsCapability(6));
         cache.addResource(mcu2, getEntityManager());
 
-        cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest = new cz.cesnet.shongo.controller.oldrequest.ReservationRequest();
+        ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), new Period("PT2H"));
-        Compartment compartment = reservationRequest.addRequestedCompartment();
-        compartment.addRequestedResource(new ExternalEndpointSpecification(Technology.H323, 10));
+        reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 10));
+        reservationRequest.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequest, cache);
-    }*/
+    }
 }

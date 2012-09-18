@@ -20,14 +20,6 @@ public interface StatefulSpecification
     public State getCurrentState();
 
     /**
-     * @param originalSpecifications map of original {@link Specification} instances by the cloned instances which should
-     *                               be populated by this cloning
-     * @return cloned instance of {@link StatefulSpecification}. If the {@link StatefulSpecification} contains some
-     *         child {@link StatefulSpecification} they should be recursively cloned too.
-     */
-    public Specification clone(Map<Specification, Specification> originalSpecifications);
-
-    /**
      * State of {@link StatefulSpecification}s.
      */
     public static enum State

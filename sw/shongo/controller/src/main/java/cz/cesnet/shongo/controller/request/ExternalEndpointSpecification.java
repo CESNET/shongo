@@ -162,7 +162,10 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
      */
     public void setAliases(List<Alias> aliases)
     {
-        this.aliases = aliases;
+        this.aliases.clear();
+        for (Alias alias : aliases) {
+            this.aliases.add(alias);
+        }
     }
 
     /**
@@ -187,11 +190,13 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getTechnologies(), externalEndpointSpecification.getTechnologies())
-                || !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount())
+        modified |= !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount())
                 || !ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases());
 
-        setTechnologies(externalEndpointSpecification.getTechnologies());
+        if (!technologies.equals(externalEndpointSpecification.getTechnologies())) {
+            setTechnologies(externalEndpointSpecification.getTechnologies());
+            modified = true;
+        }
         setCount(externalEndpointSpecification.getCount());
         setAliases(externalEndpointSpecification.getAliases());
 

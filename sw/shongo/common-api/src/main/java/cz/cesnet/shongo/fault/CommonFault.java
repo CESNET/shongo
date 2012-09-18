@@ -15,7 +15,7 @@ public class CommonFault
     public static final Fault CLASS_NOT_DEFINED = new SimpleFault(
             10, "Class '%s' is not defined.");
     public static final Fault CLASS_CANNOT_BE_INSTANCED = new SimpleFault(
-            11, "Class '%s' cannot be instanced.");
+            11, ".");
     public static final Fault CLASS_ATTRIBUTE_NOT_DEFINED = new SimpleFault(
             12, "Attribute '%s' in class '%s' is not defined.");
     public static final Fault CLASS_ATTRIBUTE_TYPE_MISMATCH = new SimpleFault(

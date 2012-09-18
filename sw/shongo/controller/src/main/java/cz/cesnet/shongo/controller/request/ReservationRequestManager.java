@@ -250,6 +250,10 @@ public class ReservationRequestManager extends AbstractManager
      */
     public List<ReservationRequest> listCompletedReservationRequests(Interval interval)
     {
+        List<ReservationRequest> reservationRequestList = entityManager
+                .createQuery("SELECT reservationRequest FROM ReservationRequest reservationRequest",
+                        ReservationRequest.class)
+                .getResultList();
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :state"
@@ -259,6 +263,7 @@ public class ReservationRequestManager extends AbstractManager
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
+
         return compartmentRequestList;
     }
 

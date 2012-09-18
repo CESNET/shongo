@@ -129,19 +129,6 @@ public class PersonSpecification extends Specification implements StatefulSpecif
     }
 
     @Override
-    public PersonSpecification clone(Map<Specification, Specification> originalSpecifications)
-    {
-        PersonSpecification personSpecification = new PersonSpecification();
-        personSpecification.setPerson(getPerson());
-        personSpecification.setEndpointSpecification(getEndpointSpecification());
-        personSpecification.setInvitationState(getInvitationState());
-
-        originalSpecifications.put(personSpecification, this);
-
-        return personSpecification;
-    }
-
-    @Override
     public boolean synchronizeFrom(Specification specification)
     {
         PersonSpecification personSpecification = (PersonSpecification) specification;

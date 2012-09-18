@@ -176,26 +176,6 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
-    public CompartmentSpecification clone(Map<Specification, Specification> originalSpecifications)
-    {
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.setCallInitiation(getCallInitiation());
-        for (Specification specification : specifications) {
-            if (specification instanceof StatefulSpecification) {
-                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
-                compartmentSpecification.addSpecification(statefulSpecification.clone(originalSpecifications));
-            }
-            else {
-                compartmentSpecification.addSpecification(specification);
-            }
-        }
-
-        originalSpecifications.put(compartmentSpecification, this);
-
-        return compartmentSpecification;
-    }
-
-    @Override
     public boolean synchronizeFrom(Specification specification)
     {
         CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;

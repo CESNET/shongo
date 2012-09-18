@@ -268,13 +268,7 @@ public class Preprocessor extends Component
 
             // Add new child specifications
             for (Specification newSpecification : newSpecifications) {
-                if (newSpecification instanceof StatefulSpecification) {
-                    StatefulSpecification newStatefulSpecification = (StatefulSpecification) newSpecification;
-                    compositeSpecification.addSpecification(newStatefulSpecification.clone(originalSpecifications));
-                }
-                else {
-                    compositeSpecification.addSpecification(newSpecification);
-                }
+                compositeSpecification.addSpecification(newSpecification.clone(originalSpecifications));
                 modified = true;
             }
         }
@@ -299,14 +293,7 @@ public class Preprocessor extends Component
         Specification oldSpecification = reservationRequest.getSpecification();
         if (oldSpecification == null || oldSpecification.getClass() != specification.getClass()) {
             // Setup new specification
-            if (specification instanceof StatefulSpecification) {
-                StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
-                reservationRequest.setSpecification(
-                        statefulSpecification.clone(reservationRequestSet.getOriginalSpecifications()));
-            }
-            else {
-                reservationRequest.setSpecification(specification);
-            }
+            reservationRequest.setSpecification(specification.clone(reservationRequestSet.getOriginalSpecifications()));
             modified = true;
         }
         else {

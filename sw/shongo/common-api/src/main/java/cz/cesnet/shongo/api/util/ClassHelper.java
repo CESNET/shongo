@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
+
 import java.util.ArrayList;
 
 /**
@@ -58,5 +61,39 @@ public class ClassHelper
             }
         }
         return Class.forName("cz.cesnet.shongo." + shortClassName);
+    }
+
+    /**
+     * @param type for the new instance
+     * @return new instance of given {@code type}.
+     * @throws FaultException when class cannot be instanced
+     */
+    public static <T> T createInstanceFromClass(Class<T> type) throws FaultException
+    {
+        T instance = null;
+        try {
+            instance = type.newInstance();
+        }
+        catch (Exception exception) {
+            throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type);
+        }
+        return instance;
+    }
+
+    /**
+     * @param type for the new instance
+     * @return new instance of given {@code type}.
+     * @throws RuntimeException when class cannot be instanced
+     */
+    public static <T> T createInstanceFromClassRuntime(Class<T> type)
+    {
+        T instance = null;
+        try {
+            instance = type.newInstance();
+        }
+        catch (Exception exception) {
+            throw new IllegalStateException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type));
+        }
+        return instance;
     }
 }
