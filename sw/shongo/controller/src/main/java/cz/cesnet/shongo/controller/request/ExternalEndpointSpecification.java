@@ -5,8 +5,6 @@ import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.compartment.ExternalEndpoint;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;

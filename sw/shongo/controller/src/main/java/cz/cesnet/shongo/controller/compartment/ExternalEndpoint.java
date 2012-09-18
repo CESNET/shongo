@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.compartment;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.request.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
-import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;

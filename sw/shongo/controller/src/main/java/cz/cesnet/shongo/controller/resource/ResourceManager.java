@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -62,16 +61,6 @@ public class ResourceManager extends AbstractManager
     public void delete(Resource resource)
     {
         super.delete(resource);
-    }
-
-    /**
-     * Create a new resource allocation in the database.
-     *
-     * @param allocatedResource
-     */
-    public void createAllocation(AllocatedResource allocatedResource)
-    {
-        super.create(allocatedResource);
     }
 
     /**

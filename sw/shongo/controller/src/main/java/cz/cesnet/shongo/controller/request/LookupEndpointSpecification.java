@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotFoundReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -95,7 +94,8 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     @Override
     public ReservationTask<ResourceReservation> createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask<ResourceReservation>(context){
+        return new ReservationTask<ResourceReservation>(context)
+        {
 
             @Override
             protected ResourceReservation createReservation() throws ReportException

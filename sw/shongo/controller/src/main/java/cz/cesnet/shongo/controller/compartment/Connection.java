@@ -59,4 +59,18 @@ public abstract class Connection extends PersistentObject
     {
         this.endpointTo = endpointTo;
     }
+
+    /**
+     * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
+     *
+     * @param compartmentExecutor
+     */
+    public abstract void establish(CompartmentExecutor compartmentExecutor);
+
+    /**
+     * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
+     *
+     * @param compartmentExecutor
+     */
+    public abstract void close(CompartmentExecutor compartmentExecutor);
 }

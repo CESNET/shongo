@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.util.ClassHelper;
-import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;

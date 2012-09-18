@@ -3,8 +3,6 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -161,7 +159,7 @@ public class Preprocessor extends Component
                 // Modify existing reservation request
                 if (map.containsKey(slot)) {
                     reservationRequest = map.get(slot);
-                    if ( updateReservationRequest(reservationRequest, reservationRequestSet, specification) ) {
+                    if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
                         // Reservation request was modified, so we must clear it's state
                         reservationRequest.clearState();
                         // And if allocated reservation exists, we remove reference to it and it will be deleted

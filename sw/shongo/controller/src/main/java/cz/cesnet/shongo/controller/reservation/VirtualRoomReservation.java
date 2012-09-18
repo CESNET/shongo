@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.compartment.Endpoint;
-import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;

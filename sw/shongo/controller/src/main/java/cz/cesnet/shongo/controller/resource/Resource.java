@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.allocationaold.AllocatedResource;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
@@ -67,14 +66,6 @@ public class Resource extends PersistentObject
      * Specifies whether resource can be allocated by a scheduler.
      */
     private boolean allocatable;
-
-    /**
-     * Allocations for the resource. Should be never accessed (used only for JPA query access which doesn't work
-     * without association {@see http://stackoverflow.com/questions/2837255/jpa-outer-join-without-relation}).
-     */
-    @OneToMany(mappedBy = "resource")
-    @Access(AccessType.FIELD)
-    private List<AllocatedResource> allocations;
 
     /**
      * Constructor.

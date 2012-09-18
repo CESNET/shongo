@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -9,7 +8,9 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -117,5 +118,33 @@ public class ResourceVirtualRoom extends VirtualRoom
     public Integer getPortCount()
     {
         return virtualRoomReservation.getPortCount();
+    }
+
+    @Override
+    @Transient
+    public void start(CompartmentExecutor compartmentExecutor)
+    {
+        DeviceResource deviceResource = getDeviceResource();
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("Starting %s for %d ports.", getReportDescription(), getPortCount()));
+        if (deviceResource.hasIpAddress()) {
+            message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
+        }
+        compartmentExecutor.getLogger().debug(message.toString());
+        List<Alias> aliases = getAliases();
+        for (Alias alias : aliases) {
+            StringBuilder aliasMessage = new StringBuilder();
+            aliasMessage
+                    .append(String.format("%s has allocated alias '%s'.", getReportDescription(), alias.getValue()));
+            compartmentExecutor.getLogger().debug(aliasMessage.toString());
+        }
+    }
+
+    @Override
+    public void stop(CompartmentExecutor compartmentExecutor)
+    {
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
+        compartmentExecutor.getLogger().debug(message.toString());
     }
 }

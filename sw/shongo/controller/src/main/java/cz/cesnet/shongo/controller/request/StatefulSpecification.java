@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.request;
 
-import java.util.Map;
-
 /**
  * Should be implemented by {@link Specification}s which has {@link #getCurrentState()} based on
  * some persisted properties.

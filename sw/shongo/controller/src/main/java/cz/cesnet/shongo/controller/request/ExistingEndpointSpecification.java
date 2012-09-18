@@ -79,7 +79,8 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     @Override
     public ReservationTask<ResourceReservation> createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask<ResourceReservation>(context){
+        return new ReservationTask<ResourceReservation>(context)
+        {
 
             @Override
             protected ResourceReservation createReservation() throws ReportException

@@ -4,15 +4,12 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;

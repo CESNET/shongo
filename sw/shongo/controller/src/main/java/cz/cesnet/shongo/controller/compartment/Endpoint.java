@@ -138,4 +138,19 @@ public abstract class Endpoint extends PersistentObject
     {
         return null;
     }
+
+    /**
+     * Assign {@link #aliases} to the {@link Endpoint}.
+     *
+     * @param compartmentExecutor
+     */
+    public void assignAliases(CompartmentExecutor compartmentExecutor)
+    {
+        List<Alias> aliases = getAliases();
+        for (Alias alias : aliases) {
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
+            compartmentExecutor.getLogger().debug(message.toString());
+        }
+    }
 }

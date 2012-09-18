@@ -114,19 +114,20 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param interval in which the requested {@link Reservation}s should start
+     * @param interval        in which the requested {@link Reservation}s should start
+     * @param reservationType type of requested {@link Reservation}s
      * @return list of {@link Reservation}s starting in given {@code interval}
      */
-    public List<Reservation> listByInterval(Interval interval)
+    public <R extends Reservation> List<R> listByInterval(Interval interval, Class<R> reservationType)
     {
-        List<Reservation> allocatedCompartments = entityManager.createQuery(
-                "SELECT reservation FROM Reservation reservation "
+        List<R> reservations = entityManager.createQuery(
+                "SELECT reservation FROM " + reservationType.getSimpleName() + " reservation "
                         + "WHERE reservation.slotStart BETWEEN :start AND :end",
-                Reservation.class)
+                reservationType)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
-        return allocatedCompartments;
+        return reservations;
     }
 
     /**

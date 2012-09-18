@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.allocationaold.AllocatedEndpoint;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
 
 /**
- * Represents a {@link Report} for connection between two {@link AllocatedEndpoint}s.
+ * Represents a {@link Report} for connection between two {@link Endpoint}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

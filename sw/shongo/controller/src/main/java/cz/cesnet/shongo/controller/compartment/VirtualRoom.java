@@ -16,4 +16,18 @@ public abstract class VirtualRoom extends Endpoint
      */
     @Transient
     public abstract Integer getPortCount();
+
+    /**
+     * Start virtual room.
+     *
+     * @param compartmentExecutor
+     */
+    public abstract void start(CompartmentExecutor compartmentExecutor);
+
+    /**
+     * Stop virtual room.
+     *
+     * @param compartmentExecutor
+     */
+    public abstract void stop(CompartmentExecutor compartmentExecutor);
 }

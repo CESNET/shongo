@@ -156,7 +156,8 @@ public class AliasSpecification extends Specification implements ReservationTask
     @Override
     public ReservationTask<AliasReservation> createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask<AliasReservation>(context) {
+        return new ReservationTask<AliasReservation>(context)
+        {
 
             @Override
             protected AliasReservation createReservation() throws ReportException

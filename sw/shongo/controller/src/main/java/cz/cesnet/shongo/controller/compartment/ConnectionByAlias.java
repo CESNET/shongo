@@ -37,4 +37,22 @@ public class ConnectionByAlias extends Connection
     {
         this.alias = alias;
     }
+
+    @Override
+    public void establish(CompartmentExecutor compartmentExecutor)
+    {
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
+                getEndpointFrom().getReportDescription(), getAlias().getValue(),
+                getAlias().getTechnology().getName()));
+        compartmentExecutor.getLogger().debug(message.toString());
+    }
+
+    @Override
+    public void close(CompartmentExecutor compartmentExecutor)
+    {
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
+        compartmentExecutor.getLogger().debug(message.toString());
+    }
 }
