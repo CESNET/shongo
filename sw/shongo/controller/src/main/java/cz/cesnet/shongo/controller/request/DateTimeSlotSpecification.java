@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Specification for one or multiple {@link DateTimeSlot}s.
+ * Specification for one or multiple {@link Interval}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -336,7 +336,7 @@ public class DateTimeSlotSpecification extends PersistentObject
     }
 
     /**
-     * @return converted slot to API
+     * @return converted {@link DateTimeSlotSpecification} to {@link cz.cesnet.shongo.controller.api.DateTimeSlot}
      * @throws FaultException
      */
     public cz.cesnet.shongo.controller.api.DateTimeSlot toApi() throws FaultException
@@ -344,7 +344,8 @@ public class DateTimeSlotSpecification extends PersistentObject
         Object start = null;
         DateTimeSpecification dateTimeSpecification = getStart();
         if (dateTimeSpecification instanceof AbsoluteDateTimeSpecification) {
-            start = ((AbsoluteDateTimeSpecification) dateTimeSpecification).getDateTime();
+            AbsoluteDateTimeSpecification absoluteSpecification = (AbsoluteDateTimeSpecification) dateTimeSpecification;
+            start = absoluteSpecification.getDateTime();
         }
         else if (dateTimeSpecification instanceof PeriodicDateTimeSpecification) {
             PeriodicDateTimeSpecification periodicSpecification = (PeriodicDateTimeSpecification) dateTimeSpecification;
@@ -362,5 +363,41 @@ public class DateTimeSlotSpecification extends PersistentObject
         dateTimeSlot.setStart(start);
         dateTimeSlot.setDuration(getDuration());
         return dateTimeSlot;
+    }
+
+    /**
+     * @param slotApi {@link cz.cesnet.shongo.controller.api.DateTimeSlot}
+     * @return {@link DateTimeSlotSpecification} from given {@code slotApi}
+     */
+    public static DateTimeSlotSpecification createFromApi(cz.cesnet.shongo.controller.api.DateTimeSlot slotApi)
+    {
+        DateTimeSlotSpecification dateTimeSlotSpecification = new DateTimeSlotSpecification();
+        dateTimeSlotSpecification.fromApi(slotApi);
+        return dateTimeSlotSpecification;
+    }
+
+    /**
+     * Synchronize from {@link cz.cesnet.shongo.controller.api.DateTimeSlot}.
+     *
+     * @param slotApi to synchronize from
+     */
+    public void fromApi(cz.cesnet.shongo.controller.api.DateTimeSlot slotApi)
+    {
+        if (slotApi.getStart() instanceof cz.cesnet.shongo.controller.api.PeriodicDateTime) {
+            cz.cesnet.shongo.controller.api.PeriodicDateTime periodicDateTimeApi =
+                    (cz.cesnet.shongo.controller.api.PeriodicDateTime) slotApi.getStart();
+            PeriodicDateTimeSpecification periodicDateTimeSpecification = new PeriodicDateTimeSpecification();
+            periodicDateTimeSpecification.setStart(periodicDateTimeApi.getStart());
+            periodicDateTimeSpecification.setPeriod(periodicDateTimeApi.getPeriod());
+            periodicDateTimeSpecification.setEnd(periodicDateTimeApi.getEnd());
+            setStart(periodicDateTimeSpecification);
+        }
+        else if (slotApi.getStart() instanceof DateTime) {
+            setStart(new AbsoluteDateTimeSpecification((DateTime) slotApi.getStart()));
+        }
+        else {
+            throw new TodoImplementException();
+        }
+        setDuration(slotApi.getDuration());
     }
 }

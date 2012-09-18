@@ -5,7 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.request.CallInitiation;
+import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 

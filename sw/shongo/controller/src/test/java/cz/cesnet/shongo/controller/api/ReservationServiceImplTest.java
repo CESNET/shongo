@@ -81,6 +81,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     public void testCreateReservationRequestByRawRpcXml() throws Exception
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put("class", "ReservationRequestSet");
         attributes.put("type", "NORMAL");
         attributes.put("purpose", "SCIENCE");
         attributes.put("slots", new ArrayList<Object>()
@@ -100,37 +101,26 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                         put("duration", "PT2H");
                     }});
             }});
-        attributes.put("compartments", new ArrayList<Object>()
+        attributes.put("specifications", new ArrayList<Object>()
         {{
                 add(new HashMap<String, Object>()
                 {{
-                        put("persons", new ArrayList<Object>()
-                        {{
-                                add(new HashMap<String, Object>()
-                                {{
-                                        put("name", "Martin Srom");
-                                        put("email", "srom@cesnet.cz");
-                                    }});
-                            }});
-                        put("resources", new ArrayList<Object>()
+                        put("class", "CompartmentSpecification");
+                        put("specifications", new ArrayList<Object>()
                         {{
                                 add(new HashMap<String, Object>()
                                 {{
                                         put("class", "ExternalEndpointSpecification");
                                         put("technology", "H323");
                                         put("count", 2);
-                                        put("persons", new ArrayList<Object>()
+                                    }});
+                                add(new HashMap<String, Object>()
+                                {{
+                                        put("class", "PersonSpecification");
+                                        put("person", new HashMap<String, Object>()
                                         {{
-                                                add(new HashMap<String, Object>()
-                                                {{
-                                                        put("name", "Ondrej Bouda");
-                                                        put("email", "bouda@cesnet.cz");
-                                                    }});
-                                                add(new HashMap<String, Object>()
-                                                {{
-                                                        put("name", "Petr Holub");
-                                                        put("email", "hopet@cesnet.cz");
-                                                    }});
+                                                put("name", "Martin Srom");
+                                                put("email", "srom@cesnet.cz");
                                             }});
                                     }});
 
@@ -228,6 +218,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         Map<String, Object> reservationRequest = null;
 
         reservationRequest = new HashMap<String, Object>();
+        reservationRequest.put("class", "ReservationRequestSet");
         reservationRequest.put("slots", new ArrayList<Object>()
         {{
                 add(new HashMap<String, Object>());
@@ -242,6 +233,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         }
 
         reservationRequest = new HashMap<String, Object>();
+        reservationRequest.put("class", "ReservationRequestSet");
         reservationRequest.put("slots", new ArrayList<Object>()
         {{
                 add(new HashMap<String, Object>()
@@ -259,7 +251,8 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         }
 
         reservationRequest = new HashMap<String, Object>();
-        reservationRequest.put("requests", new ArrayList<Object>());
+        reservationRequest.put("class", "ReservationRequestSet");
+        reservationRequest.put("reservationRequests", new ArrayList<Object>());
         try {
             controllerClient.execute("Reservation.createReservationRequest",
                     new Object[]{new HashMap(), reservationRequest});

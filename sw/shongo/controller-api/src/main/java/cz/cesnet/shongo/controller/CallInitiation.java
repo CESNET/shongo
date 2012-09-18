@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.request;
+package cz.cesnet.shongo.controller;
 
 /**
  * Represents enumeration of who should initiate a video conference call.

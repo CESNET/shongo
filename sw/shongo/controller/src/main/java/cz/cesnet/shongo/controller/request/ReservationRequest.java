@@ -1,9 +1,12 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -195,6 +198,67 @@ public class ReservationRequest extends AbstractReservationRequest
         }
     }
 
+    @Override
+    protected void fillDescriptionMap(Map<String, Object> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("state", getState());
+        map.put("slot", getRequestedSlot());
+        map.put("specification", getSpecification());
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.ReservationRequest();
+    }
+
+    @Override
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(Domain domain) throws FaultException
+    {
+        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(domain);
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
+                (cz.cesnet.shongo.controller.api.ReservationRequest) api;
+        reservationRequestApi.setSlot(getRequestedSlot());
+        reservationRequestApi.setSpecification(getSpecification().toApi(domain));
+        reservationRequestApi.setState(getState().toApi());
+        reservationRequestApi.setStateReport(getReportText());
+        super.toApi(api, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
+                (cz.cesnet.shongo.controller.api.ReservationRequest) api;
+        if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT)) {
+            setRequestedSlot(reservationRequestApi.getSlot());
+        }
+        if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
+            cz.cesnet.shongo.controller.api.Specification specificationApi = reservationRequestApi.getSpecification();
+            if (specificationApi == null) {
+                setSpecification(null);
+            }
+            else if (getSpecification() != null && getSpecification().getId()
+                    .equals(specificationApi.getId().longValue())) {
+                getSpecification().fromApi(specificationApi, entityManager, domain);
+            }
+            else {
+                setSpecification(Specification.createFromApi(specificationApi, entityManager, domain));
+            }
+        }
+        super.fromApi(api, entityManager, domain);
+    }
+
     /**
      * Enumeration of {@link ReservationRequest} state.
      */
@@ -232,106 +296,25 @@ public class ReservationRequest extends AbstractReservationRequest
          * Allocation of the {@link ReservationRequest} failed. The reason can be found from
          * the {@link ReservationRequest#getReports()}
          */
-        ALLOCATION_FAILED
+        ALLOCATION_FAILED;
+
+        /**
+         * @return {@link cz.cesnet.shongo.controller.api.ReservationRequest.State} from the {@link State}
+         */
+        public cz.cesnet.shongo.controller.api.ReservationRequest.State toApi()
+        {
+            switch (this) {
+                case NOT_COMPLETE:
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_COMPLETE;
+                case COMPLETE:
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_ALLOCATED;
+                case ALLOCATED:
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATED;
+                case ALLOCATION_FAILED:
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATION_FAILED;
+                default:
+                    throw new TodoImplementException();
+            }
+        }
     }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("state", getState());
-        map.put("slot", getRequestedSlot());
-        map.put("specification", getSpecification());
-    }
-
-    /**
-     * @return list of {@link RequestedResource}s
-     */
-    /*@Transient
-    public List<RequestedResource> getRequestedResourcesForScheduler()
-    {
-        List<RequestedResource> requestedResources = new ArrayList<RequestedResource>();
-        Map<Long, RequestedResource> requestedResourceById = new HashMap<Long, RequestedResource>();
-        for (ResourceSpecification resourceSpecification : this.requestedResources) {
-            RequestedResource requestedResource = new RequestedResource(resourceSpecification);
-            requestedResources.add(requestedResource);
-            requestedResourceById.put(resourceSpecification.getId(), requestedResource);
-        }
-        for (PersonRequest personRequest : requestedPersons) {
-            if (personRequest.getState() == PersonRequest.State.ACCEPTED) {
-                if (personRequest.getResourceSpecification() == null) {
-                    throw new IllegalStateException("Person request '" + personRequest.getId()
-                            + "' in compartment request '" + getId() + "' should have resource specified!");
-                }
-                RequestedResource requestedResource =
-                        requestedResourceById.get(personRequest.getResourceSpecification().getId());
-                if (requestedResource == null) {
-                    throw new IllegalStateException("Resource '" + personRequest.getResourceSpecification().getId()
-                            + "' specified in person request '" + personRequest.getId()
-                            + "' doesn't exists in compartment request '" + getId() + "'!");
-                }
-                requestedResource.addPerson(personRequest.getPerson());
-            }
-        }
-
-        // Remove all requested resources which have been requested with a not empty list of persons
-        // and the current list of requested persons is empty (all persons rejected invitation)
-        Iterator<RequestedResource> iterator = requestedResources.iterator();
-        while (iterator.hasNext()) {
-            RequestedResource requestedResource = iterator.next();
-            if (requestedResource.getPersons().size() == 0
-                    && requestedResource.getResourceSpecification().getRequestedPersons().size() > 0) {
-                iterator.remove();
-            }
-        }
-
-        // Sort requested resources by priority
-        Collections.sort(requestedResources, new Comparator<RequestedResource>()
-        {
-            @Override
-            public int compare(RequestedResource first, RequestedResource second)
-            {
-                return Integer.valueOf(first.getPriority()).compareTo(second.getPriority());
-            }
-        });
-
-        return requestedResources;
-    }*/
-
-
-    /**
-     * Represents a requested resource which is used in scheduling.
-     */
-    /*public static class RequestedResource
-    {
-        private ResourceSpecification resourceSpecification;
-
-        private List<Person> persons = new ArrayList<Person>();
-
-        public RequestedResource(ResourceSpecification resourceSpecification)
-        {
-            this.resourceSpecification = resourceSpecification;
-        }
-
-        public ResourceSpecification getResourceSpecification()
-        {
-            return resourceSpecification;
-        }
-
-        public List<Person> getPersons()
-        {
-            return persons;
-        }
-
-        public void addPerson(Person person)
-        {
-            persons.add(person);
-        }
-
-        public int getPriority()
-        {
-            return (resourceSpecification instanceof ExistingEndpointSpecification ? 0 : 1);
-        }
-    }*/
 }

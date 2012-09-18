@@ -3,13 +3,23 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.CallInitiation;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
+import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.StandaloneTerminalCapability;
+import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -346,6 +356,12 @@ public class CompartmentReservationTaskTest
                     return new SimpleEndpointReservation();
                 }
             };
+        }
+
+        @Override
+        protected cz.cesnet.shongo.controller.api.Specification createApi()
+        {
+            throw new IllegalStateException("Not implemented.");
         }
     }
 }

@@ -36,7 +36,7 @@ public class PersonSpecification extends Specification
      * @return {@link #PERSON}
      */
     @Required
-    public String getPerson()
+    public Person getPerson()
     {
         return getPropertyStorage().getValue(PERSON);
     }

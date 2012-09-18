@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.compartment.ExternalEndpoint;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -208,6 +211,44 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
+        externalEndpointSpecificationApi.setCount(getCount());
+        if (technologies.size() == 1) {
+            externalEndpointSpecificationApi.setTechnology(technologies.iterator().next());
+        }
+        else {
+            throw new TodoImplementException();
+        }
+        super.toApi(specificationApi, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
+        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.TECHNOLOGY)) {
+            technologies.clear();
+            addTechnology(externalEndpointSpecificationApi.getTechnology());
+        }
+        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.COUNT)) {
+            setCount(externalEndpointSpecificationApi.getCount());
+        }
+        super.fromApi(specificationApi, entityManager, domain);
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
@@ -215,40 +256,4 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         map.put("technologies", technologies);
         map.put("count", count);
     }
-
-    /*@Override
-    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
-    {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification api =
-                new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
-
-        api.setCount(getCount());
-
-        if (technologies.size() == 1) {
-            api.setTechnology(technologies.iterator().next());
-        }
-        else {
-            throw new TodoImplementException();
-        }
-
-        super.toApi(api);
-
-        return api;
-    }
-
-    @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
-            Domain domain) throws FaultException
-    {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification apiExternalEndpoint =
-                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) api;
-        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.TECHNOLOGY)) {
-            technologies.clear();
-            addTechnology(apiExternalEndpoint.getTechnology());
-        }
-        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.COUNT)) {
-            setCount(apiExternalEndpoint.getCount());
-        }
-        super.fromApi(api, entityManager, domain);
-    }*/
 }

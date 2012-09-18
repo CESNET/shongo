@@ -1,19 +1,23 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotEndpoint;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.OneToOne;
 
 /**
@@ -81,7 +85,6 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     {
         return new ReservationTask<ResourceReservation>(context)
         {
-
             @Override
             protected ResourceReservation createReservation() throws ReportException
             {
@@ -110,30 +113,37 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
         };
     }
 
-    /*@Override
-    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
+    @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
-        cz.cesnet.shongo.controller.api.ExistingResourceSpecification api =
-                new cz.cesnet.shongo.controller.api.ExistingResourceSpecification();
-
-        api.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
-
-        super.toApi(api);
-
-        return api;
+        return new cz.cesnet.shongo.controller.api.ExistingEndpointSpecification();
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
+        existingEndpointSpecificationApi.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
+        super.toApi(specificationApi, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
             Domain domain) throws FaultException
     {
-        cz.cesnet.shongo.controller.api.ExistingResourceSpecification apiDefiniteResource =
-                (cz.cesnet.shongo.controller.api.ExistingResourceSpecification) api;
-        if (apiDefiniteResource.isPropertyFilled(apiDefiniteResource.RESOURCE_IDENTIFIER)) {
-            Long resourceId = domain.parseIdentifier(apiDefiniteResource.getResourceIdentifier());
-            ResourceManager resourceManager = new ResourceManager(entityManager);
-            setResource(resourceManager.get(resourceId));
+        cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
+        if (existingEndpointSpecificationApi.isPropertyFilled(existingEndpointSpecificationApi.RESOURCE_IDENTIFIER)) {
+            if (existingEndpointSpecificationApi.getResourceIdentifier() == null) {
+                setResource(null);
+            }
+            else {
+                Long resourceId = domain.parseIdentifier(existingEndpointSpecificationApi.getResourceIdentifier());
+                ResourceManager resourceManager = new ResourceManager(entityManager);
+                setResource(resourceManager.get(resourceId));
+            }
         }
-        super.fromApi(api, entityManager, domain);
-    }*/
+        super.fromApi(specificationApi, entityManager, domain);
+    }
 }

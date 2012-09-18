@@ -26,7 +26,7 @@ public abstract class ChangesTrackingObject
     private Set<String> filledProperties = new HashSet<String>();
 
     /**
-     * Specifies whether all collection items are by default new (when new entity is being created this is true).
+     * Specifies whether all collection items are by default new (when new entity is being created this should be true).
      */
     private boolean collectionItemIsByDefaultNew = false;
 

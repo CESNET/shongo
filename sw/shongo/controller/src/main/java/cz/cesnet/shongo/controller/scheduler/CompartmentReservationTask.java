@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.compartment.*;
 import cz.cesnet.shongo.controller.report.Report;
@@ -68,7 +69,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
      * Constructor.
      *
      * @param context        sets the {@link #context}
-     * @param callInitiation sets the default {@link CallInitiation}
+     * @param callInitiation sets the default {@link cz.cesnet.shongo.controller.CallInitiation}
      */
     public CompartmentReservationTask(Context context, CallInitiation callInitiation)
     {

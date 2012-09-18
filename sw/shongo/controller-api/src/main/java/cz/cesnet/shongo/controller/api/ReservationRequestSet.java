@@ -128,7 +128,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     /**
      * @param request slot to be added to the {@link #reservationRequests}
      */
-    public void addRequest(ReservationRequest request)
+    public void addReservationRequest(ReservationRequest request)
     {
         reservationRequests.add(request);
     }

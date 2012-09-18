@@ -96,6 +96,26 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservationRequestId of the {@link AbstractReservationRequest}
+     * @return {@link AbstractReservationRequest} with given identifier
+     * @throws EntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
+     */
+    public AbstractReservationRequest get(Long reservationRequestId) throws EntityNotFoundException
+    {
+        try {
+            AbstractReservationRequest reservationRequest = entityManager.createQuery(
+                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.id = :id",
+                    AbstractReservationRequest.class).setParameter("id", reservationRequestId)
+                    .getSingleResult();
+            return reservationRequest;
+        }
+        catch (NoResultException exception) {
+            throw new EntityNotFoundException(AbstractReservationRequest.class, reservationRequestId);
+        }
+    }
+
+    /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given identifier
      * @throws EntityNotFoundException when the {@link ReservationRequest} doesn't exist

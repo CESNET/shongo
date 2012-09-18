@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -266,6 +268,74 @@ public class ReservationRequestSet extends AbstractReservationRequest
                 removedClonedSpecification(specification);
             }
         }
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.ReservationRequestSet();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain) throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
+                (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
+        for (DateTimeSlotSpecification requestedSlot : getRequestedSlots()) {
+            reservationRequestSetApi.addSlot(requestedSlot.toApi());
+        }
+        for (Specification specification : getSpecifications()) {
+            reservationRequestSetApi.addSpecification(specification.toApi(domain));
+        }
+        for (ReservationRequest reservationRequest : getReservationRequests()) {
+            reservationRequestSetApi.addReservationRequest(reservationRequest.toApi(domain));
+        }
+        super.toApi(api, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
+                (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
+
+        // Create/modify slots
+        for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : reservationRequestSetApi.getSlots()) {
+            if (api.isCollectionItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
+                addRequestedSlot(DateTimeSlotSpecification.createFromApi(slotApi));
+            }
+            else {
+                DateTimeSlotSpecification requestedSlot = getRequestedSlotById(slotApi.getId().longValue());
+                requestedSlot.fromApi(slotApi);
+            }
+        }
+        // Delete slots
+        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedRequestedSlots =
+                api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
+        for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedRequestedSlots) {
+            removeRequestedSlot(getRequestedSlotById(slotApi.getId().longValue()));
+        }
+
+        // Create/modify specifications
+        for (cz.cesnet.shongo.controller.api.Specification specApi : reservationRequestSetApi.getSpecifications()) {
+            if (api.isCollectionItemMarkedAsNew(reservationRequestSetApi.SPECIFICATIONS, specApi)) {
+                addSpecification(Specification.createFromApi(specApi, entityManager, domain));
+            }
+            else {
+                Specification specification = getSpecificationById(specApi.getId().longValue());
+                specification.fromApi(specApi, entityManager, domain);
+            }
+        }
+        // Delete specifications
+        Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
+                api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SPECIFICATIONS);
+        for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
+            removeSpecification(getSpecificationById(specApi.getId().longValue()));
+        }
+
+        super.fromApi(api, entityManager, domain);
     }
 
     @Override

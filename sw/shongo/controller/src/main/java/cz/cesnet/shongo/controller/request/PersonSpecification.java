@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.request;
 
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -150,6 +152,53 @@ public class PersonSpecification extends Specification implements StatefulSpecif
         return modified;
     }
 
+    @PrePersist
+    protected void onCreate()
+    {
+        if (invitationState == null) {
+            invitationState = InvitationState.INVITATION_NOT_SENT;
+        }
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.PersonSpecification();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.PersonSpecification personSpecification =
+                (cz.cesnet.shongo.controller.api.PersonSpecification) specificationApi;
+        personSpecification.setPerson(getPerson().toApi());
+        super.toApi(specificationApi, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.PersonSpecification personSpecificationApi =
+                (cz.cesnet.shongo.controller.api.PersonSpecification) specificationApi;
+        if (personSpecificationApi.isPropertyFilled(personSpecificationApi.PERSON)) {
+            cz.cesnet.shongo.controller.api.Person personApi = personSpecificationApi.getPerson();
+            if (personApi == null) {
+                setPerson(null);
+            }
+            else if (getPerson() != null && getPerson().getId().equals(personApi.getId().longValue())) {
+                getPerson().fromApi(personApi);
+            }
+            else {
+                Person person = new Person();
+                person.fromApi(personApi);
+                setPerson(person);
+            }
+        }
+        super.fromApi(specificationApi, entityManager, domain);
+    }
+
     @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
@@ -158,14 +207,6 @@ public class PersonSpecification extends Specification implements StatefulSpecif
         map.put("person", person);
         map.put("endpoint", endpointSpecification);
         map.put("invitationState", invitationState);
-    }
-
-    @PrePersist
-    protected void onCreate()
-    {
-        if (invitationState == null) {
-            invitationState = InvitationState.INVITATION_NOT_SENT;
-        }
     }
 
     /**

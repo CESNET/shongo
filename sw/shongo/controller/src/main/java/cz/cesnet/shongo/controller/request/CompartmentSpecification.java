@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.scheduler.CompartmentReservationTask;
@@ -11,10 +12,7 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a group of specifications. Every endpoint which will be allocated from the specifications should be
@@ -194,72 +192,55 @@ public class CompartmentSpecification extends Specification
         return new CompartmentReservationTask(this, context);
     }
 
-    /**
-     * @param domain
-     * @return compartment converted to API
-     */
-    public cz.cesnet.shongo.controller.api.CompartmentSpecification toApi(Domain domain) throws FaultException
+    @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
-        throw new TodoImplementException();
-        /*cz.cesnet.shongo.controller.api.Compartment compartment = new cz.cesnet.shongo.controller.api.Compartment();
-        compartment.setId(getId().intValue());
-        for (Person person : getRequestedPersons()) {
-            compartment.addPerson(person.toApi());
-        }
-        for (ResourceSpecification resourceSpecification : getRequestedResources()) {
-            compartment.addSpecification(resourceSpecification.toApi(domain));
-        }
-        return compartment;*/
+        return new cz.cesnet.shongo.controller.api.CompartmentSpecification();
     }
 
-    /**
-     * Synchronize compartment from API
-     *
-     * @param api
-     * @param entityManager
-     * @param domain
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *
-     */
-    public <API extends cz.cesnet.shongo.controller.api.CompartmentSpecification>
-    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
     {
-        throw new TodoImplementException();
-        /*// Create/modify requested persons
-        for (cz.cesnet.shongo.controller.api.Person apiPerson : api.getPersons()) {
-            Person person = null;
-            if (api.isCollectionItemMarkedAsNew(API.PERSONS, apiPerson)) {
-                person = new Person();
-                addRequestedPerson(person);
-            }
-            else {
-                person = getRequestedPersonById(apiPerson.getId().longValue());
-            }
-            person.fromApi(apiPerson);
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
+                (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
+        for (Specification specification : getSpecifications()) {
+            compartmentSpecificationApi.addSpecification(specification.toApi(domain));
         }
-        // Delete requested persons
-        Set<cz.cesnet.shongo.controller.api.Person> apiDeletedPersons =
-                api.getCollectionItemsMarkedAsDeleted(API.PERSONS);
-        for (cz.cesnet.shongo.controller.api.Person apiPerson : apiDeletedPersons) {
-            removeRequestedPerson(getRequestedPersonById(apiPerson.getId().longValue()));
+        compartmentSpecificationApi.setCallInitiation(getCallInitiation());
+        super.toApi(specificationApi, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
+                (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
+        if (compartmentSpecificationApi.isPropertyFilled(compartmentSpecificationApi.CALL_INITIATION)) {
+            setCallInitiation(compartmentSpecificationApi.getCallInitiation());
         }
 
-        // Create/modify requested resources
-        for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : api.getSpecifications()) {
-            if (api.isCollectionItemMarkedAsNew(API.SPECIFICATIONS, apiResource)) {
-                addRequestedResource(ResourceSpecification.fromAPI(apiResource, entityManager, domain));
+        // Create/modify specifications
+        for (cz.cesnet.shongo.controller.api.Specification specApi : compartmentSpecificationApi.getSpecifications()) {
+            if (compartmentSpecificationApi.isCollectionItemMarkedAsNew(
+                    compartmentSpecificationApi.SPECIFICATIONS, specApi)) {
+                addSpecification(Specification.createFromApi(specApi, entityManager, domain));
             }
             else {
-                ResourceSpecification resourceSpecification = getRequestedResourceById(apiResource.getId().longValue());
-                resourceSpecification.fromApi(apiResource, entityManager, domain);
+                Specification specification = getSpecificationById(specApi.getId().longValue());
+                specification.fromApi(specApi, entityManager, domain);
             }
         }
-        // Delete requested resources
-        Set<cz.cesnet.shongo.controller.api.ResourceSpecification> apiDeletedResources =
-                api.getCollectionItemsMarkedAsDeleted(API.SPECIFICATIONS);
-        for (cz.cesnet.shongo.controller.api.ResourceSpecification apiResource : apiDeletedResources) {
-            removeRequestedResource(getRequestedResourceById(apiResource.getId().longValue()));
-        }*/
+        // Delete specifications
+        Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
+                compartmentSpecificationApi.getCollectionItemsMarkedAsDeleted(
+                        compartmentSpecificationApi.SPECIFICATIONS);
+        for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
+            removeSpecification(getSpecificationById(specApi.getId().longValue()));
+        }
+
+        super.fromApi(specificationApi, entityManager, domain);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
@@ -8,6 +9,8 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotFoundReport;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -130,41 +133,43 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     }
 
     @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.LookupEndpointSpecification();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
+        if (technologies.size() == 1) {
+            lookupEndpointSpecificationApi.setTechnology(technologies.iterator().next());
+        }
+        else {
+            throw new TodoImplementException();
+        }
+        super.toApi(specificationApi, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain) throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.LookupEndpointSpecification lookupEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.LookupEndpointSpecification) specificationApi;
+        if (lookupEndpointSpecificationApi.isPropertyFilled(lookupEndpointSpecificationApi.TECHNOLOGY)) {
+            technologies.clear();
+            addTechnology(lookupEndpointSpecificationApi.getTechnology());
+        }
+        super.fromApi(specificationApi, entityManager, domain);
+    }
+
+    @Override
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
         map.put("technologies", technologies);
     }
-
-    /*@Override
-    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
-    {
-        cz.cesnet.shongo.controller.api.LookupResourceSpecification api =
-                new cz.cesnet.shongo.controller.api.LookupResourceSpecification();
-
-        if (technologies.size() == 1) {
-            api.setTechnology(technologies.iterator().next());
-        }
-        else {
-            throw new TodoImplementException();
-        }
-
-        super.toApi(api);
-
-        return api;
-    }
-
-    @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
-            Domain domain) throws FaultException
-    {
-        cz.cesnet.shongo.controller.api.LookupResourceSpecification apiExternalEndpoint =
-                (cz.cesnet.shongo.controller.api.LookupResourceSpecification) api;
-        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.TECHNOLOGY)) {
-            technologies.clear();
-            addTechnology(apiExternalEndpoint.getTechnology());
-        }
-        super.fromApi(api, entityManager, domain);
-    }*/
 }

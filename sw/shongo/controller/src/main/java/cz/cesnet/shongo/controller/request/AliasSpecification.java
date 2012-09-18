@@ -3,15 +3,18 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
+import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
@@ -195,6 +198,51 @@ public class AliasSpecification extends Specification implements ReservationTask
                 return aliasReservation;
             }
         };
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.AliasSpecification();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
+                (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
+        aliasSpecificationApi.setTechnology(getTechnology());
+        aliasSpecificationApi.setAliasType(getAliasType());
+        if (getResource() != null) {
+            aliasSpecificationApi.setResourceIdentifier(domain.formatIdentifier(getResource().getId()));
+        }
+        super.toApi(specificationApi, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.AliasSpecification aliasSpecificationApi =
+                (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
+        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.TECHNOLOGY)) {
+            setTechnology(aliasSpecificationApi.getTechnology());
+        }
+        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.ALIAS_TYPE)) {
+            setAliasType(aliasSpecificationApi.getAliasType());
+        }
+        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.RESOURCE_IDENTIFIER)) {
+            if (aliasSpecificationApi.getResourceIdentifier() == null) {
+                setResource(null);
+            }
+            else {
+                Long resourceId = domain.parseIdentifier(aliasSpecificationApi.getResourceIdentifier());
+                ResourceManager resourceManager = new ResourceManager(entityManager);
+                setResource(resourceManager.get(resourceId));
+            }
+        }
+        super.fromApi(specificationApi, entityManager, domain);
     }
 
     @Override

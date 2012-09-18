@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -181,179 +182,88 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * @param entityManager
-     * @param domain
-     * @return converted reservation request to API
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *
+     * @return converted capability to API
+     * @throws FaultException
      */
-    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(EntityManager entityManager, Domain domain)
-            throws FaultException
+    public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(Domain domain) throws FaultException
     {
-        throw new TodoImplementException();
-        /*cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest =
-                new cz.cesnet.shongo.controller.api.ReservationRequest();
-
-        reservationRequest.setIdentifier(domain.formatIdentifier(getId()));
-        reservationRequest.setCreated(getCreated());
-        reservationRequest.setType(getType());
-        reservationRequest.setName(getName());
-        reservationRequest.setDescription(getDescription());
-        reservationRequest.setPurpose(getPurpose());
-        reservationRequest.setInterDomain(isInterDomain());
-
-        for (DateTimeSlot dateTimeSlot : getRequestedSlots()) {
-            reservationRequest.addSlot(dateTimeSlot.toApi());
-        }
-
-        for (Compartment compartment : getRequestedCompartments()) {
-            reservationRequest.addCompartment(compartment.toApi(domain));
-        }
-
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(this);
-        for (CompartmentRequest compartmentRequest : compartmentRequestList) {
-            cz.cesnet.shongo.controller.api.ReservationRequest.Request request =
-                    new cz.cesnet.shongo.controller.api.ReservationRequest.Request();
-            request.setSlot(compartmentRequest.getRequestedSlot());
-            switch (compartmentRequest.getState()) {
-                case NOT_COMPLETE:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_COMPLETE);
-                    break;
-                case ALLOCATED:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATED);
-                    break;
-                case ALLOCATION_FAILED:
-                    request.setState(
-                            cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATION_FAILED);
-                    break;
-                default:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_ALLOCATED);
-                    break;
-            }
-            request.setStateReport(compartmentRequest.getReportText());
-            reservationRequest.addRequest(request);
-        }
-
-        return reservationRequest;*/
+        cz.cesnet.shongo.controller.api.AbstractReservationRequest api = createApi();
+        toApi(api, domain);
+        return api;
     }
 
     /**
-     * Synchronize reservation request from API
+     * @param api
+     * @param entityManager
+     * @return new instance of {@link Capability} from API
+     * @throws FaultException
+     */
+    public static AbstractReservationRequest createFromApi(
+            cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
+            Domain domain) throws FaultException
+    {
+        AbstractReservationRequest reservationRequest;
+        if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequest) {
+            reservationRequest = new ReservationRequest();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.ReservationRequestSet) {
+            reservationRequest = new ReservationRequestSet();
+        }
+        else {
+            throw new TodoImplementException();
+        }
+        reservationRequest.fromApi(api, entityManager, domain);
+        return reservationRequest;
+    }
+
+    /**
+     * @return new instance of {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
+     */
+    protected abstract cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi();
+
+    /**
+     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param domain
+     */
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+            throws FaultException
+    {
+        api.setId(getId().intValue());
+        api.setIdentifier(domain.formatIdentifier(getId()));
+        api.setCreated(getCreated());
+        api.setType(getType());
+        api.setName(getName());
+        api.setDescription(getDescription());
+        api.setPurpose(getPurpose());
+        api.setInterDomain(isInterDomain());
+    }
+
+    /**
+     * Synchronize {@link AbstractReservationRequest} from
+     * {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}.
      *
      * @param api
      * @param entityManager
-     * @param domain
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *
+     * @throws FaultException
      */
-    public <API extends cz.cesnet.shongo.controller.api.ReservationRequest>
-    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
+            Domain domain) throws FaultException
     {
-        throw new TodoImplementException();
-        /*// Modify attributes
-        if (api.isPropertyFilled(API.TYPE)) {
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.TYPE)) {
             setType(api.getType());
         }
-        if (api.isPropertyFilled(API.NAME)) {
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.NAME)) {
             setName(api.getName());
         }
-        if (api.isPropertyFilled(API.DESCRIPTION)) {
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.DESCRIPTION)) {
             setDescription(api.getDescription());
         }
-        if (api.isPropertyFilled(API.PURPOSE)) {
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.PURPOSE)) {
             setPurpose(api.getPurpose());
         }
-        if (api.isPropertyFilled(API.INTER_DOMAIN)) {
+        if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.INTER_DOMAIN)) {
             setInterDomain(api.getInterDomain());
         }
-
-        // Create/modify requested slots
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot apiSlot : api.getSlots()) {
-            // Create new requested slot
-            if (api.isCollectionItemMarkedAsNew(API.SLOTS, apiSlot)) {
-                fromApiCreateRequestedSlot(apiSlot);
-            }
-            else {
-                // Modify existing requested slot
-                DateTimeSlot dateTimeSlot = getRequestedSlotById(apiSlot.getId().longValue());
-                dateTimeSlot.setDuration(apiSlot.getDuration());
-
-                entityManager.remove(dateTimeSlot.getStart());
-
-                Object dateTime = apiSlot.getStart();
-                if (dateTime instanceof DateTime) {
-                    if (!(dateTimeSlot.getStart() instanceof AbsoluteDateTimeSpecification)
-                            || !((DateTime) dateTime).isEqual(((AbsoluteDateTimeSpecification) dateTimeSlot
-                            .getStart()).getDateTime())) {
-                        dateTimeSlot.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
-                    }
-                }
-                else if (dateTime instanceof PeriodicDateTime) {
-                    PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
-                    dateTimeSlot.setStart(new PeriodicDateTimeSpecification(periodic.getStart(),
-                            periodic.getPeriod(), periodic.getEnd()));
-                }
-            }
-        }
-        // Delete requested slots
-        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
-                api.getCollectionItemsMarkedAsDeleted(API.SLOTS);
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot apiSlot : apiDeletedSlots) {
-            removeRequestedSlot(getRequestedSlotById(apiSlot.getId().longValue()));
-        }
-
-        // Create/modify requested compartments
-        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : api.getSpecifications()) {
-            // Create/modify requested compartment
-            Compartment compartment = null;
-            if (api.isCollectionItemMarkedAsNew(API.COMPARTMENTS, apiCompartment)) {
-                compartment = addRequestedCompartment();
-            }
-            else {
-                compartment = getRequestedCompartmentById(apiCompartment.getId().longValue());
-            }
-            compartment.fromApi(apiCompartment, entityManager, domain);
-        }
-        // Delete requested compartments
-        Set<cz.cesnet.shongo.controller.api.Compartment> apiDeletedCompartments =
-                api.getCollectionItemsMarkedAsDeleted(API.COMPARTMENTS);
-        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : apiDeletedCompartments) {
-            removeRequestedCompartment(getRequestedCompartmentById(apiCompartment.getId().longValue()));
-        }*/
-
-        // TODO: Delete from db deleted compartments that aren't referenced from compartment requests
-        // TODO: Think up how to delete all other objects (e.g. slots)
-    }
-
-    /**
-     * Create new requested slot in given reservation request from the given
-     * {@link cz.cesnet.shongo.controller.api.DateTimeSlot}.
-     *
-     * @param dateTimeSlot
-     * @throws cz.cesnet.shongo.fault.FaultException
-     *
-     */
-    private void fromApiCreateRequestedSlot(cz.cesnet.shongo.controller.api.DateTimeSlot dateTimeSlot)
-            throws FaultException
-    {
-        throw new TodoImplementException();
-        /*Object dateTime = dateTimeSlot.getStart();
-        if (dateTime instanceof DateTime) {
-            addRequestedSlot(
-                    new AbsoluteDateTimeSpecification((DateTime) dateTime),
-                    dateTimeSlot.getDuration());
-        }
-        else if (dateTime instanceof PeriodicDateTime) {
-            PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
-            addRequestedSlot(
-                    new PeriodicDateTimeSpecification(periodic.getStart(),
-                            periodic.getPeriod()), dateTimeSlot.getDuration());
-        }
-        else {
-            throw new FaultException("Unknown date/time type.");
-        }*/
     }
 
     @Override

@@ -2,8 +2,13 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.util.ClassHelper;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import java.util.Map;
@@ -52,56 +57,77 @@ public abstract class Specification extends PersistentObject
         return newSpecification;
     }
 
-    /*public abstract cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException;
-
-    protected final void toApi(cz.cesnet.shongo.controller.api.ResourceSpecification api)
+    /**
+     * @return {@link Specification} converted to {@link cz.cesnet.shongo.controller.api.Specification}
+     * @param domain
+     */
+    public final cz.cesnet.shongo.controller.api.Specification toApi(Domain domain)
     {
-        api.setId(getId().intValue());
-        for (Person person : requestedPersons) {
-            api.addPerson(person.toApi());
-        }
+        cz.cesnet.shongo.controller.api.Specification api = createApi();
+        toApi(api, domain);
+        return api;
     }
 
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
-            Domain domain) throws FaultException
+    /**
+     * @param api from which {@link Specification} should be created
+     * @return new instance of {@link Specification} for given {@code api}
+     */
+    public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
+            EntityManager entityManager, Domain domain)
     {
-        // Create/modify requested persons
-        for (cz.cesnet.shongo.controller.api.Person apiPerson : api.getPersons()) {
-            Person person;
-            if (api.isCollectionItemMarkedAsNew(api.PERSONS, apiPerson)) {
-                person = new Person();
-                addRequestedPerson(person);
-            }
-            else {
-                person = getRequestedPersonById(apiPerson.getId().longValue());
-            }
-            person.fromApi(apiPerson);
+        Specification specification = null;
+        if (api instanceof cz.cesnet.shongo.controller.api.CompartmentSpecification) {
+            specification = new CompartmentSpecification();
         }
-        // Delete requested persons
-        Set<cz.cesnet.shongo.controller.api.Person> apiDeletedPersons =
-                api.getCollectionItemsMarkedAsDeleted(api.PERSONS);
-        for (cz.cesnet.shongo.controller.api.Person apiPerson : apiDeletedPersons) {
-            removeRequestedPerson(getRequestedPersonById(apiPerson.getId().longValue()));
-        }
-    }
-
-    public static ResourceSpecification fromAPI(cz.cesnet.shongo.controller.api.ResourceSpecification api,
-            EntityManager entityManager, Domain domain) throws FaultException
-    {
-        ResourceSpecification resourceSpecification;
-        if (api instanceof cz.cesnet.shongo.controller.api.ExistingResourceSpecification) {
-            resourceSpecification = new ExistingEndpointSpecification();
-        }
-        else if (api instanceof cz.cesnet.shongo.controller.api.LookupResourceSpecification) {
-            resourceSpecification = new LookupEndpointSpecification();
+        else if (api instanceof cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) {
+            specification = new ExistingEndpointSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) {
-            resourceSpecification = new ExternalEndpointSpecification();
+            specification = new ExternalEndpointSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.LookupEndpointSpecification) {
+            specification = new LookupEndpointSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.PersonSpecification) {
+            specification = new PersonSpecification();
         }
         else {
-            throw new TodoImplementException();
+            throw new TodoImplementException(api.getClass().getCanonicalName());
         }
-        resourceSpecification.fromApi(api, entityManager, domain);
-        return resourceSpecification;
-    }*/
+        try {
+            specification.fromApi(api, entityManager, domain);
+        }
+        catch (FaultException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        return specification;
+    }
+
+    /**
+     * @return new instance of {@link cz.cesnet.shongo.controller.api.Specification}
+     */
+    protected abstract cz.cesnet.shongo.controller.api.Specification createApi();
+
+    /**
+     * Synchronize to {@link cz.cesnet.shongo.controller.api.Specification}.
+     *
+     * @param specificationApi which should be filled from this {@link cz.cesnet.shongo.controller.request.Specification}
+     * @param domain
+     */
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        specificationApi.setId(getId().intValue());
+    }
+
+    /**
+     * Synchronize from {@link cz.cesnet.shongo.controller.api.Specification}.
+     *
+     * @param specificationApi from which this {@link Specification} should be filled
+     * @param entityManager
+     * @param domain
+     */
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain) throws FaultException
+    {
+    }
 }

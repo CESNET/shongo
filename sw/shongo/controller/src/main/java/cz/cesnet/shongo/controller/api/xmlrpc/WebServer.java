@@ -14,6 +14,7 @@ import org.apache.xmlrpc.webserver.RequestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.xml.sax.SAXException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -423,10 +424,20 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
         @Override
         protected Throwable convertThrowable(Throwable pError)
         {
-            if (pError instanceof RuntimeException) {
+            if (pError instanceof RuntimeException || pError instanceof SAXException) {
                 Throwable cause = pError.getCause();
                 if (cause instanceof Fault) {
                     return WebServer.convertException((Fault) cause, cause.getCause());
+                }
+            }
+            if (pError instanceof XmlRpcException) {
+                XmlRpcException xmlRpcException = (XmlRpcException) pError;
+                Throwable cause = xmlRpcException.getCause();
+                if (cause != null) {
+                    Throwable newCause = convertThrowable(cause);
+                    if (newCause != cause) {
+                        return newCause;
+                    }
                 }
             }
             return pError;
