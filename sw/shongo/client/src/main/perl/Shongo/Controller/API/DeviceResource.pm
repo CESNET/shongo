@@ -59,18 +59,14 @@ sub on_create()
 #
 # On modify
 #
-sub on_modify()
+sub on_modify_loop()
 {
     my ($self, $actions) = @_;
 
     append_technologies_actions($actions, \$self->{'technologies'});
 }
 
-#
-# Modify resource attributes
-#
-# @param $edit
-#
+# @Override
 sub modify_attributes()
 {
     my ($self, $edit) = @_;

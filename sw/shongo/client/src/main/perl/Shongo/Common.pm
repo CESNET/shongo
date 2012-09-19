@@ -255,7 +255,11 @@ sub format_date
 sub format_datetime_partial
 {
     my ($dateTime) = @_;
-    return sprintf("%s", $dateTime);
+    if ( defined($dateTime) ) {
+        return sprintf("%s", $dateTime);
+    } else {
+        return "";
+    }
 }
 
 #
@@ -266,10 +270,11 @@ sub format_datetime_partial
 sub format_interval
 {
     my ($interval) = @_;
-    if ( $interval =~ m/(.*)\/(.*)/ ) {
+    if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         return sprintf("%s, %s", format_datetime($1), $2);
+    } else {
+        return "";
     }
-    return undef;
 }
 
 #

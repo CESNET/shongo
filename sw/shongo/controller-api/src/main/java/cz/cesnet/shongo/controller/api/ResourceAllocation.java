@@ -30,7 +30,7 @@ public class ResourceAllocation
     /**
      * {@link ResourceReservation} of the resource.
      */
-    private List<ResourceReservation> reservations = new ArrayList<ResourceReservation>();
+    private List<Reservation> reservations = new ArrayList<Reservation>();
 
     /**
      * @return {@link #identifier}
@@ -83,7 +83,7 @@ public class ResourceAllocation
     /**
      * @return {@link #reservations}
      */
-    public List<ResourceReservation> getReservations()
+    public List<Reservation> getReservations()
     {
         return reservations;
     }
@@ -91,7 +91,7 @@ public class ResourceAllocation
     /**
      * @param reservations sets the {@link #reservations}
      */
-    public void setReservations(List<ResourceReservation> reservations)
+    public void setReservations(List<Reservation> reservations)
     {
         this.reservations = reservations;
     }
@@ -99,7 +99,7 @@ public class ResourceAllocation
     /**
      * @param reservation to be added to the {@link #reservations}
      */
-    public void addReservation(ResourceReservation reservation)
+    public void addReservation(Reservation reservation)
     {
         reservations.add(reservation);
     }

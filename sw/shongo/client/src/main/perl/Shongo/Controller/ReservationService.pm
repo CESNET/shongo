@@ -11,7 +11,9 @@ use Text::Table;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller::API::ReservationRequestAbstract;
 use Shongo::Controller::API::ReservationRequest;
+use Shongo::Controller::API::ReservationRequestSet;
 use Shongo::Controller::API::Alias;
 
 #
@@ -98,7 +100,19 @@ sub create_reservation()
 {
     my ($attributes) = @_;
 
-    my $identifier = Shongo::Controller::API::ReservationRequest->new()->create($attributes);
+    my $type = console_read_enum('Select type of reservation request', ordered_hash(
+        'ReservationRequest' => 'Single Reservation Request',
+        'ReservationRequestSet' => 'Set of Reservation Requests'
+    ));
+    if ( !defined($type) ) {
+        return;
+    }
+    my $identifier = undef;
+    if ($type eq 'ReservationRequest') {
+        $identifier = Shongo::Controller::API::ReservationRequest->new()->create($attributes);
+    } elsif ($type eq 'ReservationRequestSet') {
+        $identifier = Shongo::Controller::API::ReservationRequestSet->new()->create($attributes);
+    }
     if ( defined($identifier) ) {
         console_print_info("Reservation request '%s' successfully created.", $identifier);
     }
@@ -116,7 +130,7 @@ sub modify_reservation()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::Controller::API::ReservationRequest->new()->from_xml($result);
+        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_xml($result);
         if ( defined($reservation_request) ) {
             $reservation_request->modify();
         }
@@ -177,7 +191,7 @@ sub get_reservation()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::Controller::API::ReservationRequest->new()->from_xml($result);
+        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_xml($result);
         if ( defined($reservation_request) ) {
             printf("\n%s\n", $reservation_request->to_string());
         }
@@ -192,22 +206,22 @@ sub get_reservation_allocation()
         return;
     }
     my $result = Shongo::Controller->instance()->secure_request(
-        'Reservation.listAllocatedCompartments',
+        'Reservation.listReservations',
         RPC::XML::string->new($identifier)
     );
     if ( $result->is_fault ) {
         return;
     }
-    my $allocated_compartments = $result->value();
-    if (get_collection_size($allocated_compartments) == 0) {
+    my $reservations = $result->value();
+    if (get_collection_size($reservations) == 0) {
         return;
     }
     print("\n");
     my $index = 0;
-    foreach my $allocated_compartment (@{$allocated_compartments}) {
+    foreach my $reservation (@{$reservations}) {
         $index++;
-        printf("%d) %s\n", $index, format_interval($allocated_compartment->{'slot'}));
-        foreach my $allocated_resource (@{$allocated_compartment->{'allocatedItems'}}) {
+        printf("%d) %s\n", $index, format_interval($reservation->{'slot'}));
+        foreach my $allocated_resource (@{$reservation->{'childReservations'}}) {
             my $class = $allocated_resource->{'class'};
             my $skip = 0;
             if ( $class eq 'AllocatedResource') {

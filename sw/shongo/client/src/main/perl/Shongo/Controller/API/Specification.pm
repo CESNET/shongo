@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::ResourceSpecification;
+package Shongo::Controller::API::Specification;
 use base qw(Shongo::Controller::API::Object);
 
 use strict;

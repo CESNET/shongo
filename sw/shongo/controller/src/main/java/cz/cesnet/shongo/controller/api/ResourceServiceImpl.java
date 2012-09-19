@@ -4,12 +4,14 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -211,7 +213,7 @@ public class ResourceServiceImpl extends Component
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceIdentifier, Interval interval)
             throws EntityNotFoundException
     {
-        /*Long resourceId = domain.parseIdentifier(resourceIdentifier);
+        Long resourceId = domain.parseIdentifier(resourceIdentifier);
         if (interval == null) {
             interval = cache.getWorkingInterval();
             if (interval == null) {
@@ -245,25 +247,23 @@ public class ResourceServiceImpl extends Component
         resourceAllocation.setInterval(interval);
 
         // Fill resource allocations
-        Collection<cz.cesnet.shongo.controller.allocationaold.AllocatedResource> resourceAllocations =
+        Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
                 resourceManager.listResourceReservationsInInterval(resourceId, interval);
-        for (cz.cesnet.shongo.controller.allocationaold.AllocatedResource allocatedResourceImpl : resourceAllocations) {
-            resourceAllocation.addReservation(allocatedResourceImpl.toApi(domain));
+        for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
+            resourceAllocation.addReservation(resourceReservation.toApi(domain));
         }
 
         // Fill alias allocations
         List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
                 resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
         for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
-            List<cz.cesnet.shongo.controller.allocationaold.AllocatedAlias> allocatedAliasImpls =
+            List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
                     resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
-            for (cz.cesnet.shongo.controller.allocationaold.AllocatedAlias allocatedAliasImpl : allocatedAliasImpls) {
-                resourceAllocation.addReservation(allocatedAliasImpl.toApi(domain));
+            for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
+                resourceAllocation.addReservation(aliasReservation.toApi(domain));
             }
         }
 
-        return resourceAllocation;*/
-
-        throw new TodoImplementException();
+        return resourceAllocation;
     }
 }

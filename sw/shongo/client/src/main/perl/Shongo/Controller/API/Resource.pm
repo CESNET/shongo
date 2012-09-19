@@ -111,11 +111,6 @@ sub modify()
     }
 }
 
-sub on_modify()
-{
-    my ($self, $actions) = @_;
-}
-
 #
 # Run modify loop
 #
@@ -133,7 +128,7 @@ sub modify_loop()
                     return undef;
                 }
             );
-            $self->on_modify(\@actions);
+            $self->on_modify_loop(\@actions);
             push(@actions, 'Add new capability' => sub {
                 my $capability = Shongo::Controller::API::Capability->new();
                 $capability = $capability->create();
@@ -169,6 +164,14 @@ sub modify_loop()
             return ordered_hash(@actions);
         }
     );
+}
+
+#
+# On modify loop
+#
+sub on_modify_loop()
+{
+    my ($self, $actions) = @_;
 }
 
 #
