@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.api.Capability;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -182,7 +181,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * @return converted capability to API
+     * @return converted {@link AbstractReservationRequest}
+     *         to {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
      * @throws FaultException
      */
     public cz.cesnet.shongo.controller.api.AbstractReservationRequest toApi(Domain domain) throws FaultException
@@ -195,7 +195,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @param api
      * @param entityManager
-     * @return new instance of {@link Capability} from API
+     * @return new instance of {@link AbstractReservationRequest} from
+     *         {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest}
      * @throws FaultException
      */
     public static AbstractReservationRequest createFromApi(
@@ -222,7 +223,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected abstract cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi();
 
     /**
-     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param api    {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
      * @param domain
      */
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)

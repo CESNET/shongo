@@ -273,7 +273,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         ReservationRequest reservationRequest = reservationRequests.get(0);
 
         ReservationManager reservationManager = new ReservationManager(getEntityManager());
-        List<Reservation> reservations = reservationManager.listByReservationRequestSet(reservationRequestSet);
+        List<Reservation> reservations = reservationManager.listByReservationRequest(reservationRequestSet);
         if (reservations.size() == 0) {
             System.err.println(reservationRequest.getReportText());
             Thread.sleep(100);

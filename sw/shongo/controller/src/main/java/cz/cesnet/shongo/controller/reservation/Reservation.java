@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.Domain;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -188,6 +189,40 @@ public abstract class Reservation extends PersistentObject
         for (Reservation childReservation : childReservations) {
             reservations.add(childReservation);
             childReservation.getNestedReservations(reservations);
+        }
+    }
+
+    /**
+     * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
+     */
+    public cz.cesnet.shongo.controller.api.Reservation toApi(Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.Reservation api = createApi();
+        toApi(api, domain);
+        return api;
+    }
+
+    /**
+     * @return new instance of {@link cz.cesnet.shongo.controller.api.Reservation}
+     */
+    protected cz.cesnet.shongo.controller.api.Reservation createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.Reservation();
+    }
+
+    /**
+     * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
+     * @param domain
+     */
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    {
+        api.setResourceIdentifier(domain.formatIdentifier(getId()));
+        api.setSlot(getSlot());
+        if (getParentReservation() != null) {
+            api.setParentReservationIdentifier(domain.formatIdentifier(getParentReservation().getId()));
+        }
+        for (Reservation childReservation : getChildReservations()) {
+            api.addChildReservationIdentifier(domain.formatIdentifier(childReservation.getId()));
         }
     }
 }

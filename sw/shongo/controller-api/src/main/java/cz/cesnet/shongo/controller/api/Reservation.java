@@ -13,7 +13,12 @@ import java.util.List;
 public class Reservation
 {
     /**
-     * Slot fot which the compartment is allocated.
+     * Identifier of the {@link Reservation}.
+     */
+    private String identifier;
+
+    /**
+     * Slot fot which the {@link Reservation} is allocated.
      */
     private Interval slot;
 
@@ -81,5 +86,21 @@ public class Reservation
     public void addChildReservationIdentifier(String childReservationIdentifier)
     {
         childReservationIdentifiers.add(childReservationIdentifier);
+    }
+
+    /**
+     * @return {@link #identifier}
+     */
+    public String getResourceIdentifier()
+    {
+        return identifier;
+    }
+
+    /**
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setResourceIdentifier(String identifier)
+    {
+        this.identifier = identifier;
     }
 }

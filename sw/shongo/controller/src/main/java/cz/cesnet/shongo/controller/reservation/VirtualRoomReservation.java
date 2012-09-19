@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -42,5 +43,20 @@ public class VirtualRoomReservation extends EndpointReservation
     public Endpoint getEndpoint()
     {
         throw new TodoImplementException();
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.Reservation createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.VirtualRoomReservation();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.VirtualRoomReservation virtualRoomReservationApi =
+                (cz.cesnet.shongo.controller.api.VirtualRoomReservation) api;
+        virtualRoomReservationApi.setPortCount(getPortCount());
+        super.toApi(api, domain);
     }
 }

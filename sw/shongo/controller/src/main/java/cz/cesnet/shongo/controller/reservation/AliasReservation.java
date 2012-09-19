@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 
@@ -59,18 +60,18 @@ public class AliasReservation extends Reservation
         this.alias = alias;
     }
 
-    /*@Override
-    protected cz.cesnet.shongo.controller.api.AllocatedItem createApi()
+    @Override
+    protected cz.cesnet.shongo.controller.api.Reservation createApi()
     {
-        return new cz.cesnet.shongo.controller.api.AllocatedAlias();
+        return new cz.cesnet.shongo.controller.api.AliasReservation();
     }
 
     @Override
-    protected void toApi(cz.cesnet.shongo.controller.api.AllocatedItem api, Domain domain)
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
     {
-        cz.cesnet.shongo.controller.api.AllocatedAlias apiAllocatedAlias =
-                (cz.cesnet.shongo.controller.api.AllocatedAlias) api;
-        apiAllocatedAlias.setAlias(getAlias().toApi());
+        cz.cesnet.shongo.controller.api.AliasReservation aliasReservationApi =
+                (cz.cesnet.shongo.controller.api.AliasReservation) api;
+        aliasReservationApi.setAlias(getAlias().toApi());
         super.toApi(api, domain);
-    }*/
+    }
 }

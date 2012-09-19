@@ -2,13 +2,17 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Reservation service implementation
@@ -120,36 +124,47 @@ public class ReservationServiceImpl extends Component
     @Override
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
     {
-        throw new TodoImplementException();
-        /*EntityManager entityManager = entityManagerFactory.createEntityManager();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.oldrequest.ReservationRequest> list = reservationRequestManager.list();
+        List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> list = reservationRequestManager.list();
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
-        for (cz.cesnet.shongo.controller.oldrequest.ReservationRequest reservationRequest : list) {
+        for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : list) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
-            summary.setIdentifier(domain.formatIdentifier(reservationRequest.getId()));
+            summary.setIdentifier(domain.formatIdentifier(abstractReservationRequest.getId()));
 
             Interval earliestSlot = null;
-            for (DateTimeSlotSpecification slot : reservationRequest.getRequestedSlots()) {
-                Interval interval = slot.getEarliest(null);
-                if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
-                    earliestSlot = interval;
+            if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+                cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                        (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+                earliestSlot = reservationRequest.getRequestedSlot();
+            }
+            else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
+                cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
+                        (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
+                for (DateTimeSlotSpecification slot : reservationRequestSet.getRequestedSlots()) {
+                    Interval interval = slot.getEarliest(null);
+                    if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
+                        earliestSlot = interval;
+                    }
                 }
             }
+            else {
+                throw new TodoImplementException(abstractReservationRequest.getClass().getCanonicalName());
+            }
 
-            summary.setCreated(reservationRequest.getCreated());
-            summary.setType(reservationRequest.getType());
-            summary.setName(reservationRequest.getName());
-            summary.setPurpose(reservationRequest.getPurpose());
-            summary.setDescription(reservationRequest.getDescription());
+            summary.setCreated(abstractReservationRequest.getCreated());
+            summary.setType(abstractReservationRequest.getType());
+            summary.setName(abstractReservationRequest.getName());
+            summary.setPurpose(abstractReservationRequest.getPurpose());
+            summary.setDescription(abstractReservationRequest.getDescription());
             summary.setEarliestSlot(earliestSlot);
             summaryList.add(summary);
         }
 
         entityManager.close();
 
-        return summaryList;*/
+        return summaryList;
     }
 
     @Override
@@ -174,21 +189,20 @@ public class ReservationServiceImpl extends Component
     public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestIdentifier)
             throws FaultException
     {
-        throw new TodoImplementException();
-        /*Long id = domain.parseIdentifier(reservationRequestIdentifier);
+        Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.allocation.AllocatedCompartment> allocatedCompartments =
-                allocatedCompartmentManager.listByReservationRequest(id);
-        List<AllocatedCompartment> allocatedCompartmentList = new ArrayList<AllocatedCompartment>();
-        for (cz.cesnet.shongo.controller.allocation.AllocatedCompartment allocation : allocatedCompartments) {
-            allocatedCompartmentList.add(allocation.toApi(domain));
+        List<cz.cesnet.shongo.controller.reservation.Reservation> reservationImpls =
+                reservationManager.listByReservationRequest(id);
+        List<Reservation> reservations = new ArrayList<Reservation>();
+        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservationImpls) {
+            reservations.add(reservation.toApi(domain));
         }
 
         entityManager.close();
 
-        return allocatedCompartmentList;*/
+        return reservations;
     }
 }

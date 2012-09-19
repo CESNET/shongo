@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.ReservationRequestSet;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -84,33 +84,37 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param reservationRequestSet from which the {@link Reservation}s should be
-     *                              returned.
-     * @return list of {@link Reservation}s from given {@code reservationRequestSet}
+     * @param reservationRequest from which the {@link Reservation}s should be
+     *                           returned.
+     * @return list of {@link Reservation}s from given {@code reservationRequest}
      */
-    public List<Reservation> listByReservationRequestSet(ReservationRequestSet reservationRequestSet)
+    public List<Reservation> listByReservationRequest(AbstractReservationRequest reservationRequest)
     {
-        return listByReservationRequestSet(reservationRequestSet.getId());
+        return listByReservationRequest(reservationRequest.getId());
     }
 
     /**
-     * @param reservationRequestSetId for {@link ReservationRequestSet} from which the {@link Reservation}s should be
-     *                                returned.
-     * @return list of {@link Reservation}s from {@link ReservationRequestSet} with
+     * @param reservationRequestId for {@link AbstractReservationRequest} from which the {@link Reservation}s should be
+     *                             returned.
+     * @return list of {@link Reservation}s from {@link AbstractReservationRequest} with
      *         given {@code reservationRequestId}
      */
-    public List<Reservation> listByReservationRequestSet(Long reservationRequestSetId)
+    public List<Reservation> listByReservationRequest(Long reservationRequestId)
     {
-        List<Reservation> allocatedCompartments = entityManager.createQuery(
+        List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " WHERE reservation.id IN ("
-                        + " SELECT reservationRequest.reservation.id FROM ReservationRequestSet reservationRequestSet"
-                        + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + " WHERE reservationRequestSet.id = :id)",
+                        + " WHERE reservation IN ("
+                        + "   SELECT reservationRequest.reservation FROM ReservationRequestSet reservationRequestSet"
+                        + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                        + "   WHERE reservationRequestSet.id = :id"
+                        + " ) OR reservation IN ("
+                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
+                        + "   WHERE reservationRequest.id = :id"
+                        + " )",
                 Reservation.class)
-                .setParameter("id", reservationRequestSetId)
+                .setParameter("id", reservationRequestId)
                 .getResultList();
-        return allocatedCompartments;
+        return reservations;
     }
 
     /**
@@ -139,9 +143,8 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " WHERE reservation.parentReservation IS NULL AND reservation.id NOT IN("
-                        + " SELECT reservationRequest.reservation.id FROM ReservationRequest reservationRequest"
-                        + " WHERE reservationRequest.reservation.id IS NOT NULL)",
+                        + " WHERE reservation.parentReservation IS NULL AND reservation NOT IN("
+                        + " SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)",
                 Reservation.class)
                 .getResultList();
         for (Reservation reservation : reservations) {

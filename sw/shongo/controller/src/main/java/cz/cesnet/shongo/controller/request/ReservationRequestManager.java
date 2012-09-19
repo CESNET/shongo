@@ -158,11 +158,11 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * @return list all reservation requests in the database.
      */
-    public List<ReservationRequest> list()
+    public List<AbstractReservationRequest> list()
     {
-        List<ReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest FROM ReservationRequest reservationRequest",
-                        ReservationRequest.class)
+        List<AbstractReservationRequest> reservationRequestList = entityManager
+                .createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest",
+                        AbstractReservationRequest.class)
                 .getResultList();
         return reservationRequestList;
     }
@@ -267,10 +267,6 @@ public class ReservationRequestManager extends AbstractManager
      */
     public List<ReservationRequest> listCompletedReservationRequests(Interval interval)
     {
-        List<ReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest FROM ReservationRequest reservationRequest",
-                        ReservationRequest.class)
-                .getResultList();
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :state"

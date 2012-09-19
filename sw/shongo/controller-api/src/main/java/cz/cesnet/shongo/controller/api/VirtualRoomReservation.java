@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomReservation extends EndpointReservation
+public class VirtualRoomReservation extends ResourceReservation
 {
     /**
      * Number of ports available for the virtual room.

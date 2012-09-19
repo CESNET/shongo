@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.Entity;
@@ -54,5 +55,21 @@ public class ResourceReservation extends Reservation
 
             resourceReservation.addChildReservationsForResourceParents(cacheTransaction);
         }
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.Reservation createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.ResourceReservation();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
+                (cz.cesnet.shongo.controller.api.ResourceReservation) api;
+        resourceReservationApi.setResourceIdentifier(domain.formatIdentifier(getResource().getId()));
+        resourceReservationApi.setName(getResource().getName());
+        super.toApi(api, domain);
     }
 }

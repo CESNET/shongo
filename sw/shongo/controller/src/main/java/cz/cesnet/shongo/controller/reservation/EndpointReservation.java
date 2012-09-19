@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.compartment.ResourceEndpoint;
