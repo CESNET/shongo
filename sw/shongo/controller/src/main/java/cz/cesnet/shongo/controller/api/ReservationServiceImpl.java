@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -72,6 +73,10 @@ public class ReservationServiceImpl extends Component
                 cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                         reservationRequest, entityManager, domain);
 
+        if (reservationRequestImpl instanceof ReservationRequest) {
+            ((ReservationRequest) reservationRequestImpl).updateStateBySpecifications();
+        }
+
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         reservationRequestManager.create(reservationRequestImpl);
 
@@ -95,6 +100,17 @@ public class ReservationServiceImpl extends Component
         cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
         reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
+
+        if (reservationRequestImpl instanceof ReservationRequest) {
+            ReservationRequest singleReservationRequestImpl = (ReservationRequest) reservationRequestImpl;
+            // Reservation request was modified, so we must clear it's state
+            singleReservationRequestImpl.clearState();
+            // And if allocated reservation exists, we remove reference to it and it will be deleted
+            // at the start of the Scheduler
+            singleReservationRequestImpl.setReservation(null);
+            // Update state
+            singleReservationRequestImpl.updateStateBySpecifications();
+        }
 
         reservationRequestManager.update(reservationRequestImpl);
 

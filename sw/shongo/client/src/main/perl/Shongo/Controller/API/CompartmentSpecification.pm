@@ -1,8 +1,8 @@
 #
 # Reservation request
 #
-package Shongo::Controller::API::Compartment;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::Controller::API::CompartmentSpecification;
+use base qw(Shongo::Controller::API::Specification);
 
 use strict;
 use warnings;
@@ -10,7 +10,6 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Resource;
-use Shongo::Controller::API::ResourceSpecification;
 
 #
 # Create a new instance of compartment
@@ -20,11 +19,11 @@ use Shongo::Controller::API::ResourceSpecification;
 sub new
 {
     my $class = shift;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::Controller::API::Specification->new(@_);
     bless $self, $class;
 
-    $self->{'resources'} = [];
-    $self->{'persons'} = [];
+    $self->{'class'} = 'CompartmentSpecification';
+    $self->{'specifications'} = [];
 
     return $self;
 }
@@ -32,39 +31,13 @@ sub new
 #
 # Get count of requested resources in compartment
 #
-sub get_resources_count()
+sub get_specifications_count()
 {
     my ($self) = @_;
-    return get_collection_size($self->{'resources'});
+    return get_collection_size($self->{'specifications'});
 }
 
-#
-# Get count of requested persons in compartment
-#
-sub get_persons_count()
-{
-    my ($self) = @_;
-    return get_collection_size($self->{'persons'});
-}
-
-#
-# Create a new instance of compartment
-#
-# @static
-#
-sub create
-{
-    my $self = new(@_);
-
-    if ( $self->modify_loop() ) {
-        return $self;
-    }
-    return undef;
-}
-
-#
-# Modify compartment
-#
+# @Override
 sub modify()
 {
     my ($self) = @_;
@@ -85,48 +58,36 @@ sub modify_loop()
         },
         sub {
             my @actions = ();
-            push(@actions, 'Add new requested resource' => sub {
-                my $resource = Shongo::Controller::API::ResourceSpecification->new();
-                $resource = $resource->create();
-                if ( defined($resource) ) {
-                    add_collection_item(\$self->{'resources'}, $resource);
+            push(@actions, (
+                'Modify attributes' => sub {
+                    $self->modify_attributes(1);
+                    return undef;
+                },
+                'Add new specification' => sub {
+                    my $specification = Shongo::Controller::API::Specification->create();
+                    if ( defined($specification) ) {
+                        add_collection_item(\$self->{'specifications'}, $specification);
+                    }
+                    return undef;
                 }
-                return undef;
-            });
-            if ( $self->get_resources_count() > 0 ) {
-                push(@actions, 'Modify existing requested resource' => sub {
-                    my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
+            ));
+            if ( $self->get_specifications_count() > 0 ) {
+                push(@actions, 'Modify existing specification' => sub {
+                    my $index = console_read_choice("Type a number of specification", 0, $self->get_specifications_count());
                     if ( defined($index) ) {
-                        get_collection_item($self->{'resources'}, $index - 1)->modify();
+                        get_collection_item($self->{'specifications'}, $index - 1)->modify();
                     }
                     return undef;
                 });
-                push(@actions, 'Remove existing requested resource' => sub {
-                    my $index = console_read_choice("Type a number of requested resource", 0, $self->get_resources_count());
+                push(@actions, 'Remove existing specification' => sub {
+                    my $index = console_read_choice("Type a number of specification", 0, $self->get_specifications_count());
                     if ( defined($index) ) {
-                        remove_collection_item(\$self->{'resources'}, $index - 1);
+                        remove_collection_item(\$self->{'specifications'}, $index - 1);
                     }
                     return undef;
                 });
             }
-            push(@actions, 'Add new requested person' => sub {
-                my $name = console_read_value("Name");
-                my $email = console_read_value("Email");
-                if ( defined($name) && defined($email) ) {
-                    add_collection_item(\$self->{'persons'}, {'name' => $name, 'email' => $email});
-                }
-                return undef;
-            });
-            if ( $self->get_persons_count() > 0 ) {
-                push(@actions, 'Remove existing requested person' => sub {
-                    my $index = console_read_choice("Type a number of requested person", 0, $self->get_persons_count());
-                    if ( defined($index) ) {
-                        remove_collection_item(\$self->{'persons'}, $index - 1);
-                    }
-                    return undef;
-                });
-            }
-            push(@actions, 'Finish modifying compartment' => sub {
+            push(@actions, 'Finish modifying specification' => sub {
                 return 1;
             });
             return ordered_hash(@actions);
@@ -134,38 +95,57 @@ sub modify_loop()
     );
 }
 
+#
+# Modify attributes
+#
+sub modify_attributes()
+{
+    my ($self, $edit) = @_;
+
+    my $callInitiation = $self->{'callInitiation'};
+    if ( !defined($callInitiation) ) {
+        $callInitiation = 'DEFAULT';
+    }
+    $callInitiation = console_auto_enum($edit, 'Select call initiation', $Shongo::Controller::API::Specification::CallInitiation, $self->{'callInitiation'});
+    if ( $callInitiation eq 'DEFAULT' ) {
+        $callInitiation = undef;
+    }
+    $self->{'callInitiation'} = $callInitiation;
+}
+
 # @Override
 sub create_value_instance
 {
     my ($self, $class, $attribute) = @_;
-    if ( $attribute eq 'resources' ) {
-        return Shongo::Controller::API::ResourceSpecification->new();
+    if ( $attribute eq 'specifications' && !($class eq 'CompartmentSpecification')) {
+        return Shongo::Controller::API::Specification->new();
     }
     return $self->SUPER::create_value_instance($class, $attribute);
 }
 
 # @Override
-sub to_string()
+sub to_string_attributes
 {
     my ($self) = @_;
+    my $string = '';
+    my $callInitiation = $self->{'callInitiation'};
+    if ( !defined($callInitiation) ) {
+        $callInitiation = 'DEFAULT';
+    }
+    $string .= sprintf(" Call initiation: %s\n", $Shongo::Controller::API::Specification::CallInitiation->{$callInitiation});
+    return $string;
+}
 
-    my $string = " COMPARTMENT\n";
-    $string .= " Requested resources:\n";
-    if ( $self->get_resources_count() > 0) {
-        for ( my $index = 0; $index < $self->get_resources_count(); $index++ ) {
-            my $resource = get_collection_item($self->{'resources'}, $index);
-            $string .= sprintf("   %d) %s", $index + 1, $resource->to_string());
-        }
-    }
-    else {
-        $string .= "   -- None --\n";
-    }
-    $string .= " Requested persons:\n";
-    if ( $self->get_persons_count() > 0) {
-        for ( my $index = 0; $index < $self->get_persons_count(); $index++ ) {
-            my $person = get_collection_item($self->{'persons'}, $index);
-            $string .= sprintf("   %d) Name: %s, Email: %s\n", $index + 1,
-                $person->{'name'}, $person->{'email'});
+# @Override
+sub to_string_collections
+{
+    my ($self) = @_;
+    my $string = "";
+    $string .= " Specifications:\n";
+    if ( $self->get_specifications_count() > 0) {
+        for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
+            my $specification = get_collection_item($self->{'specifications'}, $index);
+            $string .= sprintf("   %d) %s", $index + 1, indent_block($specification->to_string_short(), 0, 6));
         }
     }
     else {
@@ -173,7 +153,5 @@ sub to_string()
     }
     return $string;
 }
-
-
 
 1;

@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 /**
- * Represents a {@link EndpointReservation} for a virtual room.
+ * Represents a {@link ResourceReservation} for a virtual room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

@@ -111,6 +111,7 @@ public abstract class Reservation extends PersistentObject
      * @return {@link #parentReservation}
      */
     @ManyToOne
+    @Access(AccessType.FIELD)
     public Reservation getParentReservation()
     {
         return parentReservation;
@@ -216,7 +217,7 @@ public abstract class Reservation extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
     {
-        api.setResourceIdentifier(domain.formatIdentifier(getId()));
+        api.setIdentifier(domain.formatIdentifier(getId()));
         api.setSlot(getSlot());
         if (getParentReservation() != null) {
             api.setParentReservationIdentifier(domain.formatIdentifier(getParentReservation().getId()));

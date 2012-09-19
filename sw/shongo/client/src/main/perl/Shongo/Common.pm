@@ -16,6 +16,7 @@ our @EXPORT = qw(
     format_datetime format_date format_datetime_partial format_interval
     var_dump
     get_home_directory get_term_width
+    indent_block
 );
 
 use DateTime::Format::ISO8601;
@@ -302,6 +303,31 @@ sub get_term_width
     use Term::ReadKey;
     my ($wchar, $hchar, $wpixels, $hpixels) = GetTerminalSize();
     return $wchar
+}
+
+#
+# Indent block
+#
+# @param $block
+# @param $indent_first
+# @param $size
+#
+sub indent_block
+{
+    my ($block, $indent_first, $size) = @_;
+    if ( !defined($size) ) {
+        $size = 2;
+    }
+    my $indent = '';
+    for ( my $index = 0; $index < $size; $index++ ) {
+        $indent .= ' ';
+    }
+    $block =~ s/\n/\n$indent/g;
+    $block =~ s/\n +$/\n/g;
+    if ( $indent_first ) {
+        $block = $indent . $block;
+    }
+    return $block;
 }
 
 1;

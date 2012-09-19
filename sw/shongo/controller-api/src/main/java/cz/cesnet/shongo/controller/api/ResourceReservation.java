@@ -15,7 +15,7 @@ public class ResourceReservation extends Reservation
     /**
      * Name of the resource.
      */
-    private String name;
+    private String resourceName;
 
     /**
      * @return {@link #resourceIdentifier}
@@ -28,24 +28,24 @@ public class ResourceReservation extends Reservation
     /**
      * @param resourceIdentifier sets the {@link #resourceIdentifier}
      */
-    public void setResourceIdentifier(String resourceIdentifier)
+    public void setIdentifier(String resourceIdentifier)
     {
         this.resourceIdentifier = resourceIdentifier;
     }
 
     /**
-     * @return {@link #name}
+     * @return {@link #resourceName}
      */
-    public String getName()
+    public String getResourceName()
     {
-        return name;
+        return resourceName;
     }
 
     /**
-     * @param name sets the {@link #name}
+     * @param resourceName sets the {@link #resourceName}
      */
-    public void setName(String name)
+    public void setResourceName(String resourceName)
     {
-        this.name = name;
+        this.resourceName = resourceName;
     }
 }

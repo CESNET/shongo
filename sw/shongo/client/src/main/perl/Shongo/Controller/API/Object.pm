@@ -186,6 +186,21 @@ sub to_string
 }
 
 #
+# Convert object to string
+#
+# @return string describing this object
+#
+sub to_string_short
+{
+    my ($self) = @_;
+
+    my $string = $self->to_string_name() . "\n";
+    $string .= $self->to_string_attributes();
+    $string .= $self->to_string_collections();
+    return $string;
+}
+
+#
 # @return name of the object
 #
 sub to_string_name

@@ -61,6 +61,6 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
     public String getText()
     {
         return String.format("Creating connection between %s and %s in technology %s...",
-                getEndpointFrom(), getEndpointTo(), technology.getName());
+                getEndpointFrom().getReportDescription(), getEndpointTo().getReportDescription(), technology.getName());
     }
 }

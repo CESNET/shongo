@@ -91,7 +91,7 @@ public class Reservation
     /**
      * @return {@link #identifier}
      */
-    public String getResourceIdentifier()
+    public String getIdentifier()
     {
         return identifier;
     }
@@ -99,7 +99,7 @@ public class Reservation
     /**
      * @param identifier sets the {@link #identifier}
      */
-    public void setResourceIdentifier(String identifier)
+    public void setIdentifier(String identifier)
     {
         this.identifier = identifier;
     }

@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -100,5 +101,12 @@ public class ResourceEndpoint extends Endpoint
     public Address getAddress()
     {
         return getDeviceResource().getAddress();
+    }
+
+    @Override
+    @Transient
+    public String getReportDescription()
+    {
+        return AbstractResourceReport.formatResource(getDeviceResource());
     }
 }

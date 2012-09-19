@@ -58,8 +58,13 @@ sub on_modify_loop()
             return undef;
         },
         'Modify specification' => sub {
-            if ( !defined($self->{'specification'}) ) {
-                $self->{'specification'} = Shongo::Controller::API::Specification::create();
+            my $specification = undef;
+            if ( defined($self->{'specification'}) ) {
+                $specification = $self->{'specification'}->{'class'};
+            }
+            $specification = Shongo::Controller::API::Specification::select_type($specification);
+            if ( !defined($self->{'specification'}) || !($specification eq $self->{'specification'}->{'class'}) ) {
+                $self->{'specification'} = Shongo::Controller::API::Specification->create($specification);
             } else {
                 $self->{'specification'}->modify();
             }
@@ -129,15 +134,24 @@ sub to_string_name
 sub to_string_attributes
 {
     my ($self) = @_;
-    var_dump($self);
 
     my $string = Shongo::Controller::API::ReservationRequestAbstract::to_string_attributes(@_);
     $string .= sprintf(" Requested Slot: %s\n", format_interval($self->{'slot'}));
-    $string .= " Specification:\n";
+    $string .= " Specification:\n\n";
     if ( defined($self->{'specification'}) ) {
-        $string .= $self->{'specification'}->to_string();
+        $string .= indent_block($self->{'specification'}->to_string(), 1);
     } else {
         $string .= " -- None -- \n";
+    }
+    $string .= "\n";
+    $string .= sprintf(" Current State: %s \n", $Shongo::Controller::API::ReservationRequest::State->{$self->{'state'}});
+    my $stateReport = Shongo::Controller::API::ReservationRequest::format_report($self->{'stateReport'});
+    if ( defined($stateReport) && !($stateReport eq '') ) {
+        my $color = 'blue';
+        if ( $self->{'state'} eq 'ALLOCATION_FAILED' ) {
+            $color = 'red';
+        }
+        $string .= sprintf("%s\n", indent_block(colored($stateReport, $color), 1));
     }
 
     return $string;

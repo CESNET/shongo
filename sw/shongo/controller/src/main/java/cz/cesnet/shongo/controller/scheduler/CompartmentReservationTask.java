@@ -285,8 +285,12 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
             try {
                 Resource resource = null;
                 if (endpointTo instanceof ResourceEndpoint) {
-                    ResourceEndpoint deviceResourceEndpoint = (ResourceEndpoint) endpointTo;
-                    resource = deviceResourceEndpoint.getDeviceResource();
+                    ResourceEndpoint resourceEndpoint = (ResourceEndpoint) endpointTo;
+                    resource = resourceEndpoint.getDeviceResource();
+                }
+                else if (endpointTo instanceof ResourceVirtualRoom) {
+                    ResourceVirtualRoom resourceVirtualRoom = (ResourceVirtualRoom) endpointTo;
+                    resource = resourceVirtualRoom.getDeviceResource();
                 }
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
