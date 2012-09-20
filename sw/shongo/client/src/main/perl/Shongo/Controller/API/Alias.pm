@@ -67,16 +67,21 @@ sub modify()
 }
 
 # @Override
-sub to_string()
+sub get_name
 {
     my ($self) = @_;
+    return "Alias";
+}
 
-    my $string = sprintf("technology: %s, type: %s, value: %s",
-        $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
-        $Type->{$self->{'type'}},
-        $self->{'value'}
-    );
-    return $string;
+# @Override
+sub get_attributes
+{
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+    $attributes->{'single_line'} = 1;
+    $attributes->{'add'}('Value', $self->{'value'});
+    $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+    $attributes->{'add'}('Type', $Type->{$self->{'type'}});
 }
 
 1;

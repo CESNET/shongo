@@ -39,6 +39,9 @@ sub console_print_text
     if ( ref($text) eq 'HASH' && exists $text->{'to_string'} ) {
         $text = $text->{'to_string'}();
     }
+    elsif( ref($text) ) {
+        $text = $text->to_string();
+    }
     $text =~ s/\n *$//g;
     $text = text_indent_lines($text, 1, 1);
     printf("\n%s\n\n", $text);

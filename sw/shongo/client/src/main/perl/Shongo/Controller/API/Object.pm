@@ -232,9 +232,20 @@ sub create_collection
 }
 
 #
-# @return string containing all attributes formatted to string
+# @return formatted collections to string
 #
-sub get_attributes_as_string
+sub to_string_collections
+{
+    my ($self) = @_;
+    return "";
+}
+
+#
+# Convert object to string
+#
+# @return string describing this object
+#
+sub to_string
 {
     my ($self) = @_;
 
@@ -242,6 +253,7 @@ sub get_attributes_as_string
     my $attributes = {};
     $attributes->{'attributes'} = [];
     $attributes->{'collections'} = [];
+    $attributes->{'single_line'} = 0;
     $attributes->{'add'} = sub{
         my ($name, $value, $description) = @_;
         push(@{$attributes->{'attributes'}}, {'name' => $name, 'value' => $value, 'description' => $description});
@@ -266,10 +278,13 @@ sub get_attributes_as_string
             $max_length = $length;
         }
     }
+    if ( $attributes->{'single_line'} ) {
+        $max_length = 0;
+    }
 
     # format attributes to string
     my $string = '';
-    my $format = sprintf(" %%%ds", $max_length);
+    my $format = sprintf("%%%ds", $max_length);
     $max_length += 3;
     foreach my $attribute (@{$attributes->{'attributes'}}) {
         my $value = $attribute->{'value'};
@@ -277,14 +292,25 @@ sub get_attributes_as_string
             $value = $value->to_string();
         }
         $value = text_indent_lines($value, $max_length, 0);
-        if ( length($string) > 0 ) {
-            $string .= "\n";
-        }
-        $string .= colored(sprintf($format, $attribute->{'name'}), $COLOR) . ': ' . $value;
-        if ( defined($attribute->{'description'}) ) {
-            $string .= sprintf("\n%s", text_indent_lines($attribute->{'description'}, $max_length));
+        if ( defined($value) && length($value) > 0 ) {
+            if ( $attributes->{'single_line'} ) {
+                if ( length($string) > 0 ) {
+                    $string .= ", ";
+                }
+                $string .= colored(sprintf($format, lc($attribute->{'name'})), $COLOR) . ': ' . $value;
+            } else {
+                if ( length($string) > 0 ) {
+                    $string .= "\n";
+                }
+                $string .= ' ' . colored(sprintf($format, $attribute->{'name'}), $COLOR) . ': ' . $value;
+                if ( defined($attribute->{'description'}) ) {
+                    $string .= sprintf("\n%s", text_indent_lines($attribute->{'description'}, $max_length));
+                }
+            }
         }
     }
+
+    # format collections to string
     foreach my $collection (@{$attributes->{'collections'}}) {
         my $collection = $collection->{'to_string'}();
         if ( length($string) > 0 ) {
@@ -292,37 +318,30 @@ sub get_attributes_as_string
         }
         $collection = text_indent_lines($collection, 1);
         $string .= $collection;
-     }
-    return $string;
-}
-
-#
-# @return formatted collections to string
-#
-sub to_string_collections
-{
-    my ($self) = @_;
-    return "";
-}
-
-#
-# Convert object to string
-#
-# @return string describing this object
-#
-sub to_string
-{
-    my ($self) = @_;
-
-    my $string = colored(uc($self->get_name()), $COLOR_HEADER) . "\n";
-    my $attributes = $self->get_attributes_as_string();
-    my $prefix = colored('|', $COLOR_HEADER);
-    $attributes =~ s/\n *$//g;
-    $attributes =~ s/\n/\n$prefix/g;
-    if ( length($attributes) > 0 ) {
-        $string .= $prefix . $attributes;
     }
-    $string .= "\n";
+
+    my $prefix = '';
+    if ( $attributes->{'single_line'} ) {
+        # enclose in "(...)"
+        $string = colored('(', $COLOR_HEADER) . $string . colored(')', $COLOR_HEADER);
+    } else {
+        # add "|" to the beginning of each line
+        $prefix = colored('|', $COLOR_HEADER);
+        $string =~ s/\n *$//g;
+        $string =~ s/\n/\n$prefix/g;
+    }
+    if ( length($string) > 0 ) {
+        # add "|" to the first line
+        $string = $prefix . $string;
+        # add ending newline
+        $string .= "\n";
+    }
+    if ( !$attributes->{'single_line'} ) {
+        # break attributes to the new line
+        $string = "\n" . $string;
+    }
+    # prepend header
+    $string = colored(uc($self->get_name()), $COLOR_HEADER) . $string;
     return $string;
 }
 

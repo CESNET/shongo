@@ -323,6 +323,9 @@ sub text_indent_lines
     if ( !defined($indent_first) ) {
         $indent_first = 1;
     }
+    if ( !defined($text) ) {
+        return $text;
+    }
     my $indent = '';
     for ( my $index = 0; $index < $size; $index++ ) {
         $indent .= ' ';
@@ -334,7 +337,6 @@ sub text_indent_lines
     }
     return $text;
 }
-
 
 no warnings "all";
 

@@ -224,7 +224,7 @@ sub get_reservation_allocation()
         $reservation->from_xml($reservationXml);
         $reservation->fetch_child_reservations(1);
         $index++;
-        printf(" %d)%s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
+        printf(" %d) %s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
     }
 }
 

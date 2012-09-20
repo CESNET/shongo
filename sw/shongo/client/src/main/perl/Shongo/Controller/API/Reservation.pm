@@ -77,55 +77,47 @@ sub get_name
 }
 
 # @Override
-sub to_string_attributes
+sub get_attributes
 {
-    my ($self) = @_;
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+    $attributes->{'add'}('Identifier', $self->{'identifier'});
+    $attributes->{'add'}('Slot', format_interval($self->{'slot'}));
 
-    my $string = '';
-    $string .= sprintf("identifier: %s \n", $self->{'identifier'});
-    $string .= sprintf("      slot: %s \n", format_interval($self->{'slot'}));
     switch ($self->{'class'}) {
         case 'ResourceReservation' {
-            $string .= sprintf("name: %s (%s)\n",
+            $attributes->{'add'}('Resource', sprintf("name: %s (%s)",
                 $self->{'resourceName'},
                 $self->{'resourceIdentifier'}
-            );
+            ));
         }
         case 'VirtualRoomReservation' {
-            $string .= sprintf("    device: %s (%s)\n",
-                            $self->{'resourceName'},
-                            $self->{'resourceIdentifier'}
-            );
-            $string .= sprintf(" portCount: %d\n", $self->{'portCount'});
+            $attributes->{'add'}('Resource', sprintf("name: %s (%s)",
+                $self->{'resourceName'},
+                $self->{'resourceIdentifier'}
+            ));
+            $attributes->{'add'}('Port Count', $self->{'portCount'});
         }
         case 'AliasReservation' {
-            $string .= sprintf("  resource: %s (%s)\n",
-                            $self->{'resourceName'},
-                            $self->{'resourceIdentifier'}
-            );
-            $string .= sprintf("     alias: %s\n", $self->{'alias'}->to_string());
+            $attributes->{'add'}('Resource', sprintf("name: %s (%s)",
+                $self->{'resourceName'},
+                $self->{'resourceIdentifier'}
+            ));
+            $attributes->{'add'}('Alias', $self->{'alias'});
         }
     }
     if ( defined($self->{'childReservations'}) && @{$self->{'childReservations'}} > 0) {
-        $string .= "child reservations:\n";
-        my $index = 0;
+        my $collection = $attributes->{'add_collection'}("Child Reservations");
         foreach my $reservation (@{$self->{'childReservations'}}) {
-            $index++;
-            $string .= sprintf(" %d) %s", $index, text_indent_lines($reservation->to_string(), 5, 0));
+            $collection->{'add'}($reservation);
         }
     }
     elsif ( defined($self->{'childReservationIdentifiers'}) && @{$self->{'childReservationIdentifiers'}} > 0) {
-        my $childReservations = '';
+        my $collection = $attributes->{'add_collection'}("Child Reservations");
         foreach my $reservation (@{$self->{'childReservationIdentifiers'}}) {
-            if ( length($childReservations) > 0 ) {
-                $childReservations .= ', ';
-            }
-            $childReservations .= $reservation;
+            $collection->{'add'}($reservation);
         }
-        $string .= 'child reservations: ' . $childReservations . "\n";
     }
-
-    return $string;
 }
 
 1;

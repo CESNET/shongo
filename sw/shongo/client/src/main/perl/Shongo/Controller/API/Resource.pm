@@ -119,7 +119,7 @@ sub modify_loop()
     my ($self, $message) = @_;
     console_action_loop(
         sub {
-            printf("\n%s\n", $self->to_string());
+            console_print_text($self);
         },
         sub {
             my @actions = (
@@ -213,66 +213,42 @@ sub get_name
 }
 
 # @Override
-sub to_string_attributes
+sub get_attributes
 {
-    my ($self) = @_;
-    my $string = "";
-    if ( defined($self->{'identifier'}) ) {
-        $string .= "  Identifier: $self->{'identifier'}\n";
-    }
-    $string .= "        Name: $self->{'name'}\n";
-    if ( defined($self->{'description'}) ) {
-        $string .= " Description: $self->{'description'}\n";
-    }
-    if ( defined($self->{'parentIdentifier'}) ) {
-        $string .= "      Parent: $self->{'parentIdentifier'}\n";
-    }
-    if ( defined($self->{'childResourceIdentifiers'}) && scalar(@{$self->{'childResourceIdentifiers'}}) > 0 ) {
-        $string .= "    Children: ";
-         my $index = 0;
-         foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
-             if ( $index > 0 ) {
-                 $string .= ', ';
-             }
-             $string .= $identifier;
-             $index++;
-         }
-         $string .= "\n";
-    }
-    $string .= " Allocatable: $self->{'allocatable'}\n";
-    if ( defined($self->{'maxFuture'}) ) {
-        $string .= "  Max Future: $self->{'maxFuture'}\n";
-    }
-    return $string;
-}
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+    $attributes->{'add'}('Identifier', $self->{'identifier'});
+    $attributes->{'add'}('Name', $self->{'name'});
+    $attributes->{'add'}('Description', $self->{'description'});
+    $attributes->{'add'}('Parent', $self->{'parentIdentifier'});
+    $attributes->{'add'}('Allocatable', $self->{'allocatable'});
+    $attributes->{'add'}('Max Future', $self->{'maxFuture'});
 
-# @Override
-sub to_string_collections
-{
-    my ($self) = @_;
-    my $string = "";
-    $string .= $self->capabilities_to_string();
-    return $string;
-}
-
-#
-# Format capabilities to string
-#
-sub capabilities_to_string
-{
-    my ($self) = @_;
-
-    my $string = " Capabilities:\n";
-    if ( $self->get_capabilities_count() > 0 ) {
-        for ( my $index = 0; $index < $self->get_capabilities_count(); $index++ ) {
-            my $capability = get_collection_item($self->{'capabilities'}, $index);
-            $string .= sprintf("   %d) %s \n", $index + 1, $capability->to_string());
+    my $children = '';
+    foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
+        if ( length($children) > 0 ) {
+            $children .= ', ';
         }
+        $children .= $identifier;
     }
-    else {
-        $string .= "   -- None --\n";
+    $attributes->{'add'}('Children', $children);
+
+    $attributes->{'add_collection'}($self->get_capabilities());
+}
+
+#
+# @return collection of capabilities
+#
+sub get_capabilities
+{
+    my ($self) = @_;
+
+    my $collection = $self->create_collection('Capabilities');
+    for ( my $index = 0; $index < $self->get_capabilities_count(); $index++ ) {
+        my $capability = get_collection_item($self->{'capabilities'}, $index);
+        $collection->{'add'}($capability);
     }
-    return $string;
+    return $collection;
 }
 
 1;

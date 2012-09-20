@@ -115,7 +115,7 @@ sub modify()
 sub get_name
 {
     my ($self) = @_;
-    if ( defined($self->{'class'}) ) {
+    if ( defined($self->{'class'}) && exists $Type->{$self->{'class'}} ) {
         return $Type->{$self->{'class'}};
     } else {
         return "Specification";
