@@ -191,7 +191,7 @@ sub get_resource()
     if ( !$result->is_fault ) {
         my $resource = Shongo::Controller::API::Resource->from_xml($result);
         if ( defined($resource) ) {
-            printf("\n%s\n", $resource->to_string());
+            console_print_text($resource->to_string());
         }
     }
 }
@@ -225,14 +225,17 @@ sub get_resource_allocation()
         printf("   Maximum Port Count: %d\n", $resource_allocation->{'maximumPortCount'});
         printf(" Available Port Count: %d\n", $resource_allocation->{'availablePortCount'});
     }
-    print(" Reservations:\n");
+    print("\n Reservations:\n\n");
+
+
+
     my $index = 0;
     foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
         my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
         $reservation->from_xml($reservationXml);
         $reservation->fetch_child_reservations(1);
         $index++;
-        printf(" %d)%s\n", $index, indent_block($reservation->to_string(), 0, 4));
+        printf(" %d)%s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
     }
     if ($index == 0) {
         print("  -- None -- \n\n");

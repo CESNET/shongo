@@ -130,8 +130,9 @@ sub append_technologies_actions()
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
+    my ($self) = @_;
     return "Device Resource";
 }
 

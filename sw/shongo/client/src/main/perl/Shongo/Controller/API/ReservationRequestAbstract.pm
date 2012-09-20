@@ -9,7 +9,6 @@ use base qw(Shongo::Controller::API::Object);
 use strict;
 use warnings;
 
-use Term::ANSIColor;
 use Shongo::Common;
 use Shongo::Console;
 
@@ -140,28 +139,22 @@ sub modify_attributes()
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
+    my ($self) = @_;
     return "Reservation Request";
 }
 
 # @Override
-sub to_string_attributes
+sub get_attributes
 {
-    my ($self) = @_;
-
-    my $string = "";
-    if ( defined($self->{'identifier'}) ) {
-        $string .= "     Identifier: $self->{'identifier'}\n";
-    }
-    if ( defined($self->{'created'}) ) {
-        $string .= "        Created: " . format_datetime($self->{'created'}) . "\n";
-    }
-    $string .= "           Type: $Type->{$self->{'type'}}\n";
-    $string .= "           Name: $self->{'name'}\n";
-    $string .= "        Purpose: $Purpose->{$self->{'purpose'}}\n";
-
-    return $string;
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+    $attributes->{'add'}('Identifier', $self->{'identifier'});
+    $attributes->{'add'}('Created', format_datetime($self->{'created'}));
+    $attributes->{'add'}('Type', $Type->{$self->{'type'}});
+    $attributes->{'add'}('Name', $self->{'name'});
+    $attributes->{'add'}('Purpose', $Purpose->{$self->{'purpose'}});
 }
 
 1;

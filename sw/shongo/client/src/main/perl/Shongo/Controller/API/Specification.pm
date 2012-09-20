@@ -112,7 +112,7 @@ sub modify()
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
     my ($self) = @_;
     if ( defined($self->{'class'}) ) {
@@ -123,31 +123,23 @@ sub to_string_name
 }
 
 # @Override
-sub to_string_attributes
+sub get_attributes
 {
-    my ($self) = @_;
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
 
-    my $string = '';
     switch ($self->{'class'}) {
         case 'ExternalEndpointSpecification' {
-            $string .= sprintf("technology: %s, count: %d\n",
-                $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
-                $self->{'count'}
-            );
+            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+            $attributes->{'add'}('Count', $self->{'count'});
         }
         case 'ExistingEndpointSpecification' {
-            $string .= sprintf("identifier: %s\n", $self->{'resourceIdentifier'});
+            $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
         }
         case 'LookupEndpointSpecification' {
-            $string .= sprintf("technology: %s\n",
-                $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}}
-            );
-        }
-        else {
-            $string .= sprintf("unknown specification\n");
+            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
         }
     }
-    return $string;
 }
 
 1;

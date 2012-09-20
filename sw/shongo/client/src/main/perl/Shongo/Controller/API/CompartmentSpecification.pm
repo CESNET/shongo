@@ -124,34 +124,22 @@ sub create_value_instance
 }
 
 # @Override
-sub to_string_attributes
+sub get_attributes
 {
-    my ($self) = @_;
-    my $string = '';
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+
     my $callInitiation = $self->{'callInitiation'};
     if ( !defined($callInitiation) ) {
         $callInitiation = 'DEFAULT';
     }
-    $string .= sprintf(" Call initiation: %s\n", $Shongo::Controller::API::Specification::CallInitiation->{$callInitiation});
-    return $string;
-}
+    $attributes->{'add'}('Call initiation', $Shongo::Controller::API::Specification::CallInitiation->{$callInitiation});
 
-# @Override
-sub to_string_collections
-{
-    my ($self) = @_;
-    my $string = "";
-    $string .= " Specifications:\n";
-    if ( $self->get_specifications_count() > 0) {
-        for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
-            my $specification = get_collection_item($self->{'specifications'}, $index);
-            $string .= sprintf("   %d) %s", $index + 1, indent_block($specification->to_string_short(), 0, 6));
-        }
+    my $collection = $attributes->{'add_collection'}('Specifications');
+    for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
+        my $specification = get_collection_item($self->{'specifications'}, $index);
+        $collection->{'add'}($specification);
     }
-    else {
-        $string .= "   -- None --\n";
-    }
-    return $string;
 }
 
 1;

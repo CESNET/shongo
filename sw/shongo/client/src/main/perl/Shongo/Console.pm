@@ -12,6 +12,7 @@ use Switch;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
+    console_print_text
     console_print_info console_print_error console_print_table
     console_read console_read_choice console_select
     console_action console_action_loop
@@ -20,7 +21,6 @@ our @EXPORT = qw(
     console_edit_bool
 );
 
-use Term::ANSIColor;
 BEGIN {
     if ($^O eq "MSWin32")
     {
@@ -29,6 +29,20 @@ BEGIN {
     }
 }
 use Shongo::Common;
+
+#
+# Print text
+#
+sub console_print_text
+{
+    my ($text) = @_;
+    if ( ref($text) eq 'HASH' && exists $text->{'to_string'} ) {
+        $text = $text->{'to_string'}();
+    }
+    $text =~ s/\n *$//g;
+    $text = text_indent_lines($text, 1, 1);
+    printf("\n%s\n\n", $text);
+}
 
 #
 # Print INFO message to console

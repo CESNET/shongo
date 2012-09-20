@@ -206,8 +206,9 @@ sub create_value_instance
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
+    my ($self) = @_;
     return "Resource";
 }
 

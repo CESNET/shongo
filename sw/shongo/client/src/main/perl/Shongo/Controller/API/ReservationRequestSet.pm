@@ -9,7 +9,6 @@ use base qw(Shongo::Controller::API::ReservationRequestAbstract);
 use strict;
 use warnings;
 
-use Term::ANSIColor;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Specification;
@@ -60,7 +59,7 @@ sub on_create()
 {
     my ($self, $attributes) = @_;
 
-    $self->SUPER::on_create(@_);
+    $self->SUPER::on_create($attributes);
 
     # Parse requested slots
     if ( defined($attributes->{'slot'}) ) {
@@ -153,7 +152,7 @@ sub modify_slots()
 
     console_action_loop(
         sub {
-            printf("\n%s\n", $self->slots_to_string());
+            console_print_text($self->get_slots());
         },
         sub {
             my @actions = (
@@ -207,7 +206,7 @@ sub modify_specifications
 
     console_action_loop(
         sub {
-            printf("\n%s\n", $self->compartments_to_string());
+            console_print_text($self->get_specifications());
         },
         sub {
             my @actions = (
@@ -254,87 +253,74 @@ sub create_value_instance
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
+    my ($self) = @_;
     return "Set of Reservation Requests";
 }
 
 # @Override
-sub to_string_collections
+sub get_attributes
 {
-    my ($self) = @_;
-    my $string = "";
-    $string .= $self->slots_to_string();
-    $string .= $self->compartments_to_string();
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+    $attributes->{'add_collection'}($self->get_slots());
+    $attributes->{'add_collection'}($self->get_specifications());
 
+    my $collection = $attributes->{'add_collection'}('Created reservation requests (slots x specifications)');
     my $request_count = get_collection_size($self->{'reservationRequests'});
     if ( $request_count > 0 ) {
-        $string .= "\n Created reservation requests (slots x specifications):\n";
         for ( my $index = 0; $index < $request_count; $index++ ) {
-            my $reservationRequest = get_collection_item($self->{'reservationRequests'}, $index);
-            my $slot = $reservationRequest->{'slot'};
-            my $state = $reservationRequest->to_string_state();
-            $string .= sprintf("   %d) %s (%s) [%s]\n", $index + 1, format_interval($slot), $reservationRequest->{'identifier'}, $state);
-            $string .= sprintf("      specification: %s\n",
-                $Shongo::Controller::API::Specification::Type->{$reservationRequest->{'specification'}->{'class'}},
-                $reservationRequest->{'specification'}->{'id'}
+            my $reservation_request = get_collection_item($self->{'reservationRequests'}, $index);
+            my $item = sprintf("%s (%s) %s\nspecification: %s",
+                format_interval($reservation_request->{'slot'}),
+                $reservation_request->{'identifier'},
+                $reservation_request->get_state(),
+                $Shongo::Controller::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
             );
+            $collection->{'add'}($item);
         }
     }
-    return $string;
 }
 
 #
-# Convert requested slots to string
+# @return collection of slots
 #
-sub slots_to_string()
+sub get_slots()
 {
     my ($self) = @_;
-
-    my $string = " Requested slots:\n";
-    if ( $self->get_slots_count() > 0 ) {
-        for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
-            my $slot = get_collection_item($self->{'slots'}, $index);
-            my $start = $slot->{'start'};
-            my $duration = $slot->{'duration'};
-            if ( ref($start) ) {
-                my $startString = sprintf("(%s, %s", format_datetime($start->{'start'}), $start->{'period'});
-                if ( defined($start->{'end'}) ) {
-                    $startString .= ", " . format_datetime_partial($start->{'end'});
-                }
-                $startString .= ")";
-                $start = $startString;
-            } else {
-                $start = format_datetime($start);
+    my $collection = $self->create_collection('Requested slots');
+    for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
+        my $slot = get_collection_item($self->{'slots'}, $index);
+        my $start = $slot->{'start'};
+        my $duration = $slot->{'duration'};
+        if ( ref($start) ) {
+            my $startString = sprintf("(%s, %s", format_datetime($start->{'start'}), $start->{'period'});
+            if ( defined($start->{'end'}) ) {
+                $startString .= ", " . format_datetime_partial($start->{'end'});
             }
-            $string .= sprintf("   %d) at '%s' for '%s'\n", $index + 1, $start, $duration);
+            $startString .= ")";
+            $start = $startString;
+        } else {
+            $start = format_datetime($start);
         }
+        $collection->{'add'}(sprintf("at '%s' for '%s'", $start, $duration));
     }
-    else {
-        $string .= "   -- None --\n";
-    }
-    return $string;
+    return $collection;
 }
 
 #
-# Convert specifications to string
+# @return collection of specifications
 #
-sub compartments_to_string()
+sub get_specifications()
 {
     my ($self) = @_;
-
-    my $string = " Specifications:\n";
-    if ( $self->get_specifications_count() > 0 ) {
-        for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
-            my $specification = get_collection_item($self->{'specifications'}, $index);
-            $specification = $specification->to_string_short();
-            $string .= sprintf("   %d) %s", $index + 1, indent_block($specification, 0, 6));
-        }
+    my $collection = $self->create_collection('Specifications');
+    for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
+        my $specification = get_collection_item($self->{'specifications'}, $index);
+        $collection->{'add'}($specification);
     }
-    else {
-        $string .= "   -- None --\n";
-    }
-    return $string;
+    return $collection;
 }
 
 1;

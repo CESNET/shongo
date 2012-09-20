@@ -16,11 +16,13 @@ our @EXPORT = qw(
     format_datetime format_date format_datetime_partial format_interval
     var_dump
     get_home_directory get_term_width
-    indent_block
+    text_indent_lines
+    colored
 );
 
 use DateTime::Format::ISO8601;
 use File::HomeDir;
+use Term::ANSIColor;
 
 # Regular Expression Patterns
 our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
@@ -308,26 +310,53 @@ sub get_term_width
 #
 # Indent block
 #
-# @param $block
-# @param $indent_first
+# @param $text
 # @param $size
+# @param $indent_first
 #
-sub indent_block
+sub text_indent_lines
 {
-    my ($block, $indent_first, $size) = @_;
+    my ($text, $size, $indent_first) = @_;
     if ( !defined($size) ) {
         $size = 2;
+    }
+    if ( !defined($indent_first) ) {
+        $indent_first = 1;
     }
     my $indent = '';
     for ( my $index = 0; $index < $size; $index++ ) {
         $indent .= ' ';
     }
-    $block =~ s/\n/\n$indent/g;
-    $block =~ s/\n +$/\n/g;
+    $text =~ s/\n/\n$indent/g;
+    $text =~ s/\n +$/\n/g;
     if ( $indent_first ) {
-        $block = $indent . $block;
+        $text = $indent . $text;
     }
-    return $block;
+    return $text;
 }
+
+
+no warnings "all";
+
+#
+# @param $text
+# @param $color
+# @return colorized $text
+#
+sub colored
+{
+    my ($text, $color) = @_;
+    my @lines = split("\n", $text);
+    $text = '';
+    for ( my $index = 0; $index < scalar(@lines); $index++ ) {
+        if ( length($text) > 0 ) {
+            $text .= "\n";
+        }
+        $text .= sprintf("%s", Term::ANSIColor::colored($lines[$index], $color));
+    }
+    return $text;
+}
+
+use warnings "all";
 
 1;

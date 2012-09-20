@@ -66,7 +66,7 @@ sub fetch_child_reservations
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
     my ($self) = @_;
     if ( defined($self->{'class'}) && exists $Type->{$self->{'class'}} ) {
@@ -111,7 +111,7 @@ sub to_string_attributes
         my $index = 0;
         foreach my $reservation (@{$self->{'childReservations'}}) {
             $index++;
-            $string .= sprintf(" %d) %s", $index, indent_block($reservation->to_string_short(), 0, 5));
+            $string .= sprintf(" %d) %s", $index, text_indent_lines($reservation->to_string(), 5, 0));
         }
     }
     elsif ( defined($self->{'childReservationIdentifiers'}) && @{$self->{'childReservationIdentifiers'}} > 0) {

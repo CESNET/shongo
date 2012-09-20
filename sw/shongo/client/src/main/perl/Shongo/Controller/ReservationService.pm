@@ -194,7 +194,7 @@ sub get_reservation()
     if ( !$result->is_fault ) {
         my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_xml($result);
         if ( defined($reservation_request) ) {
-            printf("\n%s\n", $reservation_request->to_string());
+            console_print_text($reservation_request->to_string());
         }
     }
 }
@@ -224,7 +224,7 @@ sub get_reservation_allocation()
         $reservation->from_xml($reservationXml);
         $reservation->fetch_child_reservations(1);
         $index++;
-        printf(" %d)%s\n", $index, indent_block($reservation->to_string(), 0, 4));
+        printf(" %d)%s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
     }
 }
 
