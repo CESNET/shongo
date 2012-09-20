@@ -25,6 +25,11 @@ import java.util.Map;
 public class ReservationRequest extends AbstractReservationRequest
 {
     /**
+     * @see {@link CreatedBy}.
+     */
+    private CreatedBy createdBy;
+
+    /**
      * Start date/time from which the reservation is requested.
      */
     private DateTime requestedSlotStart;
@@ -48,6 +53,24 @@ public class ReservationRequest extends AbstractReservationRequest
      * Allocated {@link Reservation} for the {@link ReservationRequest}.
      */
     private Reservation reservation;
+
+    /**
+     * @return {@link #createdBy}
+     */
+    @Column(nullable = false, columnDefinition = "varchar(255) default 'USER'")
+    @Enumerated(EnumType.STRING)
+    public CreatedBy getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    /**
+     * @return {@link #createdBy}
+     */
+    public void setCreatedBy(CreatedBy createdBy)
+    {
+        this.createdBy = createdBy;
+    }
 
     /**
      * @return {@link #requestedSlotStart}
@@ -257,6 +280,22 @@ public class ReservationRequest extends AbstractReservationRequest
             }
         }
         super.fromApi(api, entityManager, domain);
+    }
+
+    /**
+     * Enumeration defining who created the {@link ReservationRequest}.
+     */
+    public static enum CreatedBy
+    {
+        /**
+         * {@link ReservationRequest} was created by a user.
+         */
+        USER,
+
+        /**
+         * {@link ReservationRequest} was created by the {@link cz.cesnet.shongo.controller.Controller}.
+         */
+        CONTROLLER
     }
 
     /**

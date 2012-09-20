@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -86,6 +87,26 @@ public class ReservationServiceImpl extends Component
         return domain.formatIdentifier(reservationRequestImpl.getId());
     }
 
+    /**
+     * Check whether {@code abstractReservationRequestImpl} can be modified or deleted.
+     *
+     * @param abstractReservationRequestImpl
+     * @throws ReservationRequestNotModifiableException
+     */
+    private void checkModifiableReservationRequest(
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequestImpl)
+            throws ReservationRequestNotModifiableException
+    {
+        if (abstractReservationRequestImpl instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequestImpl;
+            if (reservationRequestImpl.getCreatedBy() == ReservationRequest.CreatedBy.CONTROLLER) {
+                throw new ReservationRequestNotModifiableException(
+                        domain.formatIdentifier(abstractReservationRequestImpl.getId()));
+            }
+        }
+    }
+
     @Override
     public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
@@ -99,6 +120,7 @@ public class ReservationServiceImpl extends Component
 
         cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
+        checkModifiableReservationRequest(reservationRequestImpl);
         reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
 
         if (reservationRequestImpl instanceof ReservationRequest) {
@@ -128,10 +150,11 @@ public class ReservationServiceImpl extends Component
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequest =
+        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
+        checkModifiableReservationRequest(reservationRequestImpl);
 
-        reservationRequestManager.delete(reservationRequest);
+        reservationRequestManager.delete(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
         entityManager.close();

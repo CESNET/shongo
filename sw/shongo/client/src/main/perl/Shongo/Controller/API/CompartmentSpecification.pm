@@ -106,7 +106,7 @@ sub modify_attributes()
     if ( !defined($callInitiation) ) {
         $callInitiation = 'DEFAULT';
     }
-    $callInitiation = console_auto_enum($edit, 'Select call initiation', $Shongo::Controller::API::Specification::CallInitiation, $self->{'callInitiation'});
+    $callInitiation = console_auto_enum($edit, 'Select call initiation', $Shongo::Controller::API::Specification::CallInitiation, $callInitiation);
     if ( $callInitiation eq 'DEFAULT' ) {
         $callInitiation = undef;
     }
@@ -117,8 +117,8 @@ sub modify_attributes()
 sub create_value_instance
 {
     my ($self, $class, $attribute) = @_;
-    if ( $attribute eq 'specifications' && !($class eq 'CompartmentSpecification')) {
-        return Shongo::Controller::API::Specification->new();
+    if ( $attribute eq 'specifications' ) {
+        return Shongo::Controller::API::Specification->new($class);
     }
     return $self->SUPER::create_value_instance($class, $attribute);
 }

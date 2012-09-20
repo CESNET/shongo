@@ -27,7 +27,7 @@ public class Preprocessor extends Component
      *
      * @param interval
      */
-    public void run(Interval interval, EntityManager entityManager) throws FaultException
+    public void run(Interval interval, EntityManager entityManager)
     {
         logger.info("Running preprocessor for interval '{}'...", TemporalHelper.formatInterval(interval));
 
@@ -48,7 +48,7 @@ public class Preprocessor extends Component
         }
         catch (Exception exception) {
             transaction.rollback();
-            throw new FaultException(exception, ControllerFault.PREPROCESSOR_FAILED);
+            throw new IllegalStateException("Preprocessor failed", exception);
         }
     }
 
@@ -59,7 +59,7 @@ public class Preprocessor extends Component
      * @param interval
      * @param entityManager
      */
-    public void run(long reservationRequestSetId, Interval interval, EntityManager entityManager) throws FaultException
+    public void run(long reservationRequestSetId, Interval interval, EntityManager entityManager)
     {
         logger.info("Running preprocessor for a single reservation request set '{}' for interval '{}'...",
                 reservationRequestSetId, TemporalHelper.formatInterval(interval));
@@ -89,7 +89,7 @@ public class Preprocessor extends Component
         }
         catch (Exception exception) {
             transaction.rollback();
-            throw new FaultException(exception, ControllerFault.PREPROCESSOR_FAILED);
+            throw new IllegalStateException("Preprocessor failed", exception);
         }
     }
 
@@ -173,6 +173,7 @@ public class Preprocessor extends Component
                 // Create new reservation request
                 else {
                     reservationRequest = new ReservationRequest();
+                    reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
                     reservationRequest.setRequestedSlot(slot);
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);

@@ -43,7 +43,10 @@ our $CallInitiation = ordered_hash(
 sub new()
 {
     my $class = shift;
-    my (%attributes) = @_;
+    my ($type) = @_;
+    if ( defined($type) && $type eq 'CompartmentSpecification' ) {
+        return Shongo::Controller::API::CompartmentSpecification->new();
+    }
     my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
@@ -95,11 +98,11 @@ sub modify()
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'count'} = console_edit_value("Count", 1, "\\d+", $self->{'count'});
         }
-        case 'ExistingResourceSpecification' {
+        case 'ExistingEndpointSpecification' {
             $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 1, $Shongo::Controller::API::Common::IdentifierPattern, $self->{'resourceIdentifier'});
             return $self;
         }
-        case 'LookupResourceSpecification' {
+        case 'LookupEndpointSpecification' {
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
         }
         case 'PersonSpecification' {
@@ -132,10 +135,10 @@ sub to_string_attributes
                 $self->{'count'}
             );
         }
-        case 'ExistingResourceSpecification' {
+        case 'ExistingEndpointSpecification' {
             $string .= sprintf("identifier: %s\n", $self->{'resourceIdentifier'});
         }
-        case 'LookupResourceSpecification' {
+        case 'LookupEndpointSpecification' {
             $string .= sprintf("technology: %s\n",
                 $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}}
             );

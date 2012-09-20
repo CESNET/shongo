@@ -60,6 +60,8 @@ sub on_create()
 {
     my ($self, $attributes) = @_;
 
+    $self->SUPER::on_create(@_);
+
     # Parse requested slots
     if ( defined($attributes->{'slot'}) ) {
         for ( my $index = 0; $index < @{$attributes->{'slot'}}; $index++ ) {
@@ -241,6 +243,15 @@ sub modify_specifications
     );
 }
 
+# @Override
+sub create_value_instance
+{
+    my ($self, $class, $attribute) = @_;
+    if ( $attribute eq 'specifications' ) {
+        return Shongo::Controller::API::Specification->new($class);
+    }
+    return $self->SUPER::create_value_instance($class, $attribute);
+}
 
 # @Override
 sub to_string_name
@@ -258,23 +269,16 @@ sub to_string_collections
 
     my $request_count = get_collection_size($self->{'reservationRequests'});
     if ( $request_count > 0 ) {
-        $string .= " Created requests:\n";
+        $string .= "\n Created reservation requests (slots x specifications):\n";
         for ( my $index = 0; $index < $request_count; $index++ ) {
-            my $processedSlots = get_collection_item($self->{'reservationRequests'}, $index);
-            my $slot = $processedSlots->{'slot'};
-            my $state = $Shongo::Controller::API::ReservationRequest::State->{$processedSlots->{'state'}};
-            $string .= sprintf("   %d) %s (%s)\n", $index + 1, format_interval($slot), $state);
-
-            my $stateReport = Shongo::Controller::API::ReservationRequest::format_report($processedSlots->{'stateReport'});
-            if ( defined($stateReport) ) {
-                my $color = 'blue';
-                if ( $processedSlots->{'state'} eq 'ALLOCATION_FAILED' ) {
-                    $color = 'red';
-                }
-                $stateReport =~ s/\n/\n     /g;
-                $stateReport =~ s/\n     $/\n/g;
-                $string .= sprintf("     %s\n", colored($stateReport, $color));
-            }
+            my $reservationRequest = get_collection_item($self->{'reservationRequests'}, $index);
+            my $slot = $reservationRequest->{'slot'};
+            my $state = $reservationRequest->to_string_state();
+            $string .= sprintf("   %d) %s (%s) [%s]\n", $index + 1, format_interval($slot), $reservationRequest->{'identifier'}, $state);
+            $string .= sprintf("      specification: %s\n",
+                $Shongo::Controller::API::Specification::Type->{$reservationRequest->{'specification'}->{'class'}},
+                $reservationRequest->{'specification'}->{'id'}
+            );
         }
     }
     return $string;
@@ -322,8 +326,9 @@ sub compartments_to_string()
     my $string = " Specifications:\n";
     if ( $self->get_specifications_count() > 0 ) {
         for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
-            my $specification = get_collection_item($self->{'specification'}, $index);
-            $string .= $specification->to_string();
+            my $specification = get_collection_item($self->{'specifications'}, $index);
+            $specification = $specification->to_string_short();
+            $string .= sprintf("   %d) %s", $index + 1, indent_block($specification, 0, 6));
         }
     }
     else {

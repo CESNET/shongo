@@ -125,8 +125,41 @@ sub format_report($)
 }
 
 # @Override
+sub create_value_instance
+{
+    my ($self, $class, $attribute) = @_;
+    if ( $attribute eq 'specification' ) {
+        return Shongo::Controller::API::Specification->new($class);
+    }
+    return $self->SUPER::create_value_instance($class, $attribute);
+}
+
+#
+# Convert state to string
+#
+sub to_string_state
+{
+    my ($self) = @_;
+    my $state = $State->{$self->{'state'}};
+    if ( $self->{'state'} eq 'NOT_COMPLETE' ) {
+        $state = colored($state, 'yellow')
+    }
+    elsif ( $self->{'state'} eq 'ALLOCATED' ) {
+        $state = colored($state, 'green')
+    }
+    elsif ( $self->{'state'} eq 'ALLOCATION_FAILED' ) {
+        $state = colored($state, 'red')
+    }
+    else {
+        $state = colored($state, 'blue');
+    }
+    return $state;
+}
+
+# @Override
 sub to_string_name
 {
+    my ($self) = @_;
     return "Reservation Request";
 }
 
@@ -144,7 +177,7 @@ sub to_string_attributes
         $string .= " -- None -- \n";
     }
     $string .= "\n";
-    $string .= sprintf(" Current State: %s \n", $Shongo::Controller::API::ReservationRequest::State->{$self->{'state'}});
+    $string .= sprintf(" Current State [%s]:\n", $self->to_string_state());
     my $stateReport = Shongo::Controller::API::ReservationRequest::format_report($self->{'stateReport'});
     if ( defined($stateReport) && !($stateReport eq '') ) {
         my $color = 'blue';
@@ -152,6 +185,8 @@ sub to_string_attributes
             $color = 'red';
         }
         $string .= sprintf("%s\n", indent_block(colored($stateReport, $color), 1));
+    } else {
+        $string .= colored("  -- No report --\n", 'blue');
     }
 
     return $string;

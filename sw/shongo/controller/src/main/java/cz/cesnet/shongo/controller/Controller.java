@@ -8,6 +8,7 @@ import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
+import cz.cesnet.shongo.util.ConsoleAppender;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.SystemConfiguration;
@@ -442,6 +443,32 @@ public class Controller
                 }
             }
         });
+        shell.addCommand("filter", "Filter logging by string (warning and errors are always not filtered)",
+                new CommandHandler()
+                {
+                    @Override
+                    public void perform(CommandLine commandLine)
+                    {
+                        org.apache.log4j.Logger logger = org.apache.log4j.Logger.getRootLogger();
+                        ConsoleAppender consoleAppender = (ConsoleAppender) logger.getAppender("CONSOLE");
+                        String[] args = commandLine.getArgs();
+                        String filter = null;
+                        if (args.length > 1) {
+                            filter = args[1].trim();
+                            if (filter.equals("*")) {
+                                filter = null;
+                            }
+                        }
+                        consoleAppender.setFilter(null);
+                        if (filter != null) {
+                            Controller.logger.info("Enabling logger filter for '{}'.", filter);
+                        }
+                        else {
+                            Controller.logger.info("Disabling logger filter.", filter);
+                        }
+                        consoleAppender.setFilter(filter);
+                    }
+                });
         shell.addCommand("database", "Show database browser", new CommandHandler()
         {
             @Override

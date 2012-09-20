@@ -161,8 +161,13 @@ public class ReservationRequestManager extends AbstractManager
     public List<AbstractReservationRequest> list()
     {
         List<AbstractReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest",
+                .createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                        + " WHERE reservationRequest NOT IN ("
+                        + "  SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + "  WHERE reservationRequest.createdBy = :createdBy"
+                        + " )",
                         AbstractReservationRequest.class)
+                .setParameter("createdBy", ReservationRequest.CreatedBy.CONTROLLER)
                 .getResultList();
         return reservationRequestList;
     }

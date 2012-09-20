@@ -11,6 +11,8 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -64,7 +66,7 @@ public class Scheduler extends Component
      *
      * @param interval
      */
-    public void run(Interval interval, EntityManager entityManager) throws FaultException
+    public void run(Interval interval, EntityManager entityManager)
     {
         logger.info("Running scheduler for interval '{}'...", TemporalHelper.formatInterval(interval));
 
@@ -95,7 +97,7 @@ public class Scheduler extends Component
         catch (Exception exception) {
             transaction.rollback();
             cache.reset(entityManager);
-            throw new FaultException(exception, ControllerFault.SCHEDULER_FAILED);
+            throw new IllegalStateException("Scheduler failed", exception);
         }
     }
 
@@ -127,19 +129,18 @@ public class Scheduler extends Component
 
         // Create new scheduler task
         ReservationTask.Context context = new ReservationTask.Context(requestedSlot, cache);
-        ReservationTask reservationTask;
-        Specification specification = reservationRequest.getSpecification();
-        if (specification instanceof ReservationTaskProvider) {
-            ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
-            reservationTask = reservationTaskProvider.createReservationTask(context);
-        }
-        else {
-            throw new IllegalStateException(String.format("Cannot allocate reservation request '%s'"
-                    + " because the specification of type '%s' is not supposed to be allocated.",
-                    reservationRequest.getId(), specification.getClass().getSimpleName()));
-        }
+        ReservationTask reservationTask = null;
 
         try {
+            Specification specification = reservationRequest.getSpecification();
+            if (specification instanceof ReservationTaskProvider) {
+                ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
+                reservationTask = reservationTaskProvider.createReservationTask(context);
+            }
+            else {
+                throw new SpecificationNotAllocatableReport(specification).exception();
+            }
+
             if (requestedSlot.toDuration().isLongerThan(cache.getAllocatedResourceMaximumDuration())) {
                 throw new DurationLongerThanMaximumReport(requestedSlot.toPeriod().normalizedStandard(),
                         cache.getAllocatedResourceMaximumDuration().toPeriod().normalizedStandard()).exception();
@@ -162,7 +163,9 @@ public class Scheduler extends Component
         }
         catch (ReportException exception) {
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
-            reservationRequest.setReports(reservationTask.getReports());
+            if (reservationTask != null) {
+                reservationRequest.setReports(reservationTask.getReports());
+            }
             reservationRequest.addReport(exception.getReport());
         }
     }

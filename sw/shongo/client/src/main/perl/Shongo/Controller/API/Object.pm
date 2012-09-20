@@ -179,7 +179,8 @@ sub to_string
 {
     my ($self) = @_;
 
-    my $string = " " . uc($self->to_string_name()) . "\n";
+    my $string = " " . uc($self->to_string_name());
+    $string .= "\n";
     $string .= $self->to_string_attributes();
     $string .= $self->to_string_collections();
     return $string;
@@ -194,7 +195,11 @@ sub to_string_short
 {
     my ($self) = @_;
 
-    my $string = $self->to_string_name() . "\n";
+    my $string = $self->to_string_name();
+    if ( defined($self->{'id'}) ) {
+        $string .= sprintf(" (id: %s)", $self->{'id'});
+    }
+    $string .= "\n";
     $string .= $self->to_string_attributes();
     $string .= $self->to_string_collections();
     return $string;
