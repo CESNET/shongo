@@ -196,6 +196,9 @@ public class PersonSpecification extends Specification implements StatefulSpecif
                 setPerson(person);
             }
         }
+        if ( invitationState == null ) {
+            invitationState = InvitationState.INVITATION_NOT_SENT;
+        }
         super.fromApi(specificationApi, entityManager, domain);
     }
 

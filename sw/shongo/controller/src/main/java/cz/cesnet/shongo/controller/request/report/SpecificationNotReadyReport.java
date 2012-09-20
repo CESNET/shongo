@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.PersonSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
+import cz.cesnet.shongo.controller.request.StatefulSpecification;
 
 import javax.persistence.*;
 
@@ -53,6 +54,9 @@ public class SpecificationNotReadyReport extends Report
      */
     public static String formatSpecification(Specification specification)
     {
+        if (!(specification instanceof StatefulSpecification) || ((StatefulSpecification) specification).getCurrentState() != StatefulSpecification.State.NOT_READY) {
+            return null;
+        }
         if (specification instanceof PersonSpecification) {
             PersonSpecification personSpecification = (PersonSpecification) specification;
             Person person = personSpecification.getPerson();
@@ -66,7 +70,10 @@ public class SpecificationNotReadyReport extends Report
                 if (stringBuilder.length() > 0) {
                     stringBuilder.append("\n");
                 }
-                stringBuilder.append(formatSpecification(requestedSpecification));
+                String string = formatSpecification(requestedSpecification);
+                if ( string != null) {
+                    stringBuilder.append(string);
+                }
             }
             return stringBuilder.toString();
         }

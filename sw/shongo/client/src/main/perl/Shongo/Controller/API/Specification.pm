@@ -14,6 +14,7 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::CompartmentSpecification;
 use Shongo::Controller::API::DeviceResource;
+use Shongo::Controller::API::Person;
 
 #
 # Specification types
@@ -106,7 +107,10 @@ sub modify()
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
         }
         case 'PersonSpecification' {
-            printf("TODO: Implement\n");
+            if ( !defined($self->{'person'}) ) {
+                $self->{'person'} = Shongo::Controller::API::Person->new();
+            }
+            $self->{'person'}->modify();
         }
     }
 }
@@ -138,6 +142,9 @@ sub get_attributes
         }
         case 'LookupEndpointSpecification' {
             $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+        }
+        case 'PersonSpecification' {
+            $attributes->{'add'}('Person', $self->{'person'});
         }
     }
 }
