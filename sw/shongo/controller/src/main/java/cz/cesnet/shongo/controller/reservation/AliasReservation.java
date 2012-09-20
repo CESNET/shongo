@@ -71,6 +71,9 @@ public class AliasReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.AliasReservation aliasReservationApi =
                 (cz.cesnet.shongo.controller.api.AliasReservation) api;
+        aliasReservationApi.setResourceIdentifier(
+                domain.formatIdentifier(aliasProviderCapability.getResource().getId()));
+        aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
         aliasReservationApi.setAlias(getAlias().toApi());
         super.toApi(api, domain);
     }

@@ -14,6 +14,7 @@ use Shongo::Console;
 use Shongo::Controller::API::ReservationRequestAbstract;
 use Shongo::Controller::API::ReservationRequest;
 use Shongo::Controller::API::ReservationRequestSet;
+use Shongo::Controller::API::Reservation;
 use Shongo::Controller::API::Alias;
 
 #
@@ -218,38 +219,13 @@ sub get_reservation_allocation()
     }
     print("\n");
     my $index = 0;
-    foreach my $reservation (@{$reservations}) {
+    foreach my $reservationXml (@{$reservations}) {
+        my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
+        $reservation->from_xml($reservationXml);
+        $reservation->fetch_child_reservations(1);
         $index++;
-        printf("%d) %s\n", $index, format_interval($reservation->{'slot'}));
-        foreach my $allocated_resource (@{$reservation->{'childReservations'}}) {
-            my $class = $allocated_resource->{'class'};
-            my $skip = 0;
-            if ( $class eq 'AllocatedResource') {
-                printf("   -%s (%s)", $allocated_resource->{'name'}, $allocated_resource->{'identifier'});
-            }
-            elsif ( $class eq 'AllocatedDevice') {
-                printf("   -%s (%s)", $allocated_resource->{'name'}, $allocated_resource->{'identifier'});
-            }
-            elsif ( $class eq 'AllocatedVirtualRoom') {
-                printf("   -%s (%s) VirtualRoom(portCount: %d)", $allocated_resource->{'name'},
-                    $allocated_resource->{'identifier'}, $allocated_resource->{'portCount'});
-            }
-            else {
-                $skip = 1;
-            }
-
-            if ( $skip == 0 ) {
-                if (defined($allocated_resource->{'aliases'})) {
-                    foreach my $alias (@{$allocated_resource->{'aliases'}}) {
-                        $alias = Shongo::Controller::API::Alias->from_xml($alias);
-                        print("\n      * Allocated Alias (" . $alias->to_string() . ")");
-                    }
-                }
-                print("\n");
-            }
-        }
+        printf(" %d)%s\n", $index, indent_block($reservation->to_string(), 0, 4));
     }
-    print("\n");
 }
 
 1;

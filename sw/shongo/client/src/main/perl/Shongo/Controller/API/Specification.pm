@@ -144,7 +144,7 @@ sub to_string_attributes
             );
         }
         else {
-            $string .= sprintf("unknown specification ");
+            $string .= sprintf("unknown specification\n");
         }
     }
     return $string;

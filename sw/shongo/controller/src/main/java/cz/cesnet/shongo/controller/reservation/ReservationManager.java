@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -52,6 +53,26 @@ public class ReservationManager extends AbstractManager
             cache.removeReservation(childReservation);
         }
         super.delete(Reservation);
+    }
+
+    /**
+     * @param reservationId of the {@link Reservation}
+     * @return {@link Reservation} with given identifier
+     * @throws EntityNotFoundException when the {@link Reservation} doesn't exist
+     */
+    public Reservation get(Long reservationId) throws EntityNotFoundException
+    {
+        try {
+            Reservation reservation = entityManager.createQuery(
+                    "SELECT reservation FROM Reservation reservation"
+                            + " WHERE reservation.id = :id",
+                    Reservation.class).setParameter("id", reservationId)
+                    .getSingleResult();
+            return reservation;
+        }
+        catch (NoResultException exception) {
+            throw new EntityNotFoundException(Reservation.class, reservationId);
+        }
     }
 
     /**

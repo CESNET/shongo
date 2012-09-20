@@ -67,8 +67,17 @@ public interface ReservationService extends Service
 
     /**
      * @param token
+     * @param reservationIdentifier
+     * @return reservation with given identifier
+     * @throws FaultException
+     */
+    @API
+    public Reservation getReservation(SecurityToken token, String reservationIdentifier) throws FaultException;
+
+    /**
+     * @param token
      * @param reservationRequestIdentifier
-     * @return collection of already allocated compartments for given reservation request
+     * @return collection of already allocated reservation for given reservation request
      * @throws FaultException
      */
     @API

@@ -28,7 +28,7 @@ public class ResourceReservation extends Reservation
     /**
      * @param resourceIdentifier sets the {@link #resourceIdentifier}
      */
-    public void setIdentifier(String resourceIdentifier)
+    public void setResourceIdentifier(String resourceIdentifier)
     {
         this.resourceIdentifier = resourceIdentifier;
     }

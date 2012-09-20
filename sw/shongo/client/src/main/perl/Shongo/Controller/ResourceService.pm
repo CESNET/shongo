@@ -225,24 +225,18 @@ sub get_resource_allocation()
         printf("   Maximum Port Count: %d\n", $resource_allocation->{'maximumPortCount'});
         printf(" Available Port Count: %d\n", $resource_allocation->{'availablePortCount'});
     }
-    print(" Allocations:\n");
+    print(" Reservations:\n");
     my $index = 0;
-    foreach my $allocation (@{$resource_allocation->{'allocations'}}) {
+    foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
+        my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
+        $reservation->from_xml($reservationXml);
+        $reservation->fetch_child_reservations(1);
         $index++;
-        printf(" %d) %s", $index, format_interval($allocation->{'slot'}));
-        if ( $allocation->{'class'} eq 'AllocatedVirtualRoom') {
-            printf(" VirtualRoom(portCount: %d)", $allocation->{'portCount'});
-        }
-        if ( $allocation->{'class'} eq 'AllocatedAlias') {
-            my $alias = Shongo::Controller::API::Alias->from_xml($allocation->{'alias'});
-            printf(" Alias(%s)", $alias->to_string());
-        }
-        print("\n");
+        printf(" %d)%s\n", $index, indent_block($reservation->to_string(), 0, 4));
     }
     if ($index == 0) {
-        print("  -- None -- \n");
+        print("  -- None -- \n\n");
     }
-    print("\n");
 }
 
 1;

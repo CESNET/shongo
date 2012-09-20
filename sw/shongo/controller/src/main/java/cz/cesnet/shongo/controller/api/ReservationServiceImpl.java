@@ -225,6 +225,22 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
+    public Reservation getReservation(SecurityToken token, String reservationIdentifier) throws FaultException
+    {
+        Long reservationId = domain.parseIdentifier(reservationIdentifier);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+
+        cz.cesnet.shongo.controller.reservation.Reservation reservationImpl = reservationManager.get(reservationId);
+        Reservation reservation = reservationImpl.toApi(domain);
+
+        entityManager.close();
+
+        return reservation;
+    }
+
+    @Override
     public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestIdentifier)
             throws FaultException
     {

@@ -7,7 +7,7 @@ import cz.cesnet.shongo.api.Alias;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AliasReservation extends Reservation
+public class AliasReservation extends ResourceReservation
 {
     /**
      * {@link Alias} which is allocated.
