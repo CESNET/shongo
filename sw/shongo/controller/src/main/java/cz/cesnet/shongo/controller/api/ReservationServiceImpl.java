@@ -75,6 +75,7 @@ public class ReservationServiceImpl extends Component
                         reservationRequest, entityManager, domain);
 
         if (reservationRequestImpl instanceof ReservationRequest) {
+            ((ReservationRequest) reservationRequestImpl).setCreatedBy(ReservationRequest.CreatedBy.USER);
             ((ReservationRequest) reservationRequestImpl).updateStateBySpecifications();
         }
 

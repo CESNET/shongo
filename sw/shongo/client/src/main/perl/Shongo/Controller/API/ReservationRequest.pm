@@ -88,6 +88,9 @@ sub create_value_instance
 sub get_state
 {
     my ($self) = @_;
+    if ( !defined($self->{'state'}) ) {
+        return undef;
+    }
     my $state = $State->{$self->{'state'}};
     if ( $self->{'state'} eq 'NOT_COMPLETE' ) {
         $state = colored($state, 'yellow')
@@ -111,12 +114,15 @@ sub get_state_report
 {
     my ($self) = @_;
     my $color = 'blue';
-    if ( $self->{'state'} eq 'ALLOCATION_FAILED' ) {
+    if ( defined($self->{'state'}) && $self->{'state'} eq 'ALLOCATION_FAILED' ) {
         $color = 'red';
     }
     my $stateReport = $self->{'stateReport'};
     my $max_line_width = get_term_width() - 22;
-    my @lines = split("\n", $stateReport);
+    my @lines = ();
+    if ( defined($stateReport) ) {
+        @lines = split("\n", $stateReport);
+    }
     $stateReport = '';
     # Process each line from report
     for ( my $index = 0; $index < scalar(@lines); $index++ ) {
@@ -157,7 +163,7 @@ sub get_state_report
         $stateReport .= $line;
     }
     if ( !defined($stateReport) || $stateReport eq '' ) {
-        $stateReport = "  -- No report --";
+        $stateReport = "-- No report --";
     }
     return colored($stateReport, $color);
 }

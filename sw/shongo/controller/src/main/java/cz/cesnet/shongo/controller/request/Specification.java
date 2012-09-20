@@ -91,6 +91,9 @@ public abstract class Specification extends PersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.PersonSpecification) {
             specification = new PersonSpecification();
         }
+        else if (api instanceof cz.cesnet.shongo.controller.api.AliasSpecification) {
+            specification = new AliasSpecification();
+        }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
         }

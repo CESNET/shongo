@@ -274,7 +274,7 @@ sub to_string
     my $max_length = 0;
     foreach my $attribute (@{$attributes->{'attributes'}}) {
         my $length = length($attribute->{'name'});
-        if ( $length > $max_length ) {
+        if ( defined($attribute->{'value'}) && !($attribute->{'value'} eq '') && $length > $max_length ) {
             $max_length = $length;
         }
     }

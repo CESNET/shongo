@@ -12,6 +12,7 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller::API::Alias;
 use Shongo::Controller::API::CompartmentSpecification;
 use Shongo::Controller::API::DeviceResource;
 use Shongo::Controller::API::Person;
@@ -24,7 +25,8 @@ our $Type = ordered_hash(
     'ExternalEndpointSpecification' => 'External Endpoint',
     'ExistingEndpointSpecification' => 'Existing Resource',
     'LookupEndpointSpecification' => 'Lookup Resource',
-    'PersonSpecification' => 'Person'
+    'PersonSpecification' => 'Person',
+    'AliasSpecification' => 'Alias'
 );
 
 #
@@ -112,6 +114,11 @@ sub modify()
             }
             $self->{'person'}->modify();
         }
+        case 'AliasSpecification' {
+            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
+            $self->{'aliasType'} = console_edit_enum("Select type of alias", $Shongo::Controller::API::Alias::Type, $self->{'aliasType'});
+            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 0, $Shongo::Controller::API::Common::IdentifierPattern, $self->{'resourceIdentifier'});
+        }
     }
 }
 
@@ -145,6 +152,11 @@ sub get_attributes
         }
         case 'PersonSpecification' {
             $attributes->{'add'}('Person', $self->{'person'});
+        }
+        case 'AliasSpecification' {
+            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+            $attributes->{'add'}('Alias Type', $Shongo::Controller::API::Alias::Type->{$self->{'aliasType'}});
+            $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
         }
     }
 }
