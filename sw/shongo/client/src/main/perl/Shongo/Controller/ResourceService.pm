@@ -239,8 +239,8 @@ sub get_resource_allocation()
             $reservation->to_string_short()
         );
     }
-    printf("   %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::Object::COLOR_HEADER));
-    console_print_table($table, 3);
+    printf(" %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::Object::COLOR_HEADER));
+    console_print_table($table, 1);
 }
 
 1;

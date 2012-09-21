@@ -57,7 +57,7 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #createdBy}
      */
-    @Column(nullable = false, columnDefinition = "varchar(255) default 'USER'")
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     public CreatedBy getCreatedBy()
     {
