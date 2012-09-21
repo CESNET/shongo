@@ -73,17 +73,17 @@ sub populate()
                 }
             }
         },
-        'get-reservation-request-reservations' => {
+        'get-reservation-for-request' => {
             desc => 'Get allocated reservations for existing reservation request',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
                     foreach my $identifier (split(/,/, $args[0])) {
-                        get_reservation_request_reservations($identifier);
+                        get_reservation_for_request($identifier);
                     }
                 } else {
-                    get_reservation_request_reservations();
+                    get_reservation_for_request();
                 }
             }
         },
@@ -213,7 +213,7 @@ sub get_reservation_request()
     }
 }
 
-sub get_reservation_request_reservations()
+sub get_reservation_for_request()
 {
     my ($identifier) = @_;
     $identifier = select_reservation_request($identifier);
