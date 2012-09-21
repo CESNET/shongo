@@ -289,7 +289,7 @@ sub get_attributes
 sub get_slots()
 {
     my ($self) = @_;
-    my $collection = $self->create_collection('Requested slots');
+    my $collection = Shongo::Controller::API::Object::create_collection('Requested slots');
     for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
         my $slot = get_collection_item($self->{'slots'}, $index);
         my $start = $slot->{'start'};
@@ -315,7 +315,7 @@ sub get_slots()
 sub get_specifications()
 {
     my ($self) = @_;
-    my $collection = $self->create_collection('Specifications');
+    my $collection = Shongo::Controller::API::Object::create_collection('Specifications');
     for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
         my $specification = get_collection_item($self->{'specifications'}, $index);
         $collection->{'add'}($specification);

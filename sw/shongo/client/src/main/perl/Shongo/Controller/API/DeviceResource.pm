@@ -154,16 +154,6 @@ sub get_attributes
     $attributes->{'add_collection'}($self->get_technologies());
 }
 
-# @Override
-sub to_string_collections
-{
-    my ($self) = @_;
-    my $string = "";
-    $string .= technologies_to_string($self->{'technologies'});
-    $string .= Shongo::Controller::API::Resource::to_string_collections(@_);
-    return $string;
-}
-
 #
 # Format technologies to string
 #
@@ -171,7 +161,7 @@ sub get_technologies
 {
     my ($self) = @_;
 
-    my $collection = $self->create_collection('Technologies');
+    my $collection = Shongo::Controller::API::Object::create_collection('Technologies');
     for ( my $index = 0; $index < get_collection_size($self->{'technologies'}); $index++ ) {
         my $technology = get_collection_item($self->{'technologies'}, $index);
         $collection->{'add'}($Technology->{$technology});

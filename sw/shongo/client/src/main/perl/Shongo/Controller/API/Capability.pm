@@ -176,7 +176,7 @@ sub get_aliases
 {
     my ($self) = @_;
 
-    my $collection = $self->create_collection('Aliases');
+    my $collection = Shongo::Controller::API::Object::create_collection('Aliases');
     for ( my $index = 0; $index < $self->get_aliases_count(); $index++ ) {
         my $alias = get_collection_item($self->{'aliases'}, $index);
         $collection->{'add'}($alias);

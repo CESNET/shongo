@@ -195,10 +195,11 @@ sub get_attributes
 # Create collection
 #
 # @param $name
+# @static
 #
 sub create_collection
 {
-    my ($self, $name, $item_to_string_callback) = @_;
+    my ($name, $item_to_string_callback) = @_;
     my $collection = {};
     $collection->{'name'} = $name;
     $collection->{'item_to_string_callback'} = $item_to_string_callback;
@@ -232,24 +233,11 @@ sub create_collection
 }
 
 #
-# @return formatted collections to string
+# @return attributes object
+# @static
 #
-sub to_string_collections
+sub create_attributes
 {
-    my ($self) = @_;
-    return "";
-}
-
-#
-# Convert object to string
-#
-# @return string describing this object
-#
-sub to_string
-{
-    my ($self) = @_;
-
-    # get attributes for this object
     my $attributes = {};
     $attributes->{'attributes'} = [];
     $attributes->{'collections'} = [];
@@ -264,11 +252,23 @@ sub to_string
             push(@{$attributes->{'collections'}}, $name);
             return;
         }
-        my $collection = $self->create_collection($name);
+        my $collection = Shongo::Controller::API::Object::create_collection($name);
         push(@{$attributes->{'collections'}}, $collection);
         return $collection;
     };
-    $self->get_attributes($attributes);
+    return $attributes;
+}
+
+#
+# Format attributes to string
+#
+# @param $attributes
+# @param $name
+# @return formatted string
+#
+sub format_attributes
+{
+    my ($attributes, $name) = @_;
 
     # determine maximum attribute name length
     my $max_length = 0;
@@ -341,8 +341,21 @@ sub to_string
         $string = "\n" . $string;
     }
     # prepend header
-    $string = colored(uc($self->get_name()), $COLOR_HEADER) . $string;
+    $string = colored(uc($name), $COLOR_HEADER) . $string;
     return $string;
+}
+
+#
+# Convert object to string
+#
+# @return string describing this object
+#
+sub to_string
+{
+    my ($self) = @_;
+    my $attributes = Shongo::Controller::API::Object::create_attributes();
+    $self->get_attributes($attributes);
+    return Shongo::Controller::API::Object::format_attributes($attributes, $self->get_name());
 }
 
 #

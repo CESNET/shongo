@@ -243,7 +243,7 @@ sub get_capabilities
 {
     my ($self) = @_;
 
-    my $collection = $self->create_collection('Capabilities');
+    my $collection = Shongo::Controller::API::Object::create_collection('Capabilities');
     for ( my $index = 0; $index < $self->get_capabilities_count(); $index++ ) {
         my $capability = get_collection_item($self->{'capabilities'}, $index);
         $collection->{'add'}($capability);

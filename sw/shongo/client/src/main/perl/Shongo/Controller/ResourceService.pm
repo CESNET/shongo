@@ -217,29 +217,30 @@ sub get_resource_allocation()
         return
     }
     my $resource_allocation = $result->value();
-    print("\n RESOURCE ALLOCATION\n");
-    printf("           Identifier: %s\n", $resource_allocation->{'identifier'});
-    printf("                 Name: %s\n", $resource_allocation->{'name'});
-    printf("             Interval: %s\n", format_interval($resource_allocation->{'interval'}));
+
+    my $attributes = Shongo::Controller::API::Object::create_attributes();
+    $attributes->{'add'}('Identifier', $resource_allocation->{'identifier'});
+    $attributes->{'add'}('Name', $resource_allocation->{'name'});
+    $attributes->{'add'}('Interval', format_interval($resource_allocation->{'interval'}));
     if ($resource_allocation->{'class'} eq 'VirtualRoomsResourceAllocation') {
-        printf("   Maximum Port Count: %d\n", $resource_allocation->{'maximumPortCount'});
-        printf(" Available Port Count: %d\n", $resource_allocation->{'availablePortCount'});
+        $attributes->{'add'}('Maximum Port Count', $resource_allocation->{'maximumPortCount'});
+        $attributes->{'add'}('Available Port Count', $resource_allocation->{'availablePortCount'});
     }
-    print("\n Reservations:\n\n");
+    console_print_text(Shongo::Controller::API::Object::format_attributes($attributes, 'Resource Allocation'));
 
-
-
-    my $index = 0;
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Slot', \' | ', 'Resource', \' | ', 'Type', \' |');
     foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
         my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
         $reservation->from_xml($reservationXml);
-        $reservation->fetch_child_reservations(1);
-        $index++;
-        printf(" %d)%s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
+        $table->add(
+            $reservation->{'identifier'},
+            format_interval($reservation->{'slot'}),
+            sprintf("%s (%s)", $reservation->{'resourceName'}, $reservation->{'resourceIdentifier'}),
+            $reservation->to_string_short()
+        );
     }
-    if ($index == 0) {
-        print("  -- None -- \n\n");
-    }
+    printf("   %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::Object::COLOR_HEADER));
+    console_print_table($table, 3);
 }
 
 1;

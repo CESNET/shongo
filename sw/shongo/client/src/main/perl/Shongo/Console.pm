@@ -78,18 +78,26 @@ sub console_print_error
 #
 sub console_print_table
 {
-    my ($table) = @_;
-    print $table->rule( '-', '+'), $table->title, $table->rule( '-', '+');
+    my ($table, $indent) = @_;
+    my $string = '';
+    $string .= $table->rule( '-', '+');
+    $string .= $table->title;
+    $string .= $table->rule( '-', '+');
     if ( !defined($table->body) || $table->body eq '' ) {
         my $empty_text = ' -- None -- ';
         my $width = $table->width() - 2 - length($empty_text);
         my $left = $width / 2;
         my $right = $width / 2 + ($width % 2);
-        print sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, ''), $table->rule( '-', '+');
+        $string .= sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, '');
+        $string .= $table->rule( '-', '+');
     } else {
-        print $table->body, $table->rule( '-', '+');
-
+        $string .= $table->body;
+        $string .= $table->rule( '-', '+');
     }
+    if ( defined($indent) ) {
+        $string = text_indent_lines($string, $indent);
+    }
+    print $string;
 }
 
 #

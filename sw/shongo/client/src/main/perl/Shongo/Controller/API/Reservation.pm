@@ -120,4 +120,45 @@ sub get_attributes
     }
 }
 
+#
+# @return short description of reservation
+#
+sub to_string_short
+{
+    my ($self) = @_;
+    my $name = $self->get_name();
+    $name =~ s/ Reservation//g;
+
+    # get attributes for this object
+    my $attributes = Shongo::Controller::API::Object::create_attributes();
+    $self->get_attributes($attributes);
+
+    my $ignore = {'identifier' => 1, 'slot' => 1, 'resource' => 1};
+    my $string = '';
+    foreach my $attribute (@{$attributes->{'attributes'}}) {
+        my $value = $attribute->{'value'};
+        if ( ref($value) ) {
+            if ( $value->can('to_string_short') ) {
+                $value = $value->to_string_short();
+            } else {
+                $value = undef;
+            }
+        }
+        if( !$ignore->{lc($attribute->{'name'})} && defined($value) && length($value) > 0 ) {
+            if ( length($string) > 0 ) {
+                $string .= ", ";
+            }
+            $string .= lc($attribute->{'name'}) . ': ' . $value;
+        }
+    }
+
+    if ( length($string) > 0 ) {
+        $string = $name . ' (' . $string . ')';
+    } else {
+        $string = $name;
+    }
+
+    return $string;
+}
+
 1;

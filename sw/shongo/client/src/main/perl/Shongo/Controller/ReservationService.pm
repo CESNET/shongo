@@ -26,41 +26,69 @@ sub populate()
 {
     my ($self, $shell) = @_;
     $shell->add_commands({
-        'create-reservation' => {
+        'create-reservation-request' => {
             desc => 'Create a new reservation request',
             options => 'type=s name=s purpose=s slot=s@ person=s@ resource=s@',
             args => "[-type] [-name] [-purpose] [-slot] [-person] [-resource]",
             method => sub {
                 my ($shell, $params, @args) = @_;
-                create_reservation($params->{'options'});
+                create_reservation_request($params->{'options'});
             }
         },
-        'modify-reservation' => {
+        'modify-reservation-request' => {
             desc => 'Modify an existing reservation request',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                modify_reservation($args[0]);
+                modify_reservation_request($args[0]);
             }
         },
-        'delete-reservation' => {
+        'delete-reservation-request' => {
             desc => 'Delete an existing reservation request',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                delete_reservation($args[0]);
+                delete_reservation_request($args[0]);
             }
         },
-        'list-reservations' => {
+        'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
             opts => '',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                list_reservations($params->{'options'});
+                list_reservation_requests($params->{'options'});
+            }
+        },
+        'get-reservation-request' => {
+            desc => 'Get existing reservation request',
+            args => '[identifier]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        get_reservation_request($identifier);
+                    }
+                } else {
+                    get_reservation_request();
+                }
+            }
+        },
+        'get-reservation-request-reservations' => {
+            desc => 'Get allocated reservations for existing reservation request',
+            args => '[identifier]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        get_reservation_request_reservations($identifier);
+                    }
+                } else {
+                    get_reservation_request_reservations();
+                }
             }
         },
         'get-reservation' => {
-            desc => 'Get existing reservation request',
+            desc => 'Get existing reservation',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
@@ -69,35 +97,21 @@ sub populate()
                         get_reservation($identifier);
                     }
                 } else {
-                    get_reservation_allocation();
+                    get_reservation();
                 }
             }
         },
-        'get-reservation-allocation' => {
-            desc => 'Get allocation for existing reservation request',
-            args => '[identifier]',
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_reservation_allocation($identifier);
-                    }
-                } else {
-                    get_reservation_allocation();
-                }
-            }
-        }
     });
 }
 
-sub select_reservation($)
+sub select_reservation_request($)
 {
     my ($identifier) = @_;
-    $identifier = console_read_value('Identifier of the reservation', 0, $Shongo::Common::IdentifierPattern, $identifier);
+    $identifier = console_read_value('Identifier of the reservation request', 0, $Shongo::Common::IdentifierPattern, $identifier);
     return $identifier;
 }
 
-sub create_reservation()
+sub create_reservation_request()
 {
     my ($attributes) = @_;
 
@@ -119,10 +133,10 @@ sub create_reservation()
     }
 }
 
-sub modify_reservation()
+sub modify_reservation_request()
 {
     my ($identifier) = @_;
-    $identifier = select_reservation($identifier);
+    $identifier = select_reservation_request($identifier);
     if ( !defined($identifier) ) {
         return;
     }
@@ -138,10 +152,10 @@ sub modify_reservation()
     }
 }
 
-sub delete_reservation()
+sub delete_reservation_request()
 {
     my ($identifier) = @_;
-    $identifier = select_reservation($identifier);
+    $identifier = select_reservation_request($identifier);
     if ( !defined($identifier) ) {
         return;
     }
@@ -151,7 +165,7 @@ sub delete_reservation()
     );
 }
 
-sub list_reservations()
+sub list_reservation_requests()
 {
     my $response = Shongo::Controller->instance()->secure_request(
         'Reservation.listReservationRequests'
@@ -180,10 +194,10 @@ sub list_reservations()
     console_print_table($table);
 }
 
-sub get_reservation()
+sub get_reservation_request()
 {
     my ($identifier) = @_;
-    $identifier = select_reservation($identifier);
+    $identifier = select_reservation_request($identifier);
     if ( !defined($identifier) ) {
         return;
     }
@@ -199,10 +213,10 @@ sub get_reservation()
     }
 }
 
-sub get_reservation_allocation()
+sub get_reservation_request_reservations()
 {
     my ($identifier) = @_;
-    $identifier = select_reservation($identifier);
+    $identifier = select_reservation_request($identifier);
     if ( !defined($identifier) ) {
         return;
     }
@@ -225,6 +239,35 @@ sub get_reservation_allocation()
         $reservation->fetch_child_reservations(1);
         $index++;
         printf(" %d) %s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
+    }
+}
+
+sub select_reservation($)
+{
+    my ($identifier) = @_;
+    $identifier = console_read_value('Identifier of the reservation', 0, $Shongo::Common::IdentifierPattern, $identifier);
+    return $identifier;
+}
+
+
+sub get_reservation()
+{
+    my ($identifier) = @_;
+    $identifier = select_reservation($identifier);
+    if ( !defined($identifier) ) {
+        return;
+    }
+    my $result = Shongo::Controller->instance()->secure_request(
+        'Reservation.getReservation',
+        RPC::XML::string->new($identifier)
+    );
+    if ( !$result->is_fault ) {
+        my $reservation = Shongo::Controller::API::Reservation->new();
+        $reservation->from_xml($result);
+        $reservation->fetch_child_reservations(1);
+        if ( defined($reservation) ) {
+            console_print_text($reservation->to_string());
+        }
     }
 }
 

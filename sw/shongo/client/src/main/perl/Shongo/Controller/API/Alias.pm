@@ -84,4 +84,11 @@ sub get_attributes
     $attributes->{'add'}('Type', $Type->{$self->{'type'}});
 }
 
+# @Override
+sub to_string_short
+{
+    my ($self) = @_;
+    return $self->{'value'};
+}
+
 1;
