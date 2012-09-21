@@ -253,6 +253,9 @@ public class ReservationRequest extends AbstractReservationRequest
         reservationRequestApi.setSpecification(getSpecification().toApi(domain));
         reservationRequestApi.setState(getState().toApi());
         reservationRequestApi.setStateReport(getReportText());
+        if (getReservation() != null) {
+            reservationRequestApi.setReservationIdentifier(domain.formatIdentifier(getReservation().getId()));
+        }
         super.toApi(api, domain);
     }
 

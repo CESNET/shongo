@@ -33,6 +33,11 @@ public class ReservationRequest extends AbstractReservationRequest
     private String stateReport;
 
     /**
+     * Allocated {@link Reservation} identifier.
+     */
+    private String reservationIdentifier;
+
+    /**
      * Constructor.
      */
     public ReservationRequest()
@@ -103,6 +108,22 @@ public class ReservationRequest extends AbstractReservationRequest
     public void setStateReport(String stateReport)
     {
         this.stateReport = stateReport;
+    }
+
+    /**
+     * @return {@link #reservationIdentifier}
+     */
+    public String getReservationIdentifier()
+    {
+        return reservationIdentifier;
+    }
+
+    /**
+     * @param reservationIdentifier sets the {@link #reservationIdentifier}
+     */
+    public void setReservationIdentifier(String reservationIdentifier)
+    {
+        this.reservationIdentifier = reservationIdentifier;
     }
 
     /**

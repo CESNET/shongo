@@ -12,20 +12,23 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 
-# Unique name of the shell
-our $__shell_count = 0;
-
 #
-# Create a new shell for controller client
+# Create a new shell
+#
+# @param $name
 #
 sub new
 {
     my $class = shift;
-    my $self = Term::ShellUI->new(@_, commands => {}, app => 'shell' . (++$__shell_count));
+    my $name = shift;
+    my $self = Term::ShellUI->new(@_, commands => {}, name => $name);
 
     $self->{term}->ornaments(0);
 
-    return(bless($self, $class));;
+    $self = (bless($self, $class));
+    $self->load_history();
+
+    return $self;
 }
 
 #
@@ -40,20 +43,25 @@ sub process_a_cmd
     $attrs->{completion_function} = sub { Term::ShellUI::completion_function($self, @_); };
 
     # Default implementation
-    return Term::ShellUI::process_a_cmd(@_);
+    my $result = Term::ShellUI::process_a_cmd(@_);
+
+    return $result;
 }
 
-#
-# Override loading history to erase previous
-#
+# @Override
 sub load_history
 {
     my ($self) = @_;
 
-    # Clear history
-    $self->{term}->SetHistory();
+    history_set_group_to($self->{'name'}, $self->{term});
+}
 
-    return Term::ShellUI::load_history(@_);
+# @Override
+sub save_history
+{
+    my ($self) = @_;
+
+    history_get_group_from($self->{'name'}, $self->{term});
 }
 
 #
@@ -98,7 +106,16 @@ sub command
 {
     my ($self, $command) = @_;
     print("Performing command '", $command, "'.\n");
+
+    # store history
+    $self->{term}->addhistory($command);
+    $self->save_history();
+
     $self->process_a_cmd($command);
+
+    # reload history
+    $self->{term}->addhistory($command);
+    $self->save_history();
 }
 
 1;

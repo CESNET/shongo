@@ -19,6 +19,7 @@ our @EXPORT = qw(
     get_home_directory get_term_width
     text_indent_lines
     colored
+    history_load history_save history_get_group_from history_set_group_to
     NULL
 );
 
@@ -369,13 +370,12 @@ sub text_indent_lines
     return $text;
 }
 
-no warnings "all";
-
 #
 # @param $text
 # @param $color
 # @return colorized $text
 #
+no warnings "all";
 sub colored
 {
     my ($text, $color) = @_;
@@ -389,7 +389,105 @@ sub colored
     }
     return $text;
 }
-
 use warnings "all";
+
+# History
+our $history = {};
+
+#
+# Load history from file
+#
+# @param $history_file
+#
+sub history_load
+{
+    my ($history_file) = @_;
+
+    my $group = 'default';
+    if ( open FILE, '<'. $history_file ) {
+        my @lines = <FILE>;
+        foreach my $line (@lines) {
+            $line =~ s/\s+$//g;
+            if ( defined($line) && !($line eq '') ) {
+                if ( $line =~ /\[(.+)\]/ ) {
+                    $group = $1;
+                } else {
+                    if ( !defined($history->{$group}) ) {
+                        $history->{$group} = [];
+                    }
+                    push(@{$history->{$group}}, $line);
+                }
+            }
+        }
+        close(FILE);
+    }
+}
+
+#
+# Save history to file
+#
+# @param $history_file
+#
+sub history_save
+{
+    my ($history_file) = @_;
+    if ( open FILE, '>'. $history_file ) {
+        while(my ($group, $values) = each(%{$history})) {
+            print FILE sprintf("[%s]\n", $group);
+            foreach my $value (@{$values}) {
+                print FILE sprintf("%s\n", $value);
+            }
+        }
+        close(FILE);
+    }
+}
+
+#
+# Get history group
+#
+# @param $group
+# @param $target
+#
+sub history_get_group_from
+{
+    my ($group, $target) = @_;
+
+    #printf("get history from '%s'\n", $group);
+
+    my @values = $target->GetHistory();
+    $history->{$group} = [];
+    my $previous_value = undef;
+    my $start = 0;
+    if ( scalar(@values) > 100 ) {
+        $start = scalar(@values) - 101;
+    }
+    for ( my $index = $start; $index < @values; $index++) {
+        my $value = $values[$index];
+        if ( !defined($previous_value) || !($previous_value eq $value) ) {
+            push(@{$history->{$group}}, $value);
+        }
+        $previous_value = $value;
+    }
+}
+
+#
+# Set history group
+#
+# @param $group
+# @param $target
+#
+sub history_set_group_to
+{
+    my ($group, $target) = @_;
+
+    #printf("set history to '%s'\n", $group);
+
+    $target->SetHistory();
+    if ( defined($history->{$group}) ) {
+        foreach my $value (@{$history->{$group}}) {
+            $target->addhistory($value);
+        }
+    }
+}
 
 1;

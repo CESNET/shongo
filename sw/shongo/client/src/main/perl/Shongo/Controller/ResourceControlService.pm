@@ -60,7 +60,7 @@ sub control_resource()
         return;
     }
 
-    my $shell = Shongo::Shell->new(history_file => get_home_directory() . '/.shongo_client_resource_control');
+    my $shell = Shongo::Shell->new('resource-control');
     $shell->prompt($resource->{'name'} . '> ');
     $shell->add_commands({
         "help" => {

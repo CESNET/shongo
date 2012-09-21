@@ -182,7 +182,12 @@ sub get_attributes
     $self->SUPER::get_attributes($attributes);
     $attributes->{'add'}('Requested Slot', format_interval($self->{'slot'}));
     $attributes->{'add'}('Specification', $self->{'specification'});
-    $attributes->{'add'}('Current State', $self->get_state(), $self->get_state_report());
+
+    my $state = $self->get_state();
+    if ( $self->{'state'} eq 'ALLOCATED' ) {
+        $state .= sprintf(" (" . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
+    }
+    $attributes->{'add'}('Current State', $state, $self->get_state_report());
 }
 
 1;

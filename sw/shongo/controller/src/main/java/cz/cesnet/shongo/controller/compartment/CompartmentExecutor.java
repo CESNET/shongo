@@ -41,7 +41,7 @@ public class CompartmentExecutor extends Thread
         // Wait for start
         while (DateTime.now().plus(START_BEFORE_PERIOD).isBefore(interval.getStart())) {
             try {
-                logger.debug("Waiting for video conference for allocated compartment '{}' to start...",
+                logger.debug("Waiting for compartment '{}' to start...",
                         compartment.getId());
                 Thread.sleep(START_WAITING_PERIOD.getMillis());
             }
@@ -49,7 +49,7 @@ public class CompartmentExecutor extends Thread
             }
         }
 
-        logger.info("Starting video conference for allocated compartment '{}'...", compartment.getId());
+        logger.info("Starting compartment '{}'...", compartment.getId());
 
         // Create virtual rooms
         for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
@@ -69,7 +69,7 @@ public class CompartmentExecutor extends Thread
         // Wait for end
         while (DateTime.now().plus(END_BEFORE_PERIOD).isBefore(interval.getEnd())) {
             try {
-                logger.debug("Waiting for video conference for allocated compartment '{}' to end...",
+                logger.debug("Waiting for for compartment '{}' to end...",
                         compartment.getId());
                 Thread.sleep(END_WAITING_PERIOD.getMillis());
             }
@@ -77,7 +77,7 @@ public class CompartmentExecutor extends Thread
             }
         }
 
-        logger.info("Stopping video conference for allocated compartment '{}'...", compartment.getId());
+        logger.info("Stopping compartment '{}'...", compartment.getId());
 
         // Disconnect endpoints
         for (Connection connection : compartment.getConnections()) {

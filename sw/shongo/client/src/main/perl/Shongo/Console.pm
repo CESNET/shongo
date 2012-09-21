@@ -111,6 +111,7 @@ sub console_read
     my ($message, $value) = @_;
     my $term = Term::ReadLine->new('test');
     $term->ornaments(0);
+    $term->SetHistory();
     return $term->readline(colored(sprintf("%s: ", $message), "bold blue"), $value);
 }
 
