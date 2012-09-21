@@ -12,12 +12,14 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys
+    get_enum_value
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
     format_datetime format_date format_datetime_partial format_interval
     var_dump
     get_home_directory get_term_width
     text_indent_lines
     colored
+    NULL
 );
 
 use DateTime::Format::ISO8601;
@@ -29,6 +31,9 @@ our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
 our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d)?(.\\d+)?([\\+-]\\d\\d:\\d\\d)?$)';
 our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
 our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
+
+# Represents a "null" constant
+use constant NULL => '__null__';
 
 #
 # Create hash from given values which has item "__keys" as array with keys in insertion order.
@@ -44,6 +49,18 @@ sub ordered_hash
     }
     my %hash = ();
     my @order = ();
+
+    # replace ordered hash items as theirs arrays
+    for ( my $index = 0; $index < @values; $index++ ) {
+        my $value= $values[$index];
+        if ( ref($value) eq 'HASH' && exists $value->{'__keys'} ) {
+            splice(@values, $index, 1);
+            foreach my $key (@{$value->{'__keys'}}) {
+                splice(@values, $index, 0, ($key, $value->{$key}));
+                $index += 2;
+            }
+        }
+    }
 
     for ( my $index = 0; $index < (@values - 1); $index += 2 ) {
         my $key = $values[$index];
@@ -74,6 +91,20 @@ sub ordered_hash_keys
         @hash_keys = keys %{$hash};
     }
     return @hash_keys;
+}
+
+#
+# @param $enum
+# @param $value
+# @return enum value
+#
+sub get_enum_value
+{
+    my ($enum, $value) = @_;
+    if ( !defined($value) ) {
+        $value = NULL;
+    }
+    return $enum->{$value};
 }
 
 #

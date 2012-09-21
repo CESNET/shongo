@@ -15,7 +15,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -161,35 +160,30 @@ public class AliasSpecification extends Specification implements ReservationTask
     {
         return new ReservationTask<AliasReservation>(context)
         {
-
             @Override
             protected AliasReservation createReservation() throws ReportException
             {
-                if (getAliasType() != null) {
-                    throw new TodoImplementException("Allocating alias by alias type!");
-                }
-
                 AvailableAlias availableAlias = null;
                 // First try to allocate alias from a resource capabilities
                 Resource resource = getResource();
                 if (resource != null) {
                     List<AliasProviderCapability> aliasProviderCapabilities =
                             resource.getCapabilities(AliasProviderCapability.class);
-
                     for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-                        if (aliasProviderCapability.getTechnology().equals(getTechnology())) {
-                            availableAlias = getCache().getAvailableAlias(
-                                    aliasProviderCapability, getInterval(), getCacheTransaction());
+                        availableAlias = getCache().getAvailableAlias(aliasProviderCapability, getCacheTransaction(),
+                                getTechnology(), getAliasType(), getInterval());
+                        if (availableAlias != null) {
+                            break;
                         }
                     }
                 }
                 // Allocate alias from all resources in the cache
                 if (availableAlias == null) {
                     availableAlias = getCache().getAvailableAlias(
-                            getCacheTransaction(), getTechnology(), getInterval());
+                            getCacheTransaction(), getTechnology(), getAliasType(), getInterval());
                 }
                 if (availableAlias == null) {
-                    throw new NoAvailableAliasReport(getTechnology()).exception();
+                    throw new NoAvailableAliasReport(getTechnology(), getAliasType()).exception();
                 }
                 AliasReservation aliasReservation = new AliasReservation();
                 aliasReservation.setSlot(getInterval());

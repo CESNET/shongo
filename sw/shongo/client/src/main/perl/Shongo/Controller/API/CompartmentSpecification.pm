@@ -102,15 +102,7 @@ sub modify_attributes()
 {
     my ($self, $edit) = @_;
 
-    my $callInitiation = $self->{'callInitiation'};
-    if ( !defined($callInitiation) ) {
-        $callInitiation = 'DEFAULT';
-    }
-    $callInitiation = console_auto_enum($edit, 'Select call initiation', $Shongo::Controller::API::Specification::CallInitiation, $callInitiation);
-    if ( $callInitiation eq 'DEFAULT' ) {
-        $callInitiation = undef;
-    }
-    $self->{'callInitiation'} = $callInitiation;
+    $self->{'callInitiation'} = console_auto_enum($edit, 'Select call initiation', $Shongo::Controller::API::Specification::CallInitiation, $self->{'callInitiation'});
 }
 
 # @Override
@@ -129,11 +121,7 @@ sub get_attributes
     my ($self, $attributes) = @_;
     $self->SUPER::get_attributes($attributes);
 
-    my $callInitiation = $self->{'callInitiation'};
-    if ( !defined($callInitiation) ) {
-        $callInitiation = 'DEFAULT';
-    }
-    $attributes->{'add'}('Call initiation', $Shongo::Controller::API::Specification::CallInitiation->{$callInitiation});
+    $attributes->{'add'}('Call initiation', get_enum_value($Shongo::Controller::API::Specification::CallInitiation, $self->{'callInitiation'}));
 
     my $collection = $attributes->{'add_collection'}('Specifications');
     for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {

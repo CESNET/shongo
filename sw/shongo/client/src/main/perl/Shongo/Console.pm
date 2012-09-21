@@ -338,6 +338,9 @@ sub console_auto_enum
 sub console_edit_enum
 {
     my ($message, $values, $value) = @_;
+    if ( !defined($value) ) {
+        $value = NULL;
+    }
     return console_select($message, $values, $value);
 }
 

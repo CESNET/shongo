@@ -33,10 +33,15 @@ our $Type = ordered_hash(
 # Call initiation
 #
 our $CallInitiation = ordered_hash(
-    'DEFAULT' => 'Default',
+    NULL() => 'Default',
     'TERMINAL' => 'Terminal',
     'VIRTUAL_ROOM' => 'Virtual Room'
 );
+
+#
+# Alias type for specification
+#
+our $AliasType = ordered_hash(NULL() => 'Any', $Shongo::Controller::API::Alias::Type);
 
 #
 # Create a new instance of resource specification
@@ -116,7 +121,7 @@ sub modify()
         }
         case 'AliasSpecification' {
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-            $self->{'aliasType'} = console_edit_enum("Select type of alias", $Shongo::Controller::API::Alias::Type, $self->{'aliasType'});
+            $self->{'aliasType'} = console_edit_enum("Select type of alias", $AliasType, $self->{'aliasType'});
             $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 0, $Shongo::Controller::API::Common::IdentifierPattern, $self->{'resourceIdentifier'});
         }
     }
@@ -155,8 +160,8 @@ sub get_attributes
         }
         case 'AliasSpecification' {
             $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
-            $attributes->{'add'}('Alias Type', $Shongo::Controller::API::Alias::Type->{$self->{'aliasType'}});
-            $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
+            $attributes->{'add'}('Alias Type', get_enum_value($AliasType, $self->{'aliasType'}));
+            $attributes->{'add'}('Preferred Resource Identifier', $self->{'resourceIdentifier'});
         }
     }
 }

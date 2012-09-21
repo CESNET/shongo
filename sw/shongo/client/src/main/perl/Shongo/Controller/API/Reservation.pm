@@ -86,20 +86,20 @@ sub get_attributes
 
     switch ($self->{'class'}) {
         case 'ResourceReservation' {
-            $attributes->{'add'}('Resource', sprintf("name: %s (%s)",
+            $attributes->{'add'}('Resource', sprintf("%s (%s)",
                 $self->{'resourceName'},
                 $self->{'resourceIdentifier'}
             ));
         }
         case 'VirtualRoomReservation' {
-            $attributes->{'add'}('Resource', sprintf("name: %s (%s)",
+            $attributes->{'add'}('Resource', sprintf("%s (%s)",
                 $self->{'resourceName'},
                 $self->{'resourceIdentifier'}
             ));
             $attributes->{'add'}('Port Count', $self->{'portCount'});
         }
         case 'AliasReservation' {
-            $attributes->{'add'}('Resource', sprintf("name: %s (%s)",
+            $attributes->{'add'}('Resource', sprintf("%s (%s)",
                 $self->{'resourceName'},
                 $self->{'resourceIdentifier'}
             ));

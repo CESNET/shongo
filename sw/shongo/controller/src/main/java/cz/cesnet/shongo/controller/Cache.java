@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.AliasCache;
@@ -428,43 +429,49 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * Find available alias in given {@code aliasProviderCapability}.
+     * Find available alias in all resources in the database.
      *
-     * @param aliasProviderCapability
+     * @param technology
+     * @param aliasType
      * @param interval
      * @param transaction
-     * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
+     * @return available alias for given {@code technology} and {@code interval}
      */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval,
-            Transaction transaction)
+    public AvailableAlias getAvailableAlias(Transaction transaction, Technology technology, AliasType aliasType,
+            Interval interval)
     {
-        return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
+        for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
+            if (aliasProviderCapability.isRestrictedToOwnerResource()) {
+                continue;
+            }
+            AvailableAlias availableAlias = getAvailableAlias(aliasProviderCapability, transaction, technology,
+                    aliasType, interval);
+            if (availableAlias != null) {
+                return availableAlias;
+            }
+        }
+        return null;
     }
 
     /**
      * Find available alias in all resources in the database.
      *
      * @param technology
+     * @param aliasType
      * @param interval
      * @param transaction
      * @return available alias for given {@code technology} and {@code interval}
      */
-    public AvailableAlias getAvailableAlias(Transaction transaction, Technology technology, Interval interval)
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Transaction transaction,
+            Technology technology, AliasType aliasType, Interval interval)
     {
-        for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
-            if (aliasProviderCapability.isRestrictedToOwnerResource()) {
-                continue;
-            }
-            if (!aliasProviderCapability.getTechnology().equals(technology)) {
-                continue;
-            }
-            AvailableAlias availableAlias = aliasCache.getAvailableAlias(aliasProviderCapability, interval,
-                    transaction.getAliasCacheTransaction());
-            if (availableAlias != null) {
-                return availableAlias;
-            }
+        if (technology != null && !aliasProviderCapability.getTechnology().equals(technology)) {
+            return null;
         }
-        return null;
+        if (aliasType != null && !aliasProviderCapability.getType().equals(aliasType)) {
+            return null;
+        }
+        return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
     }
 
     /**
@@ -483,7 +490,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         private AliasCache.Transaction aliasCacheTransaction = new AliasCache.Transaction();
 
         /**
-         * Set of resources referenced from {@link AllocatedResource}s in the transaction.
+         * Set of resources referenced from {@link ResourceReservation}s in the transaction.
          */
         private Set<Resource> referencedResources = new HashSet<Resource>();
 
@@ -523,7 +530,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         /**
          * @param resource to be checked
-         * @return true if given resource was referenced by any {@link AllocatedResource} added to the transaction,
+         * @return true if given resource was referenced by any {@link ResourceReservation} added to the transaction,
          *         false otherwise
          */
         public boolean containsResource(Resource resource)

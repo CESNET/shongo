@@ -67,7 +67,7 @@ sub to_xml_value
     elsif ( ref($value) ) {
         return $value->to_xml($value);
     }
-    elsif ( !defined($value) ) {
+    elsif ( !defined($value) || $value eq NULL ) {
         return RPC::XML::struct->new();
     }
     else {

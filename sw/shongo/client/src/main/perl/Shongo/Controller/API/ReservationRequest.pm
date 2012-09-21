@@ -118,7 +118,7 @@ sub get_state_report
         $color = 'red';
     }
     my $stateReport = $self->{'stateReport'};
-    my $max_line_width = get_term_width() - 22;
+    my $max_line_width = get_term_width() - 23;
     my @lines = ();
     if ( defined($stateReport) ) {
         @lines = split("\n", $stateReport);
