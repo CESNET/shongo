@@ -12,6 +12,7 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller::API::Compartment;
 
 #
 # Reservation types
@@ -104,6 +105,11 @@ sub get_attributes
                 $self->{'resourceIdentifier'}
             ));
             $attributes->{'add'}('Alias', $self->{'alias'});
+        }
+        case 'CompartmentReservation' {
+            my $compartment = Shongo::Controller::API::Compartment->new();
+            $compartment->from_xml($self->{'compartment'});
+            $attributes->{'add'}('Compartment', $compartment);
         }
     }
     if ( defined($self->{'childReservations'}) && @{$self->{'childReservations'}} > 0) {
