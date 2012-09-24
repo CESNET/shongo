@@ -49,7 +49,7 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * Specifies the maximum future for which the resource can be scheduled.
      */
-    public static final String MAX_FUTURE = "maxFuture";
+    public static final String MAXIMUM_FUTURE = "maximumFuture";
 
     /**
      * Child resources identifiers.
@@ -170,20 +170,20 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #MAX_FUTURE}
+     * @return {@link #MAXIMUM_FUTURE}
      */
     @AllowedTypes({DateTime.class, Period.class})
-    public Object getMaxFuture()
+    public Object getMaximumFuture()
     {
-        return getPropertyStorage().getValue(MAX_FUTURE);
+        return getPropertyStorage().getValue(MAXIMUM_FUTURE);
     }
 
     /**
-     * @param maxFuture sets the {@link #MAX_FUTURE}
+     * @param maximumFuture sets the {@link #MAXIMUM_FUTURE}
      */
-    public void setMaxFuture(Object maxFuture)
+    public void setMaximumFuture(Object maximumFuture)
     {
-        getPropertyStorage().setValue(MAX_FUTURE, maxFuture);
+        getPropertyStorage().setValue(MAXIMUM_FUTURE, maximumFuture);
     }
 
     /**

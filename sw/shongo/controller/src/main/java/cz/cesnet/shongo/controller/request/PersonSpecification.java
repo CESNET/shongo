@@ -118,9 +118,9 @@ public class PersonSpecification extends Specification implements StatefulSpecif
     public State getCurrentState()
     {
         switch (invitationState) {
-            case INVITATION_ACCEPTED:
+            case ACCEPTED:
                 return State.READY;
-            case INVITATION_REJECTED:
+            case REJECTED:
                 return State.SKIP;
             default:
                 return State.NOT_READY;
@@ -139,14 +139,14 @@ public class PersonSpecification extends Specification implements StatefulSpecif
 
         if (getEndpointSpecification() != personSpecification.getEndpointSpecification()) {
             // We want make change only in the following scenarios
-            if (getEndpointSpecification() == null || invitationState != InvitationState.INVITATION_ACCEPTED) {
+            if (getEndpointSpecification() == null || invitationState != InvitationState.ACCEPTED) {
                 setEndpointSpecification(personSpecification.getEndpointSpecification());
                 modified = true;
             }
         }
 
         if (modified) {
-            setInvitationState(InvitationState.INVITATION_NOT_SENT);
+            setInvitationState(InvitationState.NOT_SENT);
         }
 
         return modified;
@@ -156,7 +156,7 @@ public class PersonSpecification extends Specification implements StatefulSpecif
     protected void onCreate()
     {
         if (invitationState == null) {
-            invitationState = InvitationState.INVITATION_NOT_SENT;
+            invitationState = InvitationState.NOT_SENT;
         }
     }
 
@@ -197,7 +197,7 @@ public class PersonSpecification extends Specification implements StatefulSpecif
             }
         }
         if ( invitationState == null ) {
-            invitationState = InvitationState.INVITATION_NOT_SENT;
+            invitationState = InvitationState.NOT_SENT;
         }
         super.fromApi(specificationApi, entityManager, domain);
     }
@@ -220,21 +220,21 @@ public class PersonSpecification extends Specification implements StatefulSpecif
         /**
          * Person hasn't been invited yet.
          */
-        INVITATION_NOT_SENT,
+        NOT_SENT,
 
         /**
          * Person has been invited but the person hasn't replied yet.
          */
-        INVITATION_SENT,
+        SENT,
 
         /**
          * Person has accepted the invitation.
          */
-        INVITATION_ACCEPTED,
+        ACCEPTED,
 
         /**
          * Person has rejected the invitation.
          */
-        INVITATION_REJECTED
+        REJECTED
     }
 }

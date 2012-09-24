@@ -350,7 +350,7 @@ public class ReservationRequestManager extends AbstractManager
                             + "selected the device be which he will connect to the compartment yet!",
                             personId, reservationRequestId));
         }
-        personSpecification.setInvitationState(PersonSpecification.InvitationState.INVITATION_ACCEPTED);
+        personSpecification.setInvitationState(PersonSpecification.InvitationState.ACCEPTED);
         reservationRequest.updateStateBySpecifications();
         update(reservationRequest);
     }
@@ -365,7 +365,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
-        personSpecification.setInvitationState(PersonSpecification.InvitationState.INVITATION_REJECTED);
+        personSpecification.setInvitationState(PersonSpecification.InvitationState.REJECTED);
         reservationRequest.updateStateBySpecifications();
         update(reservationRequest);
     }

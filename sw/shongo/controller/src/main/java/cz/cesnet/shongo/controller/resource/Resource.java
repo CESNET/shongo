@@ -379,13 +379,13 @@ public class Resource extends PersistentObject
         resource.setAllocatable(isAllocatable());
         resource.setDescription(getDescription());
 
-        DateTimeSpecification maxFuture = getMaximumFuture();
-        if (maxFuture != null) {
-            if (maxFuture instanceof AbsoluteDateTimeSpecification) {
-                resource.setMaxFuture(((AbsoluteDateTimeSpecification) maxFuture).getDateTime());
+        DateTimeSpecification maximumFuture = getMaximumFuture();
+        if (maximumFuture != null) {
+            if (maximumFuture instanceof AbsoluteDateTimeSpecification) {
+                resource.setMaximumFuture(((AbsoluteDateTimeSpecification) maximumFuture).getDateTime());
             }
-            else if (maxFuture instanceof RelativeDateTimeSpecification) {
-                resource.setMaxFuture(((RelativeDateTimeSpecification) maxFuture).getDuration());
+            else if (maximumFuture instanceof RelativeDateTimeSpecification) {
+                resource.setMaximumFuture(((RelativeDateTimeSpecification) maximumFuture).getDuration());
             }
             else {
                 throw new TodoImplementException();
@@ -460,16 +460,16 @@ public class Resource extends PersistentObject
                 setParentResource(parentResource);
             }
         }
-        if (api.isPropertyFilled(api.MAX_FUTURE)) {
-            Object maxFuture = api.getMaxFuture();
-            if (maxFuture == null) {
+        if (api.isPropertyFilled(api.MAXIMUM_FUTURE)) {
+            Object maximumFuture = api.getMaximumFuture();
+            if (maximumFuture == null) {
                 setMaximumFuture(null);
             }
-            else if (maxFuture instanceof DateTime) {
-                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maxFuture));
+            else if (maximumFuture instanceof DateTime) {
+                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maximumFuture));
             }
-            else if (maxFuture instanceof Period) {
-                setMaximumFuture(new RelativeDateTimeSpecification((Period) maxFuture));
+            else if (maximumFuture instanceof Period) {
+                setMaximumFuture(new RelativeDateTimeSpecification((Period) maximumFuture));
             }
             else {
                 throw new TodoImplementException();

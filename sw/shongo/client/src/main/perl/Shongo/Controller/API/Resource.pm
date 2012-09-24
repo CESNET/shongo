@@ -72,7 +72,7 @@ sub on_create
 
     $self->{'name'} = $attributes->{'name'};
     $self->{'allocatable'} = 0;
-    $self->{'maxFuture'} = 'P4M';
+    $self->{'maximumFuture'} = 'P4M';
     $self->modify_attributes(0);
 
     # Parse capabilities
@@ -191,8 +191,8 @@ sub modify_attributes
     }
     $self->{'parentIdentifier'} = console_edit_value('Parent resource identifier', 0,
         $Shongo::Common::IdentifierPattern, $self->{'parentIdentifier'});
-    $self->{'maxFuture'} = console_edit_value('Maximum Future', 0,
-        $Shongo::Common::DateTimePattern . '|' . $Shongo::Common::PeriodPattern, $self->{'maxFuture'});
+    $self->{'maximumFuture'} = console_edit_value('Maximum Future', 0,
+        $Shongo::Common::DateTimePattern . '|' . $Shongo::Common::PeriodPattern, $self->{'maximumFuture'});
 }
 
 # @Override
@@ -222,7 +222,7 @@ sub get_attributes
     $attributes->{'add'}('Description', $self->{'description'});
     $attributes->{'add'}('Parent', $self->{'parentIdentifier'});
     $attributes->{'add'}('Allocatable', $self->{'allocatable'});
-    $attributes->{'add'}('Max Future', $self->{'maxFuture'});
+    $attributes->{'add'}('Max Future', $self->{'maximumFuture'});
 
     my $children = '';
     foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {

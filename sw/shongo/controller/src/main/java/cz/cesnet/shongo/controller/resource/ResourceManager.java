@@ -186,7 +186,8 @@ public class ResourceManager extends AbstractManager
         List<AliasReservation> aliasReservations = entityManager.createQuery("SELECT reservation"
                 + " FROM AliasReservation reservation"
                 + " WHERE reservation.aliasProviderCapability.id = :id"
-                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)", AliasReservation.class)
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", AliasReservation.class)
                 .setParameter("id", aliasProviderCapabilityId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
@@ -205,7 +206,8 @@ public class ResourceManager extends AbstractManager
         List<ResourceReservation> resourceReservations = entityManager.createQuery("SELECT reservation"
                 + " FROM ResourceReservation reservation"
                 + " WHERE reservation.resource.id = :id"
-                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)", ResourceReservation.class)
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", ResourceReservation.class)
                 .setParameter("id", resourceId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
