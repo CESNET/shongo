@@ -164,7 +164,7 @@ sub get_attributes
         case 'AliasProviderCapability' {
             $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
             $attributes->{'add'}('Type', $Shongo::Controller::API::Alias::Type->{$self->{'type'}});
-            $attributes->{'add'}('Pattern', $self->{'patern'});
+            $attributes->{'add'}('Pattern', $self->{'pattern'});
         }
     }
 }

@@ -54,9 +54,9 @@ public class ConnectionByAlias extends Connection
             String agentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
 
-            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAlias().getValue())));
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAlias().toApi())));
         } else {
-            throw new IllegalStateException("Source endpoint " + getEndpointFrom().getReportDescription() + " is not managed!");
+            compartmentExecutor.getLogger().error("Source endpoint " + getEndpointFrom().getReportDescription() + " is not managed!");
         }
 
     }
