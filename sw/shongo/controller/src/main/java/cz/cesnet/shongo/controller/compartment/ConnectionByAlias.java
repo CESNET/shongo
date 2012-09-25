@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.Dial;
+import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -65,10 +66,9 @@ public class ConnectionByAlias extends Connection
         compartmentExecutor.getLogger().debug(message.toString());
 
         if (getEndpointFrom() instanceof ManagedEndpoint) {
-            String connectorAgentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
+            String agentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
-
-            // TODO:
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
         }
     }
 }
