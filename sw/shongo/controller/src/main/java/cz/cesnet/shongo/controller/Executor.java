@@ -23,7 +23,8 @@ import java.util.Map;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Executor extends Component implements Component.WithThread, Component.EntityManagerFactoryAware, Runnable
+public class Executor extends Component
+        implements Component.WithThread, Component.EntityManagerFactoryAware, Component.ControllerAgentAware, Runnable
 {
     private static Logger logger = LoggerFactory.getLogger(Executor.class);
 
@@ -31,6 +32,11 @@ public class Executor extends Component implements Component.WithThread, Compone
      * {@link EntityManagerFactory} used for loading {@link cz.cesnet.shongo.controller.api.Reservation}s for execution.
      */
     private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * @see ControllerAgent
+     */
+    private ControllerAgent controllerAgent;
 
     /**
      * Period in which the executor works.
@@ -54,6 +60,12 @@ public class Executor extends Component implements Component.WithThread, Compone
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
         this.entityManagerFactory = entityManagerFactory;
+    }
+
+    @Override
+    public void setControllerAgent(ControllerAgent controllerAgent)
+    {
+        this.controllerAgent = controllerAgent;
     }
 
     @Override
@@ -107,10 +119,9 @@ public class Executor extends Component implements Component.WithThread, Compone
             if (executorsById.containsKey(compartmentId)) {
                 continue;
             }
-            CompartmentExecutor executor = new CompartmentExecutor(compartment, compartmentReservation.getSlot());
+            CompartmentExecutor executor = new CompartmentExecutor(controllerAgent, compartment, compartmentReservation.getSlot());
             executor.start();
             executorsById.put(compartmentId, executor);
         }
     }
-
 }

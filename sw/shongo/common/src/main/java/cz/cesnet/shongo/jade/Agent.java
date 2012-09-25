@@ -61,7 +61,7 @@ public class Agent extends jade.core.Agent
      *
      * @param command
      */
-    public void performCommand(String agentName, Command command)
+    public void performCommand(Command command)
     {
         if (isStarted() == false) {
             logger.error("Cannot perform command when the agent is not started.");

@@ -1,9 +1,13 @@
 * AbstractSpecification for Compartment child specifications
 
-* CallInitiation call in call out
+* Executor
+* Autentizace
 
-* Popsat workflow v API (interaction overview diagram)
-* Popsat instalaci shonga do API
+* API
+  * CallInitiation call in call out
+  * Popsat workflow v API (interaction overview diagram)
+  * Popsat instalaci shonga do API
+
 
 FUTURE:
 -------

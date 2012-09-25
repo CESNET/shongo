@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.compartment;
 
+import cz.cesnet.shongo.controller.ControllerAgent;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
@@ -19,20 +20,50 @@ public class CompartmentExecutor extends Thread
     private static final Period END_BEFORE_PERIOD = Period.seconds(30);
     private static final Duration END_WAITING_PERIOD = Duration.standardSeconds(30);
 
+    /**
+     * @see cz.cesnet.shongo.controller.ControllerAgent
+     */
+    private ControllerAgent controllerAgent;
+
+    /**
+     * {@link Compartment} to be executed.
+     */
     private Compartment compartment;
+
+    /**
+     * Interval for which the {@link #compartment} should be started.
+     */
     private Interval interval;
 
+    /**
+     * Constructor.
+     *
+     * @param controllerAgent
+     * @param compartment
+     * @param interval
+     */
+    public CompartmentExecutor(ControllerAgent controllerAgent, Compartment compartment, Interval interval)
+    {
+        this.controllerAgent = controllerAgent;
+        this.compartment = compartment;
+        this.interval = interval;
+        setName(String.format("Executor-%d", compartment.getId()));
+    }
+
+    /**
+     * @return logger
+     */
     public Logger getLogger()
     {
         return logger;
     }
 
-
-    public CompartmentExecutor(Compartment compartment, Interval interval)
+    /**
+     * @return {@link #controllerAgent}
+     */
+    public ControllerAgent getControllerAgent()
     {
-        this.compartment = compartment;
-        this.interval = interval;
-        setName(String.format("Executor-%d", compartment.getId()));
+        return controllerAgent;
     }
 
     @Override

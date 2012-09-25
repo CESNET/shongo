@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.compartment;
 
+import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.jade.command.SendCommand;
+import cz.cesnet.shongo.jade.ontology.Dial;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -46,6 +49,16 @@ public class ConnectionByAlias extends Connection
                 getEndpointFrom().getReportDescription(), getAlias().getValue(),
                 getAlias().getTechnology().getName()));
         compartmentExecutor.getLogger().debug(message.toString());
+
+        if (getEndpointFrom() instanceof ManagedEndpoint) {
+            String agentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAlias().getValue())));
+        } else {
+            throw new IllegalStateException("Source endpoint " + getEndpointFrom().getReportDescription() + " is not managed!");
+        }
+
     }
 
     @Override
@@ -54,5 +67,14 @@ public class ConnectionByAlias extends Connection
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
         compartmentExecutor.getLogger().debug(message.toString());
+
+        if (getEndpointFrom() instanceof ManagedEndpoint) {
+            String connectorAgentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+
+            // TODO:
+        } else {
+            throw new IllegalStateException("Source endpoint " + getEndpointFrom().getReportDescription() + " is not managed!");
+        }
     }
 }

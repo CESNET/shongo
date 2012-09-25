@@ -75,14 +75,14 @@ public class ResourceControlServiceImpl extends Component
     public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(agentName, SendCommand.createSendCommand(agentName, new Dial(target)));
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(target)));
         return String.format("Dialing in '%s' for '%s'...", agentName, target);
     }
 
     public String standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(agentName, SendCommand.createSendCommand(agentName, new StandBy()));
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new StandBy()));
         return String.format("Setting '%s' to standby mode via '%s' agent.", deviceResourceIdentifier, agentName);
     }
 

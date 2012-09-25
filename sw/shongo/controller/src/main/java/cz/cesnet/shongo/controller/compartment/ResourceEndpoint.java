@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
-import cz.cesnet.shongo.controller.resource.Address;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 
 import javax.persistence.Entity;
@@ -21,7 +18,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceEndpoint extends Endpoint
+public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
 {
     /**
      * {@link EndpointReservation} for the {@link DeviceResource}.
@@ -108,5 +105,18 @@ public class ResourceEndpoint extends Endpoint
     public String getReportDescription()
     {
         return AbstractResourceReport.formatResource(getDeviceResource());
+    }
+
+    @Override
+    @Transient
+    public String getConnectorAgentName()
+    {
+        Mode mode = getDeviceResource().getMode();
+        if (mode instanceof ManagedMode) {
+            ManagedMode managedMode = (ManagedMode) mode;
+            return managedMode.getConnectorAgentName();
+        } else {
+            throw new IllegalStateException("Resource " + getReportDescription() + " is not managed!");
+        }
     }
 }
