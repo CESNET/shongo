@@ -183,6 +183,8 @@ public class CodecC90Connector implements EndpointService
             }
 
             xPathFactory = XPathFactory.newInstance();
+
+            staticInitialized = true;
         }
     }
 
