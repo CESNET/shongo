@@ -53,12 +53,8 @@ public class ConnectionByAlias extends Connection
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             String agentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
-
             controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAlias().toApi())));
-        } else {
-            compartmentExecutor.getLogger().error("Source endpoint " + getEndpointFrom().getReportDescription() + " is not managed!");
         }
-
     }
 
     @Override
@@ -73,8 +69,6 @@ public class ConnectionByAlias extends Connection
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
 
             // TODO:
-        } else {
-            throw new IllegalStateException("Source endpoint " + getEndpointFrom().getReportDescription() + " is not managed!");
         }
     }
 }
