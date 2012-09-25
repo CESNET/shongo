@@ -1,6 +1,10 @@
 package cz.cesnet.shongo.util;
 
 import cz.cesnet.shongo.shell.Shell;
+import jline.internal.Log;
+import org.apache.log4j.Level;
+import org.apache.log4j.spi.Filter;
+import org.apache.log4j.spi.LoggingEvent;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -29,6 +33,37 @@ public class ConsoleAppender extends org.apache.log4j.ConsoleAppender
     public void setWriter(Writer writer)
     {
         super.setWriter(new ShellAwareWriter(writer));
+    }
+
+    /**
+     * Set filter
+     *
+     * @param filter
+     */
+    public void setFilter(String filter)
+    {
+        clearFilters();
+        if (filter != null) {
+            final String filterText = filter.toLowerCase();
+            addFilter(new Filter()
+            {
+                @Override
+                public int decide(LoggingEvent event)
+                {
+                    if (event.getLevel().isGreaterOrEqual(Level.WARN)) {
+                        return Filter.NEUTRAL;
+                    }
+                    String message = event.getLoggerName() + event.getRenderedMessage();
+                    message = message.toLowerCase();
+                    if (message.indexOf(filterText) != -1) {
+                        return Filter.NEUTRAL;
+                    }
+                    else {
+                        return Filter.DENY;
+                    }
+                }
+            });
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ use Switch;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
+    console_print_text
     console_print_info console_print_error console_print_table
     console_read console_read_choice console_select
     console_action console_action_loop
@@ -20,7 +21,6 @@ our @EXPORT = qw(
     console_edit_bool
 );
 
-use Term::ANSIColor;
 BEGIN {
     if ($^O eq "MSWin32")
     {
@@ -29,6 +29,23 @@ BEGIN {
     }
 }
 use Shongo::Common;
+
+#
+# Print text
+#
+sub console_print_text
+{
+    my ($text) = @_;
+    if ( ref($text) eq 'HASH' && exists $text->{'to_string'} ) {
+        $text = $text->{'to_string'}();
+    }
+    elsif( ref($text) ) {
+        $text = $text->to_string();
+    }
+    $text =~ s/\n *$//g;
+    $text = text_indent_lines($text, 1, 1);
+    printf("\n%s\n\n", $text);
+}
 
 #
 # Print INFO message to console
@@ -61,18 +78,26 @@ sub console_print_error
 #
 sub console_print_table
 {
-    my ($table) = @_;
-    print $table->rule( '-', '+'), $table->title, $table->rule( '-', '+');
+    my ($table, $indent) = @_;
+    my $string = '';
+    $string .= $table->rule( '-', '+');
+    $string .= $table->title;
+    $string .= $table->rule( '-', '+');
     if ( !defined($table->body) || $table->body eq '' ) {
         my $empty_text = ' -- None -- ';
         my $width = $table->width() - 2 - length($empty_text);
         my $left = $width / 2;
         my $right = $width / 2 + ($width % 2);
-        print sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, ''), $table->rule( '-', '+');
+        $string .= sprintf("|%" . $left . "s%s%" . $right . "s|\n", '', $empty_text, '');
+        $string .= $table->rule( '-', '+');
     } else {
-        print $table->body, $table->rule( '-', '+');
-
+        $string .= $table->body;
+        $string .= $table->rule( '-', '+');
     }
+    if ( defined($indent) ) {
+        $string = text_indent_lines($string, $indent);
+    }
+    print $string;
 }
 
 #
@@ -86,6 +111,7 @@ sub console_read
     my ($message, $value) = @_;
     my $term = Term::ReadLine->new('test');
     $term->ornaments(0);
+    $term->SetHistory();
     return $term->readline(colored(sprintf("%s: ", $message), "bold blue"), $value);
 }
 
@@ -321,6 +347,9 @@ sub console_auto_enum
 sub console_edit_enum
 {
     my ($message, $values, $value) = @_;
+    if ( !defined($value) ) {
+        $value = NULL;
+    }
     return console_select($message, $values, $value);
 }
 

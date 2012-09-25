@@ -12,20 +12,29 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys
+    get_enum_value
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
     format_datetime format_date format_datetime_partial format_interval
     var_dump
     get_home_directory get_term_width
+    text_indent_lines
+    colored
+    history_load history_save history_get_group_from history_set_group_to
+    NULL
 );
 
 use DateTime::Format::ISO8601;
 use File::HomeDir;
+use Term::ANSIColor;
 
 # Regular Expression Patterns
 our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
 our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d)?(.\\d+)?([\\+-]\\d\\d:\\d\\d)?$)';
 our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
 our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
+
+# Represents a "null" constant
+use constant NULL => '__null__';
 
 #
 # Create hash from given values which has item "__keys" as array with keys in insertion order.
@@ -41,6 +50,18 @@ sub ordered_hash
     }
     my %hash = ();
     my @order = ();
+
+    # replace ordered hash items as theirs arrays
+    for ( my $index = 0; $index < @values; $index++ ) {
+        my $value= $values[$index];
+        if ( ref($value) eq 'HASH' && exists $value->{'__keys'} ) {
+            splice(@values, $index, 1);
+            foreach my $key (@{$value->{'__keys'}}) {
+                splice(@values, $index, 0, ($key, $value->{$key}));
+                $index += 2;
+            }
+        }
+    }
 
     for ( my $index = 0; $index < (@values - 1); $index += 2 ) {
         my $key = $values[$index];
@@ -71,6 +92,20 @@ sub ordered_hash_keys
         @hash_keys = keys %{$hash};
     }
     return @hash_keys;
+}
+
+#
+# @param $enum
+# @param $value
+# @return enum value
+#
+sub get_enum_value
+{
+    my ($enum, $value) = @_;
+    if ( !defined($value) ) {
+        $value = NULL;
+    }
+    return $enum->{$value};
 }
 
 #
@@ -255,7 +290,11 @@ sub format_date
 sub format_datetime_partial
 {
     my ($dateTime) = @_;
-    return sprintf("%s", $dateTime);
+    if ( defined($dateTime) ) {
+        return sprintf("%s", $dateTime);
+    } else {
+        return "";
+    }
 }
 
 #
@@ -266,10 +305,11 @@ sub format_datetime_partial
 sub format_interval
 {
     my ($interval) = @_;
-    if ( $interval =~ m/(.*)\/(.*)/ ) {
+    if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
         return sprintf("%s, %s", format_datetime($1), $2);
+    } else {
+        return "";
     }
-    return undef;
 }
 
 #
@@ -297,6 +337,157 @@ sub get_term_width
     use Term::ReadKey;
     my ($wchar, $hchar, $wpixels, $hpixels) = GetTerminalSize();
     return $wchar
+}
+
+#
+# Indent block
+#
+# @param $text
+# @param $size
+# @param $indent_first
+#
+sub text_indent_lines
+{
+    my ($text, $size, $indent_first) = @_;
+    if ( !defined($size) ) {
+        $size = 2;
+    }
+    if ( !defined($indent_first) ) {
+        $indent_first = 1;
+    }
+    if ( !defined($text) ) {
+        return $text;
+    }
+    my $indent = '';
+    for ( my $index = 0; $index < $size; $index++ ) {
+        $indent .= ' ';
+    }
+    $text =~ s/\n/\n$indent/g;
+    $text =~ s/\n +$/\n/g;
+    if ( $indent_first ) {
+        $text = $indent . $text;
+    }
+    return $text;
+}
+
+#
+# @param $text
+# @param $color
+# @return colorized $text
+#
+no warnings "all";
+sub colored
+{
+    my ($text, $color) = @_;
+    my @lines = split("\n", $text);
+    $text = '';
+    for ( my $index = 0; $index < scalar(@lines); $index++ ) {
+        if ( length($text) > 0 ) {
+            $text .= "\n";
+        }
+        $text .= sprintf("%s", Term::ANSIColor::colored($lines[$index], $color));
+    }
+    return $text;
+}
+use warnings "all";
+
+# History
+our $history = {};
+
+#
+# Load history from file
+#
+# @param $history_file
+#
+sub history_load
+{
+    my ($history_file) = @_;
+
+    my $group = 'default';
+    if ( open FILE, '<'. $history_file ) {
+        my @lines = <FILE>;
+        foreach my $line (@lines) {
+            $line =~ s/\s+$//g;
+            if ( defined($line) && !($line eq '') ) {
+                if ( $line =~ /\[(.+)\]/ ) {
+                    $group = $1;
+                } else {
+                    if ( !defined($history->{$group}) ) {
+                        $history->{$group} = [];
+                    }
+                    push(@{$history->{$group}}, $line);
+                }
+            }
+        }
+        close(FILE);
+    }
+}
+
+#
+# Save history to file
+#
+# @param $history_file
+#
+sub history_save
+{
+    my ($history_file) = @_;
+    if ( open FILE, '>'. $history_file ) {
+        while(my ($group, $values) = each(%{$history})) {
+            print FILE sprintf("[%s]\n", $group);
+            foreach my $value (@{$values}) {
+                print FILE sprintf("%s\n", $value);
+            }
+        }
+        close(FILE);
+    }
+}
+
+#
+# Get history group
+#
+# @param $group
+# @param $target
+#
+sub history_get_group_from
+{
+    my ($group, $target) = @_;
+
+    #printf("get history from '%s'\n", $group);
+
+    my @values = $target->GetHistory();
+    $history->{$group} = [];
+    my $previous_value = undef;
+    my $start = 0;
+    if ( scalar(@values) > 100 ) {
+        $start = scalar(@values) - 101;
+    }
+    for ( my $index = $start; $index < @values; $index++) {
+        my $value = $values[$index];
+        if ( !defined($previous_value) || !($previous_value eq $value) ) {
+            push(@{$history->{$group}}, $value);
+        }
+        $previous_value = $value;
+    }
+}
+
+#
+# Set history group
+#
+# @param $group
+# @param $target
+#
+sub history_set_group_to
+{
+    my ($group, $target) = @_;
+
+    #printf("set history to '%s'\n", $group);
+
+    $target->SetHistory();
+    if ( defined($history->{$group}) ) {
+        foreach my $value (@{$history->{$group}}) {
+            $target->addhistory($value);
+        }
+    }
 }
 
 1;

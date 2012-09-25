@@ -1,5 +1,5 @@
 /**
- * Package contains the implementation of requests for a domain controller.
+ * Package contains the implementation of {@link ReservationRequest}s for a {@link Controller}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

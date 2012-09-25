@@ -96,10 +96,10 @@ public class Node extends PrintableObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("device", getDeviceResource().getId().toString());
+        map.put("device", getDeviceResource().getId());
     }
 }

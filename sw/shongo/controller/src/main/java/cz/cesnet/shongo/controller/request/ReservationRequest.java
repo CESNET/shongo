@@ -1,520 +1,361 @@
 package cz.cesnet.shongo.controller.request;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
-import cz.cesnet.shongo.controller.api.PeriodicDateTime;
-import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.controller.common.DateTimeSlot;
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
-import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
-import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Represents a request created by an user to get allocated some resources for videoconference calls.
+ * Represents a request created by an user to get allocated some resources for video conference calls.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequest extends PersistentObject
+public class ReservationRequest extends AbstractReservationRequest
 {
     /**
-     * State of reservation request.
+     * @see {@link CreatedBy}.
+     */
+    private CreatedBy createdBy;
+
+    /**
+     * Start date/time from which the reservation is requested.
+     */
+    private DateTime requestedSlotStart;
+
+    /**
+     * End date/time to which the reservation is requested.
+     */
+    private DateTime requestedSlotEnd;
+
+    /**
+     * {@link Specification} of target which is requested for a reservation.
+     */
+    private Specification specification;
+
+    /**
+     * State of the compartment request.
+     */
+    private State state;
+
+    /**
+     * Allocated {@link Reservation} for the {@link ReservationRequest}.
+     */
+    private Reservation reservation;
+
+    /**
+     * @return {@link #createdBy}
+     */
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    public CreatedBy getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    /**
+     * @return {@link #createdBy}
+     */
+    public void setCreatedBy(CreatedBy createdBy)
+    {
+        this.createdBy = createdBy;
+    }
+
+    /**
+     * @return {@link #requestedSlotStart}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getRequestedSlotStart()
+    {
+        return requestedSlotStart;
+    }
+
+    /**
+     * @param requestedSlotStart sets the {@link #requestedSlotStart}
+     */
+    public void setRequestedSlotStart(DateTime requestedSlotStart)
+    {
+        this.requestedSlotStart = requestedSlotStart;
+    }
+
+    /**
+     * @return {@link #requestedSlotEnd}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getRequestedSlotEnd()
+    {
+        return requestedSlotEnd;
+    }
+
+    /**
+     * @param requestedSlotEnd sets the {@link #requestedSlotEnd}
+     */
+    public void setRequestedSlotEnd(DateTime requestedSlotEnd)
+    {
+        this.requestedSlotEnd = requestedSlotEnd;
+    }
+
+    /**
+     * @return requested slot ({@link #requestedSlotStart}, {@link #requestedSlotEnd})
+     */
+    @Transient
+    public Interval getRequestedSlot()
+    {
+        return new Interval(requestedSlotStart, requestedSlotEnd);
+    }
+
+    /**
+     * @param requestedSlot sets the requested slot
+     */
+    @Transient
+    public void setRequestedSlot(Interval requestedSlot)
+    {
+        setRequestedSlotStart(requestedSlot.getStart());
+        setRequestedSlotEnd(requestedSlot.getEnd());
+    }
+
+    /**
+     * @return {@link #specification}
+     */
+    @ManyToOne(cascade = CascadeType.ALL)
+    public Specification getSpecification()
+    {
+        return specification;
+    }
+
+    /**
+     * @param specification sets the {@link #specification}
+     */
+    public void setSpecification(Specification specification)
+    {
+        this.specification = specification;
+    }
+
+    /**
+     * @return {@link #state}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
+
+    /**
+     * Clear {@link #state}, useful for removing {@link State#ALLOCATED} state.
+     */
+    public void clearState()
+    {
+        this.state = null;
+    }
+
+    /**
+     * @return {@link #reservation}
+     */
+    @OneToOne(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    public Reservation getReservation()
+    {
+        return reservation;
+    }
+
+    /**
+     * @param reservation sets the {@link #reservation}
+     */
+    public void setReservation(Reservation reservation)
+    {
+        this.reservation = reservation;
+    }
+
+    /**
+     * Update state of the {@link ReservationRequest} based on {@link #specification}.
+     * <p/>
+     * If {@link #specification} is instance of {@link StatefulSpecification} and it's
+     * {@link StatefulSpecification#getCurrentState()} is {@link StatefulSpecification.State#NOT_READY}
+     * the state of {@link ReservationRequest} is set to {@link State#NOT_COMPLETE}.
+     * Otherwise the state is not changed or forced to {@link State#COMPLETE} in incorrect cases.
+     *
+     * @see State
+     */
+    public void updateStateBySpecifications()
+    {
+        State newState = getState();
+        if (newState == null || newState == State.NOT_COMPLETE) {
+            newState = State.COMPLETE;
+        }
+        List<Report> reports = new ArrayList<Report>();
+        if (specification instanceof StatefulSpecification) {
+            StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
+            if (statefulSpecification.getCurrentState().equals(StatefulSpecification.State.NOT_READY)) {
+                newState = State.NOT_COMPLETE;
+                reports.add(new SpecificationNotReadyReport(specification));
+            }
+        }
+
+        if (newState != getState()) {
+            setState(newState);
+            setReports(reports);
+        }
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, Object> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("state", getState());
+        map.put("slot", getRequestedSlot());
+        map.put("specification", getSpecification());
+    }
+
+    @Override
+    protected cz.cesnet.shongo.controller.api.AbstractReservationRequest createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.ReservationRequest();
+    }
+
+    @Override
+    public final cz.cesnet.shongo.controller.api.ReservationRequest toApi(Domain domain) throws FaultException
+    {
+        return (cz.cesnet.shongo.controller.api.ReservationRequest) super.toApi(domain);
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
+                (cz.cesnet.shongo.controller.api.ReservationRequest) api;
+        reservationRequestApi.setSlot(getRequestedSlot());
+        reservationRequestApi.setSpecification(getSpecification().toApi(domain));
+        reservationRequestApi.setState(getState().toApi());
+        reservationRequestApi.setStateReport(getReportText());
+        if (getReservation() != null) {
+            reservationRequestApi.setReservationIdentifier(domain.formatIdentifier(getReservation().getId()));
+        }
+        super.toApi(api, domain);
+    }
+
+    @Override
+    public void fromApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
+    {
+        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
+                (cz.cesnet.shongo.controller.api.ReservationRequest) api;
+        if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT)) {
+            setRequestedSlot(reservationRequestApi.getSlot());
+        }
+        if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
+            cz.cesnet.shongo.controller.api.Specification specificationApi = reservationRequestApi.getSpecification();
+            if (specificationApi == null) {
+                setSpecification(null);
+            }
+            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
+                getSpecification().fromApi(specificationApi, entityManager, domain);
+            }
+            else {
+                setSpecification(Specification.createFromApi(specificationApi, entityManager, domain));
+            }
+        }
+        super.fromApi(api, entityManager, domain);
+    }
+
+    /**
+     * Enumeration defining who created the {@link ReservationRequest}.
+     */
+    public static enum CreatedBy
+    {
+        /**
+         * {@link ReservationRequest} was created by a user.
+         */
+        USER,
+
+        /**
+         * {@link ReservationRequest} was created by the {@link cz.cesnet.shongo.controller.Controller}.
+         */
+        CONTROLLER
+    }
+
+    /**
+     * Enumeration of {@link ReservationRequest} state.
      */
     public static enum State
     {
         /**
-         * State tells that reservation request hasn't corresponding compartment requests created
-         * or the reservation request has changed they are out-of-sync.
+         * Specification is instance of {@link StatefulSpecification} and it's
+         * {@link StatefulSpecification#getCurrentState()} is {@link StatefulSpecification.State#NOT_READY}.
+         * <p/>
+         * A {@link ReservationRequest} in {@link #NOT_COMPLETE} state become {@link #COMPLETE} when
+         * the {@link Specification} become {@link StatefulSpecification.State#READY}
+         * or {@link StatefulSpecification.State#SKIP}.
          */
-        NOT_PREPROCESSED,
+        NOT_COMPLETE,
 
         /**
-         * State tells that reservation request has corresponding compartment requests synced.
+         * Specification is not instance of {@link StatefulSpecification} or it has
+         * {@link StatefulSpecification#getCurrentState()} {@link StatefulSpecification.State#READY} or
+         * {@link StatefulSpecification.State#SKIP}.
+         * <p/>
+         * The {@link ReservationRequest} hasn't been allocated by the {@link Scheduler} yet or
+         * the {@link ReservationRequest} has been modified so the {@link Scheduler} must reallocate it.
+         * <p/>
+         * The {@link Scheduler} processes only {@link #COMPLETE} {@link ReservationRequest}s.
          */
-        PREPROCESSED
-    }
+        COMPLETE,
 
-    /**
-     * Date/time when the reservation request was created.
-     */
-    private DateTime created;
+        /**
+         * {@link ReservationRequest} has been successfully allocated. If the {@link ReservationRequest} becomes
+         * modified, it's state changes back to {@link #COMPLETE}.
+         */
+        ALLOCATED,
 
-    /**
-     * Type of the reservation. Permanent reservation are created by resource owners to
-     * allocate the resource for theirs activity.
-     */
-    private ReservationRequestType type;
+        /**
+         * Allocation of the {@link ReservationRequest} failed. The reason can be found from
+         * the {@link ReservationRequest#getReports()}
+         */
+        ALLOCATION_FAILED;
 
-    /**
-     * Purpose for the reservation (science/education).
-     */
-    private ReservationRequestPurpose purpose;
-
-    /**
-     * Name of the reservation that is shown to users.
-     */
-    private String name;
-
-    /**
-     * Description of the reservation that is shown to users.
-     */
-    private String description;
-
-    /**
-     * List of date/time slots for which the reservation is requested.
-     */
-    private List<DateTimeSlot> requestedSlots = new ArrayList<DateTimeSlot>();
-
-    /**
-     * List of compartments that are requested for a reservation. Each
-     * compartment represents a group of resources/persons that will
-     * be used/participate in a separate videoconference call.
-     */
-    private List<Compartment> requestedCompartments = new ArrayList<Compartment>();
-
-    /**
-     * Option that specifies whether inter-domain resource lookup can be performed.
-     */
-    private boolean interDomain;
-
-    /**
-     * @return {@link #created}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.FIELD)
-    public DateTime getCreated()
-    {
-        return created;
-    }
-
-    /**
-     * @return {@link #type}
-     */
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    public ReservationRequestType getType()
-    {
-        return type;
-    }
-
-    /**
-     * @param type sets the {@link #type}
-     */
-    public void setType(ReservationRequestType type)
-    {
-        this.type = type;
-    }
-
-    /**
-     * @return {@link #purpose}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public ReservationRequestPurpose getPurpose()
-    {
-        return purpose;
-    }
-
-    /**
-     * @param purpose sets the {@link #purpose}
-     */
-    public void setPurpose(ReservationRequestPurpose purpose)
-    {
-        this.purpose = purpose;
-    }
-
-    /**
-     * @return {@link #name}
-     */
-    @Column
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * @param name sets the {@link #name}
-     */
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    /**
-     * @return {@link #name}
-     */
-    @Column
-    public String getDescription()
-    {
-        return description;
-    }
-
-    /**
-     * @param description sets the {@link #description}
-     */
-    public void setDescription(String description)
-    {
-        this.description = description;
-    }
-
-    /**
-     * @return {@link #requestedSlots}
-     */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @Access(AccessType.FIELD)
-    public List<DateTimeSlot> getRequestedSlots()
-    {
-        return Collections.unmodifiableList(requestedSlots);
-    }
-
-    /**
-     * @param id
-     * @return requested slot with given {@code id}
-     * @throws EntityNotFoundException when the requested slot doesn't exist
-     */
-    public DateTimeSlot getRequestedSlotById(Long id) throws EntityNotFoundException
-    {
-        for (DateTimeSlot dateTimeSlot : requestedSlots) {
-            if (dateTimeSlot.getId().equals(id)) {
-                return dateTimeSlot;
-            }
-        }
-        throw new EntityNotFoundException(DateTimeSlot.class, id);
-    }
-
-    /**
-     * @param requestedSlot slot to be added to the list of requested slots
-     */
-    public void addRequestedSlot(DateTimeSlot requestedSlot)
-    {
-        requestedSlots.add(requestedSlot);
-    }
-
-    /**
-     * Add slot to the list of requested slots
-     *
-     * @param dateTime slot date/time
-     * @param duration slot duration
-     */
-    public void addRequestedSlot(DateTimeSpecification dateTime, Period duration)
-    {
-        requestedSlots.add(new DateTimeSlot(dateTime, duration));
-    }
-
-    /**
-     * @param requestedSlot slot to be removed from the {@link #requestedSlots}
-     */
-    public void removeRequestedSlot(DateTimeSlot requestedSlot)
-    {
-        requestedSlots.remove(requestedSlot);
-    }
-
-    /**
-     * @return {@link #requestedCompartments}
-     */
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "reservationRequest")
-    @Access(AccessType.FIELD)
-    public List<Compartment> getRequestedCompartments()
-    {
-        return Collections.unmodifiableList(requestedCompartments);
-    }
-
-    /**
-     * @param id
-     * @return requested compartment with given {@code id}
-     * @throws EntityNotFoundException when the requested compartment doesn't exist
-     */
-    public Compartment getRequestedCompartmentById(Long id) throws EntityNotFoundException
-    {
-        for (Compartment compartment : requestedCompartments) {
-            if (compartment.getId().equals(id)) {
-                return compartment;
-            }
-        }
-        throw new EntityNotFoundException(Compartment.class, id);
-    }
-
-    /**
-     * @param compartment compartment to be added to the {@link #requestedCompartments}
-     */
-    public void addRequestedCompartment(Compartment compartment)
-    {
-        // Manage bidirectional association
-        if (requestedCompartments.contains(compartment) == false) {
-            requestedCompartments.add(compartment);
-            compartment.setReservationRequest(this);
-        }
-    }
-
-    /**
-     * @param compartment compartment to be removed from the {@link #requestedCompartments}
-     */
-    public void removeRequestedCompartment(Compartment compartment)
-    {
-        // Manage bidirectional association
-        if (requestedCompartments.contains(compartment)) {
-            requestedCompartments.remove(compartment);
-            compartment.setReservationRequest(null);
-        }
-    }
-
-    /**
-     * @return a new compartment that was added to the list of requested resources
-     */
-    public Compartment addRequestedCompartment()
-    {
-        Compartment compartment = new Compartment();
-        addRequestedCompartment(compartment);
-        return compartment;
-    }
-
-    /**
-     * @return {@link #interDomain}
-     */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isInterDomain()
-    {
-        return interDomain;
-    }
-
-    /**
-     * @param interDomain sets the {@link #interDomain}
-     */
-    public void setInterDomain(boolean interDomain)
-    {
-        this.interDomain = interDomain;
-    }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, String> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("type", getType().toString());
-        if (getPurpose() != null) {
-            map.put("purpose", getPurpose().toString());
-        }
-        addCollectionToMap(map, "slots", requestedSlots);
-        addCollectionToMap(map, "compartments", requestedCompartments);
-    }
-
-    /**
-     * Enumerate requested date/time slots in a specific interval.
-     *
-     * @param interval
-     * @return list of all requested absolute date/time slots for given interval
-     */
-    public List<Interval> enumerateRequestedSlots(Interval interval)
-    {
-        List<Interval> enumeratedSlots = new ArrayList<Interval>();
-        for (DateTimeSlot slot : requestedSlots) {
-            enumeratedSlots.addAll(slot.enumerate(interval));
-        }
-        return enumeratedSlots;
-    }
-
-    /**
-     * @param referenceDateTime
-     * @return true whether reservation request has any requested slot after given reference date/time,
-     *         false otherwise
-     */
-    public boolean hasRequestedSlotAfter(DateTime referenceDateTime)
-    {
-        for (DateTimeSlot slot : requestedSlots) {
-            if (slot.getStart().willOccur(referenceDateTime)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @PrePersist
-    protected void onCreate()
-    {
-        created = DateTime.now();
-    }
-
-    private static Class ReservationRequestApi = cz.cesnet.shongo.controller.api.ReservationRequest.class;
-
-    /**
-     * @param entityManager
-     * @param domain
-     * @return converted reservation request to API
-     * @throws FaultException
-     */
-    public cz.cesnet.shongo.controller.api.ReservationRequest toApi(EntityManager entityManager, Domain domain)
-            throws FaultException
-    {
-        cz.cesnet.shongo.controller.api.ReservationRequest reservationRequest =
-                new cz.cesnet.shongo.controller.api.ReservationRequest();
-
-        reservationRequest.setIdentifier(domain.formatIdentifier(getId()));
-        reservationRequest.setCreated(getCreated());
-        reservationRequest.setType(getType());
-        reservationRequest.setName(getName());
-        reservationRequest.setDescription(getDescription());
-        reservationRequest.setPurpose(getPurpose());
-        reservationRequest.setInterDomain(isInterDomain());
-
-        for (DateTimeSlot dateTimeSlot : getRequestedSlots()) {
-            reservationRequest.addSlot(dateTimeSlot.toApi());
-        }
-
-        for (Compartment compartment : getRequestedCompartments()) {
-            reservationRequest.addCompartment(compartment.toApi(domain));
-        }
-
-        CompartmentRequestManager compartmentRequestManager = new CompartmentRequestManager(entityManager);
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
-        List<CompartmentRequest> compartmentRequestList = compartmentRequestManager.listByReservationRequest(this);
-        for (CompartmentRequest compartmentRequest : compartmentRequestList) {
-            cz.cesnet.shongo.controller.api.ReservationRequest.Request request =
-                    new cz.cesnet.shongo.controller.api.ReservationRequest.Request();
-            request.setSlot(compartmentRequest.getRequestedSlot());
-            switch (compartmentRequest.getState()) {
+        /**
+         * @return {@link cz.cesnet.shongo.controller.api.ReservationRequest.State} from the {@link State}
+         */
+        public cz.cesnet.shongo.controller.api.ReservationRequest.State toApi()
+        {
+            switch (this) {
                 case NOT_COMPLETE:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_COMPLETE);
-                    break;
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_COMPLETE;
+                case COMPLETE:
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_ALLOCATED;
                 case ALLOCATED:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATED);
-                    break;
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATED;
                 case ALLOCATION_FAILED:
-                    request.setState(
-                            cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.ALLOCATION_FAILED);
-                    break;
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATION_FAILED;
                 default:
-                    request.setState(cz.cesnet.shongo.controller.api.ReservationRequest.Request.State.NOT_ALLOCATED);
-                    break;
+                    throw new TodoImplementException();
             }
-            request.setStateReport(compartmentRequest.getReportText());
-            reservationRequest.addRequest(request);
-        }
-
-        return reservationRequest;
-    }
-
-    /**
-     * Synchronize reservation request from API
-     *
-     * @param api
-     * @param entityManager
-     * @param domain
-     * @throws FaultException
-     */
-    public <API extends cz.cesnet.shongo.controller.api.ReservationRequest>
-    void fromApi(API api, EntityManager entityManager, Domain domain) throws FaultException
-    {
-        // Modify attributes
-        if (api.isPropertyFilled(API.TYPE)) {
-            setType(api.getType());
-        }
-        if (api.isPropertyFilled(API.NAME)) {
-            setName(api.getName());
-        }
-        if (api.isPropertyFilled(API.DESCRIPTION)) {
-            setDescription(api.getDescription());
-        }
-        if (api.isPropertyFilled(API.PURPOSE)) {
-            setPurpose(api.getPurpose());
-        }
-        if (api.isPropertyFilled(API.INTER_DOMAIN)) {
-            setInterDomain(api.getInterDomain());
-        }
-
-        // Create/modify requested slots
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot apiSlot : api.getSlots()) {
-            // Create new requested slot
-            if (api.isCollectionItemMarkedAsNew(API.SLOTS, apiSlot)) {
-                fromApiCreateRequestedSlot(apiSlot);
-            }
-            else {
-                // Modify existing requested slot
-                DateTimeSlot dateTimeSlot = getRequestedSlotById(apiSlot.getId().longValue());
-                dateTimeSlot.setDuration(apiSlot.getDuration());
-
-                entityManager.remove(dateTimeSlot.getStart());
-
-                Object dateTime = apiSlot.getStart();
-                if (dateTime instanceof DateTime) {
-                    if (!(dateTimeSlot.getStart() instanceof AbsoluteDateTimeSpecification)
-                            || !((DateTime) dateTime).isEqual(((AbsoluteDateTimeSpecification) dateTimeSlot
-                            .getStart()).getDateTime())) {
-                        dateTimeSlot.setStart(new AbsoluteDateTimeSpecification((DateTime) dateTime));
-                    }
-                }
-                else if (dateTime instanceof PeriodicDateTime) {
-                    PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
-                    dateTimeSlot.setStart(new PeriodicDateTimeSpecification(periodic.getStart(),
-                            periodic.getPeriod(), periodic.getEnd()));
-                }
-            }
-        }
-        // Delete requested slots
-        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
-                api.getCollectionItemsMarkedAsDeleted(API.SLOTS);
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot apiSlot : apiDeletedSlots) {
-            removeRequestedSlot(getRequestedSlotById(apiSlot.getId().longValue()));
-        }
-
-        // Create/modify requested compartments
-        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : api.getCompartments()) {
-            // Create/modify requested compartment
-            Compartment compartment = null;
-            if (api.isCollectionItemMarkedAsNew(API.COMPARTMENTS, apiCompartment)) {
-                compartment = addRequestedCompartment();
-            }
-            else {
-                compartment = getRequestedCompartmentById(apiCompartment.getId().longValue());
-            }
-            compartment.fromApi(apiCompartment, entityManager, domain);
-        }
-        // Delete requested compartments
-        Set<cz.cesnet.shongo.controller.api.Compartment> apiDeletedCompartments =
-                api.getCollectionItemsMarkedAsDeleted(API.COMPARTMENTS);
-        for (cz.cesnet.shongo.controller.api.Compartment apiCompartment : apiDeletedCompartments) {
-            removeRequestedCompartment(getRequestedCompartmentById(apiCompartment.getId().longValue()));
-        }
-
-        // TODO: Delete from db deleted compartments that aren't referenced from compartment requests
-        // TODO: Think up how to delete all other objects (e.g. slots)
-    }
-
-    /**
-     * Create new requested slot in given reservation request from the given
-     * {@link cz.cesnet.shongo.controller.api.DateTimeSlot}.
-     *
-     * @param dateTimeSlot
-     * @throws FaultException
-     */
-    private void fromApiCreateRequestedSlot(cz.cesnet.shongo.controller.api.DateTimeSlot dateTimeSlot)
-            throws FaultException
-    {
-        Object dateTime = dateTimeSlot.getStart();
-        if (dateTime instanceof DateTime) {
-            addRequestedSlot(
-                    new AbsoluteDateTimeSpecification((DateTime) dateTime),
-                    dateTimeSlot.getDuration());
-        }
-        else if (dateTime instanceof PeriodicDateTime) {
-            PeriodicDateTime periodic = (PeriodicDateTime) dateTime;
-            addRequestedSlot(
-                    new PeriodicDateTimeSpecification(periodic.getStart(),
-                            periodic.getPeriod()), dateTimeSlot.getDuration());
-        }
-        else {
-            throw new FaultException("Unknown date/time type.");
         }
     }
 }

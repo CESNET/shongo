@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
@@ -67,14 +66,6 @@ public class Resource extends PersistentObject
      * Specifies whether resource can be allocated by a scheduler.
      */
     private boolean allocatable;
-
-    /**
-     * Allocations for the resource. Should be never accessed (used only for JPA query access which doesn't work
-     * without association {@see http://stackoverflow.com/questions/2837255/jpa-outer-join-without-relation}).
-     */
-    @OneToMany(mappedBy = "resource")
-    @Access(AccessType.FIELD)
-    private List<AllocatedResource> allocations;
 
     /**
      * Constructor.
@@ -351,13 +342,13 @@ public class Resource extends PersistentObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
         map.put("name", getName());
         map.put("description", getDescription());
-        addCollectionToMap(map, "capabilities", capabilities);
+        map.put("capabilities", capabilities);
     }
 
     /**
@@ -388,13 +379,13 @@ public class Resource extends PersistentObject
         resource.setAllocatable(isAllocatable());
         resource.setDescription(getDescription());
 
-        DateTimeSpecification maxFuture = getMaximumFuture();
-        if (maxFuture != null) {
-            if (maxFuture instanceof AbsoluteDateTimeSpecification) {
-                resource.setMaxFuture(((AbsoluteDateTimeSpecification) maxFuture).getDateTime());
+        DateTimeSpecification maximumFuture = getMaximumFuture();
+        if (maximumFuture != null) {
+            if (maximumFuture instanceof AbsoluteDateTimeSpecification) {
+                resource.setMaximumFuture(((AbsoluteDateTimeSpecification) maximumFuture).getDateTime());
             }
-            else if (maxFuture instanceof RelativeDateTimeSpecification) {
-                resource.setMaxFuture(((RelativeDateTimeSpecification) maxFuture).getDuration());
+            else if (maximumFuture instanceof RelativeDateTimeSpecification) {
+                resource.setMaximumFuture(((RelativeDateTimeSpecification) maximumFuture).getDuration());
             }
             else {
                 throw new TodoImplementException();
@@ -469,16 +460,16 @@ public class Resource extends PersistentObject
                 setParentResource(parentResource);
             }
         }
-        if (api.isPropertyFilled(api.MAX_FUTURE)) {
-            Object maxFuture = api.getMaxFuture();
-            if (maxFuture == null) {
+        if (api.isPropertyFilled(api.MAXIMUM_FUTURE)) {
+            Object maximumFuture = api.getMaximumFuture();
+            if (maximumFuture == null) {
                 setMaximumFuture(null);
             }
-            else if (maxFuture instanceof DateTime) {
-                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maxFuture));
+            else if (maximumFuture instanceof DateTime) {
+                setMaximumFuture(new AbsoluteDateTimeSpecification((DateTime) maximumFuture));
             }
-            else if (maxFuture instanceof Period) {
-                setMaximumFuture(new RelativeDateTimeSpecification((Period) maxFuture));
+            else if (maximumFuture instanceof Period) {
+                setMaximumFuture(new RelativeDateTimeSpecification((Period) maximumFuture));
             }
             else {
                 throw new TodoImplementException();
@@ -510,6 +501,9 @@ public class Resource extends PersistentObject
     {
         Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
         for (Capability capability : capabilities) {
+            if (capability instanceof AliasProviderCapability) {
+                continue;
+            }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
                     throw new EntityValidationException(getClass(), getId(), "Resource cannot contain multiple '"

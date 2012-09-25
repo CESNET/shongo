@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
-import cz.cesnet.shongo.controller.allocation.AllocatedVirtualRoom;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedResource>
+public class ResourceCache extends AbstractReservationCache<Resource, ResourceReservation>
 {
     private static Logger logger = LoggerFactory.getLogger(ResourceCache.class);
 
@@ -254,10 +254,10 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
     {
         // Get all allocated virtual rooms for the device and add them to the device state
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<AllocatedResource> allocations = resourceManager.listAllocatedResourcesInInterval(
+        List<ResourceReservation> resourceReservations = resourceManager.listResourceReservationsInInterval(
                 resource.getId(), getWorkingInterval());
-        for (AllocatedResource allocatedResource : allocations) {
-            addAllocation(resource, allocatedResource);
+        for (ResourceReservation resourceReservation : resourceReservations) {
+            addReservation(resource, resourceReservation);
         }
     }
 
@@ -280,9 +280,9 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
         // Check if resource is not already allocated (only resources without virtual rooms capability, resources with
         // virtual rooms capability are available always)
         if (!hasResourceCapability(resource.getId(), VirtualRoomsCapability.class)) {
-            ObjectState<AllocatedResource> resourceState = getObjectState(resource);
-            Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval, transaction);
-            if (allocatedResources.size() > 0) {
+            ObjectState<ResourceReservation> resourceState = getObjectState(resource);
+            Set<ResourceReservation> resourceReservations = resourceState.getReservations(interval, transaction);
+            if (resourceReservations.size() > 0) {
                 return false;
             }
         }
@@ -318,21 +318,21 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
      */
     public AvailableVirtualRoom getAvailableVirtualRoom(DeviceResource deviceResource, Interval interval)
     {
-        ObjectState<AllocatedResource> resourceState = getObjectState(deviceResource);
+        ObjectState<ResourceReservation> resourceState = getObjectState(deviceResource);
         VirtualRoomsCapability virtualRoomsCapability
                 = getResourceCapability(deviceResource.getId(), VirtualRoomsCapability.class);
         if (virtualRoomsCapability == null) {
             throw new IllegalStateException("Device resource doesn't have VirtualRooms capability.");
         }
-        Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval);
+        Set<ResourceReservation> resourceReservations = resourceState.getReservations(interval);
         int usedPortCount = 0;
-        for (AllocatedResource allocatedResource : allocatedResources) {
-            if (!(allocatedResource instanceof AllocatedVirtualRoom)) {
+        for (ResourceReservation resourceReservation : resourceReservations) {
+            if (!(resourceReservation instanceof VirtualRoomReservation)) {
                 throw new IllegalStateException(
                         "Device resource with VirtualRooms capability should be allocated only as virtual room.");
             }
-            AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;
-            usedPortCount += allocatedVirtualRoom.getPortCount();
+            VirtualRoomReservation virtualRoomReservation = (VirtualRoomReservation) resourceReservation;
+            usedPortCount += virtualRoomReservation.getPortCount();
         }
         AvailableVirtualRoom availableVirtualRoom = new AvailableVirtualRoom();
         availableVirtualRoom.setDeviceResource(deviceResource);
@@ -360,16 +360,16 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
                     .isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
                 continue;
             }
-            ObjectState<AllocatedResource> resourceState = getObjectState(deviceResource);
-            Set<AllocatedResource> allocatedResources = resourceState.getAllocations(interval);
+            ObjectState<ResourceReservation> resourceState = getObjectState(deviceResource);
+            Set<ResourceReservation> resourceReservations = resourceState.getReservations(interval);
             int usedPortCount = 0;
-            for (AllocatedResource allocatedResource : allocatedResources) {
-                if (!(allocatedResource instanceof AllocatedVirtualRoom)) {
+            for (ResourceReservation resourceReservation : resourceReservations) {
+                if (!(resourceReservation instanceof VirtualRoomReservation)) {
                     throw new IllegalStateException(
                             "Device resource with VirtualRooms capability should be allocated only as virtual room.");
                 }
-                AllocatedVirtualRoom allocatedVirtualRoom = (AllocatedVirtualRoom) allocatedResource;
-                usedPortCount += allocatedVirtualRoom.getPortCount();
+                VirtualRoomReservation virtualRoomReservation = (VirtualRoomReservation) resourceReservation;
+                usedPortCount += virtualRoomReservation.getPortCount();
             }
             VirtualRoomsCapability virtualRoomsCapability
                     = getResourceCapability(deviceResourceId, VirtualRoomsCapability.class);
@@ -392,7 +392,7 @@ public class ResourceCache extends AbstractAllocationCache<Resource, AllocatedRe
      * Transaction for {@link ResourceCache}.
      */
     public static class Transaction
-            extends AbstractAllocationCache.Transaction<AllocatedResource>
+            extends AbstractReservationCache.Transaction<ResourceReservation>
     {
     }
 }

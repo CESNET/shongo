@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents an information about allocations of a resource.
+ * Represents an information about reservations of a resource.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -28,9 +28,9 @@ public class ResourceAllocation
     private Interval interval;
 
     /**
-     * Allocations of the resource.
+     * {@link ResourceReservation} of the resource.
      */
-    private List<AllocatedItem> allocations = new ArrayList<AllocatedItem>();
+    private List<Reservation> reservations = new ArrayList<Reservation>();
 
     /**
      * @return {@link #identifier}
@@ -81,26 +81,26 @@ public class ResourceAllocation
     }
 
     /**
-     * @return {@link #allocations}
+     * @return {@link #reservations}
      */
-    public List<AllocatedItem> getAllocations()
+    public List<Reservation> getReservations()
     {
-        return allocations;
+        return reservations;
     }
 
     /**
-     * @param allocations sets the {@link #allocations}
+     * @param reservations sets the {@link #reservations}
      */
-    public void setAllocations(List<AllocatedItem> allocations)
+    public void setReservations(List<Reservation> reservations)
     {
-        this.allocations = allocations;
+        this.reservations = reservations;
     }
 
     /**
-     * @param allocation to be added to the {@link #allocations}
+     * @param reservation to be added to the {@link #reservations}
      */
-    public void addAllocation(AllocatedItem allocation)
+    public void addReservation(Reservation reservation)
     {
-        allocations.add(allocation);
+        reservations.add(reservation);
     }
 }

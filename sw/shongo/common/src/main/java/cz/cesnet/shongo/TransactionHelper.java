@@ -46,12 +46,19 @@ public class TransactionHelper
 
         /**
          * Rollback transaction.
+         *
+         * @return true if rollback was performed,
+         *         false otherwise
          */
-        public void rollback()
+        public boolean rollback()
         {
             if (entityTransaction != null) {
-                entityTransaction.rollback();
+                if (entityTransaction.isActive()) {
+                    entityTransaction.rollback();
+                }
+                return true;
             }
+            return false;
         }
     }
 

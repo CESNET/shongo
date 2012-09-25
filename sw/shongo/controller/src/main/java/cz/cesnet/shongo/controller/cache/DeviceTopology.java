@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.cache.topology.Edge;
 import cz.cesnet.shongo.controller.cache.topology.Node;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,11 +130,11 @@ public class DeviceTopology extends PrintableObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        addCollectionToMap(map, "nodes", nodes);
-        addCollectionToMap(map, "edges", edges);
+        map.put("nodes", nodes);
+        map.put("edges", edges);
     }
 }

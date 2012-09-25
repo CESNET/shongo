@@ -92,7 +92,11 @@ public class AliasProviderCapability extends Capability
      */
     public Boolean getRestrictedToOwnerResource()
     {
-        return (Boolean) getPropertyStorage().getValue(RESTRICTED_TO_OWNER_RESOURCE);
+        Object restrictedToOwnerResource = getPropertyStorage().getValue(RESTRICTED_TO_OWNER_RESOURCE);
+        if (restrictedToOwnerResource == null) {
+            return false;
+        }
+        return (Boolean) restrictedToOwnerResource;
     }
 
     /**

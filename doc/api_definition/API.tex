@@ -751,13 +751,15 @@ Each failure in API is reported by |faultCode| (number value) and |faultString| 
 \ApiFailure{21} Failed to parse date/time value, the |faultString| specifies which date/time value.
 \ApiFailure{22} Failed to parse period value, the |faultString| specifies which period value.
 \ApiFailure{23} Failed to parse interval value, the |faultString| specifies which interval value.
+\ApiFailure{24} Failed to parse partial date/time value, the |faultString| specifies which partial date/time value.
 
 \ApiFailure{30} Item with wrong type was present in collection, the |faultString| specifies which item in which collection and types which are allowed.
 \ApiFailure{31} Null value cannot be used as item in collection, the |faultString| specifies which collection.
 
-\ApiFailure{40} Record was not found, the |faultString| specifies which record.
+\ApiFailure{40} Entity was not found, the |faultString| specifies which entity.
+\ApiFailure{41} Entity validation failed, the |faultString| specifies which entity.
 
-\ApiFailure{99} A part of request is not implemented yet. An application log must be checked for more details.
+\ApiFailure{99} The request is not implemented yet. An application log must be checked for more details.
 
 \end{ApiFailures}
 
@@ -1081,6 +1083,29 @@ For reservation purposes, the array |DateTimeSlot[]| should be used to provide t
 
 If date/time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating date/time slot to |Interval[]|.
 
+\ApiEnum{AliasType}
+Enumeration for types of \ApiCode{Alias}es.
+\begin{ApiEnumValues}
+\ApiEnumValue{E164}{} See \url{http://en.wikipedia.org/wiki/E.164}.
+\ApiEnumValue{IDENTIFIER}{} e.g., H.323 ID.
+\ApiEnumValue{URI}{} e.g., H.323 or SIP URI.
+\end{ApiEnumValues}
+
+\ApiClass{Alias}{}
+Represents an alias for a video conferencing device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the alias.
+\ApiClassAttribute{type}{AliasType}{\ApiRequired} Type of the alias.
+\ApiClassAttribute{value}{String}{\ApiRequired} Value of the alias.
+\end{ApiClassAttributes}
+
+\ApiEnum{CallInitiation}
+Represents enumeration of who should initiate a video conference call.
+\begin{ApiEnumValues}
+\ApiEnumValue{TERMINAL}{} A terminal should initiate the call to a virtual room.
+\ApiEnumValue{VIRTUAL_ROOM}{} A virtual room should initiate the call to a terminal.
+\end{ApiEnumValues}
+
 \ApiClass{Capability}{}
 Base class for all specific capabilities which a device resource can support. A device resource can support zero, one or multiple capabilities.
 \begin{ApiClassAttributes}
@@ -1118,7 +1143,7 @@ This class represents a complete resource definition. This class is used for cre
 Set of technologies which are supported by the resource. If the set is not empty the resource is considered as device resource and thus it can participate in videoconferences.
 \ApiClassAttribute{capabilities}{Capability[]}{\ApiOptional} Capabilities of the resource.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the resource.
-\ApiClassAttribute{schedulable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |schedulable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |schedulable| to \ApiValue{true}.
+\ApiClassAttribute{allocatable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the resource can be allocated to a reservation by a scheduler. When creating a new resource, it is useful to set |allocatable| to \ApiValue{false} and restrict the time when the resource can by used for public scheduling (e.g., setup permanent reservations) and then modify the |allocatable| to \ApiValue{true}.
 \ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for reservations as defined in \UCref{rsv:max-future}.
 \ApiClassAttribute{childResourceIdentifiers}{String[]}{\ApiOptional} List of child resources identifiers (e.g., the resource is physical room and |childResourceIdentifiers| contains all videoconferencing devices in the room).
 \end{ApiClassAttributes}
@@ -1126,7 +1151,6 @@ Set of technologies which are supported by the resource. If the set is not empty
 \ApiClass{VirtualRoomsCapability}{Capability} Capability for devices which allows for creating virtual rooms for connecting multiple endpoints (e.g., H.323 MCU will support |VirtualRoomsCapability|).
 \begin{ApiClassAttributes}
 \ApiClassAttribute{portCount}{Integer}{\ApiRequired} Maximum number of ports which can be allocated for all virtual rooms.
-\ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent resource identifier in which is the resource located.
 \end{ApiClassAttributes}
 
 \ApiClass{ResourceSummary}{}
@@ -1135,6 +1159,7 @@ This class represents a summary of a resource. The summary of resource is lightw
 \ApiClassAttribute{identifier}{String}{} Resource unique identifier.
 \ApiClassAttribute{name}{String}{} Resource name which can be displayed.
 \ApiClassAttribute{technologies}{String}{} Enumeration of supported technologies (separated by comma).
+\ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent resource identifier in which is the resource located.
 \end{ApiClassAttributes}
 
 \ApiEnum{ReservationRequestType}
@@ -1149,38 +1174,88 @@ This class represents a summary of a resource. The summary of resource is lightw
 \ApiEnumValue{EDUCATION}{} Reservation will be used for education purposes (e.g., for a lecture).
 \end{ApiEnumValues}
 
-\ApiClass{ReservationRequest}{}
-This class represents a complete reservation request definition. It contains specification of requested compartments, requested date/time slots, child reservations and all other attributes. This class is used for creating and modifying reservation requests.
+\ApiClass{AbstractReservationRequest}{}
+This class represents a base class for all specific reservation requests. It contains only common attributes for all reservation requests.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{identifier}{String}{\ApiReadOnly} Reservation unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{identifier}{String}{\ApiReadOnly} Reservation request unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{created}{DateTime}{\ApiReadOnly} Date/time when the reservation request was created.
 \ApiClassAttribute{type}{ReservationRequestType}{\ApiRequired} Type of reservation request, see |ReservationReqestType|.
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of reservation request.
 \ApiClassAttribute{purpose}{ReservationRequestPurpose}{\ApiRequired} Purpose of reservation request, see |ReservationReqestPurpose|.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long reservation description.
-\ApiClassAttribute{slots}{DateTimeSlot[]}{\ApiRequired} Requested date/time slots for the reservation.
-\ApiClassAttribute{compartments}{Compartment[]}{\ApiRequired} Requested compartments for the reservation, see |Compartment|.
-%\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the scheduler should try allocate resources from other domains.
+\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the scheduler should try allocate resources from other domains.
 %\ApiClassAttribute{childReservations}{String[]}{\ApiOptional} List of child reservations identifiers. All allocated resources from child reservations become part of the parent reservation.
 \end{ApiClassAttributes}
 
-\ApiClass{Compartment}{}
-Represents a group of resources that should be interconnected by the scheduler. It is useful to create two compartments in a single reservation request when the user wants to have two independent groups of device resources.
+\ApiClass{ReservationRequestSet}{AbstractReservationRequest}
+Represents a request for one or multiple reservations. It specifies one or more date/time slots and one or more
+specifications and for each combination (slots x specifications) will be created one \ApiCode{ReservationRequest}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{resources}{ResourceSpecification[]}{\ApiRequired} List of requested resources by this reservation. Each |ResourceSpecification| definition has filled the resource identifier (FQESpec) or other attributes that partially specifies the resource (PQESpec).
-\ApiClassAttribute{persons}{Person[]}{\ApiOptional} List of persons that will be invited to participate in the videoconference.
+\ApiClassAttribute{slots}{List<DateTimeSlot>}{\ApiRequired} List of requested |slots|.
+\ApiClassAttribute{specifications}{List<Specification>}{\ApiRequired} List of requested |specifications|.
+\ApiClassAttribute{reservationRequests}{List<ReservationRequest>}{\ApiRequired} List of already created |reservationRequests|.
 \end{ApiClassAttributes}
 
-\ApiClass{ResourceSpecification}{}
-Base class for all specifications of requested resources for a compartment.
+\ApiClass{ReservationRequest}{AbstractReservationRequest}
+Represents a reservation request for single specification at one specific date/time slot. It represents a minimum unit which is processed by the Scheduler and which is allocated to a \ApiCode{Reservation}. 
 \begin{ApiClassAttributes}
-\ApiClassAttribute{persons}{Person[]}{\ApiOptional} List of persons that will be invited to participate in the videoconference and by default they will use this resource for connecting to the videoconference.
+\ApiClassAttribute{slot}{Interval}{\ApiRequired} Requested date/time |slot|.
+\ApiClassAttribute{specification}{Specification}{\ApiRequired} Requested |specification| for a target which should be allocated.
+\ApiClassAttribute{state}{ReservationRequest.State}{\ApiReadOnly} Current state of the reservation request.
+\ApiClassAttribute{stateReport}{String}{\ApiReadOnly} Description for the current state (can contain reason, e.g., why the allocation failed).
+\ApiClassAttribute{reservationIdentifier}{String}{\ApiReadOnly} Identifier of allocated reservation for this request.
 \end{ApiClassAttributes}
 
-\ApiClass{ExternalEndpointSpecification}{ResourceSpecification}
-Represents a specification for external endpoint resource(s) that is/are requested for a compartment.
+\ApiEnum{ReservationRequest.State}
+Enumeration of possible reservation request states.
+\begin{ApiEnumValues}
+\ApiEnumValue{NOT_COMPLETE}{} A specification in the request need to be additionally filled.
+\ApiEnumValue{NOT_ALLOCATED}{} The request was not processed by the Scheduler yet.
+\ApiEnumValue{ALLOCATED}{} The request was successfully allocated to a reservation.
+\ApiEnumValue{ALLOCATION_FAILED}{} Allocation of the request has failed.
+\end{ApiEnumValues}
+
+\ApiClass{Specification}{}
+Represents a base class for all specific specifications.
+
+\ApiClass{CompartmentSpecification}{Specification}
+Represents a group of endpoints which should be interconnected by the Scheduler.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{specifications}{List<Specification>}{\ApiRequired} List of specifications which should be interconnected in the compartment.
+\ApiClassAttribute{callInitiation}{CallInitiation}{\ApiOptional} Default \ApiCode{CallInitiation} in the compartment.
+\end{ApiClassAttributes}
+
+\ApiClass{ExternalEndpointSpecification}{Specification}
+Represents a specification for external endpoint resource(s) that is/are requested for a reservation.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the resource(s).
 \ApiClassAttribute{count}{Integer}{\ApiOptional} Number of same resources.
+\end{ApiClassAttributes}
+
+\ApiClass{ExistingEndpointSpecification}{Specification}
+Represents a specification for an existing resource (known to controller) that is requested for a reservation.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} Identifier of the requested endpoint resource.
+\end{ApiClassAttributes}
+
+\ApiClass{LookupEndpointSpecification}{Specification}
+Represents a specification for any existing endpoint resource with given |technology| in the controller resource database.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the resource.
+\end{ApiClassAttributes}
+
+\ApiClass{AliasSpecification}{Specification}
+Represents a specification that requests a reservation for an alias for a video conferencing device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiOptional} Technology of the requested alias.
+\ApiClassAttribute{aliasType}{AliasType}{\ApiOptional} Type of the requested alias.
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a resource with \ApiCode{AliasProviderCapability} which is preferred to be used as the alias provider.
+\end{ApiClassAttributes}
+
+\ApiClass{PersonSpecification}{Specification}
+Represents a specification for a person that should participate in a video conference.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{person}{Person}{\ApiRequired} Requested person.
 \end{ApiClassAttributes}
 
 \ApiClass{ReservationRequestSummary}{}
@@ -1676,17 +1751,17 @@ if ( ref($response) ) {
 \subsection{Create reservation}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.createReservation',
+    'Reservation.createReservationRequest',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken'),
         ...
     ),
-    RPC::XML::string->new('OneTime'),
     RPC::XML::struct->new(
-        'date' => RPC::XML::struct->new(
-            'class' => RPC::XML::string->new('Date'),
-            'date' => RPC::XML::string->new('20120101')
-        )
+        'class' => RPC::XML::string->new('ReservationRequest'),
+        'slot' => RPC::XML::string->new('20120101T12:00/PT2H'),
+        'type' => RPC::XML::string->new('NORMAL'),
+        'purpose' => RPC::XML::string->new('EDUCATION')
+        ...
     )
 );
 \end{PerlCmd}
@@ -1694,31 +1769,19 @@ $response = $client->send_request(
 <struct>
   <member>
     <name>class</name>
-    <value><string>Reservation</string></value>
+    <value><string>ReservationRequest</string></value>
   </member>
   <member>
     <name>id</name>
     <value>
-      <string>e5a6ee96-8ac5-46dc-ac3b-5374076aee1b</string>
+      <string>shongo:cz.cesnet:1</string>
     </value>
   </member>
   <member>
-    <name>type</name>
-    <value><string>OneTime</string></value>
+    <name>slot</name>
+    <value><string>20120101T12:00:00/PT2H</string></value>
   </member>
-  <member>
-    <name>date</name>
-    <value><struct>
-        <member>
-          <name>class</name>
-          <value><string>Date</string></value>
-        </member>
-        <member>
-          <name>date</name>
-          <value><string>20120101</string></value>
-        </member>
-    </struct></value>
-  </member>
+  ...
 </struct>
 \end{PerlResponse}
 
@@ -1726,12 +1789,12 @@ $response = $client->send_request(
 \subsection{Modify reservation}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.modifyReservation',
+    'Reservation.modifyReservationRequest',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken'),
         ...
     ),
-    RPC::XML::string->new('15082783-5b6f-4287-9015-3dbc0ab2f0d9'),
+    RPC::XML::string->new('shongo:cz.cesnet:1'),
     RPC::XML::struct->new(
         'description' => RPC::XML::struct->new() # set description to null
     )
@@ -1741,16 +1804,17 @@ $response = $client->send_request(
 <struct>
   <member>
     <name>id</name>
-    <value><string>15082783-5b6f-4287-9015-3dbc0ab2f0d9</string></value>
+    <value><string>shongo:cz.cesnet:1</string></value>
   </member>
   <member>
     <name>class</name>
-    <value><string>Reservation</string></value>
+    <value><string>ReservationRequest</string></value>
   </member>
   <member>
     <name>type</name>
-    <value><string>OneTime</string></value>
+    <value><string>20120101T12:00:00/PT2H</string></value>    
   </member>
+  ...
 </struct>
 \end{PerlResponse}
 
@@ -1758,7 +1822,7 @@ $response = $client->send_request(
 \subsection{List reservations}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.listReservations',
+    'Reservations.listReservationRequests',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken'),
         ...
@@ -1769,17 +1833,18 @@ $response = $client->send_request(
 <array><data>
   <value><struct>
     <member>
-      <name>class</name>
-      <value><string>Reservation</string></value>
+      <name>id</name>
+      <value><string>shongo:cz.cesnet:1</string></value>
     </member>
     <member>
-      <name>id</name>
-      <value><string>15082783-5b6f-4287-9015-3dbc0ab2f0d9</string></value>
+      <name>class</name>
+      <value><string>ReservationRequest</string></value>
     </member>
     <member>
       <name>type</name>
-      <value><string>Periodic</string></value>
+      <value><string>20120101T12:00:00/PT2H</string></value>    
     </member>
+    ...
   </struct></value>
 </data></array>
 \end{PerlResponse}
@@ -1789,7 +1854,7 @@ $response = $client->send_request(
 \subsubsection{Wrong class}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.listReservations',
+    'Reservations.listReservationRequests',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityTokenX'),
         ...
@@ -1805,7 +1870,7 @@ $response = $client->send_request(
     </member>
     <member>
       <name>faultCode</name>
-      <value><i4>1</i4></value>
+      <value><i4>10</i4></value>
     </member>
   </struct></value>
 </fault>
@@ -1814,13 +1879,13 @@ $response = $client->send_request(
 \subsubsection{Wrong attribute name}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.listReservations',
+    'Reservations.createReservationRequest',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken'),
         ...
     ),
     RPC::XML::struct->new(
-        'typeX' => RPC::XML::string->new('OneTime')
+        'typeX' => RPC::XML::string->new('PERMANENT')
     )
 );
 \end{PerlCmd}
@@ -1833,7 +1898,7 @@ $response = $client->send_request(
     </member>
     <member>
       <name>faultCode</name>
-      <value><i4>2</i4></value>
+      <value><i4>12</i4></value>
     </member>
   </struct></value>
 </fault>
@@ -1842,15 +1907,14 @@ $response = $client->send_request(
 \subsubsection{Wrong attribute value}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.listReservations',
+    'Reservations.createReservationRequest',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken'),
         ...
     ),
     RPC::XML::struct->new(
         'type' => RPC::XML::struct->new(
-            'class' => RPC::XML::string->new('Date'),
-            'date' => RPC::XML::string->new('20120101')
+            'class' => RPC::XML::string->new('SecurityToken')
         )
     )
 );
@@ -1860,12 +1924,12 @@ $response = $client->send_request(
   <value><struct>
     <member>
       <name>faultString</name>
-      <value><string>Attribute 'type' in class 'Reservation' has type
-          'ReservationType' but 'Date' was presented.</string></value>
+      <value><string>Attribute 'type' in class 'ReservationRequest' has type
+          'ReservationRequestType' but 'SecurityToken' was presented.</string></value>
     </member>
     <member>
       <name>faultCode</name>
-      <value><i4>3</i4></value>
+      <value><i4>13</i4></value>
     </member>
   </struct></value>
 </fault>
@@ -1874,13 +1938,13 @@ $response = $client->send_request(
 \subsubsection{Wrong enum}
 \begin{PerlCmd}
 $response = $client->send_request(
-    'Reservations.listReservations',
+    'Reservations.createReservationRequest',
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('SecurityToken'),
         ...
     ),
     RPC::XML::struct->new(
-        'type' => RPC::XML::string->new('OneTimeX')
+        'type' => RPC::XML::string->new('PERMANENTX')
     )
 );
 \end{PerlCmd}
@@ -1889,44 +1953,12 @@ $response = $client->send_request(
   <value><struct>
     <member>
       <name>faultString</name>
-      <value><string>Enum value 'OneTimeX' is not defined in enum
-          'ReservationType'.</string></value>
+      <value><string>Enum value 'PERMANENTX' is not defined in enum
+          'ReservationRequestType'.</string></value>
     </member>
     <member>
       <name>faultCode</name>
-      <value><i4>4</i4></value>
-    </member>
-  </struct></value>
-</fault>
-\end{PerlResponse}
-
-\subsubsection{Bussiness logic exception}
-\begin{PerlCmd}
-$response = $client->send_request(
-    'Reservations.createReservation',
-    RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    ),
-    RPC::XML::struct->new(
-        'type' => RPC::XML::string->new('Periodic'),
-        'date' => RPC::XML::struct->new(
-            'class' => RPC::XML::string->new('Date'),
-            'date' => RPC::XML::string->new('20120101')
-        )
-    )
-);
-\end{PerlCmd}
-\begin{PerlResponse}
-<fault>
-  <value><struct>
-    <member>
-      <name>faultString</name>
-      <value><string>Periodic date is required.</string></value>
-    </member>
-    <member>
-      <name>faultCode</name>
-      <value><i4>102</i4></value>
+      <value><i4>20</i4></value>
     </member>
   </struct></value>
 </fault>

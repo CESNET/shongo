@@ -2,9 +2,12 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.allocation.AllocatedCompartmentManager;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
+import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
+import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -59,7 +62,7 @@ public class ReservationServiceImpl extends Component
 
 
     @Override
-    public String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
+    public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
     {
         reservationRequest.setupNewEntity();
@@ -67,25 +70,46 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        // Create reservation request
-        cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
-                new cz.cesnet.shongo.controller.request.ReservationRequest();
+        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
+                cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
+                        reservationRequest, entityManager, domain);
 
-        reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
+        if (reservationRequestImpl instanceof ReservationRequest) {
+            ((ReservationRequest) reservationRequestImpl).setCreatedBy(ReservationRequest.CreatedBy.USER);
+            ((ReservationRequest) reservationRequestImpl).updateStateBySpecifications();
+        }
 
-        // Save it
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         reservationRequestManager.create(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
         entityManager.close();
 
-        // Return reservation request identifier
         return domain.formatIdentifier(reservationRequestImpl.getId());
     }
 
+    /**
+     * Check whether {@code abstractReservationRequestImpl} can be modified or deleted.
+     *
+     * @param abstractReservationRequestImpl
+     * @throws ReservationRequestNotModifiableException
+     */
+    private void checkModifiableReservationRequest(
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequestImpl)
+            throws ReservationRequestNotModifiableException
+    {
+        if (abstractReservationRequestImpl instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+            cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+                    (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequestImpl;
+            if (reservationRequestImpl.getCreatedBy() == ReservationRequest.CreatedBy.CONTROLLER) {
+                throw new ReservationRequestNotModifiableException(
+                        domain.formatIdentifier(abstractReservationRequestImpl.getId()));
+            }
+        }
+    }
+
     @Override
-    public void modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)
+    public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
     {
         Long reservationRequestId = domain.parseIdentifier(reservationRequest.getIdentifier());
@@ -95,12 +119,21 @@ public class ReservationServiceImpl extends Component
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        // Get reservation request
-        cz.cesnet.shongo.controller.request.ReservationRequest reservationRequestImpl =
+        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
                 reservationRequestManager.get(reservationRequestId);
-
-        // Synchronize it from API
+        checkModifiableReservationRequest(reservationRequestImpl);
         reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
+
+        if (reservationRequestImpl instanceof ReservationRequest) {
+            ReservationRequest singleReservationRequestImpl = (ReservationRequest) reservationRequestImpl;
+            // Reservation request was modified, so we must clear it's state
+            singleReservationRequestImpl.clearState();
+            // And if allocated reservation exists, we remove reference to it and it will be deleted
+            // at the start of the Scheduler
+            singleReservationRequestImpl.setReservation(null);
+            // Update state
+            singleReservationRequestImpl.updateStateBySpecifications();
+        }
 
         reservationRequestManager.update(reservationRequestImpl);
 
@@ -111,18 +144,18 @@ public class ReservationServiceImpl extends Component
     @Override
     public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier) throws FaultException
     {
-        Long requestId = domain.parseIdentifier(reservationRequestIdentifier);
+        Long reservationRequestId = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        // Get reservation request
-        cz.cesnet.shongo.controller.request.ReservationRequest requestImpl = reservationRequestManager.get(requestId);
+        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
+                reservationRequestManager.get(reservationRequestId);
+        checkModifiableReservationRequest(reservationRequestImpl);
 
-        // Delete the request
-        reservationRequestManager.delete(requestImpl);
+        reservationRequestManager.delete(reservationRequestImpl);
 
         entityManager.getTransaction().commit();
         entityManager.close();
@@ -134,25 +167,37 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.request.ReservationRequest> list = reservationRequestManager.list();
+        List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> list = reservationRequestManager.list();
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
-        for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : list) {
+        for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : list) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
-            summary.setIdentifier(domain.formatIdentifier(reservationRequest.getId()));
+            summary.setIdentifier(domain.formatIdentifier(abstractReservationRequest.getId()));
 
             Interval earliestSlot = null;
-            for (cz.cesnet.shongo.controller.common.DateTimeSlot slot : reservationRequest.getRequestedSlots()) {
-                Interval interval = slot.getEarliest(null);
-                if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
-                    earliestSlot = interval;
+            if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
+                cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
+                        (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
+                earliestSlot = reservationRequest.getRequestedSlot();
+            }
+            else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
+                cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
+                        (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
+                for (DateTimeSlotSpecification slot : reservationRequestSet.getRequestedSlots()) {
+                    Interval interval = slot.getEarliest(null);
+                    if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
+                        earliestSlot = interval;
+                    }
                 }
             }
+            else {
+                throw new TodoImplementException(abstractReservationRequest.getClass().getCanonicalName());
+            }
 
-            summary.setCreated(reservationRequest.getCreated());
-            summary.setType(reservationRequest.getType());
-            summary.setName(reservationRequest.getName());
-            summary.setPurpose(reservationRequest.getPurpose());
-            summary.setDescription(reservationRequest.getDescription());
+            summary.setCreated(abstractReservationRequest.getCreated());
+            summary.setType(abstractReservationRequest.getType());
+            summary.setName(abstractReservationRequest.getName());
+            summary.setPurpose(abstractReservationRequest.getPurpose());
+            summary.setDescription(abstractReservationRequest.getDescription());
             summary.setEarliestSlot(earliestSlot);
             summaryList.add(summary);
         }
@@ -163,40 +208,57 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public ReservationRequest getReservationRequest(SecurityToken token,
-            String reservationRequestIdentifier) throws FaultException
+    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
+            throws FaultException
     {
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        cz.cesnet.shongo.controller.request.ReservationRequest requestImpl = reservationRequestManager.get(id);
-        ReservationRequest request = requestImpl.toApi(entityManager, domain);
+        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
+                reservationRequestManager.get(id);
+        AbstractReservationRequest reservationRequest = reservationRequestImpl.toApi(domain);
 
         entityManager.close();
 
-        return request;
+        return reservationRequest;
     }
 
     @Override
-    public Collection<AllocatedCompartment> listAllocatedCompartments(SecurityToken token,
-            String reservationRequestIdentifier) throws FaultException
+    public Reservation getReservation(SecurityToken token, String reservationIdentifier) throws FaultException
+    {
+        Long reservationId = domain.parseIdentifier(reservationIdentifier);
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+
+        cz.cesnet.shongo.controller.reservation.Reservation reservationImpl = reservationManager.get(reservationId);
+        Reservation reservation = reservationImpl.toApi(domain);
+
+        entityManager.close();
+
+        return reservation;
+    }
+
+    @Override
+    public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestIdentifier)
+            throws FaultException
     {
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        AllocatedCompartmentManager allocatedCompartmentManager = new AllocatedCompartmentManager(entityManager);
+        ReservationManager reservationManager = new ReservationManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.allocation.AllocatedCompartment> allocatedCompartments =
-                allocatedCompartmentManager.listByReservationRequest(id);
-        List<AllocatedCompartment> allocatedCompartmentList = new ArrayList<AllocatedCompartment>();
-        for (cz.cesnet.shongo.controller.allocation.AllocatedCompartment allocation : allocatedCompartments) {
-            allocatedCompartmentList.add(allocation.toApi(domain));
+        List<cz.cesnet.shongo.controller.reservation.Reservation> reservationImpls =
+                reservationManager.listByReservationRequest(id);
+        List<Reservation> reservations = new ArrayList<Reservation>();
+        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservationImpls) {
+            reservations.add(reservation.toApi(domain));
         }
 
         entityManager.close();
 
-        return allocatedCompartmentList;
+        return reservations;
     }
 }

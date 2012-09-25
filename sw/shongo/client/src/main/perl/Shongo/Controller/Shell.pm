@@ -23,7 +23,7 @@ use Shongo::Controller::ReservationService;
 sub new
 {
     my $class = shift;
-    my $self = Shongo::Shell->new(history_file => get_home_directory() . '/.shongo_client');
+    my $self = Shongo::Shell->new('controller');
 
     $self->prompt('shongo> ');
     $self->add_commands({

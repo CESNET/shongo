@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
+import cz.cesnet.shongo.controller.compartment.Endpoint;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -25,7 +25,7 @@ public class CannotCreateConnectionFromToMultipleReport extends AbstractConnecti
      * @param endpointFrom
      * @param endpointTo
      */
-    public CannotCreateConnectionFromToMultipleReport(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo)
+    public CannotCreateConnectionFromToMultipleReport(Endpoint endpointFrom, Endpoint endpointTo)
     {
         super(endpointFrom, endpointTo);
     }
@@ -36,6 +36,6 @@ public class CannotCreateConnectionFromToMultipleReport extends AbstractConnecti
     {
         return String.format("Cannot create connection from %s to %s, "
                 + "because the target represents multiple endpoints (not supported yet).",
-                getEndpointFrom(), getEndpointTo());
+                getEndpointFromAsString(), getEndpointToAsString());
     }
 }

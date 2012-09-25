@@ -10,8 +10,10 @@ import cz.cesnet.shongo.fault.Fault;
  */
 public class ControllerFault extends CommonFault
 {
-    public static final Fault PREPROCESSOR_FAILED = new SimpleFault(100, "Preprocessor failed");
+    public static final Fault PREPROCESSOR_FAILED = new SimpleFault(100, "");
     public static final Fault SCHEDULER_FAILED = new SimpleFault(101, "Scheduler failed");
+
+    public static final int RESERVATION_REQUEST_NOT_MODIFIABLE = 200;
 
     @Override
     protected void fill()

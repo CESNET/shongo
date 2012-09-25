@@ -59,18 +59,14 @@ sub on_create()
 #
 # On modify
 #
-sub on_modify()
+sub on_modify_loop()
 {
     my ($self, $actions) = @_;
 
     append_technologies_actions($actions, \$self->{'technologies'});
 }
 
-#
-# Modify resource attributes
-#
-# @param $edit
-#
+# @Override
 sub modify_attributes()
 {
     my ($self, $edit) = @_;
@@ -134,60 +130,43 @@ sub append_technologies_actions()
 }
 
 # @Override
-sub to_string_name
+sub get_name
 {
+    my ($self) = @_;
     return "Device Resource";
 }
 
 # @Override
-sub to_string_attributes
+sub get_attributes
 {
-    my ($self) = @_;
-    my $string = Shongo::Controller::API::Resource::to_string_attributes(@_);
-    if ( defined($self->{'address'}) ) {
-        $string .= "     Address: $self->{'address'}\n";
-    }
-    if ( defined($self->{'mode'}) ) {
-        my $mode = '';
-        if ( $self->{'mode'} eq 'UNMANAGED' ) {
-            $mode = 'Unmanaged';
-        } elsif ( ref($self->{'mode'}) eq 'HASH' ) {
-            $mode = 'Managed(' . $self->{'mode'}->{'connectorAgentName'} . ')';
-        }
-        $string .= "        Mode: $mode\n";
-    }
-    return $string;
-}
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+    $attributes->{'add'}('Address', $self->{'address'});
 
-# @Override
-sub to_string_collections
-{
-    my ($self) = @_;
-    my $string = "";
-    $string .= technologies_to_string($self->{'technologies'});
-    $string .= Shongo::Controller::API::Resource::to_string_collections(@_);
-    return $string;
+    my $mode = '';
+    if ( $self->{'mode'} eq 'UNMANAGED' ) {
+        $mode = 'Unmanaged';
+    } elsif ( ref($self->{'mode'}) eq 'HASH' ) {
+        $mode = 'Managed(' . $self->{'mode'}->{'connectorAgentName'} . ')';
+    }
+    $attributes->{'add'}('Mode', $mode);
+
+    $attributes->{'add_collection'}($self->get_technologies());
 }
 
 #
 # Format technologies to string
 #
-sub technologies_to_string
+sub get_technologies
 {
-    my ($technologies) = @_;
+    my ($self) = @_;
 
-    my $string = " Technologies:\n";
-    my $technologies_count = get_collection_size($technologies);
-    if ( $technologies_count > 0 ) {
-        for ( my $index = 0; $index < $technologies_count; $index++ ) {
-            my $technology = get_collection_item($technologies, $index);
-            $string .= sprintf("   %d) %s\n", $index + 1, $Technology->{$technology});
-        }
+    my $collection = Shongo::Controller::API::Object::create_collection('Technologies');
+    for ( my $index = 0; $index < get_collection_size($self->{'technologies'}); $index++ ) {
+        my $technology = get_collection_item($self->{'technologies'}, $index);
+        $collection->{'add'}($Technology->{$technology});
     }
-    else {
-        $string .= "   -- None --\n";
-    }
-    return $string;
+    return $collection;
 }
 
 1;

@@ -1,0 +1,16 @@
+* AbstractSpecification for Compartment child specifications
+
+* CallInitiation call in call out
+
+* Popsat workflow v API (interaction overview diagram)
+* Popsat instalaci shonga do API
+
+FUTURE:
+-------
+* Persons, PersonSpecifications
+
+* API synchronizovat pomoci
+  http://java.net/projects/texdoclet/
+  https://github.com/ePaul/ltxdoclet
+  http://docs.oracle.com/javase/1.5.0/docs/tooldocs/windows/javadoc.html#doclet
+  http://stackoverflow.com/questions/5869566/latex-javadoc-generation

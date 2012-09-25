@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.allocation.AllocatedAlias;
-import cz.cesnet.shongo.controller.allocation.AllocatedResource;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -61,16 +61,6 @@ public class ResourceManager extends AbstractManager
     public void delete(Resource resource)
     {
         super.delete(resource);
-    }
-
-    /**
-     * Create a new resource allocation in the database.
-     *
-     * @param allocatedResource
-     */
-    public void createAllocation(AllocatedResource allocatedResource)
-    {
-        super.create(allocatedResource);
     }
 
     /**
@@ -188,38 +178,40 @@ public class ResourceManager extends AbstractManager
     /**
      * @param aliasProviderCapabilityId
      * @param interval
-     * @return list of all alias allocations for alias provider with given {@code aliasProviderCapabilityId}
+     * @return list of all {@link AliasReservation}s for alias provider with given {@code aliasProviderCapabilityId}
      *         which intersects given {@code interval}
      */
-    public List<AllocatedAlias> listAllocatedAliasesInInterval(Long aliasProviderCapabilityId, Interval interval)
+    public List<AliasReservation> listAliasReservationsInInterval(Long aliasProviderCapabilityId, Interval interval)
     {
-        List<AllocatedAlias> allocatedResourceList = entityManager.createQuery("SELECT allocation"
-                + " FROM AllocatedAlias allocation"
-                + " WHERE allocation.aliasProviderCapability.id = :id"
-                + " AND NOT(allocation.slotStart >= :end OR allocation.slotEnd <= :start)", AllocatedAlias.class)
+        List<AliasReservation> aliasReservations = entityManager.createQuery("SELECT reservation"
+                + " FROM AliasReservation reservation"
+                + " WHERE reservation.aliasProviderCapability.id = :id"
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", AliasReservation.class)
                 .setParameter("id", aliasProviderCapabilityId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
-        return allocatedResourceList;
+        return aliasReservations;
     }
 
     /**
      * @param resourceId
      * @param interval
-     * @return list of all resource allocations for resource with given {@code resourceId} which intersects
-     *         given {@code interval}
+     * @return list of all {@link ResourceReservation}s for {@link Resource} with given {@code resourceId} which
+     *         intersects given {@code interval}
      */
-    public List<AllocatedResource> listAllocatedResourcesInInterval(Long resourceId, Interval interval)
+    public List<ResourceReservation> listResourceReservationsInInterval(Long resourceId, Interval interval)
     {
-        List<AllocatedResource> allocatedResourceList = entityManager.createQuery("SELECT allocation"
-                + " FROM AllocatedResource allocation"
-                + " WHERE allocation.resource.id = :id"
-                + " AND NOT(allocation.slotStart >= :end OR allocation.slotEnd <= :start)", AllocatedResource.class)
+        List<ResourceReservation> resourceReservations = entityManager.createQuery("SELECT reservation"
+                + " FROM ResourceReservation reservation"
+                + " WHERE reservation.resource.id = :id"
+                + " AND NOT(reservation.slotStart >= :end OR reservation.slotEnd <= :start)"
+                + " ORDER BY reservation.slotStart", ResourceReservation.class)
                 .setParameter("id", resourceId)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
                 .getResultList();
-        return allocatedResourceList;
+        return resourceReservations;
     }
 }

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a report (e.g., text message) describing some event concerning {@link ReportableObject}.
+ * Represents a report (e.g., text message) describing some event concerning {@link ReportablePersistentObject}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

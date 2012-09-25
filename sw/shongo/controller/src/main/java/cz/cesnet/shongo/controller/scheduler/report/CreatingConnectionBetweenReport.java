@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.allocation.AllocatedEndpoint;
+import cz.cesnet.shongo.controller.compartment.Endpoint;
 
 import javax.persistence.*;
 
@@ -30,7 +30,7 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
      * @param endpointFrom
      * @param endpointTo
      */
-    public CreatingConnectionBetweenReport(AllocatedEndpoint endpointFrom, AllocatedEndpoint endpointTo,
+    public CreatingConnectionBetweenReport(Endpoint endpointFrom, Endpoint endpointTo,
             Technology technology)
     {
         super(endpointFrom, endpointTo);
@@ -61,6 +61,6 @@ public class CreatingConnectionBetweenReport extends AbstractConnectionReport
     public String getText()
     {
         return String.format("Creating connection between %s and %s in technology %s...",
-                getEndpointFrom(), getEndpointTo(), technology.getName());
+                getEndpointFrom().getReportDescription(), getEndpointTo().getReportDescription(), technology.getName());
     }
 }

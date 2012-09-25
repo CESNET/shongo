@@ -1,9 +1,5 @@
 package cz.cesnet.shongo.controller.report;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Exception described by the {@link Report}.
  *

@@ -9,7 +9,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Capability extends IdentifiedChangeableObject
+public abstract class Capability extends IdentifiedChangeableObject
 {
     /**
      * Set of technologies for which the resource supports capability.

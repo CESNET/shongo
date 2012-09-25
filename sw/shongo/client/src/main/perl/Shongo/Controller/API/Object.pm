@@ -11,6 +11,9 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 
+our $COLOR_HEADER = "bold blue";
+our $COLOR = "bold white";
+
 #
 # Create a new instance of object
 #
@@ -64,7 +67,7 @@ sub to_xml_value
     elsif ( ref($value) ) {
         return $value->to_xml($value);
     }
-    elsif ( !defined($value) ) {
+    elsif ( !defined($value) || $value eq NULL ) {
         return RPC::XML::struct->new();
     }
     else {
@@ -171,6 +174,178 @@ sub from_xml()
 }
 
 #
+# @return name of the object
+#
+sub get_name
+{
+    my ($self) = @_;
+    return "OBJECT"
+}
+
+#
+# Get attributes for this object
+#
+# @param $attributes to be populated
+#
+sub get_attributes
+{   my ($self, $attributes) = @_;
+}
+
+#
+# Create collection
+#
+# @param $name
+# @static
+#
+sub create_collection
+{
+    my ($name, $item_to_string_callback) = @_;
+    my $collection = {};
+    $collection->{'name'} = $name;
+    $collection->{'item_to_string_callback'} = $item_to_string_callback;
+    $collection->{'items'} = [];
+    $collection->{'add'} = sub{
+        my ($item) = @_;
+        push(@{$collection->{'items'}}, $item);
+    };
+    $collection->{'to_string'} = sub{
+        my ($item) = @_;
+        my $string = colored($collection->{'name'}, $COLOR) . ':';
+        if ( @{$collection->{'items'}} > 0 ) {
+            for ( my $index = 0; $index < scalar(@{$collection->{'items'}}); $index++ ) {
+                my $item = @{$collection->{'items'}}[$index];
+                if ( defined($collection->{'item_to_string_callback'}) ) {
+                    $item = $collection->{'item_to_string_callback'}($item);
+                }
+                elsif ( ref($item) ) {
+                    $item = $item->to_string();
+                }
+                $item = text_indent_lines($item, 4, 0);
+                $string .= sprintf("\n %s %s", colored(sprintf("%d)", $index + 1), $COLOR), $item);
+            }
+        }
+        else {
+            $string .= "\n -- None --";
+        }
+        return $string;
+    };
+    return $collection;
+}
+
+#
+# @return attributes object
+# @static
+#
+sub create_attributes
+{
+    my $attributes = {};
+    $attributes->{'attributes'} = [];
+    $attributes->{'collections'} = [];
+    $attributes->{'single_line'} = 0;
+    $attributes->{'add'} = sub{
+        my ($name, $value, $description) = @_;
+        push(@{$attributes->{'attributes'}}, {'name' => $name, 'value' => $value, 'description' => $description});
+    };
+    $attributes->{'add_collection'} = sub{
+        my ($name) = @_;
+        if ( ref($name) ) {
+            push(@{$attributes->{'collections'}}, $name);
+            return;
+        }
+        my $collection = Shongo::Controller::API::Object::create_collection($name);
+        push(@{$attributes->{'collections'}}, $collection);
+        return $collection;
+    };
+    return $attributes;
+}
+
+#
+# Format attributes to string
+#
+# @param $attributes
+# @param $name
+# @return formatted string
+#
+sub format_attributes
+{
+    my ($attributes, $name) = @_;
+
+    # determine maximum attribute name length
+    my $max_length = 0;
+    foreach my $attribute (@{$attributes->{'attributes'}}) {
+        my $length = length($attribute->{'name'});
+        if ( defined($attribute->{'value'}) && !($attribute->{'value'} eq '') && $length > $max_length ) {
+            $max_length = $length;
+        }
+    }
+    if ( $attributes->{'single_line'} ) {
+        $max_length = 0;
+    }
+
+    # format attributes to string
+    my $string = '';
+    my $format = sprintf("%%%ds", $max_length);
+    $max_length += 3;
+    foreach my $attribute (@{$attributes->{'attributes'}}) {
+        my $value = $attribute->{'value'};
+        if( ref($value) ) {
+            $value = $value->to_string();
+        }
+        $value = text_indent_lines($value, $max_length, 0);
+        if ( defined($value) && length($value) > 0 ) {
+            if ( $attributes->{'single_line'} ) {
+                if ( length($string) > 0 ) {
+                    $string .= ", ";
+                }
+                $string .= colored(sprintf($format, lc($attribute->{'name'})), $COLOR) . ': ' . $value;
+            } else {
+                if ( length($string) > 0 ) {
+                    $string .= "\n";
+                }
+                $string .= ' ' . colored(sprintf($format, $attribute->{'name'}), $COLOR) . ': ' . $value;
+                if ( defined($attribute->{'description'}) ) {
+                    $string .= sprintf("\n%s", text_indent_lines($attribute->{'description'}, $max_length));
+                }
+            }
+        }
+    }
+
+    # format collections to string
+    foreach my $collection (@{$attributes->{'collections'}}) {
+        my $collection = $collection->{'to_string'}();
+        if ( length($string) > 0 ) {
+            $string .= "\n";
+        }
+        $collection = text_indent_lines($collection, 1);
+        $string .= $collection;
+    }
+
+    my $prefix = '';
+    if ( $attributes->{'single_line'} ) {
+        # enclose in "(...)"
+        $string = colored('(', $COLOR_HEADER) . $string . colored(')', $COLOR_HEADER);
+    } else {
+        # add "|" to the beginning of each line
+        $prefix = colored('|', $COLOR_HEADER);
+        $string =~ s/\n *$//g;
+        $string =~ s/\n/\n$prefix/g;
+    }
+    if ( length($string) > 0 ) {
+        # add "|" to the first line
+        $string = $prefix . $string;
+        # add ending newline
+        $string .= "\n";
+    }
+    if ( !$attributes->{'single_line'} ) {
+        # break attributes to the new line
+        $string = "\n" . $string;
+    }
+    # prepend header
+    $string = colored(uc($name), $COLOR_HEADER) . $string;
+    return $string;
+}
+
+#
 # Convert object to string
 #
 # @return string describing this object
@@ -178,35 +353,20 @@ sub from_xml()
 sub to_string
 {
     my ($self) = @_;
-
-    my $string = " " . uc($self->to_string_name()) . "\n";
-    $string .= $self->to_string_attributes();
-    $string .= $self->to_string_collections();
-    return $string;
+    my $attributes = Shongo::Controller::API::Object::create_attributes();
+    $self->get_attributes($attributes);
+    return Shongo::Controller::API::Object::format_attributes($attributes, $self->get_name());
 }
 
 #
-# @return name of the object
+# Convert object to string
 #
-sub to_string_name
+# @return string describing this object
+#
+sub to_string_short
 {
-    return "OBJECT"
-}
-
-#
-# @return formatted attributes to string
-#
-sub to_string_attributes
-{
-    return "";
-}
-
-#
-# @return formatted collections to string
-#
-sub to_string_collections
-{
-    return "";
+    my ($self) = @_;
+    return $self->get_name();
 }
 
 1;

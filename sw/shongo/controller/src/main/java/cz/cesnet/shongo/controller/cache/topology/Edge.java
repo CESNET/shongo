@@ -91,13 +91,13 @@ public class Edge extends PrintableObject
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
 
-        map.put("from", getNodeFrom().getDeviceResource().getId().toString());
-        map.put("to", getNodeTo().getDeviceResource().getId().toString());
-        map.put("technology", getTechnology().toString());
-        map.put("type", getType().toString());
+        map.put("from", getNodeFrom().getDeviceResource().getId());
+        map.put("to", getNodeTo().getDeviceResource().getId());
+        map.put("technology", getTechnology());
+        map.put("type", getType());
     }
 }

@@ -16,38 +16,26 @@ public abstract class PrintableObject
      * @param map map to which should be filled all parameters
      *            that {@link #toString()} should print.
      */
-    protected void fillDescriptionMap(Map<String, String> map)
+    protected void fillDescriptionMap(Map<String, Object> map)
     {
-    }
-
-    /**
-     * Add collection to map.
-     *
-     * @param map
-     * @param name
-     * @param collection
-     */
-    protected static void addCollectionToMap(Map<String, String> map, String name, Collection collection)
-    {
-        map.put(name, formatCollection(collection));
     }
 
     @Override
     public String toString()
     {
-        Map<String, String> map = new LinkedHashMap<String, String>();
+        Map<String, Object> map = new LinkedHashMap<String, Object>();
         fillDescriptionMap(map);
 
         StringBuilder builder = new StringBuilder();
 
-        for (Map.Entry<String, String> entry : map.entrySet()) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
             if (builder.length() > 0) {
                 builder.append(", \n");
             }
             builder.append("  ");
             builder.append(entry.getKey());
             builder.append("=");
-            builder.append(formatChild(entry.getValue()));
+            builder.append(formatChild(toString(entry.getValue())));
         }
         builder.insert(0, getClass().getSimpleName() + " {\n");
         builder.append("\n}");

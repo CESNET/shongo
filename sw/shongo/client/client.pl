@@ -81,6 +81,10 @@ if ( defined($connect) ) {
     }
 }
 
+# load history
+my $history_file = get_home_directory() . '/.shongo_client';
+history_load($history_file);
+
 # Create shell
 my $shell = Shongo::Controller::Shell->new();
 
@@ -92,17 +96,21 @@ if ( defined($cmd) ) {
 }
 # Run command from file
 elsif ( defined($file) ) {
-    open(FILE1, $file) || die "Error openning file $file: $!\n";
-    my @lines = <FILE1>;
+    open(FILE, $file) || die "Error openning file $file: $!\n";
+    my @lines = <FILE>;
     foreach my $line (@lines) {
         $line =~ s/\s+$//;
         $shell->command($line);
     }
+    close(FILE);
 }
 # Run shell
 else {
     $shell->run();
 }
+
+# save history
+history_save($history_file);
 
 # Disconnect from controller
 if ( $controller->is_connected() ) {

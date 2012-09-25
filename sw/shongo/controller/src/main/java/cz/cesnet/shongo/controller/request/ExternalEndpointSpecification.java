@@ -2,20 +2,24 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.compartment.Endpoint;
+import cz.cesnet.shongo.controller.compartment.EndpointProvider;
+import cz.cesnet.shongo.controller.compartment.ExternalEndpoint;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
 import java.util.*;
 
 /**
- * Represents an external (not existing) endpoint(s) specification for the compartment.
+ * Represents an external (not existing) {@link EndpointSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ExternalEndpointSpecification extends ResourceSpecification
+public class ExternalEndpointSpecification extends EndpointSpecification implements EndpointProvider
 {
     /**
      * Number of external endpoints of the same type.
@@ -113,6 +117,14 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     }
 
     /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
+    /**
      * @param technology technology to be added to the {@link #technologies}
      */
     public void addTechnology(Technology technology)
@@ -147,6 +159,17 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     }
 
     /**
+     * @param aliases sets the {@link #aliases}
+     */
+    public void setAliases(List<Alias> aliases)
+    {
+        this.aliases.clear();
+        for (Alias alias : aliases) {
+            this.aliases.add(alias);
+        }
+    }
+
+    /**
      * @param alias alias to be added to the {@link #aliases}
      */
     public void addAlias(Alias alias)
@@ -163,49 +186,74 @@ public class ExternalEndpointSpecification extends ResourceSpecification
     }
 
     @Override
-    protected void fillDescriptionMap(Map<String, String> map)
+    public boolean synchronizeFrom(Specification specification)
     {
-        super.fillDescriptionMap(map);
+        ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
 
-        addCollectionToMap(map, "technologies", technologies);
-        if (count != 1) {
-            map.put("count", Integer.toString(count));
+        boolean modified = super.synchronizeFrom(specification);
+        modified |= !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount())
+                || !ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases());
+
+        if (!technologies.equals(externalEndpointSpecification.getTechnologies())) {
+            setTechnologies(externalEndpointSpecification.getTechnologies());
+            modified = true;
         }
+        setCount(externalEndpointSpecification.getCount());
+        setAliases(externalEndpointSpecification.getAliases());
+
+        return modified;
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.ResourceSpecification toApi(Domain domain) throws FaultException
+    public Endpoint createEndpoint()
     {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification api =
-                new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
+        return new ExternalEndpoint(this);
+    }
 
-        api.setCount(getCount());
+    @Override
+    protected cz.cesnet.shongo.controller.api.Specification createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.ExternalEndpointSpecification();
+    }
 
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
+        externalEndpointSpecificationApi.setCount(getCount());
         if (technologies.size() == 1) {
-            api.setTechnology(technologies.iterator().next());
+            externalEndpointSpecificationApi.setTechnology(technologies.iterator().next());
         }
         else {
             throw new TodoImplementException();
         }
-
-        super.toApi(api);
-
-        return api;
+        super.toApi(specificationApi, domain);
     }
 
     @Override
-    public void fromApi(cz.cesnet.shongo.controller.api.ResourceSpecification api, EntityManager entityManager,
-            Domain domain) throws FaultException
+    public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
+            Domain domain)
+            throws FaultException
     {
-        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification apiExternalEndpoint =
-                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) api;
-        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.TECHNOLOGY)) {
+        cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
+                (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
+        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.TECHNOLOGY)) {
             technologies.clear();
-            addTechnology(apiExternalEndpoint.getTechnology());
+            addTechnology(externalEndpointSpecificationApi.getTechnology());
         }
-        if (apiExternalEndpoint.isPropertyFilled(apiExternalEndpoint.COUNT)) {
-            setCount(apiExternalEndpoint.getCount());
+        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.COUNT)) {
+            setCount(externalEndpointSpecificationApi.getCount());
         }
-        super.fromApi(api, entityManager, domain);
+        super.fromApi(specificationApi, entityManager, domain);
+    }
+
+    @Override
+    protected void fillDescriptionMap(Map<String, Object> map)
+    {
+        super.fillDescriptionMap(map);
+
+        map.put("technologies", technologies);
+        map.put("count", count);
     }
 }

@@ -23,7 +23,7 @@ public class AbsoluteDateTimeSpecification extends DateTimeSpecification
     /**
      * Constructor.
      */
-    private AbsoluteDateTimeSpecification()
+    public AbsoluteDateTimeSpecification()
     {
     }
 

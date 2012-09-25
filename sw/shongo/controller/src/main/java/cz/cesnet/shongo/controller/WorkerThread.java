@@ -121,27 +121,17 @@ public class WorkerThread extends Thread
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 
         try {
-            entityManager.getTransaction().begin();
             preprocessor.run(interval, entityManager);
-            entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
             logger.error("Preprocessor failed: ", exception);
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
         }
 
         try {
-            entityManager.getTransaction().begin();
             scheduler.run(interval, entityManager);
-            entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
             logger.error("Scheduler failed: ", exception);
-            if (entityManager.getTransaction().isActive()) {
-                entityManager.getTransaction().rollback();
-            }
         }
 
         entityManager.close();

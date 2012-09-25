@@ -98,7 +98,7 @@ sub modify_aliases()
 
     console_action_loop(
         sub {
-            printf("\n%s\n", $self->aliases_to_string());
+            console_print_text($self->get_aliases());
         },
         sub {
             my @actions = (
@@ -136,63 +136,52 @@ sub modify_aliases()
 }
 
 # @Override
-sub to_string()
+sub get_name
 {
     my ($self) = @_;
+    if ( defined($self->{'class'}) && exists $Type->{$self->{'class'}} ) {
+        return $Type->{$self->{'class'}};
+    } else {
+        return "Capability";
+    }
+}
 
-    my $string = $Type->{$self->{'class'}} . ' ';
+# @Override
+sub get_attributes
+{
+    my ($self, $attributes) = @_;
+    $self->SUPER::get_attributes($attributes);
+
     switch ($self->{'class'}) {
         case ['TerminalCapability', 'StandaloneTerminalCapability'] {
             if ( $self->get_aliases_count() > 0 ) {
-                $string .= 'aliases: ';
-                for ( my $index = 0; $index < $self->get_aliases_count(); $index++ ) {
-                    my $alias = get_collection_item($self->{'aliases'}, $index);
-                    if ( $index > 0 ) {
-                        $string .= ', ';
-                    }
-                    $string .= sprintf("%s", $alias->{value});
-                }
-
+                $attributes->{'add_collection'}($self->get_aliases());
             }
         }
         case 'VirtualRoomsCapability' {
-            $string .= sprintf("portCount: %s", $self->{'portCount'});
+            $attributes->{'add'}('Port Count', $self->{'portCount'});
         }
         case 'AliasProviderCapability' {
-            $string .= sprintf("technology: %s, type: %s, pattern: %s",
-                $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}},
-                $Shongo::Controller::API::Alias::Type->{$self->{'type'}},
-                $self->{'pattern'},
-            );
-            if ($self->{'restrictedToOwnerResource'} == 1) {
-                $string .= ', restricted';
-            }
-        }
-        else {
-            $string .= sprintf("unknown capability ");
+            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+            $attributes->{'add'}('Type', $Shongo::Controller::API::Alias::Type->{$self->{'type'}});
+            $attributes->{'add'}('Pattern', $self->{'patern'});
         }
     }
-    return $string;
 }
 
 #
 # Format aliases to string
 #
-sub aliases_to_string
+sub get_aliases
 {
     my ($self) = @_;
 
-    my $string = " Aliases:\n";
-    if ( $self->get_aliases_count() > 0 ) {
-        for ( my $index = 0; $index < $self->get_aliases_count(); $index++ ) {
-            my $alias = get_collection_item($self->{'aliases'}, $index);
-            $string .= sprintf("   %d) %s\n", $index + 1, $alias->to_string());
-        }
+    my $collection = Shongo::Controller::API::Object::create_collection('Aliases');
+    for ( my $index = 0; $index < $self->get_aliases_count(); $index++ ) {
+        my $alias = get_collection_item($self->{'aliases'}, $index);
+        $collection->{'add'}($alias);
     }
-    else {
-        $string .= "   -- None --\n";
-    }
-    return $string;
+    return $collection;
 }
 
 1;

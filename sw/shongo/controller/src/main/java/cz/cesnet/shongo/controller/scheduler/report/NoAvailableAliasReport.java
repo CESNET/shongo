@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
 
@@ -13,9 +15,14 @@ import javax.persistence.*;
 public class NoAvailableAliasReport extends Report
 {
     /**
-     * List of {@link cz.cesnet.shongo.controller.scheduler.report.TechnologySet}s.
+     *{@link Technology} for the {@link Alias}.
      */
     private Technology technology;
+
+    /**
+     * {@link AliasType} for the {@link Alias}.
+     */
+    private AliasType aliasType;
 
     /**
      * Constructor.
@@ -29,9 +36,10 @@ public class NoAvailableAliasReport extends Report
      *
      * @param technology
      */
-    public NoAvailableAliasReport(Technology technology)
+    public NoAvailableAliasReport(Technology technology, AliasType aliasType)
     {
-        this.setTechnology(technology);
+        setTechnology(technology);
+        setAliasType(aliasType);
     }
 
     /**
@@ -52,11 +60,30 @@ public class NoAvailableAliasReport extends Report
         this.technology = technology;
     }
 
+    /**
+     * @return {@link #aliasType}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public AliasType getAliasType()
+    {
+        return aliasType;
+    }
+
+    /**
+     * @param aliasType sets the {@link #aliasType}
+     */
+    public void setAliasType(AliasType aliasType)
+    {
+        this.aliasType = aliasType;
+    }
+
     @Override
     @Transient
     public String getText()
     {
         return String.format("No available alias was found for the following specification:\n"
-                + " Technology: %s", technology.getName());
+                + " Technology: %s\n"
+                + " Alias Type: %s", technology.getName(), (aliasType != null ? aliasType.toString() : "Any"));
     }
 }

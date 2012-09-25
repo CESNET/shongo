@@ -247,20 +247,20 @@ public class ResourceServiceImpl extends Component
         resourceAllocation.setInterval(interval);
 
         // Fill resource allocations
-        Collection<cz.cesnet.shongo.controller.allocation.AllocatedResource> resourceAllocations =
-                resourceManager.listAllocatedResourcesInInterval(resourceId, interval);
-        for (cz.cesnet.shongo.controller.allocation.AllocatedResource allocatedResourceImpl : resourceAllocations) {
-            resourceAllocation.addAllocation(allocatedResourceImpl.toApi(domain));
+        Collection<cz.cesnet.shongo.controller.reservation.ResourceReservation> resourceReservations =
+                resourceManager.listResourceReservationsInInterval(resourceId, interval);
+        for (cz.cesnet.shongo.controller.reservation.ResourceReservation resourceReservation : resourceReservations) {
+            resourceAllocation.addReservation(resourceReservation.toApi(domain));
         }
 
         // Fill alias allocations
         List<cz.cesnet.shongo.controller.resource.AliasProviderCapability> aliasProviders =
                 resourceImpl.getCapabilities(cz.cesnet.shongo.controller.resource.AliasProviderCapability.class);
         for (cz.cesnet.shongo.controller.resource.AliasProviderCapability aliasProvider : aliasProviders) {
-            List<cz.cesnet.shongo.controller.allocation.AllocatedAlias> allocatedAliasImpls =
-                    resourceManager.listAllocatedAliasesInInterval(aliasProvider.getId(), interval);
-            for (cz.cesnet.shongo.controller.allocation.AllocatedAlias allocatedAliasImpl : allocatedAliasImpls) {
-                resourceAllocation.addAllocation(allocatedAliasImpl.toApi(domain));
+            List<cz.cesnet.shongo.controller.reservation.AliasReservation> aliasReservations =
+                    resourceManager.listAliasReservationsInInterval(aliasProvider.getId(), interval);
+            for (cz.cesnet.shongo.controller.reservation.AliasReservation aliasReservation : aliasReservations) {
+                resourceAllocation.addReservation(aliasReservation.toApi(domain));
             }
         }
 
