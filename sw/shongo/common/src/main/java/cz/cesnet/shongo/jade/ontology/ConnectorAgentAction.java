@@ -57,8 +57,8 @@ public abstract class ConnectorAgentAction implements AgentAction
      */
     protected static MultipointService getMultipoint(CommonService connector) throws CommandUnsupportedException
     {
-        if (!(connector instanceof EndpointService)) {
-            throw new CommandUnsupportedException("The command is implemented only on an endpoint.");
+        if (!(connector instanceof MultipointService)) {
+            throw new CommandUnsupportedException("The command is implemented only on a multipoint.");
         }
         return (MultipointService) connector;
     }

@@ -87,6 +87,13 @@ sub control_resource()
                 resource_standby($resourceIdentifier, $args[0]);
             }
         },
+        "hangUpAll" => {
+            desc => "Hang up all calls",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_hang_up_all($resourceIdentifier, $args[0]);
+            }
+        },
     });
     $shell->run();
 }
@@ -112,6 +119,20 @@ sub resource_standby
 
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.standBy',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    printf("%s\n", $result->value());
+}
+
+sub resource_hang_up_all
+{
+    my ($resourceIdentifier, $target) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.hangUpAll',
         RPC::XML::string->new($resourceIdentifier)
     );
     if ( $result->is_fault ) {

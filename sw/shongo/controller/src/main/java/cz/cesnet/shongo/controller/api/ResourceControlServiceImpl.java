@@ -11,6 +11,7 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.Dial;
+import cz.cesnet.shongo.jade.ontology.HangUpAll;
 import cz.cesnet.shongo.jade.ontology.StandBy;
 
 import javax.persistence.EntityManagerFactory;
@@ -79,11 +80,20 @@ public class ResourceControlServiceImpl extends Component
         return String.format("Dialing in '%s' for '%s'...", agentName, target);
     }
 
+    @Override
     public String standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new StandBy()));
         return String.format("Setting '%s' to standby mode via '%s' agent.", deviceResourceIdentifier, agentName);
+    }
+
+    @Override
+    public String hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
+        return String.format("Hanging up all calls in '%s'", agentName);
     }
 
     /**

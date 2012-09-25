@@ -110,7 +110,7 @@ public class ConnectorAgent extends Agent
     private MultipointService getMultipoint() throws CommandUnsupportedException
     {
         if (!(connector instanceof MultipointService)) {
-            throw new CommandUnsupportedException("The command is implemented only on an endpoint.");
+            throw new CommandUnsupportedException("The command is implemented only on a multipoint.");
         }
         return (MultipointService) connector;
     }
