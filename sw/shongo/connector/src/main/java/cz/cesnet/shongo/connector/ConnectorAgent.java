@@ -2,10 +2,8 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.ConnectorInitException;
-import cz.cesnet.shongo.connector.api.EndpointService;
-import cz.cesnet.shongo.connector.api.MultipointService;
+import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownActionException;
 import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
@@ -26,6 +24,10 @@ public class ConnectorAgent extends Agent
 {
     private static Logger logger = LoggerFactory.getLogger(ConnectorAgent.class);
 
+    private Address connectedDeviceAddress;
+    private String connectedDeviceUsername;
+    private String connectedDevicePassword;
+
     private CommonService connector;
 
     @Override
@@ -34,7 +36,18 @@ public class ConnectorAgent extends Agent
         super.setup();
 
         registerService("connector", "Connector Service");
+
+        if (connector != null && connectedDeviceAddress != null) {
+            try {
+                connector.connect(connectedDeviceAddress, connectedDeviceUsername, connectedDevicePassword);
+            }
+            catch (CommandException e) {
+                logger.error("Error connecting to the device (during agent setup)");
+            }
+        }
     }
+
+
 
     @Override
     protected void takeDown()
@@ -62,6 +75,18 @@ public class ConnectorAgent extends Agent
             if (connector == null) {
                 throw new ConnectorInitException("Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
             }
+
+            // save the address and credentials for later, when the agent gets restarted
+            connectedDeviceAddress = new Address(address, port);
+            connectedDeviceUsername = username;
+            connectedDevicePassword = password;
+
+            connector.connect(connectedDeviceAddress, username, password);
+
+            System.out.println("Connector ready");
+            ConnectorInfo info = connector.getConnectorInfo();
+            System.out.println("Connector info:");
+            System.out.println(info);
         }
         catch (NoSuchMethodException e) {
             throw new ConnectorInitException(
@@ -83,11 +108,6 @@ public class ConnectorAgent extends Agent
         }
     }
 
-    public CommonService getConnector()
-    {
-        return connector;
-    }
-
     @Override
     public Object handleAgentAction(AgentAction action, AID sender)
             throws UnknownActionException, CommandException, CommandUnsupportedException
@@ -97,21 +117,5 @@ public class ConnectorAgent extends Agent
         }
 
         return super.handleAgentAction(action, sender);
-    }
-
-    private EndpointService getEndpoint() throws CommandUnsupportedException
-    {
-        if (!(connector instanceof EndpointService)) {
-            throw new CommandUnsupportedException("The command is implemented only on an endpoint.");
-        }
-        return (EndpointService) connector;
-    }
-
-    private MultipointService getMultipoint() throws CommandUnsupportedException
-    {
-        if (!(connector instanceof MultipointService)) {
-            throw new CommandUnsupportedException("The command is implemented only on a multipoint.");
-        }
-        return (MultipointService) connector;
     }
 }
