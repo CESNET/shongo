@@ -35,6 +35,33 @@ public abstract class PersistentObject extends PrintableObject
     }
 
     /**
+     * @param id
+     * @return true whether {@link #id} equals given {@code id},
+     *         false otherwise
+     */
+    public boolean equalsId(Integer id)
+    {
+        Long longId = null;
+        if (id != null) {
+            longId = id.longValue();
+        }
+        return this.id.equals(longId);
+    }
+
+    /**
+     * @param id
+     * @return true whether {@link #id} equals given {@code id},
+     *         false otherwise
+     */
+    public boolean equalsId(Long id)
+    {
+        if ( this.id == null && id != null) {
+            return true;
+        }
+        return this.id.equals(id);
+    }
+
+    /**
      * @param id sets the {@link #id}
      */
     private void setId(Long id)

@@ -274,8 +274,7 @@ public class ReservationRequest extends AbstractReservationRequest
             if (specificationApi == null) {
                 setSpecification(null);
             }
-            else if (getSpecification() != null && getSpecification().getId()
-                    .equals(specificationApi.getId().longValue())) {
+            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
                 getSpecification().fromApi(specificationApi, entityManager, domain);
             }
             else {

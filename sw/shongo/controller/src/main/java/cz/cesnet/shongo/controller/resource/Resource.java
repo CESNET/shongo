@@ -501,6 +501,9 @@ public class Resource extends PersistentObject
     {
         Set<Class<? extends Capability>> capabilityTypes = new HashSet<Class<? extends Capability>>();
         for (Capability capability : capabilities) {
+            if (capability instanceof AliasProviderCapability) {
+                continue;
+            }
             for (Class<? extends Capability> capabilityType : capabilityTypes) {
                 if (capabilityType.isAssignableFrom(capability.getClass())) {
                     throw new EntityValidationException(getClass(), getId(), "Resource cannot contain multiple '"
