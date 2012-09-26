@@ -66,7 +66,7 @@ public class SpecificationNotReadyReport extends Report
         else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
             StringBuilder stringBuilder = new StringBuilder();
-            for (Specification requestedSpecification : compartmentSpecification.getSpecifications()) {
+            for (Specification requestedSpecification : compartmentSpecification.getChildSpecifications()) {
                 if (stringBuilder.length() > 0) {
                     stringBuilder.append("\n");
                 }

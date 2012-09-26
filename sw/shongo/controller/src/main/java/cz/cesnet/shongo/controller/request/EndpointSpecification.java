@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public abstract class EndpointSpecification extends Specification
+public abstract class EndpointSpecification extends ParticipantSpecification
 {
     /**
      * Persons that use the endpoint to participate in a conference.

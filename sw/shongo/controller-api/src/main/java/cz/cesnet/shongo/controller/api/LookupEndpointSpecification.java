@@ -8,7 +8,7 @@ import cz.cesnet.shongo.api.annotation.Required;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class LookupEndpointSpecification extends Specification
+public class LookupEndpointSpecification extends ParticipantSpecification
 {
     /**
      * Technology of the resource.

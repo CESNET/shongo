@@ -7,7 +7,7 @@ import cz.cesnet.shongo.api.annotation.Required;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PersonSpecification extends Specification
+public class PersonSpecification extends ParticipantSpecification
 {
     /**
      * The requested person.

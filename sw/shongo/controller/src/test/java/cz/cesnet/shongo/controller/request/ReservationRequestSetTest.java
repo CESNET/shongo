@@ -69,14 +69,14 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
             // Requests 3 guests
-            compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 3));
+            compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 3));
             // Request specific persons, the first will use specified H.323 endpoint and
             // the second must select an endpoint then
             Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
             Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
-            compartmentSpecification.addSpecification(new PersonSpecification(person1,
+            compartmentSpecification.addChildSpecification(new PersonSpecification(person1,
                     new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080085"))));
-            compartmentSpecification.addSpecification(new PersonSpecification(person2));
+            compartmentSpecification.addChildSpecification(new PersonSpecification(person2));
             reservationRequestSet.addSpecification(compartmentSpecification);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -188,7 +188,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
                     reservationRequestSetId);
             CompartmentSpecification compartmentSpecification =
                     (CompartmentSpecification) reservationRequestSet.getSpecifications().get(0);
-            compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 100));
+            compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 100));
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
 
@@ -307,8 +307,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         reservationRequestSet.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal1));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal2));
+        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal1));
+        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         reservationRequestSet.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequestSet, cache);
@@ -340,8 +340,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         reservationRequestSet.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal1));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal2));
+        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal1));
+        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         reservationRequestSet.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequestSet, cache);
@@ -378,8 +378,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal1));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminal2));
+        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal1));
+        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         reservationRequest.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequest, cache);
@@ -408,7 +408,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 10));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 10));
         reservationRequest.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequest, cache);

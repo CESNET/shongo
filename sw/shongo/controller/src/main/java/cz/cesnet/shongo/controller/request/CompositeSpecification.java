@@ -12,15 +12,15 @@ public interface CompositeSpecification
     /**
      * @return collection of {@link Specification}s from which is the {@link CompositeSpecification} composed.
      */
-    public Collection<Specification> getSpecifications();
+    public Collection<Specification> getChildSpecifications();
 
     /**
      * @param specification to be added to the {@link CompositeSpecification}.
      */
-    public void addSpecification(Specification specification);
+    public void addChildSpecification(Specification specification);
 
     /**
      * @param specification to be removed from the {@link CompositeSpecification}.
      */
-    public void removeSpecification(Specification specification);
+    public void removeChildSpecification(Specification specification);
 }

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
-import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
@@ -241,13 +240,13 @@ public class Preprocessor extends Component
 
             // Build set of new specifications
             Set<Specification> newSpecifications = new HashSet<Specification>();
-            for (Specification newSpecification : compositeSpecificationFrom.getSpecifications()) {
+            for (Specification newSpecification : compositeSpecificationFrom.getChildSpecifications()) {
                 newSpecifications.add(newSpecification);
             }
 
             // Update or delete child specifications
             Set<Specification> deletedSpecifications = new HashSet<Specification>();
-            for (Specification childSpecification : compositeSpecification.getSpecifications()) {
+            for (Specification childSpecification : compositeSpecification.getChildSpecifications()) {
                 Specification originalSpecification = originalSpecifications.get(childSpecification);
                 if (originalSpecification == null) {
                     originalSpecification = childSpecification;
@@ -261,13 +260,13 @@ public class Preprocessor extends Component
                 }
             }
             for (Specification deletedSpecification : deletedSpecifications) {
-                compositeSpecification.removeSpecification(deletedSpecification);
+                compositeSpecification.removeChildSpecification(deletedSpecification);
                 modified = true;
             }
 
             // Add new child specifications
             for (Specification newSpecification : newSpecifications) {
-                compositeSpecification.addSpecification(newSpecification.clone(originalSpecifications));
+                compositeSpecification.addChildSpecification(newSpecification.clone(originalSpecifications));
                 modified = true;
             }
         }

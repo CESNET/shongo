@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -47,8 +46,8 @@ public abstract class Specification extends PersistentObject
         if (this instanceof CompositeSpecification) {
             CompositeSpecification compositeSpecification = (CompositeSpecification) this;
             CompositeSpecification newCompositeSpecification = (CompositeSpecification) newSpecification;
-            for (Specification childSpecification : compositeSpecification.getSpecifications()) {
-                newCompositeSpecification.addSpecification(childSpecification.clone(originalSpecifications));
+            for (Specification childSpecification : compositeSpecification.getChildSpecifications()) {
+                newCompositeSpecification.addChildSpecification(childSpecification.clone(originalSpecifications));
             }
         }
 
@@ -61,7 +60,7 @@ public abstract class Specification extends PersistentObject
      * @return {@link Specification} converted to {@link cz.cesnet.shongo.controller.api.Specification}
      * @param domain
      */
-    public final cz.cesnet.shongo.controller.api.Specification toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.Specification toApi(Domain domain)
     {
         cz.cesnet.shongo.controller.api.Specification api = createApi();
         toApi(api, domain);

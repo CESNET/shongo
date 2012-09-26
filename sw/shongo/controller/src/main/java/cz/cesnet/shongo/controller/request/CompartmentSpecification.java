@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -27,7 +26,7 @@ public class CompartmentSpecification extends Specification
     /**
      * List of specifications for targets which are requested to participate in compartment.
      */
-    private List<Specification> specifications = new ArrayList<Specification>();
+    private List<ParticipantSpecification> specifications = new ArrayList<ParticipantSpecification>();
 
     /**
      * Specifies the default option who should initiate the call ({@code null} means
@@ -57,9 +56,20 @@ public class CompartmentSpecification extends Specification
      */
     @ManyToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<Specification> getSpecifications()
+    public List<ParticipantSpecification> getSpecifications()
     {
         return Collections.unmodifiableList(specifications);
+    }
+
+    @Override
+    @Transient
+    public Collection<Specification> getChildSpecifications()
+    {
+        Collection<Specification> specifications = new ArrayList<Specification>();
+        for (ParticipantSpecification participantSpecification : this.specifications) {
+            specifications.add(participantSpecification);
+        }
+        return specifications;
     }
 
     /**
@@ -69,10 +79,10 @@ public class CompartmentSpecification extends Specification
      *                               state is {@link StatefulSpecification.State#NOT_READY}
      */
     @Transient
-    public List<Specification> getReadySpecifications()
+    public List<ParticipantSpecification> getReadySpecifications()
     {
-        List<Specification> specifications = new ArrayList<Specification>();
-        for (Specification specification : this.specifications) {
+        List<ParticipantSpecification> specifications = new ArrayList<ParticipantSpecification>();
+        for (ParticipantSpecification specification : this.specifications) {
             if (specification instanceof StatefulSpecification) {
                 StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
                 switch (statefulSpecification.getCurrentState()) {
@@ -96,14 +106,14 @@ public class CompartmentSpecification extends Specification
      * @return {@link Specification} with given {@code id}
      * @throws EntityNotFoundException when the {@link Specification} doesn't exist
      */
-    private Specification getSpecificationById(Long id) throws EntityNotFoundException
+    private ParticipantSpecification getSpecificationById(Long id) throws EntityNotFoundException
     {
-        for (Specification specification : specifications) {
+        for (ParticipantSpecification specification : specifications) {
             if (specification.getId().equals(id)) {
                 return specification;
             }
         }
-        throw new EntityNotFoundException(Specification.class, id);
+        throw new EntityNotFoundException(ParticipantSpecification.class, id);
     }
 
     /**
@@ -111,7 +121,7 @@ public class CompartmentSpecification extends Specification
      * @return true if the {@link CompartmentSpecification} contains given {@code specification},
      *         false otherwise
      */
-    public boolean containsSpecification(Specification specification)
+    public boolean containsSpecification(ParticipantSpecification specification)
     {
         Long specificationId = specification.getId();
         for (Specification possibleSpecification : specifications) {
@@ -125,7 +135,7 @@ public class CompartmentSpecification extends Specification
     /**
      * @param specification to be added to the {@link #specifications}
      */
-    public void addSpecification(Specification specification)
+    public void addSpecification(ParticipantSpecification specification)
     {
         specifications.add(specification);
     }
@@ -133,9 +143,21 @@ public class CompartmentSpecification extends Specification
     /**
      * @param specification to be removed from the {@link #specifications}
      */
-    public void removeSpecification(Specification specification)
+    public void removeSpecification(ParticipantSpecification specification)
     {
         specifications.remove(specification);
+    }
+
+    @Override
+    public void addChildSpecification(Specification specification)
+    {
+        addSpecification((ParticipantSpecification) specification);
+    }
+
+    @Override
+    public void removeChildSpecification(Specification specification)
+    {
+        removeSpecification((ParticipantSpecification) specification);
     }
 
     /**
@@ -203,7 +225,7 @@ public class CompartmentSpecification extends Specification
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentSpecification) specificationApi;
-        for (Specification specification : getSpecifications()) {
+        for (ParticipantSpecification specification : getSpecifications()) {
             compartmentSpecificationApi.addSpecification(specification.toApi(domain));
         }
         compartmentSpecificationApi.setCallInitiation(getCallInitiation());
@@ -225,7 +247,7 @@ public class CompartmentSpecification extends Specification
         for (cz.cesnet.shongo.controller.api.Specification specApi : compartmentSpecificationApi.getSpecifications()) {
             if (compartmentSpecificationApi.isCollectionItemMarkedAsNew(
                     compartmentSpecificationApi.SPECIFICATIONS, specApi)) {
-                addSpecification(Specification.createFromApi(specApi, entityManager, domain));
+                addChildSpecification(Specification.createFromApi(specApi, entityManager, domain));
             }
             else {
                 Specification specification = getSpecificationById(specApi.getId().longValue());
