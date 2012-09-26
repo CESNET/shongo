@@ -3,6 +3,8 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 
+import java.util.Collection;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -27,7 +29,7 @@ public interface MonitoringService
      *
      * @return array of rooms
      */
-    RoomInfo[] getRoomList() throws CommandException, CommandUnsupportedException;
+    Collection<RoomInfo> getRoomList() throws CommandException, CommandUnsupportedException;
 
     /**
      * Gets a snapshot of the video stream received by a user in a room.

@@ -3,6 +3,8 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 
+import java.util.Collection;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -46,7 +48,7 @@ public interface RecordingService
      * @param recordingId identifier of the recording, previously returned by the <code>startRecording</code> method
      * @return array of identifiers of users present in any moment of the recording
      */
-    String[] notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException;
+    Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Starts downloading a recording to a local storage.

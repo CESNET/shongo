@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -16,7 +17,7 @@ public interface UserService
      * @param roomId room identifier
      * @return array of room users
      */
-    RoomUser[] listRoomUsers(String roomId) throws CommandException, CommandUnsupportedException;
+    Collection<RoomUser> listRoomUsers(String roomId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Gets user information and settings in a room.
