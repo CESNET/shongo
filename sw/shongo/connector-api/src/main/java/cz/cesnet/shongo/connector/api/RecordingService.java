@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -16,7 +19,8 @@ public interface RecordingService
      * @return recording identifier for further reference, unique among other recordings on the device;
      *         or 0 if the room is already being recorded
      */
-    int startRecording(String roomId, ContentType format, RoomLayout layout);
+    int startRecording(String roomId, ContentType format, RoomLayout layout) throws CommandException,
+                                                                                    CommandUnsupportedException;
 
     /**
      * Stops recording.
@@ -24,7 +28,7 @@ public interface RecordingService
      * @param recordingId identifier of the recording to stop, previously returned by the <code>startRecording</code>
      *                    method
      */
-    void stopRecording(int recordingId);
+    void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Returns a URL from where it is possible to download a recording.
@@ -32,7 +36,7 @@ public interface RecordingService
      * @param recordingId identifier of the recording, previously returned by the <code>startRecording</code> method
      * @return URL to download a recording
      */
-    String getRecordingDownloadURL(int recordingId);
+    String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Lists all participants present during a given recording.
@@ -42,7 +46,7 @@ public interface RecordingService
      * @param recordingId identifier of the recording, previously returned by the <code>startRecording</code> method
      * @return array of identifiers of users present in any moment of the recording
      */
-    String[] notifyParticipants(int recordingId);
+    String[] notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Starts downloading a recording to a local storage.
@@ -50,7 +54,7 @@ public interface RecordingService
      * @param downloadURL URL to download from
      * @param targetPath  path under which to store the recording on the server
      */
-    void downloadRecording(String downloadURL, String targetPath);
+    void downloadRecording(String downloadURL, String targetPath) throws CommandException, CommandUnsupportedException;
 
     /**
      * Deletes a given recording.
@@ -60,5 +64,5 @@ public interface RecordingService
      *
      * @param recordingId identifier of the recording, previously returned by the <code>startRecording</code> method
      */
-    void deleteRecording(int recordingId);
+    void deleteRecording(int recordingId) throws CommandException, CommandUnsupportedException;
 }

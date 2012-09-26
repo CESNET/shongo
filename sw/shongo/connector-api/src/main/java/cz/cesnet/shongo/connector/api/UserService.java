@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+
 import java.util.Map;
 
 /**
@@ -13,7 +16,7 @@ public interface UserService
      * @param roomId room identifier
      * @return array of room users
      */
-    RoomUser[] listRoomUsers(String roomId);
+    RoomUser[] listRoomUsers(String roomId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Gets user information and settings in a room.
@@ -22,7 +25,7 @@ public interface UserService
      * @param roomUserId identifier of the user within the given room
      * @return
      */
-    RoomUser getRoomUser(String roomId, String roomUserId);
+    RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Modifies user settings in the room.
@@ -33,7 +36,7 @@ public interface UserService
      * @param roomUserId identifier of the user within the given room
      * @param attributes map of attributes to change
      */
-    void modifyRoomUser(String roomId, String roomUserId, Map attributes);
+    void modifyRoomUser(String roomId, String roomUserId, Map attributes) throws CommandException, CommandUnsupportedException;
 
     /**
      * Disconnects a user from a room.
@@ -41,7 +44,7 @@ public interface UserService
      * @param roomId     room identifier
      * @param roomUserId identifier of the user within the given room
      */
-    void disconnectRoomUser(String roomId, String roomUserId);
+    void disconnectRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Enables a given room user as a content provider in the room. This is typically enabled by default.
@@ -49,7 +52,7 @@ public interface UserService
      * @param roomId     room identifier
      * @param roomUserId identifier of the user within the given room
      */
-    void enableContentProvider(String roomId, String roomUserId);
+    void enableContentProvider(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Disables a given room user as a content provider in the room.
@@ -60,5 +63,5 @@ public interface UserService
      * @param roomId     room identifier
      * @param roomUserId identifier of the user within the given room
      */
-    void disableContentProvider(String roomId, String roomUserId);
+    void disableContentProvider(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 }

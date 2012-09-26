@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -10,21 +13,21 @@ public interface MonitoringService
      *
      * @return current load info
      */
-    DeviceLoadInfo getDeviceLoadInfo();
+    DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException;
 
     /**
      * Gets the multipoint usage stats.
      *
      * @return usage stats
      */
-    UsageStats getUsageStats();
+    UsageStats getUsageStats() throws CommandException, CommandUnsupportedException;
 
     /**
      * Lists all rooms at the device.
      *
      * @return array of rooms
      */
-    RoomInfo[] getRoomList();
+    RoomInfo[] getRoomList() throws CommandException, CommandUnsupportedException;
 
     /**
      * Gets a snapshot of the video stream received by a user in a room.
@@ -33,7 +36,8 @@ public interface MonitoringService
      * @param roomUserId identifier of the user within the room
      * @return image data; see the contentType of the returned object to get the image format
      */
-    MediaData getReceivedVideoSnapshot(String roomId, String roomUserId);
+    MediaData getReceivedVideoSnapshot(String roomId, String roomUserId) throws CommandException,
+                                                                                CommandUnsupportedException;
 
     /**
      * Gets a snapshot of the video stream that a user is sending to the room.
@@ -42,5 +46,5 @@ public interface MonitoringService
      * @param roomUserId identifier of the user within the room
      * @return image data; see the contentType of the returned object to get the image format
      */
-    MediaData getSentVideoSnapshot(String roomId, String roomUserId);
+    MediaData getSentVideoSnapshot(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 }
