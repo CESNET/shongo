@@ -1,0 +1,50 @@
+\documentclass[a4paper]{report}
+
+% Setup layout
+\usepackage{geometry}
+\geometry{paper=a4paper}
+
+% Font setup
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenx}
+\usepackage{palatino}
+\usepackage{mathpazo}
+\usepackage{microtype}
+\renewcommand*\ttdefault{txtt}
+
+% Language setup
+\usepackage[czech,english]{babel}
+
+% Setup hyperlinks in PDF
+\usepackage[
+  pdftex,
+  breaklinks=true,
+  pdfborder={0 0 0}
+]{hyperref}
+
+% Make glossaries
+\usepackage[sort=def, xindy, nonumberlist]{glossaries}
+\usepackage{glossary-long}
+\makeglossaries
+
+% Other includes
+\usepackage{url}
+\usepackage{paralist}
+\usepackage{ifthen}
+\usepackage{parcolumns}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+% Code listing
+\usepackage{verbatim}
+\usepackage{listingsutf8}
+
+% Add bibliography to table of contents
+\usepackage[nottoc]{tocbibind}
+
+% Document title page
+\author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
+\date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
+
+
+

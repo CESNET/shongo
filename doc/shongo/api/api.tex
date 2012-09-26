@@ -1,31 +1,5 @@
-\documentclass[a4paper]{report}
-\usepackage{geometry}
-\geometry{paper=a4paper}
+\input{../common}
 
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenx}
-\usepackage{palatino}
-\usepackage{mathpazo}
-\usepackage{microtype}
-\renewcommand*\ttdefault{txtt}
-
-\usepackage[czech,english]{babel}
-
-\usepackage[pdftex,breaklinks=true,pdfborder={0 0 0}]{hyperref}
-\usepackage{url}
-\usepackage{paralist}
-\usepackage{graphicx}
-\usepackage{xtab}
-\usepackage{booktabs}
-\usepackage{calc}
-\usepackage{ifthen}
-\usepackage{xspace}
-\usepackage{verbatim}
-\usepackage{parcolumns}
-
-\usepackage{relsize}
-\usepackage{xcolor}
-\usepackage{listingsutf8}
 \definecolor{lstbackground}{gray}{0.8}
 \definecolor{lstkeywordcolor}{rgb}{0,0,0.4}
 \lstset{
@@ -158,13 +132,14 @@ breakautoindent=true,
 
 \begin{document}
 
+
 \title{API for Shongo}
-\author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
-\date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
 
 \maketitle
 
 \tableofcontents
+
+\input{../glossaries}
 
 \chapter{Use Cases}
 
@@ -1216,36 +1191,39 @@ Enumeration of possible reservation request states.
 \end{ApiEnumValues}
 
 \ApiClass{Specification}{}
-Represents a base class for all specific specifications.
+Represents an abstract class for specifications. Each specification describes a target which is requested by a reservation request.
 
 \ApiClass{CompartmentSpecification}{Specification}
-Represents a group of endpoints which should be interconnected by the Scheduler.
+Represents a specification for a group of participants which should be interconnected to a single video conference.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{specifications}{List<Specification>}{\ApiRequired} List of specifications which should be interconnected in the compartment.
+\ApiClassAttribute{specifications}{List<ParticipantSpecification>}{\ApiRequired} List of specifications for participants which should be interconnected to a video conference.
 \ApiClassAttribute{callInitiation}{CallInitiation}{\ApiOptional} Default \ApiCode{CallInitiation} in the compartment.
 \end{ApiClassAttributes}
 
-\ApiClass{ExternalEndpointSpecification}{Specification}
-Represents a specification for external endpoint resource(s) that is/are requested for a reservation.
+\ApiClass{ParticipantSpecification}{Specification}
+Represents an abstract class for specifications which can be added to the |CompartmentSpecification|.
+
+\ApiClass{ExternalEndpointSpecification}{ParticipantSpecification}
+Represents a specification for one or multiple external endpoints. An external endpoint doesn't have assigned a resource identifier.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the resource(s).
-\ApiClassAttribute{count}{Integer}{\ApiOptional} Number of same resources.
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the external endpoint(s).
+\ApiClassAttribute{count}{Integer}{\ApiOptional} Number of the external endpoints (all have the same technology).
 \end{ApiClassAttributes}
 
-\ApiClass{ExistingEndpointSpecification}{Specification}
-Represents a specification for an existing resource (known to controller) that is requested for a reservation.
+\ApiClass{ExistingEndpointSpecification}{ParticipantSpecification}
+Represents a specification for an endpoint which is stored in local or foreign domain controller and thus it has assigned a resource identifier.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} Identifier of the requested endpoint resource.
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} Resource identifier for the endpoint.
 \end{ApiClassAttributes}
 
-\ApiClass{LookupEndpointSpecification}{Specification}
-Represents a specification for any existing endpoint resource with given |technology| in the controller resource database.
+\ApiClass{LookupEndpointSpecification}{ParticipantSpecification}
+Represents a specification of endpoint parameters which will be used to lookup a matching endpoint in local or foreign domain controller.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the resource.
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the requested endpoint.
 \end{ApiClassAttributes}
 
 \ApiClass{AliasSpecification}{Specification}
-Represents a specification that requests a reservation for an alias for a video conferencing device.
+Represents a specification for a |Alias|.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technology}{Technology}{\ApiOptional} Technology of the requested alias.
 \ApiClassAttribute{aliasType}{AliasType}{\ApiOptional} Type of the requested alias.
@@ -1717,6 +1695,10 @@ Dials a device, multipoint or endpoint. Dialing a client is available only on \t
 \chapter{Inter-Controller API Specification}
 
 
+\bibliographystyle{elsarticle-num}
+\bibliography{../bibliography}
+
+
 \appendix
 
 \chapter{User Interface API Usage}
@@ -2053,12 +2035,6 @@ A successful reply would then be encoded as follows:
  :reply-with  Controller-Main-Container@127.0.0.1:1099/JADE1336527079398  :language
      fipa-sl  :ontology  shongo-ontology )
 \end{verbatim}
-
-
-
-
-\bibliographystyle{elsarticle-num}
-\bibliography{IEEEabrv,API}
 
 \end{document}
 
