@@ -17,8 +17,8 @@ import jade.domain.JADEAgentManagement.JADEManagementOntology;
 import jade.domain.JADEAgentManagement.QueryPlatformLocationsAction;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
-import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class Container
     /**
      * Controller for container in JADE middle-ware.
      */
-    private ContainerController containerController;
+    private AgentContainer containerController;
 
     /**
      * Container agents.
@@ -160,6 +160,7 @@ public class Container
             profile.setParameter(name, value);
         }
         this.profile = profile;
+        this.profile.setParameter(Profile.SERVICES, "jade.core.faultRecovery.FaultRecoveryService;");
 
         // Create main or agent container base on Profile.MAIN parameter
         boolean result = true;
@@ -343,7 +344,10 @@ public class Container
      */
     public boolean isStarted()
     {
-        return containerController != null && containerController.isJoined();
+        if (containerController == null || !containerController.isJoined()) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -398,7 +402,7 @@ public class Container
      */
     public boolean isAgentStarted(String agentName)
     {
-        if (agents.containsKey(agentName) == false) {
+        if (!agents.containsKey(agentName)) {
             return false;
         }
         AgentController agentController = agentControllers.get(agentName);
@@ -413,14 +417,14 @@ public class Container
 
     /**
      * Perform command on local agent.
-     *
+     * <p/>
      * Passes the command to the agent by means of the O2A channel (see JADE documentation).
      *
-     * @param command    command to be performed by an agent
+     * @param command command to be performed by an agent
      */
     public void performCommand(String agentName, Command command)
     {
-        if (isStarted() == false) {
+        if (!isStarted()) {
             logger.error("Cannot perform command when the container is not started.");
             return;
         }
