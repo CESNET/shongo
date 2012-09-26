@@ -33,8 +33,8 @@ public class ReportTest
         ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 1));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 1));
         CompartmentReservationTask reservationTask = compartmentSpecification.createReservationTask(context);
 
         for (Report report : reservationTask.getReports()) {

@@ -25,7 +25,7 @@ public class CompartmentSpecification extends Specification
     /**
      * @return {@link #SPECIFICATIONS}
      */
-    public List<Specification> getSpecifications()
+    public List<ParticipantSpecification> getSpecifications()
     {
         return getPropertyStorage().getCollection(SPECIFICATIONS, List.class);
     }
@@ -33,7 +33,7 @@ public class CompartmentSpecification extends Specification
     /**
      * @param specifications {@link #SPECIFICATIONS}
      */
-    public void setSpecifications(List<Specification> specifications)
+    public void setSpecifications(List<ParticipantSpecification> specifications)
     {
         getPropertyStorage().setCollection(SPECIFICATIONS, specifications);
     }
@@ -41,7 +41,7 @@ public class CompartmentSpecification extends Specification
     /**
      * @param specification to be added to the {@link #SPECIFICATIONS}
      */
-    public void addSpecification(Specification specification)
+    public void addSpecification(ParticipantSpecification specification)
     {
         getPropertyStorage().addCollectionItem(SPECIFICATIONS, specification, List.class);
     }

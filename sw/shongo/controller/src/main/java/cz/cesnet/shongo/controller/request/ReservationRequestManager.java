@@ -302,7 +302,7 @@ public class ReservationRequestManager extends AbstractManager
         }
         else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
-            for (Specification childSpecification : compartmentSpecification.getSpecifications()) {
+            for (Specification childSpecification : compartmentSpecification.getChildSpecifications()) {
                 PersonSpecification personSpecification = getPersonSpecification(childSpecification, personId);
                 if (personSpecification != null) {
                     return personSpecification;
@@ -384,7 +384,7 @@ public class ReservationRequestManager extends AbstractManager
         CompartmentSpecification compartmentSpecification =
                 (CompartmentSpecification) reservationRequest.getSpecification();
         if (!compartmentSpecification.containsSpecification(endpointSpecification)) {
-            compartmentSpecification.addSpecification(endpointSpecification);
+            compartmentSpecification.addChildSpecification(endpointSpecification);
         }
         personSpecification.setEndpointSpecification(endpointSpecification);
         update(reservationRequest);

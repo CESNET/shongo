@@ -47,14 +47,14 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 Period.parse("PT2H"));
         // First compartment
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.SIP));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.SIP));
         EndpointSpecification endpointSpecification = new ExternalEndpointSpecification(Technology.H323);
         endpointSpecification.addPerson(new Person("Martin Srom", "martin.srom@cesnet.cz"));
-        compartmentSpecification.addSpecification(endpointSpecification);
+        compartmentSpecification.addChildSpecification(endpointSpecification);
         reservationRequestSet.addSpecification(compartmentSpecification);
         // Second compartment
         compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
         reservationRequestSet.addSpecification(compartmentSpecification);
 
         // Save it
@@ -115,8 +115,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-02"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
-        compartmentSpecification.addSpecification(new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addChildSpecification(
+                new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.addSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
@@ -162,8 +163,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
-        compartmentSpecification.addSpecification(new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addChildSpecification(
+                new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.addSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
@@ -172,7 +174,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
-        assertEquals(2, createdCompartmentSpecification.getSpecifications().size());
+        assertEquals(2, createdCompartmentSpecification.getChildSpecifications().size());
 
         // -------------------------------
         // Modify reservation request set
@@ -186,9 +188,10 @@ public class PreprocessorTest extends AbstractDatabaseTest
         assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         assertEquals("Specification should be deleted from the created reservation request",
-                1, createdCompartmentSpecification.getSpecifications().size());
+                1, createdCompartmentSpecification.getChildSpecifications().size());
 
-        compartmentSpecification.addSpecification(new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+        compartmentSpecification.addChildSpecification(
+                new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
         reservationRequestManager.update(reservationRequestSet);
 
         Preprocessor.createAndRun(preprocessorInterval, entityManager);
@@ -197,7 +200,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         assertEquals(1, reservationRequests.size());
         createdCompartmentSpecification = (CompartmentSpecification) reservationRequests.get(0).getSpecification();
         assertEquals("Specification should be added to the created reservation request",
-                2, createdCompartmentSpecification.getSpecifications().size());
+                2, createdCompartmentSpecification.getChildSpecifications().size());
 
         ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).setPerson(
                 new Person("Ondrej Bouda", "bouda@cesnet.cz"));

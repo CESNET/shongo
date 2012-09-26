@@ -15,7 +15,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class PersonSpecification extends Specification implements StatefulSpecification
+public class PersonSpecification extends ParticipantSpecification implements StatefulSpecification
 {
     /**
      * Requested person.
