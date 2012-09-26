@@ -40,8 +40,12 @@ public abstract class ConnectorAgentAction implements AgentAction
      * @return connector typecast to an EndpointService
      * @throws CommandUnsupportedException
      */
-    protected static EndpointService getEndpoint(CommonService connector) throws CommandUnsupportedException
+    protected static EndpointService getEndpoint(CommonService connector)
+            throws CommandException, CommandUnsupportedException
     {
+        if (connector == null) {
+            throw new CommandException("Not connected to the endpoint.");
+        }
         if (!(connector instanceof EndpointService)) {
             throw new CommandUnsupportedException("The command is implemented only on an endpoint.");
         }
@@ -55,8 +59,12 @@ public abstract class ConnectorAgentAction implements AgentAction
      * @return connector typecast to an MultipointService
      * @throws CommandUnsupportedException
      */
-    protected static MultipointService getMultipoint(CommonService connector) throws CommandUnsupportedException
+    protected static MultipointService getMultipoint(CommonService connector)
+            throws CommandException, CommandUnsupportedException
     {
+        if (connector == null) {
+            throw new CommandException("Not connected to the multipoint.");
+        }
         if (!(connector instanceof MultipointService)) {
             throw new CommandUnsupportedException("The command is implemented only on a multipoint.");
         }
