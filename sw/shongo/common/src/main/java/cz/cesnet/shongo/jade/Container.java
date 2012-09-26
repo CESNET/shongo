@@ -248,6 +248,7 @@ public class Container
         AgentController agentController = agentControllers.get(agentName);
         if (agentController != null) {
             try {
+                // NOTE: tests the agent connection state (if disconnected, an exception is thrown)
                 agentController.getState().toString();
                 return true;
             }
@@ -429,7 +430,8 @@ public class Container
             return;
         }
         try {
-            agentController.putO2AObject(command, AgentController.SYNC);
+            // NOTE: must be ASYNC, otherwise, the connector thread be deadlock, waiting for itself
+            agentController.putO2AObject(command, AgentController.ASYNC);
         }
         catch (StaleProxyException exception) {
             logger.error("Failed to put command object to agent queue.", exception);

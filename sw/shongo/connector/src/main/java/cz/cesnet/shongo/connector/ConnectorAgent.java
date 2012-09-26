@@ -24,10 +24,6 @@ public class ConnectorAgent extends Agent
 {
     private static Logger logger = LoggerFactory.getLogger(ConnectorAgent.class);
 
-    private Address connectedDeviceAddress;
-    private String connectedDeviceUsername;
-    private String connectedDevicePassword;
-
     private CommonService connector;
 
     @Override
@@ -36,15 +32,6 @@ public class ConnectorAgent extends Agent
         super.setup();
 
         registerService("connector", "Connector Service");
-
-        if (connector != null && connectedDeviceAddress != null) {
-            try {
-                connector.connect(connectedDeviceAddress, connectedDeviceUsername, connectedDevicePassword);
-            }
-            catch (CommandException e) {
-                logger.error("Error connecting to the device (during agent setup)");
-            }
-        }
     }
 
 
@@ -76,17 +63,9 @@ public class ConnectorAgent extends Agent
                 throw new ConnectorInitException("Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
             }
 
-            // save the address and credentials for later, when the agent gets restarted
-            connectedDeviceAddress = new Address(address, port);
-            connectedDeviceUsername = username;
-            connectedDevicePassword = password;
+            connector.connect(new Address(address, port), username, password);
 
-            connector.connect(connectedDeviceAddress, username, password);
-
-            System.out.println("Connector ready");
-            ConnectorInfo info = connector.getConnectorInfo();
-            System.out.println("Connector info:");
-            System.out.println(info);
+            logger.info("Connector ready: {}", connector.getConnectorInfo());
         }
         catch (NoSuchMethodException e) {
             throw new ConnectorInitException(

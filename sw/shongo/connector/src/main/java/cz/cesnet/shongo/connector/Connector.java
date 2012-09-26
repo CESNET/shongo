@@ -1,15 +1,20 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
+import cz.cesnet.shongo.connector.jade.command.ManageCommand;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -18,10 +23,13 @@ import java.util.List;
  * Represents a device connector.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
+ * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class Connector
 {
     private static Logger logger = LoggerFactory.getLogger(Connector.class);
+
+    public static final String DEFAULT_CONFIGURATION_FILENAME = "connector.cfg.xml";
 
     /**
      * Connector parameters.
@@ -33,14 +41,39 @@ public class Connector
     public static int reconnectTimeout = 10000;
 
     /**
+     * Connector configuration.
+     */
+    private HierarchicalConfiguration configuration = new HierarchicalConfiguration();
+
+    /**
      * Jade container.
      */
     Container jadeContainer;
 
     /**
      * Jade agent names.
+     * FIXME: agents are added, but not removed...
      */
     List<String> jadeAgents = new ArrayList<String>();
+
+    /**
+     * Loads connector configuration from an XML file.
+     *
+     * @param configurationFilename name of file containing the connector configuration
+     */
+    private void loadConfiguration(String configurationFilename)
+    {
+        try {
+            XMLConfiguration xmlConfiguration = new XMLConfiguration();
+            xmlConfiguration.setDelimiterParsingDisabled(true);
+            xmlConfiguration.load(configurationFilename);
+            configuration = xmlConfiguration;
+        }
+        catch (ConfigurationException e) {
+            logger.warn(e.getMessage());
+        }
+    }
+
 
     /**
      * Init connector.
@@ -52,6 +85,24 @@ public class Connector
 
         jadeContainer = Container.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
         jadeContainer.start();
+
+        // start configured agents
+        for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
+            String agentName = instCfg.getString("name");
+            addAgent(agentName);
+
+            if (instCfg.getProperty("device.connectorClass") != null) {
+                // manage a device
+                ManageCommand cmd = new ManageCommand(
+                        instCfg.getString("device.connectorClass"),
+                        instCfg.getString("device.host"),
+                        instCfg.getInt("device.port"),
+                        instCfg.getString("device.auth.username"),
+                        instCfg.getString("device.auth.password")
+                );
+                jadeContainer.performCommand(agentName, cmd);
+            }
+        }
     }
 
     /**
@@ -74,9 +125,7 @@ public class Connector
                     Shell.printError("You must specify the new agent name.");
                     return;
                 }
-                String agentName = args[1];
-                jadeContainer.addAgent(agentName, ConnectorAgent.class);
-                jadeAgents.add(agentName);
+                addAgent(args[1]);
             }
         });
         shell.addCommand("list", "List all connector agent instances", new CommandHandler()
@@ -151,6 +200,16 @@ public class Connector
     }
 
     /**
+     * Adds an agent of a given name to the connector.
+     * @param name
+     */
+    private void addAgent(String name)
+    {
+        jadeContainer.addAgent(name, ConnectorAgent.class);
+        jadeAgents.add(name);
+    }
+
+    /**
      * De init connector
      */
     public void stop()
@@ -185,10 +244,16 @@ public class Connector
                 .hasArg()
                 .withDescription("Set the url on which the controller is running")
                 .create("c");
+        Option optionConfig = OptionBuilder.withLongOpt("config")
+                .withArgName("FILENAME")
+                .hasArg()
+                .withDescription("Connector configuration")
+                .create("g");
         Options options = new Options();
         options.addOption(optionHost);
         options.addOption(optionPort);
         options.addOption(optionController);
+        options.addOption(optionConfig);
         options.addOption(optionHelp);
 
         // Parse command line
@@ -249,6 +314,22 @@ public class Connector
         }
 
         final Connector connector = new Connector();
+
+        // load configuration
+        String configFilename = null;
+        if (commandLine.hasOption(optionConfig.getOpt())) {
+            configFilename = commandLine.getOptionValue(optionConfig.getOpt());
+        }
+        else {
+            if (new File(DEFAULT_CONFIGURATION_FILENAME).exists()) {
+                configFilename = DEFAULT_CONFIGURATION_FILENAME;
+            }
+        }
+        if (configFilename != null) {
+            logger.info("Connector loading configuration from {}", configFilename);
+            connector.loadConfiguration(configFilename);
+        }
+
         connector.start();
 
         logger.info("Connector successfully started.");

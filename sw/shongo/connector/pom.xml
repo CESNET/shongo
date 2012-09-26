@@ -27,10 +27,19 @@
             <artifactId>common</artifactId>
             <version>1.0</version>
         </dependency>
+
+        <!-- JSch is used for communicating with the devices through SSH -->
         <dependency>
             <groupId>com.jcraft</groupId>
             <artifactId>jsch</artifactId>
             <version>0.1.48</version>
+        </dependency>
+
+        <!-- Apache Commons Configuration is used for loading/storing configuration -->
+        <dependency>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>1.8</version>
         </dependency>
     </dependencies>
 

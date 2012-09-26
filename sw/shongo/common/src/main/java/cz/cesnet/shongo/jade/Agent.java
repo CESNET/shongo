@@ -76,6 +76,15 @@ public class Agent extends jade.core.Agent
 
     }
 
+    public Agent()
+    {
+        super();
+
+        // Agent will accept objects from container
+        // NOTE: must be enabled here, setup() is too late - someone could pass an object before setup()
+        setEnabledO2ACommunication(true, 0);
+    }
+
     @Override
     protected void setup()
     {
@@ -83,16 +92,11 @@ public class Agent extends jade.core.Agent
 
         started = true;
 
-        logger.debug("Agent [{}] is ready!", getAID().getName());
-
         // Register content language
         getContentManager().registerLanguage(new SLCodec());
 
         // Register ontology used by Shongo
         getContentManager().registerOntology(ShongoOntology.getInstance());
-
-        // Agent will accept objects from container
-        setEnabledO2ACommunication(true, 0);
 
         // Each agent is able to process commands passed via O2A channel and receive JADE messages
         addBehaviour(new CommandBehaviour());
@@ -101,6 +105,8 @@ public class Agent extends jade.core.Agent
         // Prepare agent description for DF
         agentDescription = new DFAgentDescription();
         agentDescription.setName(getAID());
+
+        logger.debug("Agent [{}] is ready!", getAID().getName());
     }
 
     @Override

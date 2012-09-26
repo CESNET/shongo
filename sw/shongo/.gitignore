@@ -2,3 +2,4 @@
 target/
 data/
 controller.cfg.xml
+connector.cfg.xml

@@ -543,7 +543,7 @@ reading:
     @Override
     public void standBy() throws CommandException
     {
-        if (true /* TODO: if there are some active calls (maintain the device state) */) {
+        if (true /* TODO: should be "if there are some active calls" (maintain the device state) */) {
             // must hang up first for the command to work properly; otherwise, the command succeeds, but the device is
             //   not in the stand by state
             hangUpAll();
