@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,9 +29,23 @@ public class Command
         return parameters.get(name);
     }
 
+    public String getCommand()
+    {
+        return command;
+    }
+
+    public Map<String, String> getParameters()
+    {
+        return Collections.unmodifiableMap(parameters);
+    }
+
     @Override
     public String toString()
     {
+        if (parameters.isEmpty()) {
+            return command; // just a tiny optimization
+        }
+
         StringBuilder sb = new StringBuilder(command);
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             sb.append(' ');

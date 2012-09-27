@@ -12,8 +12,6 @@ import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -21,29 +19,17 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A connector for Cisco TelePresence System Codec C90.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CodecC90Connector implements EndpointService
+public class CodecC90Connector extends AbstractConnector implements EndpointService
 {
-    private static Logger logger = LoggerFactory.getLogger(CodecC90Connector.class);
-
-
     public static final int MICROPHONES_COUNT = 8;
 
     /**
@@ -61,7 +47,7 @@ public class CodecC90Connector implements EndpointService
      */
     public static void main(String[] args)
             throws IOException, CommandException, InterruptedException, ConnectorInitException, SAXException,
-                   XPathExpressionException, TransformerException
+                   XPathExpressionException, TransformerException, ParserConfigurationException
     {
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 
@@ -96,17 +82,17 @@ public class CodecC90Connector implements EndpointService
         final CodecC90Connector conn = new CodecC90Connector();
         conn.connect(new Address(address), username, password);
 
-        Document result = conn.exec("xstatus SystemUnit uptime");
+        Document result = conn.exec(new Command("xstatus SystemUnit uptime"));
         System.out.println("result:");
         printDocument(result, System.out);
-        if (isError(result)) {
-            System.err.println("Error: " + getErrorMessage(result));
+        if (conn.isError(result)) {
+            System.err.println("Error: " + conn.getErrorMessage(result));
             System.exit(1);
         }
         System.out.println("Uptime: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Uptime"));
         System.out.println();
 
-        Document calls = conn.exec("xStatus Call");
+        Document calls = conn.exec(new Command("xStatus Call"));
         System.out.println("calls:");
         printDocument(calls, System.out);
         boolean activeCalls = !getResultString(calls, "/XmlDoc/Status/*").isEmpty();
@@ -128,11 +114,6 @@ public class CodecC90Connector implements EndpointService
     public static final int DEFAULT_PORT = 22;
 
     /**
-     * Info about the connector and the device.
-     */
-    private ConnectorInfo info = new ConnectorInfo("Cisco TelePresence System Codec C90 Connector");
-
-    /**
      * Shell channel open to the device.
      */
     private ChannelShell channel;
@@ -149,46 +130,7 @@ public class CodecC90Connector implements EndpointService
      */
     private InputStream commandResultStream;
 
-    private static boolean staticInitialized = false;
-    private static DocumentBuilder resultBuilder;
-    private static XPathFactory xPathFactory;
-    private static Map<String, XPathExpression> xPathExpressionCache = new HashMap<String, XPathExpression>();
-
-    /**
-     * Returns the result of an XPath expression on a given document. Caches the expressions for further usage.
-     *
-     * @param result      an XML document
-     * @param xPathString an XPath expression
-     * @return result of the XPath expression
-     */
-    private static String getResultString(Document result, String xPathString) throws XPathExpressionException
-    {
-        XPathExpression expr = xPathExpressionCache.get(xPathString);
-        if (expr == null) {
-            expr = xPathFactory.newXPath().compile(xPathString);
-            xPathExpressionCache.put(xPathString, expr);
-        }
-        return expr.evaluate(result);
-    }
-
-
-    public CodecC90Connector() throws ConnectorInitException
-    {
-        if (!staticInitialized) {
-            // NOTE: cannot be initialized in the static section since the possible exception
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            try {
-                resultBuilder = factory.newDocumentBuilder();
-            }
-            catch (ParserConfigurationException e) {
-                throw new ConnectorInitException("CodecC90Connector initialization failed", e);
-            }
-
-            xPathFactory = XPathFactory.newInstance();
-
-            staticInitialized = true;
-        }
-    }
+    private static DocumentBuilder resultBuilder = null;
 
     /**
      * Connects the connector to the managed device.
@@ -216,10 +158,11 @@ public class CodecC90Connector implements EndpointService
             commandResultStream = channel.getInputStream();
             channel.connect(); // runs a separate thread for handling the streams
 
-            initSession();
-            initDeviceInfo();
             info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
             info.setDeviceAddress(address);
+
+            initSession();
+            initDeviceInfo();
         }
         catch (JSchException e) {
             throw new CommandException("Error in communication with the device", e);
@@ -233,6 +176,9 @@ public class CodecC90Connector implements EndpointService
         catch (XPathExpressionException e) {
             throw new CommandException("Error querying command output XML tree", e);
         }
+        catch (ParserConfigurationException e) {
+            throw new CommandException("Error initializing result parser", e);
+        }
     }
 
     private void initSession() throws IOException
@@ -240,16 +186,17 @@ public class CodecC90Connector implements EndpointService
         // read the welcome message
         readOutput();
 
-        sendCommand("echo off");
+        sendCommand(new Command("echo off"));
         // read the result of the 'echo off' command
         readOutput();
 
-        sendCommand("xpreferences outputmode xml");
+        sendCommand(new Command("xpreferences outputmode xml"));
     }
 
-    private void initDeviceInfo() throws IOException, SAXException, XPathExpressionException
+    private void initDeviceInfo()
+            throws IOException, SAXException, XPathExpressionException, ParserConfigurationException
     {
-        Document result = exec("xstatus SystemUnit");
+        Document result = exec(new Command("xstatus SystemUnit"));
         DeviceInfo di = new DeviceInfo();
 
         di.setName(getResultString(result, "/XmlDoc/Status/SystemUnit/ProductId"));
@@ -291,35 +238,35 @@ public class CodecC90Connector implements EndpointService
         if (session != null) {
             session.disconnect();
         }
-        commandStreamWriter = null;
+        commandStreamWriter = null; // just for sure the streams will not be used
         commandResultStream = null;
 
         info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
     }
 
-    /**
-     * Sends a command to the device. If some output is expected, blocks until the response is complete.
-     *
-     * @param command a command to the device
-     * @return output of the command, or NULL if the output is not expected
-     * @throws IOException
-     */
-    private Document exec(String command) throws IOException, SAXException
+    protected Document exec(Command command) throws IOException, SAXException, ParserConfigurationException
     {
         sendCommand(command);
 
         String output = readOutput();
         InputSource is = new InputSource(new StringReader(output));
+
+        if (resultBuilder == null) {
+            // lazy initialization
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            resultBuilder = factory.newDocumentBuilder();
+        }
+
         return resultBuilder.parse(is);
     }
 
-    private void sendCommand(String command) throws IOException
+    private void sendCommand(Command command) throws IOException
     {
-        if (commandStreamWriter == null) {
+        if (info.getConnectionState() == ConnectorInfo.ConnectionState.DISCONNECTED) {
             throw new IllegalStateException("The connector is disconnected");
         }
 
-        commandStreamWriter.write(command + '\n');
+        commandStreamWriter.write(command.toString() + '\n');
         commandStreamWriter.flush();
     }
 
@@ -368,25 +315,15 @@ reading:
         return sb.toString();
     }
 
-    /**
-     * Finds out whether a given result XML denotes an error.
-     *
-     * @param result an XML document - result of a command
-     * @return true if the result marks an error, false if the result is an ordinary result record
-     */
-    private static boolean isError(Document result) throws XPathExpressionException
+
+    protected boolean isError(Document result) throws XPathExpressionException
     {
         String status = getResultString(result, "/XmlDoc/*[@status != '']/@status");
         return (status.contains("Error"));
     }
 
-    /**
-     * Given an XML result of a erroneous command, returns the error message.
-     *
-     * @param result an XML document - result of a command
-     * @return error message contained in the result document, or null if the document does not denote an error
-     */
-    private static String getErrorMessage(Document result) throws XPathExpressionException
+
+    protected String getErrorMessage(Document result) throws XPathExpressionException
     {
         if (!isError(result)) {
             return null;
@@ -413,40 +350,8 @@ reading:
         return "Uncategorized error";
     }
 
-    /**
-     * Send an xCommand command to the device.
-     * In case of an error, throws a CommandException with a detailed message.
-     *
-     * @param command command to be issued; see the codec_c90_api_reference_guide_tc51.pdf for reference
-     * @return the result of the command
-     */
-    private Document issueCommand(Command command) throws CommandException
-    {
-        logger.info(String.format("%s issuing command %s on %s", CodecC90Connector.class, command,
-                info.getDeviceAddress()));
 
-        try {
-            Document result = exec(command.toString());
-            if (isError(result)) {
-                logger.info(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(),
-                        getErrorMessage(result)));
-                throw new CommandException(getErrorMessage(result));
-            }
-            else {
-                logger.info(String.format("Command %s succeeded on %s", command, info.getDeviceAddress()));
-                return result;
-            }
-        }
-        catch (IOException e) {
-            throw new RuntimeException("Command issuing error", e);
-        }
-        catch (SAXException e) {
-            throw new RuntimeException("Command result parsing error", e);
-        }
-        catch (XPathExpressionException e) {
-            throw new RuntimeException("Command result handling error", e);
-        }
-    }
+    // ENDPOINT SERVICE
 
     @Override
     public int dial(Alias server) throws CommandException
@@ -574,35 +479,5 @@ reading:
         }
 
         issueCommand(new Command("xCommand Standby Activate"));
-    }
-
-    @Override
-    public ConnectorInfo getConnectorInfo()
-    {
-        return info;
-    }
-
-    /**
-     * Just for debugging purposes, for printing results of commands.
-     * <p/>
-     * Taken from: http://stackoverflow.com/questions/2325388/java-shortest-way-to-pretty-print-to-stdout-a-org-w3c-dom-document
-     *
-     * @param doc
-     * @param out
-     * @throws IOException
-     * @throws TransformerException
-     */
-    private static void printDocument(Document doc, OutputStream out) throws IOException, TransformerException
-    {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer = tf.newTransformer();
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-        transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
-
-        transformer.transform(new DOMSource(doc),
-                new StreamResult(new OutputStreamWriter(out, "UTF-8")));
     }
 }

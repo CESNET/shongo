@@ -10,7 +10,7 @@ import cz.cesnet.shongo.api.util.Address;
 public class ConnectorInfo
 {
     /**
-     * State of connection between a connector and a device it manages.
+     * State of connection between the connector and the device it manages.
      */
     public static enum ConnectionState
     {
@@ -18,6 +18,10 @@ public class ConnectorInfo
          * The connection is established.
          */
         CONNECTED,
+        /**
+         * The connection was established but is not maintained (the communication is stateless).
+         */
+        LOOSELY_CONNECTED,
         /**
          * The connection is not established.
          */
@@ -27,14 +31,13 @@ public class ConnectorInfo
     private String name;
     private DeviceInfo deviceInfo;
     private Address deviceAddress;
-    private ConnectionState connectionState;
+    private ConnectionState connectionState = ConnectionState.DISCONNECTED;
     private DeviceState deviceState;
 
 
     public ConnectorInfo(String name)
     {
         this.name = name;
-        connectionState = ConnectionState.DISCONNECTED;
     }
 
     /**
