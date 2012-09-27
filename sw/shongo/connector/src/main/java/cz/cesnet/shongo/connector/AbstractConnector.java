@@ -51,7 +51,7 @@ abstract public class AbstractConnector implements CommonService
      * Send a command to the device.
      * In case of an error, throws a CommandException with a detailed message.
      *
-     * @param command command to be issued; see the codec_c90_api_reference_guide_tc51.pdf for reference
+     * @param command command to be issued
      * @return the result of the command
      */
     protected Document issueCommand(Command command) throws CommandException
