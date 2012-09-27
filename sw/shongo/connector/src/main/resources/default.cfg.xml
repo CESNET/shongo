@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Default Configuration of Domain Controller -->
+<configuration>
+
+    <!-- Connection to controller -->
+    <controller>
+        <host>127.0.0.1</host>
+        <port>8282</port>
+        <connection-check-period>PT10S</connection-check-period>
+    </controller>
+
+    <!-- Configuration of Jade container -->
+    <jade>
+        <host>127.0.0.1</host>
+        <port>8383</port>
+    </jade>
+
+    <!-- Connector instances (agents) to automatically start -->
+    <instances>
+
+        <!-- instance
+        <instance>
+            # Agent name
+            <name>c90agent</name>
+            # Device to be managed
+            <device>
+                <connectorClass>cz.cesnet.shongo.connector.CodecC90Connector</connectorClass>
+                <host>147.251.54.102</host>
+                <port>22</port>
+                <auth>
+                    <username>admin</username>
+                    <password>(password)</password>
+                </auth>
+            </device>
+        </instance>
+        -->
+
+        <instance>
+            <name>dumb</name>
+        </instance>
+
+    </instances>
+
+</configuration>

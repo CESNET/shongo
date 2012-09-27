@@ -277,15 +277,17 @@ public class CodecC90Connector implements EndpointService
      */
     public void disconnect() throws CommandException
     {
-        Session session;
-        try {
-            session = channel.getSession();
-        }
-        catch (JSchException e) {
-            throw new CommandException("Error disconnecting from the device", e);
+        Session session = null;
+        if (channel != null) {
+            try {
+                session = channel.getSession();
+            }
+            catch (JSchException e) {
+                throw new CommandException("Error disconnecting from the device", e);
+            }
+            channel.disconnect();
         }
 
-        channel.disconnect();
         if (session != null) {
             session.disconnect();
         }

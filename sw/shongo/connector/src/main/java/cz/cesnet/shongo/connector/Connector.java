@@ -10,7 +10,9 @@ import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
+import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +34,9 @@ public class Connector
     public static final String DEFAULT_CONFIGURATION_FILENAME = "connector.cfg.xml";
 
     /**
-     * Connector parameters.
-     */
-    public static String jadeHost = "127.0.0.1";
-    public static int jadePort = 8383;
-    public static String controllerHost = "127.0.0.1";
-    public static int controllerPort = 8282;
-    public static int reconnectTimeout = 10000;
-
-    /**
      * Connector configuration.
      */
-    private HierarchicalConfiguration configuration = new HierarchicalConfiguration();
+    private Configuration configuration = new Configuration();
 
     /**
      * Jade container.
@@ -57,33 +50,102 @@ public class Connector
     List<String> jadeAgents = new ArrayList<String>();
 
     /**
+     * Constructor.
+     */
+    public Connector()
+    {
+        configuration = new Configuration();
+        // System properties has the highest priority
+        configuration.addConfiguration(new SystemConfiguration());
+    }
+
+    /**
+     * @return controller host
+     */
+    public String getControllerHost()
+    {
+        return configuration.getString(Configuration.CONTROLLER_HOST);
+    }
+
+    /**
+     * @return controller host
+     */
+    public int getControllerPort()
+    {
+        return configuration.getInt(Configuration.CONTROLLER_PORT);
+    }
+
+    /**
+     * @return period for checking connection the controller
+     */
+    public Duration getControllerConnectionCheckPeriod()
+    {
+        return configuration.getDuration(Configuration.CONTROLLER_CONNECTION_CHECK_PERIOD);
+    }
+
+    /**
+     * @return Jade container host
+     */
+    public String getJadeHost()
+    {
+        return configuration.getString(Configuration.JADE_HOST);
+    }
+
+    /**
+     * @return Jade container host
+     */
+    public int getJadePort()
+    {
+        return configuration.getInt(Configuration.JADE_PORT);
+    }
+
+    /**
+     * Load default configuration for the connector
+     */
+    private void loadDefaultConfiguration()
+    {
+        try {
+            XMLConfiguration xmlConfiguration = new XMLConfiguration();
+            xmlConfiguration.setDelimiterParsingDisabled(true);
+            xmlConfiguration.load(getClass().getClassLoader().getResource("default.cfg.xml"));
+            configuration.addConfiguration(xmlConfiguration);
+        }
+        catch (Exception exception) {
+            throw new RuntimeException("Failed to load default connector configuration!", exception);
+        }
+    }
+
+    /**
      * Loads connector configuration from an XML file.
      *
      * @param configurationFilename name of file containing the connector configuration
      */
     private void loadConfiguration(String configurationFilename)
     {
+        // Passed configuration has lower priority
         try {
             XMLConfiguration xmlConfiguration = new XMLConfiguration();
             xmlConfiguration.setDelimiterParsingDisabled(true);
             xmlConfiguration.load(configurationFilename);
-            configuration = xmlConfiguration;
+            configuration.addConfiguration(xmlConfiguration);
         }
         catch (ConfigurationException e) {
             logger.warn(e.getMessage());
         }
+        // Default configuration has the lowest priority
+        loadDefaultConfiguration();
     }
-
 
     /**
      * Init connector.
      */
     public void start()
     {
-        logger.info("Starting Connector JADE container on {}:{}...", jadeHost, jadePort);
-        logger.info("Connecting to the JADE main container {}:{}...", controllerHost, controllerPort);
+        logger.info("Starting Connector JADE container on {}:{}...", getJadeHost(), getJadePort());
+        logger.info("Connecting to the JADE main container {}:{}...", getControllerHost(), getControllerPort());
 
-        jadeContainer = Container.createContainer(controllerHost, controllerPort, jadeHost, jadePort);
+        jadeContainer = Container
+                .createContainer(getControllerHost(), getControllerPort(), getJadeHost(), getJadePort());
         jadeContainer.start();
 
         // start configured agents
@@ -174,14 +236,15 @@ public class Connector
                 boolean startFailed = false;
                 while (true) {
                     try {
-                        Thread.sleep(reconnectTimeout);
+                        Thread.sleep(getControllerConnectionCheckPeriod().getMillis());
                     }
                     catch (InterruptedException e) {
                     }
                     // We want to reconnect if container is not started or when the
                     // previous start failed
                     if (startFailed || jadeContainer.isStarted() == false) {
-                        logger.info("Reconnecting to the JADE main container {}:{}...", controllerHost, controllerPort);
+                        logger.info("Reconnecting to the JADE main container {}:{}...", getControllerHost(),
+                                getControllerPort());
                         startFailed = false;
                         if (jadeContainer.start() == false) {
                             startFailed = true;
@@ -201,6 +264,7 @@ public class Connector
 
     /**
      * Adds an agent of a given name to the connector.
+     *
      * @param name
      */
     private void addAgent(String name)
@@ -292,20 +356,20 @@ public class Connector
 
         // Process parameters
         if (commandLine.hasOption(optionHost.getOpt())) {
-            jadeHost = commandLine.getOptionValue(optionHost.getOpt());
+            System.setProperty(Configuration.JADE_HOST, commandLine.getOptionValue(optionHost.getOpt()));
         }
         if (commandLine.hasOption(optionPort.getOpt())) {
-            jadePort = Integer.parseInt(commandLine.getOptionValue(optionPort.getOpt()));
+            System.setProperty(Configuration.JADE_PORT, commandLine.getOptionValue(optionPort.getOpt()));
         }
         if (commandLine.hasOption(optionController.getOpt())) {
             String url = commandLine.getOptionValue(optionController.getOpt());
             String[] urlParts = url.split(":");
             if (urlParts.length == 1) {
-                controllerHost = urlParts[0];
+                System.setProperty(Configuration.CONTROLLER_HOST, urlParts[0]);
             }
             else if (urlParts.length == 2) {
-                controllerHost = urlParts[0];
-                controllerPort = Integer.parseInt(urlParts[1]);
+                System.setProperty(Configuration.CONTROLLER_HOST, urlParts[0]);
+                System.setProperty(Configuration.CONTROLLER_PORT, urlParts[1]);
             }
             else {
                 System.err.println("Failed to parse controller url. It should be in <HOST:URL> format.");
@@ -328,6 +392,8 @@ public class Connector
         if (configFilename != null) {
             logger.info("Connector loading configuration from {}", configFilename);
             connector.loadConfiguration(configFilename);
+        } else {
+            connector.loadDefaultConfiguration();
         }
 
         connector.start();

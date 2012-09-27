@@ -5,14 +5,14 @@ import org.joda.time.Duration;
 import org.joda.time.Period;
 
 /**
- * Configuration for the controller.
+ * Configuration for the {@link Controller}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class Configuration extends CompositeConfiguration
 {
     /**
-     * Controller configuration parameters names.
+     * Configuration parameters names.
      */
     public static final String LOG_RPC = "log-rpc";
     public static final String DOMAIN_NAME = "domain.name";
