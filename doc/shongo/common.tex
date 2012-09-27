@@ -42,6 +42,25 @@
 % Add bibliography to table of contents
 \usepackage[nottoc]{tocbibind}
 
+% TODO command
+\newcommand{\TODO}[1]{%
+\def\empty{}%
+\def\prvniparametr{#1}%
+\ifx\prvniparametr\empty%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
+\else%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
+\fi%
+}
+
+% Short inlines e.g., "|code|"
+\lstdefinestyle{lstStyleShort}{
+  breaklines=true,
+  breakatwhitespace=true,
+  breakautoindent=true,
+}
+\lstMakeShortInline[style=lstStyleShort]|
+
 % Document title page
 \author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
 \date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}

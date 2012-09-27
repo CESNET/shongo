@@ -1,0 +1,339 @@
+\appendix
+
+\input{command_api.tex}
+
+\chapter{Controller API Usage}
+
+\section{Perl programming language}
+\newenvironment{PerlCmd}{\small\verbatim}{\endverbatim}
+\newenvironment{PerlResponse}{\textbf{Response}\small\verbatim}{\endverbatim}
+
+\subsection{Connect to Controller}
+
+\begin{PerlCmd}
+#!/usr/bin/perl
+
+require RPC::XML;
+require RPC::XML::Client;
+
+$client = RPC::XML::Client->new('http://localhost:8008');
+
+$response = $client->send_request(...);
+
+if ( ref($response) ) {
+    use XML::Twig;
+    $xml = XML::Twig->new(pretty_print => 'indented');
+    $xml->parse($response->as_string());
+    $xml->print();
+} else {
+    print($response . "\n");
+}
+\end{PerlCmd}
+
+\newpage
+\subsection{Create reservation}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservation.createReservationRequest',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('ReservationRequest'),
+        'slot' => RPC::XML::string->new('20120101T12:00/PT2H'),
+        'type' => RPC::XML::string->new('NORMAL'),
+        'purpose' => RPC::XML::string->new('EDUCATION')
+        ...
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<struct>
+  <member>
+    <name>class</name>
+    <value><string>ReservationRequest</string></value>
+  </member>
+  <member>
+    <name>id</name>
+    <value>
+      <string>shongo:cz.cesnet:1</string>
+    </value>
+  </member>
+  <member>
+    <name>slot</name>
+    <value><string>20120101T12:00:00/PT2H</string></value>
+  </member>
+  ...
+</struct>
+\end{PerlResponse}
+
+\newpage
+\subsection{Modify reservation}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservation.modifyReservationRequest',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::string->new('shongo:cz.cesnet:1'),
+    RPC::XML::struct->new(
+        'description' => RPC::XML::struct->new() # set description to null
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<struct>
+  <member>
+    <name>id</name>
+    <value><string>shongo:cz.cesnet:1</string></value>
+  </member>
+  <member>
+    <name>class</name>
+    <value><string>ReservationRequest</string></value>
+  </member>
+  <member>
+    <name>type</name>
+    <value><string>20120101T12:00:00/PT2H</string></value>    
+  </member>
+  ...
+</struct>
+\end{PerlResponse}
+
+\newpage
+\subsection{List reservations}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.listReservationRequests',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<array><data>
+  <value><struct>
+    <member>
+      <name>id</name>
+      <value><string>shongo:cz.cesnet:1</string></value>
+    </member>
+    <member>
+      <name>class</name>
+      <value><string>ReservationRequest</string></value>
+    </member>
+    <member>
+      <name>type</name>
+      <value><string>20120101T12:00:00/PT2H</string></value>    
+    </member>
+    ...
+  </struct></value>
+</data></array>
+\end{PerlResponse}
+
+\newpage
+\subsection{Exception handling}
+\subsubsection{Wrong class}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.listReservationRequests',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityTokenX'),
+        ...
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Class 'SecurityTokenX' is not defined.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>10</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\subsubsection{Wrong attribute name}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.createReservationRequest',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'typeX' => RPC::XML::string->new('PERMANENT')
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Attribute 'typeX' in class 'Reservation' is not defined.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>12</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\subsubsection{Wrong attribute value}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.createReservationRequest',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'type' => RPC::XML::struct->new(
+            'class' => RPC::XML::string->new('SecurityToken')
+        )
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Attribute 'type' in class 'ReservationRequest' has type
+          'ReservationRequestType' but 'SecurityToken' was presented.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>13</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\subsubsection{Wrong enum}
+\begin{PerlCmd}
+$response = $client->send_request(
+    'Reservations.createReservationRequest',
+    RPC::XML::struct->new(
+        'class' => RPC::XML::string->new('SecurityToken'),
+        ...
+    ),
+    RPC::XML::struct->new(
+        'type' => RPC::XML::string->new('PERMANENTX')
+    )
+);
+\end{PerlCmd}
+\begin{PerlResponse}
+<fault>
+  <value><struct>
+    <member>
+      <name>faultString</name>
+      <value><string>Enum value 'PERMANENTX' is not defined in enum
+          'ReservationRequestType'.</string></value>
+    </member>
+    <member>
+      <name>faultCode</name>
+      <value><i4>20</i4></value>
+    </member>
+  </struct></value>
+</fault>
+\end{PerlResponse}
+
+\chapter{JADE Command Encoding Example} \label{appendix:jade-command-encoding}
+
+Consider the following command required by this API:
+\begin{Api}
+\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+\end{Api}
+
+The following classes should be defined to represent the command and all objects used by it:
+\begin{verbatim}
+package cz.cesnet.shongo.jade.ontology;
+
+public class ListRoomUsers implements AgentAction {
+    private SecurityToken token;
+    private String roomId;
+
+    public String getRoomId() {
+        return roomId;
+    }
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+    public String getToken() {
+        return token;
+    }
+    public void setToken(String token) {
+        this.token = token;
+    }
+}
+
+public class SecurityToken implements Concept {
+    private UserIdentity user;
+
+    public UserIdentity getUser() {
+        return user;
+    }
+    public void setUser(UserIdentity user) {
+        this.user = user;
+    }
+}
+
+public class UserIdentity implements Concept {
+    private String id;
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+}
+
+public class RoomUser implements Concept {
+    private String userId;
+    private String roomId;
+    private UserIdentity userIdentity;
+    private boolean muted;
+    private int microphoneLevel;
+    private int playbackLevel;
+
+    // getters and setters ...
+}
+\end{verbatim}
+
+The command might be encoded in the following message:
+\begin{verbatim}
+(REQUEST
+ :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
+ :content  "((action (agent-identifier :name
+     Controller-Main-Container@127.0.0.1:1099/JADE :addresses
+     (sequence http://localhost:7778/acc)) (ListRoomUsers)))"
+ :language  fipa-sl  :ontology  shongo-ontology )
+\end{verbatim}
+
+A successful reply would then be encoded as follows:
+\begin{verbatim}
+(INFORM
+ :sender  ( agent-identifier :name dev@127.0.0.1:1099/JADE  :addresses (sequence
+     http://localhost:7778/acc ))
+ :receiver  (set ( agent-identifier :name Controller-Main-Container@127.0.0.1:1099/JADE
+     :addresses (sequence http://localhost:7778/acc )) )
+ :content  "((result (action (agent-identifier :name
+     Controller-Main-Container@127.0.0.1:1099/JADE :addresses (sequence
+     http://localhost:7778/acc)) (ListRoomUsers)) (sequence (RoomUser :microphoneLevel 45
+     :muted false :playbackLevel 0 :roomId konf :userId Azurit :userIdentity
+     (UserIdentity :id shongololo)) (RoomUser :microphoneLevel 57 :muted false
+     :playbackLevel 0 :roomId konf :userId Shongololo :userIdentity (UserIdentity)))))"
+ :reply-with  Controller-Main-Container@127.0.0.1:1099/JADE1336527079398  :language
+     fipa-sl  :ontology  shongo-ontology )
+\end{verbatim}
+

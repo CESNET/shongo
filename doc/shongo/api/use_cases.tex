@@ -1,0 +1,560 @@
+%{{{
+\makeatletter
+% we need to take only part of the \usecounter definition for DCcounter - no
+% resets are wanted after end of the environment
+\newcounter{UCcounter}
+\setcounter{UCcounter}{0}
+\newenvironment{UseCases}%
+	{\begin{list}{\textbf{UC-\arabic{UCcounter}}}{\@nmbrlisttrue\def\@listctr{UCcounter}}}%
+	{\end{list}}
+\newcommand{\UClabel}[1]{\label{UC:#1}}
+\newcommand{\UCref}[1]{UC-\ref{UC:#1}}
+
+\newcommand{\UseCase}[2]{\item\UClabel{#2} \textbf{(#2) #1}\\ \nopagebreak}
+
+\makeatother
+%}}}
+
+\chapter{Use Cases}
+
+\section{Common}
+
+\begin{UseCases}
+
+\UseCase{Entity identification}{com:identification}
+Each entity in \gls{g:shongo} (e.g., \gls{g:resource}, \gls{g:reservation-request} or \gls{g:reservation}) is identified by an unique identifier.
+The identifier follows the URI standard \cite{rfc3986}:
+\begin{verbatim}
+shongo:<domain>:<id>
+\end{verbatim}
+The |<domain>| component represents the full name of a \gls{g:domain} to which the entity belongs (or where it was created in case of \gls{g:reservation}). Each \gls{g:domain} will run it's own \gls{g:controller}. The |<id>| component represents an identification of the entity in the specified \gls{g:domain}.
+
+\end{UseCases}
+
+
+\section{Resources}
+
+\begin{UseCases}
+
+\UseCase{Types of resources}{res:types}
+
+Basic resource types include the following:
+
+\begin{compactdesc}
+
+\item[A managed endpoint]
+
+This is an endpoint, that is managed by Shongo -- the endpoint is both managed
+(calls are automatically dialed when involved in reservation, directory is
+updated, etc.) and monitored (availability and status).
+
+\item[A unmanaged endpoint]
+
+This is an endpoint, which is not available for Shongo management for either
+technical or administrative reason. It may be, e.g., a software H.323 client or
+web browser acting as a Adobe Connect client. Its specification by a user
+(e.g., providing attributes like H.323 number or H.323 ID), however, allows for
+specific adjustments during implementation of the reservation -- e.g.,
+monitoring of participants in the calls and allowing only participants calling
+from specific H.323 number or ID.
+
+\item[A managed infrastructure element]
+
+This is one of the infrastructure resources, that is managed, monitored and
+typically also scheduled by the Shongo. It includes things such as H.323 MCUs,
+H.323 gatekeepers, Adobe Connect servers, recording servers, streaming servers,
+and various types of gateways and translators.
+
+\item[A virtual room]
+
+A virtual room is a private compartment on a specific multi-point
+infrastructure element. Typically, this is comes as a product of a scheduling
+process. Virtual rooms are often not licensed, only their participants are
+(this is a concurrent user license model). However, other models may also
+exists and this is abstraction allows for them.
+
+\item[A license]
+
+This is typically the limiting factor of infrastructure elements in a
+concurrent user licensing model. Utilization of the licenses is scheduled by
+Shongo, while some licenses may be put aside as a part of permanent
+reservations by a resource owner (see \UCref{rsv:reservation:permanent}).
+
+\item[A physical room]
+
+This a representation of a physical meeting room and Shongo thus allows for
+reserving physical rooms. Its representation among the resources enables also
+more advanced uses: a physical room may contain multiple videoconferencing
+devices and reserving a room also means that the those devices become
+unavailable for other reservations than the one which contains the physical
+room.
+
+\item[A specific identifier]
+
+A user may reserve a specific identifier, typically Adobe Connect URL, H.323
+number, or streaming server URL. This allows for reuse of such an identifier in
+irregularly recurring and \emph{ad hoc} events.
+
+\end{compactdesc}
+
+\UseCase{Management of resources}{res:management}
+
+The resource owner should be able to create new resources that will be managed by Shongo. Owner should be able to modify the managed resource parameters and also should be able to delete the managed resource.
+
+\UseCase{Resource identification}{res:identification}
+
+Each resource is identified by an unique identifier as defined in \UCref{com:identification}. The identifier will be
+automatically assigned to the resource when it is being created.
+
+\end{UseCases}
+
+
+\section{Reservations}
+
+\begin{UseCases}
+
+\UseCase{Types of specifications}{rsv:specifications}
+
+Specification of a resource, being object of a reservation, may be of the
+following types:
+
+\begin{compactitem}
+
+\item a \emph{fully-qualified explicit specification (FQESpec)} -- specifies
+exactly one element; it ma refer to a specific device (e.g., H.323 endpoint,
+web browser as an endpoint for Adobe Connect), a specific server (e.g., a
+specific Adobe Connect server or H.323 MCU), a specific physical room, or a
+specific virtual room (e.g., a specific room running on specific H.323 MCU),
+
+FQESpec may be managed by Shongo or not; for resources that Shongo does not
+manage or knows about, i.e., unmanaged resources, the user needs to specify
+type of the resource (e.g., generic H.323 endpoint). The unmanaged resources
+should have some form of identification (e.g., H.323 number, H.323 ID, or
+Shibboleth identity for Adobe Connect) so that Shongo can verify if they are
+connected to the virtual room or not during the conference.
+
+Anonymous unmanaged resources may also be available (completely generic H.323
+enpoint without a number or H.323 ID, or guest user in Adobe Connect) , but
+some functionality may not be available -- when maximum room capacity is
+achieved (or exceeded), anonymous users not be allowed in (or even be
+disconnected in LIFO mode until maximum amount of participants is obeyed).
+
+\item a \emph{partially-qualified explicit specification (PQESpec)} --
+specifies a class/type of a resource (e.g., H.323 endpoint) and it is up to the
+scheduling to find suitable one (combination of availability and access-level
+for given user),
+
+\item a \emph{implicit specification (ISpec)} -- the user does not specify such
+a resource, but the resource is needed to implement user's request (e.g., if
+user specifies Connect and H.323 endpoints, a gateway/connector is needed to
+implement the translation; if user specifies multiple H.323 endpoints beyond
+MCU-capability of each of them, some MCU is needs to be included).
+
+\end{compactitem}
+
+Generally, Shongo should use the technology to limit number of participants in
+the rooms created based on the reservations---e.g., H.323 MCUs allow for
+setting an upper limit on number of participant in each room.
+
+\UseCase{User roles}{rsv:roles}
+
+Each reservation should have at least two types of possible user roles:
+
+\begin{compactitem}
+
+\item \emph{owner/administrator}, who can modify or even delete the reservation,
+
+\item \emph{manager}, who can control the room (e.g., disconnect participants, mute participants, etc.),
+
+\item \emph{participant}, who can only view the reservation including coordinates necessary for participation.
+
+\end{compactitem}
+
+The roles can be delegated, which is important especially in case of owner/administrator: the original reservation creator can delegate this role to other users and any of them can the modify or delete the reservation.
+
+\UseCase{Reservation identification}{rsv:identification}
+
+Each reservation is identified by an unique identifier as defined in \UCref{com:identification}. The identifier is assigned to reservation automatically when it is being created.
+
+\UseCase{One time reservation}{rsv:reservation:one}
+
+Common type of reservation, where a user requests certain resources for limited
+time duration. Unlimited reservations are not assumed by this scenario (see
+\UCref{rsv:reservation:permanent}).
+
+Start time of a reservation may be any time in the future or \emph{now}, which
+is also called \emph{ad hoc} reservation.
+
+Reserved resources may be given as FQESpec, PQESpec, or ISpec. FQESpec are
+either accepted or denied by the scheduler, while other types of the
+specifications are looked for their best match. PQESpec may include the
+following:
+
+\begin{compactitem}
+
+\item user may request a general endpoint and Shongo should try to find the
+closest matching endpoint available to the user (e.g., user requests a H.323
+endpoint for a conference since she has no personal endpoint, and she is
+assigned a room-based H.323 endpoint provided the room is available),
+
+\end{compactitem}
+
+while examples of ISpec are as follows:
+
+\begin{compactitem}
+
+\item amount of central resources (such as H.323 MCU ports or Connect licenses)
+based on specified number of (H.323/SIP or web-browser) participants,
+
+\item any interconnecting elements (e.g., gateways) to interconnect the
+endpoints specified by the user; if only part of the endpoints can be
+interconnected, the user should be notified what parts can be interconnected
+and what parts are disconnected.
+
+\end{compactitem}
+
+Each reservation has to be given a unique identifier that is further used for
+any references to it. If the reservation is denied, reasons for denying should
+be communicated to the requester. In case that the reservation succeeds, all
+the users involved should be notified.
+
+Each reservation has to include:
+
+\begin{compactitem}
+
+\item unique identifier,
+
+\item timespan definition,
+
+\item requester's identifier,
+
+\item name,
+
+\item links to the resources involved, including specification of the amount of resources consumed,
+
+\item list of users involved.
+
+\end{compactitem}
+
+Reservations may be compounded to form another reservation. This allows to
+reuse elements that are already reserved (e.g., a specified identifier or
+allocation of a physical room) to implement a larger reservation. As a part of
+the scheduling process, the scheduler has to check whether the reservation
+times and durations are compatible.
+
+\UseCase{Periodic reservation}{rsv:reservation:periodic}
+
+\UCref{rsv:reservation:one} extended with periodicity. Expressiveness of the
+periodicity language should be equivalent to cron plus start time, stop time or number of repetition, and explicit lists for recurring aperiodic requests.
+
+\UseCase{Permanent reservation}{rsv:reservation:permanent}
+
+This is specific type of reservation that can be only made by an owner of the
+resource as it permanently removes the reserved capacity from the dynamic
+Shongo scheduling.
+
+Even permanent reservations must not threaten what has already been reserved for any user. In case of priority requests (see \UCref{rsv:priority}), Shongo must be able to migrate the reservation to other resources.
+
+The difference between permanent and periodic reservation is that for permanent reservations is not applied the maximum future time as defined in \UCref{rsv:max-future}. The permanent reservation also has bigger priority than periodic reservation (e.g., in scheduler input queue).
+
+\UseCase{Priority reservations}{rsv:priority}
+
+Priority reservations are only allowed by an owner of the resources and they
+may affect reservations already present on the resources. However, priority
+reservation should only be allowed if there is some other resource(s) (maybe
+even in another domain) that can take over the prior reservation. In case of
+reservation migration, all the involved users must be notified
+(see~\UCref{rsv:migration}).
+
+\TODO{We need to decide, whether to allow this or not.}
+
+\UseCase{Maximum future time for reservations}{rsv:max-future}
+
+Each resource owner should set a date/time limit in the future (e.g., 2
+months), above which reservations are not allowed. That should be done for each owned resource. Whole reservation duration
+must fit in that limit. This limit ensures there is some time point in the
+future, where there are no reservations on the resource---e.g., for
+maintainance purposes, removal of the device, special events the device will be
+used for, etc.
+
+\UseCase{Lookup available time}{rsv:lookup:time}
+
+User may look up available time slots for given amount of requested resources,
+with either inter-domain negotiation turned off or on (i.e., tell the user when
+resources are available within the domain or when merging resources of all the
+domains).
+
+\UseCase{List all the reservations}{rsv:list}
+
+Some querying/filtering language needs to be supported to limit list to
+
+\begin{compactitem}
+
+\item room types (H.323, SIP, Connect, etc.),
+
+\item equipment (be it class of equipment or a specific device).
+
+\item reservation owner(s),
+
+\item users involved (may be humans as well as resources, such as rooms with
+equipment) involved in the room as participants.
+
+\end{compactitem}
+
+\UseCase{Modification of a reservation}{rsv:modify}
+
+Any attribute of a reservation may be requested to change. The request may be
+accepted or denied by the scheduler. In case of the denial, reasons for denial
+should be communicated to the requester. If the modification succeeds, all the
+users involved should be notified.
+
+\UseCase{Release/canceling of a reservation}{rsv:release}
+
+All the users involved should be notified.
+
+\UseCase{Migration of a reservation}{rsv:migration}
+
+If the change is visible to the users (e.g., typically this would include
+change of the server/MCU the users connect to), all the users involved should
+be notified.
+
+\UseCase{Notification of participants}{rsv:notification}
+
+In case of making, modifying, or canceling a reservation, all the users
+involved should be notified, as specified in \UCref{rsv:reservation:one},
+\UCref{rsv:reservation:periodic}, \UCref{rsv:reservation:permanent},
+\UCref{rsv:modify}, \UCref{rsv:release}, and \UCref{rsv:migration}. By default,
+the users should be notified via email, but it would be interesting to provide
+also SMS notification service.
+
+\UseCase{Reservations of rooms, public or semi-private endpoints,
+etc.}{rsv:service-users}
+
+Each reservation may include endpoint resources (beyond human users with
+private endpoints---H.323/SIP/web), which represent entities such as rooms,
+non-personal endpoints, etc., that can be scheduled in a similar way to central
+resources.
+
+This type of reservation may be either part of some infrastructure reservation
+(see \UCref{rsv:reservation:one}, \UCref{rsv:reservation:periodic},
+\UCref{rsv:reservation:permanent}) or standalone reservation (e.g., reservation
+of a meeting room with H.323 equipment to disable the room from scheduling for
+given time duration).
+
+\UseCase{Reservation of recording capacity}{rsv:recording}
+
+Usually part of some infrastructure reservation (see
+\UCref{rsv:reservation:one}, \UCref{rsv:reservation:periodic},
+\UCref{rsv:reservation:permanent}), but may be completely standalone in case
+that only recording server is used of the Shongo-managed infrastructure.
+
+\UseCase{Reservation of streaming capacity}{rsv:streaming}
+
+May part of some infrastructure reservation (see \UCref{rsv:reservation:one},
+\UCref{rsv:reservation:periodic}, \UCref{rsv:reservation:permanent}), but may
+be completely standalone in case that only streaming server is used of the
+Shongo-managed infrastructure.
+
+\end{UseCases}
+
+
+\section{Operations}
+
+\begin{UseCases}
+
+\UseCase{Live migration of a virtual room}{ops:migration}
+
+This use case is intended for migration due to planned server maintenance or
+unplanned server outage.  Ideally, all the room settings and content should be
+transferred to the target room---but some content may be lost in case of
+unplanned server failure (namely content migration).
+
+Being able to transfer room settings to another server in case of unplanned
+failure also requires that the settings needs to be stored in the Shongo
+middleware.
+
+Clients should be automatically redirected to the new server, if technology
+permits, or at least notified of the migration (email, SMS---see
+\UCref{rsv:notification}).
+
+Some functionality will be common~\UCref{rsv:migration}.
+
+\end{UseCases}
+
+\subsection{Room Management}
+
+\begin{UseCases}
+
+\UseCase{Get room information on Shongo level}{ops:room:shongo-options}
+
+This information typically includes name, owner, date/periodicity, duration and type.
+
+\UseCase{List users}{ops:room:users-list}
+
+Each user should be given a unique identifier in the output list that can be
+used for further querying. It should also provide means to identify the same
+user (e.g., if the user disconnects--reconnects, it should contain a part that
+is common and that denotes the specific user and a part that is specific for
+the session, so that if the user is connected twice (one session is in timeout
+state and the other session has just been established), we can differentiate
+between the two sessions).
+
+\UseCase{Print detailed info about a user in a room}{ops:room:user-info}
+
+Print all the statistics we can get about a user participating in the room. It
+should contain technology agnostic part (e.g., when the user joined) and
+technology specific part (i.e., H.323 statistics, H.245/SIP capabilities
+negotiation info, H.239 content information, etc.).
+
+\TODO{Could the use case be more specific regarding the technology specific part? What does H.323 statistics and others look like? Should a class be defined for each such a technology-specific information?}
+
+\UseCase{Set room layout}{ops:room:layout}
+
+Shongo should be able to set up global layout of a room and user-specific
+layout, if available through API of virtual room provider.
+
+\UseCase{Disconnect a user}{ops:room:user-disconnect}
+
+Immediate disconnection of a user.
+
+\UseCase{Disable H.239 content from a specific user}{ops:room:disable-user-content}
+
+Disable content the user to be H.239 content provider for the given room.
+
+\UseCase{Enable H.239 content only from a specific user}{ops:room:specific-user-content}
+
+Enable H.239 content only from the specific user, typically by disabling
+content from all other users. Normally, users may fight who is going to be the
+content provider.
+
+\UseCase{Mute a user}{ops:room:user-mute} Mutes user on the room level.
+Optionally if user's endpoint is also controlled by Shongo, it should provide
+means to mute the endpoint (which can be easily unmuted by the user).
+
+\UseCase{Set microphone audio level for a user}{ops:room:user-miclevel}
+
+Sets the audio from the user on the room level. Optionally, if user's endpoint
+is also controlled by Shongo, it should provide means to control mic level on
+the endpoint. In this case, audio should be normalized on the endpoint before
+doing modifications on room level (if the sound is too low or too high and
+distorted, it may not be corrected on the MCU).
+
+\UseCase{Set playback audio level for a user}{ops:room:user-playlevel}
+
+This functionality is typically available only when user's endpoint is also
+controlled by Shongo.
+
+\UseCase{Disable video of a user}{ops:room:user-video-off}
+
+\UseCase{Video snapshot for a user}{ops:room:user-video-snap}
+
+If provided by the room provider (MCU, web conferencing, etc.), we should be
+able to get video snapshot of:
+
+\begin{compactitem}
+
+\item video sent by the user,
+
+\item video received by the user.
+
+\end{compactitem}
+
+\UseCase{Set layout specific for a user}{ops:room:user-layout}
+\TODO{How does this use-case differ from use-case \ref{UC:ops:room:layout}? Is this use-case a subset of use-case \ref{UC:ops:room:layout}, which mentions also user-specific layout?}
+
+\UseCase{Download and upload room settings}{ops:room:settings-down-up}
+
+We should provide an API that allows for downloading settings of the room to
+the maximum extent possible, in order to back it up and reupload it later on.
+This is a convenient way to back up setting as well as to reset a newly created
+room (e.g., as a part of a new reservation) to old settings.
+
+\UseCase{Download and upload room content (if technology
+permits)}{ops:room:content-down-up}
+
+If technology and access policy permits, we should be able to download and
+upload content of the room (e.g., documents, notes, polls, etc.). See
+\UCref{ops:room:settings-down-up}.
+
+\UseCase{Get/set technology-specific properties for a
+room}{ops:room:room-techspec}
+
+This may include specific attributes of the room (typically on room provider
+level), such as enabled codecs.
+
+\UseCase{Get/set technology-specific properties for a
+user}{ops:room:user-techspec}
+
+\UseCase{Management of recording archives}{ops:recordings-management}
+
+It should be possible to work with the recorded video through Shongo, e.g.,
+migrate it from a content server to a storage of a streaming server. Plus it
+should be possible for owner/administrator or manager to access URLs of the
+recorded content to send them via email. Also, it should be possible to
+automatically notify all the (non-anonymous) participants about the recording
+via email.
+
+\end{UseCases}
+
+
+\section{Monitoring \& Management}
+
+\subsection{Shongo management and monitoring}
+
+\begin{UseCases}
+
+\UseCase{List of all the agents in the system}{mgmt:shng:list-agents}
+
+The listing API must include querying language that allows selection of only
+a subset based on similar properties like those defined in \UCref{rsv:list}.
+
+\UseCase{List primary and backup controllers}{mgmt:shng:list-controllers}
+
+List all the controllers (primary and backup) for current domain.
+
+\UseCase{List domains}{mgmt:shng:list-domains}
+
+List of all other known domains including references to their domain
+controllers and state of connections to them.
+
+\end{UseCases}
+
+\subsection{Server management and monitoring}
+
+\begin{UseCases}
+
+\UseCase{Get server load}{mgmt:srv:get-load}
+
+The API should provide means to get load on the server machine, containing at
+least the following:
+
+\begin{compactitem}
+
+\item CPU load
+
+\item memory load
+
+\item disk occupancy
+
+\end{compactitem}
+
+Obviously, this information may or may not be available for specific device.
+In case that the information is not available, the API should report this in a
+consistent way (specific exception or unique return value).
+
+\UseCase{Schedule server downtime}{mgmt:srv:schedule-downtime}
+
+Downtime scheduling must include change/migration of all the reservations and
+live events influenced by the downtime. Conceptually, this is similar to
+permanent reservations a bit (\UCref{rsv:reservation:permanent})---the major
+difference is that during the downtime, the resource is not available to Shongo
+for management and this state is intentional. Downtime is also per-resource and
+does not have participants.
+
+\UseCase{Export Shongo stats}{mgmt:export-stats}
+
+Export reservation stats in some common format like CDR.
+\TODO{Specify in more detail -- what stats?}
+
+\end{UseCases}
+
