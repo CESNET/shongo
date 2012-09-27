@@ -49,6 +49,8 @@ public class CodecC90Connector implements EndpointService
     /**
      * An example of interaction with the device.
      *
+     * Just for debugging purposes.
+     *
      * @param args
      * @throws IOException
      * @throws CommandException
