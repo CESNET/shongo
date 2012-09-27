@@ -30,18 +30,22 @@
   description={An entity that can be requested for a reservation and allocated 
   by a \gls{g:scheduler}.}
 }
+\newglossaryentry{g:device}
+{
+  name=device,
+  description={Represents a video/web conferencing hardware or software equipment
+   (e.g., H.323 terminal, H.323 MCU, Adobe Connect server, gateway or streaming server).}
+}
 \newglossaryentry{g:resource-device}
 {
   name=device resource,
-  description={A special type of \gls{g:resource} that represents a video/web 
-    conferencing hardware or software equipment (e.g., H.323 terminal, H.323 
-    MCU, Adobe Connect server, gateway or streaming server).}
+  description={A special type of \gls{g:resource} that represents a \gls{g:device}.}
 }
 \newglossaryentry{g:reservation-request}
 {
   name=reservation request,
   description={A request that is made by an \gls{g:user} to book \gls{g:resource}(s)
-    for a specific \gls{g:date-time-slot}(s). Reservation request can be \emph{incomplete} 
+    for a specific date/time slots(s). Reservation request can be \emph{incomplete} 
     or \emph{complete}. Incomplete requests must be filled in by 
     additional information to become complete. \Gls{g:scheduler} processes only 
     complete reservation requests.}
@@ -50,7 +54,7 @@
 {
   name=reservation,
   description={Represents allocated \gls{g:resource}(s) for a complete 
-    \gls{g:reservation-request}. \Glspl{g:reservation} are created by a \gls{g:scheduler}.}
+    \gls{g:reservation-request}. \Glspl{g:reservation} are allocated by a \gls{g:scheduler}.}
 }
 \newglossaryentry{g:user}
 {
@@ -67,21 +71,13 @@
 \newglossaryentry{g:connector}
 {
   name=connector,
-  description={Represents an application that runs one or multiple \glspl{g:connector-agent}.}
+  description={Represents an application that is composed of one or multiple \glspl{g:connector-agent}.}
 }
 \newglossaryentry{g:connector-agent}
 {
   name=connector agent,
-  description={Represents an application that manages a single \gls{g:resource-device} 
+  description={Represents a component that manages a single \gls{g:resource-device} 
     and provides an API that allows the \gls{g:controller} to access that equipment.}
-}
-\newglossaryentry{g:date-time-slot}
-{
-  name=date/time slot,
-  description={Represents a time between specific starting and ending moment. 
-    Can be specified by a starting date and time and a duration. In case of
-    periodic date/times, the date/time slot term represents one specific 
-    date/time referred to as absolute date/time.}
 }
 \newglossaryentry{g:technology}
 {
@@ -93,10 +89,35 @@
 \newglossaryentry{g:compartment}
 {
   name=compartment,
-  description={Represents a group of endpoints and/or persons which participate 
+  description={Represents a group of \glspl{g:endpoint} and/or persons which participate 
     in a single video/web conference but the conference can spread out through multiple 
-    virtual rooms and even through multiple \glspl{g:technology} (when gateway device is used).}
+    virtual rooms and even through multiple \glspl{g:technology} (when a gateway device is used).}
 }
+\newglossaryentry{g:endpoint}
+{
+  name=endpoint,
+  description={Represents a \gls{g:device} which can participate in a \gls{g:compartment} (e.g., a H.323 terminal or SIP client).}
+}
+\newglossaryentry{g:device-virtual-room}
+{
+  name=virtual room,
+  description={Represents a virtual room in a \gls{g:device} (e.g., virtual room in H.323 MCU).}
+}
+\newglossaryentry{g:device-alias}
+{
+  name=alias,
+  plural=aliases,
+  description={Represents an identifier that can be assigned to a \gls{g:device} and
+    which can be used to connect to the \gls{g:device} in a specific \gls{g:technology} 
+    (e.g., E.164 number in H.323 or URI in SIP).}
+}
+\newglossaryentry{g:device-connection}
+{
+  name=video conference call,
+  description={Represents a connection or call which is initiated by a \gls{g:device} to 
+    another \gls{g:device}.}
+}
+
 
 
 % Print glossaries

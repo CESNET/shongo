@@ -61,6 +61,12 @@ public class AliasReservation extends Reservation
     }
 
     @Override
+    public cz.cesnet.shongo.controller.api.AliasReservation toApi(Domain domain)
+    {
+        return (cz.cesnet.shongo.controller.api.AliasReservation) super.toApi(domain);
+    }
+
+    @Override
     protected cz.cesnet.shongo.controller.api.Reservation createApi()
     {
         return new cz.cesnet.shongo.controller.api.AliasReservation();
