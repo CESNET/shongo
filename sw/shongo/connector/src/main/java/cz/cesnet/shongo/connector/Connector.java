@@ -152,7 +152,18 @@ public class Connector
         for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
             String agentName = instCfg.getString("name");
             addAgent(agentName);
+        }
+        configureAgents();
+    }
 
+    /**
+     * Load agents configuration
+     */
+    public void configureAgents()
+    {
+        // Configure agents
+        for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
+            String agentName = instCfg.getString("name");
             if (instCfg.getProperty("device.connectorClass") != null) {
                 // manage a device
                 ManageCommand cmd = new ManageCommand(
@@ -246,7 +257,10 @@ public class Connector
                         logger.info("Reconnecting to the JADE main container {}:{}...", getControllerHost(),
                                 getControllerPort());
                         startFailed = false;
-                        if (jadeContainer.start() == false) {
+                        if (jadeContainer.start()) {
+                            configureAgents();
+                        }
+                        else {
                             startFailed = true;
                         }
                     }
@@ -392,7 +406,8 @@ public class Connector
         if (configFilename != null) {
             logger.info("Connector loading configuration from {}", configFilename);
             connector.loadConfiguration(configFilename);
-        } else {
+        }
+        else {
             connector.loadDefaultConfiguration();
         }
 
