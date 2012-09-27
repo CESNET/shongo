@@ -10,9 +10,7 @@ import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.jade.command.SendCommand;
-import cz.cesnet.shongo.jade.ontology.Dial;
-import cz.cesnet.shongo.jade.ontology.HangUpAll;
-import cz.cesnet.shongo.jade.ontology.StandBy;
+import cz.cesnet.shongo.jade.ontology.*;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -94,6 +92,38 @@ public class ResourceControlServiceImpl extends Component
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
         return String.format("Hanging up all calls in '%s'", agentName);
+    }
+
+    @Override
+    public String mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Mute()));
+        return String.format("Muting the '%s'.", agentName);
+    }
+
+    @Override
+    public String unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Unmute()));
+        return String.format("Unmuting the '%s'.", agentName);
+    }
+
+    @Override
+    public String setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetMicrophoneLevel(level)));
+        return String.format("Setting up microphone level to %d", level);
+    }
+
+    @Override
+    public String setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetPlaybackLevel(level)));
+        return String.format("Setting up playback level to %d", level);
     }
 
     /**

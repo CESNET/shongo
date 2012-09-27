@@ -18,4 +18,16 @@ public interface ResourceControlService extends Service
 
     @API
     public String hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public String mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public String unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public String setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
+
+    @API
+    public String setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
 }

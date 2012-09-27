@@ -84,14 +84,44 @@ sub control_resource()
             desc => "Switch to the standby mode",
             method => sub {
                 my ($shell, $params, @args) = @_;
-                resource_standby($resourceIdentifier, $args[0]);
+                resource_standby($resourceIdentifier);
             }
         },
         "hangUpAll" => {
             desc => "Hang up all calls",
             method => sub {
                 my ($shell, $params, @args) = @_;
-                resource_hang_up_all($resourceIdentifier, $args[0]);
+                resource_hang_up_all($resourceIdentifier);
+            }
+        },
+        "mute" => {
+            desc => "Mute the device",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_mute($resourceIdentifier);
+            }
+        },
+        "unmute" => {
+            desc => "Unmute the device",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_unmute($resourceIdentifier);
+            }
+        },
+        "setMicrophoneLevel" => {
+            desc => "Sets microphone(s) level",
+            minargs => 1, args => "[number]",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_set_microphone_level($resourceIdentifier, $args[0]);
+            }
+        },
+        "setPlaybackLevel" => {
+            desc => "Sets playback level",
+            minargs => 1, args => "[number]",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_set_playback_level($resourceIdentifier, $args[0]);
             }
         },
     });
@@ -115,7 +145,7 @@ sub resource_dial
 
 sub resource_standby
 {
-    my ($resourceIdentifier, $target) = @_;
+    my ($resourceIdentifier) = @_;
 
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.standBy',
@@ -129,11 +159,69 @@ sub resource_standby
 
 sub resource_hang_up_all
 {
-    my ($resourceIdentifier, $target) = @_;
+    my ($resourceIdentifier) = @_;
 
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.hangUpAll',
         RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    printf("%s\n", $result->value());
+}
+
+sub resource_mute
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.mute',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    printf("%s\n", $result->value());
+}
+
+sub resource_unmute
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.unmute',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    printf("%s\n", $result->value());
+}
+
+sub resource_set_microphone_level
+{
+    my ($resourceIdentifier, $level) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.setMicrophoneLevel',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($level)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    printf("%s\n", $result->value());
+}
+
+sub resource_set_playback_level
+{
+    my ($resourceIdentifier, $level) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.setPlaybackLevel',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($level)
     );
     if ( $result->is_fault ) {
         return;
