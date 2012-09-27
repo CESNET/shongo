@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import jade.core.AID;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.*;
 
@@ -86,7 +87,8 @@ public class CommonServiceImpl extends Component
     @Override
     public Collection<Connector> listConnectors(SecurityToken token)
     {
-        ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        ResourceManager resourceManager = new ResourceManager(entityManager);
 
         List<DeviceResource> deviceResourceList = resourceManager.listManagedDevices();
         Map<String, DeviceResource> deviceResourceMap = new HashMap<String, DeviceResource>();
@@ -120,6 +122,8 @@ public class CommonServiceImpl extends Component
             connector.setStatus(Connector.Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }
+
+        entityManager.close();
 
         return connectorList;
     }

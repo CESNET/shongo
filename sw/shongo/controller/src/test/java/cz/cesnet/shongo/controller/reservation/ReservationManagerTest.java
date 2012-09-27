@@ -74,5 +74,7 @@ public class ReservationManagerTest extends AbstractDatabaseTest
         assertEquals(0, reservations.size());
 
         // So in code we must use entity alias in "NOT IN" clause and not identifiers
+
+        entityManager.close();
     }
 }

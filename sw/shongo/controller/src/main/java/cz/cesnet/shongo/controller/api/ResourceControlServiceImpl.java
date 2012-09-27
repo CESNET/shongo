@@ -12,6 +12,7 @@ import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.*;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -133,9 +134,11 @@ public class ResourceControlServiceImpl extends Component
      */
     private String getAgentName(String deviceResourceIdentifier) throws FaultException
     {
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
         Long deviceResourceId = domain.parseIdentifier(deviceResourceIdentifier);
-        ResourceManager resourceManager = new ResourceManager(entityManagerFactory.createEntityManager());
+        ResourceManager resourceManager = new ResourceManager(entityManager);
         DeviceResource deviceResource = resourceManager.getDevice(deviceResourceId);
+        entityManager.close();
         Mode mode = deviceResource.getMode();
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;

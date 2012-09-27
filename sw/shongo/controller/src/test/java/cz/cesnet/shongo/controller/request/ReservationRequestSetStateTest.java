@@ -138,5 +138,6 @@ public class ReservationRequestSetStateTest extends AbstractDatabaseTest
         assertEquals(1, stateManager.getRecordCount());
 
         entityManager.getTransaction().commit();
+        entityManager.close();
     }
 }

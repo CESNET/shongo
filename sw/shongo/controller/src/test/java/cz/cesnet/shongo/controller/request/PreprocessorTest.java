@@ -101,6 +101,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 reservationRequests.get(0).getRequestedSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
                 reservationRequests.get(1).getRequestedSlot());
+
+        entityManager.close();
     }
 
     @Test
@@ -143,6 +145,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 + " should be different database instances.",
                 compartmentSpecification1.getSpecifications().get(1).getId(),
                 is(not(compartmentSpecification2.getSpecifications().get(1).getId())));
+
+        entityManager.close();
     }
 
     @Test
@@ -214,5 +218,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         assertEquals("Specification should be updated to the created reservation request",
                 ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).getPerson(),
                 ((PersonSpecification) createdCompartmentSpecification.getSpecifications().get(1)).getPerson());
+
+        entityManager.close();
     }
 }

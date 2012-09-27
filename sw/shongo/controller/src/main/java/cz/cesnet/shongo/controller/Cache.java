@@ -196,7 +196,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         if (aliasMaxDuration != null) {
             setAllocatedAliasMaximumDuration(aliasMaxDuration);
         }
-        reset(entityManagerFactory != null ? entityManagerFactory.createEntityManager() : null);
+        if (entityManagerFactory != null) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            reset(entityManager);
+            entityManager.close();
+        } else {
+            reset(null);
+        }
     }
 
     @Override

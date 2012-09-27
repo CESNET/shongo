@@ -264,6 +264,8 @@ public class ResourceServiceImpl extends Component
             }
         }
 
+        entityManager.close();
+
         return resourceAllocation;
     }
 }

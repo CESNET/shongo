@@ -123,5 +123,6 @@ public class Executor extends Component
             executor.start();
             executorsById.put(compartmentId, executor);
         }
+        entityManager.close();
     }
 }
