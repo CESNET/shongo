@@ -36,10 +36,6 @@
         </instance>
         -->
 
-        <instance>
-            <name>dumb</name>
-        </instance>
-
     </instances>
 
 </configuration>
