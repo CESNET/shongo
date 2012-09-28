@@ -46,8 +46,13 @@ public class Address
 
         if (host.indexOf(':') != -1) {
             int colonPos = host.indexOf(':');
-            port = Integer.parseInt(host.substring(colonPos + 1));
-            host = host.substring(0, colonPos);
+            try {
+                port = Integer.parseInt(host.substring(colonPos + 1));
+                host = host.substring(0, colonPos);
+            }
+            catch (NumberFormatException ignored) {
+                // host remains the same, port default
+            }
         }
 
         return new Address(host, port);
