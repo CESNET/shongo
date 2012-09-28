@@ -88,12 +88,20 @@ public class ReceiverBehaviour extends CyclicBehaviour
                     catch (CommandException e) {
                         logger.info("Failure executing a command", e);
                         reply.setPerformative(ACLMessage.FAILURE);
-                        cm.fillContent(reply, new Result(act, new CommandError(e.getMessage())));
+                        String message = e.getMessage();
+                        if (e.getCause() != null) {
+                            message += " (" + e.getCause().getMessage() + ")";
+                        }
+                        cm.fillContent(reply, new Result(act, new CommandError(message)));
                     }
                     catch (CommandUnsupportedException e) {
                         logger.info("Unsupported command", e);
                         reply.setPerformative(ACLMessage.FAILURE);
-                        cm.fillContent(reply, new Result(act, new CommandNotSupported(e.getMessage())));
+                        String message = e.getMessage();
+                        if (e.getCause() != null) {
+                            message += " (" + e.getCause().getMessage() + ")";
+                        }
+                        cm.fillContent(reply, new Result(act, new CommandNotSupported(message)));
                     }
                 }
                 else {
