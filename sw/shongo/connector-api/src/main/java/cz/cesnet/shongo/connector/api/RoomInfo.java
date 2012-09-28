@@ -1,7 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.Technology;
-import org.joda.time.DateTime;
+
+import java.util.Date;
 
 /**
  * A brief info about a virtual room at a server.
@@ -11,9 +12,10 @@ import org.joda.time.DateTime;
 public class RoomInfo
 {
     private String name;
+    private String description;
     private String owner;
 
-    private DateTime creation;
+    private Date startTime;
 
     // FIXME: introduces a dependency on the controller module, which the API modules should not be dependent on;
     //        create a class in the common API module for representing a reservation;
@@ -23,19 +25,19 @@ public class RoomInfo
     private Technology type;
 
     /**
-     * @return Date and time when the room was created.
+     * @return Date and time when the room was started.
      */
-    public DateTime getCreation()
+    public Date getStartTime()
     {
-        return creation;
+        return startTime;
     }
 
     /**
-     * @param creation Date and time when the room was created.
+     * @param startTime Date and time when the room was started.
      */
-    public void setCreation(DateTime creation)
+    public void setStartTime(Date startTime)
     {
-        this.creation = creation;
+        this.startTime = startTime;
     }
 
     /**
@@ -52,6 +54,22 @@ public class RoomInfo
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return description of the room
+     */
+    public String getDescription()
+    {
+        return description;
+    }
+
+    /**
+     * @param description    description of the room
+     */
+    public void setDescription(String description)
+    {
+        this.description = description;
     }
 
     /**
