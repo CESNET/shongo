@@ -55,4 +55,36 @@ public class Command
         }
         return sb.toString();
     }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Command command1 = (Command) o;
+
+        if (command != null ? !command.equals(command1.command) : command1.command != null) {
+            return false;
+        }
+        if (parameters != null ? !parameters.equals(command1.parameters) : command1.parameters != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = command != null ? command.hashCode() : 0;
+        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
+        return result;
+    }
+
+
 }

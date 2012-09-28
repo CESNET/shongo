@@ -100,6 +100,18 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                     room.getStartTime(), room.getOwner());
         }
 
+//        Command enumParticipantsCmd = new Command("participant.enumerate");
+//        enumParticipantsCmd.setParameter("operationScope", new String[]{"currentState"});
+//        enumParticipantsCmd.setParameter("enumerateFilter", "connected");
+//        List<Map<String, Object>> participants = conn.execEnumerate(enumParticipantsCmd, "participants");
+//        List<Map<String, Object>> participants2 = conn.execEnumerate(enumParticipantsCmd, "participants");
+
+//        Command enumConfCmd = new Command("conference.enumerate");
+//        enumConfCmd.setParameter("moreThanFour", Boolean.TRUE);
+//        enumConfCmd.setParameter("enumerateFilter", "completed");
+//        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
+//        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
+
         System.out.println("All done, disconnecting");
         conn.disconnect();
     }
@@ -255,17 +267,27 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     /**
      * Executes a command enumerating some objects.
+     * <p/>
+     * When possible (currently for commands conference.enumerate and participant.enumerate), caches the results and
+     * asks just for the difference since previous call of the same command.
+     * The caching is intentionally disabled for the autoAttendants.enumerate command, as the revisioning mechanism
+     * seems to be broken on the device (it reports dead items even with the listAll parameter set to true), and either
+     * way it generates short lists.
      *
-     * @param cmd          command for enumerating the objects; note that some parameters may be added to the command
-     * @param enumField    the field within result containing the list of enumerated objects
-     * @return list of objects from the enumField, each as a map from field names to values
+     * @param command   command for enumerating the objects; note that some parameters may be added to the command
+     * @param enumField the field within result containing the list of enumerated objects
+     * @return list of objects from the enumField, each as a map from field names to values;
+     *         the list is unmodifiable (so that it may be reused by the execEnumerate() method)
      * @throws CommandException
      */
-    private List<Map<String, Object>> execEnumerate(Command cmd, String enumField) throws CommandException
+    private List<Map<String, Object>> execEnumerate(Command command, String enumField) throws CommandException
     {
         List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
 
-        // TODO: employ the currentRevision parameter - store the previous result and ask just for difference
+        // use revision numbers to get just the difference from the previous call of this command
+        Integer lastRevision = prepareCaching(command);
+        Integer currentRevision = null;
+
         for (int enumPage = 0; ; enumPage++) {
             // safety pages number check - to prevent infinite loop if the device does not work correctly
             if (enumPage >= ENUMERATE_PAGES_LIMIT) {
@@ -276,7 +298,12 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             }
 
             // ask for data
-            Map<String, Object> result = exec(cmd);
+            Map<String, Object> result = exec(command);
+            // get the revision number of the first page - for using cache
+            if (enumPage == 0 && result.containsKey("currentRevision")) {
+                currentRevision = (Integer) result.get("currentRevision");
+            }
+
             if (!result.containsKey(enumField)) {
                 break; // no data at all
             }
@@ -287,15 +314,230 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
             // ask for more results, or break if there was all
             if (result.containsKey("enumerateID")) {
-                cmd.setParameter("enumerateID", result.get("enumerateID"));
+                command.setParameter("enumerateID", result.get("enumerateID"));
             }
             else {
                 break; // that's all, folks
             }
         }
 
-        return results;
+        populateResultsFromCache(results, currentRevision, lastRevision, command, enumField);
+
+        return Collections.unmodifiableList(results);
     }
+
+
+    //<editor-fold desc="RESULTS CACHING">
+
+    /**
+     * Prepares caching of result of the supplied command.
+     * @param command    command to be issued; may be modified (some parameters regarding caching may be added)
+     * @return the last revision when the same command was issued
+     */
+    private Integer prepareCaching(Command command)
+    {
+        Integer lastRevision = getCachedRevision(command);
+        if (lastRevision != null) {
+            command.setParameter("lastRevision", lastRevision);
+            command.setParameter("listAll", Boolean.TRUE);
+        }
+        return lastRevision;
+    }
+
+    /**
+     * Populates the results list - puts the original objects instead of item stubs.
+     *
+     * If there was a previous call to the same command, the changed items are just stubs in the new result set. To use
+     * the results, this method populates all the stubs and puts the objects from the previous call in their place.
+     *
+     * @param results            list of results, some of which may be stubs; gets modified so that it contains no stubs
+     * @param currentRevision    the revision of this results
+     * @param lastRevision       the revision of the previous call of the same command
+     * @param command            the command called to get the supplied results
+     * @param enumField          the field name from which the supplied results where taken within the command result
+     */
+    private void populateResultsFromCache(List<Map<String, Object>> results, Integer currentRevision,
+            Integer lastRevision,
+            Command command, String enumField)
+    {
+        if (currentRevision != null) {
+            // we got just the difference since lastRevision (or full set if this is the first issue of the command)
+            final String cacheId = getCommandCacheId(command);
+            if (lastRevision != null) {
+                // fill the values that have not changed since lastRevision
+                ListIterator<Map<String, Object>> iterator = results.listIterator();
+                while (iterator.hasNext()) {
+                    Map<String, Object> item = iterator.next();
+                    if (!itemChanged(item, enumField)) {
+                        ResultsCache cache = resultsCache.get(cacheId);
+                        iterator.set(cache.getItem(item));
+                    }
+                }
+            }
+
+            // store the results and the revision number for the next time
+            ResultsCache rc = resultsCache.get(cacheId);
+            if (rc == null) {
+                rc = new ResultsCache();
+                resultsCache.put(cacheId, rc);
+            }
+            rc.store(currentRevision, results);
+        }
+    }
+
+    private boolean itemChanged(Map<String, Object> item, String enumField)
+    {
+        Map<String, Object> changedStruct = null;
+
+        if (enumField.equals("conferences")) {
+            changedStruct = item;
+        }
+        else if (enumField.equals("participants")) {
+            changedStruct = (Map<String, Object>) item.get("currentState");
+        }
+
+        if (changedStruct == null) {
+            return true;
+        }
+        else {
+            return !(changedStruct.containsKey("changed") && changedStruct.get("changed").equals(Boolean.FALSE));
+        }
+    }
+
+
+    private class ResultsCache
+    {
+        private class Item
+        {
+            private final Map<String, Object> contents;
+
+            public Item(Map<String, Object> contents)
+            {
+                this.contents = contents;
+            }
+
+            public Map<String, Object> getContents()
+            {
+                return contents;
+            }
+
+            @Override
+            public boolean equals(Object o)
+            {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                Item item = (Item) o;
+
+                final Object participantName = contents.get("participantName");
+                if (participantName != null) {
+                    return (participantName.equals(item.contents.get("participantName")));
+                }
+
+                final Object conferenceName = contents.get("conferenceName");
+                if (conferenceName != null) {
+                    return (conferenceName.equals(item.contents.get("conferenceName")));
+                }
+
+                return false;
+            }
+
+            @Override
+            public int hashCode()
+            {
+                final Object participantName = contents.get("participantName");
+                if (participantName != null) {
+                    return participantName.hashCode();
+                }
+                final Object conferenceName = contents.get("conferenceName");
+                if (conferenceName != null) {
+                    return conferenceName.hashCode();
+                }
+                return contents.hashCode();
+            }
+        }
+
+        private int revision;
+        private List<Item> results;
+
+        public Map<String, Object> getItem(Map<String, Object> item)
+        {
+            for (Item cachedItem : results) {
+                if (cachedItem.equals(new Item(item))) {
+                    return cachedItem.getContents();
+                }
+            }
+            return null;
+        }
+
+        public void store(int revision, List<Map<String, Object>> results)
+        {
+            this.revision = revision;
+            this.results = new ArrayList<Item>();
+            for (Map<String, Object> res : results) {
+                this.results.add(new Item(res));
+            }
+        }
+    }
+
+    /**
+     * Cache of results of previous calls to commands supporting revision numbers.
+     * Map of cache ID to previous results.
+     */
+    private Map<String, ResultsCache> resultsCache = new HashMap<String, ResultsCache>();
+
+    /**
+     * Returns the revision number of the previous call of the given command.
+     * <p/>
+     * The purpose of this method is to enable caching of previous calls and asking for just the difference since then.
+     * <p/>
+     * All the parameters of the command are considered, except enumerateID, lastRevision, and listAll.
+     * <p/>
+     * Note that the return value must be boxed, because the MCU API does not say anything about the revision numbers
+     * issued by the device. So it may have any value, thus, we must recognize the special case by the null value.
+     *
+     * @param command a command which will be performed
+     * @return revision number of the previous call of the given command,
+     *         or null if the command has not been issued yet or does not support revision numbers
+     */
+    private Integer getCachedRevision(Command command)
+    {
+        if (command.getCommand().equals("autoAttendant.enumerate")) {
+            return null; // disabled for the autoAttendant.enumerate command - it is broken on the device
+        }
+        String cacheId = getCommandCacheId(command);
+        ResultsCache rc = resultsCache.get(cacheId);
+        return (rc == null ? null : rc.revision);
+    }
+
+    private String getCommandCacheId(Command command)
+    {
+        final String[] ignoredParams = new String[]{
+                "enumerateID", "lastRevision", "listAll", "authenticationUser", "authenticationPassword"
+        };
+
+        StringBuilder sb = new StringBuilder(command.getCommand());
+ParamsLoop:
+        for (Map.Entry<String, Object> entry : command.getParameters().entrySet()) {
+            for (String ignoredParam : ignoredParams) {
+                if (entry.getKey().equals(ignoredParam)) {
+                    continue ParamsLoop; // the parameter is ignored
+                }
+            }
+            sb.append(";");
+            sb.append(entry.getKey());
+            sb.append("=");
+            sb.append(entry.getValue());
+        }
+
+        return sb.toString();
+    }
+
+    //</editor-fold>
 
 
     //<editor-fold desc="ROOM SERVICE">
