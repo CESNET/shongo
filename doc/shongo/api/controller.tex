@@ -1,0 +1,516 @@
+\chapter{Controller API}
+
+\input{commands}
+
+\section{Communication Protocol}
+Controller API is provided through XML-RPC \cite{xml-rpc}.
+In XML-RPC all described types are represented as follows:
+
+\begin{compactitem}
+
+\item Values of atomic types are represented by their's equivalent in XML-RPC (e.g., integer value \ApiValue{42} as \ApiValue{<i4>42</i4>} or string value \ApiValue{Hello} as \ApiValue{<string>Hello</string>}).
+
+\item Enum values are represented as strings (e.g., \ApiValue{ReservationRequestType.PERMANENT} as \ApiValue{<string>PERMANENT</string>}).
+
+\item Arrays and collections are represented as XML-RPC |array|s, e.g.
+\begin{parcolumns}[nofirstindent=true, colwidths={1=.36\textwidth}]{3}%
+\vspace{-3.5mm}\colchunk{%}
+\footnotesize\begin{verbatim}
+[101, 202]
+\end{verbatim}
+\flushright as
+}%
+\colchunk{%
+\footnotesize\begin{verbatim}
+<array><data>
+  <value><i4>101</i4></value>
+  <value><i4>202</i4></value>
+</data></array>
+\end{verbatim}
+}
+\end{parcolumns}\vspace{1mm}
+
+\item Object instances are represented as XML-RPC |struct| types with special \ApiValue{class} attribute specifying object type, e.g.%
+\begin{parcolumns}[nofirstindent=true, colwidths={1=.36\textwidth}]{3}%
+\vspace{-3.5mm}\colchunk{%}
+\footnotesize\begin{verbatim}
+Person {
+  name: "Martin Srom",
+  email: "srom@cesnet.cz"
+}
+\end{verbatim}
+\flushright as
+}%
+\colchunk{%
+\footnotesize\begin{verbatim}
+<struct>
+  <member>
+    <name>class</name>
+    <value><string>Person</string></value>
+  </member>
+  <member>
+    <name>name</name>
+    <value><string>Martin Srom</string></value>
+  </member>
+  <member>
+    <name>email</name>
+    <value><string>srom@cesnet.cz</string></value>
+  </member>
+</struct>
+\end{verbatim}
+}
+\end{parcolumns}\vspace{1mm}
+
+\item Null values are represented as empty XML-RPC |struct| type (<struct></struct>). It is useful e.g., when the user want to clear attribute value by any |modify| API method. He should set the attribute value to empty |struct| and the value will be cleared on the server.
+
+\item Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
+
+\end{compactitem}
+
+
+\section{Data types}
+
+This section contains description of types used only in Controller API.
+
+\begin{Api}
+
+%\ApiEnum{ControllerType}
+%Types of controllers in the domain.
+%\begin{ApiEnumValues}
+%\ApiEnumValue{Primary}{} The primary controller.
+%\ApiEnumValue{Backup}{} A backup controller. Behaves just like the primary controller, even some agents may be connected to a backup controller instead of the primary one.
+%\end{ApiEnumValues}
+
+\ApiClass{Controller}{}
+Descriptor of a \gls{g:controller}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{domain}{Domain}{\ApiReadOnly} \Gls{g:domain} which is controlled by the controller.
+\end{ApiClassAttributes}
+
+\ApiClass{Domain}{}
+Descriptor of a \gls{g:domain}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiRequired} A unique domain name (e.g., \ApiValue{cz.cesnet}).
+\ApiClassAttribute{organization}{String}{\ApiOptional} Name of organization owning the domain (e.g., \ApiValue{CESNET, z.s.p.o.}).
+\ApiClassAttribute{status}{Status}{\ApiRequired} Status whether the domain controller is available.
+\end{ApiClassAttributes}
+
+\ApiClass{Connector}{}
+Descriptor of a \gls{g:connector-agent} which is managing a \gls{g:resource-device}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiReadOnly} Unique name of the \gls{g:connector-agent} within the \gls{g:domain} (name of JADE agent).
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiReadOnly} Identifier of a \gls{g:resource-device} which is managed by the \gls{g:connector-agent}.
+\ApiClassAttribute{status}{Status}{\ApiRequired} Status whether the \gls{g:connector-agent} is available to the \gls{g:controller}.
+\end{ApiClassAttributes}
+
+\ApiEnum{Status}
+Status of a |Domain| or |Connector|.
+\begin{ApiEnumValues}
+\ApiEnumValue{AVAILABLE}{} Means that a |Domain| or |Connector| is available to the \gls{g:controller}.
+\ApiEnumValue{NOT_AVAILABLE}{} Means that a |Domain| or |Connector| is not currently available to the \gls{g:controller}.
+\end{ApiEnumValues}
+
+\ApiClass{DateTimeSlot}{}
+Date/time slot can represent one or more |Interval| values. Definition of date/time slot is a pair of starting date/time and duration, where starting date/time can be periodic and thus can result into multiple absolute date/times.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{start}{DateTime\|PeridicDateTime}{\ApiRequired}
+Defines the start of date/time slot (or multiple starts in case of periodic date/time).
+\ApiClassAttribute{duration}{Period}{\ApiRequired}
+Defines the duration of date/time slot.
+\end{ApiClassAttributes}
+
+For reservation purposes, the array |DateTimeSlot[]| should be used to provide the ability to reserve multiple date/times with different periods (e.g., on every Monday from 14:00 to 15:00 and every Thursday from 16:00 to 18:00).
+
+If date/time slot contains |PeriodicDateTime|, all periodic events can be listed by evaluating date/time slot to |Interval[]|.
+
+\ApiClass{Alias}{}
+Represents an \gls{g:device-alias} for a \gls{g:device}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} Technology of the \gls{g:device-alias} (e.g., \ApiValue{H323}).
+\ApiClassAttribute{type}{AliasType}{\ApiRequired} Type of the \gls{g:device-alias} (e.g., \ApiValue{E164}).
+\ApiClassAttribute{value}{String}{\ApiRequired} Value of the \gls{g:device-alias} (e.g., \ApiValue{950087704}).
+\end{ApiClassAttributes}
+
+\ApiEnum{AliasType}
+Enumeration of available types of \glspl{g:device-alias}.
+\begin{ApiEnumValues}
+\ApiEnumValue{E164}{} See \url{http://en.wikipedia.org/wiki/E.164}.
+\ApiEnumValue{IDENTIFIER}{} e.g., H.323 ID.
+\ApiEnumValue{URI}{} e.g., SIP URI.
+\end{ApiEnumValues}
+
+\ApiEnum{CallInitiation}
+Enumeration of preference who should initiate a \gls{g:device-connection}.
+\begin{ApiEnumValues}
+\ApiEnumValue{TERMINAL}{} A terminal should initiate the \gls{g:device-connection} to a \gls{g:device-virtual-room} (it is referred to as \emph{call in}).
+\ApiEnumValue{VIRTUAL_ROOM}{} A \gls{g:device-virtual-room} should initiate the \gls{g:device-connection} to a terminal (it is referred to as \emph{call out}).
+\end{ApiEnumValues}
+
+\ApiClass{Resource}{}
+This class represents a complete \gls{g:resource} definition. This class is used for creating and modifying \glspl{g:resource}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{\ApiRequired} \Gls{g:resource} unique identifier as defined in \UCref{res:identification}.
+\ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located (e.g., identifier of a physical room).
+\ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the \gls{g:resource}.
+\ApiClassAttribute{capabilities}{List<Capability>}{\ApiOptional} List of capabilities which the \gls{g:resource} has.
+\ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the \gls{g:resource}.
+\ApiClassAttribute{allocatable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the \gls{g:resource} can be allocated to a \gls{g:reservation} by a \gls{g:scheduler}. When creating a new resource, it is useful to set |allocatable| to \ApiValue{false} and restrict the time when the \gls{g:resource} can by used for public scheduling (e.g., setup permanent reservations) and then modify the |allocatable| to \ApiValue{true}.
+\ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for \glspl{g:reservation} as defined in \UCref{rsv:max-future}.
+\ApiClassAttribute{childResourceIdentifiers}{String[]}{\ApiOptional} List of child \glspl{g:resource} identifiers (e.g., the \gls{g:resource} is physical room and |childResourceIdentifiers| contains all \glspl{g:endpoint} in the room).
+\end{ApiClassAttributes}
+
+\ApiClass{DeviceResource}{Resource}
+Represents a complete \gls{g:resource-device} definition.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{address}{String}{\ApiOptional} Address of the \gls{g:resource-device} (e.g., \ApiValue{147.251.1.1} or \ApiValue{connect.cesnet.cz}).
+\ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
+Set of \glspl{g:technology} which are supported by the \gls{g:resource-device}.
+\ApiClassAttribute{mode}{String\|ManagedMode}{\ApiOptional} String value \ApiValue{UNMANAGED} specifies that the \gls{g:resource-device} is not managed by any \gls{g:connector-agent}. |ManagedMode|  specifies by which \gls{g:connector-agent} is the \gls{g:resource-device} managed.
+\end{ApiClassAttributes}
+
+\ApiClass{ManagedMode}{}
+Represents a descriptor of \gls{g:connector-agent} by which a \gls{g:resource-device} can be managed.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{connectorAgentName}{String}{\ApiOptional} Name of the \gls{g:connector-agent} which is managing the \gls{g:resource-device}.
+\end{ApiClassAttributes}
+
+\ApiClass{Capability}{}
+Base class for all capabilities which a \gls{g:resource} can have. A \gls{g:resource} can have zero, one or multiple capabilities.
+
+\ApiClass{VirtualRoomsCapability}{Capability} Capability for \glspl{g:device} which provides \glspl{g:device-virtual-room} for interconnecting multiple other \glspl{g:endpoint} (e.g., \gls{g:resource-device} for H.323 MCU will have the |VirtualRoomsCapability|).
+\begin{ApiClassAttributes}
+\ApiClassAttribute{portCount}{Integer}{\ApiRequired} Maximum number of ports which can be allocated for all \glspl{g:device-virtual-room} at one moment.
+\end{ApiClassAttributes}
+
+\ApiClass{TerminalCapability}{Capability} Capability for \glspl{g:device} which can participate in a \gls{g:compartment}.
+
+\ApiClass{StandaloneTerminalCapability}{TerminalCapability} Capability for \glspl{g:device} which can participate in a \gls{g:compartment} or which can connect to another \gls{g:device} (even without a \gls{g:device-virtual-room}).
+(e.g., the \gls{g:resource-device} for a H.323 \gls{g:endpoint} will have the |StandaloneTerminalCapability| or the \gls{g:resource-device} for an Adobe Connect client will have the |TerminalCapability|).
+
+\ApiClass{AliasProviderCapability}{Capability} Capability provides that the \gls{g:resource} can be allocated as a \gls{g:device-alias}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} for which the \gls{g:device-alias} will be allocated.
+\ApiClassAttribute{type}{AliasType}{\ApiRequired} Type of \gls{g:device-alias} which will be allocated.
+\ApiClassAttribute{pattern}{String}{\ApiRequired} Pattern specifying which values will be generated as \gls{g:device-alias} (e.g., \ApiValue{950087[ddd]} pattern for generation of \ApiValue{950087001}, \ApiValue{950087002}, ... \ApiValue{950087999} values). 
+\ApiClassAttribute{restrictedToOwnerResource}{boolean}{\ApiRequired} Specifies whether \glspl{g:device-alias} can be allocated only for the \gls{g:resource} which has this capability or for all other \glspl{g:resource-device}.
+\end{ApiClassAttributes}
+
+\ApiClass{ResourceSummary}{}
+This class represents a summary of a \gls{g:resource}. The summary of a \gls{g:resource} is lightweight and does not contain all \gls{g:resource}'s attributes. It is suitable when listing a lot of \glspl{g:resource} from a \gls{g:controller} database where the detail information about \gls{g:resource} is not appropriate.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{} \Gls{g:resource} unique identifier.
+\ApiClassAttribute{name}{String}{} \Gls{g:resource} name which can be displayed.
+\ApiClassAttribute{technologies}{String}{} Comma separated list of supported technologies.
+\ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located.
+\end{ApiClassAttributes}
+
+\ApiEnum{ReservationRequestType}
+\begin{ApiEnumValues}
+\ApiEnumValue{NORMAL}{} One time or periodic \gls{g:reservation-request} as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time \gls{g:reservation-request} is a special case of periodic \gls{g:reservation-request}).
+\ApiEnumValue{PERNAMENT}{} Permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
+\end{ApiEnumValues}
+
+\ApiEnum{ReservationRequestPurpose}
+\begin{ApiEnumValues}
+\ApiEnumValue{SCIENCE}{} \Gls{g:reservation} is requested for research purposes.
+\ApiEnumValue{EDUCATION}{} \Gls{g:reservation} is requested for education purposes (e.g., for a lecture).
+\end{ApiEnumValues}
+
+\ApiClass{AbstractReservationRequest}{}
+Represents a base class for all possible types \glspl{g:reservation-request}. It contains only common attributes which are same for all types of \glspl{g:reservation-request}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{\ApiReadOnly} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{created}{DateTime}{\ApiReadOnly} Date/time when the \gls{g:reservation-request} was created.
+\ApiClassAttribute{type}{ReservationRequestType}{\ApiRequired} Type of \gls{g:reservation-request}, see |ReservationReqestType|.
+\ApiClassAttribute{name}{String}{\ApiRequired} Name of the \gls{g:reservation-request}.
+\ApiClassAttribute{purpose}{ReservationRequestPurpose}{\ApiRequired} Purpose of the \gls{g:reservation-request}, see |ReservationReqestPurpose|.
+\ApiClassAttribute{description}{String}{\ApiOptional} Detailed \gls{g:reservation-request} description.
+\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the \gls{g:scheduler} should try allocate also \glspl{g:resource} from other \glspl{g:domain}.
+\end{ApiClassAttributes}
+
+\ApiClass{ReservationRequestSet}{AbstractReservationRequest}
+Represents a \gls{g:reservation-request} for one or multiple \glspl{g:reservation}. It specifies one or multiple date/time slots and one or multiple specifications and for each combination (slots x specifications) will be created one \ApiCode{ReservationRequest}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{slots}{List<DateTimeSlot>}{\ApiRequired} List of requested |slots|.
+\ApiClassAttribute{specifications}{List<Specification>}{\ApiRequired} List of requested |specifications|.
+\ApiClassAttribute{reservationRequests}{List<ReservationRequest>}{\ApiRequired} List of already created |ReservationRequest|s.
+\end{ApiClassAttributes}
+
+\ApiClass{ReservationRequest}{AbstractReservationRequest}
+Represents a \gls{g:reservation-request} for single specification at one specific date/time slot.
+Only |ReservationRequest|s are processed by the \gls{g:scheduler} and the \gls{g:scheduler} allocates them to \glspl{g:reservation}. 
+\begin{ApiClassAttributes}
+\ApiClassAttribute{slot}{Interval}{\ApiRequired} Requested date/time |slot|.
+\ApiClassAttribute{specification}{Specification}{\ApiRequired} Requested |specification| for a target which should be allocated.
+\ApiClassAttribute{state}{ReservationRequest.State}{\ApiReadOnly} Current state of the \gls{g:reservation-request}.
+\ApiClassAttribute{stateReport}{String}{\ApiReadOnly} Description for the current state (can contain reason, e.g., why the allocation failed).
+\ApiClassAttribute{reservationIdentifier}{String}{\ApiReadOnly} Identifier of allocated \gls{g:reservation} for this \gls{g:reservation-request}.
+\end{ApiClassAttributes}
+
+\ApiEnum{ReservationRequest.State}
+Enumeration of possible states in which a \gls{g:reservation-request} can be.
+\begin{ApiEnumValues}
+\ApiEnumValue{NOT_COMPLETE}{} A specification in the \gls{g:reservation-request} need to be additionally filled.
+\ApiEnumValue{NOT_ALLOCATED}{} The \gls{g:reservation-request} was not processed by the \gls{g:scheduler} yet.
+\ApiEnumValue{ALLOCATED}{} The \gls{g:reservation-request} was successfully allocated to a \gls{g:reservation}.
+\ApiEnumValue{ALLOCATION_FAILED}{} Allocation of the \gls{g:reservation-request} has failed.
+\end{ApiEnumValues}
+
+\ApiClass{Specification}{}
+Represents a base class for all possible specifications. Each specification describes a target which is requested by a \gls{g:reservation-request}.
+
+\ApiClass{CompartmentSpecification}{Specification}
+Represents a specification for a group of participants which should participate a single \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{specifications}{List<ParticipantSpecification>}{\ApiRequired} List of specifications for participants which should participate in a \gls{g:compartment}.
+\ApiClassAttribute{callInitiation}{CallInitiation}{\ApiOptional} Default \ApiCode{CallInitiation} in the \gls{g:compartment}.
+\end{ApiClassAttributes}
+
+\ApiClass{ParticipantSpecification}{Specification}
+Represents a base class for specifications which can be added to the |CompartmentSpecification|.
+
+\ApiClass{ExternalEndpointSpecification}{ParticipantSpecification}
+Represents a specification for one or multiple external \glspl{g:endpoint}. An external \gls{g:endpoint} doesn't have assigned a \gls{g:resource} identifier.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} of the external \gls{g:endpoint}(s).
+\ApiClassAttribute{count}{Integer}{\ApiOptional} Number of the external \gls{g:endpoint} (all have the same \gls{g:technology}).
+\end{ApiClassAttributes}
+
+\ApiClass{ExistingEndpointSpecification}{ParticipantSpecification}
+Represents a specification for an \gls{g:endpoint} which is stored in local or foreign \gls{g:domain} \gls{g:controller} and thus it has assigned a \gls{g:resource} identifier.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} \Gls{g:resource-device} identifier for the \gls{g:endpoint}.
+\end{ApiClassAttributes}
+
+\ApiClass{LookupEndpointSpecification}{ParticipantSpecification}
+Represents a specification of parameters for an \gls{g:endpoint} which will be used to lookup a matching \gls{g:endpoint} in local or foreign \gls{g:domain} \gls{g:controller}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} of the requested \gls{g:endpoint}.
+\end{ApiClassAttributes}
+
+\ApiClass{AliasSpecification}{Specification}
+Represents a specification for an \gls{g:device-alias}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiOptional} \Gls{g:technology} of the requested \gls{g:device-alias}.
+\ApiClassAttribute{aliasType}{AliasType}{\ApiOptional} Type of the requested \gls{g:device-alias}.
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a \gls{g:resource} with \ApiCode{AliasProviderCapability} which is preferred to be used as the alias provider.
+\end{ApiClassAttributes}
+
+\ApiClass{PersonSpecification}{Specification}
+Represents a specification for a person that should participate in a \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{person}{Person}{\ApiRequired} Requested person.
+\end{ApiClassAttributes}
+
+\ApiClass{ReservationRequestSummary}{}
+This class represents a summary of a \gls{g:reservation-request}. The summary is lightweight and does not contain all \gls{g:reservation-request} attributes. It is suitable when listing a lot of \glspl{g:reservation-request} from the \gls{g:controller} database where the detail information about \gls{g:reservation-request} is not appropriate.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{type}{ReservationRequestType}{} Type of the \gls{g:reservation-request}, see |ReservationRequestType|.
+\ApiClassAttribute{name}{String}{} Name of the \gls{g:reservation-request}.
+\ApiClassAttribute{purpose}{ReservationRequestPurpose}{} Purpose of the \gls{g:reservation-request}, see |ReservationRequestPurpose|.
+\ApiClassAttribute{description}{String}{} Description of \gls{g:reservation-request}.
+\ApiClassAttribute{earliestSlot}{Interval}{} Specifies the first future date/time slot for which the \gls{g:reservation} is requested.
+\end{ApiClassAttributes}
+
+\ApiClass{Reservation}{}
+Represents base class for all possible types of successfully allocated \gls{g:reservation}(s) for a \gls{g:reservation-request}. It contains only read only data that are obtained from a \gls{g:scheduler}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{} \Gls{g:reservation} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{slot}{Interval}{} Date/time slot for which the \gls{g:reservation} is allocated.
+\ApiClassAttribute{parentReservationIdentifier}{String}{} Identifier of parent \gls{g:reservation}.
+\ApiClassAttribute{childReservationIdentifiers}{List<String>}{} Identifiers of child \glspl{g:reservation}. Each \gls{g:reservation} can contain multiple child \glspl{g:reservation} which have been allocated to satisfy the parent \gls{g:reservation} needs.
+\end{ApiClassAttributes}
+
+\ApiClass{ResourceReservation}{Reservation}
+Represents a successfully allocated \gls{g:resource}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{resourceIdentifier}{String}{} Allocated \gls{g:resource} identifier.
+\ApiClassAttribute{resourceName}{String}{} Allocated \gls{g:resource} name. 
+\end{ApiClassAttributes}
+
+\ApiClass{VirtualRoomReservation}{ResourceReservation}
+Represents a successfully allocated \gls{g:resource-device} as a \gls{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{portCount}{String}{} Number of allocated ports for the \gls{g:device-virtual-room}.
+\end{ApiClassAttributes}
+
+\ApiClass{AliasReservation}{ResourceReservation}
+Represents a successfully allocated \gls{g:resource} as a \gls{g:device-alias}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{alias}{Alias}{} Allocated \gls{g:device-alias}.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation}{Reservation}
+Represents a successfully allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{compartment}{CompartmentReservation.Compartment}{} Allocated \gls{g:compartment}.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation.Compartment}{}
+Represents an allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{endpoints}{List<CompartmentReservation.Endpoint>}{} List of participating \glspl{g:endpoint}.
+\ApiClassAttribute{virtualRooms}{List<CompartmentReservation.VirtualRoom>}{} List of \glspl{g:device-virtual-room}.
+\ApiClassAttribute{connections}{List<CompartmentReservation.Connection>}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation.Endpoint}{}
+Represents an \gls{g:endpoint} in allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{description}{String}{} Description of the \gls{g:endpoint}.
+\ApiClassAttribute{aliases}{List<Alias>}{} List of assinged \glspl{g:device-alias} to the \gls{g:endpoint}.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation.VirtualRoom}{Endpoint}
+Represents an \gls{g:device-virtual-room} in allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{portCount}{String}{} Number of allocated ports for the \gls{g:device-virtual-room}.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation.Connection}{}
+Represents an connection between two \glspl{g:endpoint} in allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{endpointFrom}{String}{} Description of source \gls{g:endpoint} which initiates the call.
+\ApiClassAttribute{endpointTo}{String}{} Description of target \gls{g:endpoint}.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation.ConnectionByAlias}{Connection}
+Represents an connection between two \glspl{g:endpoint} by \gls{g:device-alias} in allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{alias}{Alias}{} \Gls{g:device-alias} which is used.
+\end{ApiClassAttributes}
+
+\ApiClass{CompartmentReservation.ConnectionByAddress}{Connection}
+Represents an connection between two \glspl{g:endpoint} by address in allocated \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{} \Gls{g:technology} which is used.
+\ApiClassAttribute{address}{String}{} Address which is used.
+\end{ApiClassAttributes}
+
+\ApiClass{ResourceAllocation}{}
+Represents an information about allocation of \gls{g:resource}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{} \Gls{g:resource} identifier.
+\ApiClassAttribute{name}{String}{} \Gls{g:resource} name.
+\ApiClassAttribute{interval}{Interval}{} Interval for which the allocation information is contained.
+\ApiClassAttribute{reservations}{List<ResourceReservation>}{} List of \glspl{g:reservation} for the \gls{g:resource}.
+\end{ApiClassAttributes}
+
+\ApiClass{VirtualRoomsResourceAllocation}{ResourceAllocation}
+Represents an information about allocation of \gls{g:resource-device} with \glspl{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{maximumPortCount}{int}{} Maximum port count which are available in the \Gls{g:resource-device} for all \glspl{g:device-virtual-room} at one moment.
+\ApiClassAttribute{availablePortCount}{int}{} Available port count which are available in the \Gls{g:resource-device} for |interval|.
+\end{ApiClassAttributes}
+
+\end{Api}
+
+\section{Common}
+
+\begin{Api}
+
+\ApiCmd{Controller getController()}
+Get information about the domain controller. See |Controller| class.
+
+\ApiCmd{Collection<Domain> listDomains(SecurityToken token)}
+Lists all known domains with status if they are available to the domain controller.
+
+\ApiCmd{Collection<Connector> listConnectors(SecurityToken token)}
+Lists all known connectors in the controlled domain.
+
+\end{Api}
+
+
+\section{Resources}
+
+\begin{Api}
+
+\ApiCmd{String createResource(SecurityToken token, Resource resource)}
+Create a new resource that will be stored in the domain controller. The new resource identifier is returned as a result. The user with given |token| will be the resource owner. The |resource| must contain all attributes marked as \ApiRequired.
+
+\ApiCmd{modifyResource(SecurityToken token, Resource resource)}
+Modify the given resource. Attribute |identifier| must be filled and identifies the resource to be modified. That operation is permited only when the user with given |token| is the resource owner. The |resource| should contain only attributes to be modified.
+
+\ApiCmd{deleteResource(SecurityToken token, String resourceIdentifier)}
+Delete the resource with specified |resourceIdentifier| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+
+\ApiCmd{Collection<ResourceSummary> listResources(SecurityToken token)}
+List of resource summaries managed by Shongo, that a user with given |token| is entitled to see.
+
+\ApiCmd{Resource getResource(SecurityToken token, String resourceIdentifier)}
+Get the complete resource object for specified |resourceIdentifier| that a user with given |token| is entitled to see. See |Resource| for details.
+
+\ApiCmd{ResourceAllocation getResourceAllocation(SecurityToken token, String resourceIdentifier, Interval interval)}
+Get the allocation of resource object for specified |resourceIdentifier| in given |interval| that a user with given |token| is entitled to see. See |ResourceAllocation| for details.
+
+\end{Api}
+
+
+\section{Reservations}
+
+\begin{Api}
+
+\ApiCmd{String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)}
+Create a new reservation. The new reservation identifier is returned as a result. The |reservationRequest| must contain all attributes marked as \ApiRequired.
+
+\ApiCmd{modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)}
+Modify the reservation. Attribute |identifier| must be filled and identifies the reservation request to be modified. The |reservationRequest| should contain only attributes to be modified.
+
+\ApiCmd{deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier)}
+Release the reservation with specified |reservationIdentifier|. The child reservations remain untouched.
+
+\ApiCmd{ReservationSummary[] listReservationRequests(SecurityToken token)}
+List all the reservations that a user with given |token| is entitled to see. Only the lightweight definitions of reservation requests are returned, see |ReservationRequestSummary| for details.
+
+\ApiCmd{Reservation getReservationRequest(SecurityToken token, String reservationRequestIdentifier)}
+Get the reservation object for specified |reservationIdentifier| that a user with given |token| is entitled to see. The returned object contains requested time slots, requested compartments, child reservations and all other attributes that can be modified. It does not contain the read only scheduler allocation information which can be obtained by |getReservationAllocation|.
+
+\ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationRequestIdentifier)}
+\todo{Not implemented yet}
+List all the date/time slots that were allocated by a scheduler for the reservation and for all child reservation (recursive). Each date/time slot contains list of identifiers for resources that are allocated for the date/time slot.
+
+\ApiCmd{ResourceSummary[] listReservationSlotResources(SecurityToken token, String reservationId, AbsoluteDateTimeSlot slot, Map filter)}
+\todo{Not implemented yet}
+Get a list of allocated resources for the given date/time slot in a reservation with specified |reservationId| (one reservation can have multiple date/time slots in which the reservation takes place and the list of allocated resources may vary). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
+
+\ApiCmd{AbsoluteDateTimeSlot[] findReservationAvailableSlots(SecurityToken token, Period duration, Resource[] resources, boolean interDomain)}
+\todo{Not implemented yet}
+Lookup available date/time slots for specified reservation |duration| and |resources|. Argument |interDomain| specifies whether inter-domain lookup should be performed.
+
+\end{Api}
+
+\subsection{Failures}
+
+%\begin{ApiFailures}
+%\ApiFailure{200}
+%\end{ApiFailures}
+\todo{No special faults yet}
+
+
+\section{Room Operations}
+
+\todo{Not implemented yet}
+
+\begin{Api}
+
+\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+Get the list of users that currently participate in the room with specified |roomId|.
+
+\ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String userId)}
+Gets a concrete room user.
+
+\ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes)}
+Modifies the user with specified |userId| in the room with given |roomId| (suitable for setting microphone/playback level, muting/unmuting\ldots).
+
+\ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String userId)}
+Disconnect the user with specified |userId| from the room with given |roomId|.
+
+\end{Api}
+
+\subsection{Failures}
+
+%\begin{ApiFailures}
+%\ApiFailure{300}
+%\end{ApiFailures}
+\todo{No special faults yet}

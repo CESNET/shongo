@@ -1,0 +1,314 @@
+\chapter{Connector API Specification}
+
+\input{commands}
+
+\section{Communication Protocol}
+
+\todo{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes. Groups of failure codes: Shongo-connections, connections between a connector and its device, failures reported by the devices themselves}
+
+Communication among controllers and connectors is implemented using JADE \cite{jade}. The communication is \textbf{synchronous}, i.e., the controller sends a command to a connector and waits until the connector replies. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
+
+The ontology used by all agents consists of concepts, predicates, and agent actions.
+\begin{description}
+\item[An agent action,] tagged by |jade.content.AgentAction| interface, expresses a request what should the receiving agent do. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters.
+\item[A predicate,] tagged by |jade.content.Predicate| interface, expresses a claim about a fact. In this API, we use just two predicates defined in the JADE framework, for the purpose of expressing result of a command. We use no custom predicates.
+\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such a class must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.jade.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
+\end{description}
+
+
+For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
+\begin{verbatim}
+package cz.cesnet.shongo.jade.ontology;
+
+public class SetMicrophoneLevel implements AgentAction {
+    private int level = 0;
+
+    public int getLevel() {
+        return level;
+    }
+    public void setLevel(int level) {
+        this.level = level;
+    }
+}
+\end{verbatim}
+The |setMicrophoneLevel| call implementation instantiates a new |SetMicrophoneLevel| object, sets up the |level| attribute, and passes the object to a controller agent content manager to send it to an endpoint as a |request| communicative act \cite{FIPA-ComActSpec}. The corresponding endpoint agent creates the |SetMicrophoneLevel| object received from the controller agent and implements the requested functionality according to it. The message sent during such a call might be similar to the following:
+\begin{verbatim}
+(REQUEST
+ :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
+ :content  "((action (agent-identifier :name
+     Controller-Main-Container@127.0.0.1:1099/JADE :addresses (sequence
+     http://localhost:7778/acc)) (SET-MICROPHONE-LEVEL :level 46)))"
+ :language  fipa-sl  :ontology  shongo-ontology )
+\end{verbatim}
+
+The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined in \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.jade.ontology| interface and be tagged by the |Concept| interface.
+
+An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
+
+
+
+
+\section{Data Types}
+
+\begin{Api}
+
+\ApiClass{ConnectorInfo}{}
+Information about connector.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{} the connector name
+\ApiClassAttribute{device}{Resource}{} the device managed by this connector (must be a resource of type ManagedDevice -- see chapter \ref{sect:common:other})
+\ApiClassAttribute{connectionState}{ConnectionState}{} connection state to the device
+\ApiClassAttribute{deviceState}{DeviceState}{} state of the device, maintained by the connector for performance reasons
+\end{ApiClassAttributes}
+
+\ApiEnum{ConnectionState}
+State of connection between a connector and a device it manages.
+\begin{ApiEnumValues}
+\ApiEnumValue{Connected}{}
+\ApiEnumValue{Disconnected}{}
+\end{ApiEnumValues}
+
+\ApiClass{DeviceState}{}
+State description of a device.
+\todo{}
+
+\ApiClass{DeviceLoadInfo}{}
+Current device load information. A negative value in any attribute means the value could not be determined.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{cpuLoad}{float}{}
+\ApiClassAttribute{memoryOccupied}{long}{}
+\ApiClassAttribute{memoryAvailable}{long}{}
+\ApiClassAttribute{diskSpaceOccupied}{long}{}
+\ApiClassAttribute{diskSpaceAvailable}{long}{}
+\end{ApiClassAttributes}
+
+\ApiClass{Room}{}
+Represents a virtual room on a multipoint server device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{users}{RoomUser[]}{\ApiRequired} List of allowed users.
+\ApiClassAttribute{allowGuests}{boolean}{\ApiRequired} A flag indicating whether to allow guest users to join the room.
+\ApiClassAttribute{licenseCount}{int}{\ApiRequired} Number of licenses that multipoint server can utilize for this room.
+\ApiClassAttribute{layout}{RoomLayout}{\ApiRequired} The default room layout (used for all participants who did not specify a layout of their own choice).
+\ApiClassAttribute{configuration}{String[]}{\ApiOptional} Platform specific configuration.
+\end{ApiClassAttributes}
+\todo{Room settings should be auto-modified in time be uploaded calendar}
+
+\ApiClass{UsageStats}{}
+Usage stats of a given multipoint device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{callLog}{byte[]}{} Call log in CDR. Should contain at least start time and duration of each call.
+\end{ApiClassAttributes}
+
+\ApiClass{RoomInfo}{}
+A brief info about a virtual room at a server.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
+\ApiClassAttribute{owner}{String}{} Identification of the room owner.
+\ApiClassAttribute{creation}{AbsoluteDateTime}{} Date and time when the room was created.
+\ApiClassAttribute{reservation}{Reservation}{} Reservation for which this room was created (to satisfy use-case \ref{UC:ops:room:shongo-options}).
+\ApiClassAttribute{type}{Technology}{} Type of the room.
+\end{ApiClassAttributes}
+
+\ApiEnum{RoomLayout}{}
+Layout of a virtual room.
+\begin{ApiEnumValues}
+\ApiEnumValue{SingleParticipant}{only a single, fixed participant is displayed}
+\ApiEnumValue{VoiceSwitchedSingleParticipant}{only a single, currently speaking participant is displayed}
+\ApiEnumValue{SpeakerCorner}{a fixed participant is in the upper-left corner, other participants around}
+\ApiEnumValue{VoiceSwitchedSpeakerCorner}{the currently speaking participant is in the upper-left corner, other participants around}
+\ApiEnumValue{Grid}{all participants are spread in a regular grid}
+\end{ApiEnumValues}
+
+\ApiClass{MediaData}{}
+Custom media data, typically used for uploading or downloading some content (images, documents, etc.).
+\begin{ApiClassAttributes}
+\ApiClassAttribute{contentType}{ContentType}{\ApiRequired} Type of the data.
+\ApiClassAttribute{data}{byte[]}{\ApiRequired} The content. To be interpreted according to the content type.
+\ApiClassAttribute{compression}{CompressionAlgorithm}{\ApiOptional} Algorithm used to compress |data|.
+\end{ApiClassAttributes}
+
+\ApiClass{ContentType}{}
+Description of a media type. Any MIME Media Type listed by IANA \cite{IANA-MediaTypes}, e.g. \texttt{image/jpeg}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{type}{String}{\ApiRequired} Textual name of the type (e.g., |image| or |text|).
+\ApiClassAttribute{subtype}{String}{\ApiRequired} Textual name of the subtype (e.g., |jpeg| or |html|).
+\end{ApiClassAttributes}
+
+\ApiEnum{CompressionAlgorithm}{}
+A compression algorithm used to compress data files.
+\begin{ApiEnumValues}
+\ApiEnumValue{ZIP}{zip compression, as specified by the \texttt{application/zip} MIME type}
+\ApiEnumValue{RAR}{rar archive}
+\ApiEnumValue{TAR_GZIP}{a gzip-compressed tar archive}
+\ApiEnumValue{TAR_BZIP2}{a bzip2-compressed tar archive}
+\end{ApiEnumValues}
+
+
+\end{Api}
+
+
+\section{Common API}
+
+\begin{Api}
+
+\ApiCmd{ConnectorInfo getConnectorInfo()}
+Get information about connector.
+
+\ApiCmd{muteRoomUser(SecurityToken token, String RoomUserId)}
+Mutes a user in a room.
+
+\ApiCmd{unmuteRoomUser(SecurityToken token, String RoomUserId)}
+Unmutes a user in a room.
+
+\ApiCmd{setMicrophoneLevel(SecurityToken token, String RoomUserId, int level)}
+Sets microphone audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound).
+
+\ApiCmd{setPlaybackLevel(SecurityToken token, String RoomUserId, int level)}
+Sets playback audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound).
+
+\ApiCmd{enableUserVideo(SecurityToken token, String RoomUserId)}
+Enables video from a user in a room.
+
+\ApiCmd{disableUserVideo(SecurityToken token, String RoomUserId)}
+Disables video from a user in a room.
+
+\end{Api}
+
+\section{Multipoint Device} \label{sect:connector-api-multipoint}
+
+\subsection{Room Management}
+\begin{Api}
+
+\ApiCmd{RoomInfo getRoomInfo(SecurityToken token, String roomId)}
+Gets info about an existing room.
+
+\ApiCmd{String createRoom(SecurityToken token, Room room)}
+Create a new virtual room on a multipoint device that is managed by this connector. The |room| parameter specifies the room settings, see the |Room| definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the |roomId| parameter.
+
+\ApiCmd{modifyRoom(SecurityToken token, String roomId, Map attributes)}
+Modifies a room identified by |roomId|. The |attributes| map specifies |Room| attribute names mapped to new values.
+
+\ApiCmd{deleteRoom(SecurityToken token, String roomId)}
+Delete an existing virtual room on a multipoint device that is managed by this connector.
+
+\ApiCmd{String exportRoomSettings(SecurityToken token, String RoomId)}
+Gets current settings of a room exported to XML.
+\\\todo{Specify schema of the exported XML document in RelaxNG. It should contain at least room name, technology (H.323/SIP/Connect\ldots) settings, and version of the format of the exported document (for further extensions).}
+
+\ApiCmd{importRoomSettings(SecurityToken token, String RoomId, String settings)}
+Sets up a room according to given |settings| previously exported by the |exportRoomSettings| method.
+
+\end{Api}
+
+
+\subsection{User Management}
+\begin{Api}
+
+\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+
+\ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String roomUserId)}
+Gets user information and settings in a room.
+
+\ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String roomUserId, Map attributes)}
+Modifies user settings in the room (suitable for setting
+microphone/playback level, muting/unmuting, user layout\ldots).
+
+\ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String roomUserId)}
+Disconnect user from the room.
+
+\ApiCmd{enableContentProvider(SecurityToken token, String roomUserId)}
+Enables a given room user as a content provider in the room. This is typically enabled by default.
+
+\ApiCmd{disableContentProvider(SecurityToken token, String roomUserId)}
+Disables a given room user as a content provider in the room. Typically, all users are allowed to fight for being the content provider. Using this method, a user is not allowed to do this.
+
+\end{Api}
+
+
+\subsection{Room Content Management}
+\begin{Api}
+
+\ApiCmd{MediaData getRoomContent(SecurityToken token, String roomId)}
+Gets all room content (e.g., documents, notes, polls, etc.) as a single archive (see the |compression| attribute of the returned object).
+
+\ApiCmd{addRoomContent(SecurityToken token, String roomId, String name, MediaData data)}
+Adds a data file to room content under a given name.
+
+\ApiCmd{removeRoomContentFile(SecurityToken token, String roomId, String name)}
+Removes a file of a given name from room content.
+
+\ApiCmd{clearRoomContent(SecurityToken token, String roomId)}
+Clears all room content.
+
+\end{Api}
+
+
+\subsection{Monitoring}
+\begin{Api}
+
+\ApiCmd{DeviceLoadInfo getDeviceLoadInfo()}
+Gets info about current load of the device.
+
+\ApiCmd{UsageStats getUsageStats()}
+Gets the multipoint usage stats.
+
+\ApiCmd{RoomInfo[] getRoomList()}
+Gets a list of all rooms at a given server.
+
+\ApiCmd{MediaData getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}
+Gets a snapshot of the video stream received by a user in a room. See the |contentType| of the returned object to get the image format returned.
+
+\ApiCmd{MediaData getSentVideoSnapshot(SecurityToken token, String RoomUserId)}
+Gets a snapshot of the video stream that a user is sending in a room. See the |contentType| of the returned object to get the image format returned.
+
+\end{Api}
+
+
+\subsection{Recording}
+\begin{Api}
+
+\ApiCmd{int startRecording(SecurityToken token, String roomId, ContentType format, RoomLayout layout)}
+Immediately starts recording in a room to format |format| using a given |layout| (or the default room layout, if |layout| is not specified). Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
+
+\ApiCmd{stopRecording(SecurityToken token, int recordingId)}
+Stops recording. The |recordingId| parameter, specifying what to stop, is an identifier previously returned by |startRecording|.
+
+\ApiCmd{String getRecordingDownloadURL(SecurityToken token, int recordingId)}
+Returns a URL from where it is possible to download a recording. The |recordingId| parameter is an identifier previously returned by |startRecording|.
+
+\ApiCmd{notifyParticipants(SecurityToken token, int recordingId)}
+Sends an e-mail to all non-anonymous participants present in the room recorded. Participants present in any moment of the recording must be notified, not just the registered users.
+
+\ApiCmd{downloadRecording(SecurityToken token, String downloadURL, String targetPath)}
+Starts downloading a recording from |downloadURL|. The recording is stored on the server under |targetPath|.
+
+\ApiCmd{deleteRecording(SecurityToken token, int recordingId)}
+Deletes a given recording. The |recordingId| parameter is an identifier previously returned by |startRecording|. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
+
+\end{Api}
+
+
+\section{Endpoint Device} \label{sect:connector-endpoint-api}
+
+\begin{Api}
+
+\ApiCmd{dial(SecurityToken token, String server)}
+Dials a server.
+
+\ApiCmd{resetDevice(SecurityToken token)}
+Resets the device.
+
+\end{Api}
+
+
+\section{Technology Specific API}
+\todo{Cover use cases \ref{UC:ops:room:room-techspec} and \ref{UC:ops:room:user-techspec}.}
+\\\todo{How to structure this section? List the supported commands for each technology separately, or list them on a single place, stating the technologies supporting a functionality for each command?}
+
+\begin{Api}
+
+\ApiCmd{dial(SecurityToken token, String deviceAddress)}
+Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
+
+\end{Api}
+

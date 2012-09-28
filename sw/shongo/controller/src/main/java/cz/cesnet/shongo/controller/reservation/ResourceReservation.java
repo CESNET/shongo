@@ -57,6 +57,13 @@ public class ResourceReservation extends Reservation
         }
     }
 
+
+    @Override
+    public cz.cesnet.shongo.controller.api.ResourceReservation toApi(Domain domain)
+    {
+        return (cz.cesnet.shongo.controller.api.ResourceReservation) super.toApi(domain);
+    }
+
     @Override
     protected cz.cesnet.shongo.controller.api.Reservation createApi()
     {

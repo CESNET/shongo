@@ -1,107 +1,124 @@
 % Entries
-\newglossaryentry{controller}
+\newglossaryentry{g:shongo}
 {
-  name=Controller,
-  description={Represents a running application that holds a database of 
-    resources, user requests and allocated reservations for a single 
-    domain. Users can access and modify the database through the controller 
-    user interface(s). The controller runs a scheduler that processes the 
-    database.}
+  name=Shongo,
+  description={Represents a distributed multimedia resource management system.}
 }
-\newglossaryentry{connector}
+\newglossaryentry{g:domain}
 {
-  name=Connector,
-  description={Represents a running application that controls a single 
-    video/web conferencing hardware or software equipment and provides an API 
-    that allows the controller to access that equipment.}
+  name=domain,
+  description={Represents an organization which can run it's own \gls{g:controller} and participate in \gls{g:shongo}.}
 }
-\newglossaryentry{scheduler}
+\newglossaryentry{g:controller}
 {
-  name=Scheduler,
-  description={Scheduler is a component of a domain controller that processes 
-    complete compartment requests and schedule them to allocated compartments 
-    which forms reservations.}
+  name=controller,
+  description={Represents an application that holds a database of 
+    \glspl{g:resource}, \glspl{g:reservation-request} and \glspl{g:reservation} 
+    for a single \gls{g:domain}. \Glspl{g:user} can access and modify the database 
+    through a \gls{g:controller-client}. The controller runs a \gls{g:scheduler}
+    which allocates \glspl{g:reservation-request} to \glspl{g:reservation}.}
 }
-\newglossaryentry{user}
+\newglossaryentry{g:controller-client}
 {
-  name=User,
-  description={Represents an authenticated person that can access a domain 
-    controller through it's user interface(s).}
+  name=controller client,
+  description={Represents an application (e.g., command-line or web) which is able to
+    connect to a \gls{g:controller} and perform commands through the \gls{g:controller}'s API.}
 }
-\newglossaryentry{date-time-slot}
+\newglossaryentry{g:resource}
 {
-  name=Date/Time Slot,
-  description={Represents a time between specific starting and ending moment. 
-    Can be specified by a starting date and time and a duration. In case of
-    periodic date/times, the date/time slot term represents an one specific 
-    date/time referred to as absolute date/time.}
+  name=resource,
+  description={An entity that can be requested for a reservation and allocated 
+  by a \gls{g:scheduler}.}
 }
-\newglossaryentry{technology}
+\newglossaryentry{g:device}
 {
-  name=Technology,
+  name=device,
+  description={Represents a video/web conferencing hardware or software equipment
+   (e.g., H.323 terminal, H.323 MCU, Adobe Connect server, gateway or streaming server).}
+}
+\newglossaryentry{g:resource-device}
+{
+  name=device resource,
+  description={A special type of \gls{g:resource} that represents a \gls{g:device}.}
+}
+\newglossaryentry{g:reservation-request}
+{
+  name=reservation request,
+  description={A request that is made by an \gls{g:user} to book \gls{g:resource}(s)
+    for a specific date/time slots(s). Reservation request can be \emph{incomplete} 
+    or \emph{complete}. Incomplete requests must be filled in by 
+    additional information to become complete. \Gls{g:scheduler} processes only 
+    complete reservation requests.}
+}
+\newglossaryentry{g:reservation}
+{
+  name=reservation,
+  description={Represents allocated \gls{g:resource}(s) for a complete 
+    \gls{g:reservation-request}. \Glspl{g:reservation} are allocated by a \gls{g:scheduler}.}
+}
+\newglossaryentry{g:user}
+{
+  name=user,
+  description={Represents an authenticated person that can access a \gls{g:controller} 
+    through a \gls{g:controller-client}.}
+}
+\newglossaryentry{g:scheduler}
+{
+  name=scheduler,
+  description={Scheduler is a component of a \gls{g:controller} which processes 
+    complete \glspl{g:reservation-request} and allocates them to \glspl{g:reservation}.}
+}
+\newglossaryentry{g:connector}
+{
+  name=connector,
+  description={Represents an application that is composed of one or multiple \glspl{g:connector-agent}.}
+}
+\newglossaryentry{g:connector-agent}
+{
+  name=connector agent,
+  description={Represents a component that manages a single \gls{g:resource-device} 
+    and provides an API that allows the \gls{g:controller} to access that equipment.}
+}
+\newglossaryentry{g:technology}
+{
+  name=technology,
+  plural=technologies,
   description={Represents a single video/web conferencing technology (e.g., 
     H.323, SIP, or Adobe Connect).}
 }
-\newglossaryentry{resource}
+\newglossaryentry{g:compartment}
 {
-  name=Resource,
-  description={An entity that can be requested for a reservation and scheduled 
-  by a scheduler.}
+  name=compartment,
+  description={Represents a group of \glspl{g:endpoint} and/or persons which participate 
+    in a single video/web conference but the conference can spread out through multiple 
+    virtual rooms and even through multiple \glspl{g:technology} (when a gateway device is used).}
 }
-\newglossaryentry{device}
+\newglossaryentry{g:endpoint}
 {
-  name=Device,
-  description={A special type of resource that represents a video/web 
-    conferencing hardware or software equipment (e.g., H.323 terminal, H.323 
-    MCU, Adobe Connect server, gateway or streaming server).}
+  name=endpoint,
+  description={Represents a \gls{g:device} which can participate in a \gls{g:compartment} (e.g., a H.323 terminal or SIP client).}
 }
-\newglossaryentry{reservation-request}
+\newglossaryentry{g:device-virtual-room}
 {
-  name=Reservation Request,
-  description={A request that is made by an user to book resources for one or 
-    more videoconference calls. Requested resources and/or persons can be 
-    specified in compartments (by default a single compartment is used). 
-    From a single reservation request the domain controller creates 
-    one or more compartment requests in dependence on the 
-    number of specified date/time slots and the number of specified 
-    compartments in the reservation request. For each compartment at each 
-    date/time slot is created one compartment request.}
+  name=virtual room,
+  description={Represents a virtual room in a \gls{g:device} (e.g., virtual room in H.323 MCU).}
 }
-\newglossaryentry{compartment}
+\newglossaryentry{g:device-alias}
 {
-  name=Compartment,
-  description={Represents a specification of a group of resources and/or 
-    persons which should be interconnected by a scheduler. Each reservation 
-    request can specify one or more compartments. The compartment is not
-    bound to a specific date/time slot. The controller automatically expands 
-    each compartment to one or more compartment requests. For each compartment 
-    at each absolute date/time slot specified in the reservation request is 
-    created one compartment request and thus the compartment request is bound 
-    to a specific date/time slot (unlike the compartment).}
+  name=alias,
+  plural=aliases,
+  description={Represents an identifier that can be assigned to a \gls{g:device} and
+    which can be used to connect to the \gls{g:device} in a specific \gls{g:technology} 
+    (e.g., E.164 number in H.323 or URI in SIP).}
 }
-\newglossaryentry{compartment-request}
+\newglossaryentry{g:device-connection}
 {
-  name=Compartment Request,
-  description={Represents a specification for a group of resources and/or
-    persons that should participate in a single videoconference call at 
-    specific date/time slot. Compartment request can be \textbf{incomplete} 
-    or \textbf{complete}. Incomplete compartment request must be filled in by 
-    additional information to become complete (e.g., by asking persons for 
-    confirmation or to choose a terminal).}
+  name=video conference call,
+  description={Represents a connection or call which is initiated by a \gls{g:device} to 
+    another \gls{g:device}.}
 }
-\newglossaryentry{allocated-compartment}
-{
-  name=Allocated Compartment,
-  description={Represents a complete compartment request for which the 
-    scheduler has already allocated resources. Allocated compartment 
-    is a result from scheduler.}
-}
-\newglossaryentry{reservation}
-{
-  name=Reservation,
-  description={Represents a list of successfully allocated compartments
-    based on a single reservation request.}
-}
+
+
 
 % Print glossaries
 \renewcommand*{\glossaryname}{List of Terms}  % Changes glossary name

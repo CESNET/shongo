@@ -12,5 +12,5 @@ build.shongo_api:
 
 clean.shongo_api:
 	cd api && make clean
-	rm shongo_api.pdf
+	rm -f shongo_api.pdf
 

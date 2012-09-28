@@ -1,0 +1,93 @@
+\definecolor{ApiLstBackground}{gray}{0.8}
+\definecolor{ApiLstKeywordColor}{rgb}{0,0,0.4}
+\lstset{
+  extendedchars=false,
+  alsoletter={-},
+  basicstyle=\fontfamily{txtt}\fontseries{b}\selectfont,
+  keywordstyle=\color{ApiLstKeywordColor}\selectfont,
+  commentstyle=\color{black!60}\selectfont,
+  numbers=left, numberstyle=\tiny, stepnumber=2, numbersep=5pt, frame=single,
+  backgroundcolor=\color{ApiLstBackground}, showstringspaces=false
+}
+\lstdefinestyle{ApiLstStyle}{
+  morekeywords={enum, atomic_type},
+  breaklines=true,
+  breakatwhitespace=true,
+  breakautoindent=true,
+}
+\lstset{language=java}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API definition
+\provideenvironment{Api}{\begin{itemize}}{\end{itemize}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API definition code and value
+\providecommand{\ApiCode}[1]{\lstinline[style=ApiLstStyle]|#1|}
+\providecommand{\ApiValue}[1]{\verb|#1|}
+% \end{verbatim}
+% Previous line corrects syntax coloring parser
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API definition item
+\providecommand{\ApiItem}[1]{\item #1 %
+
+% Previous empty line is intended to be blank (wraps the text
+% to the next line even if the \ApiItem is not followed by empty line)
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API command
+\providecommand{\ApiCmd}[1]{\ApiItem{\ApiCode{#1}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API atomic type
+\providecommand{\ApiType}[2]{\ApiItem{%
+  \ifx&#2& \ApiCode{atomic_type #1} \else \ApiCode{atomic_type #1 = #2} \fi}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API class
+\providecommand{\ApiClass}[2]{\ApiItem{%
+  \ifx&#2& \ApiCode{class #1} \else \ApiCode{class #1 extends #2} \fi}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API class attributes
+\provideenvironment{ApiClassAttributes}{% Next empty line is intended to be blank
+
+\begin{samepage}\textbf{Attributes:}\begin{compactitem}}{\end{compactitem}\end{samepage}}
+\providecommand{\ApiRequired}{{\color{blue!50!black}\textbf{Required}}}
+\providecommand{\ApiOptional}{{\color{gray}\textbf{Optional}}}
+\providecommand{\ApiOptionalDefault}[1]{{\color{gray}\textbf{Optional}, default: \ApiValue{#1}}}
+\providecommand{\ApiReadOnly}{{\color{red!50!black}\textbf{ReadOnly}}}
+\providecommand{\ApiClassAttribute}[3]{\ApiItem{\ApiCode{#2} \ApiCode{#1} \hspace{1mm}(\ifx&#3&\ApiReadOnly\else#3\fi)
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API enum
+\providecommand{\ApiEnum}[1]{\ApiItem{\ApiCode{enum #1}}}
+\provideenvironment{ApiEnumValues}{% Next empty line is intended to be blank
+
+\begin{samepage}\textbf{Enumeration values:}\begin{compactitem}}{\end{compactitem}\end{samepage}}
+\providecommand{\ApiEnumValue}[2]{\ApiItem{{\ApiCode{#1} \ifx&#2& \else \ApiValue{(#2)} \fi}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API example
+\providecommand{\ApiExample}{% Next empty line is intended to be blank
+
+\textbf{Example:}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API note
+\providecommand{\ApiNote}{% Next empty line is intended to be blank
+
+\textbf{Note:}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API failures
+\provideenvironment{ApiFailures}{\begin{compactitem}}{\end{compactitem}}
+\providecommand{\ApiFailure}[1]{\ApiItem{\ApiCode{faultCode = #1}}}
+

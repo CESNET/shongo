@@ -22,7 +22,7 @@
   pdfborder={0 0 0}
 ]{hyperref}
 
-% Make glossaries
+% Glossaries
 \usepackage[sort=def, xindy, nonumberlist]{glossaries}
 \usepackage{glossary-long}
 \makeglossaries
@@ -39,8 +39,40 @@
 \usepackage{verbatim}
 \usepackage{listingsutf8}
 
-% Add bibliography to table of contents
+% Bibliography
 \usepackage[nottoc]{tocbibind}
+\bibliographystyle{elsarticle-num}
+
+% Command \provideenvironment
+\makeatletter
+\def\provideenvironment{\@star@or@long\provide@environment}
+\def\provide@environment#1{%
+        \@ifundefined{#1}%
+                {\def\reserved@a{\newenvironment{#1}}}%
+                {\def\reserved@a{\renewenvironment{dummy@environ}}}%
+        \reserved@a
+}
+\def\dummy@environ{}
+\makeatother
+
+% Command \todo
+\newcommand{\todo}[1]{%
+\def\empty{}%
+\def\prvniparametr{#1}%
+\ifx\prvniparametr\empty%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
+\else%
+\begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
+\fi%
+}
+
+% Short inlines e.g., "|code|"
+\lstdefinestyle{lstStyleShort}{
+  breaklines=true,
+  breakatwhitespace=true,
+  breakautoindent=true,
+}
+\lstMakeShortInline[style=lstStyleShort]|
 
 % Document title page
 \author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
