@@ -12,19 +12,19 @@ import java.util.Map;
 public class Command
 {
     private String command;
-    private Map<String, String> parameters = new HashMap<String, String>();
+    private Map<String, Object> parameters = new HashMap<String, Object>();
 
     public Command(String command)
     {
         this.command = command;
     }
 
-    public void setParameter(String name, String value)
+    public void setParameter(String name, Object value)
     {
         parameters.put(name, value);
     }
 
-    public String getParameterValue(String name)
+    public Object getParameterValue(String name)
     {
         return parameters.get(name);
     }
@@ -34,7 +34,7 @@ public class Command
         return command;
     }
 
-    public Map<String, String> getParameters()
+    public Map<String, Object> getParameters()
     {
         return Collections.unmodifiableMap(parameters);
     }
@@ -47,7 +47,7 @@ public class Command
         }
 
         StringBuilder sb = new StringBuilder(command);
-        for (Map.Entry<String, String> entry : parameters.entrySet()) {
+        for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             sb.append(' ');
             sb.append(entry.getKey());
             sb.append(": ");

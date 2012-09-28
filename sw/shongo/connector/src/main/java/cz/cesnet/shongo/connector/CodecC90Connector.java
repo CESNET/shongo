@@ -12,6 +12,8 @@ import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -20,8 +22,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A connector for Cisco TelePresence System Codec C90.
@@ -30,6 +36,8 @@ import java.io.*;
  */
 public class CodecC90Connector extends AbstractConnector implements EndpointService
 {
+    private static Logger logger = LoggerFactory.getLogger(CodecC90Connector.class);
+
     public static final int MICROPHONES_COUNT = 8;
 
     /**
@@ -80,7 +88,7 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
         }
 
         final CodecC90Connector conn = new CodecC90Connector();
-        conn.connect(new Address(address), username, password);
+        conn.connect(Address.parseAddress(address), username, password);
 
         Document result = conn.exec(new Command("xstatus SystemUnit uptime"));
         System.out.println("result:");
@@ -244,7 +252,53 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
         info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
     }
 
-    protected Document exec(Command command) throws IOException, SAXException, ParserConfigurationException
+    /**
+     * Send a command to the device.
+     * In case of an error, throws a CommandException with a detailed message.
+     *
+     * @param command command to be issued
+     * @return the result of the command
+     */
+    private Document issueCommand(Command command) throws CommandException
+    {
+        logger.info(String.format("%s issuing command %s on %s", CodecC90Connector.class, command,
+                info.getDeviceAddress()));
+
+        try {
+            Document result = exec(command);
+            if (isError(result)) {
+                logger.info(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(),
+                        getErrorMessage(result)));
+                throw new CommandException(getErrorMessage(result));
+            }
+            else {
+                logger.info(String.format("Command %s succeeded on %s", command, info.getDeviceAddress()));
+                return result;
+            }
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Command issuing error", e);
+        }
+        catch (SAXException e) {
+            throw new RuntimeException("Command result parsing error", e);
+        }
+        catch (XPathExpressionException e) {
+            throw new RuntimeException("Command result handling error", e);
+        }
+        catch (ParserConfigurationException e) {
+            throw new RuntimeException("Error initializing result parser", e);
+        }
+    }
+
+
+    /**
+     * Sends a command to the device. Blocks until response to the command is complete.
+     *
+     * @param command a command to the device
+     * @return output of the command
+     * @throws IOException
+     */
+    private Document exec(Command command) throws IOException, SAXException, ParserConfigurationException
     {
         sendCommand(command);
 
@@ -316,14 +370,48 @@ reading:
     }
 
 
-    protected boolean isError(Document result) throws XPathExpressionException
+    private static XPathFactory xPathFactory = XPathFactory.newInstance();
+    private static Map<String, XPathExpression> xPathExpressionCache = new HashMap<String, XPathExpression>();
+
+
+    /**
+     * Returns the result of an XPath expression on a given document. Caches the expressions for further usage.
+     *
+     * @param result      an XML document
+     * @param xPathString an XPath expression
+     * @return result of the XPath expression
+     */
+    private static String getResultString(Document result, String xPathString) throws XPathExpressionException
+    {
+        XPathExpression expr = xPathExpressionCache.get(xPathString);
+        if (expr == null) {
+            expr = xPathFactory.newXPath().compile(xPathString);
+            xPathExpressionCache.put(xPathString, expr);
+        }
+        return expr.evaluate(result);
+    }
+
+
+    /**
+     * Finds out whether a given result XML denotes an error.
+     *
+     * @param result an XML document - result of a command
+     * @return true if the result marks an error, false if the result is an ordinary result record
+     */
+    private boolean isError(Document result) throws XPathExpressionException
     {
         String status = getResultString(result, "/XmlDoc/*[@status != '']/@status");
         return (status.contains("Error"));
     }
 
 
-    protected String getErrorMessage(Document result) throws XPathExpressionException
+    /**
+     * Given an XML result of an erroneous command, returns the error message.
+     *
+     * @param result an XML document - result of a command
+     * @return error message contained in the result document, or null if the document does not denote an error
+     */
+    private String getErrorMessage(Document result) throws XPathExpressionException
     {
         if (!isError(result)) {
             return null;
