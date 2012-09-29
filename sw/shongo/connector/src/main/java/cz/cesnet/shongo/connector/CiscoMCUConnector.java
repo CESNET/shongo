@@ -300,10 +300,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             // ask for data
             Map<String, Object> result = exec(command);
             // get the revision number of the first page - for using cache
-            if (enumPage == 0 && result.containsKey("currentRevision")) {
-                currentRevision = (Integer) result.get("currentRevision");
+            if (enumPage == 0) {
+                currentRevision = (Integer) result.get("currentRevision"); // might not exist in the result and be null
             }
 
+            // process data
             if (!result.containsKey(enumField)) {
                 break; // no data at all
             }
@@ -312,7 +313,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                 results.add((Map<String, Object>) obj);
             }
 
-            // ask for more results, or break if there was all
+            // ask for more results, or break if that was all
             if (result.containsKey("enumerateID")) {
                 command.setParameter("enumerateID", result.get("enumerateID"));
             }
@@ -321,7 +322,9 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             }
         }
 
-        populateResultsFromCache(results, currentRevision, lastRevision, command, enumField);
+        if (currentRevision != null) {
+            populateResultsFromCache(results, currentRevision, lastRevision, command, enumField);
+        }
 
         return Collections.unmodifiableList(results);
     }
@@ -360,29 +363,28 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             Integer lastRevision,
             Command command, String enumField)
     {
-        if (currentRevision != null) {
-            // we got just the difference since lastRevision (or full set if this is the first issue of the command)
-            final String cacheId = getCommandCacheId(command);
-            if (lastRevision != null) {
-                // fill the values that have not changed since lastRevision
-                ListIterator<Map<String, Object>> iterator = results.listIterator();
-                while (iterator.hasNext()) {
-                    Map<String, Object> item = iterator.next();
-                    if (!itemChanged(item, enumField)) {
-                        ResultsCache cache = resultsCache.get(cacheId);
-                        iterator.set(cache.getItem(item));
-                    }
+        // we got just the difference since lastRevision (or full set if this is the first issue of the command)
+        final String cacheId = getCommandCacheId(command);
+        
+        if (lastRevision != null) {
+            // fill the values that have not changed since lastRevision
+            ListIterator<Map<String, Object>> iterator = results.listIterator();
+            while (iterator.hasNext()) {
+                Map<String, Object> item = iterator.next();
+                if (!itemChanged(item, enumField)) {
+                    ResultsCache cache = resultsCache.get(cacheId);
+                    iterator.set(cache.getItem(item));
                 }
             }
-
-            // store the results and the revision number for the next time
-            ResultsCache rc = resultsCache.get(cacheId);
-            if (rc == null) {
-                rc = new ResultsCache();
-                resultsCache.put(cacheId, rc);
-            }
-            rc.store(currentRevision, results);
         }
+
+        // store the results and the revision number for the next time
+        ResultsCache rc = resultsCache.get(cacheId);
+        if (rc == null) {
+            rc = new ResultsCache();
+            resultsCache.put(cacheId, rc);
+        }
+        rc.store(currentRevision, results);
     }
 
     private boolean itemChanged(Map<String, Object> item, String enumField)
@@ -405,6 +407,20 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
 
+    /**
+     * Cache storing results from a single command.
+     *
+     * Stores the revision number and the corresponding result set.
+     *
+     * The items stored in the cache are compared just according to their unique identifiers. They may differ in other
+     * attributes. The reason for this is to provide simple searching for an item - the cache is given an item which has
+     * just its unique ID, and should find the previously stored, full version of the item. Hence comparing just
+     * according to the IDs.
+     *
+     * If the item contains a "participantName" key, the value under this key is used as the item unique ID.
+     * If the item contains a "conferenceName" key, the value under this key is used as the item unique ID.
+     * Otherwise, only items with equal contents are considered equal.
+     */
     private class ResultsCache
     {
         private class Item
@@ -443,7 +459,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                     return (conferenceName.equals(item.contents.get("conferenceName")));
                 }
 
-                return false;
+                return contents.equals(item.contents);
             }
 
             @Override
@@ -463,6 +479,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         private int revision;
         private List<Item> results;
+
+        public int getRevision()
+        {
+            return revision;
+        }
 
         public Map<String, Object> getItem(Map<String, Object> item)
         {
@@ -511,7 +532,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         }
         String cacheId = getCommandCacheId(command);
         ResultsCache rc = resultsCache.get(cacheId);
-        return (rc == null ? null : rc.revision);
+        return (rc == null ? null : rc.getRevision());
     }
 
     private String getCommandCacheId(Command command)
