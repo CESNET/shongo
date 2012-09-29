@@ -487,8 +487,9 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         public Map<String, Object> getItem(Map<String, Object> item)
         {
+            final Item it = new Item(item);
             for (Item cachedItem : results) {
-                if (cachedItem.equals(new Item(item))) {
+                if (cachedItem.equals(it)) {
                     return cachedItem.getContents();
                 }
             }
