@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import cz.cesnet.shongo.api.Alias;
+
+import java.util.*;
 
 /**
  * Represents a virtual room on a multipoint server device.
@@ -13,9 +12,10 @@ import java.util.Map;
 public class Room
 {
     private String name = null;
-    private int licenseCount = -1;
+    private int licenseCount = -1; // FIXME: rename to portCount
     private Date startTime = null;
     private Date endTime = null;
+    private List<Alias> aliases;
     private Map<String, Object> options = new HashMap<String, Object>();
 
 
@@ -109,6 +109,34 @@ public class Room
     }
 
     /**
+     * @return list of aliases under which the room is accessible
+     */
+    public List<Alias> getAliases()
+    {
+        return aliases;
+    }
+
+    /**
+     * Adds a new alias under which the room is accessible.
+     * @param alias
+     */
+    public void addAlias(Alias alias)
+    {
+        if (aliases == null) {
+            aliases = new ArrayList<Alias>();
+        }
+        aliases.add(alias);
+    }
+
+    /**
+     * @param aliases    aliases under which the room is accessible
+     */
+    public void setAliases(List<Alias> aliases)
+    {
+        this.aliases = aliases;
+    }
+
+    /**
      * Returns the complete map of platform-specific options set for this room.
      *
      * See the setOptions() method for more details about what can be had.
@@ -130,13 +158,14 @@ public class Room
      * - allowGuests                Boolean (true)  whether guests should be allowed to join
      * - joinAudioMuted             Boolean (false) whether audio should be muted on join
      * - joinVideoMuted             Boolean (false) whether video should be muted on join
-     * - roomNumber                 String          number under which the room can be called
-     * - registerWithH323Gatekeeper Boolean (false) whether to register the roomNumber with the gatekeeper
-     * - registerWithSIPRegistrar   Boolean (false) whether to register the roomNumber with the SIP registrar
+     * - registerWithH323Gatekeeper Boolean (false) whether to register the aliases with the gatekeeper
+     * - registerWithSIPRegistrar   Boolean (false) whether to register the aliases with the SIP registrar
      * - pin                        String          the PIN that must be entered to get to the room
      * - description                String          some description of the room
      * - startLocked                Boolean (false) whether the room should be locked when started
      * - conferenceMeEnabled        Boolean (false) whether the ConferenceMe should be enabled for the room
+     *
+     * FIXME: define constants for option names
      *
      * Note that no option name should be the same as any of this class's attribute names.
      *
@@ -239,9 +268,6 @@ public class Room
         }
         else if (option.equals("joinVideoMuted")) {
             assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals("roomNumber")) {
-            assertInstance(option, value, String.class);
         }
         else if (option.equals("registerWithH323Gatekeeper")) {
             assertInstance(option, value, Boolean.class);
