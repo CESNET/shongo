@@ -2,11 +2,13 @@ package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.xmlrpc.StructType;
+import jade.content.Concept;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Alias
+public class Alias implements StructType, Concept
 {
     /**
      * Identifier.

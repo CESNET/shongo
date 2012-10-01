@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.controller.api.ControllerFault;
-import cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory;
-import cz.cesnet.shongo.controller.api.xmlrpc.TypeFactory;
+import cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory;
+import cz.cesnet.shongo.api.xmlrpc.TypeFactory;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;

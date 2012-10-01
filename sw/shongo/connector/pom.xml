@@ -41,13 +41,6 @@
             <artifactId>commons-configuration</artifactId>
             <version>1.8</version>
         </dependency>
-
-        <!-- Apache XML-RPC library for some connector implementations -->
-        <dependency>
-            <groupId>org.apache.xmlrpc</groupId>
-            <artifactId>xmlrpc-client</artifactId>
-            <version>3.1.3</version>
-        </dependency>
     </dependencies>
 
     <build>

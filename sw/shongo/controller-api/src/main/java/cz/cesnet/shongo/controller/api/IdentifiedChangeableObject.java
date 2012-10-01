@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.util.ChangesTrackingObject;
 import cz.cesnet.shongo.api.util.PropertyStorage;
-import cz.cesnet.shongo.controller.api.xmlrpc.StructType;
+import cz.cesnet.shongo.api.xmlrpc.StructType;
 
 /**
  * Represents a type for a API that can be serialized

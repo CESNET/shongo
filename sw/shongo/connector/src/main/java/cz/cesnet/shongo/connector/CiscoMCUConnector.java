@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
@@ -136,33 +137,33 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        }
 
         // test of createRoom() method
-//        Room newRoom = new Room("shongo-test", 5);
-//        newRoom.setOption("roomNumber", "200");
-//        newRoom.setOption("description", "Shongo testing room");
-//        newRoom.setOption("listedPublicly", true);
-//        conn.createRoom(newRoom);
-//        System.out.println("Created room " + newRoom.getName());
-//        Collection<RoomInfo> roomList = conn.getRoomList();
-//        System.out.println("Existing rooms:");
-//        for (RoomInfo room : roomList) {
-//            System.out.println(room);
-//        }
+        Room newRoom = new Room("shongo-test", 5);
+        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087200"));
+        newRoom.setOption("description", "Shongo testing room");
+        newRoom.setOption("listedPublicly", true);
+        conn.createRoom(newRoom);
+        System.out.println("Created room " + newRoom.getName());
+        Collection<RoomInfo> roomList = conn.getRoomList();
+        System.out.println("Existing rooms:");
+        for (RoomInfo room : roomList) {
+            System.out.println(room);
+        }
 
         // test of modifyRoom() method
-//        System.out.println("Modifying shongo-test");
-//        Map<String, Object> atts = new HashMap<String, Object>();
-//        atts.put("name", "shongo-testing");
-//        atts.put("listedPublicly", false);
-//        atts.put("pin", "1234");
-//        conn.modifyRoom("shongo-test", atts);
-//        Map<String, Object> atts2 = new HashMap<String, Object>();
-//        atts2.put("roomNumber", "201");
-//        atts2.put("name", "shongo-test");
-//        conn.modifyRoom("shongo-testing", atts2);
+        System.out.println("Modifying shongo-test");
+        Map<String, Object> atts = new HashMap<String, Object>();
+        atts.put("name", "shongo-testing");
+        atts.put("listedPublicly", false);
+        atts.put("pin", "1234");
+        conn.modifyRoom("shongo-test", atts);
+        Map<String, Object> atts2 = new HashMap<String, Object>();
+        atts2.put("aliases", Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+        atts2.put("name", "shongo-test");
+        conn.modifyRoom("shongo-testing", atts2);
 
         // user connecting and disconnecting
-//        conn.dial("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
-        conn.disconnectRoomUser("shongo-test", "c90");
+//        conn.dialParticipant("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
+//        conn.disconnectRoomUser("shongo-test", "c90");
 
         System.out.println("All done, disconnecting");
         conn.disconnect();
@@ -401,7 +402,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     /**
      * Prepares caching of result of the supplied command.
-     * @param command    command to be issued; may be modified (some parameters regarding caching may be added)
+     *
+     * @param command command to be issued; may be modified (some parameters regarding caching may be added)
      * @return the last revision when the same command was issued
      */
     private Integer prepareCaching(Command command)
@@ -416,15 +418,15 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     /**
      * Populates the results list - puts the original objects instead of item stubs.
-     *
+     * <p/>
      * If there was a previous call to the same command, the changed items are just stubs in the new result set. To use
      * the results, this method populates all the stubs and puts the objects from the previous call in their place.
      *
-     * @param results            list of results, some of which may be stubs; gets modified so that it contains no stubs
-     * @param currentRevision    the revision of this results
-     * @param lastRevision       the revision of the previous call of the same command
-     * @param command            the command called to get the supplied results
-     * @param enumField          the field name from which the supplied results where taken within the command result
+     * @param results         list of results, some of which may be stubs; gets modified so that it contains no stubs
+     * @param currentRevision the revision of this results
+     * @param lastRevision    the revision of the previous call of the same command
+     * @param command         the command called to get the supplied results
+     * @param enumField       the field name from which the supplied results where taken within the command result
      */
     private void populateResultsFromCache(List<Map<String, Object>> results, Integer currentRevision,
             Integer lastRevision,
@@ -476,14 +478,14 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     /**
      * Cache storing results from a single command.
-     *
+     * <p/>
      * Stores the revision number and the corresponding result set.
-     *
+     * <p/>
      * The items stored in the cache are compared just according to their unique identifiers. They may differ in other
      * attributes. The reason for this is to provide simple searching for an item - the cache is given an item which has
      * just its unique ID, and should find the previously stored, full version of the item. Hence comparing just
      * according to the IDs.
-     *
+     * <p/>
      * If the item contains a "participantName" key, the value under this key is used as the item unique ID.
      * If the item contains a "conferenceName" key, the value under this key is used as the item unique ID.
      * Otherwise, only items with equal contents are considered equal.
@@ -648,8 +650,8 @@ ParamsLoop:
 
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
 
-        // FIXME: restrict audio ports as well?
-//        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
+        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
+        cmd.setParameter("maximumAudioPorts", 0);
         cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
 
         // defaults (may be overridden by specified room options
@@ -670,16 +672,35 @@ ParamsLoop:
         return room.getName();
     }
 
-    private static void setConferenceParametersByRoom(Command cmd, Room room)
+    private static void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
     {
         if (room.getName() != null) {
             cmd.setParameter("conferenceName", room.getName());
         }
 
         if (room.getLicenseCount() >= 0) {
-            // FIXME: restrict audio ports as well?
-//            cmd.setParameter("maximumAudioPorts", room.getLicenseCount());
             cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
+        }
+
+        if (room.getAliases() != null) {
+            cmd.setParameter("numericId", "");
+            for (Alias alias : room.getAliases()) {
+                if ((alias.getTechnology() == Technology.H323 || alias.getTechnology() == Technology.SIP)
+                        && alias.getType() == AliasType.E164) {
+                    if (!cmd.getParameterValue("numericId").equals("")) {
+                        // multiple number aliases
+                        final String m = "The connector supports only one numeric alias, requested another: " + alias;
+                        throw new CommandException(m);
+                    }
+                    // FIXME: get prefixLength according to the MCU configuration
+                    int prefixLength = alias.getValue().length() - 3;
+                    final String number = alias.getValue().substring(prefixLength);
+                    cmd.setParameter("numericId", number);
+                }
+                else {
+                    throw new CommandException("Unrecognized alias: " + alias);
+                }
+            }
         }
 
         if (room.getStartTime() != null) {
@@ -693,14 +714,13 @@ ParamsLoop:
             else {
                 milliDiff = 0; // FIXME: get current room start time
             }
-            cmd.setParameter("durationSeconds", milliDiff/1000);
+            cmd.setParameter("durationSeconds", milliDiff / 1000);
         }
         else {
             cmd.setParameter("durationSeconds", 0);
         }
 
         // options
-        setCommandOption(cmd, room, "numericId", "roomNumber");
         setCommandOption(cmd, room, "registerWithGatekeeper", "registerWithH323Gatekeeper");
         setCommandOption(cmd, room, "registerWithSIPRegistrar", "registerWithSIPRegistrar");
         if (room.hasOption("listedPublicly")) {
@@ -735,6 +755,9 @@ ParamsLoop:
             }
             else if (att.equals("licenseCount")) {
                 room.setLicenseCount((Integer) val);
+            }
+            else if (att.equals("aliases")) {
+                room.setAliases((List<Alias>) val);
             }
             else if (att.equals("startTime")) {
                 room.setStartTime((Date) val);
@@ -827,7 +850,7 @@ ParamsLoop:
     }
 
     @Override
-    public void dial(String roomId, String roomUserId, Alias alias) throws CommandException
+    public void dialParticipant(String roomId, String roomUserId, Alias alias) throws CommandException
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
 

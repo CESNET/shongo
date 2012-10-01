@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -11,6 +12,7 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.*;
+import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -125,6 +127,15 @@ public class ResourceControlServiceImpl extends Component
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetPlaybackLevel(level)));
         return String.format("Setting up playback level to %d", level);
+    }
+
+    @Override
+    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId, Alias alias) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DialParticipant(roomId, roomUserId, alias);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
     }
 
     /**

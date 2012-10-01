@@ -9,6 +9,8 @@ import java.util.Date;
  *
  * TODO: synchronize with Room
  *
+ * TODO: rename to RoomSummary
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class RoomInfo

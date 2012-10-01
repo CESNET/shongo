@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.api.xmlrpc.*;
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.xmlrpc.XmlRpcException;
@@ -74,7 +75,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
 
         handlerMapping = new HandlerMapping();
         handlerMapping.setTypeConverterFactory(
-                new cz.cesnet.shongo.controller.api.xmlrpc.TypeConverterFactory(Options.SERVER));
+                new cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory(Options.SERVER));
         handlerMapping.setRequestProcessorFactoryFactory(new RequestProcessorFactory());
         handlerMapping.setVoidMethodEnabled(true);
 
@@ -88,7 +89,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
     protected XmlRpcStreamServer newXmlRpcStreamServer()
     {
         XmlRpcStreamServer server = new ConnectionServer();
-        server.setTypeFactory(new cz.cesnet.shongo.controller.api.xmlrpc.TypeFactory(server, Options.SERVER));
+        server.setTypeFactory(new cz.cesnet.shongo.api.xmlrpc.TypeFactory(server, Options.SERVER));
         return server;
     }
 

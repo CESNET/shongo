@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.controller.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
 /**
@@ -10,6 +11,7 @@ import cz.cesnet.shongo.fault.FaultException;
  */
 public interface ResourceControlService extends Service
 {
+    // FIXME: rename target to address - should be address (IP, domain...); add another version of dial using Alias target
     @API
     public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException;
 
@@ -30,4 +32,7 @@ public interface ResourceControlService extends Service
 
     @API
     public String setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
+
+    @API
+    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId, Alias alias) throws FaultException;
 }

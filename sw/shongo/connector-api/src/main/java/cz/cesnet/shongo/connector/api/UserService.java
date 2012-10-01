@@ -19,7 +19,7 @@ public interface UserService
      * @param roomUserId    identifier to assign to the user within the given room
      * @param alias         alias under which the user is callable
      */
-    void dial(String roomId, String roomUserId, Alias alias) throws CommandException, CommandUnsupportedException;
+    void dialParticipant(String roomId, String roomUserId, Alias alias) throws CommandException, CommandUnsupportedException;
 
     /**
      * Lists all users present in a virtual room.

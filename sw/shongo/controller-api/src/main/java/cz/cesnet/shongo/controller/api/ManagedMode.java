@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.controller.api.xmlrpc.StructType;
+import cz.cesnet.shongo.api.xmlrpc.StructType;
 
 /**
  * Represents a managed mode for a device resource.

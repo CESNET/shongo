@@ -13,7 +13,7 @@
         <property name="entityManagerFactory" ref="entityManagerFactory"/>
         <property name="services">
             <bean class="cz.cesnet.shongo.controller.util.BeanListFactoryBean">
-                <property name="beanType" value="cz.cesnet.shongo.controller.api.xmlrpc.Service"/>
+                <property name="beanType" value="cz.cesnet.shongo.api.xmlrpc.Service"/>
             </bean>
         </property>
         <property name="components">

@@ -10,6 +10,8 @@ import cz.cesnet.shongo.connector.api.CommonService;
 /**
  * Command to dial a device.
  *
+ * TODO: generalize to be able to hold an IP address as well
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class Dial extends ConnectorAgentAction
@@ -25,7 +27,7 @@ public class Dial extends ConnectorAgentAction
         this.alias = alias;
     }
 
-    // FIXME: enforce the technology, alias type and number in the API, instead just a number
+    // FIXME: interpret as address (i.e., IP address)
     public Dial(String h323Number)
     {
         alias = new Alias(Technology.H323, AliasType.E164, h323Number);
@@ -43,14 +45,12 @@ public class Dial extends ConnectorAgentAction
 
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info(String.format("Dialing %s:%s", alias.getTechnology(), alias.getValue()));
+        logger.info("Dialing {}", alias);
         return getEndpoint(connector).dial(alias);
     }
 
     public String toString()
     {
-        return String.format("Dial agent action (technology: %s, alias type: %s, value: %s)",
-                alias.getTechnology(), alias.getType(), alias.getValue()
-                );
+        return String.format("Dial agent action (alias: %s)", alias);
     }
 }
