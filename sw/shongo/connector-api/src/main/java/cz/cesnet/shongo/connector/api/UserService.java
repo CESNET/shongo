@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector.api;
 
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 
@@ -11,6 +12,15 @@ import java.util.Map;
  */
 public interface UserService
 {
+    /**
+     * Dials a user and adds him/her to the room.
+     *
+     * @param roomId        identifier of room to which to add the user
+     * @param roomUserId    identifier to assign to the user within the given room
+     * @param alias         alias under which the user is callable
+     */
+    void dial(String roomId, String roomUserId, Alias alias) throws CommandException, CommandUnsupportedException;
+
     /**
      * Lists all users present in a virtual room.
      *
@@ -24,7 +34,7 @@ public interface UserService
      *
      * @param roomId     room identifier
      * @param roomUserId identifier of the user within the given room
-     * @return
+     * @return description of the user
      */
     RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 

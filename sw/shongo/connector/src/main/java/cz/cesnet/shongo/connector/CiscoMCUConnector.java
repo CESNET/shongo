@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
@@ -91,10 +92,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         }
 
         CiscoMCUConnector conn = new CiscoMCUConnector();
-
-        System.out.println("Supported methods:");
-        System.out.println(conn.getSupportedMethods());
-
         conn.connect(Address.parseAddress(address), username, password);
 
         // test of getRoomList() command
@@ -130,8 +127,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        for (RoomInfo room : roomList) {
 //            System.out.println(room);
 //        }
-        System.out.println("Deleting 'shongo-test'");
-        conn.deleteRoom("shongo-test");
+//        System.out.println("Deleting 'shongo-test'");
+//        conn.deleteRoom("shongo-test");
 //        roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
@@ -139,29 +136,33 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        }
 
         // test of createRoom() method
-        Room newRoom = new Room("shongo-test", 5);
-        newRoom.setOption("roomNumber", "200");
-        newRoom.setOption("description", "Shongo testing room");
-        newRoom.setOption("listedPublicly", true);
-        conn.createRoom(newRoom);
-        System.out.println("Created room " + newRoom.getName());
-        Collection<RoomInfo> roomList = conn.getRoomList();
-        System.out.println("Existing rooms:");
-        for (RoomInfo room : roomList) {
-            System.out.println(room);
-        }
+//        Room newRoom = new Room("shongo-test", 5);
+//        newRoom.setOption("roomNumber", "200");
+//        newRoom.setOption("description", "Shongo testing room");
+//        newRoom.setOption("listedPublicly", true);
+//        conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoom.getName());
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
 
         // test of modifyRoom() method
-        System.out.println("Modifying " + newRoom.getName());
-        Map<String, Object> atts = new HashMap<String, Object>();
-        atts.put("name", "shongo-testing");
-        atts.put("listedPublicly", false);
-        atts.put("pin", "1234");
-        conn.modifyRoom("shongo-test", atts);
-        Map<String, Object> atts2 = new HashMap<String, Object>();
-        atts2.put("roomNumber", "201");
-        atts2.put("name", "shongo-test");
-        conn.modifyRoom("shongo-testing", atts2);
+//        System.out.println("Modifying shongo-test");
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put("name", "shongo-testing");
+//        atts.put("listedPublicly", false);
+//        atts.put("pin", "1234");
+//        conn.modifyRoom("shongo-test", atts);
+//        Map<String, Object> atts2 = new HashMap<String, Object>();
+//        atts2.put("roomNumber", "201");
+//        atts2.put("name", "shongo-test");
+//        conn.modifyRoom("shongo-testing", atts2);
+
+        // user connecting and disconnecting
+//        conn.dial("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
+        conn.disconnectRoomUser("shongo-test", "c90");
 
         System.out.println("All done, disconnecting");
         conn.disconnect();
@@ -431,7 +432,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     {
         // we got just the difference since lastRevision (or full set if this is the first issue of the command)
         final String cacheId = getCommandCacheId(command);
-        
+
         if (lastRevision != null) {
             // fill the values that have not changed since lastRevision
             ListIterator<Map<String, Object>> iterator = results.listIterator();
@@ -820,30 +821,23 @@ ParamsLoop:
     //<editor-fold desc="USER SERVICE">
 
     @Override
-    public void disableContentProvider(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // TODO
-    }
-
-    @Override
-    public void disconnectRoomUser(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // TODO
-    }
-
-    @Override
-    public void enableContentProvider(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
-    {
-        // TODO
-    }
-
-    @Override
     public RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         return null; // TODO
+    }
+
+    @Override
+    public void dial(String roomId, String roomUserId, Alias alias) throws CommandException
+    {
+        // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
+
+        Command cmd = new Command("participant.add");
+        cmd.setParameter("conferenceName", roomId);
+        cmd.setParameter("participantName", roomUserId);
+        cmd.setParameter("address", alias.getValue()); // FIXME: toString() might be exploited
+        cmd.setParameter("participantType", "by_address");
+
+        exec(cmd);
     }
 
     @Override
@@ -854,6 +848,30 @@ ParamsLoop:
 
     @Override
     public void modifyRoomUser(String roomId, String roomUserId, Map attributes)
+            throws CommandException, CommandUnsupportedException
+    {
+        // TODO
+    }
+
+    @Override
+    public void disconnectRoomUser(String roomId, String roomUserId) throws CommandException
+    {
+        Command cmd = new Command("participant.remove");
+        cmd.setParameter("conferenceName", roomId);
+        cmd.setParameter("participantName", roomUserId);
+
+        exec(cmd);
+    }
+
+    @Override
+    public void enableContentProvider(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException
+    {
+        // TODO
+    }
+
+    @Override
+    public void disableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
         // TODO
