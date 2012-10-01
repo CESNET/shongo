@@ -41,7 +41,23 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API command
-\providecommand{\ApiCmd}[1]{\ApiItem{\ApiCode{#1}}}
+\provideenvironment{ApiCmd}[2]{{\item \ApiRef{#1} \ApiCode{#2(}}%
+\def\ApiCmdTmpFirst{\boolean{true}}%
+}{\ApiCode{)}%
+
+% Previous empty line is intended to be blank
+}
+\provideenvironment{ApiCmdCollection}[3]{{\item \ApiCode{#1<}\ApiRef{#2}\ApiCode{>} \ApiCode{#3(}}%
+\def\ApiCmdTmpFirst{\boolean{true}}%
+}{\ApiCode{)}%
+
+% Previous empty line is intended to be blank
+}
+\providecommand{\ApiCmdParam}[2]{%
+\ifthenelse{\ApiCmdTmpFirst}{}{, }%
+\ApiRef{#1} \ApiCode{#2}%
+\def\ApiCmdTmpFirst{\boolean{false}}%
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API atomic type
@@ -103,6 +119,7 @@
 %
 \def\tmpResult{\boolean{false}}%
 \ifthenelse{\equal{\ApiTmp}{String}}{\def\tmpResult{\boolean{true}}}{}%
+\ifthenelse{\equal{\ApiTmp}{void}}{\def\tmpResult{\boolean{true}}}{}%
 \ifthenelse{\equal{\ApiTmp}{int}}{\def\tmpResult{\boolean{true}}}{}%
 \ifthenelse{\equal{\ApiTmp}{boolean}}{\def\tmpResult{\boolean{true}}}{}%
 \ifthenelse{\equal{\ApiTmp}{long}}{\def\tmpResult{\boolean{true}}}{}%

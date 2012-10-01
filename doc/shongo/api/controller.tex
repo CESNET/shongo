@@ -400,13 +400,13 @@ Represents an information about allocation of \gls{g:resource-device} with \glsp
 
 \begin{Api}
 
-\ApiCmd{Controller getController()}
+\ApiItem{\ApiCode{Controller getController()}}
 Get information about the domain controller. See \ApiRef{Controller} class.
 
-\ApiCmd{Collection<Domain> listDomains(SecurityToken token)}
+\ApiItem{\ApiCode{Collection<Domain> listDomains(SecurityToken token)}}
 Lists all known domains with status if they are available to the domain controller.
 
-\ApiCmd{Collection<Connector> listConnectors(SecurityToken token)}
+\ApiItem{\ApiCode{Collection<Connector> listConnectors(SecurityToken token)}}
 Lists all known connectors in the controlled domain.
 
 \end{Api}
@@ -416,23 +416,41 @@ Lists all known connectors in the controlled domain.
 
 \begin{Api}
 
-\ApiCmd{String createResource(SecurityToken token, Resource resource)}
-Create a new resource that will be stored in the domain controller. The new resource identifier is returned as a result. The user with given |token| will be the resource owner. The |resource| must contain all attributes marked as \ApiRequired.
+\begin{ApiCmd}{String}{createResource}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{Resource}{resource}%
+\end{ApiCmd}
+Create a new resource that will be stored in the domain controller. The new resource identifier is returned as a result. The user with given \ApiCode{token} will be the resource owner. The \ApiCode{resource} must contain all attributes marked as \ApiRequired.
 
-\ApiCmd{modifyResource(SecurityToken token, Resource resource)}
-Modify the given resource. Attribute |identifier| must be filled and identifies the resource to be modified. That operation is permited only when the user with given |token| is the resource owner. The |resource| should contain only attributes to be modified.
+\begin{ApiCmd}{void}{modifyResource}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{Resource}{resource}%
+\end{ApiCmd}
+Modify the given resource. Attribute \ApiCode{identifier} must be filled and identifies the resource to be modified. That operation is permited only when the user with given \ApiCode{token} is the resource owner. The \ApiCode{resource} should contain only attributes to be modified.
 
-\ApiCmd{deleteResource(SecurityToken token, String resourceIdentifier)}
-Delete the resource with specified |resourceIdentifier| from Shongo management. That operation is permited only when the user with given |token| is the resource owner and only when the resource is not used in any future reservation.
+\begin{ApiCmd}{void}{deleteResource}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{resourceIdentifier}%
+\end{ApiCmd}
+Delete the resource with specified \ApiCode{resourceIdentifier} from Shongo management. That operation is permited only when the user with given \ApiCode{toke}| is the resource owner and only when the resource is not used in any future reservation.
 
-\ApiCmd{Collection<ResourceSummary> listResources(SecurityToken token)}
-List of resource summaries managed by Shongo, that a user with given |token| is entitled to see.
+\begin{ApiCmdCollection}{Collection}{ResourceSummary}{listResources}%
+\ApiCmdParam{SecurityToken}{token}%
+\end{ApiCmdCollection}
+List of resource summaries managed by Shongo, that a user with given \ApiCode{token} is entitled to see.
 
-\ApiCmd{Resource getResource(SecurityToken token, String resourceIdentifier)}
-Get the complete resource object for specified |resourceIdentifier| that a user with given |token| is entitled to see. See |Resource| for details.
+\begin{ApiCmd}{Resource}{getResource}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{resourceIdentifier}%
+\end{ApiCmd}
+Get the complete resource object for specified \ApiCode{resourceIdentifier} that a user with given \ApiCode{token} is entitled to see. See \ApiRef{Resource} for details.
 
-\ApiCmd{ResourceAllocation getResourceAllocation(SecurityToken token, String resourceIdentifier, Interval interval)}
-Get the allocation of resource object for specified |resourceIdentifier| in given |interval| that a user with given |token| is entitled to see. See |ResourceAllocation| for details.
+\begin{ApiCmd}{ResourceAllocation}{getResourceAllocation}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{resourceIdentifier}%
+\ApiCmdParam{Interval}{interval}%
+\end{ApiCmd}
+Get the allocation of resource object for specified \ApiCode{resourceIdentifier} in given \ApiCode{interval} that a user with given \ApiCode{token} is entitled to see. See \ApiRef{ResourceAllocation} for details.
 
 \end{Api}
 
@@ -441,66 +459,54 @@ Get the allocation of resource object for specified |resourceIdentifier| in give
 
 \begin{Api}
 
-\ApiCmd{String createReservationRequest(SecurityToken token, ReservationRequest reservationRequest)}
-Create a new reservation. The new reservation identifier is returned as a result. The |reservationRequest| must contain all attributes marked as \ApiRequired.
+\begin{ApiCmd}{String}{createReservationRequest}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{AbstractReservationRequest}{reservationRequest}%
+\end{ApiCmd}
+Create a new reservation. The new reservation identifier is returned as a result. The \ApiCode{reservationRequest} must contain all attributes marked as \ApiRequired.
 
-\ApiCmd{modifyReservationRequest(SecurityToken token, ReservationRequest reservationRequest)}
-Modify the reservation. Attribute |identifier| must be filled and identifies the reservation request to be modified. The |reservationRequest| should contain only attributes to be modified.
+\begin{ApiCmd}{String}{modifyReservationRequest}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{AbstractReservationRequest}{reservationRequest}%
+\end{ApiCmd}
+Modify the reservation. Attribute \ApiCode{identifier} must be filled and identifies the reservation request to be modified. The \ApiCode{reservationRequest} should contain only attributes to be modified.
 
-\ApiCmd{deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier)}
-Release the reservation with specified |reservationIdentifier|. The child reservations remain untouched.
+\begin{ApiCmd}{String}{deleteReservationRequest}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{reservationRequestIdentifier}%
+\end{ApiCmd}
+Release the reservation with specified \ApiCode{reservationIdentifier}. The child reservations remain untouched.
 
-\ApiCmd{ReservationSummary[] listReservationRequests(SecurityToken token)}
-List all the reservations that a user with given |token| is entitled to see. Only the lightweight definitions of reservation requests are returned, see |ReservationRequestSummary| for details.
+\begin{ApiCmdCollection}{Collection}{ReservationRequestSummary}{listReservationRequests}%
+\ApiCmdParam{SecurityToken}{token}%
+\end{ApiCmdCollection}
+List all the reservation requests that a user with given \ApiCode{token} is entitled to see. Only the lightweight definitions of reservation requests are returned, see \ApiRef{ReservationRequestSummary} for details.
 
-\ApiCmd{Reservation getReservationRequest(SecurityToken token, String reservationRequestIdentifier)}
-Get the reservation object for specified |reservationIdentifier| that a user with given |token| is entitled to see. The returned object contains requested time slots, requested compartments, child reservations and all other attributes that can be modified. It does not contain the read only scheduler allocation information which can be obtained by |getReservationAllocation|.
+\begin{ApiCmd}{AbstractReservationRequest}{getReservationRequest}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{reservationRequestIdentifier}%
+\end{ApiCmd}
+Get the reservation request for specified \ApiCode{reservationIdentifier} that a user with given \ApiCode{token} is entitled to see. The returned object contains requested time slots, requested compartments, child reservations and all other attributes that can be modified. It does not contain the read only scheduler allocation information which can be obtained by \ApiCode{getReservationAllocation}.
 
-\ApiCmd{ReservationAllocation getReservationAllocation(SecurityToken token, String reservationRequestIdentifier)}
-\todo{Not implemented yet}
-List all the date/time slots that were allocated by a scheduler for the reservation and for all child reservation (recursive). Each date/time slot contains list of identifiers for resources that are allocated for the date/time slot.
+\begin{ApiCmdCollection}{Collection}{Reservation}{listReservations}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{reservationRequestIdentifier}%
+\end{ApiCmdCollection}
+List allocated reservations for reservation request with given \ApiCode{reservationRequestIdentifier} that a user with given \ApiCode{token} is entitled to see.
 
-\ApiCmd{ResourceSummary[] listReservationSlotResources(SecurityToken token, String reservationId, AbsoluteDateTimeSlot slot, Map filter)}
-\todo{Not implemented yet}
-Get a list of allocated resources for the given date/time slot in a reservation with specified |reservationId| (one reservation can have multiple date/time slots in which the reservation takes place and the list of allocated resources may vary). The list of resources is filtered by specified |filter| map that should contain only attributes specified in |ResourceSummary|.
-
-\ApiCmd{AbsoluteDateTimeSlot[] findReservationAvailableSlots(SecurityToken token, Period duration, Resource[] resources, boolean interDomain)}
-\todo{Not implemented yet}
-Lookup available date/time slots for specified reservation |duration| and |resources|. Argument |interDomain| specifies whether inter-domain lookup should be performed.
-
-\end{Api}
-
-\subsection{Failures}
-
-%\begin{ApiFailures}
-%\ApiFailure{200}
-%\end{ApiFailures}
-\todo{No special faults yet}
-
-
-\section{Room Operations}
-
-\todo{Not implemented yet}
-
-\begin{Api}
-
-\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
-Get the list of users that currently participate in the room with specified |roomId|.
-
-\ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String userId)}
-Gets a concrete room user.
-
-\ApiCmd{modifyRoomUser(SecurityToken token, String roomId, String userId, Map attributes)}
-Modifies the user with specified |userId| in the room with given |roomId| (suitable for setting microphone/playback level, muting/unmuting\ldots).
-
-\ApiCmd{disconnectRoomUser(SecurityToken token, String roomId, String userId)}
-Disconnect the user with specified |userId| from the room with given |roomId|.
+\begin{ApiCmd}{Reservation}{getReservation}%
+\ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParam{String}{reservationIdentifier}%
+\end{ApiCmd}
+Get reservation with given \ApiCode{reservationIdentifier} that a user with given \ApiCode{token} is entitled to see.
 
 \end{Api}
 
-\subsection{Failures}
+\section{Resource Control}
 
-%\begin{ApiFailures}
-%\ApiFailure{300}
-%\end{ApiFailures}
-\todo{No special faults yet}
+\todo{}
+%\begin{Api}
+%\end{Api}
+
+
+
