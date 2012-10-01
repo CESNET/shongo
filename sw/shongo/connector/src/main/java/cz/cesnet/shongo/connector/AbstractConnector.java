@@ -45,6 +45,9 @@ abstract public class AbstractConnector implements CommonService
      * Uses reflection.
      * <p/>
      * Any method that declares throwing CommandUnsupportedException is considered not implemented on the connector.
+     * Thus, relies just on the fact that the method is not declaring throwing CommandUnsupportedException.
+     * Note that even if a method is actually implemented and works, it is not listed by getSupportedMethods() if it
+     * still declares throwing CommandUnsupportedException (which is needless, though).
      *
      * @return collection of public methods implemented from an interface, not throwing CommandUnsupportedException
      */
