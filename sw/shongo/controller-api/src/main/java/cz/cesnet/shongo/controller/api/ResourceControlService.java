@@ -36,8 +36,8 @@ public interface ResourceControlService extends Service
     public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
 
     @API
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId, String address) throws FaultException;
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address) throws FaultException;
 
     @API
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId, Alias alias) throws FaultException;
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias) throws FaultException;
 }

@@ -11,7 +11,6 @@ import cz.cesnet.shongo.connector.api.CommonService;
 public class DialParticipant extends ConnectorAgentAction
 {
     private String roomId;
-    private String roomUserId;
 
     // either alias or address will be used
     private Alias alias = null;
@@ -21,17 +20,15 @@ public class DialParticipant extends ConnectorAgentAction
     {
     }
 
-    public DialParticipant(String roomId, String roomUserId, String address)
+    public DialParticipant(String roomId, String address)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
         this.address = address;
     }
 
-    public DialParticipant(String roomId, String roomUserId, Alias alias)
+    public DialParticipant(String roomId, Alias alias)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
         this.alias = alias;
     }
 
@@ -44,14 +41,12 @@ public class DialParticipant extends ConnectorAgentAction
         }
 
         if (alias != null) {
-            logger.info(String.format("Dialing in room %s user %s at alias %s", roomId, roomUserId, alias));
-            getMultipoint(connector).dialParticipant(roomId, roomUserId, alias);
-            return null; // FIXME
+            logger.info(String.format("Dialing user at alias %s into room %s", alias, roomId));
+            return getMultipoint(connector).dialParticipant(roomId, alias);
         }
         else {
-            logger.info(String.format("Dialing in room %s user %s at address %s", roomId, roomUserId, alias));
-            getMultipoint(connector).dialParticipant(roomId, roomUserId, address);
-            return null; // FIXME
+            logger.info(String.format("Dialing user at address %s into room %s", alias, roomId));
+            return getMultipoint(connector).dialParticipant(roomId, address);
         }
     }
 
@@ -70,7 +65,7 @@ public class DialParticipant extends ConnectorAgentAction
             target = "address: " + address;
         }
 
-        return String.format("DialParticipant agent action (room: %s, roomUser: %s, %s)", roomId, roomUserId, target);
+        return String.format("DialParticipant agent action (room: %s, %s)", roomId, target);
     }
 
     public Alias getAlias()
@@ -91,16 +86,6 @@ public class DialParticipant extends ConnectorAgentAction
     public void setRoomId(String roomId)
     {
         this.roomId = roomId;
-    }
-
-    public String getRoomUserId()
-    {
-        return roomUserId;
-    }
-
-    public void setRoomUserId(String roomUserId)
-    {
-        this.roomUserId = roomUserId;
     }
 
     public String getAddress()

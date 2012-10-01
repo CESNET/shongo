@@ -10,6 +10,7 @@ import cz.cesnet.shongo.connector.api.*;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +24,8 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A connector for Cisco TelePresence MCU.
@@ -35,6 +38,8 @@ import java.util.*;
  * - Cisco TelePresence MCU 4500 Series
  * - Cisco TelePresence MCU MSE 8420
  * - Cisco TelePresence MCU MSE 8510
+ * <p/>
+ * TODO: throw CommandUnsupportedException from unimplemented methods
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -152,8 +157,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        for (RoomInfo room : roomList) {
 //            System.out.println(room);
 //        }
-//
-//        // test of modifyRoom() method
+
+        // test of modifyRoom() method
 //        System.out.println("Modifying shongo-test");
 //        Map<String, Object> atts = new HashMap<String, Object>();
 //        atts.put("name", "shongo-testing");
@@ -165,10 +170,19 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        atts2.put("name", "shongo-test");
 //        conn.modifyRoom("shongo-testing", atts2);
 
+        // test of listRoomUsers() method
+        System.out.println("Listing shongo-test room:");
+        Collection<RoomUser> shongoUsers = conn.listRoomUsers("shongo-test");
+        for (RoomUser ru : shongoUsers) {
+            System.out.println("  - " + ru.getUserId());
+        }
+        System.out.println("Listing done");
+
         // user connect by alias
-//        conn.dialParticipant("shongo-test", "c90", new Alias(Technology.H323, AliasType.E164, "950081038"));
+//        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
+//        System.out.println("Added user " + ruId);
         // user connect by address
-//        conn.dialParticipant("shongo-test", "c90", "147.251.54.102");
+        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
         // user disconnect
 //        conn.disconnectRoomUser("shongo-test", "c90");
 
@@ -237,6 +251,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                 logger.error("Error setting trust to all certificates", e);
             }
 
+            // TODO: get device info from system.xml
             initSession();
         }
         catch (MalformedURLException e) {
@@ -884,16 +899,18 @@ ParamsLoop:
     }
 
     @Override
-    public void dialParticipant(String roomId, String roomUserId, Alias alias) throws CommandException
+    public String dialParticipant(String roomId, Alias alias) throws CommandException
     {
-        dialParticipant(roomId, roomUserId, alias.getValue());
+        return dialParticipant(roomId, alias.getValue());
     }
 
     @Override
-    public void dialParticipant(String roomId, String roomUserId, String address) throws CommandException
+    public String dialParticipant(String roomId, String address) throws CommandException
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
-        // FIXME: generate roomUserId and return it
+
+        // FIXME: slow...
+        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", roomId);
@@ -902,12 +919,90 @@ ParamsLoop:
         cmd.setParameter("participantType", "by_address");
 
         exec(cmd);
+
+        return roomUserId;
+    }
+
+    /**
+     * Generates a room user ID for a new user.
+     *
+     * @param roomId technology ID of the room to generate a new user ID for
+     * @return a free roomUserId to be assigned (free in the moment of processing this method, might race condition with
+     *         someone else)
+     */
+    private String generateRoomUserId(String roomId) throws CommandException
+    {
+        List<Map<String, Object>> participants;
+        try {
+            Command cmd = new Command("participant.enumerate");
+            cmd.setParameter("operationScope", new String[]{"currentState"});
+            participants = execEnumerate(cmd, "participants");
+        }
+        catch (CommandException e) {
+            throw new CommandException("Cannot generate a new room user ID - cannot list current room users.", e);
+        }
+
+        // generate the new ID as maximal ID of present users increased by one
+        int maxFound = 0;
+        Pattern pattern = Pattern.compile("^participant(\\d+)$");
+        for (Map<String, Object> part : participants) {
+            if (!part.get("conferenceName").equals(roomId)) {
+                continue;
+            }
+            Matcher m = pattern.matcher((String) part.get("participantName"));
+            if (m.find()) {
+                maxFound = Math.max(maxFound, Integer.parseInt(m.group(1)));
+            }
+        }
+
+        return String.format("participant%d", maxFound + 1);
     }
 
     @Override
-    public Collection<RoomUser> listRoomUsers(String roomId) throws CommandException, CommandUnsupportedException
+    public Collection<RoomUser> listRoomUsers(String roomId) throws CommandException
     {
-        return null; // TODO
+        Command cmd = new Command("participant.enumerate");
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+        cmd.setParameter("enumerateFilter", "connected");
+        List<Map<String, Object>> participants = execEnumerate(cmd, "participants");
+
+        List<RoomUser> result = new ArrayList<RoomUser>();
+        for (Map<String, Object> part : participants) {
+            if (!part.get("conferenceName").equals(roomId)) {
+                continue; // not from this room
+            }
+            RoomUser ru = new RoomUser();
+
+            ru.setUserId((String) part.get("participantName"));
+            ru.setRoomId((String) part.get("conferenceName"));
+
+            Map<String, Object> state = (Map<String, Object>) part.get("currentState");
+
+            ru.setMuted((Boolean) state.get("audioRxMuted"));
+            if (state.get("audioRxGainMode").equals("fixed")) {
+                ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
+            }
+            ru.setJoinTime(new DateTime(state.get("connectTime")));
+
+            // room layout
+            if (state.containsKey("currentLayout")) {
+                RoomLayout.VoiceSwitching vs;
+                if (state.get("focusType").equals("voiceActivated")) {
+                    vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
+                }
+                else {
+                    vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
+                }
+                final Integer layoutIndex = (Integer) state.get("currentLayout");
+                RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
+
+                ru.setLayout(rl);
+            }
+
+            result.add(ru);
+        }
+
+        return result;
     }
 
     @Override

@@ -118,7 +118,8 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level)
+            throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetMicrophoneLevel(level)));
@@ -132,21 +133,23 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
-            String roomUserId, String address) throws FaultException
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
+            throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, roomUserId, address);
+        AgentAction act = new DialParticipant(roomId, address);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        return null; // TODO: return roomUserId returned by the command
     }
 
     @Override
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
-            String roomUserId, Alias alias) throws FaultException
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
+            throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, roomUserId, alias);
+        AgentAction act = new DialParticipant(roomId, alias);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        return null; // TODO: return roomUserId returned by the command
     }
 
     /**

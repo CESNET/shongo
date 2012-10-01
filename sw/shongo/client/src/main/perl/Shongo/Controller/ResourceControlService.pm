@@ -138,6 +138,8 @@ sub control_resource()
     $shell->run();
 }
 
+# TODO: add error printing instead of empty blocks of: if ($result->is_fault) return;
+
 sub resource_dial
 {
     my ($resourceIdentifier, $target) = @_;
