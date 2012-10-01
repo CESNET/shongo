@@ -74,11 +74,19 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException
+    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(target)));
-        return String.format("Dialing in '%s' for '%s'...", agentName, target);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(address)));
+        return String.format("Dialing in '%s' for address '%s'...", agentName, address); // FIXME: return the callId instead
+    }
+
+    @Override
+    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(alias)));
+        return String.format("Dialing in '%s' for alias '%s'...", agentName, alias); // FIXME: return the callId instead
     }
 
     @Override

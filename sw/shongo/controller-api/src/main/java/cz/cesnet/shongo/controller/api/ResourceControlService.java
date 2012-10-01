@@ -7,13 +7,17 @@ import cz.cesnet.shongo.fault.FaultException;
 /**
  * Interface to the service handling control operations on resources.
  *
+ * FIXME: revise return values
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public interface ResourceControlService extends Service
 {
-    // FIXME: rename target to address - should be address (IP, domain...); add another version of dial using Alias target
     @API
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException;
+    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException;
+
+    @API
+    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException;
 
     @API
     public String standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;

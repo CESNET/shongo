@@ -679,7 +679,7 @@ ParamsLoop:
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
 
         cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
-        cmd.setParameter("maximumAudioPorts", 0);
+        cmd.setParameter("maximumAudioPorts", 0); // audio-only participants are forced to use video slots
         cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
 
         // defaults (may be overridden by specified room options

@@ -74,8 +74,8 @@ sub control_resource()
             method => sub { shift->exit_requested(1); }
         },
         "dial" => {
-            desc => "Dial a number",
-            minargs => 1, args => "[number]",
+            desc => "Dial a number or address",
+            minargs => 1, args => "[number/address]",
             method => sub {
                 my ($shell, $params, @args) = @_;
                 resource_dial($resourceIdentifier, $args[0]);

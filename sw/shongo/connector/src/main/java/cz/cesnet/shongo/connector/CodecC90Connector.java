@@ -442,12 +442,10 @@ reading:
     // ENDPOINT SERVICE
 
     @Override
-    public int dial(Alias server) throws CommandException
+    public int dial(String address) throws CommandException
     {
         Command command = new Command("xCommand Dial");
-        command.setParameter("Number", server.getValue());
-        command.setParameter("Protocol", server.getTechnology().getCode());
-        // TODO: find out whether the device accepts all types of aliases, or whether it must be told explicitly
+        command.setParameter("Number", address);
         // NOTE: the BookingId parameter could be used to identify the reservation for which this dial is issued in call
         //       logs; other connectors are missing such a feature, however, so do we
 
@@ -458,6 +456,12 @@ reading:
         catch (XPathExpressionException e) {
             throw new CommandException("Program error in parsing the command result.", e);
         }
+    }
+
+    @Override
+    public int dial(Alias alias) throws CommandException
+    {
+        return dial(alias.getValue());
     }
 
     @Override
