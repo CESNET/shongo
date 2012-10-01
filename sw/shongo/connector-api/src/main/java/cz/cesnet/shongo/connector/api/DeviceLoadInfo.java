@@ -16,11 +16,17 @@ public class DeviceLoadInfo
     private long diskSpaceAvailable = -1L;
     private long upTime = -1L;
 
+    /**
+     * @return CPU load as a percentage of maximum
+     */
     public float getCpuLoad()
     {
         return cpuLoad;
     }
 
+    /**
+     * @param cpuLoad    CPU load as a percentage of maximum
+     */
     public void setCpuLoad(float cpuLoad)
     {
         this.cpuLoad = cpuLoad;

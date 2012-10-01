@@ -185,6 +185,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // user disconnect
 //        conn.disconnectRoomUser("shongo-test", "participant1");
 
+        conn.getDeviceLoadInfo();
+
 //        System.out.println("All done, disconnecting");
         conn.disconnect();
     }
@@ -337,17 +339,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         HttpsURLConnection.setDefaultHostnameVerifier(hv);
     }
 
-    /**
-     * Returns the URL on which to communicate with the device.
-     *
-     * @return URL for communication with the device
-     */
-    private URL getDeviceURL() throws MalformedURLException
-    {
-        // RPC2 is a fixed path given by Cisco, see the API docs
-        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "RPC2");
-    }
-
     @Override
     public void disconnect() throws CommandException
     {
@@ -358,6 +349,17 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         gatekeeperRegistrationPrefix = null;
     }
 
+
+    /**
+     * Returns the URL on which to communicate with the device.
+     *
+     * @return URL for communication with the device
+     */
+    private URL getDeviceURL() throws MalformedURLException
+    {
+        // RPC2 is a fixed path given by Cisco, see the API docs
+        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "RPC2");
+    }
 
     /**
      * Sends a command to the device. Blocks until response to the command is complete.
@@ -1143,7 +1145,18 @@ ParamsLoop:
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> health = exec(new Command("device.health.query"));
+        Map<String, Object> status = exec(new Command("device.query"));
+
+        DeviceLoadInfo info = new DeviceLoadInfo();
+        info.setCpuLoad((Integer) health.get("cpuLoad"));
+        if (status.containsKey("uptime")) {
+            info.setUpTime((Long) status.get("uptime")); // NOTE: 'uptime' not documented, but it is there
+        }
+
+        // NOTE: memory and disk usage not accessible via API
+
+        return info;
     }
 
     @Override
@@ -1173,7 +1186,7 @@ ParamsLoop:
     public MediaData getReceivedVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException(); // TODO
+        throw new CommandUnsupportedException(); // TODO: call participant.status and use previewURL
     }
 
     @Override
