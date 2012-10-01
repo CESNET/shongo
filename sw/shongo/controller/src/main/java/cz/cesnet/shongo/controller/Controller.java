@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;

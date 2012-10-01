@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api.xmlrpc;
+package cz.cesnet.shongo.api.xmlrpc;
 
 import cz.cesnet.shongo.api.AtomicType;
 import cz.cesnet.shongo.api.util.Converter;

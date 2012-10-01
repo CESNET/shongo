@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.jade.ontology;
 
+import cz.cesnet.shongo.api.util.ClassHelper;
 import jade.content.onto.BeanOntology;
 import jade.content.onto.BeanOntologyException;
 import jade.content.onto.Ontology;
@@ -28,7 +29,9 @@ public class ShongoOntology extends BeanOntology
         super(NAME);
 
         try {
-            add(getClass().getPackage().getName());
+            for (String packageName : ClassHelper.getPackages()) {
+                add(packageName);
+            }
         }
         catch (BeanOntologyException e) {
             logger.error("Error creating the ontology.", e);

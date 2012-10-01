@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.api.xmlrpc;
+package cz.cesnet.shongo.api.xmlrpc;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

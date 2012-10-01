@@ -41,6 +41,25 @@ public class ClassHelper
      */
     public static Class getClassFromShortName(String shortClassName) throws ClassNotFoundException
     {
+        shortClassName = shortClassName.replace(".", "$");
+        for (String item : getPackages()) {
+            try {
+                Class clazz = Class.forName(item + "." + shortClassName);
+                return clazz;
+            }
+            catch (ClassNotFoundException exception) {
+            }
+        }
+        return Class.forName("cz.cesnet.shongo." + shortClassName);
+    }
+
+    /**
+     * Gets all packages named cz.cesnet.shongo.*.api
+     *
+     * @return
+     */
+    public static String[] getPackages()
+    {
         if (packages == null) {
             ArrayList<String> list = new ArrayList<String>();
             for (Package item : Package.getPackages()) {
@@ -51,16 +70,7 @@ public class ClassHelper
             }
             packages = list.toArray(new String[list.size()]);
         }
-        shortClassName = shortClassName.replace(".", "$");
-        for (String item : packages) {
-            try {
-                Class clazz = Class.forName(item + "." + shortClassName);
-                return clazz;
-            }
-            catch (ClassNotFoundException exception) {
-            }
-        }
-        return Class.forName("cz.cesnet.shongo." + shortClassName);
+        return packages;
     }
 
     /**
