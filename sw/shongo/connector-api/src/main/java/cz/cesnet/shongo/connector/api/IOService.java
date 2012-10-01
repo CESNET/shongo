@@ -11,44 +11,50 @@ public interface IOService
     /**
      * Mutes a user in a room.
      *
+     * @param roomId     ID of room
      * @param roomUserId ID of room user to mute
      */
-    void muteUser(String roomUserId) throws CommandException, CommandUnsupportedException;
+    void muteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Unmutes a user in a room.
      *
+     * @param roomId     ID of room
      * @param roomUserId ID of room user to unmute
      */
-    void unmuteUser(String roomUserId) throws CommandException, CommandUnsupportedException;
+    void unmuteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Sets microphone audio level of a user in a room to a given value.
      *
+     * @param roomId     ID of room
      * @param roomUserId ID of room user to adjust the settings for
      * @param level      microphone level to set
      */
-    void setUserMicrophoneLevel(String roomUserId, int level) throws CommandException, CommandUnsupportedException;
+    void setUserMicrophoneLevel(String roomId, String roomUserId, int level) throws CommandException, CommandUnsupportedException;
 
     /**
      * Sets playback audio level of a user in a room to a given value.
      *
+     * @param roomId     ID of room
      * @param roomUserId ID of room user to adjust the settings for
      * @param level      microphone level to set
      */
-    void setUserPlaybackLevel(String roomUserId, int level) throws CommandException, CommandUnsupportedException;
+    void setUserPlaybackLevel(String roomId, String roomUserId, int level) throws CommandException, CommandUnsupportedException;
 
     /**
      * Enables video from a user in a room.
      *
+     * @param roomId     ID of room
      * @param roomUserId ID of room user to enable video from
      */
-    void enableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException;
+    void enableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Disables video from a user in a room.
      *
+     * @param roomId     ID of room
      * @param roomUserId ID of room user to disable video from
      */
-    void disableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException;
+    void disableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 }

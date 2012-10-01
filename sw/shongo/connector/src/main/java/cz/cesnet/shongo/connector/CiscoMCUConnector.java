@@ -185,8 +185,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // user disconnect
 //        conn.disconnectRoomUser("shongo-test", "participant1");
 
-        conn.getDeviceLoadInfo();
-
 //        System.out.println("All done, disconnecting");
         conn.disconnect();
     }
@@ -1060,38 +1058,39 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void disableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void enableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void enableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void muteUser(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void setUserMicrophoneLevel(String roomUserId, int level)
+    public void setUserMicrophoneLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void setUserPlaybackLevel(String roomUserId, int level) throws CommandException, CommandUnsupportedException
+    public void setUserPlaybackLevel(String roomId, String roomUserId, int level)
+            throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void unmuteUser(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
@@ -1143,7 +1142,7 @@ ParamsLoop:
     //<editor-fold desc="MONITORING SERVICE">
 
     @Override
-    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
+    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException
     {
         Map<String, Object> health = exec(new Command("device.health.query"));
         Map<String, Object> status = exec(new Command("device.query"));
