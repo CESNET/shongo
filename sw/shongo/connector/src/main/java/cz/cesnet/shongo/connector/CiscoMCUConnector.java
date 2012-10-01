@@ -161,7 +161,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        conn.modifyRoom("shongo-testing", atts2);
 
         // user connecting and disconnecting
-//        conn.dial("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
+//        conn.dialParticipant("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
         conn.disconnectRoomUser("shongo-test", "c90");
 
         System.out.println("All done, disconnecting");
@@ -827,7 +827,7 @@ ParamsLoop:
     }
 
     @Override
-    public void dial(String roomId, String roomUserId, Alias alias) throws CommandException
+    public void dialParticipant(String roomId, String roomUserId, Alias alias) throws CommandException
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
 
