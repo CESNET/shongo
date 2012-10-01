@@ -74,67 +74,61 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
+    public int dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(address)));
-        return String.format("Dialing in '%s' for address '%s'...", agentName, address); // FIXME: return the callId instead
+        return 0; // FIXME: return the callId
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
+    public int dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(alias)));
-        return String.format("Dialing in '%s' for alias '%s'...", agentName, alias); // FIXME: return the callId instead
+        return 0; // FIXME: return the callId
     }
 
     @Override
-    public String standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new StandBy()));
-        return String.format("Setting '%s' to standby mode via '%s' agent.", deviceResourceIdentifier, agentName);
     }
 
     @Override
-    public String hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
-        return String.format("Hanging up all calls in '%s'", agentName);
     }
 
     @Override
-    public String mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Mute()));
-        return String.format("Muting the '%s'.", agentName);
     }
 
     @Override
-    public String unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Unmute()));
-        return String.format("Unmuting the '%s'.", agentName);
     }
 
     @Override
-    public String setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetMicrophoneLevel(level)));
-        return String.format("Setting up microphone level to %d", level);
     }
 
     @Override
-    public String setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetPlaybackLevel(level)));
-        return String.format("Setting up playback level to %d", level);
     }
 
     @Override

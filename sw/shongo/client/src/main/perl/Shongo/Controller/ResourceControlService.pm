@@ -150,7 +150,7 @@ sub resource_dial
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
+    printf("CallId: %d\n", $result->value());
 }
 
 sub resource_standby
@@ -164,7 +164,6 @@ sub resource_standby
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_hang_up_all
@@ -178,7 +177,6 @@ sub resource_hang_up_all
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_mute
@@ -192,7 +190,6 @@ sub resource_mute
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_unmute
@@ -206,7 +203,6 @@ sub resource_unmute
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_set_microphone_level
@@ -221,7 +217,6 @@ sub resource_set_microphone_level
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_set_playback_level
@@ -236,7 +231,6 @@ sub resource_set_playback_level
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_dial_participant
