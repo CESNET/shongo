@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
  * - Cisco TelePresence MCU MSE 8420
  * - Cisco TelePresence MCU MSE 8510
  * <p/>
- * TODO: throw CommandUnsupportedException from unimplemented methods
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -182,11 +181,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
 //        System.out.println("Added user " + ruId);
         // user connect by address
-        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
+//        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
         // user disconnect
-//        conn.disconnectRoomUser("shongo-test", "c90");
+//        conn.disconnectRoomUser("shongo-test", "participant1");
 
-        System.out.println("All done, disconnecting");
+//        System.out.println("All done, disconnecting");
         conn.disconnect();
     }
 
@@ -850,13 +849,13 @@ ParamsLoop:
     @Override
     public String exportRoomSettings(String roomId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void importRoomSettings(String roomId, String settings) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -866,26 +865,26 @@ ParamsLoop:
     @Override
     public void removeRoomContentFile(String roomId, String name) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void addRoomContent(String roomId, String name, MediaData data)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -895,7 +894,7 @@ ParamsLoop:
     @Override
     public RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
@@ -1009,7 +1008,7 @@ ParamsLoop:
     public void modifyRoomUser(String roomId, String roomUserId, Map attributes)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
@@ -1026,14 +1025,14 @@ ParamsLoop:
     public void enableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void disableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -1043,38 +1042,38 @@ ParamsLoop:
     @Override
     public void disableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void enableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void muteUser(String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void setUserMicrophoneLevel(String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void setUserPlaybackLevel(String roomUserId, int level) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void unmuteUser(String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -1084,39 +1083,39 @@ ParamsLoop:
     @Override
     public void deleteRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void downloadRecording(String downloadURL, String targetPath)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public int startRecording(String roomId, ContentType format, RoomLayout layout)
             throws CommandException, CommandUnsupportedException
     {
-        return 0; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -1126,13 +1125,13 @@ ParamsLoop:
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
@@ -1156,14 +1155,14 @@ ParamsLoop:
     public MediaData getReceivedVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public MediaData getSentVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>

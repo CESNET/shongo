@@ -7,6 +7,11 @@ package cz.cesnet.shongo.api;
  */
 public class CommandUnsupportedException extends Exception
 {
+    public CommandUnsupportedException()
+    {
+        super();
+    }
+
     /**
      * @param message    name of the command
      */
