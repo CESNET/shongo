@@ -91,6 +91,10 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         }
 
         CiscoMCUConnector conn = new CiscoMCUConnector();
+
+        System.out.println("Supported methods:");
+        System.out.println(conn.getSupportedMethods());
+
         conn.connect(Address.parseAddress(address), username, password);
 
         // test of getRoomList() command
