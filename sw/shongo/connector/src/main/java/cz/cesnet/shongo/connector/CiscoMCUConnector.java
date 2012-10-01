@@ -648,8 +648,8 @@ ParamsLoop:
 
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
 
-        // FIXME: restrict audio ports as well?
-//        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
+        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
+        cmd.setParameter("maximumAudioPorts", 0);
         cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
 
         // defaults (may be overridden by specified room options
@@ -677,8 +677,6 @@ ParamsLoop:
         }
 
         if (room.getLicenseCount() >= 0) {
-            // FIXME: restrict audio ports as well?
-//            cmd.setParameter("maximumAudioPorts", room.getLicenseCount());
             cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
         }
 
