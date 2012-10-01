@@ -4,7 +4,7 @@ TEXFILES=api.tex
 build: $(TARGET).pdf
 	
 clean:
-	rm -f *.pdf *.aux *.log *.out *.toc *.glg *.glo *.gls *.xdy *.synctex.gz
+	rm -f *.pdf *.aux *.log *.out *.toc *.glg *.glo *.xdy *.synctex.gz
 
 # Build PDF from tex
 $(TARGET).pdf: $(TARGET).toc $(TARGET).gls $(TARGET).tex $(TEXFILES)
