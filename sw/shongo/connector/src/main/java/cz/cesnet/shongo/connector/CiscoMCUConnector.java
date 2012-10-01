@@ -250,14 +250,14 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                 logger.error("Error setting trust to all certificates", e);
             }
 
-            // TODO: get device info from system.xml
             initSession();
+            initDeviceInfo();
         }
         catch (MalformedURLException e) {
             throw new CommandException("Error constructing URL of the device.", e);
         }
         catch (CommandException e) {
-            throw new CommandException("Error initializing connection to the device.", e);
+            throw new CommandException("Error setting up connection to the device.", e);
         }
 
         info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
@@ -271,6 +271,24 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         if (!gkInfo.get("gatekeeperUsage").equals("disabled")) {
             gatekeeperRegistrationPrefix = (String) gkInfo.get("registrationPrefix");
         }
+    }
+
+    private void initDeviceInfo() throws CommandException
+    {
+        Map<String, Object> device = exec(new Command("device.query"));
+        DeviceInfo di = new DeviceInfo();
+
+        di.setName((String) device.get("model"));
+
+        String version = (String) device.get("softwareVersion")
+                + " (API: " + (String) device.get("apiVersion")
+                + ", build: " + (String) device.get("buildVersion")
+                + ")";
+        di.setSoftwareVersion(version);
+
+        di.setSerialNumber((String) device.get("serial"));
+
+        info.setDeviceInfo(di);
     }
 
     /**
