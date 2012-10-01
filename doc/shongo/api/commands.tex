@@ -94,13 +94,26 @@
 \provideenvironment{ApiFailures}{\begin{compactitem}}{\end{compactitem}}
 \providecommand{\ApiFailure}[1]{\ApiItem{\ApiCode{faultCode = #1}}}
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API ref
-\providecommand{\ApiRef}[1]{
+\providecommand{\ApiRef}[1]{%
 \foreach \ApiTmp [count=\ApiTmpIndex] in{#1}{%
+%
 \ifthenelse{\ApiTmpIndex > 1}{\ApiCode{|}}{}%
+%
+\def\tmpResult{\boolean{false}}%
+\ifthenelse{\equal{\ApiTmp}{String}}{\def\tmpResult{\boolean{true}}}{}%
+\ifthenelse{\equal{\ApiTmp}{int}}{\def\tmpResult{\boolean{true}}}{}%
+\ifthenelse{\equal{\ApiTmp}{boolean}}{\def\tmpResult{\boolean{true}}}{}%
+\ifthenelse{\equal{\ApiTmp}{long}}{\def\tmpResult{\boolean{true}}}{}%
+\ifthenelse{\equal{\ApiTmp}{float}}{\def\tmpResult{\boolean{true}}}{}%
+\ifthenelse{\equal{\ApiTmp}{byte[]}}{\def\tmpResult{\boolean{true}}}{}%
+% 
+\ifthenelse{\tmpResult}{%
+\textbf{\texttt{\ApiTmp}}
+}{%
 \hyperref[api:\ApiTmp]{\textbf{\texttt{\ApiTmp}}}%
-}  
+}%  
+}%
 }
 

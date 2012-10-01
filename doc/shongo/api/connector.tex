@@ -85,11 +85,11 @@ Current device load information. A negative value in any attribute means the val
 \ApiClass{Room}{}
 Represents a virtual room on a multipoint server device.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{users}{RoomUser[]}{\ApiRequired} List of allowed users.
+\ApiClassAttributeCollection{users}{List}{RoomUser}{\ApiRequired} List of allowed users.
 \ApiClassAttribute{allowGuests}{boolean}{\ApiRequired} A flag indicating whether to allow guest users to join the room.
 \ApiClassAttribute{licenseCount}{int}{\ApiRequired} Number of licenses that multipoint server can utilize for this room.
 \ApiClassAttribute{layout}{RoomLayout}{\ApiRequired} The default room layout (used for all participants who did not specify a layout of their own choice).
-\ApiClassAttribute{configuration}{String[]}{\ApiOptional} Platform specific configuration.
+\ApiClassAttributeCollection{configuration}{List}{String}{\ApiOptional} Platform specific configuration.
 \end{ApiClassAttributes}
 \todo{Room settings should be auto-modified in time be uploaded calendar}
 
@@ -104,7 +104,7 @@ A brief info about a virtual room at a server.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
 \ApiClassAttribute{owner}{String}{} Identification of the room owner.
-\ApiClassAttribute{startTime}{AbsoluteDateTime}{} Date and time when the room was (or is to be) started.
+\ApiClassAttribute{startTime}{DateTime}{} Date and time when the room was (or is to be) started.
 \ApiClassAttribute{reservation}{Reservation}{} Reservation for which this room was created (to satisfy use-case \ref{UC:ops:room:shongo-options}).
 \ApiClassAttribute{type}{Technology}{} Type of the room.
 \end{ApiClassAttributes}
@@ -204,7 +204,7 @@ Sets up a room according to given |settings| previously exported by the |exportR
 \subsection{User Management}
 \begin{Api}
 
-\ApiCmd{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}
+\ApiCmd{List<RoomUser> listRoomUsers(SecurityToken token, String roomId)}
 
 \ApiCmd{RoomUser getRoomUser(SecurityToken token, String roomId, String roomUserId)}
 Gets user information and settings in a room.
