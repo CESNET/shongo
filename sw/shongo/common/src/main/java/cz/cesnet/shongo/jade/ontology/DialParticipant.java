@@ -38,6 +38,11 @@ public class DialParticipant extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
+        if (alias != null && address != null) {
+            throw new IllegalStateException(
+                    "Both alias and address set for the DialParticipant command - should be just one.");
+        }
+
         if (alias != null) {
             logger.info(String.format("Dialing in room %s user %s at alias %s", roomId, roomUserId, alias));
             getMultipoint(connector).dialParticipant(roomId, roomUserId, alias);
@@ -52,8 +57,20 @@ public class DialParticipant extends ConnectorAgentAction
 
     public String toString()
     {
-        return String
-                .format("DialParticipant agent action (room: %s, roomUser: %s, alias: %s)", roomId, roomUserId, alias);
+        if (alias != null && address != null) {
+            throw new IllegalStateException(
+                    "Both alias and address set for the DialParticipant command - should be just one.");
+        }
+
+        String target;
+        if (alias != null) {
+            target = "alias: " + alias;
+        }
+        else {
+            target = "address: " + address;
+        }
+
+        return String.format("DialParticipant agent action (room: %s, roomUser: %s, %s)", roomId, roomUserId, target);
     }
 
     public Alias getAlias()
