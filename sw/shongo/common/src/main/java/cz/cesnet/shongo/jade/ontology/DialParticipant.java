@@ -12,10 +12,20 @@ public class DialParticipant extends ConnectorAgentAction
 {
     private String roomId;
     private String roomUserId;
-    private Alias alias;
+
+    // either alias or address will be used
+    private Alias alias = null;
+    private String address = null;
 
     public DialParticipant()
     {
+    }
+
+    public DialParticipant(String roomId, String roomUserId, String address)
+    {
+        this.roomId = roomId;
+        this.roomUserId = roomUserId;
+        this.address = address;
     }
 
     public DialParticipant(String roomId, String roomUserId, Alias alias)
@@ -28,9 +38,16 @@ public class DialParticipant extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info(String.format("Dialing in room %s user %s at alias %s", roomId, roomUserId, alias));
-        getMultipoint(connector).dialParticipant(roomId, roomUserId, alias);
-        return null;
+        if (alias != null) {
+            logger.info(String.format("Dialing in room %s user %s at alias %s", roomId, roomUserId, alias));
+            getMultipoint(connector).dialParticipant(roomId, roomUserId, alias);
+            return null; // FIXME
+        }
+        else {
+            logger.info(String.format("Dialing in room %s user %s at address %s", roomId, roomUserId, alias));
+            getMultipoint(connector).dialParticipant(roomId, roomUserId, address);
+            return null; // FIXME
+        }
     }
 
     public String toString()
@@ -67,5 +84,15 @@ public class DialParticipant extends ConnectorAgentAction
     public void setRoomUserId(String roomUserId)
     {
         this.roomUserId = roomUserId;
+    }
+
+    public String getAddress()
+    {
+        return address;
+    }
+
+    public void setAddress(String address)
+    {
+        this.address = address;
     }
 }

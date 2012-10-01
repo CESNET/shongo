@@ -17,7 +17,9 @@ public interface EndpointService extends CommonService
     /**
      * Dials a server.
      *
-     * @param server server address to dial
+     * TODO: add a String address variant
+     *
+     * @param server server address to dial; FIXME: rename to 'alias'
      * @return call ID (suitable for further control of the call)
      */
     int dial(Alias server) throws CommandException, CommandUnsupportedException;

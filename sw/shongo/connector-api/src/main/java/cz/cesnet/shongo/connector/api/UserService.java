@@ -13,7 +13,16 @@ import java.util.Map;
 public interface UserService
 {
     /**
-     * Dials a user and adds him/her to the room.
+     * Dials a user by an address and adds him/her to the room.
+     *
+     * @param roomId        identifier of room to which to add the user
+     * @param roomUserId    identifier to assign to the user within the given room
+     * @param address       address under which the user is callable
+     */
+    void dialParticipant(String roomId, String roomUserId, String address) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Dials a user by an alias and adds him/her to the room.
      *
      * @param roomId        identifier of room to which to add the user
      * @param roomUserId    identifier to assign to the user within the given room

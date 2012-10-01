@@ -133,20 +133,18 @@ public class ResourceControlServiceImpl extends Component
     public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId, String address) throws FaultException
     {
-        /*String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, roomUserId, alias);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));*/
-        System.out.println("Dialing by address " + deviceResourceIdentifier + " " + roomId + " " + roomUserId + " " + address);
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DialParticipant(roomId, roomUserId, address);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
     }
 
     @Override
     public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId, Alias alias) throws FaultException
     {
-        /*String agentName = getAgentName(deviceResourceIdentifier);
+        String agentName = getAgentName(deviceResourceIdentifier);
         AgentAction act = new DialParticipant(roomId, roomUserId, alias);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));*/
-        System.out.println("Dialing by alias " + deviceResourceIdentifier + " " + roomId + " " + roomUserId + " " + alias.getValue());
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
     }
 
     /**

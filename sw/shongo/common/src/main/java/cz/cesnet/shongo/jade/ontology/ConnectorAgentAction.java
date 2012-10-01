@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
  *
  * Offers some helper methods common to all agent actions.
  *
+ * Note that all AgentAction classes must have the default constructor without any parameters for Jade to be able to
+ * construct the objects.
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public abstract class ConnectorAgentAction implements AgentAction
