@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.connector;
 
+import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
 import cz.cesnet.shongo.connector.jade.command.ManageCommand;
 import cz.cesnet.shongo.jade.Container;
@@ -169,7 +170,7 @@ public class Connector
                 ManageCommand cmd = new ManageCommand(
                         instCfg.getString("device.connectorClass"),
                         instCfg.getString("device.host"),
-                        instCfg.getInt("device.port"),
+                        instCfg.getInt("device.port", Address.DEFAULT_PORT),
                         instCfg.getString("device.auth.username"),
                         instCfg.getString("device.auth.password")
                 );
