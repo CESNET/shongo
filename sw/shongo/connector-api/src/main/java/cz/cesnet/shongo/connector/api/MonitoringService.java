@@ -27,6 +27,8 @@ public interface MonitoringService
     /**
      * Lists all rooms at the device.
      *
+     * FIXME: should also contain technology IDs of rooms. What about returning a map of IDs to RoomInfos?
+     *
      * @return array of rooms
      */
     Collection<RoomInfo> getRoomList() throws CommandException, CommandUnsupportedException;

@@ -30,10 +30,14 @@ public interface RoomService
     /**
      * Modifies a virtual room.
      *
+     * The attributes may name any of Room attributes or platform-specific options.
+     *
      * @param roomId     room identifier
      * @param attributes map of room attributes to change
+     * @return new room identifier (shall be the same for most connectors, but may change due to changes in some
+     *         attributes)
      */
-    void modifyRoom(String roomId, Map attributes) throws CommandException, CommandUnsupportedException;
+    String modifyRoom(String roomId, Map<String, Object> attributes) throws CommandException, CommandUnsupportedException;
 
     /**
      * Deletes a virtual room.

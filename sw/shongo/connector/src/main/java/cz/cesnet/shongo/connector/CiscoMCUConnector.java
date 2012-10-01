@@ -93,24 +93,71 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         CiscoMCUConnector conn = new CiscoMCUConnector();
         conn.connect(Address.parseAddress(address), username, password);
 
-        Collection<RoomInfo> roomList = conn.getRoomList();
-        System.out.println("Existing rooms:");
-        for (RoomInfo room : roomList) {
-            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getName(), room.getType(),
-                    room.getStartTime(), room.getOwner());
-        }
+        // test of getRoomList() command
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getName(), room.getType(),
+//                    room.getStartTime(), room.getOwner());
+//        }
 
+        // test that the second enumeration query fills data that has not changed and therefore were not transferred
 //        Command enumParticipantsCmd = new Command("participant.enumerate");
 //        enumParticipantsCmd.setParameter("operationScope", new String[]{"currentState"});
 //        enumParticipantsCmd.setParameter("enumerateFilter", "connected");
 //        List<Map<String, Object>> participants = conn.execEnumerate(enumParticipantsCmd, "participants");
 //        List<Map<String, Object>> participants2 = conn.execEnumerate(enumParticipantsCmd, "participants");
 
+        // test that the second enumeration query fills data that has not changed and therefore were not transferred
 //        Command enumConfCmd = new Command("conference.enumerate");
 //        enumConfCmd.setParameter("moreThanFour", Boolean.TRUE);
 //        enumConfCmd.setParameter("enumerateFilter", "completed");
 //        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
 //        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
+
+        // test of getRoomInfo() command
+//        RoomInfo shongoTestRoom = conn.getRoomInfo("shongo-test");
+//        System.out.println("shongo-test room:");
+//        System.out.println(shongoTestRoom);
+
+        // test of deleteRoom() command
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+        System.out.println("Deleting 'shongo-test'");
+        conn.deleteRoom("shongo-test");
+//        roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+
+        // test of createRoom() method
+        Room newRoom = new Room("shongo-test", 5);
+        newRoom.setOption("roomNumber", "200");
+        newRoom.setOption("description", "Shongo testing room");
+        newRoom.setOption("listedPublicly", true);
+        conn.createRoom(newRoom);
+        System.out.println("Created room " + newRoom.getName());
+        Collection<RoomInfo> roomList = conn.getRoomList();
+        System.out.println("Existing rooms:");
+        for (RoomInfo room : roomList) {
+            System.out.println(room);
+        }
+
+        // test of modifyRoom() method
+        System.out.println("Modifying " + newRoom.getName());
+        Map<String, Object> atts = new HashMap<String, Object>();
+        atts.put("name", "shongo-testing");
+        atts.put("listedPublicly", false);
+        atts.put("pin", "1234");
+        conn.modifyRoom("shongo-test", atts);
+        Map<String, Object> atts2 = new HashMap<String, Object>();
+        atts2.put("roomNumber", "201");
+        atts2.put("name", "shongo-test");
+        conn.modifyRoom("shongo-testing", atts2);
 
         System.out.println("All done, disconnecting");
         conn.disconnect();
@@ -329,6 +376,21 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         return Collections.unmodifiableList(results);
     }
 
+    private static RoomInfo extractRoomInfo(Map<String, Object> conference)
+    {
+        RoomInfo info = new RoomInfo();
+        info.setName((String) conference.get("conferenceName"));
+        info.setDescription((String) conference.get("description"));
+        info.setType(Technology.H323); // FIXME: SIP as well?
+
+        // TODO: get the conference owner
+//        info.setOwner((String) conference.get(""));
+
+        String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
+        info.setStartTime((Date) conference.get(timeField));
+        return info;
+    }
+
 
     //<editor-fold desc="RESULTS CACHING">
 
@@ -488,6 +550,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         public Map<String, Object> getItem(Map<String, Object> item)
         {
             final Item it = new Item(item);
+            // FIXME: optimize - should be O(1) rather than O(n)
             for (Item cachedItem : results) {
                 if (cachedItem.equals(it)) {
                     return cachedItem.getContents();
@@ -565,27 +628,146 @@ ParamsLoop:
     //<editor-fold desc="ROOM SERVICE">
 
     @Override
-    public RoomInfo getRoomInfo(String roomId) throws CommandException, CommandUnsupportedException
+    public RoomInfo getRoomInfo(String roomId) throws CommandException
     {
-        return null; // TODO
+        Command cmd = new Command("conference.status");
+        cmd.setParameter("conferenceName", roomId);
+        Map<String, Object> result = exec(cmd);
+        return extractRoomInfo(result);
     }
 
     @Override
-    public String createRoom(Room room) throws CommandException, CommandUnsupportedException
+    public String createRoom(Room room) throws CommandException
     {
-        return null; // TODO
+        Command cmd = new Command("conference.create");
+
+        cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
+
+        // FIXME: restrict audio ports as well?
+//        cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
+        cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
+
+        // defaults (may be overridden by specified room options
+        cmd.setParameter("registerWithGatekeeper", Boolean.FALSE);
+        cmd.setParameter("registerWithSIPRegistrar", Boolean.FALSE);
+        cmd.setParameter("private", Boolean.TRUE);
+        cmd.setParameter("contentContribution", Boolean.TRUE);
+        cmd.setParameter("contentTransmitResolutions", "allowAll");
+        cmd.setParameter("joinAudioMuted", Boolean.FALSE);
+        cmd.setParameter("joinVideoMuted", Boolean.FALSE);
+        cmd.setParameter("startLocked", Boolean.FALSE);
+        cmd.setParameter("conferenceMeEnabled", Boolean.FALSE);
+
+        setConferenceParametersByRoom(cmd, room);
+
+        exec(cmd);
+
+        return room.getName();
+    }
+
+    private static void setConferenceParametersByRoom(Command cmd, Room room)
+    {
+        if (room.getName() != null) {
+            cmd.setParameter("conferenceName", room.getName());
+        }
+
+        if (room.getLicenseCount() >= 0) {
+            // FIXME: restrict audio ports as well?
+//            cmd.setParameter("maximumAudioPorts", room.getLicenseCount());
+            cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
+        }
+
+        if (room.getStartTime() != null) {
+            cmd.setParameter("startTime", room.getStartTime());
+        }
+        if (room.getEndTime() != null) {
+            final long milliDiff;
+            if (room.getStartTime() != null) {
+                milliDiff = room.getEndTime().getTime() - room.getStartTime().getTime();
+            }
+            else {
+                milliDiff = 0; // FIXME: get current room start time
+            }
+            cmd.setParameter("durationSeconds", milliDiff/1000);
+        }
+        else {
+            cmd.setParameter("durationSeconds", 0);
+        }
+
+        // options
+        setCommandOption(cmd, room, "numericId", "roomNumber");
+        setCommandOption(cmd, room, "registerWithGatekeeper", "registerWithH323Gatekeeper");
+        setCommandOption(cmd, room, "registerWithSIPRegistrar", "registerWithSIPRegistrar");
+        if (room.hasOption("listedPublicly")) {
+            cmd.setParameter("private", !(Boolean) room.getOption("listedPublicly"));
+        }
+        setCommandOption(cmd, room, "contentContribution", "allowContent");
+        setCommandOption(cmd, room, "joinAudioMuted", "joinAudioMuted");
+        setCommandOption(cmd, room, "joinVideoMuted", "joinVideoMuted");
+        setCommandOption(cmd, room, "pin", "pin");
+        setCommandOption(cmd, room, "description", "description");
+        setCommandOption(cmd, room, "startLocked", "startLocked");
+        setCommandOption(cmd, room, "conferenceMeEnabled", "conferenceMeEnabled");
+    }
+
+    private static void setCommandOption(Command cmd, Room room, String cmdParam, String roomOption)
+    {
+        if (room.hasOption(roomOption)) {
+            cmd.setParameter(cmdParam, room.getOption(roomOption));
+        }
     }
 
     @Override
-    public void modifyRoom(String roomId, Map attributes) throws CommandException, CommandUnsupportedException
+    public String modifyRoom(String roomId, Map<String, Object> attributes) throws CommandException
     {
-        // TODO
+        // based on attributes, construct a Room instance, according to which we build the command
+        Room room = new Room();
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            String att = entry.getKey();
+            Object val = entry.getValue();
+            if (att.equals("name")) {
+                room.setName((String) val);
+            }
+            else if (att.equals("licenseCount")) {
+                room.setLicenseCount((Integer) val);
+            }
+            else if (att.equals("startTime")) {
+                room.setStartTime((Date) val);
+            }
+            else if (att.equals("endTime")) {
+                room.setEndTime((Date) val);
+            }
+            else {
+                room.setOption(att, val);
+            }
+        }
+
+        // build the command
+        Command cmd = new Command("conference.modify");
+        setConferenceParametersByRoom(cmd, room);
+        // treat the name and new name of the conference
+        cmd.setParameter("conferenceName", roomId);
+        if (room.getName() != null) {
+            cmd.setParameter("newConferenceName", room.getName());
+        }
+
+        exec(cmd);
+
+        if (room.getName() != null) {
+            // the room name changed - the room ID must change, too
+            return room.getName();
+        }
+        else {
+            return roomId;
+        }
     }
 
     @Override
-    public void deleteRoom(String roomId) throws CommandException, CommandUnsupportedException
+    public void deleteRoom(String roomId) throws CommandException
     {
-        // TODO
+        Command cmd = new Command("conference.destroy");
+        cmd.setParameter("conferenceName", roomId);
+        exec(cmd);
     }
 
     @Override
@@ -773,7 +955,7 @@ ParamsLoop:
     }
 
     @Override
-    public Collection<RoomInfo> getRoomList() throws CommandException, CommandUnsupportedException
+    public Collection<RoomInfo> getRoomList() throws CommandException
     {
         Command cmd = new Command("conference.enumerate");
         cmd.setParameter("moreThanFour", Boolean.TRUE);
@@ -782,18 +964,7 @@ ParamsLoop:
         Collection<RoomInfo> rooms = new ArrayList<RoomInfo>();
         List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
         for (Map<String, Object> conference : conferences) {
-            RoomInfo info = new RoomInfo();
-            info.setName((String) conference.get("conferenceName"));
-            info.setDescription((String) conference.get("description"));
-            info.setType(Technology.H323); // FIXME: SIP as well?
-
-            // get the conference owner
-            // TODO: API says there should be "chairParticipant" field, but it is not...
-//                info.setOwner((String) conference.get(""));
-
-            String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
-            info.setStartTime((Date) conference.get(timeField));
-
+            RoomInfo info = extractRoomInfo(conference);
             rooms.add(info);
         }
 

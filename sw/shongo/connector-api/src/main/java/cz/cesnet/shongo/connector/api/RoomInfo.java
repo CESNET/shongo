@@ -7,13 +7,15 @@ import java.util.Date;
 /**
  * A brief info about a virtual room at a server.
  *
+ * TODO: synchronize with Room
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class RoomInfo
 {
     private String name;
     private String description;
-    private String owner;
+    private String owner; // FIXME: remove?
 
     private Date startTime;
 
@@ -22,7 +24,7 @@ public class RoomInfo
     //        this attribute should serve as a reference to the reservation for which the room was created
 //    private Reservation reservation;
 
-    private Technology type;
+    private Technology type; // FIXME: multiple technologies (example: H323 + SIP)?
 
     /**
      * @return Date and time when the room was started.
@@ -65,7 +67,7 @@ public class RoomInfo
     }
 
     /**
-     * @param description    description of the room
+     * @param description description of the room
      */
     public void setDescription(String description)
     {
@@ -118,5 +120,13 @@ public class RoomInfo
     public void setType(Technology type)
     {
         this.type = type;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return String
+                .format("room %s (%s; type: %s, startTime: %s, owner: %s)", name, description, type, startTime, owner);
     }
 }
