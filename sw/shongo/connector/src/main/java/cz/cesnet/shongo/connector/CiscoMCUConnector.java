@@ -95,6 +95,10 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         CiscoMCUConnector conn = new CiscoMCUConnector();
         conn.connect(Address.parseAddress(address), username, password);
 
+        // gatekeeper status
+        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
+        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
+
         // test of getRoomList() command
 //        Collection<RoomInfo> roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
@@ -129,7 +133,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //            System.out.println(room);
 //        }
 //        System.out.println("Deleting 'shongo-test'");
-//        conn.deleteRoom("shongo-test");
+        conn.deleteRoom("shongo-test");
 //        roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
@@ -137,31 +141,31 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        }
 
         // test of createRoom() method
-        Room newRoom = new Room("shongo-test", 5);
-        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087200"));
-        newRoom.setOption("description", "Shongo testing room");
-        newRoom.setOption("listedPublicly", true);
-        conn.createRoom(newRoom);
-        System.out.println("Created room " + newRoom.getName());
-        Collection<RoomInfo> roomList = conn.getRoomList();
-        System.out.println("Existing rooms:");
-        for (RoomInfo room : roomList) {
-            System.out.println(room);
-        }
-
-        // test of modifyRoom() method
-        System.out.println("Modifying shongo-test");
-        Map<String, Object> atts = new HashMap<String, Object>();
-        atts.put("name", "shongo-testing");
-        atts.put("listedPublicly", false);
-        atts.put("pin", "1234");
-        conn.modifyRoom("shongo-test", atts);
-        Map<String, Object> atts2 = new HashMap<String, Object>();
-        atts2.put("aliases", Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-        atts2.put("name", "shongo-test");
-        conn.modifyRoom("shongo-testing", atts2);
-
-        // user connecting and disconnecting
+//        Room newRoom = new Room("shongo-test", 5);
+//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087200"));
+//        newRoom.setOption("description", "Shongo testing room");
+//        newRoom.setOption("listedPublicly", true);
+//        conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoom.getName());
+//        Collection<RoomInfo> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomInfo room : roomList) {
+//            System.out.println(room);
+//        }
+//
+//        // test of modifyRoom() method
+//        System.out.println("Modifying shongo-test");
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put("name", "shongo-testing");
+//        atts.put("listedPublicly", false);
+//        atts.put("pin", "1234");
+//        conn.modifyRoom("shongo-test", atts);
+//        Map<String, Object> atts2 = new HashMap<String, Object>();
+//        atts2.put("aliases", Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+//        atts2.put("name", "shongo-test");
+//        conn.modifyRoom("shongo-testing", atts2);
+//
+//        // user connecting and disconnecting
 //        conn.dialParticipant("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
 //        conn.disconnectRoomUser("shongo-test", "c90");
 
@@ -179,6 +183,12 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     private String authUsername;
     private String authPassword;
+
+    /**
+     * H.323 gatekeeper registration prefix - prefix added to room numericIds to get the full number under which the
+     * room is callable.
+     */
+    private String gatekeeperRegistrationPrefix = null;
 
 
     // COMMON SERVICE
@@ -223,13 +233,27 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             catch (KeyManagementException e) {
                 logger.error("Error setting trust to all certificates", e);
             }
+
+            initSession();
         }
         catch (MalformedURLException e) {
             throw new CommandException("Error constructing URL of the device.", e);
         }
+        catch (CommandException e) {
+            throw new CommandException("Error initializing connection to the device.", e);
+        }
 
         info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
 
+    }
+
+    private void initSession() throws CommandException
+    {
+        Command gkInfoCmd = new Command("gatekeeper.query");
+        Map<String, Object> gkInfo = exec(gkInfoCmd);
+        if (!gkInfo.get("gatekeeperUsage").equals("disabled")) {
+            gatekeeperRegistrationPrefix = (String) gkInfo.get("registrationPrefix");
+        }
     }
 
     /**
@@ -295,7 +319,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // TODO: consider publishing feedback events from the MCU
         // no real operation - the communication protocol is stateless
         info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
-        client = null; // just for sure the client is not used anymore
+        client = null; // just for sure the attributes are not used anymore
+        gatekeeperRegistrationPrefix = null;
     }
 
 
@@ -672,7 +697,7 @@ ParamsLoop:
         return room.getName();
     }
 
-    private static void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
+    private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
     {
         if (room.getName() != null) {
             cmd.setParameter("conferenceName", room.getName());
@@ -685,16 +710,22 @@ ParamsLoop:
         if (room.getAliases() != null) {
             cmd.setParameter("numericId", "");
             for (Alias alias : room.getAliases()) {
-                if ((alias.getTechnology() == Technology.H323 || alias.getTechnology() == Technology.SIP)
-                        && alias.getType() == AliasType.E164) {
+                if (alias.getTechnology() == Technology.H323 && alias.getType() == AliasType.E164) {
                     if (!cmd.getParameterValue("numericId").equals("")) {
                         // multiple number aliases
-                        final String m = "The connector supports only one numeric alias, requested another: " + alias;
+                        final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
                         throw new CommandException(m);
                     }
-                    // FIXME: get prefixLength according to the MCU configuration
-                    int prefixLength = alias.getValue().length() - 3;
-                    final String number = alias.getValue().substring(prefixLength);
+                    // number of the room
+                    String number = alias.getValue();
+                    if (gatekeeperRegistrationPrefix != null) {
+                        if (!number.startsWith(gatekeeperRegistrationPrefix)) {
+                            throw new CommandException(
+                                    String.format("Assigned numbers should be prefixed with %s, number %s given.",
+                                            gatekeeperRegistrationPrefix, number));
+                        }
+                        number = number.substring(gatekeeperRegistrationPrefix.length());
+                    }
                     cmd.setParameter("numericId", number);
                 }
                 else {
@@ -853,6 +884,7 @@ ParamsLoop:
     public void dialParticipant(String roomId, String roomUserId, Alias alias) throws CommandException
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
+        // FIXME: generate roomUserId and return it
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", roomId);
