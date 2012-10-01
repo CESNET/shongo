@@ -34,6 +34,10 @@
 \usepackage{parcolumns}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{ifthen}
+\usepackage{tikz}
 
 % Code listing
 \usepackage{verbatim}
@@ -43,7 +47,7 @@
 \usepackage[nottoc]{tocbibind}
 \bibliographystyle{elsarticle-num}
 
-% Command \provideenvironment
+% Command \provideenvironment and \providecounter
 \makeatletter
 \def\provideenvironment{\@star@or@long\provide@environment}
 \def\provide@environment#1{%
@@ -53,6 +57,13 @@
         \reserved@a
 }
 \def\dummy@environ{}
+\makeatother
+\makeatletter
+\newcommand*\providecounter[1]{%
+  \@ifundefined{c@#1}%
+    {\@definecounter{#1}}%
+    {}%
+}
 \makeatother
 
 % Command \todo
@@ -72,7 +83,8 @@
   breakatwhitespace=true,
   breakautoindent=true,
 }
-\lstMakeShortInline[style=lstStyleShort]|
+%\lstMakeShortInline[style=lstStyleShort]|
+\newcommand{\code}[1]{\lstinline[style=lstStyleShort]{#1}}
 
 % Document title page
 \author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}

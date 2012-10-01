@@ -6,36 +6,33 @@ In this chapter common atomic types, enum types and object classes for Shongo AP
 
 \section{Failure Related}
 
-Each failure in API is reported by |faultCode| (number value) and |faultString| (description text). List of common faults:
+Each failure in API is reported by \textbf{fault code} (number value) and \textbf{fault string} (description text). List of common faults:
 
-\begin{ApiFailures}
-
-\ApiFailure{0} Unknown fault which is described by |faultString|.
-
-\ApiFailure{10} The \ApiValue{class} is not defined, the |faultString| specifies which \ApiValue{class}.
-\ApiFailure{11} The \ApiValue{class} cannot be instanced, the |faultString| specifies which \ApiValue{class}.
-\ApiFailure{12} The attribute is not defined, the |faultString| specifies which attribute in which class.
-\ApiFailure{13} The attribute type is wrong, the |faultString| specifies which attribute in which class and also it specifies the present and required type.
-\ApiFailure{14} The attribute wasn't present and is required, the |faultString| specifies which attribute in which class.
-\ApiFailure{15} The collection is empty and is required, the |faultString| specifies which collection in which class.
-\ApiFailure{16} The attribute was present but is read-only, the |faultString| specifies which attribute in which class.
-\ApiFailure{17} Wrong value for attribute was present, the |faultString| specifies which value in which attribute in which class.
-
-\ApiFailure{20} The value of an enum attribute is wrong, the |faultString| specifies which value.
-\ApiFailure{21} Failed to parse date/time value, the |faultString| specifies which date/time value.
-\ApiFailure{22} Failed to parse period value, the |faultString| specifies which period value.
-\ApiFailure{23} Failed to parse interval value, the |faultString| specifies which interval value.
-\ApiFailure{24} Failed to parse partial date/time value, the |faultString| specifies which partial date/time value.
-
-\ApiFailure{30} Item with wrong type was present in collection, the |faultString| specifies which item in which collection and types which are allowed.
-\ApiFailure{31} Null value cannot be used as item in collection, the |faultString| specifies which collection.
-
-\ApiFailure{40} Entity was not found, the |faultString| specifies which entity.
-\ApiFailure{41} Entity validation failed, the |faultString| specifies which entity.
-
-\ApiFailure{99} The request is not implemented yet. An application log must be checked for more details.
-
-\end{ApiFailures}
+\newcommand{\fault}[3]{#1 & #2 & #3 \\ \hline}
+\begin{longtable}{|r|p{5cm}|p{7.5cm}|}
+\hline
+\textbf{\multirow{2}{*}{\centering\begin{minipage}{8mm}fault \\ \hspace*{0.5mm}code\end{minipage}}} & \multirow{2}{*}{\textbf{description}} & \multirow{2}{*}{\textbf{fault string}} \\ 
+ & & \\ \hline 
+\fault{0}{Unknown fault.}{Describes the unknown fault.}
+\fault{10}{The \ApiValue{class} is not defined.}{Specifies which \ApiValue{class}.}
+\fault{11}{The \ApiValue{class} cannot be instanced.}{Specifies which \ApiValue{class}.}
+\fault{12}{The attribute is not defined.}{Specifies which attribute in which class.}
+\fault{13}{The attribute type is wrong.}{Specifies which attribute in which class and also it specifies the present and required type.}
+\fault{14}{The attribute wasn't present and is required.}{Specifies which attribute in which class.}
+\fault{15}{The collection is empty and is required.}{Specifies which collection in which class.}
+\fault{16}{The attribute was present but is read-only.}{Specifies which attribute in which class.}
+\fault{17}{Wrong value for attribute was present.}{Specifies which value in which attribute in which class.}
+\fault{20}{The value of an enum attribute is wrong.}{Specifies which value.}
+\fault{21}{Failed to parse date/time value.}{Specifies which date/time value.}
+\fault{22}{Failed to parse period value.}{Specifies which period value.}
+\fault{23}{Failed to parse interval value.}{Specifies which interval value.}
+\fault{24}{Failed to parse partial date/time value.}{Specifies which partial date/time value.}
+\fault{30}{Item with wrong type was present in collection.}{Specifies which item in which collection and types which are allowed.}
+\fault{31}{Null value cannot be used as item in collection.}{Specifies which collection.}
+\fault{40}{Entity was not found}{Specifies which entity.}
+\fault{41}{Entity validation failed}{Specifies which entity.}
+\fault{99}{The request is not implemented yet. An application log must be checked for more details.}{Specifies what is not implemented.}
+\end{longtable}
 
 These are only common faults that are independent on specific API section. Other business logic faults can be generated and are described in appropriate API section.
 
@@ -45,7 +42,7 @@ These are only common faults that are independent on specific API section. Other
 \begin{Api}
 
 \ApiClass{UserIdentity}{}
-Each user that accesses shongo or participates in shongo managed videoconference should be identified by |UserIdentity| definition.
+Each user that accesses shongo or participates in shongo managed videoconference should be identified by \ApiRef{UserIdentity} definition.
 
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiRequired}
@@ -75,7 +72,7 @@ Represents a person that can access a Shongo videoconference.
 \begin{Api}
 
 \ApiType{Period}{String}
-Used for representing period or duration. Format is specified by ISO8601 period (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The first character "\ApiValue{P}" means period and it comes from the ISO8601 standard. Components can be omitted (e.g.,~\ApiValue{P3YT12H} which is \textit{3 years and 12 hours}). The zero duration is represented by \ApiValue{PT0S} value (which is \textit{0 seconds}).
+Used for representing period or duration. Format is specified by ISO8601 period (e.g., \ApiValue{P3Y6M4DT12H30M5S} which is \textit{3 years, 6 months, 4 days, 12 hours, 30 minutes, and 5 seconds} or \ApiValue{P4W} which is \textit{4 weeks}). The first character "\ApiValue{P}" means period and it comes from the ISO8601 standard. Components can be omitted (e.g.,~\ApiValue{P3YT12H} which is \emph{3 years and 12 hours}). The zero duration is represented by \ApiValue{PT0S} value (which is \emph{0 seconds}).
 
 \ApiExample We want to set videoconference duration:
 \begin{quote}
@@ -87,7 +84,7 @@ duration = PT2H
 \ApiType{DateTime}{String}
 Used for representing an absolute date/time. Format is specified by ISO8601 date/time in UTC (e.g., 20120130T10:09:55) or with explicit timezone specification (e.g., 20120130T10:09:55+02:00).
 
-\ApiExample We want to create a new reservation for resources at the precise date. We can specify it by |DateTime|:
+\ApiExample We want to create a new reservation for resources at the precise date. We can specify it by \ApiRef{DateTime}:
 \begin{quote}
 \begin{verbatim}
 dateTime = 2012-12-31T12:00
@@ -97,7 +94,7 @@ dateTime = 2012-12-31T12:00
 \ApiType{RelativeDateTime}{Period}
 Used for representing a relative date/time. Relative date/time can be evaluated to absolute date/time by specifying a referenced absolute date/time.
 
-\ApiExample We want to define a maximum future to which a resource can be scheduled. We can specify it by |RelativeDateTime| as follows:
+\ApiExample We want to define a maximum future to which a resource can be scheduled. We can specify it by \ApiRef{RelativeDateTime} as follows:
 \begin{quote}
 \begin{verbatim}
 relativeDateTime = P4M
@@ -112,16 +109,16 @@ It can be used for events that takes place repeatedly, but also for events that 
 \ApiClassAttribute{start}{DateTime}{\ApiRequired}
 Defines the first occurrence of an event.
 \ApiClassAttribute{period}{Period}{\ApiOptional}
-Defines the period in which the repeated events take place. See |Period| for format specification.
+Defines the period in which the repeated events take place. See \ApiRef{Period} for format specification.
 \ApiClassAttribute{end}{DateTime}{\ApiOptional}
 Ending date/time for events to not occur forever (not required, we can specify infinite periodic date/time).
-\ApiClassAttribute{rules}{Rule[]}{\ApiOptional}
-List of rules, which can define an extra events out of the periodicity or cancel specified periodical events. |Rule| can be one of the following types:
+\ApiClassAttributeCollection{rules}{List}{Rule}{\ApiOptional}
+List of rules, which can define an extra events out of the periodicity or cancel specified periodical events. \ApiCode{Rule} can be one of the following types:
 \begin{compactitem}
-\item |Enable|/|Disable| event(s) in the specified |dateTime| or interval by |start| and |end|.
-\item |Extra| event in the specified |dateTime|
+\item \ApiCode{Enable}/\ApiCode{Disable} event(s) in the specified \ApiCode{dateTime} or interval by \ApiCode{start} and \ApiCode{end}.
+\item \ApiCode{Extra} event in the specified \ApiCode{dateTime}
 \end{compactitem}
-Rules contains implicit definition of |Enable| rule for whole |PeridiocDateTime| interval. Conflicts are solved by \emph{last-match} policy.
+Rules contains implicit definition of \ApiCode{Enable} rule for whole \ApiRef{PeriodicDateTime} interval. Conflicts are solved by \emph{last-match} policy.
 \end{ApiClassAttributes}
 
 \ApiExample Only one lecture on 20.3.2012.
@@ -145,7 +142,7 @@ periodicDate.rules = {
 \end{quote}
 
 \ApiType{Interval}{String}
-Represents the time between two instants. Values must be in format \ApiValue{<start>,<duration>} where \ApiValue{<start>} is in |DateTime| format and \ApiValue{<duration>} in |Period| format.
+Represents the time between two instants. Values must be in format \ApiValue{<start>,<duration>} where \ApiValue{<start>} is in \ApiRef{DateTime} format and \ApiValue{<duration>} in \ApiRef{Period} format.
 
 \end{Api}
 
@@ -165,55 +162,6 @@ Enumeration of supported (or planned to be supported) videoconference technologi
 \ApiEnumValue{OPEN_MEETING}{}
 \ApiEnumValue{WEBEX}{}
 \end{ApiEnumValues}
-
-
-%\ApiClass{Resolution}{}
-%\todo{Not implemented yet}
-%\begin{ApiClassAttributes}
-%\ApiClassAttribute{width}{Integer}{\ApiRequired}
-%\ApiClassAttribute{height}{Integer}{\ApiRequired}
-%\end{ApiClassAttributes}
-%\begin{ApiEnumValues}
-%\ApiEnumValue{QCIF}{176x144}
-%\ApiEnumValue{CIF}{352x288}
-%\ApiEnumValue{4CIF}{704x576}
-%\ApiEnumValue{720p}{1280x720}
-%\ApiEnumValue{1080p}{1920x1080}
-%\ApiEnumValue{2K}{2048x1080}
-%\ApiEnumValue{4K}{4096x2160}
-%\end{ApiEnumValues}
-
-
-%\ApiEnum{AudioCodec}
-%\todo{Not implemented yet}
-%\begin{ApiEnumValues}
-%\ApiEnumValue{MP3}{}
-%\ApiEnumValue{AC3}{}
-%\end{ApiEnumValues}
-
-
-%\ApiEnum{VideoCodec}
-%\todo{Not implemented yet}
-%\begin{ApiEnumValues}
-%\ApiEnumValue{H261}{}
-%\ApiEnumValue{H263}{}
-%\ApiEnumValue{H264}{}
-%\end{ApiEnumValues}
-
-
-%\ApiClass{Format}{}
-%\todo{Not implemented yet}
-%\begin{ApiClassAttributes}
-%\ApiClassAttribute{technology}{Technology}{\ApiRequired}
-%\ApiClassAttribute{audio}{AudioCodec}{\ApiRequired}
-%\ApiClassAttribute{video}{VideoCodec}{\ApiRequired}
-%\ApiClassAttribute{resolution}{Resolution}{\ApiRequired}
-%\end{ApiClassAttributes}
-%Can be represented by string:
-%\begin{verbatim}
-%<technology>:<audio>:<video>:<resolution>
-%\end{verbatim}
-
 
 \ApiClass{RoomUser}{}
 Represents an active user in a virtual room on a server.

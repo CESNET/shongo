@@ -3,7 +3,6 @@
 
 * API
   * Finish updating Controller API
-  * Make \ApiRef{} references to types
   * Popsat workflow v API (interaction overview diagram)
   * Popsat instalaci shonga do API
 

@@ -6,43 +6,35 @@
 Controller API is provided through XML-RPC \cite{xml-rpc}.
 In XML-RPC all described types are represented as follows:
 
-\begin{compactitem}
+\begin{itemize}
 
 \item Values of atomic types are represented by their's equivalent in XML-RPC (e.g., integer value \ApiValue{42} as \ApiValue{<i4>42</i4>} or string value \ApiValue{Hello} as \ApiValue{<string>Hello</string>}).
 
 \item Enum values are represented as strings (e.g., \ApiValue{ReservationRequestType.PERMANENT} as \ApiValue{<string>PERMANENT</string>}).
 
-\item Arrays and collections are represented as XML-RPC |array|s, e.g.
-\begin{parcolumns}[nofirstindent=true, colwidths={1=.36\textwidth}]{3}%
-\vspace{-3.5mm}\colchunk{%}
-\footnotesize\begin{verbatim}
+\item Arrays and collections are represented as XML-RPC arrays, e.g.
+\begin{verbatim}
 [101, 202]
 \end{verbatim}
-\flushright as
-}%
-\colchunk{%
-\footnotesize\begin{verbatim}
-<array><data>
-  <value><i4>101</i4></value>
-  <value><i4>202</i4></value>
-</data></array>
+as
+\begin{verbatim}
+<array>
+  <data>
+    <value><i4>101</i4></value>
+    <value><i4>202</i4></value>
+  </data>
+</array>
 \end{verbatim}
-}
-\end{parcolumns}\vspace{1mm}
 
-\item Object instances are represented as XML-RPC |struct| types with special \ApiValue{class} attribute specifying object type, e.g.%
-\begin{parcolumns}[nofirstindent=true, colwidths={1=.36\textwidth}]{3}%
-\vspace{-3.5mm}\colchunk{%}
-\footnotesize\begin{verbatim}
+\item Object instances are represented as XML-RPC struct types with special \ApiValue{class} attribute specifying object type, e.g.
+\begin{verbatim}
 Person {
   name: "Martin Srom",
   email: "srom@cesnet.cz"
 }
 \end{verbatim}
-\flushright as
-}%
-\colchunk{%
-\footnotesize\begin{verbatim}
+as
+\begin{verbatim}
 <struct>
   <member>
     <name>class</name>
@@ -58,14 +50,12 @@ Person {
   </member>
 </struct>
 \end{verbatim}
-}
-\end{parcolumns}\vspace{1mm}
 
 \item Null values are represented as empty XML-RPC |struct| type (<struct></struct>). It is useful e.g., when the user want to clear attribute value by any |modify| API method. He should set the attribute value to empty |struct| and the value will be cleared on the server.
 
 \item Failures are propagated through XML-RPC by |faultCode| and |faultString| values.
 
-\end{compactitem}
+\end{itemize}
 
 
 \section{Data types}
@@ -113,7 +103,7 @@ Status of a |Domain| or |Connector|.
 \ApiClass{DateTimeSlot}{}
 Date/time slot can represent one or more |Interval| values. Definition of date/time slot is a pair of starting date/time and duration, where starting date/time can be periodic and thus can result into multiple absolute date/times.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{start}{DateTime\|PeridicDateTime}{\ApiRequired}
+\ApiClassAttribute{start}{DateTime,PeriodicDateTime}{\ApiRequired}
 Defines the start of date/time slot (or multiple starts in case of periodic date/time).
 \ApiClassAttribute{duration}{Period}{\ApiRequired}
 Defines the duration of date/time slot.
@@ -152,7 +142,7 @@ This class represents a complete \gls{g:resource} definition. This class is used
 \ApiClassAttribute{identifier}{String}{\ApiRequired} \Gls{g:resource} unique identifier as defined in \UCref{res:identification}.
 \ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the \gls{g:resource}.
-\ApiClassAttribute{capabilities}{List<Capability>}{\ApiOptional} List of capabilities which the \gls{g:resource} has.
+\ApiClassAttributeCollection{capabilities}{List}{Capability}{\ApiOptional} List of capabilities which the \gls{g:resource} has.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the \gls{g:resource}.
 \ApiClassAttribute{allocatable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the \gls{g:resource} can be allocated to a \gls{g:reservation} by a \gls{g:scheduler}. When creating a new resource, it is useful to set |allocatable| to \ApiValue{false} and restrict the time when the \gls{g:resource} can by used for public scheduling (e.g., setup permanent reservations) and then modify the |allocatable| to \ApiValue{true}.
 \ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for \glspl{g:reservation} as defined in \UCref{rsv:max-future}.
@@ -163,9 +153,9 @@ This class represents a complete \gls{g:resource} definition. This class is used
 Represents a complete \gls{g:resource-device} definition.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{address}{String}{\ApiOptional} Address of the \gls{g:resource-device} (e.g., \ApiValue{147.251.1.1} or \ApiValue{connect.cesnet.cz}).
-\ApiClassAttribute{technologies}{Set<Technology>}{\ApiRequired}
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired}
 Set of \glspl{g:technology} which are supported by the \gls{g:resource-device}.
-\ApiClassAttribute{mode}{String\|ManagedMode}{\ApiOptional} String value \ApiValue{UNMANAGED} specifies that the \gls{g:resource-device} is not managed by any \gls{g:connector-agent}. |ManagedMode|  specifies by which \gls{g:connector-agent} is the \gls{g:resource-device} managed.
+\ApiClassAttribute{mode}{String,ManagedMode}{\ApiOptional} String value \ApiValue{UNMANAGED} specifies that the \gls{g:resource-device} is not managed by any \gls{g:connector-agent}. |ManagedMode|  specifies by which \gls{g:connector-agent} is the \gls{g:resource-device} managed.
 \end{ApiClassAttributes}
 
 \ApiClass{ManagedMode}{}
@@ -231,9 +221,9 @@ Represents a base class for all possible types \glspl{g:reservation-request}. It
 \ApiClass{ReservationRequestSet}{AbstractReservationRequest}
 Represents a \gls{g:reservation-request} for one or multiple \glspl{g:reservation}. It specifies one or multiple date/time slots and one or multiple specifications and for each combination (slots x specifications) will be created one \ApiCode{ReservationRequest}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{slots}{List<DateTimeSlot>}{\ApiRequired} List of requested |slots|.
-\ApiClassAttribute{specifications}{List<Specification>}{\ApiRequired} List of requested |specifications|.
-\ApiClassAttribute{reservationRequests}{List<ReservationRequest>}{\ApiRequired} List of already created |ReservationRequest|s.
+\ApiClassAttributeCollection{slots}{List}{DateTimeSlot}{\ApiRequired} List of requested |slots|.
+\ApiClassAttributeCollection{specifications}{List}{Specification}{\ApiRequired} List of requested |specifications|.
+\ApiClassAttributeCollection{reservationRequests}{List}{ReservationRequest}{\ApiRequired} List of already created |ReservationRequest|s.
 \end{ApiClassAttributes}
 
 \ApiClass{ReservationRequest}{AbstractReservationRequest}
@@ -262,7 +252,7 @@ Represents a base class for all possible specifications. Each specification desc
 \ApiClass{CompartmentSpecification}{Specification}
 Represents a specification for a group of participants which should participate a single \gls{g:compartment}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{specifications}{List<ParticipantSpecification>}{\ApiRequired} List of specifications for participants which should participate in a \gls{g:compartment}.
+\ApiClassAttributeCollection{specifications}{List}{ParticipantSpecification}{\ApiRequired} List of specifications for participants which should participate in a \gls{g:compartment}.
 \ApiClassAttribute{callInitiation}{CallInitiation}{\ApiOptional} Default \ApiCode{CallInitiation} in the \gls{g:compartment}.
 \end{ApiClassAttributes}
 
@@ -319,7 +309,7 @@ Represents base class for all possible types of successfully allocated \gls{g:re
 \ApiClassAttribute{identifier}{String}{} \Gls{g:reservation} unique identifier as defined in \UCref{rsv:identification}.
 \ApiClassAttribute{slot}{Interval}{} Date/time slot for which the \gls{g:reservation} is allocated.
 \ApiClassAttribute{parentReservationIdentifier}{String}{} Identifier of parent \gls{g:reservation}.
-\ApiClassAttribute{childReservationIdentifiers}{List<String>}{} Identifiers of child \glspl{g:reservation}. Each \gls{g:reservation} can contain multiple child \glspl{g:reservation} which have been allocated to satisfy the parent \gls{g:reservation} needs.
+\ApiClassAttributeCollection{childReservationIdentifiers}{List}{String}{} Identifiers of child \glspl{g:reservation}. Each \gls{g:reservation} can contain multiple child \glspl{g:reservation} which have been allocated to satisfy the parent \gls{g:reservation} needs.
 \end{ApiClassAttributes}
 
 \ApiClass{ResourceReservation}{Reservation}
@@ -350,16 +340,16 @@ Represents a successfully allocated \gls{g:compartment}.
 \ApiClass{CompartmentReservation.Compartment}{}
 Represents an allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{endpoints}{List<CompartmentReservation.Endpoint>}{} List of participating \glspl{g:endpoint}.
-\ApiClassAttribute{virtualRooms}{List<CompartmentReservation.VirtualRoom>}{} List of \glspl{g:device-virtual-room}.
-\ApiClassAttribute{connections}{List<CompartmentReservation.Connection>}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
+\ApiClassAttributeCollection{endpoints}{List}{CompartmentReservation.Endpoint}{} List of participating \glspl{g:endpoint}.
+\ApiClassAttributeCollection{virtualRooms}{List}{CompartmentReservation.VirtualRoom}{} List of \glspl{g:device-virtual-room}.
+\ApiClassAttributeCollection{connections}{List}{CompartmentReservation.Connection}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
 \end{ApiClassAttributes}
 
 \ApiClass{CompartmentReservation.Endpoint}{}
 Represents an \gls{g:endpoint} in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{description}{String}{} Description of the \gls{g:endpoint}.
-\ApiClassAttribute{aliases}{List<Alias>}{} List of assinged \glspl{g:device-alias} to the \gls{g:endpoint}.
+\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assinged \glspl{g:device-alias} to the \gls{g:endpoint}.
 \end{ApiClassAttributes}
 
 \ApiClass{CompartmentReservation.VirtualRoom}{Endpoint}
@@ -394,7 +384,7 @@ Represents an information about allocation of \gls{g:resource}.
 \ApiClassAttribute{identifier}{String}{} \Gls{g:resource} identifier.
 \ApiClassAttribute{name}{String}{} \Gls{g:resource} name.
 \ApiClassAttribute{interval}{Interval}{} Interval for which the allocation information is contained.
-\ApiClassAttribute{reservations}{List<ResourceReservation>}{} List of \glspl{g:reservation} for the \gls{g:resource}.
+\ApiClassAttributeCollection{reservations}{List}{ResourceReservation}{} List of \glspl{g:reservation} for the \gls{g:resource}.
 \end{ApiClassAttributes}
 
 \ApiClass{VirtualRoomsResourceAllocation}{ResourceAllocation}

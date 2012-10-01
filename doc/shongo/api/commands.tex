@@ -17,14 +17,17 @@
 }
 \lstset{language=java}
 
+\providecounter{ApiCounter}
+\providecommand{\ApiLabel}[1]{\refstepcounter{ApiCounter}\label{#1}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API definition
 \provideenvironment{Api}{\begin{itemize}}{\end{itemize}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API definition code and value
-\providecommand{\ApiCode}[1]{\lstinline[style=ApiLstStyle]|#1|}
-\providecommand{\ApiValue}[1]{\verb|#1|}
+\providecommand{\ApiCode}[1]{\lstinline[style=ApiLstStyle]{#1}}
+\providecommand{\ApiValue}[1]{\texttt{#1}}
 % \end{verbatim}
 % Previous line corrects syntax coloring parser
 
@@ -42,13 +45,13 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API atomic type
-\providecommand{\ApiType}[2]{\ApiItem{%
+\providecommand{\ApiType}[2]{\ApiLabel{api:#1}\ApiItem{%
   \ifx&#2& \ApiCode{atomic_type #1} \else \ApiCode{atomic_type #1 = #2} \fi}%
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API class
-\providecommand{\ApiClass}[2]{\ApiItem{%
+\providecommand{\ApiClass}[2]{\ApiLabel{api:#1}\ApiItem{%
   \ifx&#2& \ApiCode{class #1} \else \ApiCode{class #1 extends #2} \fi}%
 }
 
@@ -61,12 +64,12 @@
 \providecommand{\ApiOptional}{{\color{gray}\textbf{Optional}}}
 \providecommand{\ApiOptionalDefault}[1]{{\color{gray}\textbf{Optional}, default: \ApiValue{#1}}}
 \providecommand{\ApiReadOnly}{{\color{red!50!black}\textbf{ReadOnly}}}
-\providecommand{\ApiClassAttribute}[3]{\ApiItem{\ApiCode{#2} \ApiCode{#1} \hspace{1mm}(\ifx&#3&\ApiReadOnly\else#3\fi)
-}}
+\providecommand{\ApiClassAttribute}[3]{\ApiItem{\ApiRef{#2} \ApiCode{#1} \hspace{1mm}(\ifx&#3&\ApiReadOnly\else#3\fi)}}
+\providecommand{\ApiClassAttributeCollection}[4]{\ApiItem{\ApiCode{#2<}\ApiRef{#3}\ApiCode{>} \ApiCode{#1} \hspace{1mm}(\ifx&#4&\ApiReadOnly\else#4\fi)}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API enum
-\providecommand{\ApiEnum}[1]{\ApiItem{\ApiCode{enum #1}}}
+\providecommand{\ApiEnum}[1]{\ApiLabel{api:#1}\ApiItem{\ApiCode{enum #1}}}
 \provideenvironment{ApiEnumValues}{% Next empty line is intended to be blank
 
 \begin{samepage}\textbf{Enumeration values:}\begin{compactitem}}{\end{compactitem}\end{samepage}}
@@ -90,4 +93,14 @@
 % API failures
 \provideenvironment{ApiFailures}{\begin{compactitem}}{\end{compactitem}}
 \providecommand{\ApiFailure}[1]{\ApiItem{\ApiCode{faultCode = #1}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% API ref
+\providecommand{\ApiRef}[1]{
+\foreach \ApiTmp [count=\ApiTmpIndex] in{#1}{%
+\ifthenelse{\ApiTmpIndex > 1}{\ApiCode{|}}{}%
+\hyperref[api:\ApiTmp]{\textbf{\texttt{\ApiTmp}}}%
+}  
+}
 
