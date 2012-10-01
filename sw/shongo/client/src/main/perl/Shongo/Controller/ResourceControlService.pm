@@ -150,7 +150,7 @@ sub resource_dial
     if ( $result->is_fault ) {
         return;
     }
-    printf("CallId: %d\n", $result->value());
+#    printf("CallId: %d\n", $result->value());
 }
 
 sub resource_standby
