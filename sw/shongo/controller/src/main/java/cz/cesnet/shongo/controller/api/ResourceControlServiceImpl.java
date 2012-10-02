@@ -154,6 +154,15 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public void disconnectRoomUser(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DisconnectRoomUser(roomId, roomUserId);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+    }
+
+    @Override
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
