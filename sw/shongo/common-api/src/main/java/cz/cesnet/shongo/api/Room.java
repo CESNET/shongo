@@ -13,10 +13,13 @@ public class Room implements Concept
 {
     private String name = null;
     private int portCount = -1;
+    private List<Alias> aliases;
+
+    private Map<String, Object> options = new HashMap<String, Object>();
+
+    // FIXME: will startTime and endTime ever be used by Shongo?
     private Date startTime = null;
     private Date endTime = null;
-    private List<Alias> aliases;
-    private Map<String, Object> options = new HashMap<String, Object>();
 
 
     public Room()
@@ -45,7 +48,7 @@ public class Room implements Concept
     }
 
     /**
-     * @param name    name of the room
+     * @param name name of the room
      */
     public void setName(String name)
     {
@@ -85,7 +88,7 @@ public class Room implements Concept
     }
 
     /**
-     * @param startTime    time when the room shall start, or null if it shall start immediately
+     * @param startTime time when the room shall start, or null if it shall start immediately
      */
     public void setStartTime(Date startTime)
     {
@@ -101,7 +104,7 @@ public class Room implements Concept
     }
 
     /**
-     * @param endTime    time when the room shall end, or null if the room shall not ever stop
+     * @param endTime time when the room shall end, or null if the room shall not ever stop
      */
     public void setEndTime(Date endTime)
     {
@@ -118,6 +121,7 @@ public class Room implements Concept
 
     /**
      * Adds a new alias under which the room is accessible.
+     *
      * @param alias
      */
     public void addAlias(Alias alias)
@@ -129,7 +133,7 @@ public class Room implements Concept
     }
 
     /**
-     * @param aliases    aliases under which the room is accessible
+     * @param aliases aliases under which the room is accessible
      */
     public void setAliases(List<Alias> aliases)
     {
@@ -138,7 +142,7 @@ public class Room implements Concept
 
     /**
      * Returns the complete map of platform-specific options set for this room.
-     *
+     * <p/>
      * See the setOptions() method for more details about what can be had.
      *
      * @return platform-specific options
@@ -150,42 +154,98 @@ public class Room implements Concept
 
 
     /**
+     * Room attribute names.
+     *
+     * Suitable for modifyRoom() command.
+     *
+     * NOTE: No value should be the same as any of this class's option names (OPT_* constants).
+     *
+     * NOTE: Keep in sync with actual attributes of the class.
+     */
+
+    /**
+     * Room name. Type: String
+     */
+    public static final String NAME = "name";
+    /**
+     * Number of ports to use for the room. Type: int
+     */
+    public static final String PORT_COUNT = "portCount";
+    /**
+     * Aliases of the room. Type: List<Alias>
+     */
+    public static final String ALIASES = "aliases";
+    /**
+     * Time of starting the room. Type: java.util.Date
+     */
+    public static final String START_TIME = "startTime";
+    /**
+     * Time of ending the room. Type: java.util.Date
+     */
+    public static final String END_TIME = "endTime";
+
+
+    /**
      * Room options.
      *
-     * NOTE: No option name should be the same as any of this class's attribute names.
+     * Suitable for modifyRoom() command.
+     *
+     * NOTE: No option name should be the same as any of this class's attribute names (constant values above).
      *
      * NOTE: The option constants must be kept in sync with the validateOption() method.
      */
 
-    /** A boolean option whether to list the room in public lists. Default false. */
+    /**
+     * A boolean option whether to list the room in public lists. Default false.
+     */
     public static final String OPT_LISTED_PUBLICLY = "listedPublicly";
-    /** A boolean option whether participants may contribute content. Default true. */
+    /**
+     * A boolean option whether participants may contribute content. Default true.
+     */
     public static final String OPT_ALLOW_CONTENT = "allowContent";
-    /** A boolean option whether guests should be allowed to join. Default true. */
+    /**
+     * A boolean option whether guests should be allowed to join. Default true.
+     */
     public static final String OPT_ALLOW_GUESTS = "allowGuests";
-    /** A boolean option whether audio should be muted on join. Default false. */
+    /**
+     * A boolean option whether audio should be muted on join. Default false.
+     */
     public static final String OPT_JOIN_AUDIO_MUTED = "joinAudioMuted";
-    /** A boolean option whether video should be muted on join. Default false. */
+    /**
+     * A boolean option whether video should be muted on join. Default false.
+     */
     public static final String OPT_JOIN_VIDEO_MUTED = "joinVideoMuted";
-    /** A boolean option whether to register the aliases with the gatekeeper. Default false. */
+    /**
+     * A boolean option whether to register the aliases with the gatekeeper. Default false.
+     */
     public static final String OPT_REGISTER_WITH_H323_GATEKEEPER = "registerWithH323Gatekeeper";
-    /** A boolean option whether to register the aliases with the SIP registrar. Default false. */
+    /**
+     * A boolean option whether to register the aliases with the SIP registrar. Default false.
+     */
     public static final String OPT_REGISTER_WITH_SIP_REGISTRAR = "registerWithSIPRegistrar";
-    /** A string option - the PIN that must be entered to get to the room. */
+    /**
+     * A string option - the PIN that must be entered to get to the room.
+     */
     public static final String OPT_PIN = "pin";
-    /** A string option - some description of the room. */
+    /**
+     * A string option - some description of the room.
+     */
     public static final String OPT_DESCRIPTION = "description";
-    /** A boolean option whether the room should be locked when started. Default false. */
+    /**
+     * A boolean option whether the room should be locked when started. Default false.
+     */
     public static final String OPT_START_LOCKED = "startLocked";
-    /** A boolean option whether the ConferenceMe should be enabled for the room. Default false. */
+    /**
+     * A boolean option whether the ConferenceMe should be enabled for the room. Default false.
+     */
     public static final String OPT_CONFERENCE_ME_ENABLED = "conferenceMeEnabled";
 
     /**
      * Sets platform-specific options for this room.
-     *
+     * <p/>
      * There are option names mapped to some values. See the OPT_* constants for options that might be recognized.
      *
-     * @param options    platform-specific options
+     * @param options platform-specific options
      * @throws IllegalArgumentException if a value is not of the type required by the corresponding option
      */
     public void setOptions(Map<String, Object> options)
@@ -198,10 +258,10 @@ public class Room implements Concept
 
     /**
      * Finds out whether a given platform-specific option is set.
-     *
+     * <p/>
      * See the OPT_* constants for available options.
      *
-     * @param option    option name
+     * @param option option name
      * @return true if option with the given name is set, false if not
      */
     public boolean hasOption(String option)
@@ -211,10 +271,10 @@ public class Room implements Concept
 
     /**
      * Returns the value of a platform-specific option.
-     *
+     * <p/>
      * See the OPT_* constants for available options.
      *
-     * @param option          option name
+     * @param option option name
      * @return value of option, or null if the option is not set
      */
     public Object getOption(String option)
@@ -224,11 +284,11 @@ public class Room implements Concept
 
     /**
      * Returns the value of a platform-specific option if it is set, or default value if the option is not set.
-     *
+     * <p/>
      * See the OPT_* constants for available options.
      *
-     * @param option          option name
-     * @param defaultValue    default value to return if the option is not set
+     * @param option       option name
+     * @param defaultValue default value to return if the option is not set
      * @return value of option, or defaultValue if the option is not set
      */
     public Object getOption(String option, Object defaultValue)
@@ -239,11 +299,11 @@ public class Room implements Concept
 
     /**
      * Sets a single platform-specific option
-     *
+     * <p/>
      * See the OPT_* constants for available options.
      *
-     * @param option    option name
-     * @param value     value to be set; or null to unset the option
+     * @param option option name
+     * @param value  value to be set; or null to unset the option
      * @throws IllegalArgumentException if the value is not of the type required by the specified option
      */
     public void setOption(String option, Object value)
@@ -259,11 +319,11 @@ public class Room implements Concept
 
     /**
      * Validates that a given platform-specific option has the correct type of value.
-     *
+     * <p/>
      * Must be kept in sync with OPT_* constants.
      *
-     * @param option    option name
-     * @param value     value to be set
+     * @param option option name
+     * @param value  value to be set
      * @throws IllegalArgumentException if the value is not of the type required by the specified option
      */
     private static void validateOption(String option, Object value)
@@ -315,10 +375,10 @@ public class Room implements Concept
 
     /**
      * Unsets a single platform-specific option.
-     *
+     * <p/>
      * See the OPT_* constants for available options.
      *
-     * @param option    option name
+     * @param option option name
      */
     public void unsetOption(String option)
     {
