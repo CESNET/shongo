@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
  * - Cisco TelePresence MCU MSE 8420
  * - Cisco TelePresence MCU MSE 8510
  * <p/>
+ * FIXME: string parameters to device commands have to be at most 31 characters long
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
