@@ -77,69 +77,59 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public int dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(address)));
+        commandDevice(deviceResourceIdentifier, new Dial(address));
         return 0; // FIXME: return the callId
     }
 
     @Override
     public int dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(alias)));
+        commandDevice(deviceResourceIdentifier, new Dial(alias));
         return 0; // FIXME: return the callId
     }
 
     @Override
     public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new StandBy()));
+        commandDevice(deviceResourceIdentifier, new StandBy());
     }
 
     @Override
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
+        commandDevice(deviceResourceIdentifier, new HangUpAll());
     }
 
     @Override
     public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Mute()));
+        commandDevice(deviceResourceIdentifier, new Mute());
     }
 
     @Override
     public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Unmute()));
+        commandDevice(deviceResourceIdentifier, new Unmute());
     }
 
     @Override
     public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level)
             throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetMicrophoneLevel(level)));
+        commandDevice(deviceResourceIdentifier, new SetMicrophoneLevel(level));
     }
 
     @Override
     public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetPlaybackLevel(level)));
+        commandDevice(deviceResourceIdentifier, new SetPlaybackLevel(level));
     }
 
     @Override
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
             throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, address);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, address));
         return null; // TODO: return roomUserId returned by the command
     }
 
@@ -147,9 +137,7 @@ public class ResourceControlServiceImpl extends Component
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
             throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, alias);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, alias));
         return null; // TODO: return roomUserId returned by the command
     }
 
@@ -157,30 +145,39 @@ public class ResourceControlServiceImpl extends Component
     public void disconnectRoomUser(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DisconnectRoomUser(roomId, roomUserId);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        commandDevice(deviceResourceIdentifier, new DisconnectRoomUser(roomId, roomUserId));
     }
 
     @Override
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new CreateRoom(room);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        commandDevice(deviceResourceIdentifier, new CreateRoom(room));
         return null; // TODO: return roomId returned by the command
     }
 
     @Override
     public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DeleteRoom(roomId);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        commandDevice(deviceResourceIdentifier, new DeleteRoom(roomId));
     }
 
     /**
-     * @param deviceResourceIdentifier
+     * Asks the local controller agent to send a command to be performed by a device.
+     *
+     * @param deviceResourceIdentifier    identifier of device to perform a command
+     * @param action                      command to be performed by the device
+     * @throws FaultException
+     */
+    private void commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, action));
+    }
+
+    /**
+     * Gets name of agent managing a given device.
+     *
+     * @param deviceResourceIdentifier    identifier of device agent of which to get
      * @return agent name of managed resource with given {@code deviceResourceIdentifier}
      * @throws FaultException when resource doesn't exist or when is not managed
      */
