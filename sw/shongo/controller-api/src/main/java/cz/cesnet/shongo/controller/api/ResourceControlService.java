@@ -44,4 +44,7 @@ public interface ResourceControlService extends Service
 
     @API
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
+
+    @API
+    public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException;
 }

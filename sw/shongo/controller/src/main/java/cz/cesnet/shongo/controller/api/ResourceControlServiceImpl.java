@@ -162,6 +162,14 @@ public class ResourceControlServiceImpl extends Component
         return null; // TODO: return roomId returned by the command
     }
 
+    @Override
+    public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DeleteRoom(roomId);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+    }
+
     /**
      * @param deviceResourceIdentifier
      * @return agent name of managed resource with given {@code deviceResourceIdentifier}
