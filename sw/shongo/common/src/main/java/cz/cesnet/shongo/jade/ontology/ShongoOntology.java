@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.jade.ontology;
 
 import cz.cesnet.shongo.api.util.ClassHelper;
-import jade.content.onto.BeanOntology;
-import jade.content.onto.BeanOntologyException;
-import jade.content.onto.Ontology;
+import jade.content.onto.*;
+import jade.content.schema.ObjectSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +25,23 @@ public class ShongoOntology extends BeanOntology
 
     private ShongoOntology()
     {
-        super(NAME);
+        super(NAME, new Ontology[]{BasicOntology.getInstance(), SerializableOntology.getInstance()});
 
         try {
+            // add Java classes to be serializable
+            ObjectSchema serializableSchema = getSchema(SerializableOntology.SERIALIZABLE);
+            SerializableOntology.getInstance().add(serializableSchema, java.util.Map.class);
+            SerializableOntology.getInstance().add(serializableSchema, java.util.HashMap.class);
+
+            // add commands within this package
             add(getClass().getPackage().getName());
+
+            // add any API classes
             for (String packageName : ClassHelper.getPackages()) {
                 add(packageName);
             }
         }
-        catch (BeanOntologyException e) {
+        catch (OntologyException e) {
             logger.error("Error creating the ontology.", e);
         }
     }
