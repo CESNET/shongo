@@ -1,5 +1,5 @@
 #
-# Alias for video conference devices
+# Compartment of video conference devices
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #

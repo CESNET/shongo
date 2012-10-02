@@ -32,7 +32,7 @@ public class Room implements Concept
             throw new NullPointerException("name");
         }
         if (portCount < 0) {
-            throw new IllegalArgumentException("portCount must be non-negative");
+            throw new IllegalArgumentException("Port count must be non-negative");
         }
 
         this.name = name;

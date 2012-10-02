@@ -43,7 +43,7 @@ public class ConnectionByAlias extends Connection
     }
 
     @Override
-    public void establish(CompartmentExecutor compartmentExecutor)
+    protected void onEstablish(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
@@ -52,23 +52,29 @@ public class ConnectionByAlias extends Connection
         compartmentExecutor.getLogger().debug(message.toString());
 
         if (getEndpointFrom() instanceof ManagedEndpoint) {
-            String agentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
+            ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
+            String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
             controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAlias().toApi())));
+
+            // TODO: store connection id
         }
     }
 
     @Override
-    public void close(CompartmentExecutor compartmentExecutor)
+    protected void onClose(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
         compartmentExecutor.getLogger().debug(message.toString());
 
         if (getEndpointFrom() instanceof ManagedEndpoint) {
-            String agentName = ((ManagedEndpoint) getEndpointFrom()).getConnectorAgentName();
+            ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
+            String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
             controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
+
+            // TODO: use connection id to hangup
         }
     }
 }

@@ -1,12 +1,15 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
-import cz.cesnet.shongo.controller.resource.Address;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
+import cz.cesnet.shongo.jade.command.SendCommand;
+import cz.cesnet.shongo.jade.ontology.CreateRoom;
+import cz.cesnet.shongo.jade.ontology.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -14,6 +17,7 @@ import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Represents a {@link DeviceResource} which acts as {@link VirtualRoom} in a {@link Compartment}.
@@ -122,7 +126,7 @@ public class ResourceVirtualRoom extends VirtualRoom
 
     @Override
     @Transient
-    public void start(CompartmentExecutor compartmentExecutor)
+    public void onCreate(CompartmentExecutor compartmentExecutor)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -138,13 +142,38 @@ public class ResourceVirtualRoom extends VirtualRoom
                     .append(String.format("%s has allocated alias '%s'.", getReportDescription(), alias.getValue()));
             compartmentExecutor.getLogger().debug(aliasMessage.toString());
         }
+
+        if (getDeviceResource().isManaged()) {
+            ManagedMode managedMode = (ManagedMode)getDeviceResource().getMode();
+            String agentName = managedMode.getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            Room room = new Room();
+            room.setPortCount(getPortCount());
+            room.setName(UUID.randomUUID().toString());
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new CreateRoom(room)));
+
+            // TODO: store room id
+
+            setVirtualRoomId(room.getName());
+        }
     }
 
     @Override
-    public void stop(CompartmentExecutor compartmentExecutor)
+    public void onDelete(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
         compartmentExecutor.getLogger().debug(message.toString());
+
+        if (getDeviceResource().isManaged()) {
+            ManagedMode managedMode = (ManagedMode)getDeviceResource().getMode();
+            String agentName = managedMode.getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            String virtualRoomId = getVirtualRoomId();
+            if (virtualRoomId == null) {
+                throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
+            }
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new DeleteRoom(virtualRoomId)));
+        }
     }
 }

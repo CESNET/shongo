@@ -48,6 +48,11 @@ public class CompartmentExecutor extends Thread
         this.compartment = compartment;
         this.interval = interval;
         setName(String.format("Executor-%d", compartment.getId()));
+
+        // Load collections
+        compartment.getVirtualRooms();
+        compartment.getEndpoints();
+        compartment.getConnections();
     }
 
     /**
@@ -84,7 +89,7 @@ public class CompartmentExecutor extends Thread
 
         // Create virtual rooms
         for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-            virtualRoom.start(this);
+            virtualRoom.create(this);
         }
 
         // Assign aliases to endpoints
@@ -116,7 +121,7 @@ public class CompartmentExecutor extends Thread
         }
         // Stop virtual rooms
         for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-            virtualRoom.stop(this);
+            virtualRoom.delete(this);
         }
     }
 }

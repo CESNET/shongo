@@ -15,7 +15,7 @@ import javax.persistence.*;
 public abstract class Connection extends PersistentObject
 {
     /**
-     * The {@link Endpoint} which initiates the connection.
+     * The {@link Endpoint} which initiates the {@link Connection}.
      */
     private Endpoint endpointFrom;
 
@@ -23,6 +23,16 @@ public abstract class Connection extends PersistentObject
      * The {@link Endpoint} which accepts incoming connection.
      */
     private Endpoint endpointTo;
+
+    /**
+     * Current state of the connection.
+     */
+    private State state;
+
+    /**
+     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link Connection}.
+     */
+    private String connectionId;
 
     /**
      * @return {@link #endpointFrom}
@@ -61,16 +71,115 @@ public abstract class Connection extends PersistentObject
     }
 
     /**
+     * @return {@link #state}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
+
+    /**
+     * @return {@link #connectionId}
+     */
+    @Column
+    public String getConnectionId()
+    {
+        return connectionId;
+    }
+
+    /**
+     * @param connectionId sets the {@link #connectionId}
+     */
+    public void setConnectionId(String connectionId)
+    {
+        this.connectionId = connectionId;
+    }
+
+    @PrePersist
+    protected void onCreate()
+    {
+        if (state == null) {
+            state = State.NOT_ESTABLISHED;
+        }
+    }
+
+    /**
      * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
      * @param compartmentExecutor
      */
-    public abstract void establish(CompartmentExecutor compartmentExecutor);
+    protected abstract void onEstablish(CompartmentExecutor compartmentExecutor);
 
     /**
      * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
      * @param compartmentExecutor
      */
-    public abstract void close(CompartmentExecutor compartmentExecutor);
+    protected abstract void onClose(CompartmentExecutor compartmentExecutor);
+
+    /**
+     * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
+     *
+     * @param compartmentExecutor
+     */
+    public final void establish(CompartmentExecutor compartmentExecutor)
+    {
+        if (getState() != State.NOT_ESTABLISHED) {
+            throw new IllegalStateException(
+                    "Connection can be established only if the connection is not established yet.");
+        }
+
+        onEstablish(compartmentExecutor);
+
+        setState(State.ESTABLISHED);
+    }
+
+    /**
+     * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
+     *
+     * @param compartmentExecutor
+     */
+    public final void close(CompartmentExecutor compartmentExecutor)
+    {
+
+        if (getState() != State.ESTABLISHED) {
+            throw new IllegalStateException(
+                    "Connection can be closed only if the connection is already established.");
+        }
+
+        onClose(compartmentExecutor);
+
+        setState(State.CLOSED);
+    }
+
+    /**
+     * State of the {@link Connection}.
+     */
+    public static enum State
+    {
+        /**
+         * {@link Connection} has not been established yet.
+         */
+        NOT_ESTABLISHED,
+
+        /**
+         * {@link Connection} is already established.
+         */
+        ESTABLISHED,
+
+        /**
+         * {@link Connection} has been already closed.
+         */
+        CLOSED
+    }
 }
