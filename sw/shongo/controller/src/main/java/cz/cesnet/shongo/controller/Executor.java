@@ -29,7 +29,7 @@ public class Executor extends Component
     private static Logger logger = LoggerFactory.getLogger(Executor.class);
 
     /**
-     * {@link EntityManagerFactory} used for loading {@link cz.cesnet.shongo.controller.api.Reservation}s for execution.
+     * {@link EntityManagerFactory} used for loading {@link Compartment}s for execution.
      */
     private EntityManagerFactory entityManagerFactory;
 
@@ -119,7 +119,8 @@ public class Executor extends Component
             if (executorsById.containsKey(compartmentId)) {
                 continue;
             }
-            CompartmentExecutor executor = new CompartmentExecutor(controllerAgent, compartment, compartmentReservation.getSlot());
+            CompartmentExecutor executor = new CompartmentExecutor(controllerAgent, compartment.getId(),
+                    compartmentReservation.getSlot(), entityManagerFactory);
             executor.start();
             executorsById.put(compartmentId, executor);
         }

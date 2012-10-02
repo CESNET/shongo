@@ -43,16 +43,16 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param Reservation to be deleted in the database
+     * @param reservation to be deleted in the database
      */
-    public void delete(Reservation Reservation, Cache cache)
+    public void delete(Reservation reservation, Cache cache)
     {
         // Remove all allocated virtual rooms from virtual rooms database
-        List<Reservation> childReservations = Reservation.getChildReservations();
+        List<Reservation> childReservations = reservation.getChildReservations();
         for (Reservation childReservation : childReservations) {
             cache.removeReservation(childReservation);
         }
-        super.delete(Reservation);
+        super.delete(reservation);
     }
 
     /**

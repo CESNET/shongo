@@ -9,7 +9,6 @@ import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.DeleteRoom;
-import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -144,12 +143,12 @@ public class ResourceVirtualRoom extends VirtualRoom
         }
 
         if (getDeviceResource().isManaged()) {
-            ManagedMode managedMode = (ManagedMode)getDeviceResource().getMode();
+            ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
             Room room = new Room();
             room.setPortCount(getPortCount());
-            room.setName(UUID.randomUUID().toString());
+            room.setName(UUID.randomUUID().toString().substring(0, 20));
             controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new CreateRoom(room)));
 
             // TODO: store room id
@@ -166,7 +165,7 @@ public class ResourceVirtualRoom extends VirtualRoom
         compartmentExecutor.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
-            ManagedMode managedMode = (ManagedMode)getDeviceResource().getMode();
+            ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
             String virtualRoomId = getVirtualRoomId();
