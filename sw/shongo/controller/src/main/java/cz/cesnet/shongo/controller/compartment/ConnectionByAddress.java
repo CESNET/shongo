@@ -1,8 +1,12 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.jade.command.SendCommand;
+import cz.cesnet.shongo.jade.ontology.Dial;
+import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -62,20 +66,38 @@ public class ConnectionByAddress extends Connection
     }
 
     @Override
-    public void establish(CompartmentExecutor compartmentExecutor)
+    protected void onEstablish(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Dialing from %s to address '%s' in technology '%s'.",
                 getEndpointFrom().getReportDescription(), getAddress(),
                 getTechnology().getName()));
         compartmentExecutor.getLogger().debug(message.toString());
+
+        if (getEndpointFrom() instanceof ManagedEndpoint) {
+            ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
+            String agentName = managedEndpointFrom.getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAddress().getValue())));
+
+            // TODO: store connection id
+        }
     }
 
     @Override
-    public void close(CompartmentExecutor compartmentExecutor)
+    protected void onClose(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
         compartmentExecutor.getLogger().debug(message.toString());
+
+        if (getEndpointFrom() instanceof ManagedEndpoint) {
+            ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
+            String agentName = managedEndpointFrom.getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
+
+            // TODO: use connection id to hangup
+        }
     }
 }

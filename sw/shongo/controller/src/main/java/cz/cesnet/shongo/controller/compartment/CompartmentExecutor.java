@@ -84,7 +84,7 @@ public class CompartmentExecutor extends Thread
 
         // Create virtual rooms
         for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-            virtualRoom.start(this);
+            virtualRoom.create(this);
         }
 
         // Assign aliases to endpoints
@@ -116,7 +116,7 @@ public class CompartmentExecutor extends Thread
         }
         // Stop virtual rooms
         for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-            virtualRoom.stop(this);
+            virtualRoom.delete(this);
         }
     }
 }

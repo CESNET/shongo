@@ -23,17 +23,17 @@ public class Room implements Concept
     {
     }
 
-    public Room(String name, int licenseCount)
+    public Room(String name, int portCount)
     {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (licenseCount < 0) {
-            throw new IllegalArgumentException("portCount must be non-negative");
+        if (portCount < 0) {
+            throw new IllegalArgumentException("Port count must be non-negative");
         }
 
         this.name = name;
-        this.portCount = licenseCount;
+        this.portCount = portCount;
     }
 
     /**
