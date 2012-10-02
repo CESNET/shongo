@@ -48,6 +48,11 @@ public class CompartmentExecutor extends Thread
         this.compartment = compartment;
         this.interval = interval;
         setName(String.format("Executor-%d", compartment.getId()));
+
+        // Load collections
+        compartment.getVirtualRooms();
+        compartment.getEndpoints();
+        compartment.getConnections();
     }
 
     /**
