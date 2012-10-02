@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.api.Alias;
+import jade.content.Concept;
 
 import java.util.*;
 
@@ -9,7 +10,7 @@ import java.util.*;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room
+public class Room implements Concept
 {
     private String name = null;
     private int licenseCount = -1; // FIXME: rename to portCount
