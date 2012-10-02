@@ -152,6 +152,9 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      */
     public void addReservation(T object, R reservation)
     {
+        if (!reservation.getSlot().overlaps(workingInterval)) {
+            return;
+        }
         reservation.checkPersisted();
         ObjectState<R> objectState = getObjectState(object);
         objectState.addReservation(reservation);
@@ -163,6 +166,9 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      */
     public void removeReservation(T object, R reservation)
     {
+        if (!reservation.getSlot().overlaps(workingInterval)) {
+            return;
+        }
         ObjectState<R> objectState = getObjectState(object);
         objectState.removeReservation(reservation);
     }

@@ -152,7 +152,8 @@ public class Connector
         // start configured agents
         for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
             String agentName = instCfg.getString("name");
-            addAgent(agentName);
+            Boolean agentDumb = instCfg.getBoolean("dumb", false);
+            addAgent(agentName, new Object[]{agentDumb});
         }
         configureAgents();
     }
@@ -199,7 +200,7 @@ public class Connector
                     Shell.printError("You must specify the new agent name.");
                     return;
                 }
-                addAgent(args[1]);
+                addAgent(args[1], null);
             }
         });
         shell.addCommand("list", "List all connector agent instances", new CommandHandler()
@@ -282,9 +283,9 @@ public class Connector
      *
      * @param name
      */
-    private void addAgent(String name)
+    private void addAgent(String name, Object[] arguments)
     {
-        jadeContainer.addAgent(name, ConnectorAgent.class);
+        jadeContainer.addAgent(name, ConnectorAgent.class, arguments);
         jadeAgents.add(name);
     }
 

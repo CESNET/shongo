@@ -364,7 +364,7 @@ public class Controller
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
 
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
-        jadeContainer.addAgent("Controller", jadeAgent);
+        jadeContainer.addAgent("Controller", jadeAgent, null);
         if (jadeContainer.start() == false) {
             throw new IllegalStateException("Failed to start JADE container.");
         }

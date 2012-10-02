@@ -91,10 +91,12 @@ public class ConnectorAgent extends Agent
     public Object handleAgentAction(AgentAction action, AID sender)
             throws UnknownActionException, CommandException, CommandUnsupportedException
     {
-        if (action instanceof ConnectorAgentAction) {
+        if (getArguments()[0].equals(Boolean.TRUE)) {
+            System.out.println(action.toString());
+        }
+        else if (action instanceof ConnectorAgentAction) {
             return ((ConnectorAgentAction) action).exec(connector);
         }
-
         return super.handleAgentAction(action, sender);
     }
 }

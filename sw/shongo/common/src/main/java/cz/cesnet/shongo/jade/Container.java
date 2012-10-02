@@ -50,6 +50,11 @@ public class Container
     private Map<String, Object> agents = new HashMap<String, Object>();
 
     /**
+     * Arguments agents.
+     */
+    private Map<String, Object[]> agentsArguments = new HashMap<String, Object[]>();
+
+    /**
      * Container agents controllers.
      */
     private Map<String, AgentController> agentControllers = new HashMap<String, AgentController>();
@@ -267,10 +272,11 @@ public class Container
 
         // Start agent
         Object agent = agents.get(agentName);
+        Object[] arguments = agentsArguments.get(agentName);
         if (agent instanceof Class) {
             Class agentClass = (Class) agent;
             try {
-                agentController = containerController.createNewAgent(agentName, agentClass.getCanonicalName(), null);
+                agentController = containerController.createNewAgent(agentName, agentClass.getCanonicalName(), arguments);
             }
             catch (StaleProxyException exception) {
                 logger.error("Failed to create agent.", exception);
@@ -292,6 +298,7 @@ public class Container
                             agentInstance.getClass().getName());
                     return false;
                 }
+                agentInstance.setArguments(arguments);
                 agentController = containerController.acceptNewAgent(agentName, agentInstance);
             }
             catch (StaleProxyException exception) {
@@ -358,9 +365,12 @@ public class Container
      * @param agentName
      * @param agentClass
      */
-    public void addAgent(String agentName, Class agentClass)
+    public void addAgent(String agentName, Class agentClass, Object[] arguments)
     {
         agents.put(agentName, agentClass);
+        if (arguments != null) {
+            agentsArguments.put(agentName, arguments);
+        }
 
         if (isStarted()) {
             startAgent(agentName);
@@ -374,9 +384,12 @@ public class Container
      * @param agentName
      * @param agent
      */
-    public void addAgent(String agentName, Agent agent)
+    public void addAgent(String agentName, Agent agent, Object[] arguments)
     {
         agents.put(agentName, agent);
+        if (arguments != null) {
+            agentsArguments.put(agentName, arguments);
+        }
 
         if (isStarted()) {
             startAgent(agentName);
@@ -392,6 +405,7 @@ public class Container
     {
         stopAgent(agentName);
         agents.remove(agentName);
+        agentsArguments.remove(agentName);
     }
 
     /**
@@ -528,7 +542,7 @@ public class Container
      */
     public void addManagementGui()
     {
-        addAgent("rma", jade.tools.rma.rma.class);
+        addAgent("rma", jade.tools.rma.rma.class, null);
     }
 
     /**

@@ -56,8 +56,6 @@ public class CompartmentSpecification extends Specification
      */
     @ManyToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    @JoinTable(
-            inverseJoinColumns = {@JoinColumn(name = "specification_id") })
     public List<ParticipantSpecification> getSpecifications()
     {
         return Collections.unmodifiableList(specifications);
