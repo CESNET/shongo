@@ -2,7 +2,6 @@
 * Executor
 
 * API
-  * Finish updating Controller API
   * Popsat workflow v API (interaction overview diagram)
   * Popsat instalaci shonga do API
 

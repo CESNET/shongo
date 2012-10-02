@@ -78,14 +78,13 @@
 \fi%
 }
 
-% Short inlines e.g., "|code|"
+% Code inline
 \lstdefinestyle{lstStyleShort}{
   breaklines=true,
   breakatwhitespace=true,
   breakautoindent=true,
 }
-%\lstMakeShortInline[style=lstStyleShort]|
-\newcommand{\code}[1]{\lstinline[style=lstStyleShort]{#1}}
+\newcommand{\code}[1]{\textbf{\texttt{#1}}}
 
 % Document title page
 \author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}

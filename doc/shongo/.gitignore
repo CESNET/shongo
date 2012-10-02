@@ -1,8 +1,9 @@
+api/api.pdf
+shongo_api.pdf
 *.log
 *.out
 *.toc
 *.synctex.gz
-*.pdf
 *.glg
 *.glo
 *.xdy

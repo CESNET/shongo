@@ -9,6 +9,7 @@ clean:
 # Build PDF from tex
 $(TARGET).pdf: $(TARGET).toc $(TARGET).gls $(TARGET).tex $(TEXFILES)
 	bibtex $(TARGET)
+	pdfcrop diagrams/cd_resources_api.pdf diagrams/cd_resources_api.pdf
 	pdflatex $(TARGET).tex
 
 # Pre-build PDF for table of contents
