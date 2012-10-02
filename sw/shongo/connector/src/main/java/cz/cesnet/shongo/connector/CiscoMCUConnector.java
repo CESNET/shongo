@@ -161,13 +161,13 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // test of modifyRoom() method
 //        System.out.println("Modifying shongo-test");
 //        Map<String, Object> atts = new HashMap<String, Object>();
-//        atts.put("name", "shongo-testing");
+//        atts.put(Room.NAME, "shongo-testing");
 //        atts.put(Room.OPT_LISTED_PUBLICLY, false);
 //        atts.put(Room.OPT_PIN, "1234");
 //        conn.modifyRoom("shongo-test", atts);
 //        Map<String, Object> atts2 = new HashMap<String, Object>();
-//        atts2.put("aliases", Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-//        atts2.put("name", "shongo-test");
+//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+//        atts2.put(Room.NAME, "shongo-test");
 //        conn.modifyRoom("shongo-testing", atts2);
 
         // test of listRoomUsers() method
@@ -817,19 +817,19 @@ ParamsLoop:
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             String att = entry.getKey();
             Object val = entry.getValue();
-            if (att.equals("name")) {
+            if (att.equals(Room.NAME)) {
                 room.setName((String) val);
             }
-            else if (att.equals("licenseCount")) {
+            else if (att.equals(Room.PORT_COUNT)) {
                 room.setPortCount((Integer) val);
             }
-            else if (att.equals("aliases")) {
+            else if (att.equals(Room.ALIASES)) {
                 room.setAliases((List<Alias>) val);
             }
-            else if (att.equals("startTime")) {
+            else if (att.equals(Room.START_TIME)) {
                 room.setStartTime((Date) val);
             }
-            else if (att.equals("endTime")) {
+            else if (att.equals(Room.END_TIME)) {
                 room.setEndTime((Date) val);
             }
             else {
