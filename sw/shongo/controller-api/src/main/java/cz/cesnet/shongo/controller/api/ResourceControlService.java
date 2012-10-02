@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -11,31 +12,39 @@ import cz.cesnet.shongo.fault.FaultException;
  */
 public interface ResourceControlService extends Service
 {
-    // FIXME: rename target to address - should be address (IP, domain...); add another version of dial using Alias target
     @API
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException;
+    public int dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException;
 
     @API
-    public String standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public int dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException;
 
     @API
-    public String hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
-    public String mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
-    public String unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
-    public String setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
+    public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
-    public String setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
+    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
 
     @API
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId, String address) throws FaultException;
+    public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException;
 
     @API
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId, Alias alias) throws FaultException;
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address) throws FaultException;
+
+    @API
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias) throws FaultException;
+
+    @API
+    public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
+
+    @API
+    public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException;
 }

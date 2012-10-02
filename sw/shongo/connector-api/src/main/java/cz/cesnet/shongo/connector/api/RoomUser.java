@@ -47,7 +47,7 @@ public class RoomUser
     }
 
     /**
-     * @return Microphone level
+     * @return Microphone level in milli dB, can be negative
      */
     public int getMicrophoneLevel()
     {
@@ -55,7 +55,7 @@ public class RoomUser
     }
 
     /**
-     * @param microphoneLevel Microphone level
+     * @param microphoneLevel Microphone level in milli dB, can be negative
      */
     public void setMicrophoneLevel(int microphoneLevel)
     {

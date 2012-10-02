@@ -5,11 +5,13 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +25,8 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A connector for Cisco TelePresence MCU.
@@ -35,6 +39,7 @@ import java.util.*;
  * - Cisco TelePresence MCU 4500 Series
  * - Cisco TelePresence MCU MSE 8420
  * - Cisco TelePresence MCU MSE 8510
+ * <p/>
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -133,7 +138,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //            System.out.println(room);
 //        }
 //        System.out.println("Deleting 'shongo-test'");
-        conn.deleteRoom("shongo-test");
+//        conn.deleteRoom("shongo-test");
 //        roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
@@ -152,8 +157,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        for (RoomInfo room : roomList) {
 //            System.out.println(room);
 //        }
-//
-//        // test of modifyRoom() method
+
+        // test of modifyRoom() method
 //        System.out.println("Modifying shongo-test");
 //        Map<String, Object> atts = new HashMap<String, Object>();
 //        atts.put("name", "shongo-testing");
@@ -164,12 +169,24 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        atts2.put("aliases", Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
 //        atts2.put("name", "shongo-test");
 //        conn.modifyRoom("shongo-testing", atts2);
-//
-//        // user connecting and disconnecting
-//        conn.dialParticipant("shongo-test", "c90", new Alias(Technology.H323, AliasType.URI, "147.251.54.102"));
-//        conn.disconnectRoomUser("shongo-test", "c90");
 
-        System.out.println("All done, disconnecting");
+        // test of listRoomUsers() method
+        System.out.println("Listing shongo-test room:");
+        Collection<RoomUser> shongoUsers = conn.listRoomUsers("shongo-test");
+        for (RoomUser ru : shongoUsers) {
+            System.out.println("  - " + ru.getUserId());
+        }
+        System.out.println("Listing done");
+
+        // user connect by alias
+//        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
+//        System.out.println("Added user " + ruId);
+        // user connect by address
+//        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
+        // user disconnect
+//        conn.disconnectRoomUser("shongo-test", "participant1");
+
+//        System.out.println("All done, disconnecting");
         conn.disconnect();
     }
 
@@ -235,12 +252,13 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             }
 
             initSession();
+            initDeviceInfo();
         }
         catch (MalformedURLException e) {
             throw new CommandException("Error constructing URL of the device.", e);
         }
         catch (CommandException e) {
-            throw new CommandException("Error initializing connection to the device.", e);
+            throw new CommandException("Error setting up connection to the device.", e);
         }
 
         info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
@@ -254,6 +272,24 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         if (!gkInfo.get("gatekeeperUsage").equals("disabled")) {
             gatekeeperRegistrationPrefix = (String) gkInfo.get("registrationPrefix");
         }
+    }
+
+    private void initDeviceInfo() throws CommandException
+    {
+        Map<String, Object> device = exec(new Command("device.query"));
+        DeviceInfo di = new DeviceInfo();
+
+        di.setName((String) device.get("model"));
+
+        String version = (String) device.get("softwareVersion")
+                + " (API: " + (String) device.get("apiVersion")
+                + ", build: " + (String) device.get("buildVersion")
+                + ")";
+        di.setSoftwareVersion(version);
+
+        di.setSerialNumber((String) device.get("serial"));
+
+        info.setDeviceInfo(di);
     }
 
     /**
@@ -302,17 +338,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         HttpsURLConnection.setDefaultHostnameVerifier(hv);
     }
 
-    /**
-     * Returns the URL on which to communicate with the device.
-     *
-     * @return URL for communication with the device
-     */
-    private URL getDeviceURL() throws MalformedURLException
-    {
-        // RPC2 is a fixed path given by Cisco, see the API docs
-        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "RPC2");
-    }
-
     @Override
     public void disconnect() throws CommandException
     {
@@ -323,6 +348,17 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         gatekeeperRegistrationPrefix = null;
     }
 
+
+    /**
+     * Returns the URL on which to communicate with the device.
+     *
+     * @return URL for communication with the device
+     */
+    private URL getDeviceURL() throws MalformedURLException
+    {
+        // RPC2 is a fixed path given by Cisco, see the API docs
+        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "RPC2");
+    }
 
     /**
      * Sends a command to the device. Blocks until response to the command is complete.
@@ -676,7 +712,7 @@ ParamsLoop:
         cmd.setParameter("customLayoutEnabled", Boolean.TRUE);
 
         cmd.setParameter("enforceMaximumAudioPorts", Boolean.TRUE);
-        cmd.setParameter("maximumAudioPorts", 0);
+        cmd.setParameter("maximumAudioPorts", 0); // audio-only participants are forced to use video slots
         cmd.setParameter("enforceMaximumVideoPorts", Boolean.TRUE);
 
         // defaults (may be overridden by specified room options
@@ -703,8 +739,8 @@ ParamsLoop:
             cmd.setParameter("conferenceName", room.getName());
         }
 
-        if (room.getLicenseCount() >= 0) {
-            cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
+        if (room.getPortCount() >= 0) {
+            cmd.setParameter("maximumVideoPorts", room.getPortCount());
         }
 
         if (room.getAliases() != null) {
@@ -785,7 +821,7 @@ ParamsLoop:
                 room.setName((String) val);
             }
             else if (att.equals("licenseCount")) {
-                room.setLicenseCount((Integer) val);
+                room.setPortCount((Integer) val);
             }
             else if (att.equals("aliases")) {
                 room.setAliases((List<Alias>) val);
@@ -832,13 +868,13 @@ ParamsLoop:
     @Override
     public String exportRoomSettings(String roomId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void importRoomSettings(String roomId, String settings) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -848,26 +884,26 @@ ParamsLoop:
     @Override
     public void removeRoomContentFile(String roomId, String name) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void addRoomContent(String roomId, String name, MediaData data)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -877,35 +913,121 @@ ParamsLoop:
     @Override
     public RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void dialParticipant(String roomId, String roomUserId, Alias alias) throws CommandException
+    public String dialParticipant(String roomId, Alias alias) throws CommandException
+    {
+        return dialParticipant(roomId, alias.getValue());
+    }
+
+    @Override
+    public String dialParticipant(String roomId, String address) throws CommandException
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
-        // FIXME: generate roomUserId and return it
+
+        // FIXME: slow...
+        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", roomId);
         cmd.setParameter("participantName", roomUserId);
-        cmd.setParameter("address", alias.getValue()); // FIXME: toString() might be exploited
+        cmd.setParameter("address", address);
         cmd.setParameter("participantType", "by_address");
 
         exec(cmd);
+
+        return roomUserId;
+    }
+
+    /**
+     * Generates a room user ID for a new user.
+     *
+     * @param roomId technology ID of the room to generate a new user ID for
+     * @return a free roomUserId to be assigned (free in the moment of processing this method, might race condition with
+     *         someone else)
+     */
+    private String generateRoomUserId(String roomId) throws CommandException
+    {
+        List<Map<String, Object>> participants;
+        try {
+            Command cmd = new Command("participant.enumerate");
+            cmd.setParameter("operationScope", new String[]{"currentState"});
+            participants = execEnumerate(cmd, "participants");
+        }
+        catch (CommandException e) {
+            throw new CommandException("Cannot generate a new room user ID - cannot list current room users.", e);
+        }
+
+        // generate the new ID as maximal ID of present users increased by one
+        int maxFound = 0;
+        Pattern pattern = Pattern.compile("^participant(\\d+)$");
+        for (Map<String, Object> part : participants) {
+            if (!part.get("conferenceName").equals(roomId)) {
+                continue;
+            }
+            Matcher m = pattern.matcher((String) part.get("participantName"));
+            if (m.find()) {
+                maxFound = Math.max(maxFound, Integer.parseInt(m.group(1)));
+            }
+        }
+
+        return String.format("participant%d", maxFound + 1);
     }
 
     @Override
-    public Collection<RoomUser> listRoomUsers(String roomId) throws CommandException, CommandUnsupportedException
+    public Collection<RoomUser> listRoomUsers(String roomId) throws CommandException
     {
-        return null; // TODO
+        Command cmd = new Command("participant.enumerate");
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+        cmd.setParameter("enumerateFilter", "connected");
+        List<Map<String, Object>> participants = execEnumerate(cmd, "participants");
+
+        List<RoomUser> result = new ArrayList<RoomUser>();
+        for (Map<String, Object> part : participants) {
+            if (!part.get("conferenceName").equals(roomId)) {
+                continue; // not from this room
+            }
+            RoomUser ru = new RoomUser();
+
+            ru.setUserId((String) part.get("participantName"));
+            ru.setRoomId((String) part.get("conferenceName"));
+
+            Map<String, Object> state = (Map<String, Object>) part.get("currentState");
+
+            ru.setMuted((Boolean) state.get("audioRxMuted"));
+            if (state.get("audioRxGainMode").equals("fixed")) {
+                ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
+            }
+            ru.setJoinTime(new DateTime(state.get("connectTime")));
+
+            // room layout
+            if (state.containsKey("currentLayout")) {
+                RoomLayout.VoiceSwitching vs;
+                if (state.get("focusType").equals("voiceActivated")) {
+                    vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
+                }
+                else {
+                    vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
+                }
+                final Integer layoutIndex = (Integer) state.get("currentLayout");
+                RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
+
+                ru.setLayout(rl);
+            }
+
+            result.add(ru);
+        }
+
+        return result;
     }
 
     @Override
     public void modifyRoomUser(String roomId, String roomUserId, Map attributes)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
@@ -922,14 +1044,14 @@ ParamsLoop:
     public void enableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void disableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -937,40 +1059,41 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void disableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void enableUserVideo(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void enableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void muteUser(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void setUserMicrophoneLevel(String roomUserId, int level)
+    public void setUserMicrophoneLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void setUserPlaybackLevel(String roomUserId, int level) throws CommandException, CommandUnsupportedException
+    public void setUserPlaybackLevel(String roomId, String roomUserId, int level)
+            throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void unmuteUser(String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -980,39 +1103,39 @@ ParamsLoop:
     @Override
     public void deleteRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void downloadRecording(String downloadURL, String targetPath)
             throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public int startRecording(String roomId, ContentType format, RoomLayout layout)
             throws CommandException, CommandUnsupportedException
     {
-        return 0; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
     public void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>
@@ -1020,15 +1143,26 @@ ParamsLoop:
     //<editor-fold desc="MONITORING SERVICE">
 
     @Override
-    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException
+    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException
     {
-        return null; // TODO
+        Map<String, Object> health = exec(new Command("device.health.query"));
+        Map<String, Object> status = exec(new Command("device.query"));
+
+        DeviceLoadInfo info = new DeviceLoadInfo();
+        info.setCpuLoad((Integer) health.get("cpuLoad"));
+        if (status.containsKey("uptime")) {
+            info.setUpTime((Long) status.get("uptime")); // NOTE: 'uptime' not documented, but it is there
+        }
+
+        // NOTE: memory and disk usage not accessible via API
+
+        return info;
     }
 
     @Override
     public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
@@ -1052,14 +1186,14 @@ ParamsLoop:
     public MediaData getReceivedVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO: call participant.status and use previewURL
     }
 
     @Override
     public MediaData getSentVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        return null; // TODO
+        throw new CommandUnsupportedException(); // TODO
     }
 
     //</editor-fold>

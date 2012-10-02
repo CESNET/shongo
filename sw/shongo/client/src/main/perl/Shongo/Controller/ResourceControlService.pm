@@ -74,8 +74,8 @@ sub control_resource()
             method => sub { shift->exit_requested(1); }
         },
         "dial" => {
-            desc => "Dial a number",
-            minargs => 1, args => "[number]",
+            desc => "Dial a number or address",
+            minargs => 1, args => "[number/address]",
             method => sub {
                 my ($shell, $params, @args) = @_;
                 resource_dial($resourceIdentifier, $args[0]);
@@ -138,6 +138,8 @@ sub control_resource()
     $shell->run();
 }
 
+# TODO: add error printing instead of empty blocks of: if ($result->is_fault) return;
+
 sub resource_dial
 {
     my ($resourceIdentifier, $target) = @_;
@@ -150,7 +152,7 @@ sub resource_dial
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
+#    printf("CallId: %d\n", $result->value());
 }
 
 sub resource_standby
@@ -164,7 +166,6 @@ sub resource_standby
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_hang_up_all
@@ -178,7 +179,6 @@ sub resource_hang_up_all
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_mute
@@ -192,7 +192,6 @@ sub resource_mute
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_unmute
@@ -206,7 +205,6 @@ sub resource_unmute
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_set_microphone_level
@@ -221,7 +219,6 @@ sub resource_set_microphone_level
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_set_playback_level
@@ -236,7 +233,6 @@ sub resource_set_playback_level
     if ( $result->is_fault ) {
         return;
     }
-    printf("%s\n", $result->value());
 }
 
 sub resource_dial_participant

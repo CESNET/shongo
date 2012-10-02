@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -74,79 +75,99 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String target) throws FaultException
+    public int dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(target)));
-        return String.format("Dialing in '%s' for '%s'...", agentName, target);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(address)));
+        return 0; // FIXME: return the callId
     }
 
     @Override
-    public String standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public int dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(alias)));
+        return 0; // FIXME: return the callId
+    }
+
+    @Override
+    public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new StandBy()));
-        return String.format("Setting '%s' to standby mode via '%s' agent.", deviceResourceIdentifier, agentName);
     }
 
     @Override
-    public String hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
-        return String.format("Hanging up all calls in '%s'", agentName);
     }
 
     @Override
-    public String mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Mute()));
-        return String.format("Muting the '%s'.", agentName);
     }
 
     @Override
-    public String unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Unmute()));
-        return String.format("Unmuting the '%s'.", agentName);
     }
 
     @Override
-    public String setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level)
+            throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetMicrophoneLevel(level)));
-        return String.format("Setting up microphone level to %d", level);
     }
 
     @Override
-    public String setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new SetPlaybackLevel(level)));
-        return String.format("Setting up playback level to %d", level);
     }
 
     @Override
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
-            String roomUserId, String address) throws FaultException
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
+            throws FaultException
     {
-        /*String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, roomUserId, alias);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));*/
-        System.out.println("Dialing by address " + deviceResourceIdentifier + " " + roomId + " " + roomUserId + " " + address);
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DialParticipant(roomId, address);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        return null; // TODO: return roomUserId returned by the command
     }
 
     @Override
-    public void dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
-            String roomUserId, Alias alias) throws FaultException
+    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
+            throws FaultException
     {
-        /*String agentName = getAgentName(deviceResourceIdentifier);
-        AgentAction act = new DialParticipant(roomId, roomUserId, alias);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));*/
-        System.out.println("Dialing by alias " + deviceResourceIdentifier + " " + roomId + " " + roomUserId + " " + alias.getValue());
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DialParticipant(roomId, alias);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        return null; // TODO: return roomUserId returned by the command
+    }
+
+    @Override
+    public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new CreateRoom(room);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        return null; // TODO: return roomId returned by the command
+    }
+
+    @Override
+    public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new DeleteRoom(roomId);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
     }
 
     /**

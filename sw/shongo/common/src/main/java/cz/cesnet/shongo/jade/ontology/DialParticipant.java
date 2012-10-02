@@ -11,32 +11,61 @@ import cz.cesnet.shongo.connector.api.CommonService;
 public class DialParticipant extends ConnectorAgentAction
 {
     private String roomId;
-    private String roomUserId;
-    private Alias alias;
+
+    // either alias or address will be used
+    private Alias alias = null;
+    private String address = null;
 
     public DialParticipant()
     {
     }
 
-    public DialParticipant(String roomId, String roomUserId, Alias alias)
+    public DialParticipant(String roomId, String address)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
+        this.address = address;
+    }
+
+    public DialParticipant(String roomId, Alias alias)
+    {
+        this.roomId = roomId;
         this.alias = alias;
     }
 
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info(String.format("Dialing in room %s user %s at alias %s", roomId, roomUserId, alias));
-        getMultipoint(connector).dialParticipant(roomId, roomUserId, alias);
-        return null;
+        if (alias != null && address != null) {
+            throw new IllegalStateException(
+                    "Both alias and address set for the DialParticipant command - should be just one.");
+        }
+
+        if (alias != null) {
+            logger.info("Dialing user at alias {} into room {}", alias, roomId);
+            return getMultipoint(connector).dialParticipant(roomId, alias);
+        }
+        else {
+            logger.info("Dialing user at address {} into room {}", alias, roomId);
+            return getMultipoint(connector).dialParticipant(roomId, address);
+        }
     }
 
     public String toString()
     {
-        return String
-                .format("DialParticipant agent action (room: %s, roomUser: %s, alias: %s)", roomId, roomUserId, alias);
+        if (alias != null && address != null) {
+            throw new IllegalStateException(
+                    "Both alias and address set for the DialParticipant command - should be just one.");
+        }
+
+        String target;
+        if (alias != null) {
+            target = "alias: " + alias;
+        }
+        else {
+            target = "address: " + address;
+        }
+
+        return String.format("DialParticipant agent action (room: %s, %s)", roomId, target);
     }
 
     public Alias getAlias()
@@ -59,13 +88,13 @@ public class DialParticipant extends ConnectorAgentAction
         this.roomId = roomId;
     }
 
-    public String getRoomUserId()
+    public String getAddress()
     {
-        return roomUserId;
+        return address;
     }
 
-    public void setRoomUserId(String roomUserId)
+    public void setAddress(String address)
     {
-        this.roomUserId = roomUserId;
+        this.address = address;
     }
 }

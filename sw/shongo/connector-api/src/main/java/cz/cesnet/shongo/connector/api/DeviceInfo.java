@@ -55,6 +55,11 @@ public class DeviceInfo
     @Override
     public String toString()
     {
-        return name + "; " + description;
+        if (description == null) {
+            return name;
+        }
+        else {
+            return name + "; " + description;
+        }
     }
 }

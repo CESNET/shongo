@@ -29,6 +29,7 @@ public class ShongoOntology extends BeanOntology
         super(NAME);
 
         try {
+            add(getClass().getPackage().getName());
             for (String packageName : ClassHelper.getPackages()) {
                 add(packageName);
             }

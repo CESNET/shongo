@@ -1,6 +1,7 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.api.Alias;
+import jade.content.Concept;
 
 import java.util.*;
 
@@ -9,10 +10,10 @@ import java.util.*;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room
+public class Room implements Concept
 {
     private String name = null;
-    private int licenseCount = -1; // FIXME: rename to portCount
+    private int portCount = -1;
     private Date startTime = null;
     private Date endTime = null;
     private List<Alias> aliases;
@@ -29,11 +30,11 @@ public class Room
             throw new NullPointerException("name");
         }
         if (licenseCount < 0) {
-            throw new IllegalArgumentException("licenseCount must be non-negative");
+            throw new IllegalArgumentException("portCount must be non-negative");
         }
 
         this.name = name;
-        this.licenseCount = licenseCount;
+        this.portCount = licenseCount;
     }
 
     /**
@@ -59,21 +60,21 @@ public class Room
     /**
      * @return number of licenses that multipoint server can utilize for this room
      */
-    public int getLicenseCount()
+    public int getPortCount()
     {
-        return licenseCount;
+        return portCount;
     }
 
     /**
-     * @param licenseCount number of licenses that multipoint server can utilize for this room
+     * @param portCount number of licenses that multipoint server can utilize for this room
      */
-    public void setLicenseCount(int licenseCount)
+    public void setPortCount(int portCount)
     {
-        if (licenseCount < 0) {
-            throw new IllegalArgumentException("licenseCount must be non-negative");
+        if (portCount < 0) {
+            throw new IllegalArgumentException("portCount must be non-negative");
         }
 
-        this.licenseCount = licenseCount;
+        this.portCount = portCount;
     }
 
     /**
