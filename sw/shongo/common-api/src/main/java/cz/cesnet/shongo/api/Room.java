@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.api.Alias;
 import jade.content.Concept;
 
 import java.util.*;
@@ -149,28 +148,42 @@ public class Room implements Concept
         return Collections.unmodifiableMap(options);
     }
 
+
+    /**
+     * Room options.
+     *
+     * NOTE: No option name should be the same as any of this class's attribute names.
+     *
+     * NOTE: The option constants must be kept in sync with the validateOption() method.
+     */
+
+    /** A boolean option whether to list the room in public lists. Default false. */
+    public static final String OPT_LISTED_PUBLICLY = "listedPublicly";
+    /** A boolean option whether participants may contribute content. Default true. */
+    public static final String OPT_ALLOW_CONTENT = "allowContent";
+    /** A boolean option whether guests should be allowed to join. Default true. */
+    public static final String OPT_ALLOW_GUESTS = "allowGuests";
+    /** A boolean option whether audio should be muted on join. Default false. */
+    public static final String OPT_JOIN_AUDIO_MUTED = "joinAudioMuted";
+    /** A boolean option whether video should be muted on join. Default false. */
+    public static final String OPT_JOIN_VIDEO_MUTED = "joinVideoMuted";
+    /** A boolean option whether to register the aliases with the gatekeeper. Default false. */
+    public static final String OPT_REGISTER_WITH_H323_GATEKEEPER = "registerWithH323Gatekeeper";
+    /** A boolean option whether to register the aliases with the SIP registrar. Default false. */
+    public static final String OPT_REGISTER_WITH_SIP_REGISTRAR = "registerWithSIPRegistrar";
+    /** A string option - the PIN that must be entered to get to the room. */
+    public static final String OPT_PIN = "pin";
+    /** A string option - some description of the room. */
+    public static final String OPT_DESCRIPTION = "description";
+    /** A boolean option whether the room should be locked when started. Default false. */
+    public static final String OPT_START_LOCKED = "startLocked";
+    /** A boolean option whether the ConferenceMe should be enabled for the room. Default false. */
+    public static final String OPT_CONFERENCE_ME_ENABLED = "conferenceMeEnabled";
+
     /**
      * Sets platform-specific options for this room.
      *
-     * There are string option names mapped to some values. The following might be recognized by some connectors
-     * (in parentheses, the default value is specified, which the connector should apply when the option is not set):
-     * - listedPublicly             Boolean (false) whether to list the room in public lists
-     * - allowContent               Boolean (true)  whether participants may contribute content
-     * - allowGuests                Boolean (true)  whether guests should be allowed to join
-     * - joinAudioMuted             Boolean (false) whether audio should be muted on join
-     * - joinVideoMuted             Boolean (false) whether video should be muted on join
-     * - registerWithH323Gatekeeper Boolean (false) whether to register the aliases with the gatekeeper
-     * - registerWithSIPRegistrar   Boolean (false) whether to register the aliases with the SIP registrar
-     * - pin                        String          the PIN that must be entered to get to the room
-     * - description                String          some description of the room
-     * - startLocked                Boolean (false) whether the room should be locked when started
-     * - conferenceMeEnabled        Boolean (false) whether the ConferenceMe should be enabled for the room
-     *
-     * FIXME: define constants for option names
-     *
-     * Note that no option name should be the same as any of this class's attribute names.
-     *
-     * The list above must be kept in sync with the validateOption() method.
+     * There are option names mapped to some values. See the OPT_* constants for options that might be recognized.
      *
      * @param options    platform-specific options
      * @throws IllegalArgumentException if a value is not of the type required by the corresponding option
@@ -186,7 +199,7 @@ public class Room implements Concept
     /**
      * Finds out whether a given platform-specific option is set.
      *
-     * See the setOptions() method for more details about available options.
+     * See the OPT_* constants for available options.
      *
      * @param option    option name
      * @return true if option with the given name is set, false if not
@@ -199,7 +212,7 @@ public class Room implements Concept
     /**
      * Returns the value of a platform-specific option.
      *
-     * See the setOptions() method for more details about available options.
+     * See the OPT_* constants for available options.
      *
      * @param option          option name
      * @return value of option, or null if the option is not set
@@ -212,7 +225,7 @@ public class Room implements Concept
     /**
      * Returns the value of a platform-specific option if it is set, or default value if the option is not set.
      *
-     * See the setOptions() method for more details about available options.
+     * See the OPT_* constants for available options.
      *
      * @param option          option name
      * @param defaultValue    default value to return if the option is not set
@@ -227,7 +240,7 @@ public class Room implements Concept
     /**
      * Sets a single platform-specific option
      *
-     * See the setOptions() method for more details about available options.
+     * See the OPT_* constants for available options.
      *
      * @param option    option name
      * @param value     value to be set; or null to unset the option
@@ -247,7 +260,7 @@ public class Room implements Concept
     /**
      * Validates that a given platform-specific option has the correct type of value.
      *
-     * Must be kept in sync with the list of options in docs of setOptions() method.
+     * Must be kept in sync with OPT_* constants.
      *
      * @param option    option name
      * @param value     value to be set
@@ -255,37 +268,37 @@ public class Room implements Concept
      */
     private static void validateOption(String option, Object value)
     {
-        if (option.equals("listedPublicly")) {
+        if (option.equals(OPT_LISTED_PUBLICLY)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("allowContent")) {
+        else if (option.equals(OPT_ALLOW_CONTENT)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("allowGuests")) {
+        else if (option.equals(OPT_ALLOW_GUESTS)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("joinAudioMuted")) {
+        else if (option.equals(OPT_JOIN_AUDIO_MUTED)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("joinVideoMuted")) {
+        else if (option.equals(OPT_JOIN_VIDEO_MUTED)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("registerWithH323Gatekeeper")) {
+        else if (option.equals(OPT_REGISTER_WITH_H323_GATEKEEPER)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("registerWithSIPRegistrar")) {
+        else if (option.equals(OPT_REGISTER_WITH_SIP_REGISTRAR)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("pin")) {
+        else if (option.equals(OPT_PIN)) {
             assertInstance(option, value, String.class);
         }
-        else if (option.equals("description")) {
+        else if (option.equals(OPT_DESCRIPTION)) {
             assertInstance(option, value, String.class);
         }
-        else if (option.equals("startLocked")) {
+        else if (option.equals(OPT_START_LOCKED)) {
             assertInstance(option, value, Boolean.class);
         }
-        else if (option.equals("conferenceMeEnabled")) {
+        else if (option.equals(OPT_CONFERENCE_ME_ENABLED)) {
             assertInstance(option, value, Boolean.class);
         }
         else {
@@ -303,7 +316,7 @@ public class Room implements Concept
     /**
      * Unsets a single platform-specific option.
      *
-     * See the setOptions() method for more details about available options.
+     * See the OPT_* constants for available options.
      *
      * @param option    option name
      */
