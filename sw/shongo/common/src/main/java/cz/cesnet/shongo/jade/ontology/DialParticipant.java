@@ -41,11 +41,11 @@ public class DialParticipant extends ConnectorAgentAction
         }
 
         if (alias != null) {
-            logger.info(String.format("Dialing user at alias %s into room %s", alias, roomId));
+            logger.info("Dialing user at alias {} into room {}", alias, roomId);
             return getMultipoint(connector).dialParticipant(roomId, alias);
         }
         else {
-            logger.info(String.format("Dialing user at address %s into room %s", alias, roomId));
+            logger.info("Dialing user at address {} into room {}", alias, roomId);
             return getMultipoint(connector).dialParticipant(roomId, address);
         }
     }

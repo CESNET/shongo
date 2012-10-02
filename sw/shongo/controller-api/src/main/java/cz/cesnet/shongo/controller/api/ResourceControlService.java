@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -40,4 +41,7 @@ public interface ResourceControlService extends Service
 
     @API
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias) throws FaultException;
+
+    @API
+    public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
 }

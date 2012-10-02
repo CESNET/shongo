@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -150,6 +151,15 @@ public class ResourceControlServiceImpl extends Component
         AgentAction act = new DialParticipant(roomId, alias);
         controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
         return null; // TODO: return roomUserId returned by the command
+    }
+
+    @Override
+    public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
+    {
+        String agentName = getAgentName(deviceResourceIdentifier);
+        AgentAction act = new CreateRoom(room);
+        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, act));
+        return null; // TODO: return roomId returned by the command
     }
 
     /**

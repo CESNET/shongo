@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import org.apache.xmlrpc.XmlRpcException;
@@ -738,8 +739,8 @@ ParamsLoop:
             cmd.setParameter("conferenceName", room.getName());
         }
 
-        if (room.getLicenseCount() >= 0) {
-            cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
+        if (room.getPortCount() >= 0) {
+            cmd.setParameter("maximumVideoPorts", room.getPortCount());
         }
 
         if (room.getAliases() != null) {
@@ -820,7 +821,7 @@ ParamsLoop:
                 room.setName((String) val);
             }
             else if (att.equals("licenseCount")) {
-                room.setLicenseCount((Integer) val);
+                room.setPortCount((Integer) val);
             }
             else if (att.equals("aliases")) {
                 room.setAliases((List<Alias>) val);

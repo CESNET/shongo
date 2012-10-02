@@ -3,7 +3,7 @@ package cz.cesnet.shongo.jade.ontology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
-import cz.cesnet.shongo.connector.api.Room;
+import cz.cesnet.shongo.api.Room;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
