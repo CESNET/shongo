@@ -820,7 +820,7 @@ ParamsLoop:
             if (att.equals("name")) {
                 room.setName((String) val);
             }
-            else if (att.equals("licenseCount")) {
+            else if (att.equals("portCount")) {
                 room.setPortCount((Integer) val);
             }
             else if (att.equals("aliases")) {
