@@ -146,12 +146,12 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        }
 
         // test of createRoom() method
-//        Room newRoom = new Room("shongo-test", 5);
-//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087200"));
+//        Room newRoom = new Room("shongo-test9", 5);
+//        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087209"));
 //        newRoom.setOption(Room.OPT_DESCRIPTION, "Shongo testing room");
 //        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
-//        conn.createRoom(newRoom);
-//        System.out.println("Created room " + newRoom.getName());
+//        String newRoomId = conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoomId);
 //        Collection<RoomInfo> roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {

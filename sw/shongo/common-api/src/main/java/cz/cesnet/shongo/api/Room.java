@@ -143,7 +143,9 @@ public class Room implements Concept
     /**
      * Returns the complete map of platform-specific options set for this room.
      * <p/>
-     * See the setOptions() method for more details about what can be had.
+     * See the OPT_* constants for more details about what can be had.
+     * <p/>
+     * NOTE: Used by Jade to compose messages containing Room objects.
      *
      * @return platform-specific options
      */
