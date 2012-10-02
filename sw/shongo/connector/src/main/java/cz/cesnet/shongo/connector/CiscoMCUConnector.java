@@ -148,8 +148,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // test of createRoom() method
 //        Room newRoom = new Room("shongo-test", 5);
 //        newRoom.addAlias(new Alias(Technology.H323, AliasType.E164, "950087200"));
-//        newRoom.setOption("description", "Shongo testing room");
-//        newRoom.setOption("listedPublicly", true);
+//        newRoom.setOption(Room.OPT_DESCRIPTION, "Shongo testing room");
+//        newRoom.setOption(Room.OPT_LISTED_PUBLICLY, true);
 //        conn.createRoom(newRoom);
 //        System.out.println("Created room " + newRoom.getName());
 //        Collection<RoomInfo> roomList = conn.getRoomList();
@@ -162,8 +162,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        System.out.println("Modifying shongo-test");
 //        Map<String, Object> atts = new HashMap<String, Object>();
 //        atts.put("name", "shongo-testing");
-//        atts.put("listedPublicly", false);
-//        atts.put("pin", "1234");
+//        atts.put(Room.OPT_LISTED_PUBLICLY, false);
+//        atts.put(Room.OPT_PIN, "1234");
 //        conn.modifyRoom("shongo-test", atts);
 //        Map<String, Object> atts2 = new HashMap<String, Object>();
 //        atts2.put("aliases", Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
@@ -788,18 +788,18 @@ ParamsLoop:
         }
 
         // options
-        setCommandOption(cmd, room, "registerWithGatekeeper", "registerWithH323Gatekeeper");
-        setCommandOption(cmd, room, "registerWithSIPRegistrar", "registerWithSIPRegistrar");
-        if (room.hasOption("listedPublicly")) {
-            cmd.setParameter("private", !(Boolean) room.getOption("listedPublicly"));
+        setCommandOption(cmd, room, "registerWithGatekeeper", Room.OPT_REGISTER_WITH_H323_GATEKEEPER);
+        setCommandOption(cmd, room, "registerWithSIPRegistrar", Room.OPT_REGISTER_WITH_SIP_REGISTRAR);
+        if (room.hasOption(Room.OPT_LISTED_PUBLICLY)) {
+            cmd.setParameter("private", !(Boolean) room.getOption(Room.OPT_LISTED_PUBLICLY));
         }
-        setCommandOption(cmd, room, "contentContribution", "allowContent");
-        setCommandOption(cmd, room, "joinAudioMuted", "joinAudioMuted");
-        setCommandOption(cmd, room, "joinVideoMuted", "joinVideoMuted");
-        setCommandOption(cmd, room, "pin", "pin");
-        setCommandOption(cmd, room, "description", "description");
-        setCommandOption(cmd, room, "startLocked", "startLocked");
-        setCommandOption(cmd, room, "conferenceMeEnabled", "conferenceMeEnabled");
+        setCommandOption(cmd, room, "contentContribution", Room.OPT_ALLOW_CONTENT);
+        setCommandOption(cmd, room, "joinAudioMuted", Room.OPT_JOIN_AUDIO_MUTED);
+        setCommandOption(cmd, room, "joinVideoMuted", Room.OPT_JOIN_VIDEO_MUTED);
+        setCommandOption(cmd, room, "pin", Room.OPT_PIN);
+        setCommandOption(cmd, room, "description", Room.OPT_DESCRIPTION);
+        setCommandOption(cmd, room, "startLocked", Room.OPT_START_LOCKED);
+        setCommandOption(cmd, room, "conferenceMeEnabled", Room.OPT_CONFERENCE_ME_ENABLED);
     }
 
     private static void setCommandOption(Command cmd, Room room, String cmdParam, String roomOption)

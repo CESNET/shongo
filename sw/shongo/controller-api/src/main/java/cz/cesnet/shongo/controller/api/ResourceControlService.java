@@ -43,6 +43,9 @@ public interface ResourceControlService extends Service
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias) throws FaultException;
 
     @API
+    public void disconnectRoomUser(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId) throws FaultException;
+
+    @API
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
 
     @API
