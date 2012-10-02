@@ -12,7 +12,7 @@ import cz.cesnet.shongo.jade.Agent;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ManageCommand implements cz.cesnet.shongo.jade.command.Command
+public class ManageCommand extends cz.cesnet.shongo.jade.command.Command
 {
     /**
      * Connector class to be used to manage the device.

@@ -2,10 +2,7 @@ package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
 import org.apache.xmlrpc.XmlRpcException;
@@ -110,7 +107,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
 //            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getName(), room.getType(),
-//                    room.getStartTime(), room.getOwner());
+//                    room.getStartDateTime(), room.getOwner());
 //        }
 
         // test that the second enumeration query fills data that has not changed and therefore were not transferred
@@ -444,18 +441,17 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         return Collections.unmodifiableList(results);
     }
 
-    private static RoomInfo extractRoomInfo(Map<String, Object> conference)
+    private static RoomSummary extractRoomInfo(Map<String, Object> conference)
     {
-        RoomInfo info = new RoomInfo();
+        RoomSummary info = new RoomSummary();
+        info.setIdentifier((String) conference.get("conferenceName"));
         info.setName((String) conference.get("conferenceName"));
         info.setDescription((String) conference.get("description"));
-        info.setType(Technology.H323); // FIXME: SIP as well?
 
         // TODO: get the conference owner
-//        info.setOwner((String) conference.get(""));
 
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
-        info.setStartTime((Date) conference.get(timeField));
+        info.setStartDateTime(new DateTime(conference.get(timeField)));
         return info;
     }
 
@@ -697,7 +693,7 @@ ParamsLoop:
     //<editor-fold desc="ROOM SERVICE">
 
     @Override
-    public RoomInfo getRoomInfo(String roomId) throws CommandException
+    public RoomSummary getRoomInfo(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.status");
         cmd.setParameter("conferenceName", roomId);
@@ -1167,16 +1163,16 @@ ParamsLoop:
     }
 
     @Override
-    public Collection<RoomInfo> getRoomList() throws CommandException
+    public Collection<RoomSummary> getRoomList() throws CommandException
     {
         Command cmd = new Command("conference.enumerate");
         cmd.setParameter("moreThanFour", Boolean.TRUE);
         cmd.setParameter("enumerateFilter", "!completed");
 
-        Collection<RoomInfo> rooms = new ArrayList<RoomInfo>();
+        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
         List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
         for (Map<String, Object> conference : conferences) {
-            RoomInfo info = extractRoomInfo(conference);
+            RoomSummary info = extractRoomInfo(conference);
             rooms.add(info);
         }
 

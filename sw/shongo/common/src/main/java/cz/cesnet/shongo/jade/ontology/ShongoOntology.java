@@ -3,6 +3,7 @@ package cz.cesnet.shongo.jade.ontology;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import jade.content.onto.*;
 import jade.content.schema.ObjectSchema;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,7 @@ public class ShongoOntology extends BeanOntology
             ObjectSchema serializableSchema = getSchema(SerializableOntology.SERIALIZABLE);
             SerializableOntology.getInstance().add(serializableSchema, java.util.Map.class);
             SerializableOntology.getInstance().add(serializableSchema, java.util.HashMap.class);
+            SerializableOntology.getInstance().add(serializableSchema, DateTime.class);
 
             // add commands within this package
             add(getClass().getPackage().getName());

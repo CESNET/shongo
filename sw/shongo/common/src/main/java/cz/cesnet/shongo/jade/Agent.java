@@ -16,6 +16,9 @@ import jade.wrapper.AgentController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Represents an agent in JADE middle-ware.
  *
@@ -26,6 +29,11 @@ public class Agent extends jade.core.Agent
     private static Logger logger = LoggerFactory.getLogger(Agent.class);
 
     /**
+     * Represents an empty successful response.
+     */
+    public static Object COMMAND_RESPONSE_DONE = new Object();
+
+    /**
      * Is agent started?
      */
     private boolean started = false;
@@ -33,7 +41,12 @@ public class Agent extends jade.core.Agent
     /**
      * Agent description for DF.
      */
-    DFAgentDescription agentDescription;
+    private DFAgentDescription agentDescription;
+
+    /**
+     * Map of response by command identifier.
+     */
+    private Map<String, Command> commandByIdentifier = new HashMap<String, Command>();
 
     /**
      * Is agent started?
@@ -69,13 +82,29 @@ public class Agent extends jade.core.Agent
         }
         try {
             this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code
+
+            // Put empty response
+            commandByIdentifier.put(command.getIdentifier(), command);
         }
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
         }
-
     }
 
+    /**
+     * Push new command response.
+     *
+     * @param commandIdentifier
+     * @return command with given {@code commandIdentifier}
+     */
+    public Command getCommand(String commandIdentifier)
+    {
+        return commandByIdentifier.get(commandIdentifier);
+    }
+
+    /**
+     * Constructor.
+     */
     public Agent()
     {
         super();

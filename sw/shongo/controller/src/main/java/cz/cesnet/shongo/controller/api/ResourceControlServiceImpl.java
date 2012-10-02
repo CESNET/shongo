@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.RoomSummary;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -11,12 +12,15 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.*;
 import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Resource service implementation.
@@ -161,6 +165,13 @@ public class ResourceControlServiceImpl extends Component
         commandDevice(deviceResourceIdentifier, new DeleteRoom(roomId));
     }
 
+    @Override
+    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        List<RoomSummary> roomSummaries = (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
+        return roomSummaries;
+    }
+
     /**
      * Asks the local controller agent to send a command to be performed by a device.
      *
@@ -168,10 +179,28 @@ public class ResourceControlServiceImpl extends Component
      * @param action                      command to be performed by the device
      * @throws FaultException
      */
-    private void commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
+    private Object commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        controllerAgent.performCommand(SendCommand.createSendCommand(agentName, action));
+        SendCommand command = SendCommand.createSendCommand(agentName, action);
+        controllerAgent.performCommand(command);
+        int count = 100;
+        while ( !command.isProcessed() && count > 0 ) {
+            count--;
+            try {
+                Thread.sleep(50);
+            }
+            catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+        if (command.getState() == Command.State.SUCCESSFUL) {
+            return command.getResult();
+        } else if (command.getState() == Command.State.UNKNOWN) {
+            command.setState(Command.State.FAILED, "Timeout");
+        }
+        throw new FaultException(command.getStateDescription());
+
     }
 
     /**

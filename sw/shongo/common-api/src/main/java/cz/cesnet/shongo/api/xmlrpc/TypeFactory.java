@@ -108,7 +108,10 @@ public class TypeFactory extends TypeFactoryImpl
                 }
             };
         }
-        TypeSerializer serializer = super.getSerializer(pConfig, pObject);
+        TypeSerializer serializer = null;
+        if (!(pObject instanceof StructType)) {
+            serializer = super.getSerializer(pConfig, pObject);
+        }
         // If none serializer was found, serialize by object attributes
         if (serializer == null) {
             // Create custom map serializer to serialize object to map

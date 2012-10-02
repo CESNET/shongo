@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  * @author Martin Srom <martin.srom@cesnet.cz>
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class SendCommand implements Command
+public class SendCommand extends Command
 {
     private static Logger logger = LoggerFactory.getLogger(SendCommand.class);
 
@@ -173,6 +173,7 @@ public class SendCommand implements Command
         }
 
         ACLMessage msg = new ACLMessage(performative);
+        msg.setConversationId(getIdentifier());
         msg.addReceiver(recipient);
         msg.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
         msg.setOntology(ontology.getName());

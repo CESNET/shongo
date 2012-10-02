@@ -88,7 +88,7 @@ sub control_resource()
                 resource_standby($resourceIdentifier);
             }
         },
-        "hangUpAll" => {
+        "hangup-all" => {
             desc => "Hang up all calls",
             method => sub {
                 my ($shell, $params, @args) = @_;
@@ -109,7 +109,7 @@ sub control_resource()
                 resource_unmute($resourceIdentifier);
             }
         },
-        "setMicrophoneLevel" => {
+        "set-microphone-level" => {
             desc => "Sets microphone(s) level",
             minargs => 1, args => "[number]",
             method => sub {
@@ -117,7 +117,7 @@ sub control_resource()
                 resource_set_microphone_level($resourceIdentifier, $args[0]);
             }
         },
-        "setPlaybackLevel" => {
+        "set-playback-level" => {
             desc => "Sets playback level",
             minargs => 1, args => "[number]",
             method => sub {
@@ -125,7 +125,7 @@ sub control_resource()
                 resource_set_playback_level($resourceIdentifier, $args[0]);
             }
         },
-        "dialParticipant" => {
+        "dial-participant" => {
             desc => "Dial participant",
             options => 'roomId=s roomUserId=s target=s',
             args => '[-roomId] [-roomUserId] [-target]',
@@ -134,20 +134,27 @@ sub control_resource()
                 resource_dial_participant($resourceIdentifier, $params->{'options'});
             }
         },
-        "createRoom" => {
+        "create-room" => {
             desc => "Create virtual room",
             method => sub {
                 my ($shell, $params, @args) = @_;
                 resource_create_room($resourceIdentifier);
             }
         },
-        "deleteRoom" => {
+        "delete-room" => {
             desc => "Delete virtual room",
             options => 'roomId=s',
             args => '[-roomId]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 resource_delete_room($resourceIdentifier, $params->{'options'});
+            }
+        },
+        "list-rooms" => {
+            desc => "List virtual rooms",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_list_rooms($resourceIdentifier);
             }
         }
     });
@@ -321,8 +328,31 @@ sub resource_delete_room
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.deleteRoom',
         RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($roomId),
+        RPC::XML::string->new($roomId)
     );
+}
+
+sub resource_list_rooms
+{
+    my ($resourceIdentifier) = @_;
+
+    my $response = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.listRooms',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $response->is_fault() ) {
+        return;
+    }
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Start date/time', \' |');
+    foreach my $room (@{$response->value()}) {
+        $table->add(
+            $room->{'identifier'},
+            $room->{'name'},
+            $room->{'description'},
+            format_datetime($room->{'startDateTime'})
+        );
+    }
+    console_print_table($table);
 }
 
 1;

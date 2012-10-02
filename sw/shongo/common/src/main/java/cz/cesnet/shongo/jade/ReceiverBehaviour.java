@@ -2,6 +2,7 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.CommandError;
 import cz.cesnet.shongo.jade.ontology.CommandNotSupported;
 import jade.content.AgentAction;
@@ -48,21 +49,34 @@ public class ReceiverBehaviour extends CyclicBehaviour
         logger.info("{} received from {}: {}\n\n",
                 new Object[]{myAgent.getAID().getName(), msg.getSender().getName(), msg.toString()});
 
-        onReceiveMessage(msg);
+        boolean result = onReceiveMessage(msg);
+
+        String commandIdentifier = msg.getConversationId();
+        Command command = myShongoAgent.getCommand(commandIdentifier);
+        if ( command != null ) {
+            if ( result ) {
+                command.setState(Command.State.SUCCESSFUL);
+            } else {
+                command.setState(Command.State.FAILED, msg.getContent());
+            }
+        }
     }
 
-    private void onReceiveMessage(ACLMessage msg)
+    private boolean onReceiveMessage(ACLMessage msg)
     {
         // FIXME: refactor; think over what messages may be received and process them systematically
 
+        // Command identifier is store in the conversation id
+
         if (msg.getPerformative() == ACLMessage.NOT_UNDERSTOOD) {
             logger.error("The recipient did not understand the message:\n" + msg);
-            return;
+
+            return false;
         }
         if (msg.getPerformative() == ACLMessage.FAILURE) {
             logger.error("Execution of the command failed:\n" + msg);
             // TODO: process the error; it might contain Result with a CommandError as the value (for an example of an error, try dialing a number for several times, initiating multiple calls at a time)
-            return;
+            return false;
         }
 
         // prepare a reply to the message received
@@ -72,6 +86,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
         ContentManager cm = myAgent.getContentManager();
         try {
             ContentElement contentElement = cm.extractContent(msg);
+            // Action content
             if (contentElement instanceof Action) {
                 Action act = (Action) contentElement;
                 Concept action = act.getAction();
@@ -79,7 +94,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
                     try {
                         Object actionRetVal = myShongoAgent.handleAgentAction((AgentAction) action, msg.getSender());
                         if (msg.getPerformative() == ACLMessage.INFORM) {
-                            return; // do not reply to inform messages
+                            return true; // do not reply to inform messages
                         }
                         // respond to the caller - either with the command return value or saying it was OK
                         ContentElement response = (actionRetVal == null ? new Done(act) : new Result(act, actionRetVal));
@@ -109,6 +124,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
                     reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
                 }
             }
+            // Result content
             else if (contentElement instanceof Result) {
                 Result result = (Result) contentElement;
 
@@ -120,8 +136,13 @@ public class ReceiverBehaviour extends CyclicBehaviour
                 }
                 logger.info(logMsg);
 
-                // TODO: process the result of a previous command - result.getValue();
-                return; // do not reply to results of actions
+                String commandIdentifier = msg.getConversationId();
+                Command command = myShongoAgent.getCommand(commandIdentifier);
+                if ( command != null ) {
+                    command.setResult(result.getValue());
+                }
+
+                return true; // do not reply to results of actions
             }
             else if (contentElement instanceof Done) {
                 Done done = (Done) contentElement;
@@ -134,8 +155,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
                 }
                 logger.info(logMsg);
 
-                // TODO: process the info
-                return; // do not reply to results of actions
+                return true; // do not reply to results of actions
             }
             else {
                 reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
@@ -156,6 +176,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
 
         logger.info(String.format("%s sending reply: %s", myAgent.getName(), reply));
         myAgent.send(reply);
+        return reply.getPerformative() != ACLMessage.NOT_UNDERSTOOD;
     }
 
     @Override

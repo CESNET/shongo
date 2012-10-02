@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.RoomSummary;
 
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public interface RoomService
      * @param roomId id of the room to get info about
      * @return information about a room with roomId
      */
-    RoomInfo getRoomInfo(String roomId) throws CommandException, CommandUnsupportedException;
+    RoomSummary getRoomInfo(String roomId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Create a new virtual room on a multipoint device that is managed by this connector.

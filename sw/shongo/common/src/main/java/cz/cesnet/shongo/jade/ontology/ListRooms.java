@@ -7,9 +7,9 @@ import cz.cesnet.shongo.connector.api.CommonService;
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class GetRoomList extends ConnectorAgentAction
+public class ListRooms extends ConnectorAgentAction
 {
-    public GetRoomList()
+    public ListRooms()
     {
     }
 
