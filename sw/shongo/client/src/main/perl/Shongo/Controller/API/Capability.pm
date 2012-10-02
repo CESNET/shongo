@@ -74,7 +74,7 @@ sub modify()
 
     switch ($self->{'class'}) {
         case ['TerminalCapability', 'StandaloneTerminalCapability'] {
-            $self->modify_aliases();
+            Shongo::Controller::API::Alias::modify_aliases(\$self->{aliases});
             return $self;
         }
         case 'VirtualRoomsCapability' {
@@ -89,51 +89,7 @@ sub modify()
     }
 }
 
-#
-# Modify aliases for the capability
-#
-sub modify_aliases()
-{
-    my ($self) = @_;
 
-    console_action_loop(
-        sub {
-            console_print_text($self->get_aliases());
-        },
-        sub {
-            my @actions = (
-                'Add new alias' => sub {
-                    my $alias = Shongo::Controller::API::Alias->new();
-                    $alias = $alias->create();
-                    if ( defined($alias) ) {
-                        add_collection_item(\$self->{'aliases'}, $alias);
-                    }
-                    return undef;
-                }
-            );
-            if ( $self->get_aliases_count() > 0 ) {
-                push(@actions, 'Modify existing alias' => sub {
-                    my $index = console_read_choice("Type a number of alias", 0, $self->get_aliases_count());
-                    if ( defined($index) ) {
-                        get_collection_item(\$self->{'aliases'}, $index - 1)->modify();
-                    }
-                    return undef;
-                });
-                push(@actions, 'Remove existing alias' => sub {
-                    my $index = console_read_choice("Type a number of alias", 0, $self->get_aliases_count());
-                    if ( defined($index) ) {
-                        remove_collection_item(\$self->{'aliases'}, $index - 1);
-                    }
-                    return undef;
-                });
-            }
-            push(@actions, 'Finish modifying aliases' => sub {
-                return 0;
-            });
-            return ordered_hash(@actions);
-        }
-    );
-}
 
 # @Override
 sub get_name
@@ -155,7 +111,7 @@ sub get_attributes
     switch ($self->{'class'}) {
         case ['TerminalCapability', 'StandaloneTerminalCapability'] {
             if ( $self->get_aliases_count() > 0 ) {
-                $attributes->{'add_collection'}($self->get_aliases());
+                $attributes->{'add_collection'}(Shongo::Controller::API::Alias::get_aliases($self->{'aliases'}));
             }
         }
         case 'VirtualRoomsCapability' {
@@ -167,21 +123,6 @@ sub get_attributes
             $attributes->{'add'}('Pattern', $self->{'pattern'});
         }
     }
-}
-
-#
-# Format aliases to string
-#
-sub get_aliases
-{
-    my ($self) = @_;
-
-    my $collection = Shongo::Controller::API::Object::create_collection('Aliases');
-    for ( my $index = 0; $index < $self->get_aliases_count(); $index++ ) {
-        my $alias = get_collection_item($self->{'aliases'}, $index);
-        $collection->{'add'}($alias);
-    }
-    return $collection;
 }
 
 1;

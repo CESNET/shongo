@@ -1,7 +1,10 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;

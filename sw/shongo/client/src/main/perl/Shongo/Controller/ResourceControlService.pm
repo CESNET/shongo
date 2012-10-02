@@ -133,12 +133,26 @@ sub control_resource()
                 my ($shell, $params, @args) = @_;
                 resource_dial_participant($resourceIdentifier, $params->{'options'});
             }
+        },
+        "createRoom" => {
+            desc => "Create virtual room",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_create_room($resourceIdentifier);
+            }
+        },
+        "deleteRoom" => {
+            desc => "Delete virtual room",
+            options => 'roomId=s',
+            args => '[-roomId]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_delete_room($resourceIdentifier, $params->{'options'});
+            }
         }
     });
     $shell->run();
 }
-
-# TODO: add error printing instead of empty blocks of: if ($result->is_fault) return;
 
 sub resource_dial
 {
@@ -149,10 +163,6 @@ sub resource_dial
         RPC::XML::string->new($resourceIdentifier),
         RPC::XML::string->new($target)
     );
-    if ( $result->is_fault ) {
-        return;
-    }
-#    printf("CallId: %d\n", $result->value());
 }
 
 sub resource_standby
@@ -269,6 +279,50 @@ sub resource_dial_participant
     if ( $result->is_fault ) {
         return;
     }
+    my $callId = $result->value();
+    if ( !defined($callId) ) {
+        $callId = '-- None --';
+    }
+    printf("Call ID: %s\n", $callId);
+}
+
+sub resource_create_room
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $room = Shongo::Controller::API::Object->new();
+    $room->{'class'} = 'Room';
+    $room->{'name'} = console_read_value('Name', 1, undef, $attributes->{'name'});
+    $room->{'portCount'} = console_read_value('Port count', 1, '\\d+', $attributes->{'portCount'});
+    $room->{'aliases'} = [];
+    Shongo::Controller::API::Alias::modify_aliases(\$room->{'aliases'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.createRoom',
+        RPC::XML::string->new($resourceIdentifier),
+        $room->to_xml()
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $roomId = $result->value();
+    if ( !defined($roomId) ) {
+        $roomId = '-- None --';
+    }
+    printf("Room ID: %s\n", $roomId);
+}
+
+sub resource_delete_room
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.deleteRoom',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+    );
 }
 
 1;
