@@ -42,6 +42,6 @@ public class EndpointReservation extends ResourceReservation implements Endpoint
     @Transient
     public Endpoint createEndpoint()
     {
-        return new ResourceEndpoint(this);
+        return new ResourceEndpoint(getDeviceResource());
     }
 }

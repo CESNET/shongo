@@ -4,7 +4,6 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,7 @@ public class CompartmentExecutor extends Thread
     /**
      * Interval for which the {@link #compartmentId} should be started.
      */
-    private Interval interval;
+    private DateTime start;
 
     /**
      * {@link javax.persistence.EntityManagerFactory} used for loading {@link Compartment}s for execution.
@@ -59,16 +58,9 @@ public class CompartmentExecutor extends Thread
         setName(String.format("Executor-%d", compartmentId));
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
-        Compartment compartment = null;
-        try {
-            compartment = compartmentManager.get(compartmentId);
-        }
-        catch (EntityNotFoundException exception) {
-            throw new IllegalStateException("Compartment was not found!");
-        }
+        Compartment compartment = getCompartment(entityManager);
         entityManager.close();
-        this.interval = compartment.getSlot();
+        this.start = compartment.getSlot().getStart();
     }
 
     /**
@@ -87,11 +79,28 @@ public class CompartmentExecutor extends Thread
         return controllerAgent;
     }
 
+    /**
+     * @param entityManager
+     * @return loaded compartment from the given {@code entityManager}
+     */
+    public Compartment getCompartment(EntityManager entityManager)
+    {
+        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+        Compartment compartment = null;
+        try {
+            compartment = compartmentManager.get(compartmentId);
+        }
+        catch (EntityNotFoundException exception) {
+            throw new IllegalStateException("Compartment was not found!");
+        }
+        return compartment;
+    }
+
     @Override
     public void run()
     {
         // Wait for start
-        while (DateTime.now().plus(START_BEFORE_PERIOD).isBefore(interval.getStart())) {
+        while (DateTime.now().plus(START_BEFORE_PERIOD).isBefore(start)) {
             try {
                 logger.debug("Waiting for compartment '{}' to start...",
                         compartmentId);
@@ -104,56 +113,71 @@ public class CompartmentExecutor extends Thread
         // Start
         {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            CompartmentManager compartmentManager = new CompartmentManager(entityManager);
-            Compartment compartment = null;
-            try {
-                compartment = compartmentManager.get(compartmentId);
-            }
-            catch (EntityNotFoundException exception) {
-                throw new IllegalStateException("Compartment was not found!");
-            }
+            Compartment compartment = getCompartment(entityManager);
+
+            boolean startedNow = false;
             if (compartment.getState() == Compartment.State.NOT_STARTED) {
                 logger.info("Starting compartment '{}'...", compartmentId);
+                entityManager.getTransaction().begin();
+                compartment.setState(Compartment.State.STARTED);
+                entityManager.getTransaction().commit();
+                startedNow = true;
+            }
+            else {
+                logger.info("Resuming compartment '{}'...", compartmentId);
+            }
 
-                // Create virtual rooms
-                for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-                    if (virtualRoom.getState() == VirtualRoom.State.NOT_CREATED) {
-                        entityManager.getTransaction().begin();
-                        virtualRoom.create(this);
-                        entityManager.getTransaction().commit();
-                    }
+            // Create virtual rooms
+            boolean virtualRoomCreated = false;
+            for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
+                if (virtualRoom.getState() == VirtualRoom.State.NOT_CREATED) {
+                    entityManager.getTransaction().begin();
+                    virtualRoom.create(this);
+                    entityManager.getTransaction().commit();
+                    virtualRoomCreated = true;
                 }
-                logger.info("Waiting for virtual rooms to be created...", compartmentId);
+            }
+            if (virtualRoomCreated) {
+                logger.info("Waiting for virtual rooms to be created...");
                 try {
                     Thread.sleep(5000);
                 }
                 catch (InterruptedException exception) {
                     exception.printStackTrace();
                 }
+            }
 
+
+            // TODO: persist already assigned aliases
+            if (startedNow) {
                 // Assign aliases to endpoints
                 for (Endpoint endpoint : compartment.getEndpoints()) {
                     endpoint.assignAliases(this);
                 }
-
-                // Connect endpoints
-                for (Connection connection : compartment.getConnections()) {
-                    if (connection.getState() == Connection.State.NOT_ESTABLISHED) {
-                        entityManager.getTransaction().begin();
-                        connection.establish(this);
-                        entityManager.getTransaction().commit();
-                    }
-                }
-
-                entityManager.getTransaction().begin();
-                compartment.setState(Compartment.State.STARTED);
-                entityManager.getTransaction().commit();
             }
+
+            // Connect endpoints
+            for (Connection connection : compartment.getConnections()) {
+                if (connection.getState() == Connection.State.NOT_ESTABLISHED) {
+                    entityManager.getTransaction().begin();
+                    connection.establish(this);
+                    entityManager.getTransaction().commit();
+                }
+            }
+
             entityManager.close();
         }
 
         // Wait for end
-        while (DateTime.now().plus(END_BEFORE_PERIOD).isBefore(interval.getEnd())) {
+        DateTime end;
+        while (true) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            Compartment compartment = getCompartment(entityManager);
+            entityManager.close();
+            end = compartment.getSlot().getEnd();
+            if (DateTime.now().plus(END_BEFORE_PERIOD).isAfter(end)) {
+                break;
+            }
             try {
                 logger.debug("Waiting for for compartment '{}' to end...",
                         compartmentId);
@@ -166,14 +190,7 @@ public class CompartmentExecutor extends Thread
         // End
         {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
-            CompartmentManager compartmentManager = new CompartmentManager(entityManager);
-            Compartment compartment = null;
-            try {
-                compartment = compartmentManager.get(compartmentId);
-            }
-            catch (EntityNotFoundException exception) {
-                throw new IllegalStateException("Compartment was not found!");
-            }
+            Compartment compartment = getCompartment(entityManager);
             if (compartment.getState() == Compartment.State.STARTED) {
                 logger.info("Stopping compartment '{}'...", compartmentId);
 

@@ -325,7 +325,7 @@ public class CompartmentReservationTaskTest
                         }
 
                         @Override
-                        public void addAlias(Alias alias)
+                        public void addAssignedAlias(Alias alias)
                         {
                         }
 

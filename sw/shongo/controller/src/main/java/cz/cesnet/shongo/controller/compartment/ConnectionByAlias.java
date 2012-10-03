@@ -8,10 +8,7 @@ import cz.cesnet.shongo.jade.ontology.Dial;
 import cz.cesnet.shongo.jade.ontology.DialParticipant;
 import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * Represents a {@link Connection} by which is establish by a {@link Alias}.
@@ -29,7 +26,7 @@ public class ConnectionByAlias extends Connection
     /**
      * @return {@link #alias}
      */
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public Alias getAlias()
     {

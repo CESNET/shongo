@@ -283,7 +283,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
         // Create connection by alias
         if (alias != null) {
             ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-            connectionByAlias.setAlias(alias);
+            connectionByAlias.setAlias(alias.clone());
             connection = connectionByAlias;
         }
         // Create connection by address
@@ -308,11 +308,11 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
 
                 // Assign alias to endpoint
-                endpointTo.addAlias(aliasReservation.getAlias());
+                endpointTo.addAssignedAlias(aliasReservation.getAlias().clone());
 
                 // Create connection by the created alias
                 ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-                connectionByAlias.setAlias(aliasReservation.getAlias());
+                connectionByAlias.setAlias(aliasReservation.getAlias().clone());
                 connection = connectionByAlias;
             }
             catch (ReportException exception) {

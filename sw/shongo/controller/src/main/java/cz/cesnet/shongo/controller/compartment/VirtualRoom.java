@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.compartment;
 
+import cz.cesnet.shongo.controller.api.Compartment;
+
 import javax.persistence.*;
 
 /**
@@ -145,19 +147,19 @@ public abstract class VirtualRoom extends Endpoint
         DELETED;
 
         /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State}
+         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.VirtualRoom.State}
          */
-        public cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State toApi()
+        public Compartment.VirtualRoom.State toApi()
         {
             switch (this) {
                 case NOT_CREATED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.NOT_CREATED;
+                    return cz.cesnet.shongo.controller.api.Compartment.VirtualRoom.State.NOT_CREATED;
                 case CREATED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.CREATED;
+                    return Compartment.VirtualRoom.State.CREATED;
                 case FAILED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.FAILED;
+                    return Compartment.VirtualRoom.State.FAILED;
                 case DELETED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.DELETED;
+                    return Compartment.VirtualRoom.State.DELETED;
                 default:
                     throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
             }

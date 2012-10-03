@@ -221,19 +221,19 @@ public abstract class Connection extends PersistentObject
         CLOSED;
 
         /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State}
+         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.Connection.State}
          */
-        public cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State toApi()
+        public cz.cesnet.shongo.controller.api.Compartment.Connection.State toApi()
         {
             switch (this) {
                 case NOT_ESTABLISHED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.NOT_ESTABLISHED;
+                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.NOT_ESTABLISHED;
                 case ESTABLISHED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.ESTABLISHED;
+                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.ESTABLISHED;
                 case FAILED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.FAILED;
+                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.FAILED;
                 case CLOSED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.CLOSED;
+                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.CLOSED;
                 default:
                     throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
             }

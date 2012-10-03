@@ -38,7 +38,7 @@
     </bean>
     <bean id="resourceControlService" class="cz.cesnet.shongo.controller.api.ResourceControlServiceImpl"/>
     <bean id="reservationService" class="cz.cesnet.shongo.controller.api.ReservationServiceImpl"/>
-    <bean id="roomService" class="cz.cesnet.shongo.controller.api.RoomServiceImpl"/>
+    <bean id="compartmentService" class="cz.cesnet.shongo.controller.api.CompartmentServiceImpl"/>
 
     <!-- Entity Manager Factory -->
     <bean id="entityManagerFactory" class="javax.persistence.Persistence" factory-method="createEntityManagerFactory">

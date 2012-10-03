@@ -12,7 +12,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Person extends PersistentObject
+public class Person extends PersistentObject implements Cloneable
 {
     /**
      * Full name of the person.
@@ -97,6 +97,16 @@ public class Person extends PersistentObject
     public void setPhoneNumber(String phoneNumber)
     {
         this.phoneNumber = phoneNumber;
+    }
+
+    @Override
+    public Person clone()
+    {
+        Person person = new Person();
+        person.setName(name);
+        person.setEmail(email);
+        person.setPhoneNumber(phoneNumber);
+        return person;
     }
 
     @Override

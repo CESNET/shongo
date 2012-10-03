@@ -13,6 +13,25 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::DeviceResource;
 
+# States
+our $State = {
+    'NOT_STARTED' => {'title' => 'Not-Started', 'color' => 'yellow'},
+    'STARTED' => {'title' => 'Started', 'color' => 'green'},
+    'FINISHED' => {'title' => 'Finished', 'color' => 'blue'}
+};
+our $VirtualRoomState = {
+    'NOT_CREATED' => {'title' => 'Not-Created', 'color' => 'yellow'},
+    'CREATED' => {'title' => 'Created', 'color' => 'green'},
+    'FAILED' => {'title' => 'Failed', 'color' => 'red'},
+    'DELETED' => {'title' => 'Deleted', 'color' => 'blue'}
+};
+our $ConnectionState = {
+    'NOT_ESTABLISHED' => {'title' => 'Not-Established', 'color' => 'yellow'},
+    'ESTABLISHED' => {'title' => 'Established', 'color' => 'green'},
+    'FAILED' => {'title' => 'Failed', 'color' => 'red'},
+    'CLOSED' => {'title' => 'Closed', 'color' => 'blue'}
+};
+
 #
 # Create a new instance of alias
 #
@@ -35,29 +54,10 @@ sub get_name
     return "Compartment";
 }
 
-# States
-our $CompartmentState = {
-    'NOT_STARTED' => {'title' => 'Not-Started', 'color' => 'yellow'},
-    'STARTED' => {'title' => 'Started', 'color' => 'green'},
-    'FINISHED' => {'title' => 'Finished', 'color' => 'blue'}
-};
-our $VirtualRoomState = {
-    'NOT_CREATED' => {'title' => 'Not-Created', 'color' => 'yellow'},
-    'CREATED' => {'title' => 'Created', 'color' => 'green'},
-    'FAILED' => {'title' => 'Failed', 'color' => 'red'},
-    'DELETED' => {'title' => 'Deleted', 'color' => 'blue'}
-};
-our $ConnectionState = {
-    'NOT_ESTABLISHED' => {'title' => 'Not-Established', 'color' => 'yellow'},
-    'ESTABLISHED' => {'title' => 'Established', 'color' => 'green'},
-    'FAILED' => {'title' => 'Failed', 'color' => 'red'},
-    'CLOSED' => {'title' => 'Closed', 'color' => 'blue'}
-};
-
 #
 # Get state
 #
-sub get_state
+sub format_state
 {
     my ($state, $types) = @_;
     $state = $types->{$state};
@@ -74,7 +74,8 @@ sub get_attributes
     my ($self, $attributes) = @_;
     $self->SUPER::get_attributes($attributes);
 
-    $attributes->{'add'}('State', get_state($self->{'state'}, $CompartmentState));
+    $attributes->{'add'}('Identifier', $self->{'identifier'});
+    $attributes->{'add'}('State', format_state($self->{'state'}, $State));
     $attributes->{'add'}('Slot', format_interval($self->{'slot'}));
 
     my $endpoints = $attributes->{'add_collection'}('Endpoints');
@@ -94,20 +95,20 @@ sub get_attributes
             $string .= sprintf("\nwith assigned %s", $alias->to_string());
             $string =~ s/\n$//g;
         }
-        $string .= "\nstate: " . get_state($virtualRoom->{'state'}, $VirtualRoomState);
+        $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
         $virtualRooms->{'add'}($string);
     }
 
     my $connections = $attributes->{'add_collection'}('Connections');
     foreach my $connection (@{$self->{'connections'}}) {
         my $string = sprintf("from %s to %s", $connection->{'endpointFrom'}, $connection->{'endpointTo'});
-        if ( $connection->{'class'} eq 'CompartmentReservation.ConnectionByAddress' ) {
+        if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
             $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
                 $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
-        } elsif ( $connection->{'class'} eq 'CompartmentReservation.ConnectionByAlias' ) {
+        } elsif ( $connection->{'class'} eq 'Compartment.ConnectionByAlias' ) {
             $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string()));
         }
-        $string .= "\nstate: " . get_state($connection->{'state'}, $ConnectionState);
+        $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
         $connections->{'add'}($string);
     }
 }

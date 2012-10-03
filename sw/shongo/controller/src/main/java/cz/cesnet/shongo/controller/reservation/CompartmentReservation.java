@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.compartment.*;
+import cz.cesnet.shongo.controller.compartment.Compartment;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -51,53 +52,7 @@ public class CompartmentReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.CompartmentReservation compartmentReservationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentReservation) api;
-        compartmentReservationApi.getCompartment().setSlot(compartment.getSlot());
-        compartmentReservationApi.getCompartment().setState(compartment.getState().toApi());
-        for (Endpoint endpoint : compartment.getEndpoints()) {
-            cz.cesnet.shongo.controller.api.CompartmentReservation.Endpoint endpointApi =
-                    new cz.cesnet.shongo.controller.api.CompartmentReservation.Endpoint();
-            endpointApi.setDescription(endpoint.getReportDescription());
-            for (Alias alias : endpoint.getAliases()) {
-                endpointApi.addAlias(alias.toApi());
-            }
-            compartmentReservationApi.getCompartment().addEndpoint(endpointApi);
-        }
-        for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-            cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom virtualRoomApi =
-                    new cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom();
-            virtualRoomApi.setDescription(virtualRoom.getReportDescription());
-            for (Alias alias : virtualRoom.getAliases()) {
-                virtualRoomApi.addAlias(alias.toApi());
-            }
-            virtualRoomApi.setState(virtualRoom.getState().toApi());
-            compartmentReservationApi.getCompartment().addVirtualRoom(virtualRoomApi);
-        }
-        for (Connection connection : compartment.getConnections()) {
-            if (connection instanceof ConnectionByAddress) {
-                ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
-                cz.cesnet.shongo.controller.api.CompartmentReservation.ConnectionByAddress connectionByAddressApi =
-                        new cz.cesnet.shongo.controller.api.CompartmentReservation.ConnectionByAddress();
-                connectionByAddressApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
-                connectionByAddressApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
-                connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
-                connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
-                connectionByAddressApi.setState(connectionByAddress.getState().toApi());
-                compartmentReservationApi.getCompartment().addConnection(connectionByAddressApi);
-            }
-            else if (connection instanceof ConnectionByAlias) {
-                ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
-                cz.cesnet.shongo.controller.api.CompartmentReservation.ConnectionByAlias connectionByAliasApi =
-                        new cz.cesnet.shongo.controller.api.CompartmentReservation.ConnectionByAlias();
-                connectionByAliasApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
-                connectionByAliasApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
-                connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
-                connectionByAliasApi.setState(connectionByAlias.getState().toApi());
-                compartmentReservationApi.getCompartment().addConnection(connectionByAliasApi);
-            }
-            else {
-                throw new TodoImplementException(connection.getClass().getCanonicalName());
-            }
-        }
+        compartmentReservationApi.setCompartment(getCompartment().toApi(domain));
         super.toApi(api, domain);
     }
 }

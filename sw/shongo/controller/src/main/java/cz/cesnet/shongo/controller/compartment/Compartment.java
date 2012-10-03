@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -244,6 +247,64 @@ public class Compartment extends PersistentObject
     }
 
     /**
+     * @param domain
+     * @return {@link Compartment} converted to the {@link cz.cesnet.shongo.controller.api.Compartment}
+     */
+    public cz.cesnet.shongo.controller.api.Compartment toApi(Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.Compartment compartmentApi = new cz.cesnet.shongo.controller.api.Compartment();
+        compartmentApi.setIdentifier(domain.formatIdentifier(getId()));
+        compartmentApi.setSlot(getSlot());
+        compartmentApi.setState(getState().toApi());
+        for (Endpoint endpoint : getEndpoints()) {
+            cz.cesnet.shongo.controller.api.Compartment.Endpoint endpointApi =
+                    new cz.cesnet.shongo.controller.api.Compartment.Endpoint();
+            endpointApi.setDescription(endpoint.getReportDescription());
+            for (Alias alias : endpoint.getAssignedAliases()) {
+                endpointApi.addAlias(alias.toApi());
+            }
+            compartmentApi.addEndpoint(endpointApi);
+        }
+        for (VirtualRoom virtualRoom : getVirtualRooms()) {
+            cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
+                    new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
+            virtualRoomApi.setDescription(virtualRoom.getReportDescription());
+            for (Alias alias : virtualRoom.getAssignedAliases()) {
+                virtualRoomApi.addAlias(alias.toApi());
+            }
+            virtualRoomApi.setState(virtualRoom.getState().toApi());
+            compartmentApi.addVirtualRoom(virtualRoomApi);
+        }
+        for (Connection connection : getConnections()) {
+            if (connection instanceof ConnectionByAddress) {
+                ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
+                cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress connectionByAddressApi =
+                        new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress();
+                connectionByAddressApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
+                connectionByAddressApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
+                connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
+                connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
+                connectionByAddressApi.setState(connectionByAddress.getState().toApi());
+                compartmentApi.addConnection(connectionByAddressApi);
+            }
+            else if (connection instanceof ConnectionByAlias) {
+                ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
+                cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias connectionByAliasApi =
+                        new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias();
+                connectionByAliasApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
+                connectionByAliasApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
+                connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
+                connectionByAliasApi.setState(connectionByAlias.getState().toApi());
+                compartmentApi.addConnection(connectionByAliasApi);
+            }
+            else {
+                throw new TodoImplementException(connection.getClass().getCanonicalName());
+            }
+        }
+        return compartmentApi;
+    }
+
+    /**
      * State of the {@link Compartment}.
      */
     public static enum State
@@ -264,17 +325,17 @@ public class Compartment extends PersistentObject
         FINISHED;
 
         /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State}
+         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.State}
          */
-        public cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State toApi()
+        public cz.cesnet.shongo.controller.api.Compartment.State toApi()
         {
             switch (this) {
                 case NOT_STARTED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State.NOT_STARTED;
+                    return cz.cesnet.shongo.controller.api.Compartment.State.NOT_STARTED;
                 case STARTED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State.STARTED;
+                    return cz.cesnet.shongo.controller.api.Compartment.State.STARTED;
                 case FINISHED:
-                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State.FINISHED;
+                    return cz.cesnet.shongo.controller.api.Compartment.State.FINISHED;
                 default:
                     throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
             }

@@ -16,6 +16,7 @@ use Shongo::Controller::CommonService;
 use Shongo::Controller::ResourceService;
 use Shongo::Controller::ResourceControlService;
 use Shongo::Controller::ReservationService;
+use Shongo::Controller::CompartmentService;
 
 #
 # Create a new shell for controller client
@@ -38,18 +39,13 @@ sub new
         },
     });
 
-    # Populate controller commands
+    # Populate commands
     Shongo::Controller->populate($self);
-
-    # Populate common commands
     Shongo::Controller::CommonService->populate($self);
-
-    # Populate resource management commands
     Shongo::Controller::ResourceService->populate($self);
     Shongo::Controller::ResourceControlService->populate($self);
-
-    # Populate reservation management commands
     Shongo::Controller::ReservationService->populate($self);
+    Shongo::Controller::CompartmentService->populate($self);
 
     return(bless($self, $class));;
 }

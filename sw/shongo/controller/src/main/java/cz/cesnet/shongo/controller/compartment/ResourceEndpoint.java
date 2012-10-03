@@ -23,7 +23,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
     /**
      * {@link EndpointReservation} for the {@link DeviceResource}.
      */
-    private EndpointReservation endpointReservation;
+    private DeviceResource deviceResource;
 
     /**
      * Constructor.
@@ -33,37 +33,28 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
     }
 
     /**
-     * @param endpointReservation sets the {@link #endpointReservation}
+     * @param deviceResource sets the {@link #deviceResource}
      */
-    public ResourceEndpoint(EndpointReservation endpointReservation)
+    public ResourceEndpoint(DeviceResource deviceResource)
     {
-        this.endpointReservation = endpointReservation;
+        this.deviceResource = deviceResource;
     }
 
     /**
-     * @return {@link #endpointReservation}
+     * @return {@link #deviceResource}
      */
     @OneToOne
-    public EndpointReservation getEndpointReservation()
-    {
-        return endpointReservation;
-    }
-
-    /**
-     * @param endpointReservation sets the {@link #endpointReservation}
-     */
-    public void setEndpointReservation(EndpointReservation endpointReservation)
-    {
-        this.endpointReservation = endpointReservation;
-    }
-
-    /**
-     * @return {@link DeviceResource}
-     */
-    @Transient
     public DeviceResource getDeviceResource()
     {
-        return endpointReservation.getDeviceResource();
+        return deviceResource;
+    }
+
+    /**
+     * @param deviceResource sets the {@link #deviceResource}
+     */
+    public void setDeviceResource(DeviceResource deviceResource)
+    {
+        this.deviceResource = deviceResource;
     }
 
     @Override
@@ -89,7 +80,7 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
         if (terminalCapability != null) {
             aliases.addAll(terminalCapability.getAliases());
         }
-        aliases.addAll(super.getAliases());
+        aliases.addAll(super.getAssignedAliases());
         return aliases;
     }
 

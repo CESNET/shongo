@@ -5,9 +5,9 @@ import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Alias;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,9 +20,14 @@ import java.util.Set;
 public class ExternalEndpoint extends Endpoint
 {
     /**
-     * {@link ExternalEndpointSpecification} for the {@link ExternalEndpoint}.
+     * Number of external endpoints of the same type.
      */
-    private ExternalEndpointSpecification externalEndpointSpecification;
+    private int count = 1;
+
+    /**
+     * Set of technologies for external endpoints.
+     */
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Constructor.
@@ -34,70 +39,71 @@ public class ExternalEndpoint extends Endpoint
     /**
      * Constructor.
      *
-     * @param externalEndpointSpecification sets the {@link #externalEndpointSpecification}
+     * @param externalEndpointSpecification to initialize from
      */
     public ExternalEndpoint(ExternalEndpointSpecification externalEndpointSpecification)
     {
-        this.externalEndpointSpecification = externalEndpointSpecification;
+        this.count = externalEndpointSpecification.getCount();
+        for (Technology technology : externalEndpointSpecification.getTechnologies()) {
+            addTechnology(technology);
+        }
     }
 
     /**
-     * @return {@link #externalEndpointSpecification}
+     * @return {@link #count}
      */
-    @ManyToOne
-    public ExternalEndpointSpecification getExternalEndpointSpecification()
-    {
-        return externalEndpointSpecification;
-    }
-
-    /**
-     * @param externalEndpointSpecification sets the {@link #externalEndpointSpecification}
-     */
-    public void setExternalEndpointSpecification(ExternalEndpointSpecification externalEndpointSpecification)
-    {
-        this.externalEndpointSpecification = externalEndpointSpecification;
-    }
-
-    @Override
-    @Transient
+    @Column(name = "same_count")
     public int getCount()
     {
-        return externalEndpointSpecification.getCount();
+        return count;
     }
 
-    @Override
-    @Transient
+    /**
+     * @param count sets the {@link #count}
+     */
+    public void setCount(int count)
+    {
+        this.count = count;
+    }
+
+    /**
+     * @return {@link #technologies}
+     */
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
     {
-        return externalEndpointSpecification.getTechnologies();
+        return Collections.unmodifiableSet(technologies);
+    }
+
+    /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
+    }
+
+    /**
+     * @param technology technology to be added to the {@link #technologies}
+     */
+    public void addTechnology(Technology technology)
+    {
+        technologies.add(technology);
     }
 
     @Override
     @Transient
-    public void addAlias(Alias alias)
+    public void addAssignedAlias(Alias alias)
     {
         throw new IllegalStateException("Cannot assign alias to allocated external endpoint.");
     }
 
     @Override
     @Transient
-    public List<Alias> getAliases()
-    {
-        return externalEndpointSpecification.getAliases();
-    }
-
-    @Override
-    @Transient
     public String getReportDescription()
     {
-        return String.format("external endpoint(count: %d)",
-                externalEndpointSpecification.getCount());
-    }
-
-    @Override
-    @Transient
-    public CallInitiation getCallInitiation()
-    {
-        return externalEndpointSpecification.getCallInitiation();
+        return String.format("external endpoint(%dx %s)", count, Technology.formatTechnologies(technologies));
     }
 }

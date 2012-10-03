@@ -82,4 +82,16 @@ public class CompartmentManager extends AbstractManager
                 .getResultList();
         return compartments;
     }
+
+    /**
+     * @return list of all allocated compartment
+     */
+    public List<Compartment> list()
+    {
+        List<Compartment> reservationRequestList = entityManager
+                .createQuery("SELECT compartment FROM Compartment compartment",
+                        Compartment.class)
+                .getResultList();
+        return reservationRequestList;
+    }
 }

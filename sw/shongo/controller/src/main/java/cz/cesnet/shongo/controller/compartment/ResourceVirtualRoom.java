@@ -11,6 +11,7 @@ import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.DeleteRoom;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Transient;
@@ -28,9 +29,14 @@ import java.util.UUID;
 public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
 {
     /**
-     * {@link VirtualRoomReservation} for the {@link DeviceResource}.
+     * {@link DeviceResource}.
      */
-    private VirtualRoomReservation virtualRoomReservation;
+    private DeviceResource deviceResource;
+
+    /**
+     * Port count.
+     */
+    private Integer portCount;
 
     /**
      * Constructor.
@@ -42,37 +48,47 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     /**
      * Constructor.
      *
-     * @param virtualRoomReservation sets the {@link #virtualRoomReservation}
+     * @param virtualRoomReservation to initialize from
      */
     public ResourceVirtualRoom(VirtualRoomReservation virtualRoomReservation)
     {
-        this.virtualRoomReservation = virtualRoomReservation;
+        this.setDeviceResource(virtualRoomReservation.getDeviceResource());
+        this.setPortCount(virtualRoomReservation.getPortCount());
     }
 
     /**
-     * @return {@link #virtualRoomReservation}
+     * @return {@link #deviceResource}
      */
     @OneToOne
-    public VirtualRoomReservation getVirtualRoomReservation()
-    {
-        return virtualRoomReservation;
-    }
-
-    /**
-     * @param virtualRoomReservation sets the {@link #virtualRoomReservation}
-     */
-    public void setVirtualRoomReservation(VirtualRoomReservation virtualRoomReservation)
-    {
-        this.virtualRoomReservation = virtualRoomReservation;
-    }
-
-    /**
-     * @return {@link DeviceResource}
-     */
-    @Transient
     public DeviceResource getDeviceResource()
     {
-        return virtualRoomReservation.getDeviceResource();
+        return deviceResource;
+    }
+
+    /**
+     * @param deviceResource sets the {@link #deviceResource}
+     */
+    public void setDeviceResource(DeviceResource deviceResource)
+    {
+        this.deviceResource = deviceResource;
+    }
+
+    /**
+     * @return {@link #portCount}
+     */
+    @Override
+    @Column
+    public Integer getPortCount()
+    {
+        return portCount;
+    }
+
+    /**
+     * @param portCount sets the {@link #portCount}
+     */
+    public void setPortCount(Integer portCount)
+    {
+        this.portCount = portCount;
     }
 
     @Override
@@ -98,7 +114,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
         if (terminalCapability != null) {
             aliases.addAll(terminalCapability.getAliases());
         }
-        aliases.addAll(super.getAliases());
+        aliases.addAll(super.getAssignedAliases());
         return aliases;
     }
 
@@ -115,13 +131,6 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     {
         return String.format("virtual room in %s",
                 AbstractResourceReport.formatResource(getDeviceResource()));
-    }
-
-    @Override
-    @Transient
-    public Integer getPortCount()
-    {
-        return virtualRoomReservation.getPortCount();
     }
 
     @Override

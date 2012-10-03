@@ -16,7 +16,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Alias extends PersistentObject
+public class Alias extends PersistentObject implements Cloneable
 {
     /**
      * Technology of alias.
@@ -117,6 +117,16 @@ public class Alias extends PersistentObject
     public void setValue(String value)
     {
         this.value = value;
+    }
+
+    @Override
+    public Alias clone()
+    {
+        Alias alias = new Alias();
+        alias.setTechnology(technology);
+        alias.setType(type);
+        alias.setValue(value);
+        return alias;
     }
 
     /**

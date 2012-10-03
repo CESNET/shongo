@@ -2,9 +2,12 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.compartment.Compartment;
+import cz.cesnet.shongo.controller.compartment.CompartmentManager;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -47,7 +50,25 @@ public class ReservationManager extends AbstractManager
      */
     public void delete(Reservation reservation, Cache cache)
     {
-        // Remove all allocated virtual rooms from virtual rooms database
+        if (reservation instanceof CompartmentReservation) {
+            CompartmentReservation compartmentReservation = (CompartmentReservation) reservation;
+            CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+            Compartment compartment = compartmentReservation.getCompartment();
+            if (compartment.getState().equals(Compartment.State.NOT_STARTED)) {
+                compartmentManager.delete(compartment);
+            }
+            else {
+                if (compartment.getState().equals(Compartment.State.STARTED)) {
+                    if (compartment.getSlotEnd().isAfter(DateTime.now())) {
+                        compartment.setSlotEnd(DateTime.now());
+                        compartmentManager.update(compartment);
+                    }
+                }
+                compartmentReservation.setCompartment(null);
+                super.update(compartmentReservation);
+            }
+        }
+        // Delete all child reservations
         List<Reservation> childReservations = reservation.getChildReservations();
         for (Reservation childReservation : childReservations) {
             cache.removeReservation(childReservation);

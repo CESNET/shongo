@@ -31,12 +31,12 @@ public abstract class Endpoint extends PersistentObject
     /**
      * {@link Alias}es that are additionally assigned to the {@link Endpoint}.
      */
-    private List<Alias> aliases = new ArrayList<Alias>();
+    private List<Alias> assignedAliases = new ArrayList<Alias>();
 
     /**
      * @return {@link #persons}
      */
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public List<Person> getPersons()
     {
@@ -52,37 +52,21 @@ public abstract class Endpoint extends PersistentObject
     }
 
     /**
-     * @param person to be removed from the {@link #persons}
+     * @return {@link #assignedAliases}
      */
-    public void removePerson(Person person)
-    {
-        persons.remove(person);
-    }
-
-    /**
-     * @return {@link #aliases}
-     */
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
-    public List<Alias> getAliases()
+    public List<Alias> getAssignedAliases()
     {
-        return aliases;
+        return assignedAliases;
     }
 
     /**
-     * @param alias alias to be added to the {@link #aliases}
+     * @param assignedAlias alias to be added to the {@link #assignedAliases}
      */
-    public void addAlias(Alias alias)
+    public void addAssignedAlias(Alias assignedAlias)
     {
-        aliases.add(alias);
-    }
-
-    /**
-     * @param alias alias to be removed from the {@link #aliases}
-     */
-    public void removeAlias(Alias alias)
-    {
-        aliases.remove(alias);
+        assignedAliases.add(assignedAlias);
     }
 
     /**
@@ -100,6 +84,15 @@ public abstract class Endpoint extends PersistentObject
 
     @Transient
     public abstract Set<Technology> getTechnologies();
+
+    /**
+     * @return {@link #assignedAliases}
+     */
+    @Transient
+    public List<Alias> getAliases()
+    {
+        return assignedAliases;
+    }
 
     /**
      * @return true if device can participate in 2-point video conference without virtual room,
@@ -140,13 +133,13 @@ public abstract class Endpoint extends PersistentObject
     }
 
     /**
-     * Assign {@link #aliases} to the {@link Endpoint}.
+     * Assign {@link #assignedAliases} to the {@link Endpoint}.
      *
      * @param compartmentExecutor
      */
     public void assignAliases(CompartmentExecutor compartmentExecutor)
     {
-        List<Alias> aliases = getAliases();
+        List<Alias> aliases = getAssignedAliases();
         for (Alias alias : aliases) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
