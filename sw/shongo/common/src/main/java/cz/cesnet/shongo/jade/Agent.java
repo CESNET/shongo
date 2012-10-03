@@ -7,7 +7,6 @@ import cz.cesnet.shongo.jade.ontology.Message;
 import cz.cesnet.shongo.jade.ontology.ShongoOntology;
 import jade.content.AgentAction;
 import jade.content.lang.sl.SLCodec;
-import jade.content.onto.Ontology;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -29,12 +28,7 @@ public class Agent extends jade.core.Agent
     private static Logger logger = LoggerFactory.getLogger(Agent.class);
 
     /**
-     * Represents an empty successful response.
-     */
-    public static Object COMMAND_RESPONSE_DONE = new Object();
-
-    /**
-     * Is agent started?
+     * Is agent started? A "started" agent is that the setup() method of which has ended.
      */
     private boolean started = false;
 
@@ -44,9 +38,10 @@ public class Agent extends jade.core.Agent
     private DFAgentDescription agentDescription;
 
     /**
-     * Map of response by command identifier.
+     * Map of commands by conversation identifier.
      */
-    private Map<String, Command> commandByIdentifier = new HashMap<String, Command>();
+    private Map<String, Command> commandByConversationId = new HashMap<String, Command>();
+
 
     /**
      * Is agent started?
@@ -59,20 +54,11 @@ public class Agent extends jade.core.Agent
         return started;
     }
 
-    /**
-     * Register ontology that agent can handle.
-     *
-     * @param ontology
-     */
-    public void registerOntology(Ontology ontology)
-    {
-        getContentManager().registerOntology(ontology);
-    }
 
     /**
      * Perform command on local agent
      *
-     * @param command
+     * @param command    command to be performed
      */
     public Command performCommand(Command command)
     {
@@ -81,10 +67,8 @@ public class Agent extends jade.core.Agent
             return command;
         }
         try {
+            startConversation(command);
             this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
-
-            // Put empty response
-            commandByIdentifier.put(command.getIdentifier(), command);
         }
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
@@ -95,8 +79,8 @@ public class Agent extends jade.core.Agent
     /**
      * Perform command on local agent and wait for it to be processed
      *
-     * @param command
-     * @return command
+     * @param command    command to be performed
+     * @return command (potentially modified)
      */
     public Command performCommandAndWait(Command command)
     {
@@ -105,27 +89,62 @@ public class Agent extends jade.core.Agent
         return command;
     }
 
-    /**
-     * Push new command response.
-     *
-     * @param commandIdentifier
-     * @return command with given {@code commandIdentifier}
-     */
-    public Command getCommand(String commandIdentifier)
+
+    private void startConversation(Command command)
     {
-        return commandByIdentifier.get(commandIdentifier);
+        commandByConversationId.put(command.getIdentifier(), command);
     }
 
+
     /**
-     * Disposal of a previously stored command.
+     * Gets data from a given conversation.
      *
-     * Use to prevent agent from remembering all the commands it has ever sent.
-     *
-     * @param commandIdentifier    identifier of the command
+     * @param conversationId    ID of the conversation to get data for
+     * @return command for the conversation
      */
-    public void disposeCommand(String commandIdentifier)
+    public Command getConversationCommand(String conversationId)
     {
-        commandByIdentifier.remove(commandIdentifier);
+        return commandByConversationId.get(conversationId);
+    }
+
+
+    /**
+     * Ends a previously started conversation.
+     *
+     * Disposes of the command which originated the conversation, which prevents the agent from remembering all the
+     * commands it has ever sent.
+     *
+     * TODO: call this method automatically to forget very old conversations to save memory
+     *
+     * @param conversationId      ID of the conversation
+     * @param state               state to set to the originating command
+     * @param stateDescription    description to the state set to the originating command
+     */
+    void endConversation(String conversationId, Command.State state, String stateDescription)
+    {
+        if (conversationId == null) {
+            return; // no conversation to end
+        }
+
+        Command command = commandByConversationId.get(conversationId);
+        if (command != null) {
+            command.setState(state, stateDescription);
+            commandByConversationId.remove(conversationId); // free the command from conversation memory
+        }
+    }
+
+
+    /**
+     * Ends a previously started conversation.
+     *
+     * Disposes of the command which originated the conversation.
+     *
+     * @param conversationId      ID of the conversation
+     * @param state               state to set to the originating command
+     */
+    public void endConversation(String conversationId, Command.State state)
+    {
+        endConversation(conversationId, state, null);
     }
 
     /**
