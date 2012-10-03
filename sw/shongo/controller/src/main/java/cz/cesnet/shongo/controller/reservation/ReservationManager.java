@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -60,7 +61,7 @@ public class ReservationManager extends AbstractManager
             else {
                 if (compartment.getState().equals(Compartment.State.STARTED)) {
                     if (compartment.getSlotEnd().isAfter(DateTime.now())) {
-                        compartment.setSlotEnd(DateTime.now());
+                        compartment.setSlotEnd(DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0));
                         compartmentManager.update(compartment);
                     }
                 }

@@ -184,7 +184,7 @@ sub get_attributes
     $attributes->{'add'}('Specification', $self->{'specification'});
 
     my $state = $self->get_state();
-    if ( $self->{'state'} eq 'ALLOCATED' ) {
+    if ( defined($self->{'state'}) && $self->{'state'} eq 'ALLOCATED' ) {
         $state .= sprintf(" (" . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
     }
     $attributes->{'add'}('Current State', $state, $self->get_state_report());
