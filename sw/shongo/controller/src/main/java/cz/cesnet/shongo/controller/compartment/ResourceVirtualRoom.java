@@ -163,6 +163,9 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             Room room = new Room();
             room.setPortCount(getPortCount());
             room.setName(UUID.randomUUID().toString().substring(0, 20));
+            for ( Alias alias : getAliases()) {
+                room.addAlias(alias.toApi());
+            }
             Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName,
                     new CreateRoom(room)));
             if (command.getState() != Command.State.SUCCESSFUL) {
