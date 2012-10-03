@@ -74,11 +74,11 @@ public class Agent extends jade.core.Agent
      *
      * @param command
      */
-    public void performCommand(Command command)
+    public Command performCommand(Command command)
     {
         if (isStarted() == false) {
             logger.error("Cannot perform command when the agent is not started.");
-            return;
+            return command;
         }
         try {
             this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
@@ -89,6 +89,20 @@ public class Agent extends jade.core.Agent
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
         }
+        return command;
+    }
+
+    /**
+     * Perform command on local agent and wait for it to be processed
+     *
+     * @param command
+     * @return command
+     */
+    public Command performCommandAndWait(Command command)
+    {
+        performCommand(command);
+        command.waitForProcessed();
+        return command;
     }
 
     /**

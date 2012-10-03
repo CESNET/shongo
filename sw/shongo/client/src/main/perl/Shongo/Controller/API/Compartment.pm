@@ -35,11 +35,47 @@ sub get_name
     return "Compartment";
 }
 
+# States
+our $CompartmentState = {
+    'NOT_STARTED' => {'title' => 'Not-Started', 'color' => 'yellow'},
+    'STARTED' => {'title' => 'Started', 'color' => 'green'},
+    'FINISHED' => {'title' => 'Finished', 'color' => 'blue'}
+};
+our $VirtualRoomState = {
+    'NOT_CREATED' => {'title' => 'Not-Created', 'color' => 'yellow'},
+    'CREATED' => {'title' => 'Created', 'color' => 'green'},
+    'FAILED' => {'title' => 'Failed', 'color' => 'red'},
+    'DELETED' => {'title' => 'Deleted', 'color' => 'blue'}
+};
+our $ConnectionState = {
+    'NOT_ESTABLISHED' => {'title' => 'Not-Established', 'color' => 'yellow'},
+    'ESTABLISHED' => {'title' => 'Established', 'color' => 'green'},
+    'FAILED' => {'title' => 'Failed', 'color' => 'red'},
+    'CLOSED' => {'title' => 'Closed', 'color' => 'blue'}
+};
+
+#
+# Get state
+#
+sub get_state
+{
+    my ($state, $types) = @_;
+    $state = $types->{$state};
+    my $title = $state->{'title'};
+    if ( defined($state->{'color'}) ) {
+        $title = colored($title, $state->{'color'});
+    }
+    return '[' . $title . ']';
+}
+
 # @Override
 sub get_attributes
 {
     my ($self, $attributes) = @_;
     $self->SUPER::get_attributes($attributes);
+
+    $attributes->{'add'}('State', get_state($self->{'state'}, $CompartmentState));
+    $attributes->{'add'}('Slot', format_interval($self->{'slot'}));
 
     my $endpoints = $attributes->{'add_collection'}('Endpoints');
     foreach my $endpoint (@{$self->{'endpoints'}}) {
@@ -58,6 +94,7 @@ sub get_attributes
             $string .= sprintf("\nwith assigned %s", $alias->to_string());
             $string =~ s/\n$//g;
         }
+        $string .= "\nstate: " . get_state($virtualRoom->{'state'}, $VirtualRoomState);
         $virtualRooms->{'add'}($string);
     }
 
@@ -68,8 +105,9 @@ sub get_attributes
             $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
                 $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
         } elsif ( $connection->{'class'} eq 'CompartmentReservation.ConnectionByAlias' ) {
-            $string .= sprintf("\nby alias %s", $connection->{'alias'}->to_string());
+            $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string()));
         }
+        $string .= "\nstate: " . get_state($connection->{'state'}, $ConnectionState);
         $connections->{'add'}($string);
     }
 }

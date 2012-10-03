@@ -18,7 +18,7 @@ our @EXPORT = qw(
     var_dump
     get_home_directory get_term_width
     text_indent_lines
-    colored
+    colored trim
     history_load history_save history_get_group_from history_set_group_to
     NULL
 );
@@ -421,6 +421,19 @@ sub history_load
         }
         close(FILE);
     }
+}
+
+#
+# Trim text
+#
+# @text
+#
+sub trim
+{
+    my ($text) = @_;
+    $text =~ s/\s+$//g;
+    $text =~ s/^\s+//g;
+    return $text;
 }
 
 #

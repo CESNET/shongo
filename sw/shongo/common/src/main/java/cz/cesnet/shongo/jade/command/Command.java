@@ -14,6 +14,13 @@ import java.util.UUID;
 public abstract class Command
 {
     /**
+     * How long to wait for command result. Unit: milliseconds
+     * <p/>
+     * NOTE: some commands, e.g. dialing, may take up to 30 seconds on some devices...
+     */
+    public static final int COMMAND_TIMEOUT = 33000;
+
+    /**
      * Command unique identifier.
      */
     private String identifier;
@@ -115,6 +122,29 @@ public abstract class Command
      * @param agent
      */
     public abstract void process(Agent agent) throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Wait for the command to be processed
+     */
+    public void waitForProcessed()
+    {
+        final int waitingTime = 50;
+
+        // FIXME: use some kind of IPC instead of busy waiting
+        int count = COMMAND_TIMEOUT / waitingTime;
+        while (!isProcessed() && count > 0) {
+            count--;
+            try {
+                Thread.sleep(waitingTime);
+            }
+            catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
+        if (getState() == Command.State.UNKNOWN) {
+            setState(Command.State.FAILED, "Timeout");
+        }
+    }
 
     /**
      * State of the command.

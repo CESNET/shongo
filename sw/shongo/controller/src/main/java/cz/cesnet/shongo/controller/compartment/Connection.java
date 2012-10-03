@@ -118,14 +118,14 @@ public abstract class Connection extends PersistentObject
      *
      * @param compartmentExecutor
      */
-    protected abstract void onEstablish(CompartmentExecutor compartmentExecutor);
+    protected abstract boolean onEstablish(CompartmentExecutor compartmentExecutor);
 
     /**
      * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
      * @param compartmentExecutor
      */
-    protected abstract void onClose(CompartmentExecutor compartmentExecutor);
+    protected abstract boolean onClose(CompartmentExecutor compartmentExecutor);
 
     /**
      * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
@@ -139,9 +139,12 @@ public abstract class Connection extends PersistentObject
                     "Connection can be established only if the connection is not established yet.");
         }
 
-        onEstablish(compartmentExecutor);
-
-        setState(State.ESTABLISHED);
+        if (onEstablish(compartmentExecutor)) {
+            setState(State.ESTABLISHED);
+        }
+        else {
+            setState(State.FAILED);
+        }
     }
 
     /**
@@ -178,8 +181,32 @@ public abstract class Connection extends PersistentObject
         ESTABLISHED,
 
         /**
+         * {@link Connection} failed to establish.
+         */
+        FAILED,
+
+        /**
          * {@link Connection} has been already closed.
          */
-        CLOSED
+        CLOSED;
+
+        /**
+         * @return converted to {@link cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State}
+         */
+        public cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State toApi()
+        {
+            switch (this) {
+                case NOT_ESTABLISHED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.NOT_ESTABLISHED;
+                case ESTABLISHED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.ESTABLISHED;
+                case FAILED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.FAILED;
+                case CLOSED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Connection.State.CLOSED;
+                default:
+                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
+            }
+        }
     }
 }

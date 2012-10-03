@@ -51,6 +51,8 @@ public class CompartmentReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.CompartmentReservation compartmentReservationApi =
                 (cz.cesnet.shongo.controller.api.CompartmentReservation) api;
+        compartmentReservationApi.getCompartment().setSlot(compartment.getSlot());
+        compartmentReservationApi.getCompartment().setState(compartment.getState().toApi());
         for (Endpoint endpoint : compartment.getEndpoints()) {
             cz.cesnet.shongo.controller.api.CompartmentReservation.Endpoint endpointApi =
                     new cz.cesnet.shongo.controller.api.CompartmentReservation.Endpoint();
@@ -67,6 +69,7 @@ public class CompartmentReservation extends Reservation
             for (Alias alias : virtualRoom.getAliases()) {
                 virtualRoomApi.addAlias(alias.toApi());
             }
+            virtualRoomApi.setState(virtualRoom.getState().toApi());
             compartmentReservationApi.getCompartment().addVirtualRoom(virtualRoomApi);
         }
         for (Connection connection : compartment.getConnections()) {
@@ -78,6 +81,7 @@ public class CompartmentReservation extends Reservation
                 connectionByAddressApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
                 connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
                 connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
+                connectionByAddressApi.setState(connectionByAddress.getState().toApi());
                 compartmentReservationApi.getCompartment().addConnection(connectionByAddressApi);
             }
             else if (connection instanceof ConnectionByAlias) {
@@ -87,6 +91,7 @@ public class CompartmentReservation extends Reservation
                 connectionByAliasApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
                 connectionByAliasApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
                 connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
+                connectionByAliasApi.setState(connectionByAlias.getState().toApi());
                 compartmentReservationApi.getCompartment().addConnection(connectionByAliasApi);
             }
             else {

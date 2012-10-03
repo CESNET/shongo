@@ -1,6 +1,9 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.PersistentObject;
+import org.hibernate.annotations.Type;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -16,6 +19,16 @@ import java.util.List;
 @Entity
 public class Compartment extends PersistentObject
 {
+    /**
+     * Interval start date/time.
+     */
+    private DateTime slotStart;
+
+    /**
+     * Interval end date/time.
+     */
+    private DateTime slotEnd;
+
     /**
      * List of {@link Endpoint}s which participates in the {@link Compartment}.
      */
@@ -36,6 +49,79 @@ public class Compartment extends PersistentObject
      * {@link Endpoint} can represent multiple endpoints).
      */
     private int totalEndpointCount = 0;
+
+    /**
+     * Current state of the {@link Compartment}.
+     */
+    private State state;
+
+    /**
+     * @return {@link #slotStart}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getSlotStart()
+    {
+        return slotStart;
+    }
+
+    /**
+     * @param slotStart sets the {@link #slotStart}
+     */
+    public void setSlotStart(DateTime slotStart)
+    {
+        this.slotStart = slotStart;
+    }
+
+    /**
+     * @return {@link #slotEnd}
+     */
+    @Column
+    @Type(type = "DateTime")
+    @Access(AccessType.PROPERTY)
+    public DateTime getSlotEnd()
+    {
+        return slotEnd;
+    }
+
+    /**
+     * @param slotEnd sets the {@link #slotEnd}
+     */
+    public void setSlotEnd(DateTime slotEnd)
+    {
+        this.slotEnd = slotEnd;
+    }
+
+    /**
+     * @return slot ({@link #slotStart}, {@link #slotEnd})
+     */
+    @Transient
+    public Interval getSlot()
+    {
+        return new Interval(slotStart, slotEnd);
+    }
+
+    /**
+     * @param slot sets the slot
+     */
+    public void setSlot(Interval slot)
+    {
+        setSlotStart(slot.getStart());
+        setSlotEnd(slot.getEnd());
+    }
+
+    /**
+     * Sets the slot to new interval created from given {@code start} and {@code end}.
+     *
+     * @param start
+     * @param end
+     */
+    public void setSlot(DateTime start, DateTime end)
+    {
+        setSlotStart(start);
+        setSlotEnd(end);
+    }
 
     /**
      * @return {@link #endpoints}
@@ -129,5 +215,69 @@ public class Compartment extends PersistentObject
     public int getTotalEndpointCount()
     {
         return totalEndpointCount;
+    }
+
+    /**
+     * @return {@link #state}
+     */
+    @Column
+    @Enumerated(EnumType.STRING)
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
+
+    @PrePersist
+    protected void onCreate()
+    {
+        if (state == null) {
+            state = State.NOT_STARTED;
+        }
+    }
+
+    /**
+     * State of the {@link Compartment}.
+     */
+    public static enum State
+    {
+        /**
+         * {@link Compartment} has not been created yet.
+         */
+        NOT_STARTED,
+
+        /**
+         * {@link Compartment} is already created.
+         */
+        STARTED,
+
+        /**
+         * {@link Compartment} has been already deleted.
+         */
+        FINISHED;
+
+        /**
+         * @return converted to {@link cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State}
+         */
+        public cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State toApi()
+        {
+            switch (this) {
+                case NOT_STARTED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State.NOT_STARTED;
+                case STARTED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State.STARTED;
+                case FINISHED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.Compartment.State.FINISHED;
+                default:
+                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
+            }
+        }
     }
 }

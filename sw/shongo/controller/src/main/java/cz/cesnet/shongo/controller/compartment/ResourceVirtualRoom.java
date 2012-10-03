@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
+import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.DeleteRoom;
@@ -125,7 +126,7 @@ public class ResourceVirtualRoom extends VirtualRoom
 
     @Override
     @Transient
-    public void onCreate(CompartmentExecutor compartmentExecutor)
+    public boolean onCreate(CompartmentExecutor compartmentExecutor)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -149,16 +150,18 @@ public class ResourceVirtualRoom extends VirtualRoom
             Room room = new Room();
             room.setPortCount(getPortCount());
             room.setName(UUID.randomUUID().toString().substring(0, 20));
-            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new CreateRoom(room)));
-
-            // TODO: store room id
-
-            setVirtualRoomId(room.getName());
+            Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName,
+                    new CreateRoom(room)));
+            if (command.getState() != Command.State.SUCCESSFUL) {
+                return false;
+            }
+            setVirtualRoomId((String) command.getResult());
         }
+        return true;
     }
 
     @Override
-    public void onDelete(CompartmentExecutor compartmentExecutor)
+    public boolean onDelete(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
@@ -172,7 +175,11 @@ public class ResourceVirtualRoom extends VirtualRoom
             if (virtualRoomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
-            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new DeleteRoom(virtualRoomId)));
+            Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName, new DeleteRoom(virtualRoomId)));
+            if (command.getState() != Command.State.SUCCESSFUL) {
+                return false;
+            }
         }
+        return true;
     }
 }
