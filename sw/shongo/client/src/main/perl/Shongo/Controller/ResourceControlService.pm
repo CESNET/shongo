@@ -127,8 +127,8 @@ sub control_resource()
         },
         "dial-participant" => {
             desc => "Dial participant",
-            options => 'roomId=s roomUserId=s target=s',
-            args => '[-roomId] [-roomUserId] [-target]',
+            options => 'roomId=s target=s',
+            args => '[-roomId] [-target]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 resource_dial_participant($resourceIdentifier, $params->{'options'});
@@ -262,7 +262,6 @@ sub resource_dial_participant
     my ($resourceIdentifier, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
-    my $roomUserId = console_read_value('User ID', 1, undef, $attributes->{'roomUserId'});
     my $target = $attributes->{'target'};
     if ( !defined($target) ) {
         my $targetType = console_read_enum('Select target type', ordered_hash(
@@ -285,7 +284,6 @@ sub resource_dial_participant
         'ResourceControl.dialParticipant',
         RPC::XML::string->new($resourceIdentifier),
         RPC::XML::string->new($roomId),
-        RPC::XML::string->new($roomUserId),
         $target
     );
     if ( $result->is_fault ) {
