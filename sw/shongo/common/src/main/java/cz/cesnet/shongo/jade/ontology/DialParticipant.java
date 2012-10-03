@@ -45,7 +45,7 @@ public class DialParticipant extends ConnectorAgentAction
             return getMultipoint(connector).dialParticipant(roomId, alias);
         }
         else {
-            logger.info("Dialing user at address {} into room {}", alias, roomId);
+            logger.info("Dialing user at address {} into room {}", address, roomId);
             return getMultipoint(connector).dialParticipant(roomId, address);
         }
     }
