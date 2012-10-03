@@ -32,6 +32,13 @@ public class ResourceControlServiceImpl extends Component
                    Component.EntityManagerFactoryAware
 {
     /**
+     * How long to wait for command result. Unit: milliseconds
+     *
+     * NOTE: some commands, e.g. dialing, may take up to 30 seconds on some devices...
+     */
+    public static final int COMMAND_TIMEOUT = 33000;
+
+    /**
      * @see Domain
      */
     private Domain domain;
@@ -181,11 +188,13 @@ public class ResourceControlServiceImpl extends Component
         String agentName = getAgentName(deviceResourceIdentifier);
         SendCommand command = SendCommand.createSendCommand(agentName, action);
         controllerAgent.performCommand(command);
-        int count = 100;
+
+        final int waitingTime = 50;
+        int count = COMMAND_TIMEOUT / waitingTime;
         while ( !command.isProcessed() && count > 0 ) {
             count--;
             try {
-                Thread.sleep(50);
+                Thread.sleep(waitingTime);
             }
             catch (InterruptedException exception) {
                 exception.printStackTrace();
