@@ -90,7 +90,7 @@ sub get_attributes
 
     my $virtualRooms = $attributes->{'add_collection'}('Virtual Rooms');
     foreach my $virtualRoom (@{$self->{'virtualRooms'}}) {
-        my $string = $virtualRoom->{'description'};
+        my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
         foreach my $alias (@{$virtualRoom->{'aliases'}}) {
             $string .= sprintf("\nwith assigned %s", $alias->to_string());
             $string =~ s/\n$//g;

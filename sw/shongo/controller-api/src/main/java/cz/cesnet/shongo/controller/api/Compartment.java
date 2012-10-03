@@ -247,9 +247,30 @@ public class Compartment
     public static class VirtualRoom extends Endpoint
     {
         /**
+         * Port count.
+         */
+        private int portCount;
+
+        /**
          * Current state of the {@link VirtualRoom}.
          */
         private State state;
+
+        /**
+         * @return {@link #portCount}
+         */
+        public int getPortCount()
+        {
+            return portCount;
+        }
+
+        /**
+         * @param portCount sets the {@link #portCount}
+         */
+        public void setPortCount(int portCount)
+        {
+            this.portCount = portCount;
+        }
 
         /**
          * @return {@link #state}
