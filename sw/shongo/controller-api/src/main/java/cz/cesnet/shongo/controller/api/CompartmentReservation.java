@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
+import org.joda.time.Interval;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,11 @@ public class CompartmentReservation extends Reservation
     public static class Compartment
     {
         /**
+         * Slot of the {@link Compartment}.
+         */
+        private Interval slot;
+
+        /**
          * List of {@link Endpoint}s.
          */
         private List<Endpoint> endpoints = new ArrayList<Endpoint>();
@@ -53,6 +59,27 @@ public class CompartmentReservation extends Reservation
          * List of {@link Connection}s.
          */
         private List<Connection> connections = new ArrayList<Connection>();
+
+        /**
+         * Current state of the {@link Compartment}.
+         */
+        private State state;
+
+        /**
+         * @return {@link #slot}
+         */
+        public Interval getSlot()
+        {
+            return slot;
+        }
+
+        /**
+         * @param slot sets the {@link #slot}
+         */
+        public void setSlot(Interval slot)
+        {
+            this.slot = slot;
+        }
 
         /**
          * @return {@link #endpoints}
@@ -125,6 +152,43 @@ public class CompartmentReservation extends Reservation
         {
             connections.add(connection);
         }
+
+        /**
+         * @return {@link #state}
+         */
+        public State getState()
+        {
+            return state;
+        }
+
+        /**
+         * @param state sets the {@link #state}
+         */
+        public void setState(State state)
+        {
+            this.state = state;
+        }
+
+        /**
+         * State of the {@link Compartment}.
+         */
+        public static enum State
+        {
+            /**
+             * {@link Compartment} has not been created yet.
+             */
+            NOT_STARTED,
+
+            /**
+             * {@link Compartment} is already created.
+             */
+            STARTED,
+
+            /**
+             * {@link Compartment} has been already deleted.
+             */
+            FINISHED
+        }
     }
 
     /**
@@ -188,6 +252,52 @@ public class CompartmentReservation extends Reservation
      */
     public static class VirtualRoom extends Endpoint
     {
+        /**
+         * Current state of the {@link VirtualRoom}.
+         */
+        private State state;
+
+        /**
+         * @return {@link #state}
+         */
+        public State getState()
+        {
+            return state;
+        }
+
+        /**
+         * @param state sets the {@link #state}
+         */
+        public void setState(State state)
+        {
+            this.state = state;
+        }
+
+        /**
+         * State of the {@link VirtualRoom}.
+         */
+        public static enum State
+        {
+            /**
+             * {@link VirtualRoom} has not been created yet.
+             */
+            NOT_CREATED,
+
+            /**
+             * {@link VirtualRoom} is already created.
+             */
+            CREATED,
+
+            /**
+             * {@link VirtualRoom} failed to create.
+             */
+            FAILED,
+
+            /**
+             * {@link VirtualRoom} has been already deleted.
+             */
+            DELETED
+        }
     }
 
     /**
@@ -204,6 +314,11 @@ public class CompartmentReservation extends Reservation
          * Target endpoint for the {@link Connection}.
          */
         private String endpointTo;
+
+        /**
+         * Current state of the {@link Connection}.
+         */
+        private State state;
 
         /**
          * @return {@link #endpointFrom}
@@ -235,6 +350,48 @@ public class CompartmentReservation extends Reservation
         public void setEndpointTo(String endpointTo)
         {
             this.endpointTo = endpointTo;
+        }
+
+        /**
+         * @return {@link #state}
+         */
+        public State getState()
+        {
+            return state;
+        }
+
+        /**
+         * @param state sets the {@link #state}
+         */
+        public void setState(State state)
+        {
+            this.state = state;
+        }
+
+        /**
+         * State of the {@link Connection}.
+         */
+        public static enum State
+        {
+            /**
+             * {@link Connection} has not been established yet.
+             */
+            NOT_ESTABLISHED,
+
+            /**
+             * {@link Connection} is already established.
+             */
+            ESTABLISHED,
+
+            /**
+             * {@link VirtualRoom} failed to establish.
+             */
+            FAILED,
+
+            /**
+             * {@link Connection} has been already closed.
+             */
+            CLOSED
         }
     }
 

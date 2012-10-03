@@ -74,14 +74,14 @@ public abstract class VirtualRoom extends Endpoint
      *
      * @param compartmentExecutor
      */
-    protected abstract void onCreate(CompartmentExecutor compartmentExecutor);
+    protected abstract boolean onCreate(CompartmentExecutor compartmentExecutor);
 
     /**
      * Stop virtual room.
      *
      * @param compartmentExecutor
      */
-    protected abstract void onDelete(CompartmentExecutor compartmentExecutor);
+    protected abstract boolean onDelete(CompartmentExecutor compartmentExecutor);
 
     /**
      * Start virtual room.
@@ -95,9 +95,11 @@ public abstract class VirtualRoom extends Endpoint
                     "Virtual room can be created only if the virtual room is not created yet.");
         }
 
-        onCreate(compartmentExecutor);
-
-        setState(State.CREATED);
+        if ( onCreate(compartmentExecutor) ) {
+            setState(State.CREATED);
+        } else {
+            setState(State.FAILED);
+        }
     }
 
     /**
@@ -133,8 +135,32 @@ public abstract class VirtualRoom extends Endpoint
         CREATED,
 
         /**
+         * {@link VirtualRoom} failed to create.
+         */
+        FAILED,
+
+        /**
          * {@link VirtualRoom} has been already deleted.
          */
-        DELETED
+        DELETED;
+
+        /**
+         * @return converted to {@link cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State}
+         */
+        public cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State toApi()
+        {
+            switch (this) {
+                case NOT_CREATED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.NOT_CREATED;
+                case CREATED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.CREATED;
+                case FAILED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.FAILED;
+                case DELETED:
+                    return cz.cesnet.shongo.controller.api.CompartmentReservation.VirtualRoom.State.DELETED;
+                default:
+                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
+            }
+        }
     }
 }

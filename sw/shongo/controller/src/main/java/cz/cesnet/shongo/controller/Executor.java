@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.compartment.Compartment;
 import cz.cesnet.shongo.controller.compartment.CompartmentExecutor;
+import cz.cesnet.shongo.controller.compartment.CompartmentManager;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import org.joda.time.DateTime;
@@ -44,7 +45,7 @@ public class Executor extends Component
     private Duration period = Duration.parse("PT15S");
 
     /**
-     * Set of {@link cz.cesnet.shongo.controller.api.Reservation} identifiers which have been already executed.
+     * Map of executed {@link CompartmentExecutor}s by {@link Compartment} identifiers.
      */
     private Map<Long, CompartmentExecutor> executorsById = new HashMap<Long, CompartmentExecutor>();
 
@@ -106,21 +107,19 @@ public class Executor extends Component
      */
     private void execute()
     {
-        logger.info("Checking compartment reservations for execution...");
+        logger.info("Checking compartments for execution...");
         Interval interval = new Interval(
                 DateTime.now().minus(Period.minutes(1)), DateTime.now().plus(Period.minutes(2)));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-        List<CompartmentReservation> reservations = reservationManager.listByInterval(interval,
-                CompartmentReservation.class);
-        for (CompartmentReservation compartmentReservation : reservations) {
-            Compartment compartment = compartmentReservation.getCompartment();
+        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+        List<Compartment> compartments = compartmentManager.listCompartmentsForExecution(interval);
+        for (Compartment compartment : compartments) {
             Long compartmentId = compartment.getId();
             if (executorsById.containsKey(compartmentId)) {
                 continue;
             }
             CompartmentExecutor executor = new CompartmentExecutor(controllerAgent, compartment.getId(),
-                    compartmentReservation.getSlot(), entityManagerFactory);
+                    entityManagerFactory);
             executor.start();
             executorsById.put(compartmentId, executor);
         }

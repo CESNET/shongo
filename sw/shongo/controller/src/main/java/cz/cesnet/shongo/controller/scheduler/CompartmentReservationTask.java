@@ -63,6 +63,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     {
         super(context);
         this.compartmentSpecification = new CompartmentSpecification();
+        initCompartment();
     }
 
     /**
@@ -75,6 +76,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     {
         super(context);
         this.compartmentSpecification = new CompartmentSpecification(callInitiation);
+        initCompartment();
     }
 
     /**
@@ -87,6 +89,16 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     {
         super(context);
         this.compartmentSpecification = specification;
+        initCompartment();
+    }
+
+    /**
+     * Initialize compartment
+     */
+    private void initCompartment()
+    {
+        // Initialize compartment
+        compartment.setSlot(getInterval());
     }
 
     /**

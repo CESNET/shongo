@@ -49,16 +49,26 @@ public class CompartmentExecutor extends Thread
      *
      * @param controllerAgent
      * @param compartmentId
-     * @param interval
      */
-    public CompartmentExecutor(ControllerAgent controllerAgent, Long compartmentId, Interval interval,
+    public CompartmentExecutor(ControllerAgent controllerAgent, Long compartmentId,
             EntityManagerFactory entityManagerFactory)
     {
         this.controllerAgent = controllerAgent;
         this.compartmentId = compartmentId;
-        this.interval = interval;
         this.entityManagerFactory = entityManagerFactory;
         setName(String.format("Executor-%d", compartmentId));
+
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+        Compartment compartment = null;
+        try {
+            compartment = compartmentManager.get(compartmentId);
+        }
+        catch (EntityNotFoundException exception) {
+            throw new IllegalStateException("Compartment was not found!");
+        }
+        entityManager.close();
+        this.interval = compartment.getSlot();
     }
 
     /**
@@ -91,7 +101,7 @@ public class CompartmentExecutor extends Thread
             }
         }
 
-        logger.info("Starting compartment '{}'...", compartmentId);
+        // Start
         {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             CompartmentManager compartmentManager = new CompartmentManager(entityManager);
@@ -102,25 +112,36 @@ public class CompartmentExecutor extends Thread
             catch (EntityNotFoundException exception) {
                 throw new IllegalStateException("Compartment was not found!");
             }
+            if (compartment.getState() == Compartment.State.NOT_STARTED) {
+                logger.info("Starting compartment '{}'...", compartmentId);
 
-            entityManager.getTransaction().begin();
+                // Create virtual rooms
+                for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
+                    if (virtualRoom.getState() == VirtualRoom.State.NOT_CREATED) {
+                        entityManager.getTransaction().begin();
+                        virtualRoom.create(this);
+                        entityManager.getTransaction().commit();
+                    }
+                }
 
-            // Create virtual rooms
-            for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-                virtualRoom.create(this);
+                // Assign aliases to endpoints
+                for (Endpoint endpoint : compartment.getEndpoints()) {
+                    endpoint.assignAliases(this);
+                }
+
+                // Connect endpoints
+                for (Connection connection : compartment.getConnections()) {
+                    if (connection.getState() == Connection.State.NOT_ESTABLISHED) {
+                        entityManager.getTransaction().begin();
+                        connection.establish(this);
+                        entityManager.getTransaction().commit();
+                    }
+                }
+
+                entityManager.getTransaction().begin();
+                compartment.setState(Compartment.State.STARTED);
+                entityManager.getTransaction().commit();
             }
-
-            // Assign aliases to endpoints
-            for (Endpoint endpoint : compartment.getEndpoints()) {
-                endpoint.assignAliases(this);
-            }
-
-            // Connect endpoints
-            for (Connection connection : compartment.getConnections()) {
-                connection.establish(this);
-            }
-
-            entityManager.getTransaction().commit();
             entityManager.close();
         }
 
@@ -135,7 +156,7 @@ public class CompartmentExecutor extends Thread
             }
         }
 
-        logger.info("Stopping compartment '{}'...", compartmentId);
+        // End
         {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             CompartmentManager compartmentManager = new CompartmentManager(entityManager);
@@ -146,19 +167,30 @@ public class CompartmentExecutor extends Thread
             catch (EntityNotFoundException exception) {
                 throw new IllegalStateException("Compartment was not found!");
             }
+            if (compartment.getState() == Compartment.State.STARTED) {
+                logger.info("Stopping compartment '{}'...", compartmentId);
 
-            entityManager.getTransaction().begin();
+                // Disconnect endpoints
+                for (Connection connection : compartment.getConnections()) {
+                    if (connection.getState() == Connection.State.ESTABLISHED) {
+                        entityManager.getTransaction().begin();
+                        connection.close(this);
+                        entityManager.getTransaction().commit();
+                    }
+                }
+                // Stop virtual rooms
+                for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
+                    if (virtualRoom.getState() == VirtualRoom.State.CREATED) {
+                        entityManager.getTransaction().begin();
+                        virtualRoom.delete(this);
+                        entityManager.getTransaction().commit();
+                    }
+                }
 
-            // Disconnect endpoints
-            for (Connection connection : compartment.getConnections()) {
-                connection.close(this);
+                entityManager.getTransaction().begin();
+                compartment.setState(Compartment.State.FINISHED);
+                entityManager.getTransaction().commit();
             }
-            // Stop virtual rooms
-            for (VirtualRoom virtualRoom : compartment.getVirtualRooms()) {
-                virtualRoom.delete(this);
-            }
-
-            entityManager.getTransaction().commit();
             entityManager.close();
         }
     }

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.Dial;
 import cz.cesnet.shongo.jade.ontology.HangUpAll;
@@ -43,7 +44,7 @@ public class ConnectionByAlias extends Connection
     }
 
     @Override
-    protected void onEstablish(CompartmentExecutor compartmentExecutor)
+    protected boolean onEstablish(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
@@ -55,14 +56,18 @@ public class ConnectionByAlias extends Connection
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
-            controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new Dial(getAlias().toApi())));
+            Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName, new Dial(getAlias().toApi())));
+            if (command.getState() != Command.State.SUCCESSFUL) {
+                return false;
+            }
 
             // TODO: store connection id
         }
+        return true;
     }
 
     @Override
-    protected void onClose(CompartmentExecutor compartmentExecutor)
+    protected boolean onClose(CompartmentExecutor compartmentExecutor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
@@ -76,5 +81,6 @@ public class ConnectionByAlias extends Connection
 
             // TODO: use connection id to hangup
         }
+        return true;
     }
 }
