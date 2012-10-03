@@ -170,6 +170,11 @@ sub resource_dial
         RPC::XML::string->new($resourceIdentifier),
         RPC::XML::string->new($target)
     );
+    my $callId = $result->value();
+    if ( !defined($callId) ) {
+        $callId = '-- None --';
+    }
+    printf("Call ID: %s\n", $callId);
 }
 
 sub resource_standby
@@ -290,7 +295,7 @@ sub resource_dial_participant
     if ( !defined($callId) ) {
         $callId = '-- None --';
     }
-    printf("Call ID: %s\n", $callId);
+    printf("Participant ID: %s\n", $callId);
 }
 
 sub resource_create_room

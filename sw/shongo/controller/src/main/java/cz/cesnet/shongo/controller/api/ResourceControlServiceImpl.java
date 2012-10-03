@@ -79,17 +79,17 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public int dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
+    public Integer dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
-        commandDevice(deviceResourceIdentifier, new Dial(address));
-        return 0; // FIXME: return the callId
+        Long result = (Long) commandDevice(deviceResourceIdentifier, new Dial(address));
+        return (result == null ? null : result.intValue());
     }
 
     @Override
-    public int dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
+    public Integer dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
     {
-        commandDevice(deviceResourceIdentifier, new Dial(alias));
-        return 0; // FIXME: return the callId
+        Long result = (Long) commandDevice(deviceResourceIdentifier, new Dial(alias));
+        return (result == null ? null : result.intValue());
     }
 
     @Override
@@ -133,16 +133,14 @@ public class ResourceControlServiceImpl extends Component
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
             throws FaultException
     {
-        commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, address));
-        return null; // TODO: return roomUserId returned by the command
+        return (String) commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, address));
     }
 
     @Override
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
             throws FaultException
     {
-        commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, alias));
-        return null; // TODO: return roomUserId returned by the command
+        return (String) commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, alias));
     }
 
     @Override
@@ -155,8 +153,7 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
-        commandDevice(deviceResourceIdentifier, new CreateRoom(room));
-        return null; // TODO: return roomId returned by the command
+        return (String) commandDevice(deviceResourceIdentifier, new CreateRoom(room));
     }
 
     @Override
