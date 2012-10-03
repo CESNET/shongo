@@ -442,7 +442,7 @@ reading:
     // ENDPOINT SERVICE
 
     @Override
-    public int dial(String address) throws CommandException
+    public String dial(String address) throws CommandException
     {
         Command command = new Command("xCommand Dial");
         command.setParameter("Number", address);
@@ -451,7 +451,7 @@ reading:
 
         Document result = issueCommand(command);
         try {
-            return Integer.valueOf(getResultString(result, "/XmlDoc/DialResult/CallId"));
+            return getResultString(result, "/XmlDoc/DialResult/CallId");
         }
         catch (XPathExpressionException e) {
             throw new CommandException("Program error in parsing the command result.", e);
@@ -459,7 +459,7 @@ reading:
     }
 
     @Override
-    public int dial(Alias alias) throws CommandException
+    public String dial(Alias alias) throws CommandException
     {
         return dial(alias.getValue());
     }

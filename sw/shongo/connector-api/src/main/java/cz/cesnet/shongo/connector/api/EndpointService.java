@@ -20,7 +20,7 @@ public interface EndpointService extends CommonService
      * @param address address of server to dial
      * @return call ID (suitable for further control of the call)
      */
-    int dial(String address) throws CommandException, CommandUnsupportedException;
+    String dial(String address) throws CommandException, CommandUnsupportedException;
 
     /**
      * Dials a server by alias.
@@ -28,7 +28,7 @@ public interface EndpointService extends CommonService
      * @param alias alias of server to dial
      * @return call ID (suitable for further control of the call)
      */
-    int dial(Alias alias) throws CommandException, CommandUnsupportedException;
+    String dial(Alias alias) throws CommandException, CommandUnsupportedException;
 
     /**
      * Hangs up a call.

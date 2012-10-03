@@ -16,10 +16,10 @@ import java.util.Collection;
 public interface ResourceControlService extends Service
 {
     @API
-    public Integer dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException;
+    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException;
 
     @API
-    public Integer dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException;
+    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException;
 
     @API
     public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;

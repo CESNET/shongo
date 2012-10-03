@@ -86,17 +86,15 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public Integer dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
+    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
-        Long result = (Long) commandDevice(deviceResourceIdentifier, new Dial(address));
-        return (result == null ? null : result.intValue());
+        return (String) commandDevice(deviceResourceIdentifier, new Dial(address));
     }
 
     @Override
-    public Integer dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
+    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
     {
-        Long result = (Long) commandDevice(deviceResourceIdentifier, new Dial(alias));
-        return (result == null ? null : result.intValue());
+        return (String) commandDevice(deviceResourceIdentifier, new Dial(alias));
     }
 
     @Override
