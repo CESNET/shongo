@@ -33,7 +33,7 @@ public class ResourceControlServiceImpl extends Component
 {
     /**
      * How long to wait for command result. Unit: milliseconds
-     *
+     * <p/>
      * NOTE: some commands, e.g. dialing, may take up to 30 seconds on some devices...
      */
     public static final int COMMAND_TIMEOUT = 33000;
@@ -179,8 +179,8 @@ public class ResourceControlServiceImpl extends Component
     /**
      * Asks the local controller agent to send a command to be performed by a device.
      *
-     * @param deviceResourceIdentifier    identifier of device to perform a command
-     * @param action                      command to be performed by the device
+     * @param deviceResourceIdentifier identifier of device to perform a command
+     * @param action                   command to be performed by the device
      * @throws FaultException
      */
     private Object commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
@@ -191,7 +191,7 @@ public class ResourceControlServiceImpl extends Component
 
         final int waitingTime = 50;
         int count = COMMAND_TIMEOUT / waitingTime;
-        while ( !command.isProcessed() && count > 0 ) {
+        while (!command.isProcessed() && count > 0) {
             count--;
             try {
                 Thread.sleep(waitingTime);
@@ -202,7 +202,8 @@ public class ResourceControlServiceImpl extends Component
         }
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
-        } else if (command.getState() == Command.State.UNKNOWN) {
+        }
+        else if (command.getState() == Command.State.UNKNOWN) {
             command.setState(Command.State.FAILED, "Timeout");
         }
         throw new FaultException(command.getStateDescription());
@@ -212,7 +213,7 @@ public class ResourceControlServiceImpl extends Component
     /**
      * Gets name of agent managing a given device.
      *
-     * @param deviceResourceIdentifier    identifier of device agent of which to get
+     * @param deviceResourceIdentifier identifier of device agent of which to get
      * @return agent name of managed resource with given {@code deviceResourceIdentifier}
      * @throws FaultException when resource doesn't exist or when is not managed
      */
