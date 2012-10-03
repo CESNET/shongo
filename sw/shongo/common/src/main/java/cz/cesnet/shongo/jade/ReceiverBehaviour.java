@@ -282,7 +282,7 @@ public class ReceiverBehaviour extends CyclicBehaviour
             ACLMessage re = msg.createReply();
             re.setPerformative(performative);
             if (content != null) {
-                myAgent.getContentManager().fillContent(msg, content);
+                myAgent.getContentManager().fillContent(re, content);
             }
             logger.info("{} sending reply: {}", myAgent.getName(), re);
             myAgent.send(re);
