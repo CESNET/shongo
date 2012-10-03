@@ -81,7 +81,7 @@ public class Agent extends jade.core.Agent
             return;
         }
         try {
-            this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code
+            this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
 
             // Put empty response
             commandByIdentifier.put(command.getIdentifier(), command);
@@ -100,6 +100,18 @@ public class Agent extends jade.core.Agent
     public Command getCommand(String commandIdentifier)
     {
         return commandByIdentifier.get(commandIdentifier);
+    }
+
+    /**
+     * Disposal of a previously stored command.
+     *
+     * Use to prevent agent from remembering all the commands it has ever sent.
+     *
+     * @param commandIdentifier    identifier of the command
+     */
+    public void disposeCommand(String commandIdentifier)
+    {
+        commandByIdentifier.remove(commandIdentifier);
     }
 
     /**

@@ -190,6 +190,7 @@ public class ResourceControlServiceImpl extends Component
         controllerAgent.performCommand(command);
 
         final int waitingTime = 50;
+        // FIXME: use some kind of IPC instead of busy waiting
         int count = COMMAND_TIMEOUT / waitingTime;
         while (!command.isProcessed() && count > 0) {
             count--;

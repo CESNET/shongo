@@ -52,12 +52,16 @@ public class ReceiverBehaviour extends CyclicBehaviour
         boolean result = onReceiveMessage(msg);
 
         String commandIdentifier = msg.getConversationId();
-        Command command = myShongoAgent.getCommand(commandIdentifier);
-        if ( command != null ) {
-            if ( result ) {
-                command.setState(Command.State.SUCCESSFUL);
-            } else {
-                command.setState(Command.State.FAILED, msg.getContent());
+        if (commandIdentifier != null) {
+            Command command = myShongoAgent.getCommand(commandIdentifier);
+            if ( command != null ) {
+                if ( result ) {
+                    command.setState(Command.State.SUCCESSFUL);
+                }
+                else {
+                    command.setState(Command.State.FAILED, msg.getContent());
+                }
+                myShongoAgent.disposeCommand(commandIdentifier);
             }
         }
     }
