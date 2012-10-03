@@ -64,7 +64,7 @@ public interface UserService
      * @param roomId     room identifier
      * @param roomUserId identifier of the user within the given room
      */
-    void disconnectRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
+    void disconnectParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Enables a given room user as a content provider in the room. This is typically enabled by default.

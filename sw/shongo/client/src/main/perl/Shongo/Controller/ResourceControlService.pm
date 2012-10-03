@@ -134,6 +134,15 @@ sub control_resource()
                 resource_dial_participant($resourceIdentifier, $params->{'options'});
             }
         },
+        "disconnect-participant" => {
+            desc => "Disconnect participant from a room",
+            options => 'roomId=s participantId=s',
+            args => '[-roomId] [-participantId]',
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_disconnect_participant($resourceIdentifier, $params->{'options'});
+            }
+        },
         "create-room" => {
             desc => "Create virtual room",
             method => sub {
@@ -294,6 +303,21 @@ sub resource_dial_participant
         $callId = '-- None --';
     }
     printf("Participant ID: %s\n", $callId);
+}
+
+sub resource_disconnect_participant
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.disconnectParticipant',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+        RPC::XML::string->new($participantId)
+    );
 }
 
 sub resource_create_room

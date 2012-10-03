@@ -32,8 +32,8 @@ public class RoomServiceImpl implements RoomService
     }
 
     @Override
-    public void disconnectRoomUser(Types.SecurityToken token, String roomId, String userId)
+    public void disconnectParticipant(Types.SecurityToken token, String roomId, String userId)
     {
-        throw new RuntimeException("TODO: Implement RoomServiceImpl.disconnectRoomUser");
+        throw new RuntimeException("TODO: Implement RoomServiceImpl.disconnectParticipant");
     }*/
 }

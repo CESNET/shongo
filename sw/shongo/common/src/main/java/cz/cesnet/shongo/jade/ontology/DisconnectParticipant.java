@@ -7,16 +7,16 @@ import cz.cesnet.shongo.connector.api.CommonService;
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class DisconnectRoomUser extends ConnectorAgentAction
+public class DisconnectParticipant extends ConnectorAgentAction
 {
     private String roomId;
     private String roomUserId;
 
-    public DisconnectRoomUser()
+    public DisconnectParticipant()
     {
     }
 
-    public DisconnectRoomUser(String roomId, String roomUserId)
+    public DisconnectParticipant(String roomId, String roomUserId)
     {
         this.roomId = roomId;
         this.roomUserId = roomUserId;
@@ -25,13 +25,13 @@ public class DisconnectRoomUser extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        getMultipoint(connector).disconnectRoomUser(roomId, roomUserId);
+        getMultipoint(connector).disconnectParticipant(roomId, roomUserId);
         return null;
     }
 
     public String toString()
     {
-        return String.format("DisconnectRoomUser agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
+        return String.format("DisconnectParticipant agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
     }
 
     public String getRoomId()

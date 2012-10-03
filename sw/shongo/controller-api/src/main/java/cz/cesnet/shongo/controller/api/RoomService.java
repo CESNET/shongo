@@ -45,5 +45,5 @@ public interface RoomService extends Service
      * @param roomId Shongo identifier of the room resource
      * @param userId user identifier within a concrete technology
      */
-    //public void disconnectRoomUser(SecurityToken token, String roomId, String userId);
+    //public void disconnectParticipant(SecurityToken token, String roomId, String userId);
 }

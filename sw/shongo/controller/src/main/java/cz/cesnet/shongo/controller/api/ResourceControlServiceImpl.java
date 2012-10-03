@@ -151,10 +151,10 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public void disconnectRoomUser(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException
     {
-        commandDevice(deviceResourceIdentifier, new DisconnectRoomUser(roomId, roomUserId));
+        commandDevice(deviceResourceIdentifier, new DisconnectParticipant(roomId, roomUserId));
     }
 
     @Override

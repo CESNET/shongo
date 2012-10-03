@@ -182,7 +182,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // user connect by address
 //        String ruId2 = conn.dialParticipant("shongo-test", "147.251.54.102");
         // user disconnect
-//        conn.disconnectRoomUser("shongo-test", "participant1");
+//        conn.disconnectParticipant("shongo-test", "participant1");
 
 //        System.out.println("All done, disconnecting");
         conn.disconnect();
@@ -1028,7 +1028,7 @@ ParamsLoop:
     }
 
     @Override
-    public void disconnectRoomUser(String roomId, String roomUserId) throws CommandException
+    public void disconnectParticipant(String roomId, String roomUserId) throws CommandException
     {
         Command cmd = new Command("participant.remove");
         cmd.setParameter("conferenceName", roomId);

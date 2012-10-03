@@ -50,7 +50,7 @@ public interface ResourceControlService extends Service
             throws FaultException;
 
     @API
-    public void disconnectRoomUser(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException;
 
     @API
