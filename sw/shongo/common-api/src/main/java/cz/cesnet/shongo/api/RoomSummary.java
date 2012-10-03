@@ -100,7 +100,7 @@ public class RoomSummary implements StructType, Concept
     @Override
     public String toString()
     {
-        return String.format("Room %s (startDateTime: %s)",
+        return String.format("Room %s (name: %s, description: %s, startDateTime: %s)",
                 getIdentifier(), getName(), getDescription(), getStartDateTime());
     }
 }
