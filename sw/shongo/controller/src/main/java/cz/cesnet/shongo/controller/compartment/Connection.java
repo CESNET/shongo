@@ -1,6 +1,11 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.command.SendCommand;
+import cz.cesnet.shongo.jade.ontology.DisconnectParticipant;
+import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
 import javax.persistence.*;
 
@@ -125,7 +130,32 @@ public abstract class Connection extends PersistentObject
      *
      * @param compartmentExecutor
      */
-    protected abstract boolean onClose(CompartmentExecutor compartmentExecutor);
+    protected boolean onClose(CompartmentExecutor compartmentExecutor)
+    {
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
+        compartmentExecutor.getLogger().debug(message.toString());
+
+        if (getEndpointFrom() instanceof ManagedEndpoint) {
+            ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
+            String agentName = managedEndpointFrom.getConnectorAgentName();
+            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            Command command = null;
+            if (getEndpointFrom() instanceof VirtualRoom) {
+                VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
+                command = controllerAgent.performCommand(SendCommand.createSendCommand(agentName,
+                        new DisconnectParticipant(virtualRoom.getVirtualRoomId(), getConnectionId())));
+            } else {
+                // TODO: use connection id to hangup
+
+                command = controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
+            }
+            if (command.getState() != Command.State.SUCCESSFUL) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.

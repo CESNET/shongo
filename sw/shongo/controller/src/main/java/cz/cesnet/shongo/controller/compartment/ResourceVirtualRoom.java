@@ -25,7 +25,7 @@ import java.util.UUID;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceVirtualRoom extends VirtualRoom
+public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
 {
     /**
      * {@link VirtualRoomReservation} for the {@link DeviceResource}.
@@ -122,6 +122,19 @@ public class ResourceVirtualRoom extends VirtualRoom
     public Integer getPortCount()
     {
         return virtualRoomReservation.getPortCount();
+    }
+
+    @Override
+    @Transient
+    public String getConnectorAgentName()
+    {
+        Mode mode = getDeviceResource().getMode();
+        if (mode instanceof ManagedMode) {
+            ManagedMode managedMode = (ManagedMode) mode;
+            return managedMode.getConnectorAgentName();
+        } else {
+            throw new IllegalStateException("Resource " + getReportDescription() + " is not managed!");
+        }
     }
 
     @Override
