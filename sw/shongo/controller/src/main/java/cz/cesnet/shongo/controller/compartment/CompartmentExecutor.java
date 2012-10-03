@@ -123,6 +123,13 @@ public class CompartmentExecutor extends Thread
                         entityManager.getTransaction().commit();
                     }
                 }
+                logger.info("Waiting for virtual rooms to be created...", compartmentId);
+                try {
+                    Thread.sleep(5000);
+                }
+                catch (InterruptedException exception) {
+                    exception.printStackTrace();
+                }
 
                 // Assign aliases to endpoints
                 for (Endpoint endpoint : compartment.getEndpoints()) {
