@@ -29,7 +29,7 @@ use Term::ANSIColor;
 
 # Regular Expression Patterns
 our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';
-our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d)?(.\\d+)?([\\+-]\\d\\d:\\d\\d)?$)';
+our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?([\\+-]\\d\\d:\\d\\d)?)?$)';
 our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
 our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
 
