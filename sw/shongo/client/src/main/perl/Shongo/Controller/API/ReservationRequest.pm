@@ -39,37 +39,66 @@ sub new()
 }
 
 # @Override
+sub on_create()
+{
+    my ($self, $attributes) = @_;
+
+    $self->SUPER::on_create($attributes);
+
+    $self->modify_slot();
+    $self->modify_specification();
+}
+
+# @Override
 sub on_modify_loop()
 {
     my ($self, $actions) = @_;
 
     push(@{$actions}, (
         'Modify requested slot' => sub {
-            my $start = undef;
-            my $duration = undef;
-            if ( defined($self->{'slot'}) && $self->{'slot'} =~ m/(.*)\/(.*)/ ) {
-                $start = $1;
-                $duration = $2;
-            }
-            $start = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $start);
-            $duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
-            $self->{'slot'} = $start . '/' . $duration;
+            $self->modify_slot();
             return undef;
         },
         'Modify specification' => sub {
-            my $specification = undef;
-            if ( defined($self->{'specification'}) ) {
-                $specification = $self->{'specification'}->{'class'};
-            }
-            $specification = Shongo::Controller::API::Specification::select_type($specification);
-            if ( !defined($self->{'specification'}) || !($specification eq $self->{'specification'}->{'class'}) ) {
-                $self->{'specification'} = Shongo::Controller::API::Specification->create($specification);
-            } else {
-                $self->{'specification'}->modify();
-            }
+            $self->modify_specification();
             return undef;
         }
     ));
+}
+
+#
+# Modify slot
+#
+sub modify_slot()
+{
+    my ($self) = @_;
+    my $start = undef;
+    my $duration = undef;
+    if ( defined($self->{'slot'}) && $self->{'slot'} =~ m/(.*)\/(.*)/ ) {
+        $start = $1;
+        $duration = $2;
+    }
+    $start = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $start);
+    $duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
+    $self->{'slot'} = $start . '/' . $duration;
+}
+
+#
+# Modify specification
+#
+sub modify_specification()
+{
+    my ($self) = @_;
+    my $specification = undef;
+    if ( defined($self->{'specification'}) ) {
+        $specification = $self->{'specification'}->{'class'};
+    }
+    $specification = Shongo::Controller::API::Specification::select_type($specification);
+    if ( !defined($self->{'specification'}) || !($specification eq $self->{'specification'}->{'class'}) ) {
+        $self->{'specification'} = Shongo::Controller::API::Specification->create($specification);
+    } else {
+        $self->{'specification'}->modify();
+    }
 }
 
 # @Override
