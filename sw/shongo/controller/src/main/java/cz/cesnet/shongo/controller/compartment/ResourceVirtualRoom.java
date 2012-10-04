@@ -171,7 +171,8 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
 
-            String roomName = String.format("Shongo%d Comp:%d", getId(), compartmentExecutor.getCompartmentId()).substring(0, 28);
+            String roomName = String.format("Shongo%d Comp:%d", getId(), compartmentExecutor.getCompartmentId());
+            roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
             Room room = new Room();
             room.setPortCount(getPortCount());
