@@ -10,6 +10,7 @@ import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.DeleteRoom;
+import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -169,9 +170,12 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+
+            String roomName = String.format("Shongo%d Comp:%d", getId(), compartmentExecutor.getCompartmentId()).substring(0, 28);
+
             Room room = new Room();
             room.setPortCount(getPortCount());
-            room.setName(UUID.randomUUID().toString().substring(0, 20));
+            room.setName(roomName);
             for ( Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }

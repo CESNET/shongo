@@ -80,6 +80,14 @@ public class CompartmentExecutor extends Thread
     }
 
     /**
+     * @return {@link #compartmentId}
+     */
+    public Long getCompartmentId()
+    {
+        return compartmentId;
+    }
+
+    /**
      * @param entityManager
      * @return loaded compartment from the given {@code entityManager}
      */
