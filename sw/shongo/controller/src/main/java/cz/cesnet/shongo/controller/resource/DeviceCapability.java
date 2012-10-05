@@ -14,7 +14,7 @@ public abstract class DeviceCapability extends Capability
     public void setResource(Resource resource)
     {
         if (resource != null && (resource instanceof DeviceResource) == false) {
-            throw new IllegalArgumentException("Device capability can be inserted only to device resource!");
+            throw new IllegalArgumentException("Device capability can be inserted only into a device resource!");
         }
         super.setResource(resource);
     }

@@ -43,6 +43,10 @@
 % Code listing
 \usepackage{verbatim}
 \usepackage{listingsutf8}
+\usepackage{showexpl}
+\lstset{
+  escapechar=\⠶
+}
 
 % Bibliography
 \usepackage[nottoc]{tocbibind}
@@ -89,6 +93,30 @@
 % Document title page
 \author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
 \date{\copyright~CESNET~z.\,s.\,p.\,o.\\2012}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Entity example (type, name, comment)
+\lstnewenvironment{ObjectCode}[3]{%
+    \removelastskip
+    \vskip 3mm
+    \lstset{
+      aboveskip=0pt,
+      belowskip=0pt,    
+      xleftmargin=8pt,
+      basicstyle=\fontfamily{txtt}\selectfont,
+      keywordstyle=\fontseries{b}\selectfont,
+    }
+    \minipage{\textwidth}
+    \advance\leftmargini -3mm \quote
+    \footnotesize\ttfamily #2 = \ifx&#1&\else\textbf{#1} \fi{}\{
+    \ifx&#3& \else {\color{gray}// #3} \fi
+}{%    
+    \vspace*{-4pt}
+    \footnotesize\ttfamily \}
+    \endquote
+    \endminipage
+    \vskip 3mm
+}
 
 
 
