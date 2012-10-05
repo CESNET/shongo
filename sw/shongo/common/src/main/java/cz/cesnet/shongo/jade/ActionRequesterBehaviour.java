@@ -2,6 +2,8 @@ package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.ontology.CommandError;
+import cz.cesnet.shongo.jade.ontology.CommandNotSupported;
 import jade.content.ContentElement;
 import jade.content.ContentManager;
 import jade.content.lang.Codec;
@@ -16,6 +18,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Behaviour that requests a connector to perform an action.
+ *
+ * Automatically run on the controller by a command processing.
+ *
+ * Implements the initiator part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
+ * example found in the Jade distribution in examples/src/examples/ontology).
+ *
+ * See ActionRequestResponderBehaviour class for the other party of the conversation.
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
@@ -95,8 +106,7 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
     protected void handleFailure(ACLMessage msg)
     {
         logger.error("Execution of the command failed: {}", msg);
-        // FIXME: get a better state description - the message might contain Result with a CommandError as the value (for an example of an error, try dialing a number for several times from an endpoint, initiating multiple calls at a time)
-        command.setState(Command.State.FAILED, msg.getContent());
+        command.setState(Command.State.FAILED, getErrorMessage(msg));
     }
 
     @Override
@@ -104,6 +114,39 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
     {
         logger.error("Execution of the command failed: {}", msg);
         command.setState(Command.State.FAILED, "The requested command is unknown to the connector.");
+    }
+
+    /**
+     * Tries to parse error message out of a message.
+     *
+     * @param msg    an error, should contain a Result with value of type CommandError or CommandNotSupported
+     * @return error message found in the message, or null if it was not there
+     */
+    private String getErrorMessage(ACLMessage msg)
+    {
+        ContentManager cm = myAgent.getContentManager();
+        try {
+            ContentElement contentElement = cm.extractContent(msg);
+            Result result = (Result) contentElement;
+            Object commandError = result.getValue();
+            if (commandError instanceof CommandNotSupported) {
+                return ((CommandNotSupported) commandError).getDescription();
+            }
+            if (commandError instanceof CommandError) {
+                return ((CommandError) commandError).getDescription();
+            }
+        }
+        catch (Codec.CodecException e) {
+            logger.error("Contents of the error message could not be decoded for message " + msg, e);
+        }
+        catch (OntologyException e) {
+            logger.error("Contents of the error message could not be decoded for message " + msg, e);
+        }
+        catch (ClassCastException e) {
+            logger.error("Contents of the error message could not be cast for message " + msg, e);
+        }
+
+        return null;
     }
 
 }

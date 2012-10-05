@@ -373,7 +373,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             return (Map<String, Object>) client.execute(command.getCommand(), params);
         }
         catch (XmlRpcException e) {
-            throw new CommandException("Error executing the call", e);
+            throw new CommandException(e.getMessage());
         }
     }
 

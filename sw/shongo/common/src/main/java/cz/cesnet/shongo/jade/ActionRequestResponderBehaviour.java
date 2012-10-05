@@ -21,6 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Behaviour that responds to action requests and performs requested actions.
+ *
+ * Implements the responder part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
+ * example found in the Jade distribution in examples/src/examples/ontology).
+ *
+ * See ActionRequesterBehaviour class for the other party of the conversation.
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class ActionRequestResponderBehaviour extends SimpleAchieveREResponder
@@ -69,7 +76,7 @@ public class ActionRequestResponderBehaviour extends SimpleAchieveREResponder
         ContentManager cm = myAgent.getContentManager();
         try {
             Action act = (Action) cm.extractContent(request);
-            AgentAction action = (AgentAction) act.getAction(); // FIXME: (use SL0 instead of SL) or just don't encapsulate to Action (its 'actor' field is useless, anyway)
+            AgentAction action = (AgentAction) act.getAction();
             try {
                 Object actionRetVal = myShongoAgent.handleAgentAction(action, request.getSender());
                 // respond to the caller - either with the command return value or saying it was OK
