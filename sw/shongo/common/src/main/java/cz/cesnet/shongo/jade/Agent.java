@@ -14,9 +14,6 @@ import jade.wrapper.AgentController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Represents an agent in JADE middle-ware.
  *
@@ -35,12 +32,6 @@ public class Agent extends jade.core.Agent
      * Agent description for DF.
      */
     private DFAgentDescription agentDescription;
-
-    /**
-     * Map of commands by conversation identifier.
-     */
-    private Map<String, Command> commandByConversationId = new HashMap<String, Command>();
-
 
     /**
      * Is agent started?
@@ -66,7 +57,6 @@ public class Agent extends jade.core.Agent
             return command;
         }
         try {
-            startConversation(command);
             this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
         }
         catch (InterruptedException exception) {
@@ -89,63 +79,6 @@ public class Agent extends jade.core.Agent
     }
 
 
-    private void startConversation(Command command)
-    {
-        commandByConversationId.put(command.getIdentifier(), command);
-    }
-
-
-    /**
-     * Gets data from a given conversation.
-     *
-     * @param conversationId    ID of the conversation to get data for
-     * @return command for the conversation
-     */
-    public Command getConversationCommand(String conversationId)
-    {
-        return commandByConversationId.get(conversationId);
-    }
-
-
-    /**
-     * Ends a previously started conversation.
-     *
-     * Disposes of the command which originated the conversation, which prevents the agent from remembering all the
-     * commands it has ever sent.
-     *
-     * TODO: call this method automatically to forget very old conversations to save memory
-     *
-     * @param conversationId      ID of the conversation
-     * @param state               state to set to the originating command
-     * @param stateDescription    description to the state set to the originating command
-     */
-    void endConversation(String conversationId, Command.State state, String stateDescription)
-    {
-        if (conversationId == null) {
-            return; // no conversation to end
-        }
-
-        Command command = commandByConversationId.get(conversationId);
-        if (command != null) {
-            command.setState(state, stateDescription);
-            commandByConversationId.remove(conversationId); // free the command from conversation memory
-        }
-    }
-
-
-    /**
-     * Ends a previously started conversation.
-     *
-     * Disposes of the command which originated the conversation.
-     *
-     * @param conversationId      ID of the conversation
-     * @param state               state to set to the originating command
-     */
-    public void endConversation(String conversationId, Command.State state)
-    {
-        endConversation(conversationId, state, null);
-    }
-
     /**
      * Constructor.
      */
@@ -161,8 +94,6 @@ public class Agent extends jade.core.Agent
     @Override
     protected void setup()
     {
-        super.setup();
-
         started = true;
 
         // Register content language
@@ -173,9 +104,6 @@ public class Agent extends jade.core.Agent
 
         // Each agent is able to process commands passed via O2A channel
         addBehaviour(new CommandBehaviour());
-
-        // Connector agents behave as responders in the FIPA-Request protocol
-        addBehaviour(new ReceiverBehaviour());
 
         // Prepare agent description for DF
         agentDescription = new DFAgentDescription();

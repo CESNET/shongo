@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.jade.command;
 
 import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.jade.ActionRequesterBehaviour;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.ontology.ShongoOntology;
 import jade.content.AgentAction;
@@ -17,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A command for a JADE agent to send a action (agent action, message, ...) to an agent via JADE middleware.
- *
+ * <p/>
  * The SL codec and Shongo ontology is used to encode the message.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -51,16 +52,15 @@ public class ActionRequestCommand extends Command
     @Override
     public void process(Agent agent) throws CommandException
     {
-        ACLMessage message = new ACLMessage(ACLMessage.REQUEST);
-        message.addReceiver(performer);
-        message.setSender(agent.getAID());
-        message.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
-        message.setOntology(ShongoOntology.getInstance().getName());
-        message.setConversationId(getIdentifier());
+        ACLMessage initMsg = new ACLMessage(ACLMessage.REQUEST);
+        initMsg.addReceiver(performer);
+        initMsg.setSender(agent.getAID());
+        initMsg.setLanguage(FIPANames.ContentLanguage.FIPA_SL);
+        initMsg.setOntology(ShongoOntology.getInstance().getName());
 
         ContentElement content = new Action(agent.getAID(), action);
         try {
-            agent.getContentManager().fillContent(message, content);
+            agent.getContentManager().fillContent(initMsg, content);
         }
         catch (Codec.CodecException e) {
             throw new CommandException("Error in composing the command message.", e);
@@ -69,11 +69,10 @@ public class ActionRequestCommand extends Command
             throw new CommandException("Error in composing the command message.", e);
         }
 
-        logger.info("{} -> {}: {}\n", new Object[] {
-                agent.getAID().getName(),
-                performer.getName(),
-                message.toString()
-        });
-        agent.send(message);
+        logger.info("{} initiating action request -> {}: {}\n",
+                new Object[]{agent.getAID().getName(), performer.getName(), initMsg});
+
+        agent.addBehaviour(new ActionRequesterBehaviour(agent, initMsg, this));
+        // FIXME: check that the behaviour is removed from the agent once it is done (or after some timeout)
     }
 }
