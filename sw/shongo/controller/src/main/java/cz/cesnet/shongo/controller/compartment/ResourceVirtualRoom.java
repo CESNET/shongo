@@ -6,11 +6,10 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
+import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.DeleteRoom;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -19,7 +18,6 @@ import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Represents a {@link DeviceResource} which acts as {@link VirtualRoom} in a {@link Compartment}.
@@ -180,7 +178,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             for ( Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName,
+            Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName,
                     new CreateRoom(room)));
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return false;
@@ -205,7 +203,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             if (virtualRoomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
-            Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName, new DeleteRoom(virtualRoomId)));
+            Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName, new DeleteRoom(virtualRoomId)));
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return false;
             }

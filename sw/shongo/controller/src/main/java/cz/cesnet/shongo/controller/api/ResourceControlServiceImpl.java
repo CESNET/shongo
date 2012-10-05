@@ -12,8 +12,8 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.*;
 import jade.content.AgentAction;
 
@@ -177,7 +177,7 @@ public class ResourceControlServiceImpl extends Component
     private Object commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName, action));
+        Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName, action));
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
         }

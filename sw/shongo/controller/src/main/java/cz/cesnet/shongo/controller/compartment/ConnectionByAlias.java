@@ -2,11 +2,10 @@ package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.Dial;
 import cz.cesnet.shongo.jade.ontology.DialParticipant;
-import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
 import javax.persistence.*;
 
@@ -57,11 +56,11 @@ public class ConnectionByAlias extends Connection
             Command command = null;
             if (getEndpointFrom() instanceof VirtualRoom) {
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
-                command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(
+                command = controllerAgent.performCommandAndWait(new ActionRequestCommand(
                         agentName, new DialParticipant(virtualRoom.getVirtualRoomId(), getAlias().toApi())));
             }
             else {
-                command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(
+                command = controllerAgent.performCommandAndWait(new ActionRequestCommand(
                         agentName, new Dial(getAlias().toApi())));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {

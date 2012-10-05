@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.jade.ontology.DisconnectParticipant;
 import cz.cesnet.shongo.jade.ontology.HangUpAll;
 
@@ -143,12 +143,12 @@ public abstract class Connection extends PersistentObject
             Command command = null;
             if (getEndpointFrom() instanceof VirtualRoom) {
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
-                command = controllerAgent.performCommand(SendCommand.createSendCommand(agentName,
+                command = controllerAgent.performCommand(new ActionRequestCommand(agentName,
                         new DisconnectParticipant(virtualRoom.getVirtualRoomId(), getConnectionId())));
             } else {
                 // TODO: use connection id to hangup
 
-                command = controllerAgent.performCommand(SendCommand.createSendCommand(agentName, new HangUpAll()));
+                command = controllerAgent.performCommand(new ActionRequestCommand(agentName, new HangUpAll()));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return false;
