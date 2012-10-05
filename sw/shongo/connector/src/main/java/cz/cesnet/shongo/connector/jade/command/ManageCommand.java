@@ -102,10 +102,11 @@ public class ManageCommand extends cz.cesnet.shongo.jade.command.Command
     @Override
     public void process(Agent agent) throws CommandException
     {
-        ConnectorAgent connAgent = (ConnectorAgent) agent;
-        if (connAgent == null) {
+        if (!(agent instanceof ConnectorAgent)) {
             throw new IllegalArgumentException("The 'manage' command works only with ConnectorAgent objects");
         }
+
+        ConnectorAgent connAgent = (ConnectorAgent) agent;
 
         try {
             connAgent.manage(connectorClass, deviceAddress, devicePort, authUsername, authPassword);
