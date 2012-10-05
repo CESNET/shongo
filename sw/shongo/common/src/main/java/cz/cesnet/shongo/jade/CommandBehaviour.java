@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.command.Command;
 import jade.core.behaviours.CyclicBehaviour;
 import org.slf4j.Logger;
@@ -63,9 +62,6 @@ public class CommandBehaviour extends CyclicBehaviour
         }
         catch (CommandException e) {
             logger.error("Error processing the command", e);
-        }
-        catch (CommandUnsupportedException e) {
-            logger.error("Error processing the command - it is not supported by the device", e);
         }
     }
 }
