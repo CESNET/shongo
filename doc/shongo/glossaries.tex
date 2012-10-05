@@ -114,10 +114,19 @@
 \newglossaryentry{g:device-connection}
 {
   name=video conference call,
-  description={Represents a connection or call which is initiated by a \gls{g:device} to 
-    another \gls{g:device}.}
+  description={Represents a connection or call which is initiated by a 
+    \gls{g:device} to another \gls{g:device}.}
 }
-
+\newglossaryentry{g:executor}
+{
+  name=executor,
+  description={Executor is a component of a \gls{g:controller} which executes
+    allocated \glspl{g:compartment} from \glspl{g:reservation}. It creates
+    all \glspl{g:device-virtual-room} on managed \glspl{g:resource-device} and
+    establishes all \glspl{g:device-connection} between created 
+    \glspl{g:device-virtual-room} and managed \gls{g:endpoint} 
+    \glspl{g:resource-device}.}
+}
 
 
 % Print glossaries

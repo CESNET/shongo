@@ -76,9 +76,9 @@
 \def\empty{}%
 \def\prvniparametr{#1}%
 \ifx\prvniparametr\empty%
-\begingroup\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
+\begingroup\small\tt\textcolor{red}{\noindent\textbf{TODO}}\endgroup
 \else%
-\begingroup\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
+\begingroup\small\tt\textcolor{red}{\noindent\textbf{TODO:}\ #1}\endgroup
 \fi%
 }
 
@@ -88,7 +88,7 @@
   breakatwhitespace=true,
   breakautoindent=true,
 }
-\newcommand{\code}[1]{\textbf{\texttt{#1}}}
+\newcommand{\code}[1]{\textbf{\small\texttt{#1}}}
 
 % Document title page
 \author{Petr Holub, Jan Růžička, Miloš Liška, Martin Šrom, Ondřej Pavelka, Ondřej Bouda}
