@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.jade;
 
-import cz.cesnet.shongo.jade.command.SendCommand;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
-import cz.cesnet.shongo.shell.Shell;
 import org.apache.commons.cli.CommandLine;
 
 /**
@@ -52,22 +50,6 @@ public class ContainerCommandSet extends CommandSet
      */
     public static ContainerCommandSet createContainerAgentCommandSet(final Container container, final String agentName)
     {
-        ContainerCommandSet commandSet = new ContainerCommandSet();
-
-        commandSet.addCommand("send", "Send a message to another JADE agent", new CommandHandler()
-        {
-            @Override
-            public void perform(CommandLine commandLine)
-            {
-                String[] args = commandLine.getArgs();
-                if (args.length < 3) {
-                    Shell.printError("The send command requires two parameters: <AGENT> <MESSAGE>.");
-                    return;
-                }
-                container.performCommand(agentName, SendCommand.createSendMessage(args[1], args[2]));
-            }
-        });
-
-        return commandSet;
+        return new ContainerCommandSet();
     }
 }

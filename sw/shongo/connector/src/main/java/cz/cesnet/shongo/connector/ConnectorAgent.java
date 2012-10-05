@@ -92,7 +92,9 @@ public class ConnectorAgent extends Agent
             throws UnknownActionException, CommandException, CommandUnsupportedException
     {
         if (getArguments()[0].equals(Boolean.TRUE)) {
+            // the connector is configured with <dump>true</dump>
             System.out.println(action.toString());
+            // FIXME: return something (an exception is thrown by super.handleAgentAction())
         }
         else if (action instanceof ConnectorAgentAction) {
             return ((ConnectorAgentAction) action).exec(connector);

@@ -3,7 +3,6 @@ package cz.cesnet.shongo.jade;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.Message;
 import cz.cesnet.shongo.jade.ontology.ShongoOntology;
 import jade.content.AgentAction;
 import jade.content.lang.sl.SLCodec;
@@ -172,8 +171,10 @@ public class Agent extends jade.core.Agent
         // Register ontology used by Shongo
         getContentManager().registerOntology(ShongoOntology.getInstance());
 
-        // Each agent is able to process commands passed via O2A channel and receive JADE messages
+        // Each agent is able to process commands passed via O2A channel
         addBehaviour(new CommandBehaviour());
+
+        // Connector agents behave as responders in the FIPA-Request protocol
         addBehaviour(new ReceiverBehaviour());
 
         // Prepare agent description for DF
@@ -304,6 +305,8 @@ public class Agent extends jade.core.Agent
     /**
      * Handles an agent action request.
      *
+     * Should be overridden by descendants to actually handle some action.
+     *
      * @param action    agent action to be performed
      * @param sender    sender of the action request
      * @return return value of the performed command (null if the command does not return anything)
@@ -314,12 +317,6 @@ public class Agent extends jade.core.Agent
     {
         if (action == null) {
             throw new NullPointerException("action");
-        }
-
-        if (action instanceof Message) {
-            Message message = (Message) action;
-            System.out.println("Message from " + sender.getName() + ": " + message.getMessage() + "\n\n");
-            return null;
         }
 
         throw new UnknownActionException(action);

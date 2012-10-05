@@ -2,7 +2,6 @@ package cz.cesnet.shongo.jade.command;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.ontology.Message;
 import cz.cesnet.shongo.jade.ontology.ShongoOntology;
 import jade.content.AgentAction;
 import jade.content.Concept;
@@ -76,28 +75,6 @@ public class SendCommand extends Command
     }
 
     /**
-     * Create send command for sending simple text message
-     *
-     * @param agentName    name of agent to send the message to
-     * @param message      text of the message
-     * @return send command
-     */
-    public static SendCommand createSendMessage(String agentName, String message)
-    {
-        return createSendCommand(agentName, new Message(message));
-    }
-
-    /**
-     * Get recipient.
-     *
-     * @return the intended recipient of the message
-     */
-    public AID getRecipient()
-    {
-        return recipient;
-    }
-
-    /**
      * Set recipient.
      *
      * @param recipient    the intended recipient of the message
@@ -105,46 +82,6 @@ public class SendCommand extends Command
     public void setRecipient(AID recipient)
     {
         this.recipient = recipient;
-    }
-
-    /**
-     * Get performative.
-     *
-     * @return performative
-     */
-    public int getPerformative()
-    {
-        return performative;
-    }
-
-    /**
-     * Set performative
-     *
-     * @param performative
-     */
-    public void setPerformative(int performative)
-    {
-        this.performative = performative;
-    }
-
-    /**
-     * Get content ontology.
-     *
-     * @return ontology
-     */
-    public Ontology getOntology()
-    {
-        return ontology;
-    }
-
-    /**
-     * Get content concept
-     *
-     * @return concept
-     */
-    public Concept getConcept()
-    {
-        return concept;
     }
 
     /**
