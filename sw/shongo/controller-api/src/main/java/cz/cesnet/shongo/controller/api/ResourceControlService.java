@@ -31,6 +31,9 @@ public interface ResourceControlService extends Service
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
+    public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
     public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API

@@ -104,6 +104,13 @@ sub control_resource()
                 resource_hang_up_all($resourceIdentifier);
             }
         },
+        "reset-device" => {
+            desc => "Resets the device",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_reset_device($resourceIdentifier);
+            }
+        },
         "mute" => {
             desc => "Mute the device",
             method => sub {
@@ -231,6 +238,19 @@ sub resource_hang_up_all
         RPC::XML::string->new($resourceIdentifier)
     );
     if ( $result->is_fault ) {
+        return;
+    }
+}
+
+sub resource_reset_device
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.resetDevice',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault) {
         return;
     }
 }

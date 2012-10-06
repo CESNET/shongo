@@ -109,6 +109,12 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new ResetDevice());
+    }
+
+    @Override
     public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         commandDevice(deviceResourceIdentifier, new Mute());

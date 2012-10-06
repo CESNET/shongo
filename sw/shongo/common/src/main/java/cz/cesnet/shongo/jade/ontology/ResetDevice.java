@@ -5,23 +5,23 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 
 /**
- * Command to hang up all active calls.
+ * Command to reset a device.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class HangUpAll extends ConnectorAgentAction
+public class ResetDevice extends ConnectorAgentAction
 {
 
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Hanging up all calls");
-        getEndpoint(connector).hangUpAll();
+        logger.info("Resetting the device");
+        getEndpoint(connector).resetDevice();
         return null;
     }
 
     public String toString()
     {
-        return "HangUpAll agent action";
+        return "ResetDevice agent action";
     }
 }
