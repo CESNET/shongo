@@ -97,6 +97,12 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new HangUp(callId));
+    }
+
+    @Override
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         commandDevice(deviceResourceIdentifier, new HangUpAll());

@@ -88,6 +88,15 @@ sub control_resource()
                 resource_standby($resourceIdentifier);
             }
         },
+        "hangup" => {
+            desc => "Hang up a call",
+            minargs => 1,
+            args => "[callId]",
+            method => sub {
+                my ($shell, $params, @args) = @_;
+                resource_hang_up($resourceIdentifier, $args[0]);
+            }
+        },
         "hangup-all" => {
             desc => "Hang up all calls",
             method => sub {
@@ -195,6 +204,20 @@ sub resource_standby
         RPC::XML::string->new($resourceIdentifier)
     );
     if ( $result->is_fault ) {
+        return;
+    }
+}
+
+sub resource_hang_up
+{
+    my ($resourceIdentifier, $callId) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.hangUp',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($callId)
+    );
+    if ($result->is_fault) {
         return;
     }
 }

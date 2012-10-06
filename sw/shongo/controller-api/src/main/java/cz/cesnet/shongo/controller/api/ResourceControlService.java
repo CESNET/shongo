@@ -25,6 +25,9 @@ public interface ResourceControlService extends Service
     public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
+    public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException;
+
+    @API
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API

@@ -465,10 +465,10 @@ reading:
     }
 
     @Override
-    public void hangUp(int callId) throws CommandException
+    public void hangUp(String callId) throws CommandException
     {
         Command command = new Command("xCommand Call Disconnect");
-        command.setParameter("CallId", String.valueOf(callId));
+        command.setParameter("CallId", callId);
         issueCommand(command);
     }
 
