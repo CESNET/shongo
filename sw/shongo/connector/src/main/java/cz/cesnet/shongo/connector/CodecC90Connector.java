@@ -32,6 +32,8 @@ import java.util.Map;
 /**
  * A connector for Cisco TelePresence System Codec C90.
  *
+ * TODO: have a look at "xCommand HttpFeedback Register" command - some feedback may be used to prevent polling
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class CodecC90Connector extends AbstractConnector implements EndpointService
