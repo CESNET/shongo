@@ -5,20 +5,17 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 
 /**
- * Command to get methods supported by the connector.
+ * Command for an endpoint to stop a presentation.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class GetSupportedMethods extends ConnectorAgentAction
+public class StopPresentation extends ConnectorAgentAction
 {
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return connector.getSupportedMethods();
-    }
-
-    public String toString()
-    {
-        return "GetSupportedMethods agent action";
+        logger.info("Stopping presentation");
+        getEndpoint(connector).stopPresentation();
+        return null;
     }
 }

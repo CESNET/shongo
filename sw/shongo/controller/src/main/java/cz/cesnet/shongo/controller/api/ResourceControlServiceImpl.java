@@ -149,6 +149,30 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new EnableVideo());
+    }
+
+    @Override
+    public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new DisableVideo());
+    }
+
+    @Override
+    public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new StartPresentation());
+    }
+
+    @Override
+    public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new StopPresentation());
+    }
+
+    @Override
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
             throws FaultException
     {

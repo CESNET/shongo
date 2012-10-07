@@ -52,6 +52,18 @@ public interface ResourceControlService extends Service
             throws FaultException;
 
     @API
+    public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
             throws FaultException;
 

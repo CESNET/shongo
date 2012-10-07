@@ -181,6 +181,50 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'enableVideo', @supportedMethods) {
+        $shell->add_commands({
+            "enable-video" => {
+                desc => "Enables video from the endpoint",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_enable_video($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'disableVideo', @supportedMethods) {
+        $shell->add_commands({
+            "disable-video" => {
+                desc => "Disables video from the endpoint",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_disable_video($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'startPresentation', @supportedMethods) {
+        $shell->add_commands({
+            "start-presentation" => {
+                desc => "Starts the presentation mode from the endpoint",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_start_presentation($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'stopPresentation', @supportedMethods) {
+        $shell->add_commands({
+            "stop-presentation" => {
+                desc => "Stops the presentation mode from the endpoint",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_stop_presentation($resourceIdentifier);
+                }
+            }
+        });
+    }
     if (grep $_ eq 'dialParticipant', @supportedMethods) {
         $shell->add_commands({
             "dial-participant" => {
@@ -377,6 +421,58 @@ sub resource_set_playback_level
         'ResourceControl.setPlaybackLevel',
         RPC::XML::string->new($resourceIdentifier),
         RPC::XML::string->new($level)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+}
+
+sub resource_enable_video
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.enableVideo',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+}
+
+sub resource_disable_video
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.disableVideo',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+}
+
+sub resource_start_presentation
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.startPresentation',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+}
+
+sub resource_stop_presentation
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.stopPresentation',
+        RPC::XML::string->new($resourceIdentifier)
     );
     if ( $result->is_fault ) {
         return;

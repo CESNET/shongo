@@ -5,20 +5,22 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 
 /**
- * Command to get methods supported by the connector.
+ * Command for an endpoint to enable video.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class GetSupportedMethods extends ConnectorAgentAction
+public class EnableVideo extends ConnectorAgentAction
 {
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return connector.getSupportedMethods();
+        logger.info("Enabling video");
+        getEndpoint(connector).enableVideo();
+        return null;
     }
 
     public String toString()
     {
-        return "GetSupportedMethods agent action";
+        return "EnableVideo agent action";
     }
 }
