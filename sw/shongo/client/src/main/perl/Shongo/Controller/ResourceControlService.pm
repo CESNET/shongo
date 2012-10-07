@@ -72,118 +72,192 @@ sub control_resource()
         "exit" => {
             desc => "Exit the shell",
             method => sub { shift->exit_requested(1); }
-        },
-        "dial" => {
-            desc => "Dial a number or address",
-            minargs => 1, args => "[number/address]",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_dial($resourceIdentifier, $args[0]);
-            }
-        },
-        "standby" => {
-            desc => "Switch to the standby mode",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_standby($resourceIdentifier);
-            }
-        },
-        "hangup" => {
-            desc => "Hang up a call",
-            minargs => 1,
-            args => "[callId]",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_hang_up($resourceIdentifier, $args[0]);
-            }
-        },
-        "hangup-all" => {
-            desc => "Hang up all calls",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_hang_up_all($resourceIdentifier);
-            }
-        },
-        "reset-device" => {
-            desc => "Resets the device",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_reset_device($resourceIdentifier);
-            }
-        },
-        "mute" => {
-            desc => "Mute the device",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_mute($resourceIdentifier);
-            }
-        },
-        "unmute" => {
-            desc => "Unmute the device",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_unmute($resourceIdentifier);
-            }
-        },
-        "set-microphone-level" => {
-            desc => "Sets microphone(s) level",
-            minargs => 1, args => "[number]",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_set_microphone_level($resourceIdentifier, $args[0]);
-            }
-        },
-        "set-playback-level" => {
-            desc => "Sets playback level",
-            minargs => 1, args => "[number]",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_set_playback_level($resourceIdentifier, $args[0]);
-            }
-        },
-        "dial-participant" => {
-            desc => "Dial participant",
-            options => 'roomId=s target=s',
-            args => '[-roomId] [-target]',
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_dial_participant($resourceIdentifier, $params->{'options'});
-            }
-        },
-        "disconnect-participant" => {
-            desc => "Disconnect participant from a room",
-            options => 'roomId=s participantId=s',
-            args => '[-roomId] [-participantId]',
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_disconnect_participant($resourceIdentifier, $params->{'options'});
-            }
-        },
-        "create-room" => {
-            desc => "Create virtual room",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_create_room($resourceIdentifier);
-            }
-        },
-        "delete-room" => {
-            desc => "Delete virtual room",
-            options => 'roomId=s',
-            args => '[-roomId]',
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_delete_room($resourceIdentifier, $params->{'options'});
-            }
-        },
-        "list-rooms" => {
-            desc => "List virtual rooms",
-            method => sub {
-                my ($shell, $params, @args) = @_;
-                resource_list_rooms($resourceIdentifier);
-            }
         }
     });
+
+    my @supportedMethods = resource_get_supported_methods($resourceIdentifier);
+
+    if (grep $_ eq 'dial', @supportedMethods) {
+        $shell->add_commands({
+            "dial" => {
+                desc => "Dial a number or address",
+                minargs => 1, args => "[number/address]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_dial($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'standBy', @supportedMethods) {
+        $shell->add_commands({
+            "standby" => {
+                desc => "Switch to the standby mode",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_standby($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'hangUp', @supportedMethods) {
+        $shell->add_commands({
+            "hangup" => {
+                desc => "Hang up a call",
+                minargs => 1,
+                args => "[callId]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_hang_up($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'hangUpAll', @supportedMethods) {
+        $shell->add_commands({
+            "hangup-all" => {
+                desc => "Hang up all calls",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_hang_up_all($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'resetDevice', @supportedMethods) {
+        $shell->add_commands({
+            "reset-device" => {
+                desc => "Resets the device",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_reset_device($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'mute', @supportedMethods) {
+        $shell->add_commands({
+            "mute" => {
+                desc => "Mute the device",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_mute($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'unmute', @supportedMethods) {
+        $shell->add_commands({
+            "unmute" => {
+                desc => "Unmute the device",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_unmute($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'setMicrophoneLevel', @supportedMethods) {
+        $shell->add_commands({
+            "set-microphone-level" => {
+                desc => "Sets microphone(s) level",
+                minargs => 1, args => "[number]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_set_microphone_level($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'setPlaybackLevel', @supportedMethods) {
+        $shell->add_commands({
+            "set-playback-level" => {
+                desc => "Sets playback level",
+                minargs => 1, args => "[number]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_set_playback_level($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'dialParticipant', @supportedMethods) {
+        $shell->add_commands({
+            "dial-participant" => {
+                desc => "Dial participant",
+                options => 'roomId=s target=s',
+                args => '[-roomId] [-target]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_dial_participant($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'disconnectParticipant', @supportedMethods) {
+        $shell->add_commands({
+            "disconnect-participant" => {
+                desc => "Disconnect participant from a room",
+                options => 'roomId=s participantId=s',
+                args => '[-roomId] [-participantId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_disconnect_participant($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'createRoom', @supportedMethods) {
+        $shell->add_commands({
+            "create-room" => {
+                desc => "Create virtual room",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_create_room($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'deleteRoom', @supportedMethods) {
+        $shell->add_commands({
+            "delete-room" => {
+                desc => "Delete virtual room",
+                options => 'roomId=s',
+                args => '[-roomId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_delete_room($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'listRooms', @supportedMethods) {
+        $shell->add_commands({
+            "list-rooms" => {
+                desc => "List virtual rooms",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_list_rooms($resourceIdentifier);
+                }
+            }
+        });
+    }
+
     $shell->run();
+}
+
+sub resource_get_supported_methods
+{
+    my ($resourceIdentifier) = @_;
+
+    my $response = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getSupportedMethods',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $response->is_fault() ) {
+        return;
+    }
+    return @{$response->value()};
 }
 
 sub resource_dial
