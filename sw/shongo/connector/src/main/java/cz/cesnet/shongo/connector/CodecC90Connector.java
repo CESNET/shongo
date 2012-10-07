@@ -532,12 +532,14 @@ reading:
     @Override
     public void startPresentation() throws CommandException
     {
+        // TODO: test
         issueCommand(new Command("xCommand Presentation Start"));
     }
 
     @Override
     public void stopPresentation() throws CommandException
     {
+        // TODO: test
         issueCommand(new Command("xCommand Presentation Stop"));
     }
 
