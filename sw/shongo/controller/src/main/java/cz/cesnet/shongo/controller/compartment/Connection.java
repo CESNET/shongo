@@ -4,8 +4,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.DisconnectParticipant;
-import cz.cesnet.shongo.jade.ontology.HangUpAll;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
+import cz.cesnet.shongo.jade.ontology.actions.endpoint.HangUpAll;
 
 import javax.persistence.*;
 

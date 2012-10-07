@@ -1,37 +1,37 @@
-package cz.cesnet.shongo.jade.ontology;
+package cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class DisconnectParticipant extends ConnectorAgentAction
+public class DeleteRoom extends ConnectorAgentAction
 {
     private String roomId;
-    private String roomUserId;
 
-    public DisconnectParticipant()
+    public DeleteRoom()
     {
     }
 
-    public DisconnectParticipant(String roomId, String roomUserId)
+    public DeleteRoom(String roomId)
     {
         this.roomId = roomId;
-        this.roomUserId = roomUserId;
     }
 
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        getMultipoint(connector).disconnectParticipant(roomId, roomUserId);
+        logger.info("Deleting room {}", roomId);
+        getMultipoint(connector).deleteRoom(roomId);
         return null;
     }
 
     public String toString()
     {
-        return String.format("DisconnectParticipant agent action (roomId: %s, roomUserId: %s)", roomId, roomUserId);
+        return String.format("DeleteRoom agent action (roomId: %s)", roomId);
     }
 
     public String getRoomId()
@@ -42,15 +42,5 @@ public class DisconnectParticipant extends ConnectorAgentAction
     public void setRoomId(String roomId)
     {
         this.roomId = roomId;
-    }
-
-    public String getRoomUserId()
-    {
-        return roomUserId;
-    }
-
-    public void setRoomUserId(String roomUserId)
-    {
-        this.roomUserId = roomUserId;
     }
 }

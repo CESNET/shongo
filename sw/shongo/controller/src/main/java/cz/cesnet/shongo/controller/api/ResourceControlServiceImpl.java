@@ -14,7 +14,13 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.*;
+import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
+import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.monitoring.ListRooms;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
 import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;

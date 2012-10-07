@@ -1,25 +1,27 @@
-package cz.cesnet.shongo.jade.ontology;
+package cz.cesnet.shongo.jade.ontology.actions.endpoint;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
 
 /**
- * Command to switch an endpoint to the standby mode.
+ * Command for an endpoint to disable video.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class StandBy extends ConnectorAgentAction
+public class DisableVideo extends ConnectorAgentAction
 {
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        getEndpoint(connector).standBy();
+        logger.info("Disabling video");
+        getEndpoint(connector).disableVideo();
         return null;
     }
 
     public String toString()
     {
-        return "Standby agent action";
+        return "DisableVideo agent action";
     }
 }

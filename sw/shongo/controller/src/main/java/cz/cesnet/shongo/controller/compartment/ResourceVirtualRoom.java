@@ -8,8 +8,8 @@ import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.CreateRoom;
-import cz.cesnet.shongo.jade.ontology.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
