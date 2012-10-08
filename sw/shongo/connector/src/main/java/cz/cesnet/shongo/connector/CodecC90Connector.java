@@ -32,6 +32,8 @@ import java.util.Map;
 /**
  * A connector for Cisco TelePresence System Codec C90.
  *
+ * TODO: have a look at "xCommand HttpFeedback Register" command - some feedback may be used to prevent polling
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class CodecC90Connector extends AbstractConnector implements EndpointService
@@ -465,10 +467,10 @@ reading:
     }
 
     @Override
-    public void hangUp(int callId) throws CommandException
+    public void hangUp(String callId) throws CommandException
     {
         Command command = new Command("xCommand Call Disconnect");
-        command.setParameter("CallId", String.valueOf(callId));
+        command.setParameter("CallId", callId);
         issueCommand(command);
     }
 
@@ -532,12 +534,14 @@ reading:
     @Override
     public void startPresentation() throws CommandException
     {
+        // TODO: test
         issueCommand(new Command("xCommand Presentation Start"));
     }
 
     @Override
     public void stopPresentation() throws CommandException
     {
+        // TODO: test
         issueCommand(new Command("xCommand Presentation Stop"));
     }
 

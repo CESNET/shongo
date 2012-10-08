@@ -38,6 +38,8 @@ import java.util.regex.Pattern;
  * - Cisco TelePresence MCU MSE 8510
  * <p/>
  * FIXME: string parameters to device commands have to be at most 31 characters long
+ * <p/>
+ * FIXME: caching does not work properly (create a new room, list rooms, delete the room, list rooms - and the listing still contains the deleted room)
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -373,7 +375,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             return (Map<String, Object>) client.execute(command.getCommand(), params);
         }
         catch (XmlRpcException e) {
-            throw new CommandException("Error executing the call", e);
+            throw new CommandException(e.getMessage());
         }
     }
 

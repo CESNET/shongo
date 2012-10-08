@@ -12,15 +12,23 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.command.SendCommand;
-import cz.cesnet.shongo.jade.ontology.*;
+import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
+import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.monitoring.ListRooms;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
 import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Resource service implementation.
@@ -79,6 +87,13 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        Set<String> methods = (Set<String>) commandDevice(deviceResourceIdentifier, new GetSupportedMethods());
+        return new ArrayList<String>(methods); // NOTE: XML-RPC seems to need a list
+    }
+
+    @Override
     public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
         return (String) commandDevice(deviceResourceIdentifier, new Dial(address));
@@ -97,9 +112,21 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new HangUp(callId));
+    }
+
+    @Override
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         commandDevice(deviceResourceIdentifier, new HangUpAll());
+    }
+
+    @Override
+    public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new ResetDevice());
     }
 
     @Override
@@ -125,6 +152,30 @@ public class ResourceControlServiceImpl extends Component
     public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
     {
         commandDevice(deviceResourceIdentifier, new SetPlaybackLevel(level));
+    }
+
+    @Override
+    public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new EnableVideo());
+    }
+
+    @Override
+    public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new DisableVideo());
+    }
+
+    @Override
+    public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new StartPresentation());
+    }
+
+    @Override
+    public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        commandDevice(deviceResourceIdentifier, new StopPresentation());
     }
 
     @Override
@@ -163,8 +214,7 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
-        List<RoomSummary> roomSummaries = (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
-        return roomSummaries;
+        return (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
     }
 
     /**
@@ -177,7 +227,7 @@ public class ResourceControlServiceImpl extends Component
     private Object commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        Command command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(agentName, action));
+        Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName, action));
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
         }

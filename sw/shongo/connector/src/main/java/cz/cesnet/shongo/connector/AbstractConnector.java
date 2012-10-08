@@ -40,21 +40,22 @@ abstract public class AbstractConnector implements CommonService
     }
 
     /**
-     * Lists all implemented methods supported by the implementing connector.
+     * Lists names of all implemented methods supported by the implementing connector.
      * <p/>
      * Uses reflection.
      * <p/>
      * Any method that declares throwing CommandUnsupportedException is considered not implemented on the connector.
-     * Thus, relies just on the fact that the method is not declaring throwing CommandUnsupportedException.
+     * Thus, it relies just on the fact that the method is not declaring throwing CommandUnsupportedException.
      * Note that even if a method is actually implemented and works, it is not listed by getSupportedMethods() if it
      * still declares throwing CommandUnsupportedException (which is needless, though).
      *
-     * @return collection of public methods implemented from an interface, not throwing CommandUnsupportedException
+     * @return collection of names of public methods implemented from an interface, not throwing
+     *         CommandUnsupportedException
      */
     @Override
-    public Collection<Method> getSupportedMethods()
+    public Set<String> getSupportedMethods()
     {
-        List<Method> result = new ArrayList<Method>();
+        Set<String> result = new HashSet<String>();
 
         // get public methods not raising CommandUnsupportedException
         Map<String, Class[]> methods = new HashMap<String, Class[]>();
@@ -69,13 +70,12 @@ MethodsLoop:
             // CommandUnsupportedException not found - the method seems good
             methods.put(m.getName(), m.getParameterTypes());
         }
-        // promote those not implementing an interface
-        Class[] intfcs = getClass().getInterfaces();
-        for (Class intfc : intfcs) {
+        // promote those implementing an interface
+        for (Class intfc : getClass().getInterfaces()) {
             for (Method m : intfc.getMethods()) {
                 final String mName = m.getName();
                 if (methods.containsKey(mName) && Arrays.equals(m.getParameterTypes(), methods.get(mName))) {
-                    result.add(m);
+                    result.add(mName);
                 }
             }
         }

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.jade;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.command.Command;
 import jade.core.behaviours.CyclicBehaviour;
 import org.slf4j.Logger;
@@ -24,17 +23,28 @@ public class CommandBehaviour extends CyclicBehaviour
 {
     private static Logger logger = LoggerFactory.getLogger(CommandBehaviour.class);
 
+    private Agent myShongoAgent;
+
+    /**
+     * Associates this behaviour with a Shongo agent.
+     *
+     * @param agent a Shongo agent (must be an instance of cz.cesnet.shongo.jade.Agent)
+     */
+    @Override
+    public void setAgent(jade.core.Agent agent)
+    {
+        if (!(agent instanceof Agent)) {
+            throw new IllegalArgumentException("This behaviour works only with instances of " + Agent.class);
+        }
+
+        myShongoAgent = (Agent) agent;
+        super.setAgent(agent);
+    }
 
     @Override
     public void action()
     {
-        Agent agent = (Agent) myAgent;
-        if (agent == null) {
-            throw new RuntimeException("CommandBehaviour requires agent of class "
-                    + Agent.class.getCanonicalName() + ".");
-        }
-
-        Object object = agent.getO2AObject();
+        Object object = myShongoAgent.getO2AObject();
         if (object == null) {
             block();
             return;
@@ -48,13 +58,10 @@ public class CommandBehaviour extends CyclicBehaviour
 
         Command command = (Command) object;
         try {
-            command.process(agent);
+            command.process(myShongoAgent);
         }
         catch (CommandException e) {
             logger.error("Error processing the command", e);
-        }
-        catch (CommandUnsupportedException e) {
-            logger.error("Error processing the command - it is not supported by the device", e);
         }
     }
 }

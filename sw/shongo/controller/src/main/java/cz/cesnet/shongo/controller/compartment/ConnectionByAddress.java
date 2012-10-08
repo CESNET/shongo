@@ -4,12 +4,10 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.command.SendCommand;
-import cz.cesnet.shongo.jade.ontology.Dial;
-import cz.cesnet.shongo.jade.ontology.DialParticipant;
-import cz.cesnet.shongo.jade.ontology.DisconnectParticipant;
-import cz.cesnet.shongo.jade.ontology.HangUpAll;
+import cz.cesnet.shongo.jade.ontology.actions.endpoint.Dial;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -84,11 +82,11 @@ public class ConnectionByAddress extends Connection
             Command command = null;
             if (getEndpointFrom() instanceof VirtualRoom) {
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
-                command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(
+                command = controllerAgent.performCommandAndWait(new ActionRequestCommand(
                         agentName, new DialParticipant(virtualRoom.getVirtualRoomId(), getAddress().getValue())));
             }
             else {
-                command = controllerAgent.performCommandAndWait(SendCommand.createSendCommand(
+                command = controllerAgent.performCommandAndWait(new ActionRequestCommand(
                         agentName, new Dial(getAddress().getValue())));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {

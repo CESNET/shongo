@@ -3,7 +3,9 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.connector.api.ConnectorInitException;
+import cz.cesnet.shongo.jade.ActionRequestResponderBehaviour;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownActionException;
 import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
@@ -29,6 +31,8 @@ public class ConnectorAgent extends Agent
     @Override
     protected void setup()
     {
+        addBehaviour(new ActionRequestResponderBehaviour(this));
+
         super.setup();
 
         registerService("connector", "Connector Service");
@@ -92,7 +96,9 @@ public class ConnectorAgent extends Agent
             throws UnknownActionException, CommandException, CommandUnsupportedException
     {
         if (getArguments()[0].equals(Boolean.TRUE)) {
+            // the connector is configured with <dump>true</dump>
             System.out.println(action.toString());
+            // FIXME: return something (an exception is thrown by super.handleAgentAction())
         }
         else if (action instanceof ConnectorAgentAction) {
             return ((ConnectorAgentAction) action).exec(connector);

@@ -1,25 +1,28 @@
-package cz.cesnet.shongo.jade.ontology;
+package cz.cesnet.shongo.jade.ontology.actions.endpoint;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
 
 /**
- * Command to mute the device.
+ * Command to reset a device.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Mute extends ConnectorAgentAction
+public class ResetDevice extends ConnectorAgentAction
 {
+
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        getEndpoint(connector).mute();
+        logger.info("Resetting the device");
+        getEndpoint(connector).resetDevice();
         return null;
     }
 
     public String toString()
     {
-        return "Mute agent action";
+        return "ResetDevice agent action";
     }
 }

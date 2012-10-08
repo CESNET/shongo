@@ -36,7 +36,7 @@ public interface EndpointService extends CommonService
      *
      * @param callId    ID of the call to hang up; previously returned by dial()
      */
-    void hangUp(int callId) throws CommandException, CommandUnsupportedException;
+    void hangUp(String callId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Hangs up all calls.

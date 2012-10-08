@@ -16,6 +16,10 @@ import java.util.Collection;
 public interface ResourceControlService extends Service
 {
     @API
+    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceIdentifier)
+            throws FaultException;
+
+    @API
     public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException;
 
     @API
@@ -25,7 +29,13 @@ public interface ResourceControlService extends Service
     public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
+    public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException;
+
+    @API
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
     public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
@@ -40,6 +50,18 @@ public interface ResourceControlService extends Service
     @API
     public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level)
             throws FaultException;
+
+    @API
+    public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+
+    @API
+    public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
 
     @API
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)

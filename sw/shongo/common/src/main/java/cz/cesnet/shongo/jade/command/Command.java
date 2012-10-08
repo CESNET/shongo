@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.jade.command;
 
 import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.Agent;
-
-import java.util.UUID;
 
 /**
  * Represents a command for a JADE agent.
@@ -19,11 +16,6 @@ public abstract class Command
      * NOTE: some commands, e.g. dialing, may take up to 30 seconds on some devices...
      */
     public static final int COMMAND_TIMEOUT = 33000;
-
-    /**
-     * Command unique identifier.
-     */
-    private String identifier;
 
     /**
      * Current command state.
@@ -45,16 +37,7 @@ public abstract class Command
      */
     public Command()
     {
-        identifier = UUID.randomUUID().toString();
         state = State.UNKNOWN;
-    }
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
     }
 
     /**
@@ -88,8 +71,8 @@ public abstract class Command
      */
     public void setState(State state, String stateDescription)
     {
-        this.state = state;
         this.stateDescription = stateDescription;
+        this.state = state;
     }
 
     /**
@@ -119,9 +102,9 @@ public abstract class Command
     /**
      * Process this command on an agent.
      *
-     * @param agent
+     * @param agent               agent processing the command
      */
-    public abstract void process(Agent agent) throws CommandException, CommandUnsupportedException;
+    public abstract void process(Agent agent) throws CommandException;
 
     /**
      * Wait for the command to be processed
