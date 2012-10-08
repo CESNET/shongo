@@ -206,10 +206,7 @@ public abstract class Reservation extends PersistentObject
     /**
      * @return new instance of {@link cz.cesnet.shongo.controller.api.Reservation}
      */
-    protected cz.cesnet.shongo.controller.api.Reservation createApi()
-    {
-        return new cz.cesnet.shongo.controller.api.Reservation();
-    }
+    protected abstract cz.cesnet.shongo.controller.api.Reservation createApi();
 
     /**
      * @param api {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled

@@ -335,44 +335,44 @@ Represents a successfully allocated \gls{g:resource} as a \gls{g:device-alias}.
 \ApiClass{CompartmentReservation}{Reservation}
 Represents a successfully allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{compartment}{CompartmentReservation.Compartment}{} Allocated \gls{g:compartment}.
+\ApiClassAttribute{compartment}{Compartment}{} Allocated \gls{g:compartment}.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation.Compartment}{}
+\ApiClass{Compartment}{}
 Represents an allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
-\ApiClassAttributeCollection{endpoints}{List}{CompartmentReservation.Endpoint}{} List of participating \glspl{g:endpoint}.
-\ApiClassAttributeCollection{virtualRooms}{List}{CompartmentReservation.VirtualRoom}{} List of \glspl{g:device-virtual-room}.
-\ApiClassAttributeCollection{connections}{List}{CompartmentReservation.Connection}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
+\ApiClassAttributeCollection{endpoints}{List}{Compartment.Endpoint}{} List of participating \glspl{g:endpoint}.
+\ApiClassAttributeCollection{virtualRooms}{List}{Compartment.VirtualRoom}{} List of \glspl{g:device-virtual-room}.
+\ApiClassAttributeCollection{connections}{List}{Compartment.Connection}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation.Endpoint}{}
+\ApiClass{Compartment.Endpoint}{}
 Represents an \gls{g:endpoint} in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{description}{String}{} Description of the \gls{g:endpoint}.
 \ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assinged \glspl{g:device-alias} to the \gls{g:endpoint}.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation.VirtualRoom}{Endpoint}
+\ApiClass{Compartment.VirtualRoom}{Compartment.Endpoint}
 Represents an \gls{g:device-virtual-room} in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{portCount}{String}{} Number of allocated ports for the \gls{g:device-virtual-room}.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation.Connection}{}
+\ApiClass{Compartment.Connection}{}
 Represents an connection between two \glspl{g:endpoint} in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{endpointFrom}{String}{} Description of source \gls{g:endpoint} which initiates the call.
 \ApiClassAttribute{endpointTo}{String}{} Description of target \gls{g:endpoint}.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation.ConnectionByAlias}{Connection}
+\ApiClass{Compartment.ConnectionByAlias}{Compartment.Connection}
 Represents an connection between two \glspl{g:endpoint} by \gls{g:device-alias} in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{alias}{Alias}{} \Gls{g:device-alias} which is used.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation.ConnectionByAddress}{Connection}
+\ApiClass{Compartment.ConnectionByAddress}{Compartment.Connection}
 Represents an connection between two \glspl{g:endpoint} by address in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technology}{Technology}{} \Gls{g:technology} which is used.

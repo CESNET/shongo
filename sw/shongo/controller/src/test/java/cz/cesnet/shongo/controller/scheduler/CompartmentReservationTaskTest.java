@@ -20,6 +20,7 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.StandaloneTerminalCapability;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -346,6 +347,12 @@ public class CompartmentReservationTaskTest
                     public Endpoint createEndpoint()
                     {
                         return endpoint;
+                    }
+
+                    @Override
+                    protected cz.cesnet.shongo.controller.api.Reservation createApi()
+                    {
+                        throw new TodoImplementException();
                     }
                 }
 

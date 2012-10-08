@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Reservation
+public abstract class Reservation
 {
     /**
      * Identifier of the {@link Reservation}.

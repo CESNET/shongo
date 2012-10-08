@@ -182,7 +182,7 @@ There are several types of specifications for targets which can be requested for
 
 \item \ApiRef{PersonSpecification} can be also specified only inside a \ApiRef{CompartmentSpecification} and it allows us to request a specific person to participate in a \gls{g:compartment}.
 
-\todo{User must be invited to a videoconference (e.g., by email) and he must select an endpoint by which he will connect to the compartment. [Not fully implemented yet]}
+\todo{User must be invited to a videoconference (e.g., by email) and he must select an endpoint by which he will connect to the compartment. [not fully implemented yet]}
 \end{enumerate}
 
 A \gls{g:reservation-request} (\ApiRef{ReservationRequest}) can be in one of a several states (see fig. \ref{fig:smd_api_reservation_request}):
@@ -204,7 +204,7 @@ Only complete \glspl{g:reservation-request} are allocated by the \gls{g:schedule
 
 \section{Reservations}
 
-\Gls{g:reservation} is an object through which an user receive allocated \glspl{g:resource} which he is requesting. Each reservation is identified by an unique \ApiCode{identifier} and it is allocated for one specific date/time \ApiCode{slot}. Reservation can contain some child \glspl{g:reservation} which has been allocated to satisfy parent allocation needs (e.g., a \gls{g:reservation} for a \gls{g:compartment} may contain child \glspl{g:reservation} for \glspl{g:endpoint}, \glspl{g:device-virtual-room} or \glspl{g:device-alias}, and a \gls{g:reservation} for an \gls{g:endpoint} may contain child \gls{g:reservation} for a lecture room).
+\Gls{g:reservation} is an object through an user receive allocated \glspl{g:resource} which he is requesting. Each reservation is identified by an unique \ApiCode{identifier} and it is allocated for one specific date/time \ApiCode{slot}. Reservation can contain some child \glspl{g:reservation} which has been allocated to satisfy parent allocation needs (e.g., a \gls{g:reservation} for a \gls{g:compartment} may contain child \glspl{g:reservation} for \glspl{g:endpoint}, \glspl{g:device-virtual-room} or \glspl{g:device-alias}, and a \gls{g:reservation} for an \gls{g:endpoint} may contain child \gls{g:reservation} for a lecture room).
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/cd_api_reservations}
@@ -212,3 +212,31 @@ Only complete \glspl{g:reservation-request} are allocated by the \gls{g:schedule
 \label{fig:cd_api_reservations}
 \end{figure}
 
+There are several types of \glspl{g:reservation}:
+\begin{enumerate}
+\item \ApiRef{ResourceReservation} represents a \gls{g:reservation} for a \gls{g:resource} from the \gls{g:resource} database (e.g., \gls{g:reservation} for a H.323 \gls{g:endpoint} for a specific date/time slot or a \gls{g:reservation} for a lecture room for a specific date/time slot). For each resource and date/time slot can exist only one reservation (reservation must not collide).
+\item \ApiRef{VirtualRoomReservation} represents a special type of \ApiRef{ResourceReservation} for a \gls{g:device-virtual-room} in the \gls{g:resource-device} with a \ApiRef{VirtualRoomsCapability} (e.g., a \gls{g:reservation} for a \gls{g:device-virtual-room} with 5 available ports in H.323 MCU \gls{g:resource}). These \glspl{g:reservation} can collide (multiple \glspl{g:device-virtual-room} can be created at the same time), but must not exceed the maximum number of ports specified in the \ApiRef{VirtualRoomsCapability}.
+\item \ApiRef{AliasReservation} represents a special type of \ApiRef{ResourceReservation} for an \ApiCode{alias} from the \gls{g:resource} with an \ApiRef{AliasProviderCapability} (e.g., a \gls{g:reservation} for an \gls{g:device-alias} \ApiValue{950087201} from a \gls{g:resource} which provides \glspl{g:device-alias} with prefix \ApiValue{9500872XX}).
+\item \ApiRef{CompartmentReservation} represents a \gls{g:reservation} for a \gls{g:compartment} and it usually contains multiple child \glspl{g:reservation} for \glspl{g:device-virtual-room}, \glspl{g:endpoint} and \glspl{g:device-alias}. It also contains a reference to \ApiCode{compartment} (instance of \ApiRef{Compartment} class) which represents a \gls{g:compartment} plan which is used by an \gls{g:executor} to establish the \gls{g:compartment}.
+\end{enumerate}
+
+The following two diagrams describes how \ApiRef{ReservationRequest}s and \ApiRef{ReservationRequestSet}s are processed by a \gls{g:controller} and allocated to \ApiRef{Reservation}s (fig. \ref{fig:sd_reservation_request_allocation} and \ref{fig:sd_reservation_request_set_allocation}). Each controller runs these components:
+\begin{enumerate}
+\item \textbf{Reservation service} accepts new \glspl{g:reservation-request} from users (through \glspl{g:controller-client}) and also new \glspl{g:reservation} from the \gls{g:scheduler} and persist them to \gls{g:controller}'s storage.
+\item \textbf{Preprocessor} uses the service to get not-preprocessed \ApiRef{ReservationRequestSet}s and creates new \ApiRef{ReservationRequest}s from them. Preprocessor creates only requests which take place in working interval (e.g., one month ahead). It allows an user to create a \ApiRef{ReservationRequestSet} specifying never-ending periodic date/time (e.g., each Thursday from 14:00 to 16:00) and as the weeks goes the preprocessor will create more and more \ApiRef{ReservationRequest}s.
+\item \textbf{\Gls{g:scheduler}} uses the service to get complete \ApiRef{ReservationRequest}s and allocates them to \ApiRef{Reservation}s.
+\end{enumerate}
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{diagrams/sd_reservation_request_allocation}
+\caption{Interaction diagram depicting allocation of \gls{g:reservation} for a single \gls{g:reservation-request}}
+\label{fig:sd_reservation_request_allocation}
+\end{figure}
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{diagrams/sd_reservation_request_set_allocation}
+\caption{Interaction diagram depicting allocation of \glspl{g:reservation} for set of \glspl{g:reservation-request}}
+\label{fig:sd_reservation_request_set_allocation}
+\end{figure}
+
+\todo{Describe that scheduler can in future use inter-controller protocol to allocate resources for reservations}

@@ -1,8 +1,4 @@
 
-* Executor
-  * Persist compartment state and allow to resume in compartment after controller restart
-  * Keep already started compartments to reservation request
-
 * API
   * Popsat workflow v API (interaction overview diagram)
   * Popsat instalaci shonga do API
