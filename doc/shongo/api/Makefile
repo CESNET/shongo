@@ -1,16 +1,27 @@
 TARGET=api
 TEXFILES=api.tex
+DIAGRAMS=diagrams/cd_api_resources.pdf \
+         diagrams/cd_api_reservation_requests.pdf \
+         diagrams/smd_api_reservation_request.pdf
          
 build: $(TARGET).pdf
 	
 clean:
-	rm -f *.pdf *.aux *.log *.out *.toc *.glg *.glo *.gls *.xdy *.synctex.gz
+	rm -f *.pdf *.aux *.log *.out *.toc *.glg *.glo *.gls *.xdy *.synctex.gz diagrams/*.pdf.crop
+
+DIAGRAMS_CROP=$(DIAGRAMS:.pdf=.pdf.crop)
+
+# Set suffix for PDF files
+.SUFFIXES: .pdf
+
+# Pattern rule for cropping PDF files
+%.pdf.crop: %.pdf
+	pdfcrop $< $@
+	cp $@ $<
 
 # Build PDF from tex
-$(TARGET).pdf: $(TARGET).toc $(TARGET).gls $(TARGET).tex $(TEXFILES)
+$(TARGET).pdf: $(TARGET).toc $(TARGET).gls $(TARGET).tex $(TEXFILES) $(DIAGRAMS_CROP)
 	bibtex $(TARGET)
-	pdfcrop diagrams/cd_api_resources.pdf diagrams/cd_api_resources.pdf
-	pdfcrop diagrams/cd_api_reservation_requests.pdf diagrams/cd_api_reservation_requests.pdf
 	pdflatex $(TARGET).tex
 
 # Pre-build PDF for table of contents

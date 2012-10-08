@@ -132,7 +132,7 @@ public class ReservationRequest extends AbstractReservationRequest
     public static enum State
     {
         NOT_COMPLETE,
-        NOT_ALLOCATED,
+        COMPLETE,
         ALLOCATED,
         ALLOCATION_FAILED
     }

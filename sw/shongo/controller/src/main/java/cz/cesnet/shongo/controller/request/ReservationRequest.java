@@ -348,7 +348,7 @@ public class ReservationRequest extends AbstractReservationRequest
                 case NOT_COMPLETE:
                     return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_COMPLETE;
                 case COMPLETE:
-                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_ALLOCATED;
+                    return cz.cesnet.shongo.controller.api.ReservationRequest.State.COMPLETE;
                 case ALLOCATED:
                     return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATED;
                 case ALLOCATION_FAILED:

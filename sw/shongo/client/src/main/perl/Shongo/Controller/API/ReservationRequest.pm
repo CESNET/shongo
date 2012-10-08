@@ -16,7 +16,7 @@ use Shongo::Controller::API::Specification;
 # Enumeration of state
 our $State = ordered_hash(
     'NOT_COMPLETE' => 'Not Complete',
-    'NOT_ALLOCATED' => 'Not Allocated',
+    'COMPLETE' => 'Not Allocated',
     'ALLOCATED' => 'Allocated',
     'ALLOCATION_FAILED' => 'Allocation Failed'
 );
