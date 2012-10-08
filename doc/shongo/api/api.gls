@@ -26,7 +26,8 @@
 \glossaryentryfield{g:shongo}{\glsnamefont{Shongo}}{Represents a distributed multimedia resource management system.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
-\glsXpageXglsnumberformat{}{5}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{5}\delimN 
+\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
 \glossaryentryfield{g:domain}{\glsnamefont{domain}}{Represents an organization which can run it's own \gls {g:controller} and participate in \gls {g:shongo}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -34,7 +35,8 @@
 \glsXpageXglsnumberformat{}{15}\delimN 
 \glsXpageXglsnumberformat{}{29}\delimN 
 \glsXpageXglsnumberformat{}{33}\delimN 
-\glsXpageXglsnumberformat{}{35}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{35}\delimN 
+\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
 \glossaryentryfield{g:controller}{\glsnamefont{controller}}{Represents an application that holds a database of \glspl {g:resource}, \glspl {g:reservation-request} and \glspl {g:reservation} for a single \gls {g:domain}. \Glspl {g:user} can access and modify the database through a \gls {g:controller-client}. The controller runs a \gls {g:scheduler} which allocates \glspl {g:reservation-request} to \glspl {g:reservation}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -47,12 +49,15 @@
 \glsXpageXglsnumberformat{}{29}\delimN 
 \glsXpageXglsnumberformat{}{30}\delimN 
 \glsXpageXglsnumberformat{}{32}\delimN 
-\glsXpageXglsnumberformat{}{35}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{35}\delimN 
+\glsXpageXglsnumberformat{}{49}\delimN 
+\glsXpageXglsnumberformat{}{50}}}\relax\glsresetentrylist
 \glossaryentryfield{g:controller-client}{\glsnamefont{controller client}}{Represents an application (e.g., command-line or web) which is able to connect to a \gls {g:controller} and perform commands through the \gls {g:controller}'s API.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
 \glsXpageXglsnumberformat{}{17}\delimN 
-\glsXpageXglsnumberformat{}{20}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{20}\delimN 
+\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
 \glossaryentryfield{g:resource}{\glsnamefont{resource}}{An entity that can be requested for a reservation and allocated by a \gls {g:scheduler}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -65,7 +70,8 @@
 \glsXpageXglsnumberformat{}{33}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimN 
-\glsXpageXglsnumberformat{}{38}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{38}\delimN 
+\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device}{\glsnamefont{device}}{Represents a video/web conferencing hardware or software equipment (e.g., H.323 terminal, H.323 MCU, Adobe Connect server, gateway or streaming server).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -91,7 +97,8 @@
 \glsXpageXglsnumberformat{}{17}\delimR 
 \glsXpageXglsnumberformat{}{21}\delimN 
 \glsXpageXglsnumberformat{}{33}\delimR 
-\glsXpageXglsnumberformat{}{36}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{36}\delimN 
+\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
 \glossaryentryfield{g:reservation}{\glsnamefont{reservation}}{Represents allocated \gls {g:resource}(s) for a complete \gls {g:reservation-request}. \Glspl {g:reservation} are allocated by a \gls {g:scheduler}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -118,7 +125,9 @@
 \glsXpageXglsnumberformat{}{34}\delimN 
 \glsXpageXglsnumberformat{}{36}}}\relax\glsresetentrylist
 \glossaryentryfield{g:connector}{\glsnamefont{connector}}{Represents an application that is composed of one or multiple \glspl {g:connector-agent}.}{\relax }{\glossaryentrynumbers{\relax 
-\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{2}\delimN 
+\glsXpageXglsnumberformat{}{49}\delimN 
+\glsXpageXglsnumberformat{}{50}}}\relax\glsresetentrylist
 \glossaryentryfield{g:connector-agent}{\glsnamefont{connector agent}}{Represents a component that manages a single \gls {g:resource-device} and provides an API that allows the \gls {g:controller} to access that equipment.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 

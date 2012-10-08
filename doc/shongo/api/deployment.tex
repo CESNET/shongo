@@ -1,0 +1,66 @@
+\chapter{Deployment}
+
+This chapter describes the deployment of \gls{g:shongo} to a new \gls{g:domain}.
+
+\section{Applications}
+
+The \gls{g:shongo} consists of the following applications:
+\begin{enumerate}
+\item \textbf{\Gls{g:controller}} represents an command-line application which should be launched in single instance for each \gls{g:domain} and it acts as the main \gls{g:shongo} application for the \gls{g:domain}.
+\item \textbf{\Gls{g:connector}} represents an command-line application which can be launched in multiple instances for each \gls{g:domain} and each instance can manage one or multiple \glspl{g:resource}.
+\item \textbf{Client} is command-line interface to a \gls{g:controller} which can be used to setup \gls{g:resource} database and to create \glspl{g:reservation-request}. Multiple instances of \glspl{g:controller-client} can run at the same time.
+\end{enumerate}
+
+\section{Installation}
+
+You must install \gls{g:shongo} to each machine where you want to launch a \textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}. To install \gls{g:shongo} you need to get the source code. To get the \gls{g:shongo} source code you need to have \code{git}\footnote{Git fast version control \url{http://git-scm.com/}} installed and use the following command:
+\begin{verbatim}
+git clone username@homeproj.cesnet.cz:shongo
+\end{verbatim}
+To get an username and password ask at email \href{mailto:martin.srom@cesnet.cz}{\texttt{martin.srom@cesnet.cz}}. 
+
+\subsection{Controller/connector}
+To build and launch \textbf{\gls{g:controller}} or \textbf{\gls{g:connector}} you need to have Java Platform (JDK)\footnote{Java Platform (JDK) \url{http://www.oracle.com/technetwork/java/}} and \code{maven}\footnote{Apache Maven Project \url{http://maven.apache.org/download.html}} installed (preferred Maven version is 2.2.1). Enter the following directory:
+\begin{verbatim}
+cd <repository>/sw/shongo
+\end{verbatim}
+And type the following command:
+\begin{verbatim}
+mvn package
+\end{verbatim}
+The \gls{g:shongo} should be successfully built and tested. 
+
+\subsection{Client}
+To launch \textbf{client} you need to have \code{perl}\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
+\begin{compactenum}
+\item RPC::XML
+\item XML::Twig
+\item Text::Table
+\item DateTime::Format::ISO8601
+\end{compactenum}
+On Ubuntu/Debian system, \code{perl} is installed by default and the modules
+can be installed by the following command:
+\begin{verbatim}
+sudo apt-get install librpc-xml-perl libxml-twig-perl \
+        libtext-table-perl libdatetime-format-iso8601-perl
+\end{verbatim}
+All applications (\textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}) can be launched by entering the following directory:
+\begin{verbatim}
+cd <repository>/sw/shongo
+\end{verbatim}
+And type the \code{./<application>.sh} command:
+\begin{verbatim}
+./controller.sh
+./connector.sh
+./client.sh
+\end{verbatim}
+
+\section{Controller}
+\todo{describe controller configuration}
+
+\section{Connector}
+\todo{describe connector configuration}
+
+\section{Client}
+\todo{describe client arguments and shell commands}
+
