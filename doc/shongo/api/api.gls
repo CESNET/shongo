@@ -52,7 +52,8 @@
 \glsXpageXglsnumberformat{}{32}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{49}\delimR 
-\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{51}\delimN 
+\glsXpageXglsnumberformat{}{53}}}\relax\glsresetentrylist
 \glossaryentryfield{g:controller-client}{\glsnamefont{controller client}}{Represents an application (e.g., command-line or web) which is able to connect to a \gls {g:controller} and perform commands through the \gls {g:controller}'s API.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -132,13 +133,16 @@
 \glossaryentryfield{g:connector}{\glsnamefont{connector}}{Represents an application that is composed of one or multiple \glspl {g:connector-agent}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{49}\delimN 
-\glsXpageXglsnumberformat{}{50}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{50}\delimN 
+\glsXpageXglsnumberformat{}{52}}}\relax\glsresetentrylist
 \glossaryentryfield{g:connector-agent}{\glsnamefont{connector agent}}{Represents a component that manages a single \gls {g:resource-device} and provides an API that allows the \gls {g:controller} to access that equipment.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
 \glsXpageXglsnumberformat{}{29}\delimN 
 \glsXpageXglsnumberformat{}{31}\delimN 
-\glsXpageXglsnumberformat{}{32}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{32}\delimN 
+\glsXpageXglsnumberformat{}{52}\delimN 
+\glsXpageXglsnumberformat{}{53}}}\relax\glsresetentrylist
 \glossaryentryfield{g:technology}{\glsnamefont{technology}}{Represents a single video/web conferencing technology (e.g., H.323, SIP, or Adobe Connect).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 

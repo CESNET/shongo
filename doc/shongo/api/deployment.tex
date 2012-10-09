@@ -67,7 +67,7 @@ Another way to change the default settings is to use a configuration file which 
     ...
 </configuration>
 \end{verbatim}
-Available options for configuration file:
+There are available options for configuration file:
 \begin{itemize}
 \item Configuration of controlled \gls{g:domain}. It's code \code{name} and name of \code{organization} which run's the
 controller.
@@ -130,8 +130,95 @@ controller.
 \end{itemize}
 
 \section{Connector}
-\todo{describe connector configuration}
+Connector by default connects to the controller on \codeValue{127.0.0.1:8282} through Jade middle-ware and the connector runs Jade middle-ware on \codeValue{127.0.0.1:8383}. To change the default settings command-line attributes can be used:
+\begin{verbatim}
+./connector.sh --controller <host>:<port> --host <jade-host> --port <jade-port>
+\end{verbatim}
+Another way to change the default settings is to use a configuration file which has more options. Create file \codeValue{<repository>/sw/shongo/connector.cfg.xml} which should contain:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+\end{verbatim}
+There are available options for configuration file:
+\begin{itemize}
+\item Configuration of the connection to the controller (\code{host} and \code{port}). The connection to the controller is periodically checked and in case of failure the connection is re-established. The option \code{connection-check-period} specifies how often the check is performed.
+\begin{verbatim}
+<controller>
+    <host>127.0.0.1</host>
+    <port>8282</port>
+    <connection-check-period>PT10S</connection-check-period>
+</controller>
+\end{verbatim}
+
+\item Configuration of Jade middle-ware (\code{host} and \code{port}).
+\begin{verbatim}
+<jade>
+    <host>127.0.0.1</host>
+    <port>8383</port>
+</jade>
+\end{verbatim}
+
+\item Configuration of \gls{g:connector-agent} instances which are automatically started when the \gls{g:connector} is launched. Each \gls{g:connector} can run multiple \glspl{g:connector-agent}.
+\begin{verbatim}
+<instances>
+    <instance>
+        ...
+    </instance>
+    <instance>
+        ...
+    </instance>
+    ...
+</instances>
+\end{verbatim}
+
+Example of \gls{g:connector-agent} configuration for Tandberg Codec C90:
+\small\begin{verbatim}
+<instance>
+    <name>c90</name>
+    <device>
+        <connectorClass>cz.cesnet.shongo.connector.CodecC90Connector</connectorClass>
+        <host>147.251.54.102</host>
+        <port>22</port>
+        <auth>
+            <username>(username)</username>
+            <password>(password)</password>
+        </auth>
+    </device>
+</instance>
+\end{verbatim}\normalsize
+
+Example of \gls{g:connector-agent} configuration for Codian MCU 4515:
+\small\begin{verbatim}
+<instance>
+    <name>mcu</name>
+    <device>
+        <connectorClass>cz.cesnet.shongo.connector.CiscoMCUConnector</connectorClass>
+        <host>mcuc.cesnet.cz</host>
+        <auth>
+            <username>(username)</username>
+            <password>(password)</password>
+        </auth>
+    </device>
+</instance>
+\end{verbatim}\normalsize
+\end{itemize}
+
 
 \section{Client}
-\todo{describe client arguments and shell commands}
+Client can be started and connected to a \gls{g:controller} by the following commands:
+\begin{verbatim}
+./client.sh --connect 127.0.0.1
+./client.sh --connect 127.0.0.1:8181
+\end{verbatim}
+The available commands in the client shell can be displayed by typing:
+\begin{verbatim}
+shongo> <TAB>
+\end{verbatim}
+Or by typing:
+\begin{verbatim}
+shongo> help <ENTER>
+\end{verbatim}
+
 
