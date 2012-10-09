@@ -4,7 +4,7 @@ This chapter describes the deployment of \gls{g:shongo} to a new \gls{g:domain}.
 
 \section{Applications}
 
-The \gls{g:shongo} consists of the following applications:
+\Gls{g:shongo} consists of the following applications:
 \begin{enumerate}
 \item \textbf{\Gls{g:controller}} represents an command-line application which should be launched in single instance for each \gls{g:domain} and it acts as the main \gls{g:shongo} application for the \gls{g:domain}.
 \item \textbf{\Gls{g:connector}} represents an command-line application which can be launched in multiple instances for each \gls{g:domain} and each instance can manage one or multiple \glspl{g:resource}.
@@ -13,14 +13,14 @@ The \gls{g:shongo} consists of the following applications:
 
 \section{Installation}
 
-You must install \gls{g:shongo} to each machine where you want to launch a \textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}. To install \gls{g:shongo} you need to get the source code. To get the \gls{g:shongo} source code you need to have \code{git}\footnote{Git fast version control \url{http://git-scm.com/}} installed and use the following command:
+You must install \gls{g:shongo} to each machine where you want to launch a \textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}. To install \gls{g:shongo} you need to get the source code. To get the \gls{g:shongo} source code you need to have Git\footnote{Git fast version control \url{http://git-scm.com/}} installed and use the following command:
 \begin{verbatim}
 git clone username@homeproj.cesnet.cz:shongo
 \end{verbatim}
-To get an username and password ask at email \href{mailto:martin.srom@cesnet.cz}{\texttt{martin.srom@cesnet.cz}}. 
+To get an username and password ask at \href{mailto:martin.srom@cesnet.cz}{\texttt{martin.srom@cesnet.cz}}. 
 
-\subsection{Controller/connector}
-To build and launch \textbf{\gls{g:controller}} or \textbf{\gls{g:connector}} you need to have Java Platform (JDK)\footnote{Java Platform (JDK) \url{http://www.oracle.com/technetwork/java/}} and \code{maven}\footnote{Apache Maven Project \url{http://maven.apache.org/download.html}} installed (preferred Maven version is 2.2.1). Enter the following directory:
+\subsection{Controller and connector}
+To build and launch \textbf{\gls{g:controller}} or \textbf{\gls{g:connector}} you need to have Java Platform (JDK)\footnote{Java Platform (JDK) \url{http://www.oracle.com/technetwork/java/}} and Maven\footnote{Apache Maven Project \url{http://maven.apache.org/download.html}} installed (preferred Maven version is 2.2.1). Enter the following directory:
 \begin{verbatim}
 cd <repository>/sw/shongo
 \end{verbatim}
@@ -28,17 +28,17 @@ And type the following command:
 \begin{verbatim}
 mvn package
 \end{verbatim}
-The \gls{g:shongo} should be successfully built and tested. 
+\textbf{Controller} and \textbf{connector} should be successfully built and tested. 
 
 \subsection{Client}
-To launch \textbf{client} you need to have \code{perl}\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
+To launch \textbf{client} you need to have Perl\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
 \begin{compactenum}
 \item RPC::XML
 \item XML::Twig
 \item Text::Table
 \item DateTime::Format::ISO8601
 \end{compactenum}
-On Ubuntu/Debian system, \code{perl} is installed by default and the modules
+On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 \begin{verbatim}
 sudo apt-get install librpc-xml-perl libxml-twig-perl \
@@ -56,7 +56,78 @@ And type the \code{./<application>.sh} command:
 \end{verbatim}
 
 \section{Controller}
-\todo{describe controller configuration}
+Controller by default runs on \codeValue{localhost} interface (\codeValue{127.0.0.1}) with XML-RPC server on port \codeValue{8181} and Jade middle-ware on port \codeValue{8282}. To change the default settings command-line attributes can be used:
+\begin{verbatim}
+./controller.sh --host <host> --jade-port <jade-port> --rpc-port <port>
+\end{verbatim}
+Another way to change the default settings is to use a configuration file which has more options. Create file \codeValue{<repository>/sw/shongo/controller.cfg.xml} which should contain:
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    ...
+</configuration>
+\end{verbatim}
+Available options for configuration file:
+\begin{itemize}
+\item Configuration of controlled \gls{g:domain}. It's code \code{name} and name of \code{organization} which run's the
+controller.
+\begin{verbatim}
+<domain>
+     <name>cz.cesnet</name>
+     <organization>CESNET, z.s.p.o.</organization>
+</domain>
+\end{verbatim}
+
+\item Configuration of XML-RPC (\code{host} and \code{port}).
+\begin{verbatim}
+<rpc>
+    <host>127.0.0.1</host>
+    <port>8181</port>
+</rpc>
+\end{verbatim}
+
+\item Configuration of Jade middle-ware (\code{host} and \code{port}).
+\begin{verbatim}
+<jade>
+    <host>127.0.0.1</host>
+    <port>8282</port>
+</jade>
+\end{verbatim}
+
+\item Configuration of \glspl{g:reservation}. Maximum duration of \glspl{g:resource} \gls{g:reservation} and \gls{g:device-alias} \gls{g:reservation} can be configured.
+\begin{verbatim}
+<reservation>
+    <resource>
+        <max-duration>P6D</max-duration>
+    </resource>
+    <alias>
+        <max-duration>P1Y</max-duration>
+    </alias>
+</reservation>
+\end{verbatim}
+
+\item Configuration of \gls{g:controller}'s worker which periodically runs \gls{g:scheduler} and \gls{g:preprocessor}. A \code{period} in which the worker runs and the length of a working \code{interval} can be configured. The \codeValue{PT10S} period means that every 10 seconds \gls{g:scheduler} and \gls{g:preprocessor} is executed. The \codeValue{P31D} interval means that \gls{g:preprocessor} and \gls{g:scheduler} will process only \glspl{g:reservation-request} which are 31 days ahead.
+\begin{verbatim}
+<worker>
+    <period>PT10S</period>
+    <interval>P31D</interval>
+</worker>
+\end{verbatim}
+
+\item Configuration of \gls{g:executor} which periodically checks for allocated \glspl{g:compartment} and executes them. A \code{period} can be configured in which the executor performs checking and also the \code{lookup-ahead} which is used when searching for allocated \glspl{g:compartment} to be executed (the executor executes only \glspl{g:compartment} which take place in interval starting at current date/time and with length of \code{lookup-ahead}). Option \code{start} defines duration by which is modified the starting date/time of the executed \gls{g:compartment} and the \code{end} modifies the ending date/time respectively (both \codeValue{PT-30S} means that the \gls{g:compartment} will be started and ended 30 seconds beforehand). Periods \code{waiting-start} and \code{waiting-end} specify how often the \gls{g:compartment} executor checks whether the \gls{g:compartment} should actually be started or stopped.
+\begin{verbatim}
+<executor>
+    <period>PT15S</period>
+    <lookup-ahead>PT3M</lookup-ahead>
+    <compartment>
+        <start>PT-30S</start>
+        <end>PT-30S</end>
+        <waiting-start>PT10S</waiting-start>
+        <waiting-end>PT10S</waiting-end>
+    </compartment>
+</executor>
+\end{verbatim}
+\end{itemize}
 
 \section{Connector}
 \todo{describe connector configuration}

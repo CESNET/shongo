@@ -185,7 +185,7 @@ sub list_reservation_requests()
         $table->add(
             $reservation_request->{'identifier'},
             format_date($reservation_request->{'created'}),
-            $Shongo::Controller::API::ReservationRequest::Type->{$reservation_request->{'type'}},
+            $Shongo::Controller::API::ReservationRequestAbstract::Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
             #$Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             format_interval($reservation_request->{'earliestSlot'})

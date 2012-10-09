@@ -36,7 +36,8 @@
 \glsXpageXglsnumberformat{}{29}\delimN 
 \glsXpageXglsnumberformat{}{33}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
-\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{49}\delimN 
+\glsXpageXglsnumberformat{}{50}}}\relax\glsresetentrylist
 \glossaryentryfield{g:controller}{\glsnamefont{controller}}{Represents an application that holds a database of \glspl {g:resource}, \glspl {g:reservation-request} and \glspl {g:reservation} for a single \gls {g:domain}. \Glspl {g:user} can access and modify the database through a \gls {g:controller-client}. The controller runs a \gls {g:scheduler} which allocates \glspl {g:reservation-request} to \glspl {g:reservation}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -50,8 +51,8 @@
 \glsXpageXglsnumberformat{}{30}\delimN 
 \glsXpageXglsnumberformat{}{32}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
-\glsXpageXglsnumberformat{}{49}\delimN 
-\glsXpageXglsnumberformat{}{50}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{49}\delimR 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:controller-client}{\glsnamefont{controller client}}{Represents an application (e.g., command-line or web) which is able to connect to a \gls {g:controller} and perform commands through the \gls {g:controller}'s API.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -71,7 +72,8 @@
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{38}\delimN 
-\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{49}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device}{\glsnamefont{device}}{Represents a video/web conferencing hardware or software equipment (e.g., H.323 terminal, H.323 MCU, Adobe Connect server, gateway or streaming server).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -98,7 +100,8 @@
 \glsXpageXglsnumberformat{}{21}\delimN 
 \glsXpageXglsnumberformat{}{33}\delimR 
 \glsXpageXglsnumberformat{}{36}\delimN 
-\glsXpageXglsnumberformat{}{49}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{49}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:reservation}{\glsnamefont{reservation}}{Represents allocated \gls {g:resource}(s) for a complete \gls {g:reservation-request}. \Glspl {g:reservation} are allocated by a \gls {g:scheduler}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -110,7 +113,8 @@
 \glsXpageXglsnumberformat{}{33}\delimN 
 \glsXpageXglsnumberformat{}{34}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimN 
-\glsXpageXglsnumberformat{}{38}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{38}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:user}{\glsnamefont{user}}{Represents an authenticated person that can access a \gls {g:controller} through a \gls {g:controller-client}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -123,7 +127,8 @@
 \glsXpageXglsnumberformat{}{31}\delimN 
 \glsXpageXglsnumberformat{}{33}\delimN 
 \glsXpageXglsnumberformat{}{34}\delimN 
-\glsXpageXglsnumberformat{}{36}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{36}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:connector}{\glsnamefont{connector}}{Represents an application that is composed of one or multiple \glspl {g:connector-agent}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{49}\delimN 
@@ -153,7 +158,8 @@
 \glsXpageXglsnumberformat{}{34}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
-\glsXpageXglsnumberformat{}{38}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{38}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:endpoint}{\glsnamefont{endpoint}}{Represents a \gls {g:device} which can participate in a \gls {g:compartment} (e.g., a H.323 terminal or SIP client).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -186,7 +192,8 @@
 \glsXpageXglsnumberformat{}{30}\delimN 
 \glsXpageXglsnumberformat{}{32}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimR 
-\glsXpageXglsnumberformat{}{37}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{37}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device-connection}{\glsnamefont{video conference call}}{Represents a connection or call which is initiated by a \gls {g:device} to another \gls {g:device}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -195,5 +202,10 @@
 \glsXpageXglsnumberformat{}{31}}}\relax\glsresetentrylist
 \glossaryentryfield{g:executor}{\glsnamefont{executor}}{Executor is a component of a \gls {g:controller} which executes allocated \glspl {g:compartment} from \glspl {g:reservation}. It creates all \glspl {g:device-virtual-room} on managed \glspl {g:resource-device} and establishes all \glspl {g:device-connection} between created \glspl {g:device-virtual-room} and managed \gls {g:endpoint} \glspl {g:resource-device}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
-\glsXpageXglsnumberformat{}{20}}}%
+\glsXpageXglsnumberformat{}{20}\delimN 
+\glsXpageXglsnumberformat{}{51}}}\relax\glsresetentrylist
+\glossaryentryfield{g:preprocessor}{\glsnamefont{preprocessor}}{Preprocessor is a component of a \gls {g:controller} which creates single \glspl {g:reservation-request} from compound requests. Single \glspl {g:reservation-request} can be allocated by the \gls {g:scheduler} but compound requests cannot be.}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}\delimN 
+\glsXpageXglsnumberformat{}{20}\delimN 
+\glsXpageXglsnumberformat{}{51}}}%
 \end{theglossary}\glossarypostamble

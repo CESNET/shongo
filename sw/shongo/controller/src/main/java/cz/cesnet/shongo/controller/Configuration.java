@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.compartment.CompartmentExecutor;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.joda.time.Duration;
 import org.joda.time.Period;
@@ -24,8 +25,38 @@ public class Configuration extends CompositeConfiguration
     public static final String JADE_PLATFORM_ID = "jade.platform-id";
     public static final String WORKER_PERIOD = "worker.period";
     public static final String WORKER_INTERVAL = "worker.interval";
-    public static final String ALLOCATION_RESOURCE_MAX_DURATION = "allocation.resource-max-duration";
-    public static final String ALLOCATION_ALIAS_MAX_DURATION = "allocation.alias-max-duration";
+    public static final String RESERVATION_RESOURCE_MAX_DURATION = "reservation.resource.max-duration";
+    public static final String RESERVATION_ALIAS_MAX_DURATION = "reservation.alias.max-duration";
+
+    /**
+     * Period in which the executor works.
+     */
+    public static final String EXECUTOR_PERIOD = "executor.period";
+
+    /**
+     * Duration for which the {@link Executor} looks ahead for compartments to be executed.
+     */
+    public static final String EXECUTOR_LOOKUP_AHEAD= "executor.lookup-ahead";
+
+    /**
+     * Duration to modify compartment starting date/time.
+     */
+    public static final String EXECUTOR_COMPARTMENT_START = "executor.compartment.start";
+
+    /**
+     * Duration to modify compartment ending date/time.
+     */
+    public static final String EXECUTOR_COMPARTMENT_END = "executor.compartment.end";
+
+    /**
+     * Period in which {@link CompartmentExecutor} checks whether the compartment should be started.
+     */
+    public static final String EXECUTOR_COMPARTMENT_WAITING_START = "executor.compartment.waiting-start";
+
+    /**
+     * Period in which {@link CompartmentExecutor} checks whether the compartment should be stopped.
+     */
+    public static final String EXECUTOR_COMPARTMENT_WAITING_END = "executor.compartment.waiting-end";
 
     /**
      * @see {@link #getString(String)}

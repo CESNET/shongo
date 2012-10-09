@@ -33,13 +33,38 @@
         <interval>P31D</interval>
     </worker>
 
-    <!-- Resources configuration -->
-    <resource>
-        <!-- Configuration for allocations of device resources -->
-        <device-allocation>
+    <!-- Executor periodically checks compartments for execution -->
+    <executor>
+        <!-- Period in which the executor is periodically checking compartments -->
+        <period>PT15S</period>
+        <!-- Configuration of lookup ahead for compartments to be executed -->
+        <lookup-ahead>PT3M</lookup-ahead>
+        <!-- Configuration for compartment executor -->
+        <compartment>
+            <!-- Period modifying compartment starting date/time -->
+            <start>PT-30S</start>
+            <!-- Period modifying compartment ending date/time -->
+            <end>PT-30S</end>
+            <!-- Period for checking starting date/time -->
+            <waiting-start>PT10S</waiting-start>
+            <!-- Period for checking ending date/time -->
+            <waiting-end>PT30S</waiting-end>
+        </compartment>
+    </executor>
+
+    <!-- Reservation configuration -->
+    <reservation>
+        <!-- Configuration for reservation of resources -->
+        <resource>
             <!-- Maximum duration of a single allocation -->
-            <max-duration>P6D</max-duration>
-        </device-allocation>
-    </resource>
+            <max-duration>P1W</max-duration>
+        </resource>
+
+        <!-- Configuration for allocations of device resources -->
+        <alias>
+            <!-- Maximum duration of a single allocation -->
+            <max-duration>P1Y</max-duration>
+        </alias>
+    </reservation>
 
 </configuration>

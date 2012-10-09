@@ -139,6 +139,7 @@ public abstract class ReservationTask<R extends Reservation>
     public final R perform() throws ReportException
     {
         R reservation = createReservation();
+        reservation.validate(getCache());
 
         // Add reservation to the cache
         getCacheTransaction().addReservation(reservation);

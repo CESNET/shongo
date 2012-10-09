@@ -2,7 +2,11 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import cz.cesnet.shongo.util.TemporalHelper;
+import org.joda.time.Period;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
@@ -57,6 +61,15 @@ public class ResourceReservation extends Reservation
         }
     }
 
+    @Override
+    public void validate(Cache cache) throws ReportException
+    {
+        Period duration = getSlot().toPeriod();
+        Period maxDuration = cache.getResourceReservationMaximumDuration();
+        if (TemporalHelper.isPeriodLongerThan(duration, maxDuration)) {
+            throw new DurationLongerThanMaximumReport(duration, maxDuration).exception();
+        }
+    }
 
     @Override
     public cz.cesnet.shongo.controller.api.ResourceReservation toApi(Domain domain)

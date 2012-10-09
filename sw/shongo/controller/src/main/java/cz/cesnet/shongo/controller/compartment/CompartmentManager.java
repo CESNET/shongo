@@ -72,7 +72,8 @@ public class CompartmentManager extends AbstractManager
     {
         List<Compartment> compartments = entityManager.createQuery(
                 "SELECT compartment FROM Compartment compartment"
-                        + " WHERE (compartment.state = :notStarted AND compartment.slotStart BETWEEN :start AND :end)"
+                        + " WHERE (compartment.state = :notStarted AND "
+                        + "        compartment.slotStart < :end AND compartment.slotEnd > :start)"
                         + " OR (compartment.state = :started)",
                 Compartment.class)
                 .setParameter("start", interval.getStart())

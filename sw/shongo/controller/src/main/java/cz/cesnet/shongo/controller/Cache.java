@@ -16,6 +16,7 @@ import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,14 +34,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private static Logger logger = LoggerFactory.getLogger(Cache.class);
 
     /**
-     * Maximum duration of a resource allocation.
+     * Maximum duration of a {@link ResourceReservation}.
      */
-    private Duration allocatedResourceMaximumDuration = Duration.standardDays(1);
+    private Period resourceReservationMaximumDuration;
 
     /**
-     * Maximum duration of a alias allocation.
+     * Maximum duration of a {@link AliasReservation}.
      */
-    private Duration allocatedAliasMaximumDuration = Duration.standardDays(365);
+    private Period aliasReservationMaximumDuration;
 
     /**
      * @see {@link ResourceCache}
@@ -87,35 +88,19 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * @return {@link #allocatedResourceMaximumDuration}
+     * @return {@link #resourceReservationMaximumDuration}
      */
-    public Duration getAllocatedResourceMaximumDuration()
+    public Period getResourceReservationMaximumDuration()
     {
-        return allocatedResourceMaximumDuration;
+        return resourceReservationMaximumDuration;
     }
 
     /**
-     * @param maximumDuration sets the {@link #allocatedResourceMaximumDuration}
+     * @return {@link #aliasReservationMaximumDuration}
      */
-    public void setAllocatedResourceMaximumDuration(Duration maximumDuration)
+    public Period getAliasReservationMaximumDuration()
     {
-        this.allocatedResourceMaximumDuration = maximumDuration;
-    }
-
-    /**
-     * @return {@link #allocatedAliasMaximumDuration}
-     */
-    public Duration getAllocatedAliasMaximumDuration()
-    {
-        return allocatedAliasMaximumDuration;
-    }
-
-    /**
-     * @param maximumDuration sets the {@link #allocatedAliasMaximumDuration}
-     */
-    public void setAllocatedAliasMaximumDuration(Duration maximumDuration)
-    {
-        this.allocatedAliasMaximumDuration = maximumDuration;
+        return aliasReservationMaximumDuration;
     }
 
     /**
@@ -156,13 +141,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             DateTime referenceDateTime = workingInterval.getStart();
 
             Interval resourceWorkingInterval = new Interval(
-                    workingInterval.getStart().minus(allocatedResourceMaximumDuration),
-                    workingInterval.getEnd().plus(allocatedResourceMaximumDuration));
+                    workingInterval.getStart().minus(resourceReservationMaximumDuration),
+                    workingInterval.getEnd().plus(resourceReservationMaximumDuration));
             resourceCache.setWorkingInterval(resourceWorkingInterval, referenceDateTime, entityManager);
 
             Interval aliasWorkingInterval = new Interval(
-                    workingInterval.getStart().minus(allocatedAliasMaximumDuration),
-                    workingInterval.getEnd().plus(allocatedAliasMaximumDuration));
+                    workingInterval.getStart().minus(aliasReservationMaximumDuration),
+                    workingInterval.getEnd().plus(aliasReservationMaximumDuration));
             aliasCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
         }
     }
@@ -186,16 +171,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     {
         super.init(configuration);
 
+        resourceReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_RESOURCE_MAX_DURATION);
+        aliasReservationMaximumDuration = configuration.getPeriod(Configuration.RESERVATION_ALIAS_MAX_DURATION);
+
         logger.debug("Starting cache...");
 
-        Duration resourceMaxDuration = configuration.getDuration(Configuration.ALLOCATION_RESOURCE_MAX_DURATION);
-        if (resourceMaxDuration != null) {
-            setAllocatedResourceMaximumDuration(resourceMaxDuration);
-        }
-        Duration aliasMaxDuration = configuration.getDuration(Configuration.ALLOCATION_ALIAS_MAX_DURATION);
-        if (aliasMaxDuration != null) {
-            setAllocatedAliasMaximumDuration(aliasMaxDuration);
-        }
         if (entityManagerFactory != null) {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             reset(entityManager);

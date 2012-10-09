@@ -267,6 +267,7 @@ public class Compartment extends PersistentObject
         }
         for (VirtualRoom virtualRoom : getVirtualRooms()) {
             cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
+
                     new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
             virtualRoomApi.setPortCount(virtualRoom.getPortCount());
             virtualRoomApi.setDescription(virtualRoom.getReportDescription());

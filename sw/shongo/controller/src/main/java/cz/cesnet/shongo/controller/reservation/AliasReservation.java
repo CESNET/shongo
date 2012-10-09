@@ -1,8 +1,12 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import cz.cesnet.shongo.util.TemporalHelper;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 
@@ -58,6 +62,16 @@ public class AliasReservation extends Reservation
     public void setAlias(Alias alias)
     {
         this.alias = alias;
+    }
+
+    @Override
+    public void validate(cz.cesnet.shongo.controller.Cache cache) throws ReportException
+    {
+        Period duration = getSlot().toPeriod();
+        Period maxDuration = cache.getAliasReservationMaximumDuration();
+        if (TemporalHelper.isPeriodLongerThan(duration, maxDuration)) {
+            throw new DurationLongerThanMaximumReport(duration, maxDuration).exception();
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -18,10 +19,10 @@ public class CompartmentExecutor extends Thread
 {
     private static Logger logger = LoggerFactory.getLogger(CompartmentExecutor.class);
 
-    private static final Period START_BEFORE_PERIOD = Period.seconds(30);
-    private static final Duration START_WAITING_PERIOD = Duration.standardSeconds(10);
-    private static final Period END_BEFORE_PERIOD = Period.seconds(30);
-    private static final Duration END_WAITING_PERIOD = Duration.standardSeconds(30);
+    /**
+     * @see Executor
+     */
+    private Executor executor;
 
     /**
      * @see cz.cesnet.shongo.controller.ControllerAgent
@@ -49,9 +50,10 @@ public class CompartmentExecutor extends Thread
      * @param controllerAgent
      * @param compartmentId
      */
-    public CompartmentExecutor(ControllerAgent controllerAgent, Long compartmentId,
+    public CompartmentExecutor(Executor executor, ControllerAgent controllerAgent, Long compartmentId,
             EntityManagerFactory entityManagerFactory)
     {
+        this.executor = executor;
         this.controllerAgent = controllerAgent;
         this.compartmentId = compartmentId;
         this.entityManagerFactory = entityManagerFactory;
@@ -108,11 +110,12 @@ public class CompartmentExecutor extends Thread
     public void run()
     {
         // Wait for start
-        while (DateTime.now().plus(START_BEFORE_PERIOD).isBefore(start)) {
+        start = start.plus(executor.getCompartmentStart());
+        while (DateTime.now().isBefore(start)) {
             try {
                 logger.debug("Waiting for compartment '{}' to start...",
                         compartmentId);
-                Thread.sleep(START_WAITING_PERIOD.getMillis());
+                Thread.sleep(executor.getCompartmentWaitingStart().getMillis());
             }
             catch (InterruptedException exception) {
             }
@@ -183,13 +186,14 @@ public class CompartmentExecutor extends Thread
             Compartment compartment = getCompartment(entityManager);
             entityManager.close();
             end = compartment.getSlot().getEnd();
-            if (DateTime.now().plus(END_BEFORE_PERIOD).isAfter(end)) {
+            end = end.plus(executor.getCompartmentEnd());
+            if (DateTime.now().isAfter(end)) {
                 break;
             }
             try {
                 logger.debug("Waiting for for compartment '{}' to end...",
                         compartmentId);
-                Thread.sleep(END_WAITING_PERIOD.getMillis());
+                Thread.sleep(executor.getCompartmentWaitingEnd().getMillis());
             }
             catch (InterruptedException exception) {
             }

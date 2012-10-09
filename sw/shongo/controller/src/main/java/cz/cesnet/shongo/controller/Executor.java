@@ -40,14 +40,72 @@ public class Executor extends Component
     private ControllerAgent controllerAgent;
 
     /**
-     * Period in which the executor works.
+     * @see {@link Configuration#EXECUTOR_PERIOD}
      */
-    private Duration period = Duration.parse("PT15S");
+    private Duration period;
+
+    /**
+     * @see {@link Configuration#EXECUTOR_LOOKUP_AHEAD}
+     */
+    private Duration lookupAhead;
+
+    /**
+     * @see {@link Configuration#EXECUTOR_COMPARTMENT_START}
+     */
+    private Duration compartmentStart;
+
+    /**
+     * @see {@link Configuration#EXECUTOR_COMPARTMENT_END}
+     */
+    private Duration compartmentEnd;
+
+    /**
+     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_START}
+     */
+    private Duration compartmentWaitingStart;
+
+    /**
+     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_END}
+     */
+    private Duration compartmentWaitingEnd;
 
     /**
      * Map of executed {@link CompartmentExecutor}s by {@link Compartment} identifiers.
      */
     private Map<Long, CompartmentExecutor> executorsById = new HashMap<Long, CompartmentExecutor>();
+
+
+    /**
+     * @return {@link #compartmentStart}
+     */
+    public Duration getCompartmentStart()
+    {
+        return compartmentStart;
+    }
+
+    /**
+     * @return {@link #compartmentEnd}
+     */
+    public Duration getCompartmentEnd()
+    {
+        return compartmentEnd;
+    }
+
+    /**
+     * @return {@link #compartmentWaitingStart}
+     */
+    public Duration getCompartmentWaitingStart()
+    {
+        return compartmentWaitingStart;
+    }
+
+    /**
+     * @return {@link #compartmentWaitingEnd}
+     */
+    public Duration getCompartmentWaitingEnd()
+    {
+        return compartmentWaitingEnd;
+    }
 
     @Override
     public Thread getThread()
@@ -67,6 +125,19 @@ public class Executor extends Component
     public void setControllerAgent(ControllerAgent controllerAgent)
     {
         this.controllerAgent = controllerAgent;
+    }
+
+    @Override
+    public void init(Configuration configuration)
+    {
+        super.init(configuration);
+
+        period = configuration.getDuration(Configuration.EXECUTOR_PERIOD);
+        lookupAhead = configuration.getDuration(Configuration.EXECUTOR_LOOKUP_AHEAD);
+        compartmentStart = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_START);
+        compartmentEnd = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_END);
+        compartmentWaitingStart = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_WAITING_START);
+        compartmentWaitingEnd = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_WAITING_END);
     }
 
     @Override
@@ -109,7 +180,7 @@ public class Executor extends Component
     {
         logger.info("Checking compartments for execution...");
         Interval interval = new Interval(
-                DateTime.now().minus(Period.minutes(1)), DateTime.now().plus(Period.minutes(2)));
+                DateTime.now(), DateTime.now().plus(lookupAhead));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         CompartmentManager compartmentManager = new CompartmentManager(entityManager);
         List<Compartment> compartments = compartmentManager.listCompartmentsForExecution(interval);
@@ -118,7 +189,7 @@ public class Executor extends Component
             if (executorsById.containsKey(compartmentId)) {
                 continue;
             }
-            CompartmentExecutor executor = new CompartmentExecutor(controllerAgent, compartment.getId(),
+            CompartmentExecutor executor = new CompartmentExecutor(this, controllerAgent, compartment.getId(),
                     entityManagerFactory);
             executor.start();
             executorsById.put(compartmentId, executor);
