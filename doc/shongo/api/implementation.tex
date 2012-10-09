@@ -36,7 +36,7 @@ Each resource can have specified zero, one or more \code{capabilities}. Capabali
 \item \ApiRef{TerminalCapability} tells that a \gls{g:resource-device} can participate in a \gls{g:compartment} (must be connected into a \gls{g:device-virtual-room}).
 \item \ApiRef{StandaloneTerminalCapability} tells that a \gls{g:resource-device} can participate in a \gls{g:compartment}. The compartment may consist only of two \glspl{g:endpoint} without a \gls{g:device-virtual-room}.
 \item \ApiRef{VirtualRoomsCapability} tells that a \gls{g:resource-device} can host multiple \glspl{g:device-virtual-room}.
-\item \ApiRef{AliasProviderCapability} tells that a \gls{g:resource} can allocate an \gls{g:device-alias} which then can be assigned to a managed \gls{g:endpoint} or \gls{g:device-virtual-room}.
+\item \ApiRef{AliasProviderCapability} tells that a \gls{g:resource} can allocate an \gls{g:device-alias} which then can be assigned to a managed \gls{g:endpoint} or a \gls{g:device-virtual-room}.
 \end{compactitem}
 
 Here are some examples of resources which can be added to a \gls{g:resource} database in a \gls{g:controller}, e.g., for \ApiValue{cz.cesnet} \gls{g:domain}:
@@ -145,7 +145,7 @@ capabilities: [
 
 \section{Reservation requests}
 
-Each controller runs a component which process incoming \glspl{g:reservation-request} which can be created by \glspl{g:user} through a \gls{g:controller-client} and the requests are persisted in the \gls{g:controller}'s storage. New \glspl{g:reservation-request} can be created and existing \glspl{g:reservation-request} can be modified or deleted. Class diagram for \glspl{g:reservation-request} is shown in fig. \ref{fig:cd_api_reservation_requests}.
+Each controller runs a service component which processes incoming \glspl{g:reservation-request} which can be created by \glspl{g:user} through a \gls{g:controller-client} and the requests are persisted in the \gls{g:controller}'s storage. New \glspl{g:reservation-request} can be created and existing \glspl{g:reservation-request} can be modified or deleted. Class diagram for \glspl{g:reservation-request} is shown in fig. \ref{fig:cd_api_reservation_requests}.
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/cd_api_reservation_requests}
@@ -172,9 +172,11 @@ There are several types of specifications for targets which can be requested for
 \begin{enumerate}
 \item \ApiRef{AliasSpecification} allows us to get allocated an available \gls{g:device-alias}. When we receive an \gls{g:device-alias} \gls{g:reservation} we can use it for our purposes (e.g., assign the \gls{g:device-alias} to our hardware endpoint or installed software client) or we can use it when creating another \gls{g:reservation-request} and pass the \gls{g:device-alias} \gls{g:reservation} to the request. A \gls{g:scheduler} then can use the \gls{g:device-alias} as available resource when it is allocating a \gls{g:reservation} for the \gls{g:reservation-request} (e.g., assign it to any managed \gls{g:endpoint} or created \gls{g:device-virtual-room}). 
 
-\item \ApiRef{ExistingEndpointSpecification} allows us to get allocated a specific \gls{g:endpoint} \gls{g:resource-device}. Then we can use it in the requested date/time slot for our purposes (e.g., we request an H.323 \gls{g:endpoint} in a lecture room and we get allocated reservation for the \gls{g:endpoint} and also for the lecture room, we can go to the lecture room and use the \gls{g:endpoint} to connect a conference).
+\todo{Passing allocated reservations to new reservation requests isn't implemented yet.}
 
-\item \ApiRef{LookupEndpointSpecification} allows us to get allocated an \gls{g:endpoint} according to given parameters (e.g., \gls{g:technology} of the \gls{g:endpoint}). The \gls{g:scheduler} will search for an available \gls{g:endpoint} in the \gls{g:resource} database.
+\item \ApiRef{ExistingEndpointSpecification} allows us to get allocated a specific \gls{g:endpoint} \gls{g:resource-device}. Then we can use it in the requested date/time slot for our purposes (e.g., we request an H.323 \gls{g:endpoint} in a lecture room and we get allocated reservation for the \gls{g:endpoint} and also for the lecture room, we can go to the lecture room and use the \gls{g:endpoint} to connect to a conference).
+
+\item \ApiRef{LookupEndpointSpecification} allows us to get allocated an \gls{g:endpoint} according to given parameters (e.g., \gls{g:technology} of the \gls{g:endpoint}). The \gls{g:scheduler} will search for an available \gls{g:endpoint} in the \gls{g:resource} database and allocate it for us.
 
 \item \ApiRef{CompartmentSpecification} allows us to get allocated a whole \gls{g:compartment}. We specify one or multiple \code{participants} and the scheduler allocates for us all specified \glspl{g:endpoint} and finds available \glspl{g:device-virtual-room} and \glspl{g:device-alias} which are needed to establish the \gls{g:compartment} and allocates them too. As part of the \ApiRef{CompartmentSpecification} we can also specify \code{callInitiation} -- who should initiate the \gls{g:device-connection} whether a \gls{g:device-virtual-room} or an \gls{g:endpoint} (see \ApiRef{CallInitiation} for more details).
 
@@ -188,7 +190,7 @@ There are several types of specifications for targets which can be requested for
 A \gls{g:reservation-request} (\ApiRef{ReservationRequest}) can be in one of a several states (see fig. \ref{fig:smd_api_reservation_request}):
 \begin{enumerate}
 \item \code{NOT\_COMPLETE} A \gls{g:reservation-request} is not ready for allocation by a \gls{g:scheduler} (e.g., some person requested by the \ApiRef{PersonSpecification} hasn't confirmed/rejected the invitation or he hasn't selected an endpoint by which he will connect to a \gls{g:compartment}).
-\item \code{COMPLETE} A \gls{g:reservation-request} is ready for allocation by a \gls{g:scheduler}, but the \gls{g:scheduler} hasn't allocate it yet.
+\item \code{COMPLETE} A \gls{g:reservation-request} is ready for allocation by a \gls{g:scheduler}, but the \gls{g:scheduler} hasn't allocated it yet.
 \item \code{ALLOCATED} A \gls{g:reservation-request} has been successfully allocated by the \gls{g:scheduler} to a \gls{g:reservation}.
 \item \code{ALLOCATION\_FAILED} A \gls{g:reservation-request} has been successfully allocated by the \gls{g:scheduler} to a \gls{g:reservation}.
 \end{enumerate}
@@ -204,7 +206,7 @@ Only complete \glspl{g:reservation-request} are allocated by the \gls{g:schedule
 
 \section{Reservations}
 
-\Gls{g:reservation} is an object through an user receive allocated \glspl{g:resource} which he is requesting. Each reservation is identified by an unique \ApiCode{identifier} and it is allocated for one specific date/time \ApiCode{slot}. Reservation can contain some child \glspl{g:reservation} which has been allocated to satisfy parent allocation needs (e.g., a \gls{g:reservation} for a \gls{g:compartment} may contain child \glspl{g:reservation} for \glspl{g:endpoint}, \glspl{g:device-virtual-room} or \glspl{g:device-alias}, and a \gls{g:reservation} for an \gls{g:endpoint} may contain child \gls{g:reservation} for a lecture room).
+\Gls{g:reservation} is an object through which an user receive allocated \glspl{g:resource} which he was requesting. Each reservation is identified by an unique \ApiCode{identifier} and the \gls{g:reservation} is allocated for one specific date/time \ApiCode{slot}. Reservation can contain some child \glspl{g:reservation} which has been allocated to satisfy parent allocation needs (e.g., a \gls{g:reservation} for a \gls{g:compartment} may contain child \glspl{g:reservation} for \glspl{g:endpoint}, \glspl{g:device-virtual-room} or \glspl{g:device-alias}, and a \gls{g:reservation} for an \gls{g:endpoint} may contain child \gls{g:reservation} for a lecture room).
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/cd_api_reservations}
@@ -224,7 +226,7 @@ The following two diagrams describes how \ApiRef{ReservationRequest}s and \ApiRe
 \begin{enumerate}
 \item \textbf{Reservation service} accepts new \glspl{g:reservation-request} from users (through \glspl{g:controller-client}) and also new \glspl{g:reservation} from the \gls{g:scheduler} and persist them to \gls{g:controller}'s storage.
 \item \textbf{\Gls{g:preprocessor}} uses the service to get not-preprocessed \ApiRef{ReservationRequestSet}s and creates new \ApiRef{ReservationRequest}s from them. \Gls{g:preprocessor} creates only requests which take place in working interval (e.g., one month ahead). It allows an user to create a \ApiRef{ReservationRequestSet} specifying never-ending periodic date/time (e.g., each Thursday from 14:00 to 16:00) and as the weeks goes the \gls{g:preprocessor} will create more and more \ApiRef{ReservationRequest}s.
-\item \textbf{\Gls{g:scheduler}} uses the service to get complete \ApiRef{ReservationRequest}s and allocates them to \ApiRef{Reservation}s.
+\item \textbf{\Gls{g:scheduler}} uses the service to get complete \ApiRef{ReservationRequest}s and allocates them to \ApiRef{Reservation}s. The scheduler also allocates only requests in a working interval (e.g., one month ahead).
 \end{enumerate}
 
 \begin{figure}[ht!]
