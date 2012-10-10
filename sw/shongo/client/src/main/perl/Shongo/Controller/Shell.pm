@@ -17,6 +17,7 @@ use Shongo::Controller::ResourceService;
 use Shongo::Controller::ResourceControlService;
 use Shongo::Controller::ReservationService;
 use Shongo::Controller::CompartmentService;
+use Shongo::Authentication;
 
 #
 # Create a new shell for controller client

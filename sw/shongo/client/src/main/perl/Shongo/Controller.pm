@@ -72,7 +72,36 @@ sub populate()
                 Shongo::Controller->instance()->status();
             }
         },
+        "authenticate" => {
+            desc => "Perform user authentication",
+            method => sub {
+                my $controller = Shongo::Controller->instance();
+                $controller->{'access_token'} = Shongo::Authentication::authorize();
+                $controller->user_info();
+
+            }
+        },
+        "user-info" => {
+            desc => "Show authenticated user information",
+            method => sub {
+                my $controller = Shongo::Controller->instance();
+                $controller->user_info();
+            }
+        },
     });
+}
+
+sub user_info()
+{
+    my ($self) = @_;
+    my $user_info = Shongo::Authentication::user_info($self->{'access_token'});
+
+    my $attributes = Shongo::Controller::API::Object->create_attributes();
+    $attributes->{add}('Access Token', $self->{'access_token'});
+    $attributes->{add}('Name', $user_info->{'name'});
+    $attributes->{add}('Nickname', $user_info->{'nickname'});
+    $attributes->{add}('Email', $user_info->{'email'});
+    console_print_text(Shongo::Controller::API::Object::format_attributes($attributes, 'Authenticated User Information'));
 }
 
 #

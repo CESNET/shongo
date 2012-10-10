@@ -13,7 +13,7 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     console_print_text
-    console_print_info console_print_error console_print_table
+    console_print_debug console_print_info console_print_error console_print_table
     console_read console_read_choice console_select
     console_action console_action_loop
     console_auto_value console_read_value console_edit_value
@@ -48,6 +48,18 @@ sub console_print_text
 }
 
 #
+# Print DEBUG message to console
+#
+# @param $message     message to be printed
+# @param $parameters  format parameters for message
+#
+sub console_print_debug
+{
+    my ($message, @parameters) = @_;
+    print sprintf($message, @parameters);
+}
+
+#
 # Print INFO message to console
 #
 # @param $message     message to be printed
@@ -56,7 +68,7 @@ sub console_print_text
 sub console_print_info
 {
     my ($message, @parameters) = @_;
-    print STDERR colored("" . sprintf($message, @parameters), "bold blue"), "\n";
+    print colored(sprintf($message, @parameters), "bold blue");
 }
 
 #
