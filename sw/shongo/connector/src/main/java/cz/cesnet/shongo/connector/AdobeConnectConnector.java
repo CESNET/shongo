@@ -95,7 +95,7 @@ public class AdobeConnectConnector implements MultipointService
     }
 
     @java.lang.Override
-    public Set<String> getSupportedMethods()
+    public List<String> getSupportedMethods()
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }

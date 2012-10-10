@@ -275,7 +275,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'listRooms', @supportedMethods) {
+    if (grep $_ eq 'getRoomList', @supportedMethods) {
         $shell->add_commands({
             "list-rooms" => {
                 desc => "List virtual rooms",

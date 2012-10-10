@@ -3,7 +3,7 @@ package cz.cesnet.shongo.connector.api;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.util.Address;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Common connector API.
@@ -41,6 +41,6 @@ public interface CommonService
      *
      * @return collection of public methods implemented from an interface, not throwing CommandUnsupportedException
      */
-    Set<String> getSupportedMethods();
+    List<String> getSupportedMethods();
 
 }
