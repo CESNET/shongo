@@ -41,6 +41,14 @@
             <artifactId>commons-configuration</artifactId>
             <version>1.8</version>
         </dependency>
+
+        <!-- A complete, Java-based solution for accessing, manipulating, and outputting XML data
+             which is used by Adobe Connect connector -->
+        <dependency>
+            <groupId>org.jdom</groupId>
+            <artifactId>jdom2</artifactId>
+            <version>2.0.3</version>
+        </dependency>
     </dependencies>
 
     <build>

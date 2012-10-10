@@ -158,7 +158,13 @@ public class AdobeConnectConnector implements MultipointService
         HashMap<String,String> attributes = new HashMap<String, String>();
         attributes.put("filter-type","meeting");
 
-        Element response = request("report-bulk-objects", attributes);
+        Element response = null;
+        try {
+            response = request("report-bulk-objects", attributes);
+        }
+        catch (Exception exception) {
+            throw new CommandException(exception.getMessage(), exception);
+        }
 
         //TODO: array vs collection
 
@@ -166,7 +172,7 @@ public class AdobeConnectConnector implements MultipointService
 
         }
 
-        return new RoomInfo[0];
+        return new ArrayList<RoomSummary>();
     }
 
     @java.lang.Override

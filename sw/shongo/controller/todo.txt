@@ -1,7 +1,7 @@
 
 * API
-  * Popsat workflow v API (interaction overview diagram)
-  * Popsat instalaci shonga do API
+  * Popsat autentizaci v API
+  * Dokoncit popis workflow v API
 
 * Autentizace
 
