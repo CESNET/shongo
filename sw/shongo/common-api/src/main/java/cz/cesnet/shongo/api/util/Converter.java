@@ -104,7 +104,11 @@ public class Converter
         else if (value instanceof String) {
             // If boolean is required
             if (targetType.equals(Boolean.class)) {
-                return Boolean.parseBoolean(value.toString());
+                return Boolean.parseBoolean((String) value);
+            }
+            // If boolean is required
+            else if (targetType.equals(Long.class)) {
+                return Long.parseLong((String) value);
             }
             // If enum is required
             else if (targetType.isEnum() && value instanceof String) {
@@ -336,7 +340,7 @@ public class Converter
         // Get object class
         String className = (String) map.get("class");
         if (className == null) {
-            throw new FaultException(CommonFault.UNKNOWN, "Map must contains 'class' attribute!");
+            throw new FaultException("Map must contains 'class' attribute!");
         }
         Class objectClass = null;
         try {
@@ -392,7 +396,7 @@ public class Converter
             // Fill each property that is present in map
             for (Object key : map.keySet()) {
                 if (!(key instanceof String)) {
-                    throw new FaultException(CommonFault.UNKNOWN, "Map must contain only string keys.");
+                    throw new FaultException("Map must contain only string keys.");
                 }
                 String propertyName = (String) key;
                 Object value = map.get(key);

@@ -8,12 +8,12 @@ package cz.cesnet.shongo.fault;
 public interface Fault
 {
     /**
-     * @return fault code.
+     * @return fault code
      */
     public int getCode();
 
     /**
-     * @return fault message.
+     * @return fault message
      */
     public String getMessage();
 }

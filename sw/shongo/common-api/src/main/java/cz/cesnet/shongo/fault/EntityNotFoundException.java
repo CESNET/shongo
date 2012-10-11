@@ -19,26 +19,21 @@ public class EntityNotFoundException extends FaultException
 
     /**
      * Constructor.
+     */
+    public EntityNotFoundException()
+    {
+    }
+
+    /**
+     * Constructor.
      *
      * @param entityType
      * @param entityIdentifier
      */
     public EntityNotFoundException(Class entityType, Long entityIdentifier)
     {
-        super(CommonFault.ENTITY_NOT_FOUND, "Entity '%s' with identifier '%d' doesn't exist.",
-                entityType, entityIdentifier);
         this.entityType = entityType;
         this.entityIdentifier = entityIdentifier;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param message message containing parsed parameters
-     */
-    public EntityNotFoundException(Message message)
-    {
-        this(message.getParameterAsClass("entityType"), message.getParameterAsLong("entityIdentifier"));
     }
 
     /**
@@ -55,5 +50,18 @@ public class EntityNotFoundException extends FaultException
     public Long getEntityIdentifier()
     {
         return entityIdentifier;
+    }
+
+    @Override
+    public int getCode()
+    {
+        return CommonFault.ENTITY_NOT_FOUND;
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return CommonFault.formatMessage("Entity '%s' with identifier '%d' doesn't exist.",
+                entityType, entityIdentifier);
     }
 }

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.api.xmlrpc.*;
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.SerializableException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
@@ -164,13 +165,15 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      */
     public static XmlRpcException convertException(Fault fault, Throwable cause)
     {
-        FaultException.Message message = new FaultException.Message();
-        message.setMessage(fault.getMessage());
-        if (fault instanceof FaultException) {
-            ((FaultException) fault).fillMessageParameters(message);
+        String message;
+        if (fault instanceof SerializableException) {
+            Exception exception = (Exception) fault;
+            message = SerializableException.Content.fromException(exception).toString();
+
+        } else {
+            message = fault.getMessage();
         }
-        XmlRpcException xmlRpcException = new XmlRpcException(fault.getCode(), message.toString(), cause);
-        return xmlRpcException;
+        return new XmlRpcException(fault.getCode(), message, cause);
     }
 
     /**

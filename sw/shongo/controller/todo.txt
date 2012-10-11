@@ -2,8 +2,6 @@
   * Popsat autentizaci v API
   * Dokoncit popis workflow v API
 
-* Predelat serializaci exception pres XML-RPC
-
 FUTURE:
 -------
 * Persons, PersonSpecifications

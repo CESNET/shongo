@@ -1,17 +1,18 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory;
 import cz.cesnet.shongo.api.xmlrpc.TypeFactory;
+import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.SerializableException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.apache.xmlrpc.common.TypeConverter;
 import org.apache.xmlrpc.common.XmlRpcInvocationException;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -118,33 +119,24 @@ public class ControllerClient
      * @param xmlRpcException
      * @return {@code xmlRpcException} converted to {@link FaultException}
      */
-    public static FaultException convertException(XmlRpcException xmlRpcException)
+    public static Exception convertException(XmlRpcException xmlRpcException)
     {
-        FaultException.Message message = new FaultException.Message();
-        message.fromString(xmlRpcException.getMessage());
+        SerializableException.Content content = new SerializableException.Content();
+        content.fromString(xmlRpcException.getMessage());
 
+        Exception exception = null;
         Class<? extends Exception> type = controllerFault.getClasses().get(xmlRpcException.code);
-        if (type != null && FaultException.class.isAssignableFrom(type)) {
-            @SuppressWarnings("unchecked")
-            Class<? extends FaultException> newType = (Class<? extends FaultException>) type;
-            try {
-                Constructor<? extends FaultException> constructor =
-                        newType.getDeclaredConstructor(FaultException.Message.class);
-                FaultException faultException = constructor.newInstance(message);
-                faultException.setCode(xmlRpcException.code);
-                return faultException;
-            }
-            catch (NoSuchMethodException exception) {
-                throw new IllegalStateException("Exception '" + type.getCanonicalName()
-                        + "' doesn't have constructor with '" + FaultException.Message.class.getCanonicalName()
-                        + "' parameter.", exception);
-            }
-            catch (Exception exception) {
-                throw new IllegalStateException("Cannot instance exception type " + type.getCanonicalName(),
-                        exception);
+        if (type != null) {
+            exception = ClassHelper.createInstanceFromClassRuntime(type);
+            if (exception instanceof SerializableException) {
+                content.toException(exception);
             }
         }
-        return new FaultException(xmlRpcException.code, message.getMessage());
+        else {
+            exception = new FaultException(xmlRpcException.code, content.getMessage());
+        }
+        exception.setStackTrace(xmlRpcException.getStackTrace());
+        return exception;
     }
 
     public static class ClientFactory extends org.apache.xmlrpc.client.util.ClientFactory
@@ -212,10 +204,9 @@ public class ControllerClient
                         }
                         throw new UndeclaredThrowableException(t);
                     }
-                    catch (XmlRpcException exception) {
-                        FaultException faultException = convertException(exception);
-                        faultException.setStackTrace(exception.getStackTrace());
-                        throw faultException;
+                    catch (XmlRpcException xmlRpcException) {
+                        Exception exception = convertException(xmlRpcException);
+                        throw exception;
                     }
                     TypeConverter typeConverter = typeConverterFactory.getTypeConverter(pMethod.getReturnType());
                     return typeConverter.convert(result);

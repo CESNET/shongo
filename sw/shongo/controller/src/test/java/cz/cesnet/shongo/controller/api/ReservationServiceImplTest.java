@@ -29,7 +29,6 @@ public class ReservationServiceImplTest extends AbstractControllerTest
      */
     private ReservationService reservationService;
 
-
     @Override
     protected void onInitController(Controller controller)
     {

@@ -3,6 +3,8 @@ package cz.cesnet.shongo.fault;
 import java.util.HashMap;
 import java.util.Map;
 
+import static cz.cesnet.shongo.api.util.ClassHelper.getClassShortName;
+
 /**
  * Common faults.
  *
@@ -87,6 +89,33 @@ public class CommonFault
             fill();
         }
         return classes;
+    }
+
+    /**
+     * Format fault message.
+     *
+     * @param message
+     * @param objects
+     */
+    public static String formatMessage(String message, Object... objects)
+    {
+        return String.format(message, evaluateParameters(objects));
+    }
+
+    /**
+     * Evaluate all given parameters (e.g., classes to class names).
+     *
+     * @param objects
+     * @return array of evaluated parameters
+     */
+    private static Object[] evaluateParameters(Object[] objects)
+    {
+        for (int index = 0; index < objects.length; index++) {
+            if (objects[index] instanceof Class) {
+                objects[index] = getClassShortName((Class) objects[index]);
+            }
+        }
+        return objects;
     }
 
     /**

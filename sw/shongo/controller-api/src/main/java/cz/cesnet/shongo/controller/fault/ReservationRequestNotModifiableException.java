@@ -18,24 +18,19 @@ public class ReservationRequestNotModifiableException extends FaultException
 
     /**
      * Constructor.
-     *
-     * @param reservationRequestIdentifier
      */
-    public ReservationRequestNotModifiableException(String reservationRequestIdentifier)
+    public ReservationRequestNotModifiableException()
     {
-        super(ControllerFault.RESERVATION_REQUEST_NOT_MODIFIABLE,
-                "Reservation request '%s' cannot be modified or deleted.", reservationRequestIdentifier);
-        this.reservationRequestIdentifier = reservationRequestIdentifier;
     }
 
     /**
      * Constructor.
      *
-     * @param message message containing parsed parameters
+     * @param reservationRequestIdentifier
      */
-    public ReservationRequestNotModifiableException(Message message)
+    public ReservationRequestNotModifiableException(String reservationRequestIdentifier)
     {
-        this(message.getParameter("reservationRequestIdentifier"));
+        this.reservationRequestIdentifier = reservationRequestIdentifier;
     }
 
     /**
@@ -44,5 +39,18 @@ public class ReservationRequestNotModifiableException extends FaultException
     public String getReservationRequestIdentifier()
     {
         return reservationRequestIdentifier;
+    }
+
+    @Override
+    public int getCode()
+    {
+        return ControllerFault.RESERVATION_REQUEST_NOT_MODIFIABLE;
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return ControllerFault.formatMessage("Reservation request '%s' cannot be modified or deleted.",
+                reservationRequestIdentifier);
     }
 }
