@@ -7,9 +7,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Comparator;
-
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -46,6 +43,9 @@ public class ShongoOntology extends BeanOntology
             add(packageName + ".actions.multipoint.monitoring");
             add(packageName + ".actions.multipoint.rooms");
             add(packageName + ".actions.multipoint.users");
+//            add(packageName + ".actions.multipoint.io");
+//            add(packageName + ".actions.multipoint.recording");
+//            add(packageName + ".actions.multipoint.roomcontent");
 
             // add any API classes
             for (String item : ClassHelper.getPackages()) {

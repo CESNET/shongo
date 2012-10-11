@@ -53,9 +53,9 @@ abstract public class AbstractConnector implements CommonService
      *         CommandUnsupportedException
      */
     @Override
-    public Set<String> getSupportedMethods()
+    public List<String> getSupportedMethods()
     {
-        Set<String> result = new HashSet<String>();
+        List<String> result = new ArrayList<String>();
 
         // get public methods not raising CommandUnsupportedException
         Map<String, Class[]> methods = new HashMap<String, Class[]>();

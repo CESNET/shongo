@@ -23,10 +23,8 @@ import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Resource service implementation.
@@ -101,8 +99,7 @@ public class ResourceControlServiceImpl extends Component
             throws FaultException
     {
         authorization.validate(token);
-        Set<String> methods = (Set<String>) commandDevice(deviceResourceIdentifier, new GetSupportedMethods());
-        return new ArrayList<String>(methods); // NOTE: XML-RPC seems to need a list
+        return (List<String>) commandDevice(deviceResourceIdentifier, new GetSupportedMethods());
     }
 
     @Override

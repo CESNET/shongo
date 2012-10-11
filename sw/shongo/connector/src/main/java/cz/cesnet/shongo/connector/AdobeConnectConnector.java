@@ -6,12 +6,12 @@ import cz.cesnet.shongo.connector.api.*;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -24,7 +24,7 @@ import java.util.*;
  * Time: 1:23 PM
  * To change this template use File | Settings | File Templates.
  */
-public class AdobeConnectConnector implements MultipointService
+public class AdobeConnectConnector extends AbstractConnector implements MultipointService
 {
     /**
      * The URL of the server.
@@ -158,13 +158,7 @@ public class AdobeConnectConnector implements MultipointService
         HashMap<String,String> attributes = new HashMap<String, String>();
         attributes.put("filter-type","meeting");
 
-        Element response = null;
-        try {
-            response = request("report-bulk-objects", attributes);
-        }
-        catch (Exception exception) {
-            throw new CommandException(exception.getMessage(), exception);
-        }
+        Element response = request("report-bulk-objects", attributes);
 
         //TODO: array vs collection
 
@@ -172,45 +166,49 @@ public class AdobeConnectConnector implements MultipointService
 
         }
 
-        return new ArrayList<RoomSummary>();
+        return null;
     }
 
     @java.lang.Override
     public MediaData getReceivedVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
     @java.lang.Override
     public MediaData getSentVideoSnapshot(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new CommandUnsupportedException("Adobe Connect does not support this function.");
     }
 
     @java.lang.Override
     public int startRecording(String roomId, ContentType format, RoomLayout layout)
             throws CommandException, CommandUnsupportedException
     {
+        //TODO: AC maybe does not support
         return 0;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
+        //TODO: AC maybe does not support
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException
     {
+        //TODO: is even possible?
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public Collection<String> notifyParticipants(int recordingId) throws CommandException, CommandUnsupportedException
     {
+        //TODO: ???
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -218,18 +216,28 @@ public class AdobeConnectConnector implements MultipointService
     public void downloadRecording(String downloadURL, String targetPath)
             throws CommandException, CommandUnsupportedException
     {
+        //TODO: ???
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public void deleteRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
+        deleteSCO(Integer.toString(recordingId));
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public MediaData getRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id",roomId);
+
+        Element response = request("sco-contents",attributes);
+
+        for (Element child : response.getChild("scos").getChildren("sco")) {
+            //TODO: archive all
+        }
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -243,25 +251,65 @@ public class AdobeConnectConnector implements MultipointService
     @java.lang.Override
     public void removeRoomContentFile(String roomId, String name) throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id",roomId);
+        attributes.put("filter-name",name);
+
+        Element response = request("sco-contents", attributes);
+
+        if (response.getChild("scos").getChild("sco") != null) {
+            deleteSCO(response.getChild("scos").getChild("sco").getAttributeValue("sco-id"));
+        }
     }
 
     @java.lang.Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
+        // TODO: erase and re-create room?
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public RoomSummary getRoomInfo(String roomId) throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        RoomSummary roomSummary = new RoomSummary();
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id",roomId);
+
+        Element response = request("sco-info", attributes);
+
+        // TODO: WTF roomSummary.setType(Technology.ADOBE_CONNECT);
+        roomSummary.setName(response.getChild("sco").getChild("name").getText());
+
+        // TODO: roomInfo.setOwner();
+        // TODO: roomInfo.setCreation();
+        // TODO: roomInfo.setReservation();
+
+        return roomSummary;
     }
 
     @java.lang.Override
     public String createRoom(Room room) throws CommandException, CommandUnsupportedException
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
+/*
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        // TODO: ??? name, url, etc.
+
+        Element respose = request("sco-update", attributes);
+
+        for (RoomUser roomUser : room.getUsers()) {
+            String principalId = roomUser.getUserIdentity().getId();
+            HashMap<String,String> userAttributes = new HashMap<String, String>();
+            userAttributes.put("acl-id",respose.getChild("sco").getAttributeValue("sco-id"));
+            userAttributes.put("principal-id",principalId);
+            userAttributes.put("permission-id","view");
+
+            request("permissions-update", attributes);
+        }
+
+        importRoomSettings(respose.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
+        */
     }
 
     @java.lang.Override
@@ -274,19 +322,45 @@ public class AdobeConnectConnector implements MultipointService
     @java.lang.Override
     public void deleteRoom(String roomId) throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        deleteSCO(roomId);
     }
 
     @java.lang.Override
     public String exportRoomSettings(String roomId) throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id",roomId);
+
+        Element response = request("sco-info", attributes);
+        Document document = response.getDocument();
+
+        XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+        String xmlString = outputter.outputString(document);
+
+        return xmlString;
     }
 
     @java.lang.Override
     public void importRoomSettings(String roomId, String settings) throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        SAXBuilder saxBuilder = new SAXBuilder();
+        Document document = null;
+        document = saxBuilder.build(new StringReader(settings));
+
+        XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
+        String xmlString = outputter.outputString(document);
+
+
+        HashMap<String, String> attributes = new HashMap<String, String>();
+
+        attributes.put("sco-id",roomId);
+//        attributes.put("date-begin", document.getRootElement().getChild("sco").getChild("date-begin").getText());
+//        attributes.put("date-end", document.getRootElement().getChild("sco").getChild("date-end").getText());
+        if (document.getRootElement().getChild("sco").getChild("description") != null) attributes.put("description", document.getRootElement().getChild("sco").getChild("description").getText());
+        attributes.put("url-path", document.getRootElement().getChild("sco").getChild("url-path").getText());
+        attributes.put("name", document.getRootElement().getChild("sco").getChild("name").getText());
+
+        request("sco-update", attributes);
     }
 
     @java.lang.Override
@@ -331,17 +405,17 @@ public class AdobeConnectConnector implements MultipointService
     public void enableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
     }
 
     @java.lang.Override
     public void disableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        throw new CommandUnsupportedException("Adobe Connect does not support this function. Use user role instead.");
     }
 
-    protected void deleteSCO(String scoID) throws Exception
+    protected void deleteSCO(String scoID) throws JDOMException, IOException
     {
         HashMap<String,String> attributes = new HashMap<String, String>();
         attributes.put("sco-id",scoID);
@@ -356,8 +430,8 @@ public class AdobeConnectConnector implements MultipointService
      *
      * @return the URL to perform the action
      */
-    protected URL breezeUrl(String action, Map<String,String> atributes)
-            throws Exception {
+    protected URL breezeUrl(String action, Map<String,String> atributes) throws IOException
+    {
         String queryString = "";
 
         if (atributes != null)
@@ -379,7 +453,7 @@ public class AdobeConnectConnector implements MultipointService
      /**
      * Performs the action to log into Adobe Connect server. Stores the breezeseession ID.
      */
-    protected void login() throws Exception
+    protected void login() throws IOException
     {
         if (this.breezesession != null)
             logout();
@@ -418,12 +492,13 @@ public class AdobeConnectConnector implements MultipointService
     /**
      * Logout of the server, clearing the session as well.
      */
-    public void logout() throws Exception {
+    public void logout() throws JDOMException, IOException
+    {
         request("logout", null);
         this.breezesession = null;
     }
 
-    protected Element request(String action, Map<String,String> atributes) throws Exception
+    protected Element request(String action, Map<String,String> atributes) throws IOException, JDOMException
     {
         if (this.breezesession == null) {
             if (action.equals("logout")){
