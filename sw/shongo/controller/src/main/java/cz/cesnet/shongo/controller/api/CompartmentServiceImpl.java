@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.compartment.CompartmentManager;
@@ -21,7 +22,8 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class CompartmentServiceImpl extends Component
-        implements CompartmentService, Component.EntityManagerFactoryAware, Component.DomainAware
+        implements CompartmentService, Component.EntityManagerFactoryAware, Component.DomainAware,
+                   Component.AuthorizationAware
 {
     /**
      * @see javax.persistence.EntityManagerFactory
@@ -32,6 +34,11 @@ public class CompartmentServiceImpl extends Component
      * @see cz.cesnet.shongo.controller.Domain
      */
     private cz.cesnet.shongo.controller.Domain domain;
+
+    /**
+     * @see Authorization
+     */
+    private Authorization authorization;
 
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
@@ -46,10 +53,17 @@ public class CompartmentServiceImpl extends Component
     }
 
     @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+
+    @Override
     public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
+        checkDependency(authorization, Authorization.class);
         super.init(configuration);
     }
 
@@ -62,6 +76,8 @@ public class CompartmentServiceImpl extends Component
     @Override
     public void deleteCompartment(SecurityToken token, String compartmentIdentifier) throws FaultException
     {
+        authorization.validate(token);
+
         Long reservationRequestId = domain.parseIdentifier(compartmentIdentifier);
 
         try {
@@ -86,6 +102,8 @@ public class CompartmentServiceImpl extends Component
     @Override
     public Collection<CompartmentSummary> listCompartments(SecurityToken token)
     {
+        authorization.validate(token);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         CompartmentManager compartmentManager = new CompartmentManager(entityManager);
 
@@ -107,6 +125,8 @@ public class CompartmentServiceImpl extends Component
     @Override
     public Compartment getCompartment(SecurityToken token, String compartmentIdentifier) throws FaultException
     {
+        authorization.validate(token);
+
         Long id = domain.parseIdentifier(compartmentIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();

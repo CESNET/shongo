@@ -82,6 +82,17 @@ public abstract class Component
     }
 
     /**
+     * Class extending {@link Component} can implement this interface to be aware of {@link Authorization}.
+     */
+    public static interface AuthorizationAware
+    {
+        /**
+         * @param authorization {@link Authorization} which can be used by implementing {@link Component}
+         */
+        public void setAuthorization(Authorization authorization);
+    }
+
+    /**
      * Class extending {@link Component} can implement this interface and the thread returned from
      * the {@link #getThread()} method will be automatically started after the controller is started.
      */

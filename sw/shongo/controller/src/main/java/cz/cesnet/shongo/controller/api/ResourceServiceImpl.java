@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
@@ -25,7 +26,8 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ResourceServiceImpl extends Component
-        implements ResourceService, Component.EntityManagerFactoryAware, Component.DomainAware
+        implements ResourceService, Component.EntityManagerFactoryAware, Component.DomainAware,
+                   Component.AuthorizationAware
 {
     /**
      * @see Cache
@@ -41,6 +43,11 @@ public class ResourceServiceImpl extends Component
      * @see cz.cesnet.shongo.controller.Domain
      */
     private cz.cesnet.shongo.controller.Domain domain;
+
+    /**
+     * @see cz.cesnet.shongo.controller.Authorization
+     */
+    private Authorization authorization;
 
     /**
      * @param cache sets the {@link #cache}
@@ -63,11 +70,18 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+
+    @Override
     public void init(Configuration configuration)
     {
         checkDependency(cache, Cache.class);
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
+        checkDependency(authorization, Authorization.class);
         super.init(configuration);
     }
 
@@ -80,6 +94,8 @@ public class ResourceServiceImpl extends Component
     @Override
     public String createResource(SecurityToken token, Resource resource) throws FaultException
     {
+        authorization.validate(token);
+
         resource.setupNewEntity();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -109,6 +125,8 @@ public class ResourceServiceImpl extends Component
     @Override
     public void modifyResource(SecurityToken token, Resource resource) throws FaultException
     {
+        authorization.validate(token);
+
         Long resourceId = domain.parseIdentifier(resource.getIdentifier());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -137,6 +155,8 @@ public class ResourceServiceImpl extends Component
     @Override
     public void deleteResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException
     {
+        authorization.validate(token);
+
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -162,6 +182,8 @@ public class ResourceServiceImpl extends Component
     @Override
     public Collection<ResourceSummary> listResources(SecurityToken token)
     {
+        authorization.validate(token);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
@@ -196,6 +218,8 @@ public class ResourceServiceImpl extends Component
     @Override
     public Resource getResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException
     {
+        authorization.validate(token);
+
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -213,6 +237,8 @@ public class ResourceServiceImpl extends Component
     public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceIdentifier, Interval interval)
             throws EntityNotFoundException
     {
+        authorization.validate(token);
+
         Long resourceId = domain.parseIdentifier(resourceIdentifier);
         if (interval == null) {
             interval = cache.getWorkingInterval();

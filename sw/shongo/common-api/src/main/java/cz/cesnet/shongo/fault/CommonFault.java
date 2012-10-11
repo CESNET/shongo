@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class CommonFault
 {
-    public static final int UNKNOWN_FAULT = 0;
+    public static final int UNKNOWN = 0;
 
     public static final Fault CLASS_NOT_DEFINED = new SimpleFault(
             10, "Class '%s' is not defined.");
@@ -47,6 +47,8 @@ public class CommonFault
 
     public static final int ENTITY_NOT_FOUND = 40;
     public static final int ENTITY_VALIDATION = 41;
+
+    public static final int SECURITY_UNKNOWN = 50;
 
     public static final int TODO_IMPLEMENT = 99;
 

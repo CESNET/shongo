@@ -59,6 +59,16 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_COMPARTMENT_WAITING_END = "executor.compartment.waiting-end";
 
     /**
+     * Authorization server.
+     */
+    public static final String SECURITY_AUTHORIZATION_SERVER = "security.authorization-server";
+
+    /**
+     * Specifies access token which won't be verified and can be used for testing purposes.
+     */
+    public static final String SECURITY_TESTING_ACCESS_TOKEN = "security.testing-access-token";
+
+    /**
      * @see {@link #getString(String)}
      */
     public Duration getDuration(String key)

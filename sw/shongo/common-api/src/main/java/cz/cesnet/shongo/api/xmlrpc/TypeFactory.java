@@ -104,7 +104,13 @@ public class TypeFactory extends TypeFactoryImpl
                 @Override
                 public void write(ContentHandler pHandler, Object pObject) throws SAXException
                 {
-                    write(pHandler, null, Converter.convertAtomicToString(pObject));
+                    String value = Converter.convertAtomicToString(pObject);
+                    if (value == null) {
+                        super.write(pHandler, new HashMap());
+                    }
+                    else {
+                        write(pHandler, null, value);
+                    }
                 }
             };
         }

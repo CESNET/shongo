@@ -126,6 +126,9 @@ sub authorize
 sub user_info
 {
     my ($access_token) = @_;
+    if (!defined($access_token)) {
+        return;
+    }
 
     # Create user agent
     my $user_agent = LWP::UserAgent->new();

@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -18,7 +19,7 @@ import java.util.*;
  */
 public class CommonServiceImpl extends Component
         implements CommonService, Component.EntityManagerFactoryAware, Component.DomainAware,
-                   Component.ControllerAgentAware
+                   Component.ControllerAgentAware, Component.AuthorizationAware
 {
     /**
      * @see javax.persistence.EntityManagerFactory
@@ -34,6 +35,11 @@ public class CommonServiceImpl extends Component
      * @see ControllerAgent
      */
     private ControllerAgent controllerAgent;
+
+    /**
+     * @see Authorization
+     */
+    private Authorization authorization;
 
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
@@ -54,11 +60,18 @@ public class CommonServiceImpl extends Component
     }
 
     @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+
+    @Override
     public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         checkDependency(controllerAgent, ControllerAgent.class);
+        checkDependency(authorization, Authorization.class);
         super.init(configuration);
     }
 
@@ -79,6 +92,8 @@ public class CommonServiceImpl extends Component
     @Override
     public Collection<Domain> listDomains(SecurityToken token)
     {
+        authorization.validate(token);
+
         List<Domain> domainList = new ArrayList<Domain>();
         domainList.add(domain.toApi());
         return domainList;
@@ -87,6 +102,8 @@ public class CommonServiceImpl extends Component
     @Override
     public Collection<Connector> listConnectors(SecurityToken token)
     {
+        authorization.validate(token);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 

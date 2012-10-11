@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
@@ -22,7 +23,8 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 public class ReservationServiceImpl extends Component
-        implements ReservationService, Component.EntityManagerFactoryAware, Component.DomainAware
+        implements ReservationService, Component.EntityManagerFactoryAware, Component.DomainAware,
+        Component.AuthorizationAware
 {
     /**
      * @see javax.persistence.EntityManagerFactory
@@ -33,6 +35,11 @@ public class ReservationServiceImpl extends Component
      * @see cz.cesnet.shongo.controller.Domain
      */
     private cz.cesnet.shongo.controller.Domain domain;
+
+    /**
+     * @see cz.cesnet.shongo.controller.Authorization
+     */
+    private Authorization authorization;
 
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
@@ -47,10 +54,17 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+
+    @Override
     public void init(Configuration configuration)
     {
         checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
+        checkDependency(authorization, Authorization.class);
         super.init(configuration);
     }
 
@@ -65,6 +79,8 @@ public class ReservationServiceImpl extends Component
     public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
     {
+        authorization.validate(token);
+
         reservationRequest.setupNewEntity();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -112,6 +128,8 @@ public class ReservationServiceImpl extends Component
     public void modifyReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
             throws FaultException
     {
+        authorization.validate(token);
+
         Long reservationRequestId = domain.parseIdentifier(reservationRequest.getIdentifier());
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -144,6 +162,8 @@ public class ReservationServiceImpl extends Component
     @Override
     public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier) throws FaultException
     {
+        authorization.validate(token);
+
         Long reservationRequestId = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -164,6 +184,8 @@ public class ReservationServiceImpl extends Component
     @Override
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
     {
+        authorization.validate(token);
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
@@ -211,6 +233,8 @@ public class ReservationServiceImpl extends Component
     public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
             throws FaultException
     {
+        authorization.validate(token);
+
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -228,6 +252,8 @@ public class ReservationServiceImpl extends Component
     @Override
     public Reservation getReservation(SecurityToken token, String reservationIdentifier) throws FaultException
     {
+        authorization.validate(token);
+
         Long reservationId = domain.parseIdentifier(reservationIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -245,6 +271,8 @@ public class ReservationServiceImpl extends Component
     public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestIdentifier)
             throws FaultException
     {
+        authorization.validate(token);
+
         Long id = domain.parseIdentifier(reservationRequestIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();

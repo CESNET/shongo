@@ -25,7 +25,7 @@ public class FaultException extends Exception implements Fault
 
     public FaultException()
     {
-        this.code = CommonFault.UNKNOWN_FAULT;
+        this.code = CommonFault.UNKNOWN;
     }
 
     /**
@@ -118,7 +118,7 @@ public class FaultException extends Exception implements Fault
      */
     public FaultException(Throwable throwable, String message, Object... objects)
     {
-        this(CommonFault.UNKNOWN_FAULT, String.format(message, evaluateParameters(objects)), throwable);
+        this(CommonFault.UNKNOWN, String.format(message, evaluateParameters(objects)), throwable);
     }
 
     /**
@@ -129,7 +129,7 @@ public class FaultException extends Exception implements Fault
      */
     public FaultException(String faultString, Object... objects)
     {
-        this(CommonFault.UNKNOWN_FAULT, faultString, objects);
+        this(CommonFault.UNKNOWN, faultString, objects);
     }
 
     /**
@@ -139,7 +139,7 @@ public class FaultException extends Exception implements Fault
      */
     public FaultException(String faultString)
     {
-        this(CommonFault.UNKNOWN_FAULT, faultString);
+        this(CommonFault.UNKNOWN, faultString);
     }
 
     /**

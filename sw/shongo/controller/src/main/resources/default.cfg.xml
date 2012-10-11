@@ -25,6 +25,14 @@
         <platform-id>Shongo</platform-id>
     </jade>
 
+    <!-- Security settings -->
+    <security>
+        <!-- Authorization server -->
+        <authorization-server>https://hroch.cesnet.cz/phpid-server/oic/</authorization-server>
+        <!-- Specifies access token which won't be verified and can be used for testing purposes -->
+        <testing-access-token>1e3f174ceaa8e515721b989b19f71727060d0839</testing-access-token>
+    </security>
+
     <!-- Worker periodically starts preprocessor and scheduler -->
     <worker>
         <!-- Period in which the worker is periodically working -->

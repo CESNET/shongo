@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSummary;
-import cz.cesnet.shongo.controller.Component;
-import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ManagedMode;
@@ -37,7 +35,7 @@ import java.util.Set;
  */
 public class ResourceControlServiceImpl extends Component
         implements ResourceControlService, Component.DomainAware, Component.ControllerAgentAware,
-                   Component.EntityManagerFactoryAware
+                   Component.EntityManagerFactoryAware, Component.AuthorizationAware
 {
     /**
      * @see Domain
@@ -53,6 +51,11 @@ public class ResourceControlServiceImpl extends Component
      * @see javax.persistence.EntityManagerFactory
      */
     private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * @see cz.cesnet.shongo.controller.Authorization
+     */
+    private Authorization authorization;
 
     @Override
     public void setDomain(Domain domain)
@@ -73,10 +76,17 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public void setAuthorization(Authorization authorization)
+    {
+        this.authorization = authorization;
+    }
+
+    @Override
     public void init(Configuration configuration)
     {
         checkDependency(domain, Domain.class);
         checkDependency(controllerAgent, ControllerAgent.class);
+        checkDependency(authorization, Authorization.class);
         super.init(configuration);
     }
 
@@ -87,8 +97,10 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceIdentifier)
+            throws FaultException
     {
+        authorization.validate(token);
         Set<String> methods = (Set<String>) commandDevice(deviceResourceIdentifier, new GetSupportedMethods());
         return new ArrayList<String>(methods); // NOTE: XML-RPC seems to need a list
     }
@@ -96,48 +108,56 @@ public class ResourceControlServiceImpl extends Component
     @Override
     public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
     {
+        authorization.validate(token);
         return (String) commandDevice(deviceResourceIdentifier, new Dial(address));
     }
 
     @Override
     public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
     {
+        authorization.validate(token);
         return (String) commandDevice(deviceResourceIdentifier, new Dial(alias));
     }
 
     @Override
     public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new StandBy());
     }
 
     @Override
     public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new HangUp(callId));
     }
 
     @Override
     public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new HangUpAll());
     }
 
     @Override
     public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new ResetDevice());
     }
 
     @Override
     public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new Mute());
     }
 
     @Override
     public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new Unmute());
     }
 
@@ -145,36 +165,42 @@ public class ResourceControlServiceImpl extends Component
     public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level)
             throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new SetMicrophoneLevel(level));
     }
 
     @Override
     public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new SetPlaybackLevel(level));
     }
 
     @Override
     public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new EnableVideo());
     }
 
     @Override
     public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new DisableVideo());
     }
 
     @Override
     public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new StartPresentation());
     }
 
     @Override
     public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new StopPresentation());
     }
 
@@ -182,6 +208,7 @@ public class ResourceControlServiceImpl extends Component
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
             throws FaultException
     {
+        authorization.validate(token);
         return (String) commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, address));
     }
 
@@ -189,6 +216,7 @@ public class ResourceControlServiceImpl extends Component
     public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
             throws FaultException
     {
+        authorization.validate(token);
         return (String) commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, alias));
     }
 
@@ -196,24 +224,28 @@ public class ResourceControlServiceImpl extends Component
     public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new DisconnectParticipant(roomId, roomUserId));
     }
 
     @Override
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
+        authorization.validate(token);
         return (String) commandDevice(deviceResourceIdentifier, new CreateRoom(room));
     }
 
     @Override
     public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
     {
+        authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new DeleteRoom(roomId));
     }
 
     @Override
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
+        authorization.validate(token);
         return (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
     }
 

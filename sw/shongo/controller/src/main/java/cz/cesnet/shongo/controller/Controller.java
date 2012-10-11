@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
@@ -16,7 +17,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.persistence.EntityManagerFactory;
 import java.io.IOException;
@@ -48,6 +48,11 @@ public class Controller
      * Entity manager factory.
      */
     private EntityManagerFactory entityManagerFactory;
+
+    /**
+     * @see Authorization
+     */
+    private Authorization authorization;
 
     /**
      * List of services of the domain controller.
@@ -158,6 +163,14 @@ public class Controller
     {
         domain.setName(name);
         domain.setOrganization(organization);
+    }
+
+    /**
+     * @return {@link #authorization}
+     */
+    public Authorization getAuthorization()
+    {
+        return authorization;
     }
 
     /**
@@ -300,6 +313,9 @@ public class Controller
             domain.setOrganization(configuration.getString(Configuration.DOMAIN_ORGANIZATION));
         }
 
+        // Initialize authorization
+        authorization = new Authorization(configuration);
+
         logger.info("Controller for domain '{}' is starting...", domain.getName());
 
         // Initialize components
@@ -315,6 +331,10 @@ public class Controller
             if (component instanceof Component.ControllerAgentAware) {
                 Component.ControllerAgentAware controllerAgentAware = (Component.ControllerAgentAware) component;
                 controllerAgentAware.setControllerAgent(jadeAgent);
+            }
+            if (component instanceof Component.AuthorizationAware) {
+                Component.AuthorizationAware authorizationAware = (Component.AuthorizationAware) component;
+                authorizationAware.setAuthorization(authorization);
             }
             component.init(configuration);
         }
@@ -540,7 +560,7 @@ public class Controller
      *
      * @param args
      */
-    public static void main(String[] args)
+    public static void main(String[] args) throws Exception
     {
         Logging.installBridge();
 
@@ -623,14 +643,35 @@ public class Controller
             System.setProperty(Configuration.JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
         }
 
-        // Run application by spring application context
-        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring-context.xml");
+        logger.debug("Creating entity manager factory...");
+        EntityManagerFactory entityManagerFactory = javax.persistence.Persistence.createEntityManagerFactory("controller");
+        logger.debug("Entity manager factory created.");
 
         // Run controller
-        Controller controller = (Controller) applicationContext.getBean("controller");
-        controller.run();
+        Controller controller = new Controller("controller.cfg.xml");
+        controller.setEntityManagerFactory(entityManagerFactory);
 
-        // Close spring application context
-        applicationContext.close();
+        // Add components
+        Cache cache = new Cache();
+        controller.addComponent(cache);
+        controller.addComponent(new Preprocessor());
+        Scheduler scheduler = new Scheduler();
+        scheduler.setCache(cache);
+        controller.addComponent(scheduler);
+        controller.addComponent(new Executor());
+
+        // Add XML-RPC services
+        controller.addService(new CommonServiceImpl());
+        ResourceServiceImpl resourceService = new ResourceServiceImpl();
+        resourceService.setCache(cache);
+        controller.addService(resourceService);
+        controller.addService(new ResourceControlServiceImpl());
+        controller.addService(new ReservationServiceImpl());
+        controller.addService(new CompartmentServiceImpl());
+
+        // Start, run and stop the controller
+        controller.startAll();
+        controller.run();
+        controller.stop();
     }
 }

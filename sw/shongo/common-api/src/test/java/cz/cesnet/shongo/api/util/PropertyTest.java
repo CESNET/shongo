@@ -106,7 +106,7 @@ public class PropertyTest
             fail("Exception that field is write-only should be thrown.");
         }
         catch (FaultException exception) {
-            assertEquals(CommonFault.UNKNOWN_FAULT, exception.getCode());
+            assertEquals(CommonFault.UNKNOWN, exception.getCode());
         }
         try {
             Property.getPropertyValue(foo, "fieldNot");

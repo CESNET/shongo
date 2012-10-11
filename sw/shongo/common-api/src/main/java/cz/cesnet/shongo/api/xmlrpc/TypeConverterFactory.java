@@ -149,7 +149,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return (pObject instanceof String) || clazz.isInstance(pObject);
+            return pObject == null || (pObject instanceof String) || clazz.isInstance(pObject);
         }
 
         @Override

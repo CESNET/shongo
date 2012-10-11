@@ -77,7 +77,7 @@ sub populate()
             method => sub {
                 my $controller = Shongo::Controller->instance();
                 $controller->{'access_token'} = Shongo::Authentication::authorize();
-                $controller->user_info();
+                $controller->user_info($controller->{'access_token'});
 
             }
         },
@@ -215,9 +215,13 @@ sub request()
 sub secure_request()
 {
     my ($self, $method, @args) = @_;
+    my $securityToken = RPC::XML::struct->new();
+    if (defined($self->{'access_token'})) {
+        $securityToken = RPC::XML::string->new($self->{'access_token'});
+    }
     return $self->request(
         $method,
-        RPC::XML::struct->new('class' => 'SecurityToken'),
+        $securityToken,
         @args
     );
 }

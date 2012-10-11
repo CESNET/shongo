@@ -55,10 +55,12 @@ sub usage {
 my $connect;
 my $cmd;
 my $file;
+my $authorize;
 my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
+    'authorize' => \$authorize,
     'cmd=s@' => \$cmd,
     'file=s' => \$file
 ) or usage('Invalid commmand line options.');
@@ -68,6 +70,11 @@ if ( $help == 1) {
 }
 
 my $controller = Shongo::Controller->instance();
+
+# Set testing access token
+if ($authorize) {
+    $controller->{'access_token'} = '1e3f174ceaa8e515721b989b19f71727060d0839';
+}
 
 # Connect to controller
 if ( defined($connect) ) {

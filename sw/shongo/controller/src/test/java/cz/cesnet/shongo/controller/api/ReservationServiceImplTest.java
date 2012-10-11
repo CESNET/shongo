@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.ControllerClient;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
@@ -26,16 +23,22 @@ import static junit.framework.Assert.*;
  */
 public class ReservationServiceImplTest extends AbstractDatabaseTest
 {
-    cz.cesnet.shongo.controller.Controller controller;
+    private cz.cesnet.shongo.controller.Controller controller;
 
-    ControllerClient controllerClient;
+    private ControllerClient controllerClient;
 
-    ReservationService reservationService;
+    private ReservationService reservationService;
+
+    private static final SecurityToken TESTING_SECURITY_TOKEN =
+            new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
 
     @Override
     public void before() throws Exception
     {
         super.before();
+
+        // Change XML-RPC port
+        System.setProperty(Configuration.RPC_PORT, "8484");
 
         // Start controller
         controller = new cz.cesnet.shongo.controller.Controller();
@@ -44,6 +47,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         controller.addService(new ReservationServiceImpl());
         controller.start();
         controller.startRpc();
+        controller.getAuthorization().setTestingAccessToken(TESTING_SECURITY_TOKEN.getAccessToken());
 
         // Start client
         controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
@@ -73,7 +77,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
         compartment.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
 
-        String identifier = reservationService.createReservationRequest(new SecurityToken(), reservationRequestSet);
+        String identifier = reservationService.createReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
         assertEquals("shongo:cz.cesnet:1", identifier);
     }
 
@@ -129,7 +133,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             }});
 
         List<Object> params = new ArrayList<Object>();
-        params.add(new HashMap<String, Object>());
+        params.add(TESTING_SECURITY_TOKEN.getAccessToken());
         params.add(attributes);
 
         String identifier = (String) controllerClient.execute("Reservation.createReservationRequest", params);
@@ -139,7 +143,6 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
     @Test
     public void testModifyAndDeleteReservationRequest() throws Exception
     {
-        SecurityToken securityToken = new SecurityToken();
         String identifier = null;
 
         // ---------------------------
@@ -156,11 +159,11 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                     reservationRequestSet.addSpecification(new CompartmentSpecification());
             compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
 
-            identifier = reservationService.createReservationRequest(securityToken, reservationRequestSet);
+            identifier = reservationService.createReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
             assertNotNull(identifier);
 
-            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(securityToken,
-                    identifier);
+            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(
+                    TESTING_SECURITY_TOKEN, identifier);
             assertNotNull(reservationRequestSet);
             assertEquals(ReservationRequestType.NORMAL, reservationRequestSet.getType());
             assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequestSet.getPurpose());
@@ -173,7 +176,8 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) reservationService.getReservationRequest(securityToken, identifier);
+                    (ReservationRequestSet) reservationService.getReservationRequest(TESTING_SECURITY_TOKEN,
+                            identifier);
             reservationRequestSet.setType(ReservationRequestType.PERMANENT);
             reservationRequestSet.setPurpose(null);
             reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
@@ -181,10 +185,10 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                     reservationRequestSet.addSpecification(new CompartmentSpecification());
             reservationRequestSet.removeSpecification(compartmentSpecification);
 
-            reservationService.modifyReservationRequest(securityToken, reservationRequestSet);
+            reservationService.modifyReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
 
-            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(securityToken,
-                    identifier);
+            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(
+                    TESTING_SECURITY_TOKEN, identifier);
             assertNotNull(reservationRequestSet);
             assertEquals(ReservationRequestType.PERMANENT, reservationRequestSet.getType());
             assertEquals(null, reservationRequestSet.getPurpose());
@@ -197,14 +201,15 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) reservationService.getReservationRequest(securityToken, identifier);
+                    (ReservationRequestSet) reservationService.getReservationRequest(TESTING_SECURITY_TOKEN,
+                            identifier);
             assertNotNull(reservationRequestSet);
 
-            reservationService.deleteReservationRequest(securityToken, identifier);
+            reservationService.deleteReservationRequest(TESTING_SECURITY_TOKEN, identifier);
 
             try {
-                reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(securityToken,
-                        identifier);
+                reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(
+                        TESTING_SECURITY_TOKEN, identifier);
                 fail("Exception that record doesn't exists should be thrown.");
             }
             catch (EntityNotFoundException exception) {
@@ -225,7 +230,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             }});
         try {
             controllerClient.execute("Reservation.createReservationRequest",
-                    new Object[]{new HashMap(), reservationRequest});
+                    new Object[]{TESTING_SECURITY_TOKEN.getAccessToken(), reservationRequest});
             fail("Exception that collection cannot contain null should be thrown.");
         }
         catch (XmlRpcException exception) {
@@ -243,7 +248,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
             }});
         try {
             controllerClient.execute("Reservation.createReservationRequest",
-                    new Object[]{new HashMap(), reservationRequest});
+                    new Object[]{TESTING_SECURITY_TOKEN.getAccessToken(), reservationRequest});
             fail("Exception that attribute has wrong type should be thrown.");
         }
         catch (XmlRpcException exception) {
@@ -255,7 +260,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         reservationRequest.put("reservationRequests", new ArrayList<Object>());
         try {
             controllerClient.execute("Reservation.createReservationRequest",
-                    new Object[]{new HashMap(), reservationRequest});
+                    new Object[]{TESTING_SECURITY_TOKEN.getAccessToken(), reservationRequest});
             fail("Exception that attribute is read only should be thrown.");
         }
         catch (XmlRpcException exception) {

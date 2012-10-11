@@ -336,7 +336,7 @@ public class Converter
         // Get object class
         String className = (String) map.get("class");
         if (className == null) {
-            throw new FaultException(CommonFault.UNKNOWN_FAULT, "Map must contains 'class' attribute!");
+            throw new FaultException(CommonFault.UNKNOWN, "Map must contains 'class' attribute!");
         }
         Class objectClass = null;
         try {
@@ -366,7 +366,7 @@ public class Converter
             if (map.containsKey("class")) {
                 String className = (String) map.get("class");
                 if (!className.equals(getClassShortName(objectClass))) {
-                    throw new FaultException(CommonFault.UNKNOWN_FAULT,
+                    throw new FaultException(CommonFault.UNKNOWN,
                             "Cannot convert map to object of class '%s' because map specifies different class '%s'.",
                             getClassShortName(objectClass), className);
                 }
@@ -392,7 +392,7 @@ public class Converter
             // Fill each property that is present in map
             for (Object key : map.keySet()) {
                 if (!(key instanceof String)) {
-                    throw new FaultException(CommonFault.UNKNOWN_FAULT, "Map must contain only string keys.");
+                    throw new FaultException(CommonFault.UNKNOWN, "Map must contain only string keys.");
                 }
                 String propertyName = (String) key;
                 Object value = map.get(key);
