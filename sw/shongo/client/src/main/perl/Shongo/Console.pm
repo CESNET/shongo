@@ -56,7 +56,8 @@ sub console_print_text
 sub console_print_debug
 {
     my ($message, @parameters) = @_;
-    print sprintf($message, @parameters);
+    $message =~ s/\s*$//;
+    print sprintf($message, @parameters), "\n";
 }
 
 #
@@ -68,7 +69,8 @@ sub console_print_debug
 sub console_print_info
 {
     my ($message, @parameters) = @_;
-    print colored(sprintf($message, @parameters), "bold blue");
+    $message =~ s/\s*$//;
+    print colored(sprintf($message, @parameters), "bold blue"), "\n";
 }
 
 #
@@ -80,6 +82,7 @@ sub console_print_info
 sub console_print_error
 {
     my ($message, @parameters) = @_;
+    $message =~ s/\s*$//;
     print STDERR colored("[ERROR] " . sprintf($message, @parameters), "red"), "\n";
 }
 

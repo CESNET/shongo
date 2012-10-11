@@ -1,10 +1,7 @@
-
 * API
   * Popsat autentizaci v API
   * Dokoncit popis workflow v API
 
-* Autentizace
-* Odstranit spring
 * Predelat serializaci exception pres XML-RPC
 
 FUTURE:

@@ -54,7 +54,7 @@ sub authorize
 
     # Start authorization
     my $url = URI->new($AUTHENTICATION_SERVER . 'authorize');
-    console_print_debug("Connecting to '$url' for authorization...\n");
+    console_print_debug("Connecting to '$url' for authorization...");
     $url->query_form(
         'client_id'     => $CLIENT_ID,
         'redirect_uri'  => $CLIENT_URL,
@@ -78,13 +78,13 @@ sub authorize
             my $code = $url->query_param('code');
             my $newState = $url->query_param('state');
             if (!($newState eq $state)) {
-                console_print_error("Failed to verify authorization state ($newState != $state), XSRF attack?\n");
+                console_print_error("Failed to verify authorization state ($newState != $state), XSRF attack?");
             }
             $authorization_code = $code;
             $response = undef;
         }
         else {
-            console_print_debug("Redirecting to '$url'...\n");
+            console_print_debug("Redirecting to '$url'...");
             $response = $user_agent->simple_request(HTTP::Request->new(GET => $url));
         }
     }
@@ -92,10 +92,10 @@ sub authorize
         console_print_error("Retrieving authorization code failed!");
         return;
     }
-    console_print_debug("Authorization code: $authorization_code\n");
+    console_print_debug("Authorization code: $authorization_code");
 
     # Retrieve console_print_debug token
-    console_print_debug("Retrieving access token for authorization code '$authorization_code'...\n");
+    console_print_debug("Retrieving access token for authorization code '$authorization_code'...");
     my $request = HTTP::Request->new(POST => $AUTHENTICATION_SERVER . 'token');
     $request->content_type('application/x-www-form-urlencoded');
     $request->content(escape_hash(
@@ -112,7 +112,7 @@ sub authorize
         return;
     }
     my $access_token = $response_data->{'access_token'};
-    console_print_debug("Access token: $access_token\n");
+    console_print_debug("Access token: $access_token");
 
     return $access_token;
 }
@@ -136,7 +136,7 @@ sub user_info
 
     # Setup request url
     my $url = URI->new($AUTHENTICATION_SERVER . 'userinfo');
-    console_print_debug("Retrieving user information for access token '$access_token'...\n");
+    console_print_debug("Retrieving user information for access token '$access_token'...");
     $url->query_form('schema' => 'openid');
 
     # Request user information

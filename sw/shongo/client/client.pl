@@ -43,11 +43,11 @@ sub usage {
    print STDERR (
       $message,
       "usage: $command [options]\n" .
-      "    -help         Show this usage information\n" .
-      "    -connect=URL  Connect to a controller\n" .
-      "    -access-token Use testing access token for authentication\n" .
-      "    -cmd=COMMAND  Perform given command in controller\n" .
-      "    -file=FILE    Perform commands from file in controller\n"
+      "    -help                  Show this usage information\n" .
+      "    -connect=URL           Connect to a controller\n" .
+      "    -testing-access-token  Use testing access token for authentication\n" .
+      "    -cmd=COMMAND           Perform given command in controller\n" .
+      "    -file=FILE             Perform commands from file in controller\n"
    );
    exit(0);
 }
@@ -56,12 +56,12 @@ sub usage {
 my $connect;
 my $cmd;
 my $file;
-my $access_token = 0;
+my $testing_access_token = 0;
 my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
-    'access-token' => \$access_token,
+    'testing-access-token' => \$testing_access_token,
     'cmd=s@' => \$cmd,
     'file=s' => \$file
 ) or usage('Invalid commmand line options.');
@@ -73,7 +73,7 @@ if ( $help == 1) {
 my $controller = Shongo::Controller->instance();
 
 # Set testing access token
-if ($access_token) {
+if ($testing_access_token) {
     $controller->{'access_token'} = '1e3f174ceaa8e515721b989b19f71727060d0839';
 }
 

@@ -139,15 +139,15 @@ sub connect()
 
     $self->{"_url"} = $url;
 
-    print("Connecting to controller at '$url'...\n");
+    console_print_debug("Connecting to controller at '$url'...");
     my $client = RPC::XML::Client->new($url);
     my $response = $client->send_request("Common.getController");
     if ( ref($response) ) {
         $self->{"_client"} = $client;
-        print("Successfully connected to the controller!\n");
+        console_print_debug("Successfully connected to the controller!");
         return 1;
     } else {
-        print("Failed to connect to controller! Is the controller running?\n");
+        console_print_error("Failed to connect to controller! Is the controller running?");
         return 0;
     }
 }
@@ -159,11 +159,11 @@ sub disconnect()
 {
     my ($self) = @_;
     if ( !defined($self->{"_client"}) ) {
-        console_print_error("Client is not connected to any controller!\n");
+        console_print_error("Client is not connected to any controller!");
         return;
     }
     undef $self->{"_client"};
-    print("Successfully disconnected from the controller!\n");
+    console_print_debug("Successfully disconnected from the controller!");
 }
 
 #
@@ -185,7 +185,7 @@ sub check_connected()
 {
     my ($self) = @_;
     if ( !$self->is_connected() ) {
-        console_print_error("Client is not connected to any controller!\n");
+        console_print_error("Client is not connected to any controller!");
         return 0;
     }
     return 1;
@@ -206,7 +206,7 @@ sub request()
     }
     my $response = $self->{"_client"}->send_request($method, @args);
     if ( !ref($response) ) {
-        console_print_error("Failed to send request to controller!\n" . $response . "\n");
+        console_print_error("Failed to send request to controller!\n" . $response);
         return RPC::XML::fault->new(0, "Failed to send request!");;
     }
     if ( $response->is_fault() ) {
@@ -230,8 +230,12 @@ sub request()
 sub secure_request()
 {
     my ($self, $method, @args) = @_;
+    if ( !$self->check_connected() ) {
+        return RPC::XML::fault->new(0, "Not connected!");
+    }
     my $securityToken = RPC::XML::struct->new();
     if (!defined($self->{'access_token'})) {
+        console_print_debug("User is not authenticated, starting authentication...");
         $self->authenticate();
     }
     if (defined($self->{'access_token'})) {
@@ -251,7 +255,7 @@ sub status()
 {
     my ($self) = @_;
     if ( !defined($self->{"_client"}) ) {
-        print("[ERROR] Client is not connected to any controller!\n");
+        console_print_error("Client is not connected to any controller!");
         return;
     }
 
@@ -260,7 +264,7 @@ sub status()
         return;
     }
     if ( !($response->{"class"}->value eq "Controller") ) {
-        print("[ERROR] Server hasn't return Controller object!\n");
+        console_print_error("Server hasn't return Controller object!");
         return;
     }
     printf("+----------------------------------------------------------------------+\n");
