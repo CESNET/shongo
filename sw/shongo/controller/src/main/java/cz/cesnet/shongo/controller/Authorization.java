@@ -1,8 +1,20 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.SecurityException;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -12,6 +24,8 @@ import java.util.Map;
  */
 public class Authorization
 {
+    private static Logger logger = LoggerFactory.getLogger(Authorization.class);
+
     /**
      * URL to authorization server.
      */
@@ -62,18 +76,54 @@ public class Authorization
         }
         // Always allow testing access token
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
+            logger.debug("Access token '{}' is valid for testing.", securityToken.getAccessToken());
             return;
         }
 
-        throw new SecurityException("TODO: verify access token " + (securityToken != null ? securityToken.toString() : "null"));
+        // Validate access token by getting user info
+        try {
+            Map<String, Object> userInfo = getUserInfo(securityToken);
+            logger.debug("Access token '{}' is valid for {} <{}>.",
+                    new Object[]{securityToken.getAccessToken(), userInfo.get("name"), userInfo.get("email")});
+        }
+        catch (Exception exception) {
+            throw new SecurityException("Access token '" +  securityToken.getAccessToken()
+                    + "' cannot be validated. " + exception.getMessage(), exception);
+        }
     }
 
     /**
      * @param securityToken of an user
      * @return user info for user with given {@code securityToken}
      */
-    public Map<String, String> getUserInfo(SecurityToken securityToken)
+    public Map<String, Object> getUserInfo(SecurityToken securityToken) throws Exception
     {
-        return null;
+        HttpClient httpClient = new DefaultHttpClient();
+
+        // Build url
+        URIBuilder uriBuilder = new URIBuilder(authorizationServer + "userinfo");
+        uriBuilder.setParameter("schema", "openid");
+        String url = uriBuilder.build().toString();
+
+        // Perform request
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("Authorization", "Bearer " + securityToken.getAccessToken());
+        HttpResponse response = httpClient.execute(httpGet);
+        HttpEntity entity = response.getEntity();
+        Map<String, Object> content = null;
+        if (entity != null) {
+            InputStream inputStream = entity.getContent();
+            ObjectMapper mapper = new ObjectMapper();
+            content = mapper.readValue(inputStream, Map.class);
+            inputStream.close();
+        }
+        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            String error = "Error";
+            if (content != null) {
+                error = String.format("Error: %s. %s", content.get("error"), content.get("error_description"));
+            }
+            throw new Exception(error);
+        }
+        return content;
     }
 }

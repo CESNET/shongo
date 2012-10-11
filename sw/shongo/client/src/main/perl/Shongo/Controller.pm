@@ -13,6 +13,7 @@ use RPC::XML::Client;
 use XML::Twig;
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Authorization;
 
 #
 # Single instance of Controller class.
@@ -76,9 +77,8 @@ sub populate()
             desc => "Perform user authentication",
             method => sub {
                 my $controller = Shongo::Controller->instance();
-                $controller->{'access_token'} = Shongo::Authentication::authorize();
+                $controller->authenticate();
                 $controller->user_info($controller->{'access_token'});
-
             }
         },
         "user-info" => {
@@ -91,10 +91,25 @@ sub populate()
     });
 }
 
+#
+# Authenticate user
+#
+sub authenticate()
+{
+    my ($self) = @_;
+    $self->{'access_token'} = Shongo::Authorization::authorize();
+}
+
+#
+# Show current authenticated user information
+#
 sub user_info()
 {
     my ($self) = @_;
-    my $user_info = Shongo::Authentication::user_info($self->{'access_token'});
+    my $user_info = Shongo::Authorization::user_info($self->{'access_token'});
+    if (!defined($user_info)) {
+        return;
+    }
 
     my $attributes = Shongo::Controller::API::Object->create_attributes();
     $attributes->{add}('Access Token', $self->{'access_token'});
@@ -216,6 +231,9 @@ sub secure_request()
 {
     my ($self, $method, @args) = @_;
     my $securityToken = RPC::XML::struct->new();
+    if (!defined($self->{'access_token'})) {
+        $self->authenticate();
+    }
     if (defined($self->{'access_token'})) {
         $securityToken = RPC::XML::string->new($self->{'access_token'});
     }

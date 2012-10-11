@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Authentication;
+package Shongo::Authorization;
 
 use strict;
 use warnings;
@@ -147,7 +147,7 @@ sub user_info
     if (!$response->is_success) {
         console_print_error("Error: $response_data->{'error'}. $response_data->{'error_description'}");
         console_print_error("Retrieving user information failed!");
-        return;
+        return undef;
     }
     return $response_data;
 }

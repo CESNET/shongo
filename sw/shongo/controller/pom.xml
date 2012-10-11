@@ -28,7 +28,7 @@
             <version>1.0</version>
         </dependency>
 
-        <!-- Spring framework is used for singleton classes and its' dependency injection -->
+        <!-- Spring framework core is used for AnnotationUtils class -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -75,6 +75,20 @@
             <version>1.8</version>
         </dependency>
 
+        <!-- HttpClient is used for communication to authorization server -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.2.1</version>
+        </dependency>
+
+        <!-- Jackson (High-performance JSON processor) is used for parsing responses from authorization server -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>1.9.9</version>
+        </dependency>
+
         <!-- Graph-theory objects and algorithms -->
         <dependency>
             <groupId>jgrapht</groupId>
@@ -82,7 +96,7 @@
             <version>0.7.3</version>
         </dependency>
 
-        <!-- Visualisation of graphes -->
+        <!-- Visualisation of graphs -->
         <dependency>
             <groupId>jgraph</groupId>
             <artifactId>jgraph</artifactId>
