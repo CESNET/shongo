@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
+import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
@@ -21,47 +22,24 @@ import static junit.framework.Assert.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationServiceImplTest extends AbstractDatabaseTest
+public class ReservationServiceImplTest extends AbstractControllerTest
 {
-    private cz.cesnet.shongo.controller.Controller controller;
-
-    private ControllerClient controllerClient;
-
+    /**
+     * @see ReservationService
+     */
     private ReservationService reservationService;
 
-    private static final SecurityToken TESTING_SECURITY_TOKEN =
-            new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
 
     @Override
-    public void before() throws Exception
+    protected void onInitController(Controller controller)
     {
-        super.before();
-
-        // Change XML-RPC port
-        System.setProperty(Configuration.RPC_PORT, "8484");
-
-        // Start controller
-        controller = new cz.cesnet.shongo.controller.Controller();
-        controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
-        controller.setEntityManagerFactory(getEntityManagerFactory());
         controller.addService(new ReservationServiceImpl());
-        controller.start();
-        controller.startRpc();
-        controller.getAuthorization().setTestingAccessToken(TESTING_SECURITY_TOKEN.getAccessToken());
-
-        // Start client
-        controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
-
-        // Get reservation service from client
-        reservationService = controllerClient.getService(ReservationService.class);
     }
 
     @Override
-    public void after()
+    protected void onControllerClientReady(ControllerClient controllerClient)
     {
-        controller.stop();
-
-        super.after();
+        reservationService = controllerClient.getService(ReservationService.class);
     }
 
     @Test
@@ -136,7 +114,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         params.add(TESTING_SECURITY_TOKEN.getAccessToken());
         params.add(attributes);
 
-        String identifier = (String) controllerClient.execute("Reservation.createReservationRequest", params);
+        String identifier = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
         assertEquals("shongo:cz.cesnet:1", identifier);
     }
 
@@ -229,7 +207,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                 add(new HashMap<String, Object>());
             }});
         try {
-            controllerClient.execute("Reservation.createReservationRequest",
+            getControllerClient().execute("Reservation.createReservationRequest",
                     new Object[]{TESTING_SECURITY_TOKEN.getAccessToken(), reservationRequest});
             fail("Exception that collection cannot contain null should be thrown.");
         }
@@ -247,7 +225,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
                     }});
             }});
         try {
-            controllerClient.execute("Reservation.createReservationRequest",
+            getControllerClient().execute("Reservation.createReservationRequest",
                     new Object[]{TESTING_SECURITY_TOKEN.getAccessToken(), reservationRequest});
             fail("Exception that attribute has wrong type should be thrown.");
         }
@@ -259,7 +237,7 @@ public class ReservationServiceImplTest extends AbstractDatabaseTest
         reservationRequest.put("class", "ReservationRequestSet");
         reservationRequest.put("reservationRequests", new ArrayList<Object>());
         try {
-            controllerClient.execute("Reservation.createReservationRequest",
+            getControllerClient().execute("Reservation.createReservationRequest",
                     new Object[]{TESTING_SECURITY_TOKEN.getAccessToken(), reservationRequest});
             fail("Exception that attribute is read only should be thrown.");
         }
