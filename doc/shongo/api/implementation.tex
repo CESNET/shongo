@@ -445,9 +445,19 @@ alias: Alias {
 
 
 \section{Authentication \& Authorization}
+\label{sec:implementation-authorization}
 
 \subsection{Controller vs. Client}
-\todo{Describe controller API authentication} \\
+\Glspl{g:controller-client} communicate with a \gls{g:controller} through XML-RPC \cite{xml-rpc}. When a \gls{g:controller-client} sends a XML-RPC request to a \gls{g:controller} and the request should specify an user identity who sent it (referred to as \emph{secure request}), the request must contain \ApiRef{SecurityToken} as the first parameter. \ApiRef{SecurityToken} equals to OpenID \cite{openid} access token.
+
+Before \gls{g:controller-client} is able to send secure request, it must first obtain an access token for the current user. According to OpenID specification the access token can be obtained from the authorization server as described in fig. \ref{fig:sd_controller_client_authentication}.
+
+\begin{figure}[ht!]
+\includegraphics[width=\textwidth]{diagrams/sd_controller_client_authentication}
+\caption{Diagram depicting user authentication through \gls{g:controller-client} to \gls{g:controller}}
+\label{fig:sd_controller_client_authentication}
+\end{figure}
+
 \todo{Describe controller API authorization}
 
 \subsection{Controller vs. Connector}

@@ -41,21 +41,16 @@ These are only common faults that are independent on specific API section. Other
 
 \begin{Api}
 
-\ApiClass{UserIdentity}{}
-Each user that accesses shongo or participates in shongo managed videoconference should be identified by \ApiRef{UserIdentity} definition.
+%\ApiClass{UserIdentity}{}
+%Each user that accesses shongo or participates in shongo managed videoconference should be identified by \ApiRef{UserIdentity} definition.
+%\begin{ApiClassAttributes}
+%\ApiClassAttribute{id}{String}{\ApiRequired}
+%Equals to eduID identity. In future there can be unique identifier that associates multiple eduID for the same person.
+%\end{ApiClassAttributes}
+%\todo{Consider usage of Person instead of UserIdentity or vice versa}
 
-\begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiRequired}
-Equals to eduID identity. In future there can be unique identifier that associates multiple eduID for the same person.
-\end{ApiClassAttributes}
-
-\todo{Consider usage of Person instead of UserIdentity or vice versa}
-
-\ApiClass{SecurityToken}{}
-Contains identity and credentials of a user performing the requested operation.
-\begin{ApiClassAttributes}
-\item \todo{Authorization data}
-\end{ApiClassAttributes}
+\ApiType{SecurityToken}{String}
+Represents an identity and credentials of a user performing a request. \ApiRef{SecurityToken} equals to OpenID \cite{openid} access token (see section \ref{sec:implementation-authorization} for more details).
 
 \ApiClass{Person}{}
 Represents a person that can access a Shongo videoconference.

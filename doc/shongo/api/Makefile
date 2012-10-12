@@ -5,7 +5,8 @@ DIAGRAMS=diagrams/cd_api_resources.pdf \
          diagrams/cd_api_reservations.pdf \
          diagrams/smd_api_reservation_request.pdf \
          diagrams/sd_reservation_request_allocation.pdf \
-         diagrams/sd_reservation_request_set_allocation.pdf
+         diagrams/sd_reservation_request_set_allocation.pdf \
+         diagrams/sd_controller_client_authentication.pdf
          
 build: $(TARGET).pdf
 	
