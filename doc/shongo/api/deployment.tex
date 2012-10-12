@@ -6,8 +6,8 @@ This chapter describes the deployment of \gls{g:shongo} to a new \gls{g:domain}.
 
 \Gls{g:shongo} consists of the following applications:
 \begin{enumerate}
-\item \textbf{\Gls{g:controller}} represents an command-line application which should be launched in single instance for each \gls{g:domain} and it acts as the main \gls{g:shongo} application for the \gls{g:domain}.
-\item \textbf{\Gls{g:connector}} represents an command-line application which can be launched in multiple instances for each \gls{g:domain} and each instance can manage one or multiple \glspl{g:resource}.
+\item \textbf{\Gls{g:controller}} represents a command-line application which should be launched in single instance for each \gls{g:domain} and it acts as the main \gls{g:shongo} application for the \gls{g:domain}.
+\item \textbf{\Gls{g:connector}} represents a command-line application which can be launched in multiple instances for each \gls{g:domain} and each instance can manage one or multiple \glspl{g:resource}.
 \item \textbf{Client} is command-line interface to a \gls{g:controller} which can be used to setup \gls{g:resource} database and to create \glspl{g:reservation-request}. Multiple instances of \glspl{g:controller-client} can run at the same time.
 \end{enumerate}
 
@@ -37,12 +37,13 @@ To launch \textbf{client} you need to have Perl\footnote{Perl \url{http://www.pe
 \item XML::Twig
 \item Text::Table
 \item DateTime::Format::ISO8601
+\item JSON
 \end{compactenum}
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 \begin{verbatim}
 sudo apt-get install librpc-xml-perl libxml-twig-perl \
-        libtext-table-perl libdatetime-format-iso8601-perl
+        libtext-table-perl libdatetime-format-iso8601-perl libjson-perl
 \end{verbatim}
 All applications (\textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}) can be launched by entering the following directory:
 \begin{verbatim}
@@ -67,7 +68,7 @@ Another way to change the default settings is to use a configuration file which 
     ...
 </configuration>
 \end{verbatim}
-There are available options for configuration file:
+The following options are available in the configuration file:
 \begin{itemize}
 \item Configuration of controlled \gls{g:domain}. It's code \code{name} and name of \code{organization} which run's the
 controller.
@@ -84,6 +85,15 @@ controller.
     <host>127.0.0.1</host>
     <port>8181</port>
 </rpc>
+\end{verbatim}
+
+\item Configuration of XML-RPC authentication and authorization. An \code{authorization-server} can be specified.
+\begin{verbatim}
+<security>
+    <authorization-server>
+        https://hroch.cesnet.cz/phpid-server/oic/
+    </authorization-server>
+</security>
 \end{verbatim}
 
 \item Configuration of Jade middle-ware (\code{host} and \code{port}).
@@ -141,7 +151,7 @@ Another way to change the default settings is to use a configuration file which 
     ...
 </configuration>
 \end{verbatim}
-There are available options for configuration file:
+The following options are available in the configuration file:
 \begin{itemize}
 \item Configuration of the connection to the controller (\code{host} and \code{port}). The connection to the controller is periodically checked and in case of failure the connection is re-established. The option \code{connection-check-period} specifies how often the check is performed.
 \begin{verbatim}
