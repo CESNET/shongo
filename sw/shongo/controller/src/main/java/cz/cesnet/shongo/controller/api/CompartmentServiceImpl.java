@@ -4,11 +4,7 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.compartment.CompartmentManager;
-import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
-import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
-import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -93,7 +89,8 @@ public class CompartmentServiceImpl extends Component
 
             entityManager.getTransaction().commit();
             entityManager.close();
-        } catch (javax.persistence.RollbackException exception) {
+        }
+        catch (javax.persistence.RollbackException exception) {
             throw new FaultException("Compartment '" + reservationRequestId.toString() +
                     "' cannot be deleted (it is still referenced).");
         }

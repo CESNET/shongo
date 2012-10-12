@@ -98,7 +98,8 @@ public class TerminalCapability extends DeviceCapability
             alias.fromApi(apiAlias);
         }
         // Delete aliases
-        Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases = api.getCollectionItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
+        Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases = api
+                .getCollectionItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
         for (cz.cesnet.shongo.api.Alias aliasApi : apiDeletedAliases) {
             Alias alias = getAliasById(aliasApi.getId().longValue());
             removeAlias(alias);

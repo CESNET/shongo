@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
@@ -155,7 +156,7 @@ public class CompartmentReservationTaskTest
 
         ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
         CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
-        compartmentReservationTask.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 50));
+        compartmentReservationTask.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 50));
         compartmentReservationTask.addChildSpecification(new ExistingEndpointSpecification(terminal));
         CompartmentReservation compartmentReservation = compartmentReservationTask
                 .perform(CompartmentReservation.class);

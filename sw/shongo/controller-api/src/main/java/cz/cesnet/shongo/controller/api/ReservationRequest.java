@@ -3,8 +3,6 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.Required;
 import org.joda.time.Interval;
 
-import java.util.List;
-
 /**
  * Request for reservation of resources.
  *

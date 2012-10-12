@@ -57,8 +57,8 @@ public abstract class Specification extends PersistentObject
     }
 
     /**
-     * @return {@link Specification} converted to {@link cz.cesnet.shongo.controller.api.Specification}
      * @param domain
+     * @return {@link Specification} converted to {@link cz.cesnet.shongo.controller.api.Specification}
      */
     public cz.cesnet.shongo.controller.api.Specification toApi(Domain domain)
     {
@@ -83,6 +83,9 @@ public abstract class Specification extends PersistentObject
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) {
             specification = new ExternalEndpointSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) {
+            specification = new ExternalEndpointSetSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.LookupEndpointSpecification) {
             specification = new LookupEndpointSpecification();

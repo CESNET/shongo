@@ -14,7 +14,6 @@ import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.slf4j.Logger;
@@ -180,7 +179,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             reset(entityManager);
             entityManager.close();
-        } else {
+        }
+        else {
             reset(null);
         }
     }

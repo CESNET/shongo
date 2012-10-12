@@ -4,8 +4,6 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.compartment.Compartment;
 
 import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 
 /**
  * Represents an {@link Specification} of a target which can participate in a {@link Compartment}.

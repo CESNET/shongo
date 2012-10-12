@@ -14,18 +14,13 @@ import javax.persistence.*;
 import java.util.*;
 
 /**
- * Represents an external (not existing) {@link EndpointSpecification}.
+ * Represents an external (not existing in resource database) {@link EndpointSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
 public class ExternalEndpointSpecification extends EndpointSpecification implements EndpointProvider
 {
-    /**
-     * Number of external endpoints of the same type.
-     */
-    private int count = 1;
-
     /**
      * Set of technologies for external endpoints.
      */
@@ -74,35 +69,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         addTechnology(technology);
 
         addAlias(alias);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param technology
-     * @param count
-     */
-    public ExternalEndpointSpecification(Technology technology, int count)
-    {
-        addTechnology(technology);
-        setCount(count);
-    }
-
-    /**
-     * @return {@link #count}
-     */
-    @Column(name = "same_count")
-    public int getCount()
-    {
-        return count;
-    }
-
-    /**
-     * @param count sets the {@link #count}
-     */
-    public void setCount(int count)
-    {
-        this.count = count;
     }
 
     /**
@@ -191,15 +157,15 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         ExternalEndpointSpecification externalEndpointSpecification = (ExternalEndpointSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getCount(), externalEndpointSpecification.getCount())
-                || !ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases());
 
         if (!technologies.equals(externalEndpointSpecification.getTechnologies())) {
             setTechnologies(externalEndpointSpecification.getTechnologies());
             modified = true;
         }
-        setCount(externalEndpointSpecification.getCount());
-        setAliases(externalEndpointSpecification.getAliases());
+        if (!ObjectUtils.equals(getAliases(), externalEndpointSpecification.getAliases())) {
+            setAliases(externalEndpointSpecification.getAliases());
+            modified = true;
+        }
 
         return modified;
     }
@@ -221,12 +187,17 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
-        externalEndpointSpecificationApi.setCount(getCount());
         if (technologies.size() == 1) {
             externalEndpointSpecificationApi.setTechnology(technologies.iterator().next());
         }
         else {
-            throw new TodoImplementException();
+            throw new TodoImplementException("Allow multiple technologies in external endpoint specification in API.");
+        }
+        if (aliases.size() == 1) {
+            externalEndpointSpecificationApi.setAlias(aliases.iterator().next().toApi());
+        }
+        else {
+            throw new TodoImplementException("Allow multiple aliases in external endpoint specification in API.");
         }
         super.toApi(specificationApi, domain);
     }
@@ -242,8 +213,11 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
             technologies.clear();
             addTechnology(externalEndpointSpecificationApi.getTechnology());
         }
-        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.COUNT)) {
-            setCount(externalEndpointSpecificationApi.getCount());
+        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.ALIAS)) {
+            aliases.clear();
+            Alias alias = new Alias();
+            alias.fromApi(externalEndpointSpecificationApi.getAlias());
+            addAlias(alias);
         }
         super.fromApi(specificationApi, entityManager, domain);
     }
@@ -254,6 +228,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         super.fillDescriptionMap(map);
 
         map.put("technologies", technologies);
-        map.put("count", count);
+        map.put("aliases", aliases);
     }
 }

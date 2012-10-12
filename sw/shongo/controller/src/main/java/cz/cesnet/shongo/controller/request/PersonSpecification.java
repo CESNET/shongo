@@ -196,7 +196,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
                 setPerson(person);
             }
         }
-        if ( invitationState == null ) {
+        if (invitationState == null) {
             invitationState = InvitationState.NOT_SENT;
         }
         super.fromApi(specificationApi, entityManager, domain);

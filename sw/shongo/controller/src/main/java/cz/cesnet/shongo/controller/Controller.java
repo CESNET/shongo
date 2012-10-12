@@ -644,7 +644,8 @@ public class Controller
         }
 
         logger.debug("Creating entity manager factory...");
-        EntityManagerFactory entityManagerFactory = javax.persistence.Persistence.createEntityManagerFactory("controller");
+        EntityManagerFactory entityManagerFactory = javax.persistence.Persistence
+                .createEntityManagerFactory("controller");
         logger.debug("Entity manager factory created.");
 
         // Run controller

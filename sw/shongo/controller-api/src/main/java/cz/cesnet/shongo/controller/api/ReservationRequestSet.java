@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
-import org.joda.time.Interval;
 import org.joda.time.Period;
 
 import java.util.ArrayList;

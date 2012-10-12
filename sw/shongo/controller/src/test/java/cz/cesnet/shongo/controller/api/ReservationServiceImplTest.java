@@ -52,7 +52,7 @@ public class ReservationServiceImplTest extends AbstractControllerTest
                 Period.parse("PT2H"));
         CompartmentSpecification compartment = reservationRequestSet.addSpecification(new CompartmentSpecification());
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
-        compartment.addSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
 
         String identifier = reservationService.createReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
         assertEquals("shongo:cz.cesnet:1", identifier);
@@ -91,7 +91,7 @@ public class ReservationServiceImplTest extends AbstractControllerTest
                         {{
                                 add(new HashMap<String, Object>()
                                 {{
-                                        put("class", "ExternalEndpointSpecification");
+                                        put("class", "ExternalEndpointSetSpecification");
                                         put("technology", "H323");
                                         put("count", 2);
                                     }});

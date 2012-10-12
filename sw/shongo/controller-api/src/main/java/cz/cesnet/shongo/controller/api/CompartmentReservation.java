@@ -1,8 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-
 /**
  * Represents a {@link Reservation} for a {@link CompartmentSpecification}.
  *

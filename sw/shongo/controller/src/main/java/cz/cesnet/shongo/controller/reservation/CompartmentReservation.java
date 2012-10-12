@@ -1,10 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.*;
 import cz.cesnet.shongo.controller.compartment.Compartment;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;

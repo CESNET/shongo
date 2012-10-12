@@ -1,15 +1,14 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.annotation.Required;
 
 /**
- * {@link Specification} for single external endpoint.
+ * {@link Specification} for one or multiple external endpoint.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExternalEndpointSpecification extends ParticipantSpecification
+public class ExternalEndpointSetSpecification extends ParticipantSpecification
 {
     /**
      * Technology of the resource.
@@ -19,12 +18,12 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
     /**
      * Number of same resources.
      */
-    public static final String ALIAS = "alias";
+    public static final String COUNT = "count";
 
     /**
      * Constructor.
      */
-    public ExternalEndpointSpecification()
+    public ExternalEndpointSetSpecification()
     {
     }
 
@@ -32,12 +31,12 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
      * Constructor.
      *
      * @param technology sets the {@link #TECHNOLOGY}
-     * @param alias      sets the {@link #ALIAS}
+     * @param count      sets the {@link #COUNT}
      */
-    public ExternalEndpointSpecification(Technology technology, Alias alias)
+    public ExternalEndpointSetSpecification(Technology technology, int count)
     {
         setTechnology(technology);
-        setAlias(alias);
+        setCount(count);
     }
 
     /**
@@ -58,18 +57,18 @@ public class ExternalEndpointSpecification extends ParticipantSpecification
     }
 
     /**
-     * @return {@link #ALIAS}
+     * @return {@link #COUNT}
      */
-    public Alias getAlias()
+    public Integer getCount()
     {
-        return getPropertyStorage().getValue(ALIAS);
+        return getPropertyStorage().getValue(COUNT);
     }
 
     /**
-     * @param alias sets the {@link #ALIAS}
+     * @param count sets the {@link #COUNT}
      */
-    public void setAlias(Alias alias)
+    public void setCount(Integer count)
     {
-        getPropertyStorage().setValue(ALIAS, alias);
+        getPropertyStorage().setValue(COUNT, count);
     }
 }

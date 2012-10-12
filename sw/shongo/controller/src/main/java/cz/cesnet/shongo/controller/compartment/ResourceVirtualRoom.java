@@ -140,7 +140,8 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
-        } else {
+        }
+        else {
             throw new IllegalStateException("Resource " + getReportDescription() + " is not managed!");
         }
     }
@@ -175,7 +176,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             Room room = new Room();
             room.setPortCount(getPortCount());
             room.setName(roomName);
-            for ( Alias alias : getAliases()) {
+            for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }
             Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName,
@@ -203,7 +204,8 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             if (virtualRoomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
-            Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName, new DeleteRoom(virtualRoomId)));
+            Command command = controllerAgent
+                    .performCommandAndWait(new ActionRequestCommand(agentName, new DeleteRoom(virtualRoomId)));
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return false;
             }

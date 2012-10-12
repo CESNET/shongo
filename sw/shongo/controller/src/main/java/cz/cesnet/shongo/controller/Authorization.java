@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.SecurityException;
 import org.apache.http.HttpEntity;
@@ -87,7 +86,7 @@ public class Authorization
                     new Object[]{securityToken.getAccessToken(), userInfo.get("name"), userInfo.get("email")});
         }
         catch (Exception exception) {
-            throw new SecurityException("Access token '" +  securityToken.getAccessToken()
+            throw new SecurityException("Access token '" + securityToken.getAccessToken()
                     + "' cannot be validated. " + exception.getMessage(), exception);
         }
     }

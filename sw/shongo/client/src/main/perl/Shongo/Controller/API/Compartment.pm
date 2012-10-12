@@ -78,6 +78,7 @@ sub get_attributes
     $attributes->{'add'}('State', format_state($self->{'state'}, $State));
     $attributes->{'add'}('Slot', format_interval($self->{'slot'}));
 
+    my $endpointByIdentifier = {};
     my $endpoints = $attributes->{'add_collection'}('Endpoints');
     foreach my $endpoint (@{$self->{'endpoints'}}) {
         my $string = $endpoint->{'description'};
@@ -86,6 +87,7 @@ sub get_attributes
             $string =~ s/\n$//g;
         }
         $endpoints->{'add'}($string);
+        $endpointByIdentifier->{$endpoint->{'identifier'}} = $endpoint;
     }
 
     my $virtualRooms = $attributes->{'add_collection'}('Virtual Rooms');
@@ -97,11 +99,13 @@ sub get_attributes
         }
         $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
         $virtualRooms->{'add'}($string);
+        $endpointByIdentifier->{$virtualRoom->{'identifier'}} = $virtualRoom;
     }
-
     my $connections = $attributes->{'add_collection'}('Connections');
     foreach my $connection (@{$self->{'connections'}}) {
-        my $string = sprintf("from %s to %s", $connection->{'endpointFrom'}, $connection->{'endpointTo'});
+        my $endpointFrom = $endpointByIdentifier->{$connection->{'endpointFromIdentifier'}};
+        my $endpointTo = $endpointByIdentifier->{$connection->{'endpointToIdentifier'}};
+        my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
         if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
             $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
                 $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});

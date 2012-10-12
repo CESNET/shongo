@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.sql.Connection;
 
@@ -29,7 +28,8 @@ public class DatabaseHelper
     {
         DatabaseManagerSwing databaseManager;
         try {
-            databaseManager = new DatabaseManagerSwing(){
+            databaseManager = new DatabaseManagerSwing()
+            {
                 @Override
                 public void windowClosed(WindowEvent windowEvent)
                 {

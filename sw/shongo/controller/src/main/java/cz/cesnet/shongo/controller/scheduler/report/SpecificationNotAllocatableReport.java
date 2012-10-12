@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.scheduler.report;
 
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.Specification;
-import cz.cesnet.shongo.controller.resource.Resource;
 
 import javax.persistence.*;
 

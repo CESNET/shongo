@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class NoAvailableAliasReport extends Report
 {
     /**
-     *{@link Technology} for the {@link Alias}.
+     * {@link Technology} for the {@link Alias}.
      */
     private Technology technology;
 

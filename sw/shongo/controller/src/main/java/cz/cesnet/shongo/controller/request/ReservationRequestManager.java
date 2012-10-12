@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
 
@@ -89,7 +88,8 @@ public class ReservationRequestManager extends AbstractManager
             }
             // Clear state
             ReservationRequestSetStateManager.clear(entityManager, reservationRequestSet);
-        } else if (abstractReservationRequest instanceof ReservationRequest) {
+        }
+        else if (abstractReservationRequest instanceof ReservationRequest) {
             // Keep reservation (is deleted by scheduler)
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             reservationRequest.setReservation(null);

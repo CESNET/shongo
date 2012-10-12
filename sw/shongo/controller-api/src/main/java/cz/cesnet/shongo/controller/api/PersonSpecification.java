@@ -24,7 +24,7 @@ public class PersonSpecification extends ParticipantSpecification
     /**
      * Constructor.
      *
-     * @param name sets the {@link Person#name} for the {@link #PERSON}
+     * @param name  sets the {@link Person#name} for the {@link #PERSON}
      * @param email sets the {@link Person#email} for the {@link #PERSON}
      */
     public PersonSpecification(String name, String email)

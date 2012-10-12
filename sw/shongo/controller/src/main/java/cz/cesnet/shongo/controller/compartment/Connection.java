@@ -4,8 +4,8 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.jade.ontology.actions.endpoint.HangUpAll;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
 
 import javax.persistence.*;
 
@@ -123,7 +123,7 @@ public abstract class Connection extends PersistentObject
      *
      * @param compartmentExecutor
      */
-    protected abstract boolean onEstablish(CompartmentExecutor compartmentExecutor);
+    protected abstract State onEstablish(CompartmentExecutor compartmentExecutor);
 
     /**
      * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
@@ -145,7 +145,8 @@ public abstract class Connection extends PersistentObject
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
                 command = controllerAgent.performCommand(new ActionRequestCommand(agentName,
                         new DisconnectParticipant(virtualRoom.getVirtualRoomId(), getConnectionId())));
-            } else {
+            }
+            else {
                 // TODO: use connection id to hangup
 
                 command = controllerAgent.performCommand(new ActionRequestCommand(agentName, new HangUpAll()));
@@ -169,12 +170,8 @@ public abstract class Connection extends PersistentObject
                     "Connection can be established only if the connection is not established yet.");
         }
 
-        if (onEstablish(compartmentExecutor)) {
-            setState(State.ESTABLISHED);
-        }
-        else {
-            setState(State.FAILED);
-        }
+        State state = onEstablish(compartmentExecutor);
+        setState(state);
     }
 
     /**

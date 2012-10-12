@@ -259,6 +259,7 @@ public class Compartment extends PersistentObject
         for (Endpoint endpoint : getEndpoints()) {
             cz.cesnet.shongo.controller.api.Compartment.Endpoint endpointApi =
                     new cz.cesnet.shongo.controller.api.Compartment.Endpoint();
+            endpointApi.setIdentifier(endpoint.getId().toString());
             endpointApi.setDescription(endpoint.getReportDescription());
             for (Alias alias : endpoint.getAssignedAliases()) {
                 endpointApi.addAlias(alias.toApi());
@@ -269,6 +270,7 @@ public class Compartment extends PersistentObject
             cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
 
                     new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
+            virtualRoomApi.setIdentifier(virtualRoom.getId().toString());
             virtualRoomApi.setPortCount(virtualRoom.getPortCount());
             virtualRoomApi.setDescription(virtualRoom.getReportDescription());
             for (Alias alias : virtualRoom.getAssignedAliases()) {
@@ -282,8 +284,8 @@ public class Compartment extends PersistentObject
                 ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
                 cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress connectionByAddressApi =
                         new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress();
-                connectionByAddressApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
-                connectionByAddressApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
+                connectionByAddressApi.setEndpointFromIdentifier(connection.getEndpointFrom().getId().toString());
+                connectionByAddressApi.setEndpointToIdentifier(connection.getEndpointTo().getId().toString());
                 connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
                 connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
                 connectionByAddressApi.setState(connectionByAddress.getState().toApi());
@@ -293,8 +295,8 @@ public class Compartment extends PersistentObject
                 ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
                 cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias connectionByAliasApi =
                         new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias();
-                connectionByAliasApi.setEndpointFrom(connection.getEndpointFrom().getReportDescription());
-                connectionByAliasApi.setEndpointTo(connection.getEndpointTo().getReportDescription());
+                connectionByAliasApi.setEndpointFromIdentifier(connection.getEndpointFrom().getId().toString());
+                connectionByAliasApi.setEndpointToIdentifier(connection.getEndpointTo().getId().toString());
                 connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
                 connectionByAliasApi.setState(connectionByAlias.getState().toApi());
                 compartmentApi.addConnection(connectionByAliasApi);

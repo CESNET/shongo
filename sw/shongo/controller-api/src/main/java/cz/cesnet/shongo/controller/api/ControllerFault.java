@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.fault.CommonFault;
-import cz.cesnet.shongo.fault.Fault;
 
 /**
  * Domain controller faults.

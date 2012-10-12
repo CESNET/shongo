@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import java.util.List;
-
 /**
  * Specification for {@link ReservationRequest}s.
  *

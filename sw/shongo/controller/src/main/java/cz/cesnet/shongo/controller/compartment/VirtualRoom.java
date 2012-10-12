@@ -97,9 +97,10 @@ public abstract class VirtualRoom extends Endpoint
                     "Virtual room can be created only if the virtual room is not created yet.");
         }
 
-        if ( onCreate(compartmentExecutor) ) {
+        if (onCreate(compartmentExecutor)) {
             setState(State.CREATED);
-        } else {
+        }
+        else {
             setState(State.FAILED);
         }
     }

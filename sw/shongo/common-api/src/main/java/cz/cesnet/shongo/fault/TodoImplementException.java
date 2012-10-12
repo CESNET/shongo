@@ -5,14 +5,18 @@ package cz.cesnet.shongo.fault;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class TodoImplementException extends RuntimeException implements Fault
+public class TodoImplementException extends RuntimeException implements Fault, SerializableException
 {
+    /**
+     * Message.
+     */
+    String description;
+
     /**
      * Constructor.
      */
     public TodoImplementException()
     {
-        this("TODO: Implement");
     }
 
     /**
@@ -22,7 +26,7 @@ public class TodoImplementException extends RuntimeException implements Fault
      */
     public TodoImplementException(String description)
     {
-        super(String.format("TODO: Implement %s", description));
+        this.description = description;
     }
 
     /**
@@ -36,9 +40,23 @@ public class TodoImplementException extends RuntimeException implements Fault
         this(String.format(format, objects));
     }
 
+    /**
+     * @return {@link #description}
+     */
+    public String getDescription()
+    {
+        return description;
+    }
+
     @Override
     public int getCode()
     {
         return CommonFault.TODO_IMPLEMENT;
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return String.format("TODO: Implement %s", description);
     }
 }

@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.fault;
 
 import cz.cesnet.shongo.controller.api.ControllerFault;
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 
 /**

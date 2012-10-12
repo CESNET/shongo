@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.xmlrpc.*;
+import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.Fault;
-import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.SerializableException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
@@ -170,7 +169,8 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
             Exception exception = (Exception) fault;
             message = SerializableException.Content.fromException(exception).toString();
 
-        } else {
+        }
+        else {
             message = fault.getMessage();
         }
         return new XmlRpcException(fault.getCode(), message, cause);

@@ -191,6 +191,11 @@ public class Compartment
     public static class Endpoint
     {
         /**
+         * Identifier of the {@link Endpoint}.
+         */
+        private String identifier;
+
+        /**
          * Description of the {@link Endpoint}.
          */
         private String description;
@@ -199,6 +204,22 @@ public class Compartment
          * List of assigned {@link cz.cesnet.shongo.api.Alias}es to the {@link Endpoint}.
          */
         private List<Alias> aliases = new ArrayList<Alias>();
+
+        /**
+         * @return {@link #identifier}
+         */
+        public String getIdentifier()
+        {
+            return identifier;
+        }
+
+        /**
+         * @param identifier sets the {@link #identifier}
+         */
+        public void setIdentifier(String identifier)
+        {
+            this.identifier = identifier;
+        }
 
         /**
          * @return {@link #description}
@@ -321,14 +342,14 @@ public class Compartment
     public static class Connection
     {
         /**
-         * Endpoint which initiates the {@link Connection}.
+         * Identifier of endpoint which initiates the {@link Connection}.
          */
-        private String endpointFrom;
+        private String endpointFromIdentifier;
 
         /**
          * Target endpoint for the {@link Connection}.
          */
-        private String endpointTo;
+        private String endpointToIdentifier;
 
         /**
          * Current state of the {@link Connection}.
@@ -336,35 +357,35 @@ public class Compartment
         private State state;
 
         /**
-         * @return {@link #endpointFrom}
+         * @return {@link #endpointFromIdentifier}
          */
-        public String getEndpointFrom()
+        public String getEndpointFromIdentifier()
         {
-            return endpointFrom;
+            return endpointFromIdentifier;
         }
 
         /**
-         * @param endpointFrom sets the {@link #endpointFrom}
+         * @param endpointFromIdentifier sets the {@link #endpointFromIdentifier}
          */
-        public void setEndpointFrom(String endpointFrom)
+        public void setEndpointFromIdentifier(String endpointFromIdentifier)
         {
-            this.endpointFrom = endpointFrom;
+            this.endpointFromIdentifier = endpointFromIdentifier;
         }
 
         /**
-         * @return {@link #endpointTo}
+         * @return {@link #endpointToIdentifier}
          */
-        public String getEndpointTo()
+        public String getEndpointToIdentifier()
         {
-            return endpointTo;
+            return endpointToIdentifier;
         }
 
         /**
-         * @param endpointTo sets the {@link #endpointTo}
+         * @param endpointToIdentifier sets the {@link #endpointToIdentifier}
          */
-        public void setEndpointTo(String endpointTo)
+        public void setEndpointToIdentifier(String endpointToIdentifier)
         {
-            this.endpointTo = endpointTo;
+            this.endpointToIdentifier = endpointToIdentifier;
         }
 
         /**

@@ -1,15 +1,11 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents an entity (or multiple entities) which can participate in a {@link Compartment}.
@@ -20,14 +16,16 @@ import java.util.Set;
 public class ExternalEndpoint extends Endpoint
 {
     /**
-     * Number of external endpoints of the same type.
-     */
-    private int count = 1;
-
-    /**
      * Set of technologies for external endpoints.
      */
     private Set<Technology> technologies = new HashSet<Technology>();
+
+    /**
+     * List of aliases that can be used to reference the external endpoint.
+     */
+    @OneToMany(cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
+    private List<Alias> aliases = new ArrayList<Alias>();
 
     /**
      * Constructor.
@@ -43,27 +41,12 @@ public class ExternalEndpoint extends Endpoint
      */
     public ExternalEndpoint(ExternalEndpointSpecification externalEndpointSpecification)
     {
-        this.count = externalEndpointSpecification.getCount();
         for (Technology technology : externalEndpointSpecification.getTechnologies()) {
             addTechnology(technology);
         }
-    }
-
-    /**
-     * @return {@link #count}
-     */
-    @Column(name = "same_count")
-    public int getCount()
-    {
-        return count;
-    }
-
-    /**
-     * @param count sets the {@link #count}
-     */
-    public void setCount(int count)
-    {
-        this.count = count;
+        for (Alias alias : externalEndpointSpecification.getAliases()) {
+            addAlias(alias.clone());
+        }
     }
 
     /**
@@ -93,17 +76,36 @@ public class ExternalEndpoint extends Endpoint
         technologies.add(technology);
     }
 
+    /**
+     * @return {@link #aliases}
+     */
+    public List<Alias> getAliases()
+    {
+        List<Alias> aliases = new ArrayList<Alias>();
+        aliases.addAll(this.aliases);
+        aliases.addAll(super.getAssignedAliases());
+        return aliases;
+    }
+
+    /**
+     * @param alias alias to be added to the {@link #aliases}
+     */
+    public void addAlias(Alias alias)
+    {
+        aliases.add(alias);
+    }
+
     @Override
     @Transient
     public void addAssignedAlias(Alias alias)
     {
-        throw new IllegalStateException("Cannot assign alias to allocated external endpoint.");
+        throw new IllegalStateException("Cannot assign alias to external endpoint.");
     }
 
     @Override
     @Transient
     public String getReportDescription()
     {
-        return String.format("external endpoint(%dx %s)", count, Technology.formatTechnologies(technologies));
+        return String.format("external endpoint(%s)", Technology.formatTechnologies(technologies));
     }
 }

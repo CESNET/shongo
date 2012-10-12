@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 
 import java.util.List;
@@ -53,6 +52,7 @@ public class CompartmentSpecification extends Specification
     {
         return getPropertyStorage().getValue(CALL_INITIATION);
     }
+
     /**
      * @param callInitiation sets the {@link #CALL_INITIATION}
      */

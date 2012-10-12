@@ -54,7 +54,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.addSpecification(compartmentSpecification);
         // Second compartment
         compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.ADOBE_CONNECT, 2));
+        compartmentSpecification.addChildSpecification(
+                new ExternalEndpointSetSpecification(Technology.ADOBE_CONNECT, 2));
         reservationRequestSet.addSpecification(compartmentSpecification);
 
         // Save it
@@ -117,7 +118,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-02"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
                 new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.addSpecification(compartmentSpecification);
@@ -167,7 +168,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
                 new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.addSpecification(compartmentSpecification);

@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.CompartmentSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSpecification;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -33,8 +34,8 @@ public class ReportTest
         ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 2));
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 1));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323));
         CompartmentReservationTask reservationTask = compartmentSpecification.createReservationTask(context);
 
         for (Report report : reservationTask.getReports()) {

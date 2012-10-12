@@ -36,7 +36,7 @@ public class Configuration extends CompositeConfiguration
     /**
      * Duration for which the {@link Executor} looks ahead for compartments to be executed.
      */
-    public static final String EXECUTOR_LOOKUP_AHEAD= "executor.lookup-ahead";
+    public static final String EXECUTOR_LOOKUP_AHEAD = "executor.lookup-ahead";
 
     /**
      * Duration to modify compartment starting date/time.

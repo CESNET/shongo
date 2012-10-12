@@ -41,15 +41,15 @@ public class ConnectionByAlias extends Connection
     }
 
     @Override
-    protected boolean onEstablish(CompartmentExecutor compartmentExecutor)
+    protected State onEstablish(CompartmentExecutor compartmentExecutor)
     {
-        StringBuilder message = new StringBuilder();
-        message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
-                getEndpointFrom().getReportDescription(), getAlias().getValue(),
-                getAlias().getTechnology().getName()));
-        compartmentExecutor.getLogger().debug(message.toString());
-
         if (getEndpointFrom() instanceof ManagedEndpoint) {
+            StringBuilder message = new StringBuilder();
+            message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
+                    getEndpointFrom().getReportDescription(), getAlias().getValue(),
+                    getAlias().getTechnology().getName()));
+            compartmentExecutor.getLogger().debug(message.toString());
+
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
@@ -64,10 +64,11 @@ public class ConnectionByAlias extends Connection
                         agentName, new Dial(getAlias().toApi())));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
+                return State.FAILED;
             }
             setConnectionId((String) command.getResult());
+            return State.ESTABLISHED;
         }
-        return true;
+        return State.NOT_ESTABLISHED;
     }
 }

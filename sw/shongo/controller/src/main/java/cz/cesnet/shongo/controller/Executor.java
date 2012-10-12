@@ -3,12 +3,9 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.controller.compartment.Compartment;
 import cz.cesnet.shongo.controller.compartment.CompartmentExecutor;
 import cz.cesnet.shongo.controller.compartment.CompartmentManager;
-import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
-import org.joda.time.Period;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

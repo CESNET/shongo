@@ -73,7 +73,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
             // Requests 3 guests
-            compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 3));
+            compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
             // Request specific persons, the first will use specified H.323 endpoint and
             // the second must select an endpoint then
             Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
@@ -192,7 +192,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
                     reservationRequestSetId);
             CompartmentSpecification compartmentSpecification =
                     (CompartmentSpecification) reservationRequestSet.getSpecifications().get(0);
-            compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 100));
+            compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 100));
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
 
@@ -211,8 +211,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Modify specification to not exceed the maximum number of ports
             entityManager.getTransaction().begin();
-            ExternalEndpointSpecification externalEndpointSpecification =
-                    (ExternalEndpointSpecification) compartmentSpecification.getSpecifications().get(3);
+            ExternalEndpointSetSpecification externalEndpointSpecification =
+                    (ExternalEndpointSetSpecification) compartmentSpecification.getSpecifications().get(3);
             externalEndpointSpecification.setCount(96);
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();
@@ -440,7 +440,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.H323, 10));
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.addSpecification(compartmentSpecification);
 
         checkSuccessfulAllocation(reservationRequest, cache);

@@ -106,7 +106,8 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
-        } else {
+        }
+        else {
             throw new IllegalStateException("Resource " + getReportDescription() + " is not managed!");
         }
     }

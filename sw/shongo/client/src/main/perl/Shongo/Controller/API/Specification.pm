@@ -23,6 +23,7 @@ use Shongo::Controller::API::Person;
 our $Type = ordered_hash(
     'CompartmentSpecification' => 'Compartment',
     'ExternalEndpointSpecification' => 'External Endpoint',
+    'ExternalEndpointSetSpecification' => 'Set of External Endpoints',
     'ExistingEndpointSpecification' => 'Existing Resource',
     'LookupEndpointSpecification' => 'Lookup Resource',
     'PersonSpecification' => 'Person',
@@ -104,6 +105,25 @@ sub modify()
     switch ($self->{'class'}) {
         case 'ExternalEndpointSpecification' {
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
+
+            my $hasAlias = 0;
+            if ( defined($self->{'alias'}) ) {
+                $hasAlias = 1;
+            }
+            $hasAlias = console_edit_bool("Has alias", 1, $hasAlias);
+            if ( $hasAlias ) {
+                if ( !defined($self->{'alias'}) ) {
+                    $self->{'alias'} = Shongo::Controller::API::Alias->new();
+                    $self->{'alias'}->create();
+                } else {
+                    $self->{'alias'}->modify();
+                }
+            } else {
+                $self->{'alias'} = undef;
+            }
+        }
+        case 'ExternalEndpointSetSpecification' {
+            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'count'} = console_edit_value("Count", 1, "\\d+", $self->{'count'});
         }
         case 'ExistingEndpointSpecification' {
@@ -146,6 +166,12 @@ sub get_attributes
 
     switch ($self->{'class'}) {
         case 'ExternalEndpointSpecification' {
+            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+            if ( defined($self->{'alias'}) ) {
+                $attributes->{'add'}('Alias', $self->{'alias'});
+            }
+        }
+        case 'ExternalEndpointSetSpecification' {
             $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
             $attributes->{'add'}('Count', $self->{'count'});
         }

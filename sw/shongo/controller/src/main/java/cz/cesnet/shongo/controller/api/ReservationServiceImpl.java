@@ -4,8 +4,9 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
-import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -24,7 +25,7 @@ import java.util.List;
  */
 public class ReservationServiceImpl extends Component
         implements ReservationService, Component.EntityManagerFactoryAware, Component.DomainAware,
-        Component.AuthorizationAware
+                   Component.AuthorizationAware
 {
     /**
      * @see javax.persistence.EntityManagerFactory
@@ -109,6 +110,7 @@ public class ReservationServiceImpl extends Component
      *
      * @param abstractReservationRequestImpl
      * @throws ReservationRequestNotModifiableException
+     *
      */
     private void checkModifiableReservationRequest(
             cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequestImpl)

@@ -9,11 +9,12 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.report.*;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceNotEndpoint;
+import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.util.TemporalHelper;
 import org.apache.commons.lang.ObjectUtils;
-import org.joda.time.Period;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;

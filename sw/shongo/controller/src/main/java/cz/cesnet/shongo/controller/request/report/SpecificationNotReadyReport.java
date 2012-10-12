@@ -54,7 +54,8 @@ public class SpecificationNotReadyReport extends Report
      */
     public static String formatSpecification(Specification specification)
     {
-        if (!(specification instanceof StatefulSpecification) || ((StatefulSpecification) specification).getCurrentState() != StatefulSpecification.State.NOT_READY) {
+        if (!(specification instanceof StatefulSpecification) || ((StatefulSpecification) specification)
+                .getCurrentState() != StatefulSpecification.State.NOT_READY) {
             return null;
         }
         if (specification instanceof PersonSpecification) {
@@ -71,7 +72,7 @@ public class SpecificationNotReadyReport extends Report
                     stringBuilder.append("\n");
                 }
                 String string = formatSpecification(requestedSpecification);
-                if ( string != null) {
+                if (string != null) {
                     stringBuilder.append(string);
                 }
             }

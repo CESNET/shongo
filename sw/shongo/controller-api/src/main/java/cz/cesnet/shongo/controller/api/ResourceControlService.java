@@ -17,11 +17,11 @@ public interface ResourceControlService extends Service
 {
     /**
      * Gets collection of method names supported by the identified device.
-     *
+     * <p/>
      * Watch out, that the names refer to methods on the connector interfaces, not from this API!
      * For example, the listRooms() method from this interface is in fact implemented by calling the getRoomList()
      * method on connector, so the returned list of supported methods contains "getRoomList" rather than "listRooms".
-     *
+     * <p/>
      * FIXME: fix the aforementioned shortcoming - return directly the names from this interface
      *
      * @param token
