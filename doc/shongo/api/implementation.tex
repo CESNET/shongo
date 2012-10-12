@@ -1,17 +1,25 @@
-\chapter{Implementation}
+\chapter{Controller Implementation}
 \input{commands}
 
 \lstset{
   classoffset=1,
   morekeywords={
     % Common
-    DateTime, AbsoluteDateTime, PeriodicDateTime, Period, Duration,
-    DateTimeSlot, AbsoluteDateTimeSlot, Person
+    DateTime, ReadablePartial, PeriodicDateTime, Period, Duration, Interval,
+    DateTimeSlot, Person,
     % Capabilities
     TerminalCapability, StandaloneTerminalCapability, VirtualRoomsCapability, 
     AliasProviderCapability,
     % Resources
-    Resource, DeviceResource, ManagedMode,
+    Alias, Resource, DeviceResource, ManagedMode,
+    % Reservation Requests
+    ReservationRequest, ReservationRequestSet, NORMAL, PERMANENT, EDUCATION, SCIENCE,
+    CompartmentSpecification,
+    ExternalEndpointSpecification, ExternalEndpointSetSpecification,
+    ExistingEndpointSpecification,
+    % Reservations
+    Reservation, Compartment, Endpoint, VirtualRoom, ConnectionByAddress, 
+    ConnectionByAlias,
     % Enums
     H323, SIP, AdobeConnect, E164, URI
   }
@@ -144,6 +152,7 @@ capabilities: [
 
 
 \section{Reservation requests}
+\label{sec:implementation-reservation-request}
 
 Each controller runs a service component which processes incoming \glspl{g:reservation-request} which can be created by \glspl{g:user} through a \gls{g:controller-client} and the requests are persisted in the \gls{g:controller}'s storage. New \glspl{g:reservation-request} can be created and existing \glspl{g:reservation-request} can be modified or deleted. Class diagram for \glspl{g:reservation-request} is shown in fig. \ref{fig:cd_api_reservation_requests}.
 
@@ -167,12 +176,13 @@ Periodic date/time slots must be enumerated to absolute date/time slots and for 
 
 \item \ApiRef{ReservationRequest} represents a minimum processable unit for a \gls{g:scheduler} which can be allocated to a \gls{g:reservation}. It must specify exactly one absolute date/time \code{slot} (periodic date/time cannot be used here) and one \code{specification} for a target which should be allocated.
 \end{enumerate}
+Each \gls{g:reservation-request} is identified by an unique \code{identifier} and each request also has some basic attributes, e.g., date/time when the request was \code{created}, \code{name} of the request or \code{type} (whether the request should be allocated by a scheduler -- \code{NORMAL}, or whether specified resources should not be considered as available in specified date/time slots -- \code{PERMANENT}, which can be created for a resource only by the resource owner).
 
 There are several types of specifications for targets which can be requested for allocation in \glspl{g:reservation-request}:
 \begin{enumerate}
 \item \ApiRef{AliasSpecification} allows us to get allocated an available \gls{g:device-alias}. When we receive an \gls{g:device-alias} \gls{g:reservation} we can use it for our purposes (e.g., assign the \gls{g:device-alias} to our hardware endpoint or installed software client) or we can use it when creating another \gls{g:reservation-request} and pass the \gls{g:device-alias} \gls{g:reservation} to the request. A \gls{g:scheduler} then can use the \gls{g:device-alias} as available resource when it is allocating a \gls{g:reservation} for the \gls{g:reservation-request} (e.g., assign it to any managed \gls{g:endpoint} or created \gls{g:device-virtual-room}). 
 
-\todo{Passing allocated reservations to new reservation requests isn't implemented yet.}
+\todo{Passing allocated reservations to a new reservation requests isn't implemented yet.}
 
 \item \ApiRef{ExistingEndpointSpecification} allows us to get allocated a specific \gls{g:endpoint} \gls{g:resource-device}. Then we can use it in the requested date/time slot for our purposes (e.g., we request an H.323 \gls{g:endpoint} in a lecture room and we get allocated reservation for the \gls{g:endpoint} and also for the lecture room, we can go to the lecture room and use the \gls{g:endpoint} to connect to a conference).
 
@@ -194,7 +204,7 @@ A \gls{g:reservation-request} (\ApiRef{ReservationRequest}) can be in one of a s
 \item \code{NOT\_COMPLETE} A \gls{g:reservation-request} is not ready for allocation by a \gls{g:scheduler} (e.g., some person requested by the \ApiRef{PersonSpecification} hasn't confirmed/rejected the invitation or he hasn't selected an endpoint by which he will connect to a \gls{g:compartment}).
 \item \code{COMPLETE} A \gls{g:reservation-request} is ready for allocation by a \gls{g:scheduler}, but the \gls{g:scheduler} hasn't allocated it yet.
 \item \code{ALLOCATED} A \gls{g:reservation-request} has been successfully allocated by the \gls{g:scheduler} to a \gls{g:reservation}.
-\item \code{ALLOCATION\_FAILED} A \gls{g:reservation-request} has been successfully allocated by the \gls{g:scheduler} to a \gls{g:reservation}.
+\item \code{ALLOCATION\_FAILED} The \gls{g:scheduler} has failed to allocate a \gls{g:reservation-request} to a \gls{g:reservation}.
 \end{enumerate}
 
 \begin{figure}[ht!]
@@ -205,10 +215,86 @@ A \gls{g:reservation-request} (\ApiRef{ReservationRequest}) can be in one of a s
 
 Only complete \glspl{g:reservation-request} are allocated by the \gls{g:scheduler} to \glspl{g:reservation}.
 
+Here are some examples of \glspl{g:reservation-request}:
+
+\begin{itemize}
+
+\item \Gls{g:reservation-request} for a \gls{g:compartment} taking place on 12.10.2012 from 14:00 to 16:00 in which will participate Tandberg Codec C90 \gls{g:endpoint} from the \gls{g:resource} database (\codeValue{shongo:cz.cesnet:2}) and to the \gls{g:compartment} can also connect any other three H.323 endpoints. Thus for the \gls{g:compartment} must be allocated one H.323 \gls{g:device-virtual-room} with 4 available ports.
+
+\label{oc:request1}
+\begin{ObjectCode}{ReservationRequest}{request1}{}
+identifier: shongo:cz.cesnet:1,
+type: NORMAL,
+name: Example 2,
+slot: DateTimeSlot {
+  start: DateTime(2012-10-12T14:00),
+  duration: Period(PT2H)
+},
+specification: CompartmentSpecification {
+  specifications: [
+    ExternalEndpointSetSpecification {
+      count: 3,
+      technology: H323
+    },
+    ExistingEndpointSpecification { // Tandberg Codec C90
+      resourceIdentifier: shongo:cz.cesnet:2
+    }
+  ]
+}
+\end{ObjectCode}
+
+\item Set of \glspl{g:reservation-request} from which will be created a \gls{g:reservation-request} for each Wednesday from 14:00 to 16:00, first on 5.9.2012 and last on 26.6.2013. Each created request will be allocated to a \gls{g:compartment} \gls{g:reservation} with a \gls{g:device-virtual-room} for 3 ports in H.323.
+
+\label{oc:request2}
+\begin{ObjectCode}{ReservationRequestSet}{request2}{}
+identifier: shongo:cz.cesnet:2,
+type: NORMAL,
+name: Example 3,
+slots: [
+  DateTimeSlot {
+    start: PeriodicDateTime{
+      start: DateTime(2012-09-05T14:00),
+      period: Period(PT2H),
+      end: ReadablePartial(2013-06-31)
+    },
+    duration: Period(PT2H)
+  }
+],
+specifications: [
+  CompartmentSpecification {
+    specifications: [
+      ExternalEndpointSetSpecification {
+        count: 3,
+        technology: H323
+      }
+    ]
+  }
+]
+\end{ObjectCode}
+
+\item \Gls{g:reservation-request} for a H.323 phone number from 1.1.2012 to 31.12.2012.
+
+\label{oc:request3}
+\begin{ObjectCode}{ReservationRequest}{request3}{}
+identifier: shongo:cz.cesnet:3,
+type: NORMAL,
+name: Example 1,
+slot: DateTimeSlot {
+  start: DateTime(2012-01-01T00:00),
+  duration: Period(PT1Y)
+},
+specification: AliasSpecification {
+  technology: H323,
+  aliasType: E164
+}
+\end{ObjectCode}
+
+\end{itemize}
+
 
 \section{Reservations}
 
-\Gls{g:reservation} is an object through which an user receive allocated \glspl{g:resource} which he was requesting. Each reservation is identified by an unique \ApiCode{identifier} and the \gls{g:reservation} is allocated for one specific date/time \ApiCode{slot}. Reservation can contain some child \glspl{g:reservation} which has been allocated to satisfy parent allocation needs (e.g., a \gls{g:reservation} for a \gls{g:compartment} may contain child \glspl{g:reservation} for \glspl{g:endpoint}, \glspl{g:device-virtual-room} or \glspl{g:device-alias}, and a \gls{g:reservation} for an \gls{g:endpoint} may contain child \gls{g:reservation} for a lecture room).
+\Gls{g:reservation} is an object through which an user receives allocated \glspl{g:resource} which he was requesting by a \gls{g:reservation-request}. Each reservation is identified by an unique \ApiCode{identifier} and the \gls{g:reservation} is allocated for one specific date/time \ApiCode{slot}. Reservation can contain some child \glspl{g:reservation} which has been allocated to satisfy parent allocation needs (e.g., a \gls{g:reservation} for a \gls{g:compartment} may contain child \glspl{g:reservation} for \glspl{g:endpoint}, \glspl{g:device-virtual-room} or \glspl{g:device-alias}, and a \gls{g:reservation} for an \gls{g:endpoint} may contain child \gls{g:reservation} for a lecture room).
 
 \begin{figure}[ht!]
 \includegraphics[width=\textwidth]{diagrams/cd_api_reservations}
@@ -220,6 +306,7 @@ There are several types of \glspl{g:reservation}:
 \begin{enumerate}
 \item \ApiRef{ResourceReservation} represents a \gls{g:reservation} for a \gls{g:resource} from the \gls{g:resource} database (e.g., \gls{g:reservation} for a H.323 \gls{g:endpoint} for a specific date/time slot or a \gls{g:reservation} for a lecture room for a specific date/time slot). For each resource and date/time slot can exist only one reservation (reservation must not collide).
 \item \ApiRef{VirtualRoomReservation} represents a special type of \ApiRef{ResourceReservation} for a \gls{g:device-virtual-room} in the \gls{g:resource-device} with a \ApiRef{VirtualRoomsCapability} (e.g., a \gls{g:reservation} for a \gls{g:device-virtual-room} with 5 available ports in H.323 MCU \gls{g:resource}). These \glspl{g:reservation} can collide (multiple \glspl{g:device-virtual-room} can be created at the same time), but must not exceed the maximum number of ports specified in the \ApiRef{VirtualRoomsCapability}.
+
 \item \ApiRef{AliasReservation} represents a special type of \ApiRef{ResourceReservation} for an \ApiCode{alias} from the \gls{g:resource} with an \ApiRef{AliasProviderCapability} (e.g., a \gls{g:reservation} for an \gls{g:device-alias} \ApiValue{950087201} from a \gls{g:resource} which provides \glspl{g:device-alias} with prefix \ApiValue{9500872XX}).
 \item \ApiRef{CompartmentReservation} represents a \gls{g:reservation} for a \gls{g:compartment} and it usually contains multiple child \glspl{g:reservation} for \glspl{g:device-virtual-room}, \glspl{g:endpoint} and \glspl{g:device-alias}. It also contains a reference to \ApiCode{compartment} (instance of \ApiRef{Compartment} class) which represents a \gls{g:compartment} plan which is used by an \gls{g:executor} to establish the \gls{g:compartment}.
 \end{enumerate}
@@ -243,4 +330,126 @@ The following two diagrams describes how \ApiRef{ReservationRequest}s and \ApiRe
 \label{fig:sd_reservation_request_set_allocation}
 \end{figure}
 
+\clearpage
+
+Here are some examples of allocated \glspl{g:reservation}:
+
+\begin{itemize}
+\item Allocated \gls{g:reservation} for \hyperref[oc:request1]{\codeValue{request1}} (which was requesting compartment for 3 external H.323 ports and existing H.323 \gls{g:endpoint}) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{CompartmentReservation}{reservation1}{}
+identifier: shongo:cz.cesnet:1,
+slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
+childReservationIdentifiers: [
+  shongo:cz.cesnet:2, // Child reservation for Tandberg endpoint 
+  shongo:cz.cesnet:3, // Child reservation for virtual room in Codian MCU
+  shongo:cz.cesnet:4  // Child reservation for alias for virtual room
+],
+compartment: Compartment { // Executor compartment plan
+  endpoints: [
+    Endpoint { // Tandberg Codec C90 endpoint
+      identifier: 2,
+      description: existing endpoint shongo:cz.cesnet:2,      
+    }
+  ],
+  virtualRooms: [
+    VirtualRoom { // Virtual room with 4 available ports in Codian MCU 4515
+      identifier: 3,
+      portCount: 4,
+      description: virtual room in device resource shongo:cz.cesnet:1,      
+      aliases: [
+        Alias { technology: H323, type: E164, value: 950087201 }
+      ]
+    }
+  ],
+  connections: [
+    ConnectionByAlias { // Connection from Tandberg endpoint to virtual room
+      endpointFromIdentifier: 2, 
+      endpointToIdentifier: 3,
+      alias: Alias { technology: H323, type: E164, value: 950087201 }
+    }
+  ]
+}
+\end{ObjectCode}
+\begin{ObjectCode}{ResourceReservation}{reservation2}{Child reservation for Tandberg endpoint}
+identifier: shongo:cz.cesnet:2,
+slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
+parentReservationIdentifier: shongo:cz.cesnet:1,
+resourceIdentifier: shongo:cz.cesnet:2
+\end{ObjectCode}
+\begin{ObjectCode}{VirtualRoomReservation}{reservation3}{Child reservation for virtual room in Codian MCU}
+identifier: shongo:cz.cesnet:3,
+slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
+parentReservationIdentifier: shongo:cz.cesnet:1,
+resourceIdentifier: shongo:cz.cesnet:1,
+portCount: 4
+\end{ObjectCode}
+\begin{ObjectCode}{AliasReservation}{reservation4}{Child reservation for alias for virtual room}
+identifier: shongo:cz.cesnet:4,
+slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
+parentReservationIdentifier: shongo:cz.cesnet:1,
+resourceIdentifier: shongo:cz.cesnet:1,
+alias: Alias { technology: H323, type: E164, value: 950087201 }
+\end{ObjectCode}
+
+\item Allocated \gls{g:reservation} for \hyperref[oc:request2]{\codeValue{request2}} on 5.9.2012 (which was requesting compartment for 3 external H.323 ports for multiple date/time slots) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{CompartmentReservation}{reservation5}{}
+identifier: shongo:cz.cesnet:5,
+slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
+childReservationIdentifiers: [
+  shongo:cz.cesnet:6, // Child reservation for virtual room in Codian MCU
+  shongo:cz.cesnet:7  // Child reservation for alias for virtual room
+],
+compartment: Compartment { // Executor compartment plan  
+  virtualRooms: [
+    VirtualRoom { // Virtual room with 3 available ports in Codian MCU 4515
+      identifier: 3,
+      portCount: 4,
+      description: virtual room in device resource shongo:cz.cesnet:1,      
+      aliases: [
+        Alias { technology: H323, type: E164, value: 950087201 }
+      ]
+    }
+  ]
+}
+\end{ObjectCode}
+\begin{ObjectCode}{VirtualRoomReservation}{reservation6}{Child reservation for virtual room in Codian MCU}
+identifier: shongo:cz.cesnet:6,
+slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
+parentReservationIdentifier: shongo:cz.cesnet:5,
+resourceIdentifier: shongo:cz.cesnet:1,
+portCount: 3
+\end{ObjectCode}
+\begin{ObjectCode}{AliasReservation}{reservation7}{Child reservation for alias for virtual room}
+identifier: shongo:cz.cesnet:7,
+slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
+parentReservationIdentifier: shongo:cz.cesnet:5,
+resourceIdentifier: shongo:cz.cesnet:1,
+alias: Alias { technology: H323, type: E164, value: 950087201 }
+\end{ObjectCode}
+
+\item Allocated \gls{g:reservation} for \hyperref[oc:request3]{\codeValue{request3}} (which was requesting H.323 phone number) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{AliasReservation}{reservation8}{}
+identifier: shongo:cz.cesnet:8,
+slot: Interval(2012-01-01T00:00/2013-01-01T00:00),
+resourceIdentifier: shongo:cz.cesnet:5, // From aliasProvider resource
+alias: Alias { 
+  technology: H323, 
+  type: E164, 
+  value: 950087202 
+}
+\end{ObjectCode}
+
+\end{itemize}
+
 \todo{Describe that scheduler can in future use inter-controller protocol to allocate resources for reservations}
+
+
+\section{Authentication \& Authorization}
+
+\subsection{Controller vs. Client}
+\todo{Describe controller API authentication} \\
+\todo{Describe controller API authorization}
+
+\subsection{Controller vs. Connector}
+\todo{Describe connector API authentication}
+

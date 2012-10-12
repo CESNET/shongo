@@ -64,13 +64,13 @@
     <reservation>
         <!-- Configuration for reservation of resources -->
         <resource>
-            <!-- Maximum duration of a single allocation -->
+            <!-- Maximum duration of a single resource reservation -->
             <max-duration>P1W</max-duration>
         </resource>
 
-        <!-- Configuration for allocations of device resources -->
+        <!-- Configuration for reservation of aliases -->
         <alias>
-            <!-- Maximum duration of a single allocation -->
+            <!-- Maximum duration of a single alias reservation -->
             <max-duration>P1Y</max-duration>
         </alias>
     </reservation>
