@@ -22,7 +22,7 @@ import static junit.framework.Assert.assertEquals;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class AbstractTest extends AbstractDatabaseTest
+public abstract class AbstractTest extends AbstractDatabaseTest
 {
     /**
      * Create {@link ReservationRequest} in the database, allocate it to {@link Reservation}.

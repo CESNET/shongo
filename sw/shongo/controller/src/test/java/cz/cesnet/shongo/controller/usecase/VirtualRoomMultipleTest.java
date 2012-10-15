@@ -23,10 +23,14 @@ import javax.persistence.EntityManager;
  */
 public class VirtualRoomMultipleTest extends AbstractTest
 {
-    //@Test
+    @Test
     public void test() throws Exception
     {
-        // TODO: Implement scheduling of multiple virtual rooms
+        if (true) {
+            // TODO: Implement scheduling of multiple virtual rooms
+            System.out.println("TODO: Implement scheduling of multiple virtual rooms.");
+            return;
+        }
 
         Cache cache = new Cache();
         cache.setEntityManagerFactory(getEntityManagerFactory());
