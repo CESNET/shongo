@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.RangeSet;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -254,7 +255,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         {
             Set<R> reservations = getReservations(interval);
             if (transaction != null) {
-                transaction.applyReservations(objectId, reservations);
+                transaction.applyAllocatedReservations(objectId, reservations);
             }
             return reservations;
         }
@@ -301,22 +302,36 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
     public static class Transaction<R extends Reservation>
     {
         /**
-         * Additional reservations in the {@link Transaction}.
+         * Already allocated reservations in the {@link Transaction} (which make resources unavailable
+         * for further reservations).
          */
-        private Map<Long, Set<R>> reservationsByObjectId = new HashMap<Long, Set<R>>();
+        private Map<Long, Set<R>> allocatedReservationsByObjectId = new HashMap<Long, Set<R>>();
+
+        /**
+         * Provided reservations in the {@link Transaction} (which make resources available for further reservations).
+         */
+        private List<R> providedReservations = new ArrayList<R>();
 
         /**
          * @param objectId    for object for which the {@code reservation} is added
-         * @param reservation to be added to the {@link Transaction}
+         * @param reservation to be added to the {@link Transaction} as allocated
          */
-        public void addReservation(Long objectId, R reservation)
+        public void addAllocatedReservation(Long objectId, R reservation)
         {
-            Set<R> reservations = reservationsByObjectId.get(objectId);
+            Set<R> reservations = allocatedReservationsByObjectId.get(objectId);
             if (reservations == null) {
                 reservations = new HashSet<R>();
-                reservationsByObjectId.put(objectId, reservations);
+                allocatedReservationsByObjectId.put(objectId, reservations);
             }
             reservations.add(reservation);
+        }
+
+        /**
+         * @param reservation to be added to the {@link Transaction} as provided
+         */
+        public void addProvidedReservation(R reservation)
+        {
+            providedReservations.add(reservation);
         }
 
         /**
@@ -325,9 +340,9 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
          * @param objectId     for which the {@link Transaction} should apply
          * @param reservations to which the {@link Transaction} should apply
          */
-        public void applyReservations(Long objectId, Collection<R> reservations)
+        public void applyAllocatedReservations(Long objectId, Collection<R> reservations)
         {
-            Set<R> reservationsToApply = reservationsByObjectId.get(objectId);
+            Set<R> reservationsToApply = allocatedReservationsByObjectId.get(objectId);
             if (reservationsToApply != null) {
                 reservations.addAll(reservationsToApply);
             }

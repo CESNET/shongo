@@ -10,6 +10,7 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -130,6 +131,26 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
+     * @param dateTime sets date/ime of the requested slot
+     * @param duration sets duration of the requested slot
+     */
+    @Transient
+    public void setRequestedSlot(DateTime dateTime, Period duration)
+    {
+        setRequestedSlot(new Interval(dateTime, duration));
+    }
+
+    /**
+     * @param dateTime sets date/ime of the requested slot
+     * @param duration sets duration of the requested slot
+     */
+    @Transient
+    public void setRequestedSlot(String dateTime, String duration)
+    {
+        setRequestedSlot(DateTime.parse(dateTime), Period.parse(duration));
+    }
+
+    /**
      * @return {@link #specification}
      */
     @ManyToOne(cascade = CascadeType.ALL)
@@ -218,6 +239,15 @@ public class ReservationRequest extends AbstractReservationRequest
         if (newState != getState()) {
             setState(newState);
             setReports(reports);
+        }
+    }
+
+    @PrePersist
+    protected void onCreate()
+    {
+        // Reservation requests are by default created by user
+        if (createdBy == null) {
+            createdBy = CreatedBy.USER;
         }
     }
 

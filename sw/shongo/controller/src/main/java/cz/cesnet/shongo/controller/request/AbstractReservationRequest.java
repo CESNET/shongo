@@ -3,7 +3,10 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
@@ -11,6 +14,8 @@ import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,6 +57,12 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * Option that specifies whether inter-domain resource lookup can be performed.
      */
     private boolean interDomain;
+
+    /**
+     * List of {@link Reservation}s of allocated resources which can be used by {@link Scheduler} for allocation of
+     * this {@link AbstractReservationRequest}.
+     */
+    private List<Reservation> providedReservations = new ArrayList<Reservation>();
 
     /**
      * @return {@link #created}
@@ -150,6 +161,32 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     public void setInterDomain(boolean interDomain)
     {
         this.interDomain = interDomain;
+    }
+
+    /**
+     * @return {@link #providedReservations}
+     */
+    @OneToMany
+    @Access(AccessType.FIELD)
+    public List<Reservation> getProvidedReservations()
+    {
+        return providedReservations;
+    }
+
+    /**
+     * @param providedReservations sets the {@link #providedReservations}
+     */
+    public void setProvidedReservations(List<Reservation> providedReservations)
+    {
+        this.providedReservations = providedReservations;
+    }
+
+    /**
+     * @param providedReservation to be added to the {@link #providedReservations}
+     */
+    public void addProvidedReservation(Reservation providedReservation)
+    {
+        providedReservations.add(providedReservation);
     }
 
     /**

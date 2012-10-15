@@ -11,6 +11,8 @@ import org.joda.time.Interval;
 import java.util.ArrayList;
 import java.util.List;
 
+import static cz.cesnet.shongo.controller.scheduler.ReservationTask.*;
+
 /**
  * Represents a {@link Scheduler} task which receives {@link Specification} and results into {@link Reservation}.
  *
@@ -61,7 +63,7 @@ public abstract class ReservationTask<R extends Reservation>
     }
 
     /**
-     * @return {@link Context#interval}
+     * @return {@link Context#getInterval()}
      */
     public Interval getInterval()
     {
@@ -98,7 +100,7 @@ public abstract class ReservationTask<R extends Reservation>
     public void addChildReservation(Reservation reservation)
     {
         childReservations.add(reservation);
-        getCacheTransaction().addReservation(reservation);
+        getCacheTransaction().addAllocatedReservation(reservation);
     }
 
     /**
@@ -139,10 +141,13 @@ public abstract class ReservationTask<R extends Reservation>
     public final R perform() throws ReportException
     {
         R reservation = createReservation();
+        for (Reservation childReservation : getChildReservations()) {
+            reservation.addChildReservation(childReservation);
+        }
         reservation.validate(getCache());
 
         // Add reservation to the cache
-        getCacheTransaction().addReservation(reservation);
+        getCacheTransaction().addAllocatedReservation(reservation);
 
         return reservation;
     }
@@ -170,11 +175,6 @@ public abstract class ReservationTask<R extends Reservation>
     public static class Context
     {
         /**
-         * Interval for which the task is performed.
-         */
-        private Interval interval;
-
-        /**
          * @see Cache
          */
         private Cache cache;
@@ -182,7 +182,7 @@ public abstract class ReservationTask<R extends Reservation>
         /**
          * @see {@link Cache.Transaction}
          */
-        private Cache.Transaction cacheTransaction = new Cache.Transaction();
+        private Cache.Transaction cacheTransaction;
 
         /**
          * List of reports.
@@ -192,21 +192,21 @@ public abstract class ReservationTask<R extends Reservation>
         /**
          * Constructor.
          *
-         * @param interval sets the {@link #interval}
          * @param cache    sets the {@link #cache}
+         * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
          */
-        public Context(Interval interval, Cache cache)
+        public Context(Cache cache, Interval interval)
         {
-            this.interval = interval;
             this.cache = cache;
+            this.cacheTransaction = new Cache.Transaction(interval);
         }
 
         /**
-         * @return {@link #interval}
+         * @return {@link Cache.Transaction#interval}
          */
         public Interval getInterval()
         {
-            return interval;
+            return cacheTransaction.getInterval();
         }
 
         /**

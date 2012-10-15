@@ -107,7 +107,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
     }
 
     @Test
-    public void testClonedStatefulSpecifications() throws Exception
+    public void testClonedSpecifications() throws Exception
     {
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

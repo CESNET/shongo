@@ -186,9 +186,11 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " WHERE reservation.parentReservation IS NULL AND reservation NOT IN("
+                        + " WHERE reservation.createdBy = :createdBy "
+                        + " AND reservation.parentReservation IS NULL AND reservation NOT IN("
                         + " SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)",
                 Reservation.class)
+                .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .getResultList();
         for (Reservation reservation : reservations) {
             delete(reservation, cache);

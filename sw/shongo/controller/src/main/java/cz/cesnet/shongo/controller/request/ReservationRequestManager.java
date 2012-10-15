@@ -46,6 +46,13 @@ public class ReservationRequestManager extends AbstractManager
     {
         validate(abstractReservationRequest);
 
+        if (abstractReservationRequest instanceof ReservationRequest) {
+            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
+            if (reservationRequest.getState() == null) {
+                reservationRequest.updateStateBySpecifications();
+            }
+        }
+
         super.create(abstractReservationRequest);
     }
 

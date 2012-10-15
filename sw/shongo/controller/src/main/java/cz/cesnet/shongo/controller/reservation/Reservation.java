@@ -2,7 +2,9 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.ReportException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -22,6 +24,11 @@ import java.util.List;
 public abstract class Reservation extends PersistentObject
 {
     /**
+     * @see {@link CreatedBy}.
+     */
+    private CreatedBy createdBy;
+
+    /**
      * Interval start date/time.
      */
     private DateTime slotStart;
@@ -40,6 +47,24 @@ public abstract class Reservation extends PersistentObject
      * Child {@link Reservation}s that are allocated for the {@link Reservation}.
      */
     private List<Reservation> childReservations = new ArrayList<Reservation>();
+
+    /**
+     * @return {@link #createdBy}
+     */
+    @Column(nullable = false, columnDefinition = "varchar(255) default 'CONTROLLER'")
+    @Enumerated(EnumType.STRING)
+    public CreatedBy getCreatedBy()
+    {
+        return createdBy;
+    }
+
+    /**
+     * @return {@link #createdBy}
+     */
+    public void setCreatedBy(CreatedBy createdBy)
+    {
+        this.createdBy = createdBy;
+    }
 
     /**
      * @return {@link #slotStart}
@@ -91,6 +116,7 @@ public abstract class Reservation extends PersistentObject
     /**
      * @param slot sets the slot
      */
+    @Transient
     public void setSlot(Interval slot)
     {
         setSlotStart(slot.getStart());
@@ -103,10 +129,23 @@ public abstract class Reservation extends PersistentObject
      * @param start
      * @param end
      */
+    @Transient
     public void setSlot(DateTime start, DateTime end)
     {
         setSlotStart(start);
         setSlotEnd(end);
+    }
+
+    /**
+     * Sets the slot to new interval created from given {@code start} and {@code end}.
+     *
+     * @param start
+     * @param end
+     */
+    @Transient
+    public void setSlot(String start, String end)
+    {
+        setSlot(DateTime.parse(start), DateTime.parse(end));
     }
 
     /**
@@ -205,6 +244,15 @@ public abstract class Reservation extends PersistentObject
     {
     }
 
+    @PrePersist
+    protected void onCreate()
+    {
+        // Reservations are by default created by the controller
+        if (createdBy == null) {
+            createdBy = CreatedBy.CONTROLLER;
+        }
+    }
+
     /**
      * @return converted {@link Reservation} to {@link cz.cesnet.shongo.controller.api.Reservation}
      */
@@ -234,5 +282,25 @@ public abstract class Reservation extends PersistentObject
         for (Reservation childReservation : getChildReservations()) {
             api.addChildReservationIdentifier(domain.formatIdentifier(childReservation.getId()));
         }
+    }
+
+    /**
+     * Enumeration defining who created the {@link Reservation}.
+     */
+    public static enum CreatedBy
+    {
+        /**
+         * {@link Reservation} was created by a user. In fact user should never create the {@link Reservation} itself,
+         * but it is useful, e.g., for testing purposes, to create a {@link Reservation} and to ensure that it will
+         * not be deleted by the {@link Scheduler} when it delete all not-referenced {@link Reservation}s through
+         * {@link ReservationManager#deleteAllNotReferencedByReservationRequest(cz.cesnet.shongo.controller.Cache)}).
+         */
+        USER,
+
+        /**
+         * {@link Reservation} was created by the {@link Controller}'s {@link Scheduler} (default value in
+         * the most situations).
+         */
+        CONTROLLER
     }
 }

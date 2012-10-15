@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotFoundReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -99,7 +100,6 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     {
         return new ReservationTask<ResourceReservation>(context)
         {
-
             @Override
             protected ResourceReservation createReservation() throws ReportException
             {
@@ -119,11 +119,9 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
 
                 // If some was found
                 if (deviceResource != null) {
-                    EndpointReservation endpointReservation = new EndpointReservation();
-                    endpointReservation.setSlot(getInterval());
-                    endpointReservation.setResource(deviceResource);
-                    endpointReservation.addChildReservationsForResourceParents(getCacheTransaction());
-                    return endpointReservation;
+                    // Create reservation for the device resource
+                    ResourceReservationTask task = new ResourceReservationTask(getContext(), deviceResource);
+                    return task.perform();
                 }
                 else {
                     throw new ResourceNotFoundReport(technologies).exception();

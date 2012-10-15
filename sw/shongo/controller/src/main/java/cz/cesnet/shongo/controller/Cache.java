@@ -9,9 +9,11 @@ import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -287,8 +289,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * @param reservation to be added to the {@link Cache}
      */
-    public void addReservation(Reservation reservation)
+    public void addReservation(Reservation reservation, EntityManager entityManager)
     {
+        // Create reservation in the database if it wasn't created yet
+        if (entityManager != null && !reservation.isPersisted()) {
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            reservationManager.create(reservation);
+        }
+
         checkPersisted(reservation);
         if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
@@ -298,6 +306,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             AliasReservation aliasReservation = (AliasReservation) reservation;
             aliasCache.addReservation(aliasReservation.getAliasProviderCapability(), aliasReservation);
         }
+    }
+
+    /**
+     * @see {@link #addResource(Resource, EntityManager)}
+     */
+    public void addReservation(Reservation reservation)
+    {
+        addReservation(reservation, null);
     }
 
     /**
@@ -466,6 +482,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public static class Transaction
     {
         /**
+         * Interval for which the task is performed.
+         */
+        private final Interval interval;
+
+        /**
          * @see {@link ResourceCache.Transaction}
          */
         private ResourceCache.Transaction resourceCacheTransaction = new ResourceCache.Transaction();
@@ -481,20 +502,61 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         private Set<Resource> referencedResources = new HashSet<Resource>();
 
         /**
-         * @param reservation to be added to the transaction
+         * Constructor.
          */
-        public void addReservation(Reservation reservation)
+        public Transaction(Interval interval)
         {
-            if (reservation instanceof ResourceReservation) {
-                ResourceReservation resourceReservation = (ResourceReservation) reservation;
-                Resource resource = resourceReservation.getResource();
-                resourceCacheTransaction.addReservation(resource.getId(), resourceReservation);
-                referencedResources.add(resource);
+            this.interval = interval;
+        }
+
+        /**
+         * @return {@link #interval}
+         */
+        public Interval getInterval()
+        {
+            return interval;
+        }
+
+        /**
+         * @param reservation to be added to the {@link Transaction} as already allocated.
+         */
+        public void addAllocatedReservation(Reservation reservation)
+        {
+            if (reservation.getSlot().contains(getInterval())) {
+                if (reservation instanceof ResourceReservation) {
+                    ResourceReservation resourceReservation = (ResourceReservation) reservation;
+                    Resource resource = resourceReservation.getResource();
+                    resourceCacheTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
+                    referencedResources.add(resource);
+                }
+                if (reservation instanceof AliasReservation) {
+                    AliasReservation aliasReservation = (AliasReservation) reservation;
+                    aliasCacheTransaction.addAllocatedReservation(
+                            aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
+                }
             }
-            if (reservation instanceof AliasReservation) {
-                AliasReservation aliasReservation = (AliasReservation) reservation;
-                aliasCacheTransaction.addReservation(
-                        aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
+        }
+
+        /**
+         * @param reservation to be added to the {@link Transaction} as provided (the resources allocated by
+         *                    the {@code reservation} are considered as available).
+         */
+        public void addProvidedReservation(Reservation reservation)
+        {
+            if (reservation.getSlot().contains(getInterval())) {
+                if (reservation instanceof ResourceReservation) {
+                    ResourceReservation providedResourceReservation = (ResourceReservation) reservation;
+                    resourceCacheTransaction.addProvidedReservation(providedResourceReservation);
+                }
+                if (reservation instanceof AliasReservation) {
+                    AliasReservation providedAliasReservation = (AliasReservation) reservation;
+                    aliasCacheTransaction.addProvidedReservation(providedAliasReservation);
+                }
+            }
+
+            // Add all child reservations
+            for (Reservation childReservation : reservation.getChildReservations()) {
+                addProvidedReservation(childReservation);
             }
         }
 

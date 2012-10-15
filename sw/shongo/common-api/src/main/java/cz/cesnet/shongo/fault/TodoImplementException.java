@@ -57,6 +57,11 @@ public class TodoImplementException extends RuntimeException implements Fault, S
     @Override
     public String getMessage()
     {
-        return String.format("TODO: Implement %s", description);
+        if (description != null) {
+            return String.format("TODO: Implement %s", description);
+        }
+        else {
+            return "TODO: Implement";
+        }
     }
 }

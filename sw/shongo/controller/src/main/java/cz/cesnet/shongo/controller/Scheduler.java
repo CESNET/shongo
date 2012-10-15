@@ -125,10 +125,16 @@ public class Scheduler extends Component
         Interval requestedSlot = reservationRequest.getRequestedSlot();
 
         // Create new scheduler task
-        ReservationTask.Context context = new ReservationTask.Context(requestedSlot, cache);
+        ReservationTask.Context context = new ReservationTask.Context(cache, requestedSlot);
         ReservationTask reservationTask = null;
 
         try {
+            // Fill provided reservations to transaction
+            for (Reservation providedReservation : reservationRequest.getProvidedReservations() ) {
+                context.getCacheTransaction().addProvidedReservation(providedReservation);
+            }
+
+            // Get reservation task
             Specification specification = reservationRequest.getSpecification();
             if (specification instanceof ReservationTaskProvider) {
                 ReservationTaskProvider reservationTaskProvider = (ReservationTaskProvider) specification;
@@ -151,7 +157,6 @@ public class Scheduler extends Component
             reservationRequest.setState(ReservationRequest.State.ALLOCATED);
             reservationRequest.setReports(reservationTask.getReports());
             reservationRequestManager.update(reservationRequest);
-
         }
         catch (ReportException exception) {
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);

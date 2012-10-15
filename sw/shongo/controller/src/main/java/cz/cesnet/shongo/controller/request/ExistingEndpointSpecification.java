@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotEndpoint;
@@ -88,27 +89,13 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
             @Override
             protected ResourceReservation createReservation() throws ReportException
             {
-                if (getCacheTransaction().containsResource(resource)) {
-                    // Same resource is requested multiple times
-                    throw new ResourceRequestedMultipleTimesReport(resource).exception();
-                }
-                if (!resource.isAllocatable()) {
-                    // Requested resource cannot be allocated
-                    throw new ResourceNotAllocatableReport(resource).exception();
-                }
-                if (!getCache().isResourceAvailable(resource, getInterval(), getCacheTransaction())) {
-                    // Requested resource is not available in requested slot
-                    throw new ResourceNotAvailableReport(resource).exception();
-                }
                 if (!(resource instanceof DeviceResource) || !((DeviceResource) resource).isTerminal()) {
+                    // Requested resource is not endpoint
                     throw new ResourceNotEndpoint(resource).exception();
                 }
 
-                EndpointReservation endpointReservation = new EndpointReservation();
-                endpointReservation.setSlot(getInterval());
-                endpointReservation.setResource(resource);
-                endpointReservation.addChildReservationsForResourceParents(getCacheTransaction());
-                return endpointReservation;
+                ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), resource);
+                return resourceReservationTask.perform();
             }
         };
     }

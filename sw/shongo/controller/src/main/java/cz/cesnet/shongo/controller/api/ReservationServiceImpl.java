@@ -91,11 +91,6 @@ public class ReservationServiceImpl extends Component
                 cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                         reservationRequest, entityManager, domain);
 
-        if (reservationRequestImpl instanceof ReservationRequest) {
-            ((ReservationRequest) reservationRequestImpl).setCreatedBy(ReservationRequest.CreatedBy.USER);
-            ((ReservationRequest) reservationRequestImpl).updateStateBySpecifications();
-        }
-
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         reservationRequestManager.create(reservationRequestImpl);
 

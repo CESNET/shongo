@@ -147,22 +147,40 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     }
 
     /**
+     * @param reservation child {@link VirtualRoomReservation} to be added to the {@link CompartmentReservationTask}
+     * @return allocated {@link VirtualRoom}
+     */
+    public VirtualRoom addChildReservation(VirtualRoomReservation reservation)
+    {
+        super.addChildReservation(reservation);
+
+        VirtualRoom virtualRoom = reservation.createEndpoint();
+        addEndpoint(virtualRoom);
+        return virtualRoom;
+    }
+
+    /**
      * @param endpoint to be added to the {@link #compartment}
      */
     private void addEndpoint(Endpoint endpoint)
     {
-        compartment.addEndpoint(endpoint);
+        if (endpoint instanceof VirtualRoom) {
+            compartment.addVirtualRoom((VirtualRoom) endpoint);
+        }
+        else {
+            compartment.addEndpoint(endpoint);
 
-        // Setup connectivity graph
-        connectivityGraph.addVertex(endpoint);
-        for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
-            if (existingEndpoint == endpoint) {
-                continue;
-            }
-            Set<Technology> technologies = new HashSet<Technology>(endpoint.getTechnologies());
-            technologies.retainAll(existingEndpoint.getTechnologies());
-            if (technologies.size() > 0) {
-                connectivityGraph.addEdge(endpoint, existingEndpoint, new ConnectivityEdge(technologies));
+            // Setup connectivity graph
+            connectivityGraph.addVertex(endpoint);
+            for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
+                if (existingEndpoint == endpoint) {
+                    continue;
+                }
+                Set<Technology> technologies = new HashSet<Technology>(endpoint.getTechnologies());
+                technologies.retainAll(existingEndpoint.getTechnologies());
+                if (technologies.size() > 0) {
+                    connectivityGraph.addEdge(endpoint, existingEndpoint, new ConnectivityEdge(technologies));
+                }
             }
         }
     }
@@ -415,9 +433,6 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
         CompartmentReservation compartmentReservation = new CompartmentReservation();
         compartmentReservation.setSlot(getInterval());
         compartmentReservation.setCompartment(compartment);
-        for (Reservation childReservation : getChildReservations()) {
-            compartmentReservation.addChildReservation(childReservation);
-        }
         // Add connection between two standalone endpoints
         if (endpointFrom != null && endpointTo != null) {
             addConnection(endpointFrom, endpointTo);
@@ -450,9 +465,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
         List<AvailableVirtualRoom> availableVirtualRooms = getCache().findAvailableVirtualRoomsByVariants(
                 getInterval(), compartment.getTotalEndpointCount(), technologySets);
         if (availableVirtualRooms.size() == 0) {
-
             return null;
-
         }
         // Sort virtual rooms from the most filled to the least filled
         Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
@@ -471,10 +484,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
         virtualRoomReservation.setSlot(getInterval());
         virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
         virtualRoomReservation.setPortCount(compartment.getTotalEndpointCount());
-
-        // Add virtual room to compartment
-        VirtualRoom virtualRoom = new ResourceVirtualRoom(virtualRoomReservation);
-        compartment.addVirtualRoom(virtualRoom);
+        VirtualRoom virtualRoom = addChildReservation(virtualRoomReservation);
         addReport(new AllocatingVirtualRoomReport(virtualRoom));
         for (Endpoint endpoint : compartment.getEndpoints()) {
             addConnection(virtualRoom, endpoint);
@@ -484,11 +494,6 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
         CompartmentReservation compartmentReservation = new CompartmentReservation();
         compartmentReservation.setSlot(getInterval());
         compartmentReservation.setCompartment(compartment);
-        compartmentReservation.addChildReservation(virtualRoomReservation);
-        for (Reservation childReservation : getChildReservations()) {
-            compartmentReservation.addChildReservation(childReservation);
-        }
-
         return compartmentReservation;
     }
 

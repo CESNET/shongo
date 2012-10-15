@@ -41,26 +41,6 @@ public class ResourceReservation extends Reservation
         this.resource = resource;
     }
 
-    /**
-     * Add child {@link Reservation}s for all {@link Resource} parents.
-     *
-     * @param cacheTransaction to be checked if the resource parent isn't already there
-     */
-    public void addChildReservationsForResourceParents(Cache.Transaction cacheTransaction)
-    {
-        Resource parentResource = resource.getParentResource();
-        if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
-            ResourceReservation resourceReservation = new ResourceReservation();
-            resourceReservation.setSlot(getSlot());
-            resourceReservation.setResource(parentResource);
-            addChildReservation(resourceReservation);
-
-            cacheTransaction.addReservation(resourceReservation);
-
-            resourceReservation.addChildReservationsForResourceParents(cacheTransaction);
-        }
-    }
-
     @Override
     public void validate(Cache cache) throws ReportException
     {

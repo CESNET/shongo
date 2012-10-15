@@ -206,7 +206,7 @@ public class RangeSet<V, R> implements Iterable<V>
     /**
      * Represents a range unit. It covers the range from it's {@link #rangeValue} to {@link #rangeValue} of the
      * following {@link Bucket}. Each range unit can contain multiple values. The bucket must also hold the owning
-     * values which specify exatly the {@link #rangeValue}.
+     * values which specify exactly the {@link #rangeValue}.
      *
      * @param <R>
      * @param <V>

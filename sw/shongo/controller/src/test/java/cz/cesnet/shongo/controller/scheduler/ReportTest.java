@@ -31,7 +31,7 @@ public class ReportTest
         deviceResource.addCapability(new VirtualRoomsCapability(100));
         cache.addResource(deviceResource);
 
-        ReservationTask.Context context = new ReservationTask.Context(Interval.parse("2012/2013"), cache);
+        ReservationTask.Context context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
 
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
