@@ -5,20 +5,19 @@ import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.Specification;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static cz.cesnet.shongo.controller.scheduler.ReservationTask.*;
-
 /**
  * Represents a {@link Scheduler} task which receives {@link Specification} and results into {@link Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ReservationTask<R extends Reservation>
+public abstract class ReservationTask
 {
     /**
      * Context.
@@ -115,6 +114,10 @@ public abstract class ReservationTask<R extends Reservation>
         ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getContext());
         Reservation reservation = reservationTask.perform();
         addChildReservation(reservation);
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            reservation = existingReservation.getReservation();
+        }
         return reservation;
     }
 
@@ -138,9 +141,9 @@ public abstract class ReservationTask<R extends Reservation>
      * @return created {@link Reservation}
      * @throws ReportException when the {@link ReservationTask} failed
      */
-    public final R perform() throws ReportException
+    public final Reservation perform() throws ReportException
     {
-        R reservation = createReservation();
+        Reservation reservation = createReservation();
         for (Reservation childReservation : getChildReservations()) {
             reservation.addChildReservation(childReservation);
         }
@@ -167,7 +170,7 @@ public abstract class ReservationTask<R extends Reservation>
      * @return created {@link Reservation}
      * @throws ReportException when the {@link Reservation} cannot be created
      */
-    protected abstract R createReservation() throws ReportException;
+    protected abstract Reservation createReservation() throws ReportException;
 
     /**
      * Context for the {@link ReservationTask}.

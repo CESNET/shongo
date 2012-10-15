@@ -8,6 +8,8 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -157,12 +159,12 @@ public class AliasSpecification extends Specification implements ReservationTask
     }
 
     @Override
-    public ReservationTask<AliasReservation> createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask<AliasReservation>(context)
+        return new ReservationTask(context)
         {
             @Override
-            protected AliasReservation createReservation() throws ReportException
+            protected Reservation createReservation() throws ReportException
             {
                 Cache.Transaction cacheTransaction = getCacheTransaction();
                 AvailableAlias availableAlias = null;
@@ -187,16 +189,26 @@ public class AliasSpecification extends Specification implements ReservationTask
                 if (availableAlias == null) {
                     throw new NoAvailableAliasReport(getTechnology(), getAliasType()).exception();
                 }
+
+                // Reuse existing reservation
                 Alias alias = availableAlias.getAlias();
+                if (alias.isPersisted()) {
+                    AliasReservation providedAliasReservation = cacheTransaction.getProvidedAliasReservation(alias);
+                    if (providedAliasReservation != null) {
+                        ExistingReservation existingReservation = new ExistingReservation();
+                        existingReservation.setSlot(getInterval());
+                        existingReservation.setReservation(providedAliasReservation);
+                        cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                        return existingReservation;
+                    }
+
+                }
+
+                // Create new reservation
                 AliasReservation aliasReservation = new AliasReservation();
                 aliasReservation.setSlot(getInterval());
                 aliasReservation.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
                 aliasReservation.setAlias(alias);
-                if (alias.isPersisted()) {
-                    AliasReservation providedAliasReservation = cacheTransaction.getProvidedAliasReservation(alias);
-                    aliasReservation.addChildReservation(providedAliasReservation);
-                    cacheTransaction.removeProvidedReservation(providedAliasReservation);
-                }
                 return aliasReservation;
             }
         };

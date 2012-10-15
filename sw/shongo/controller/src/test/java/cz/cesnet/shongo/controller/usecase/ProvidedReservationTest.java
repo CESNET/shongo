@@ -6,10 +6,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.junit.Test;
@@ -57,8 +54,9 @@ public class ProvidedReservationTest extends AbstractTest
         reservationRequest.addProvidedReservation(terminalReservation);
 
         Reservation reservation = checkSuccessfulAllocation(reservationRequest, cache, entityManager);
-        assertEquals(1, reservation.getChildReservations().size());
-        assertEquals(terminalReservation.getId(), reservation.getChildReservations().get(0).getId());
+        assertEquals(ExistingReservation.class, reservation.getClass());
+        ExistingReservation existingReservation = (ExistingReservation) reservation;
+        assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
 
         entityManager.close();
     }
@@ -103,10 +101,9 @@ public class ProvidedReservationTest extends AbstractTest
         Reservation reservation = checkSuccessfulAllocation(reservationRequest, cache, entityManager);
         assertEquals(1, reservation.getChildReservations().size());
         Reservation childReservation = reservation.getChildReservations().get(0);
-        assertTrue(childReservation instanceof ResourceReservation);
-        assertEquals(room.getId(), ((ResourceReservation)childReservation).getResource().getId());
-        assertEquals(1, childReservation.getChildReservations().size());
-        assertEquals(roomReservation.getId(), childReservation.getChildReservations().get(0).getId());
+        assertEquals(ExistingReservation.class, childReservation.getClass());
+        ExistingReservation childExistingReservation = (ExistingReservation) childReservation;
+        assertEquals(roomReservation.getId(), childExistingReservation.getReservation().getId());
 
         entityManager.close();
     }
@@ -139,9 +136,9 @@ public class ProvidedReservationTest extends AbstractTest
         reservationRequest.addProvidedReservation(aliasReservation);
 
         Reservation reservation = checkSuccessfulAllocation(reservationRequest, cache, entityManager);
-        assertEquals("950000005", ((AliasReservation) reservation).getAlias().getValue());
-        assertEquals(1, reservation.getChildReservations().size());
-        assertEquals(aliasReservation.getId(), reservation.getChildReservations().get(0).getId());
+        assertEquals(ExistingReservation.class, reservation.getClass());
+        ExistingReservation existingReservation = (ExistingReservation) reservation;
+        assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
 
         entityManager.close();
     }
@@ -206,18 +203,10 @@ public class ProvidedReservationTest extends AbstractTest
         reservationRequestSet.addProvidedReservation(terminalReservation);
 
         Reservation reservation = checkSuccessfulAllocation(reservationRequestSet, cache, entityManager);
-        assertEquals(1, reservation.getChildReservations().size());
-        assertEquals(terminalReservation.getId(), reservation.getChildReservations().get(0).getId());
+        assertEquals(ExistingReservation.class, reservation.getClass());
+        ExistingReservation existingReservation = (ExistingReservation) reservation;
+        assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
 
         entityManager.close();
-    }
-
-    @Test
-    public void testNotDeletingProvidedReservations() throws Exception
-    {
-        /*ReservationManager reservationManager = new ReservationManager(entityManager);
-        Reservation reservation = reservationManager.getByReservationRequest(reservationRequest);
-        assertNull(reservation.getParentReservation());*/
-        throw new TodoImplementException("Do not delete child reservations which hasn't set the proper parent reservation.");
     }
 }

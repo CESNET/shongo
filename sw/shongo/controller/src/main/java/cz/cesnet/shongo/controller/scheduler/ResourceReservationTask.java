@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -17,7 +19,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceReservationTask extends ReservationTask<ResourceReservation>
+public class ResourceReservationTask extends ReservationTask
 {
     /**
      * {@link Resource} which should be allocated.
@@ -37,7 +39,7 @@ public class ResourceReservationTask extends ReservationTask<ResourceReservation
     }
 
     @Override
-    protected ResourceReservation createReservation() throws ReportException
+    protected Reservation createReservation() throws ReportException
     {
         Cache.Transaction cacheTransaction = getCacheTransaction();
         if (cacheTransaction.containsResource(resource)) {
@@ -51,6 +53,18 @@ public class ResourceReservationTask extends ReservationTask<ResourceReservation
         if (!getCache().isResourceAvailable(resource, getInterval(), cacheTransaction)) {
             // Requested resource is not available in the requested slot
             throw new ResourceNotAvailableReport(resource).exception();
+        }
+
+        // Reuse existing reservation
+        Set<ResourceReservation> resourceReservations = cacheTransaction.getProvidedResourceReservations(resource);
+        if (resourceReservations.size() > 0) {
+            // Reuse provided reservation
+            ResourceReservation providedResourceReservation = resourceReservations.iterator().next();
+            ExistingReservation existingReservation = new ExistingReservation();
+            existingReservation.setSlot(getInterval());
+            existingReservation.setReservation(providedResourceReservation);
+            cacheTransaction.removeProvidedReservation(providedResourceReservation);
+            return existingReservation;
         }
 
         // Create proper type of new resource reservation
@@ -74,20 +88,11 @@ public class ResourceReservationTask extends ReservationTask<ResourceReservation
         resourceReservation.setSlot(getInterval());
         resourceReservation.setResource(resource);
 
-        // Reuse resource reservation
-        Set<ResourceReservation> resourceReservations = cacheTransaction.getProvidedResourceReservations(resource);
-        if (resourceReservations.size() > 0) {
-            // Reuse provided reservation
-            ResourceReservation providedResourceReservation = resourceReservations.iterator().next();
-            resourceReservation.addChildReservation(providedResourceReservation);
-            cacheTransaction.removeProvidedReservation(resourceReservation);
-        }
-
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
         if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
             ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), parentResource);
-            ResourceReservation parentResourceReservation = resourceReservationTask.perform();
+            Reservation parentResourceReservation = resourceReservationTask.perform();
             addChildReservation(parentResourceReservation);
         }
 

@@ -9,10 +9,7 @@ import cz.cesnet.shongo.controller.compartment.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
@@ -34,7 +31,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CompartmentReservationTask extends ReservationTask<CompartmentReservation>
+public class CompartmentReservationTask extends ReservationTask
 {
     private static Logger logger = LoggerFactory.getLogger(CompartmentReservationTask.class);
 
@@ -140,6 +137,10 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     {
         super.addChildReservation(reservation);
 
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            reservation = existingReservation.getReservation();
+        }
         if (reservation instanceof EndpointProvider) {
             EndpointProvider endpointProvider = (EndpointProvider) reservation;
             addEndpoint(endpointProvider.createEndpoint());
@@ -530,7 +531,7 @@ public class CompartmentReservationTask extends ReservationTask<CompartmentReser
     }
 
     @Override
-    protected CompartmentReservation createReservation() throws ReportException
+    protected Reservation createReservation() throws ReportException
     {
         Set<Specification> specifications = new HashSet<Specification>();
         List<PersonSpecification> personSpecifications = new ArrayList<PersonSpecification>();

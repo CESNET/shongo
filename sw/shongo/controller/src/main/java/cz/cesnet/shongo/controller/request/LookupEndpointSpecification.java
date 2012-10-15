@@ -4,6 +4,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
@@ -96,12 +97,12 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     }
 
     @Override
-    public ReservationTask<ResourceReservation> createReservationTask(ReservationTask.Context context)
+    public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask<ResourceReservation>(context)
+        return new ReservationTask(context)
         {
             @Override
-            protected ResourceReservation createReservation() throws ReportException
+            protected Reservation createReservation() throws ReportException
             {
                 Set<Technology> technologies = getTechnologies();
 

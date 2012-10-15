@@ -299,7 +299,7 @@ public class CompartmentReservationTaskTest
         @Override
         public ReservationTask createReservationTask(ReservationTask.Context context)
         {
-            return new ReservationTask<Reservation>(context)
+            return new ReservationTask(context)
             {
                 class SimpleEndpointReservation extends Reservation implements EndpointProvider
                 {
