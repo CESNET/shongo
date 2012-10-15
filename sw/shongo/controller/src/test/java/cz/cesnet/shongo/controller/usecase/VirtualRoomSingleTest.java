@@ -50,7 +50,9 @@ public class VirtualRoomSingleTest extends AbstractTest
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
+
+        entityManager.close();
     }
 
     @Test
@@ -90,6 +92,8 @@ public class VirtualRoomSingleTest extends AbstractTest
         compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
+
+        entityManager.close();
     }
 }

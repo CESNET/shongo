@@ -166,7 +166,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @return {@link #providedReservations}
      */
-    @OneToMany
+    @ManyToMany
     @Access(AccessType.FIELD)
     public List<Reservation> getProvidedReservations()
     {
@@ -178,7 +178,10 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      */
     public void setProvidedReservations(List<Reservation> providedReservations)
     {
-        this.providedReservations = providedReservations;
+        this.providedReservations.clear();
+        for (Reservation providedReservation : providedReservations) {
+            this.providedReservations.add(providedReservation);
+        }
     }
 
     /**
@@ -208,6 +211,10 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         setName(abstractReservationRequest.getName());
         setDescription(abstractReservationRequest.getDescription());
         setInterDomain(abstractReservationRequest.isInterDomain());
+        if (!ObjectUtils.equals(getProvidedReservations(), abstractReservationRequest.getProvidedReservations())) {
+            setProvidedReservations(abstractReservationRequest.getProvidedReservations());
+            modified = true;
+        }
         return modified;
     }
 

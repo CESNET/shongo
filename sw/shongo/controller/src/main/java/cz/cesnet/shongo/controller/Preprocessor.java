@@ -161,9 +161,6 @@ public class Preprocessor extends Component
                     if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
                         // Reservation request was modified, so we must clear it's state
                         reservationRequest.clearState();
-                        // And if allocated reservation exists, we remove reference to it and it will be deleted
-                        // at the start of the Scheduler
-                        reservationRequest.setReservation(null);
                     }
 
                     // Remove the slot from the map for the corresponding reservation request to not be deleted

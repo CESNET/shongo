@@ -191,6 +191,9 @@ public class ReservationRequest extends AbstractReservationRequest
     public void clearState()
     {
         this.state = null;
+        // And if allocated reservation exists, we remove reference to it and it will be deleted
+        // at the start of the Scheduler
+        setReservation(null);
     }
 
     /**

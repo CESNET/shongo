@@ -110,7 +110,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
                         getCacheTransaction());
 
                 // Select first available device resource
-                // TODO: Select best resource based on some criteria
+                // TODO: Select best endpoint based on some criteria (e.g., location in real world)
                 DeviceResource deviceResource = null;
                 for (DeviceResource possibleDeviceResource : deviceResources) {
                     deviceResource = possibleDeviceResource;

@@ -116,13 +116,24 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
             return null;
         }
 
-        ObjectState<AliasReservation> aliasProviderState = getObjectState(aliasProviderCapability);
-        Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
-        AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
-        for (AliasReservation aliasReservation : allocatedAliases) {
-            aliasGenerator.addAlias(aliasReservation.getAlias());
+        // Find available alias
+        Alias alias = null;
+
+        // Use preferably provided alias
+        Set<AliasReservation> aliasReservations = transaction.getProvidedReservations(aliasProviderCapability.getId());
+        if (aliasReservations.size() > 0) {
+            alias = aliasReservations.iterator().next().getAlias();
         }
-        Alias alias = aliasGenerator.generate();
+        // Else use generated alias
+        else {
+            ObjectState<AliasReservation> aliasProviderState = getObjectState(aliasProviderCapability);
+            Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
+            AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
+            for (AliasReservation aliasReservation : allocatedAliases) {
+                aliasGenerator.addAlias(aliasReservation.getAlias());
+            }
+            alias = aliasGenerator.generate();
+        }
         if (alias == null) {
             return null;
         }
@@ -138,5 +149,34 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
     public static class Transaction
             extends AbstractReservationCache.Transaction<AliasReservation>
     {
+        /**
+         * Map of provides {@link AliasReservation} by it's {@link Alias} identifier.
+         */
+        Map<Long, AliasReservation> providedAliasReservationByAliasId = new HashMap<Long, AliasReservation>();
+
+        @Override
+        public void addProvidedReservation(Long objectId, AliasReservation reservation)
+        {
+            super.addProvidedReservation(objectId, reservation);
+
+            providedAliasReservationByAliasId.put(reservation.getAlias().getId(), reservation);
+        }
+
+        @Override
+        public void removeProvidedReservation(Long objectId, AliasReservation reservation)
+        {
+            super.removeProvidedReservation(objectId, reservation);
+
+            providedAliasReservationByAliasId.remove(reservation.getAlias().getId());
+        }
+
+        /**
+         * @param alias which is allocated by {@link AliasReservation} to be returned
+         * @return provided {@link AliasReservation} by it's {@link Alias} identifier
+         */
+        public AliasReservation getProvidedReservationByAlias(Alias alias)
+        {
+            return providedAliasReservationByAliasId.get(alias.getId());
+        }
     }
 }

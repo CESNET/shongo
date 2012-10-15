@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.util.RangeSet;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -255,7 +254,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         {
             Set<R> reservations = getReservations(interval);
             if (transaction != null) {
-                transaction.applyAllocatedReservations(objectId, reservations);
+                transaction.applyReservations(objectId, reservations);
             }
             return reservations;
         }
@@ -310,7 +309,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         /**
          * Provided reservations in the {@link Transaction} (which make resources available for further reservations).
          */
-        private List<R> providedReservations = new ArrayList<R>();
+        private Map<Long, Set<R>> providedReservationsByObjectId = new HashMap<Long, Set<R>>();
 
         /**
          * @param objectId    for object for which the {@code reservation} is added
@@ -327,11 +326,42 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         }
 
         /**
+         * @param objectId    for object for which the {@code reservation} is added
          * @param reservation to be added to the {@link Transaction} as provided
          */
-        public void addProvidedReservation(R reservation)
+        public void addProvidedReservation(Long objectId, R reservation)
         {
-            providedReservations.add(reservation);
+            Set<R> reservations = providedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                reservations = new HashSet<R>();
+                providedReservationsByObjectId.put(objectId, reservations);
+            }
+            reservations.add(reservation);
+        }
+
+        /**
+         * @param objectId    for object for which the {@code reservation} is added
+         * @param reservation to be removed from the {@link Transaction}'s provided {@link Reservation}s
+         */
+        public void removeProvidedReservation(Long objectId, R reservation)
+        {
+            Set<R> reservations = providedReservationsByObjectId.get(objectId);
+            if (reservations != null) {
+                reservations.remove(reservation);
+            }
+        }
+
+        /**
+         * @param objectId for object
+         * @return set of provided {@link Reservation}s for object with given {@code objectId}
+         */
+        public Set<R> getProvidedReservations(Long objectId)
+        {
+            Set<R> reservations = providedReservationsByObjectId.get(objectId);
+            if (reservations == null) {
+                reservations = new HashSet<R>();
+            }
+            return reservations;
         }
 
         /**
@@ -340,11 +370,24 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
          * @param objectId     for which the {@link Transaction} should apply
          * @param reservations to which the {@link Transaction} should apply
          */
-        public void applyAllocatedReservations(Long objectId, Collection<R> reservations)
+        public void applyReservations(Long objectId, Collection<R> reservations)
         {
-            Set<R> reservationsToApply = allocatedReservationsByObjectId.get(objectId);
-            if (reservationsToApply != null) {
-                reservations.addAll(reservationsToApply);
+            Set<R> providedReservationsToApply = providedReservationsByObjectId.get(objectId);
+            if (providedReservationsToApply != null) {
+                Map<Long, R> reservationById = new HashMap<Long, R>();
+                for (R reservation : reservations) {
+                    reservationById.put(reservation.getId(), reservation);
+                }
+                for (R reservation : providedReservationsToApply) {
+                    reservation = reservationById.get(reservation.getId());
+                    if (reservation != null) {
+                        reservations.remove(reservation);
+                    }
+                }
+            }
+            Set<R> allocatedReservationsToApply = allocatedReservationsByObjectId.get(objectId);
+            if (allocatedReservationsToApply != null) {
+                reservations.addAll(allocatedReservationsToApply);
             }
         }
     }

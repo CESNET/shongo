@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -151,6 +152,7 @@ public class Scheduler extends Component
             for (Reservation childReservation : reservation.getChildReservations()) {
                 cache.addReservation(childReservation);
             }
+
 
             // Update reservation request
             reservationRequest.setReservation(reservation);

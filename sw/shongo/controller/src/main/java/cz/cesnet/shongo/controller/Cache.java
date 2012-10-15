@@ -545,12 +545,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         {
             if (reservation.getSlot().contains(getInterval())) {
                 if (reservation instanceof ResourceReservation) {
-                    ResourceReservation providedResourceReservation = (ResourceReservation) reservation;
-                    resourceCacheTransaction.addProvidedReservation(providedResourceReservation);
+                    ResourceReservation resourceReservation = (ResourceReservation) reservation;
+                    resourceCacheTransaction.addProvidedReservation(
+                            resourceReservation.getResource().getId(), resourceReservation);
                 }
                 if (reservation instanceof AliasReservation) {
-                    AliasReservation providedAliasReservation = (AliasReservation) reservation;
-                    aliasCacheTransaction.addProvidedReservation(providedAliasReservation);
+                    AliasReservation aliasReservation = (AliasReservation) reservation;
+                    aliasCacheTransaction.addProvidedReservation(
+                            aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
                 }
             }
 
@@ -561,11 +563,46 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         }
 
         /**
+         * @param reservation to be removed from the provided {@link Reservation}s from the {@link Transaction}
+         */
+        public void removeProvidedReservation(Reservation reservation)
+        {
+            if (reservation instanceof ResourceReservation) {
+                ResourceReservation resourceReservation = (ResourceReservation) reservation;
+                resourceCacheTransaction.removeProvidedReservation(
+                        resourceReservation.getResource().getId(), resourceReservation);
+            }
+            if (reservation instanceof AliasReservation) {
+                AliasReservation aliasReservation = (AliasReservation) reservation;
+                aliasCacheTransaction.removeProvidedReservation(
+                        aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
+            }
+        }
+
+        /**
          * @return {@link #resourceCacheTransaction}
          */
         public ResourceCache.Transaction getResourceCacheTransaction()
         {
             return resourceCacheTransaction;
+        }
+
+        /**
+         * @param resource for which the provided {@link ResourceReservation}s should be returned
+         * @return provided {@link ResourceReservation}s for given {@code resource}
+         */
+        public Set<ResourceReservation> getProvidedResourceReservations(Resource resource)
+        {
+            return resourceCacheTransaction.getProvidedReservations(resource.getId());
+        }
+
+        /**
+         * @param alias for which should be {@link AliasReservation} returned
+         * @return provided {@link AliasReservation} for given {@code alias}
+         */
+        public AliasReservation getProvidedAliasReservation(Alias alias)
+        {
+            return aliasCacheTransaction.getProvidedReservationByAlias(alias);
         }
 
         /**

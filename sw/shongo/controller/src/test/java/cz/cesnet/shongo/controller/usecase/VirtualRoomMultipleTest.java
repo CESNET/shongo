@@ -53,6 +53,6 @@ public class VirtualRoomMultipleTest extends AbstractTest
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
     }
 }

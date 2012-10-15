@@ -4,6 +4,7 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -163,6 +164,7 @@ public class AliasSpecification extends Specification implements ReservationTask
             @Override
             protected AliasReservation createReservation() throws ReportException
             {
+                Cache.Transaction cacheTransaction = getCacheTransaction();
                 AvailableAlias availableAlias = null;
                 // First try to allocate alias from a resource capabilities
                 Resource resource = getResource();
@@ -170,7 +172,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                     List<AliasProviderCapability> aliasProviderCapabilities =
                             resource.getCapabilities(AliasProviderCapability.class);
                     for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-                        availableAlias = getCache().getAvailableAlias(aliasProviderCapability, getCacheTransaction(),
+                        availableAlias = getCache().getAvailableAlias(aliasProviderCapability, cacheTransaction,
                                 getTechnology(), getAliasType(), getInterval());
                         if (availableAlias != null) {
                             break;
@@ -180,15 +182,21 @@ public class AliasSpecification extends Specification implements ReservationTask
                 // Allocate alias from all resources in the cache
                 if (availableAlias == null) {
                     availableAlias = getCache().getAvailableAlias(
-                            getCacheTransaction(), getTechnology(), getAliasType(), getInterval());
+                            cacheTransaction, getTechnology(), getAliasType(), getInterval());
                 }
                 if (availableAlias == null) {
                     throw new NoAvailableAliasReport(getTechnology(), getAliasType()).exception();
                 }
+                Alias alias = availableAlias.getAlias();
                 AliasReservation aliasReservation = new AliasReservation();
                 aliasReservation.setSlot(getInterval());
                 aliasReservation.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
-                aliasReservation.setAlias(availableAlias.getAlias());
+                aliasReservation.setAlias(alias);
+                if (alias.isPersisted()) {
+                    AliasReservation providedAliasReservation = cacheTransaction.getProvidedAliasReservation(alias);
+                    aliasReservation.addChildReservation(providedAliasReservation);
+                    cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                }
                 return aliasReservation;
             }
         };

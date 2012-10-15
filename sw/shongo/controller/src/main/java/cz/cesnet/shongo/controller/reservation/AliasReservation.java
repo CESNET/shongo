@@ -29,6 +29,13 @@ public class AliasReservation extends Reservation
     private Alias alias;
 
     /**
+     * Constructor.
+     */
+    public AliasReservation()
+    {
+    }
+
+    /**
      * @return {@link #aliasProviderCapability}
      */
     @ManyToOne

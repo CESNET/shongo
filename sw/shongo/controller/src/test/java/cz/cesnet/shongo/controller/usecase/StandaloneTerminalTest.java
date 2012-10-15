@@ -39,8 +39,6 @@ public class StandaloneTerminalTest extends AbstractTest
         terminal2.setAllocatable(true);
         cache.addResource(terminal2, entityManager);
 
-        entityManager.close();
-
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.setRequestedSlot("2012-06-22T14:00", "PT2H");
@@ -49,7 +47,9 @@ public class StandaloneTerminalTest extends AbstractTest
         compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
+
+        entityManager.close();
     }
 
     @Test
@@ -76,8 +76,6 @@ public class StandaloneTerminalTest extends AbstractTest
         terminal2.setAllocatable(true);
         cache.addResource(terminal2, entityManager);
 
-        entityManager.close();
-
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.setRequestedSlot("2012-06-22T14:00", "PT2H");
@@ -86,6 +84,8 @@ public class StandaloneTerminalTest extends AbstractTest
         compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache);
+        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
+
+        entityManager.close();
     }
 }

@@ -143,9 +143,6 @@ public class ReservationServiceImpl extends Component
             ReservationRequest singleReservationRequestImpl = (ReservationRequest) reservationRequestImpl;
             // Reservation request was modified, so we must clear it's state
             singleReservationRequestImpl.clearState();
-            // And if allocated reservation exists, we remove reference to it and it will be deleted
-            // at the start of the Scheduler
-            singleReservationRequestImpl.setReservation(null);
             // Update state
             singleReservationRequestImpl.updateStateBySpecifications();
         }
