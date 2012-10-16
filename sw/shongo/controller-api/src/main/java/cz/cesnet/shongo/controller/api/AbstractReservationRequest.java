@@ -5,6 +5,8 @@ import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
 
+import java.util.List;
+
 /**
  * Request for reservation of resources.
  *
@@ -46,6 +48,11 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
      * Specifies whether the scheduler should try allocate resources from other domains.
      */
     public static final String INTER_DOMAIN = "interDomain";
+
+    /**
+     * Collection of identifiers for {@link Reservation}s which are provided to the {@link AbstractReservationRequest}.
+     */
+    public static final String PROVIDED_RESERVATION_IDENTIFIERS = "providedReservationIdentifiers";
 
     /**
      * Constructor.
@@ -166,5 +173,38 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     public void setInterDomain(Boolean interDomain)
     {
         getPropertyStorage().setValue(INTER_DOMAIN, interDomain);
+    }
+
+    /**
+     * @return {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     */
+    public List<String> getProvidedReservationIdentifiers()
+    {
+        return getPropertyStorage().getCollection(PROVIDED_RESERVATION_IDENTIFIERS, List.class);
+    }
+
+    /**
+     * @param providedReservationIdentifiers sets the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     */
+    public void setProvidedReservationIdentifiers(List<String> providedReservationIdentifiers)
+    {
+        getPropertyStorage().setCollection(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifiers);
+    }
+
+    /**
+     * @param providedReservationIdentifier to be added to the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     */
+    public void addProvidedReservationIdentifier(String providedReservationIdentifier)
+    {
+        getPropertyStorage().addCollectionItem(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier,
+                List.class);
+    }
+
+    /**
+     * @param providedReservationIdentifier to be removed from the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     */
+    public void removeProvidedReservationIdentifier(String providedReservationIdentifier)
+    {
+        getPropertyStorage().removeCollectionItem(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier);
     }
 }

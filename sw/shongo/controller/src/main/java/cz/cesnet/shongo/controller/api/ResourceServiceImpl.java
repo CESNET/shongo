@@ -101,22 +101,36 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        // Create resource from API
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl =
-                cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager, domain);
+        cz.cesnet.shongo.controller.resource.Resource resourceImpl;
+        try {
+            // Create resource from API
+            resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager, domain);
 
-        // Save it
-        ResourceManager resourceManager = new ResourceManager(entityManager);
-        resourceManager.create(resourceImpl);
+            // Save it
+            ResourceManager resourceManager = new ResourceManager(entityManager);
+            resourceManager.create(resourceImpl);
 
-        entityManager.getTransaction().commit();
+            entityManager.getTransaction().commit();
 
-        // Add resource to the cache
-        if (cache != null) {
-            cache.addResource(resourceImpl, entityManager);
+            // Add resource to the cache
+            if (cache != null) {
+                cache.addResource(resourceImpl, entityManager);
+            }
         }
-
-        entityManager.close();
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            if (exception instanceof FaultException) {
+                throw (FaultException) exception;
+            }
+            else {
+                throw new FaultException(exception);
+            }
+        }
+        finally {
+            entityManager.close();
+        }
 
         // Return resource identifier
         return domain.formatIdentifier(resourceImpl.getId());
@@ -132,28 +146,42 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        ResourceManager resourceManager = new ResourceManager(entityManager);
+        try {
+            ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        // Get reservation request
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
+            // Get reservation request
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
 
-        // Synchronize from API
-        resourceImpl.fromApi(resource, entityManager, domain);
+            // Synchronize from API
+            resourceImpl.fromApi(resource, entityManager, domain);
 
-        resourceManager.update(resourceImpl);
+            resourceManager.update(resourceImpl);
 
-        entityManager.getTransaction().commit();
+            entityManager.getTransaction().commit();
 
-        // Update resource in the cache
-        if (cache != null) {
-            cache.updateResource(resourceImpl, entityManager);
+            // Update resource in the cache
+            if (cache != null) {
+                cache.updateResource(resourceImpl, entityManager);
+            }
         }
-
-        entityManager.close();
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            if (exception instanceof FaultException) {
+                throw (FaultException) exception;
+            }
+            else {
+                throw new FaultException(exception);
+            }
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override
-    public void deleteResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException
+    public void deleteResource(SecurityToken token, String resourceIdentifier) throws FaultException
     {
         authorization.validate(token);
 
@@ -162,6 +190,7 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
+        try {
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         // Get the resource
@@ -176,7 +205,21 @@ public class ResourceServiceImpl extends Component
         }
 
         entityManager.getTransaction().commit();
-        entityManager.close();
+        }
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            if (exception instanceof FaultException) {
+                throw (FaultException) exception;
+            }
+            else {
+                throw new FaultException(exception);
+            }
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override

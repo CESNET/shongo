@@ -66,7 +66,9 @@ public class ReservationManager extends AbstractManager
                 }
             }
         }
-        // Delete all child reservations
+        // Remove reservation from cache
+        cache.removeReservation(reservation);
+        // Remove also all child reservations
         List<Reservation> childReservations = reservation.getChildReservations();
         for (Reservation childReservation : childReservations) {
             cache.removeReservation(childReservation);

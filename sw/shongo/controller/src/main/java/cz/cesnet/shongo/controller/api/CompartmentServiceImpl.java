@@ -77,10 +77,10 @@ public class CompartmentServiceImpl extends Component
 
         Long compartmentId = domain.parseIdentifier(compartmentIdentifier);
 
-        try {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            entityManager.getTransaction().begin();
+        EntityManager entityManager = entityManagerFactory.createEntityManager();
+        entityManager.getTransaction().begin();
 
+        try {
             CompartmentManager compartmentManager = new CompartmentManager(entityManager);
 
             cz.cesnet.shongo.controller.compartment.Compartment compartment =
@@ -89,10 +89,18 @@ public class CompartmentServiceImpl extends Component
             compartmentManager.delete(compartment);
 
             entityManager.getTransaction().commit();
-            entityManager.close();
         }
         catch (javax.persistence.RollbackException exception) {
             throw new EntityToDeleteIsReferencedException(Compartment.class, compartmentId);
+        }
+        catch (FaultException exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            throw exception;
+        }
+        finally {
+            entityManager.close();
         }
     }
 

@@ -87,15 +87,30 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
-                cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
-                        reservationRequest, entityManager, domain);
+        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl;
+        try {
+            reservationRequestImpl = cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
+                    reservationRequest, entityManager, domain);
 
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        reservationRequestManager.create(reservationRequestImpl);
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            reservationRequestManager.create(reservationRequestImpl);
 
-        entityManager.getTransaction().commit();
-        entityManager.close();
+            entityManager.getTransaction().commit();
+        }
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            if (exception instanceof FaultException) {
+                throw (FaultException) exception;
+            }
+            else {
+                throw new FaultException(exception);
+            }
+        }
+        finally {
+            entityManager.close();
+        }
 
         return domain.formatIdentifier(reservationRequestImpl.getId());
     }
@@ -132,25 +147,41 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        try {
 
-        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
-                reservationRequestManager.get(reservationRequestId);
-        checkModifiableReservationRequest(reservationRequestImpl);
-        reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        if (reservationRequestImpl instanceof ReservationRequest) {
-            ReservationRequest singleReservationRequestImpl = (ReservationRequest) reservationRequestImpl;
-            // Reservation request was modified, so we must clear it's state
-            singleReservationRequestImpl.clearState();
-            // Update state
-            singleReservationRequestImpl.updateStateBySpecifications();
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
+                    reservationRequestManager.get(reservationRequestId);
+            checkModifiableReservationRequest(reservationRequestImpl);
+            reservationRequestImpl.fromApi(reservationRequest, entityManager, domain);
+
+            if (reservationRequestImpl instanceof ReservationRequest) {
+                ReservationRequest singleReservationRequestImpl = (ReservationRequest) reservationRequestImpl;
+                // Reservation request was modified, so we must clear it's state
+                singleReservationRequestImpl.clearState();
+                // Update state
+                singleReservationRequestImpl.updateStateBySpecifications();
+            }
+
+            reservationRequestManager.update(reservationRequestImpl);
+
+            entityManager.getTransaction().commit();
         }
-
-        reservationRequestManager.update(reservationRequestImpl);
-
-        entityManager.getTransaction().commit();
-        entityManager.close();
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            if (exception instanceof FaultException) {
+                throw (FaultException) exception;
+            }
+            else {
+                throw new FaultException(exception);
+            }
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override
@@ -163,16 +194,31 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
 
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        try {
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
-                reservationRequestManager.get(reservationRequestId);
-        checkModifiableReservationRequest(reservationRequestImpl);
+            cz.cesnet.shongo.controller.request.AbstractReservationRequest reservationRequestImpl =
+                    reservationRequestManager.get(reservationRequestId);
+            checkModifiableReservationRequest(reservationRequestImpl);
 
-        reservationRequestManager.delete(reservationRequestImpl);
+            reservationRequestManager.delete(reservationRequestImpl);
 
-        entityManager.getTransaction().commit();
-        entityManager.close();
+            entityManager.getTransaction().commit();
+        }
+        catch (Exception exception) {
+            if (entityManager.getTransaction().isActive()) {
+                entityManager.getTransaction().rollback();
+            }
+            if (exception instanceof FaultException) {
+                throw (FaultException) exception;
+            }
+            else {
+                throw new FaultException(exception);
+            }
+        }
+        finally {
+            entityManager.close();
+        }
     }
 
     @Override

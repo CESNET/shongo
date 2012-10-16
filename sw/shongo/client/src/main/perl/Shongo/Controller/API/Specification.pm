@@ -127,7 +127,7 @@ sub modify()
             $self->{'count'} = console_edit_value("Count", 1, "\\d+", $self->{'count'});
         }
         case 'ExistingEndpointSpecification' {
-            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 1, $Shongo::Controller::API::Common::IdentifierPattern, $self->{'resourceIdentifier'});
+            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 1, $Shongo::Common::IdentifierPattern, $self->{'resourceIdentifier'});
             return $self;
         }
         case 'LookupEndpointSpecification' {
@@ -142,7 +142,7 @@ sub modify()
         case 'AliasSpecification' {
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
             $self->{'aliasType'} = console_edit_enum("Select type of alias", $AliasType, $self->{'aliasType'});
-            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 0, $Shongo::Controller::API::Common::IdentifierPattern, $self->{'resourceIdentifier'});
+            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 0, $Shongo::Common::IdentifierPattern, $self->{'resourceIdentifier'});
         }
     }
 }

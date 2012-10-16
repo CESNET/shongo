@@ -11,12 +11,12 @@ import org.joda.time.Interval;
 public class ReservationRequest extends AbstractReservationRequest
 {
     /**
-     * Collection of {@link DateTimeSlot} for which the reservation is requested.
+     * {@link DateTimeSlot} for which the reservation is requested.
      */
     public static final String SLOT = "slot";
 
     /**
-     * Collection of {@link CompartmentSpecification} which are requested for the reservation.
+     * {@link Specification} which is requested for the reservation.
      */
     public static final String SPECIFICATION = "specification";
 

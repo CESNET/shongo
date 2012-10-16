@@ -282,7 +282,8 @@ public class ReservationRequestManager extends AbstractManager
                 "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
                         + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
                         + " WHERE reservationRequestSet.id = :id "
-                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end",
+                        + " AND reservationRequest.requestedSlotStart < :end"
+                        + " AND reservationRequest.requestedSlotEnd > :start",
                 ReservationRequest.class)
                 .setParameter("id", reservationRequestSetId)
                 .setParameter("start", interval.getStart())
@@ -301,7 +302,8 @@ public class ReservationRequestManager extends AbstractManager
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :state"
-                        + " AND reservationRequest.requestedSlotStart BETWEEN :start AND :end",
+                        + " AND reservationRequest.requestedSlotStart < :end"
+                        + " AND reservationRequest.requestedSlotEnd > :start",
                 ReservationRequest.class)
                 .setParameter("state", ReservationRequest.State.COMPLETE)
                 .setParameter("start", interval.getStart())

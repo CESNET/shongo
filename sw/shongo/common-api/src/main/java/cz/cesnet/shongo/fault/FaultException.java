@@ -124,6 +124,16 @@ public class FaultException extends Exception implements Fault, SerializableExce
         this(CommonFault.UNKNOWN, faultString);
     }
 
+    /**
+     * Construct unknown fault by {@code throwable}.
+     *
+     * @param throwable
+     */
+    public FaultException(Throwable throwable)
+    {
+        this(CommonFault.UNKNOWN, throwable);
+    }
+
     @Override
     public int getCode()
     {

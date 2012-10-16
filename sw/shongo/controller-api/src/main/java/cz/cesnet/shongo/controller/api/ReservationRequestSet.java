@@ -19,7 +19,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     public static final String SLOTS = "slots";
 
     /**
-     * Collection of {@link CompartmentSpecification} which are requested for the reservation.
+     * Collection of {@link Specification} which are requested for the reservation.
      */
     public static final String SPECIFICATIONS = "specifications";
 

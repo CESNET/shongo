@@ -64,6 +64,8 @@ sub on_modify_loop()
             return undef;
         }
     ));
+
+    return $self->SUPER::on_modify_loop($actions);
 }
 
 #

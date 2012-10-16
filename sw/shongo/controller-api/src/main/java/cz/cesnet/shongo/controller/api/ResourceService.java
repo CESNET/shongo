@@ -50,7 +50,7 @@ public interface ResourceService extends Service
      * @param resourceIdentifier Shongo identifier of the resource to delete
      */
     @API
-    public void deleteResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException;
+    public void deleteResource(SecurityToken token, String resourceIdentifier) throws FaultException;
 
     /**
      * Lists all Shongo-managed resources matching the filter.

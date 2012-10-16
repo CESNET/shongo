@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -17,6 +18,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a common attributes for all types of reservation requests.
@@ -193,6 +195,19 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
+     * @param providedReservationIdentifier for {@link Reservation} to be removed from {@link #providedReservations}
+     */
+    public void removeProvidedReservation(Long providedReservationIdentifier)
+    {
+        for (int index = 0; index < providedReservations.size(); index++) {
+            if (providedReservations.get(index).getId().equals(providedReservationIdentifier)) {
+                providedReservations.remove(index);
+                break;
+            }
+        }
+    }
+
+    /**
      * Synchronize properties from given {@code abstractReservationRequest}.
      *
      * @param abstractReservationRequest from which will be copied all properties values to
@@ -221,7 +236,9 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     @PrePersist
     protected void onCreate()
     {
-        created = DateTime.now();
+        if (created == null) {
+            created = DateTime.now();
+        }
     }
 
     /**
@@ -281,6 +298,9 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         api.setDescription(getDescription());
         api.setPurpose(getPurpose());
         api.setInterDomain(isInterDomain());
+        for (Reservation providedReservation : getProvidedReservations()) {
+            api.addProvidedReservationIdentifier(domain.formatIdentifier(providedReservation.getId()));
+        }
     }
 
     /**
@@ -308,6 +328,23 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         }
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.INTER_DOMAIN)) {
             setInterDomain(api.getInterDomain());
+        }
+
+        // Create/modify provided reservations
+        ReservationManager reservationManager = new ReservationManager(entityManager);
+        for (String providedReservationIdentifier : api.getProvidedReservationIdentifiers()) {
+            if (api.isCollectionItemMarkedAsNew(api.PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier)) {
+                Long providedReservationId = domain.parseIdentifier(providedReservationIdentifier);
+                Reservation providedReservation = reservationManager.get(providedReservationId);
+                addProvidedReservation(providedReservation);
+            }
+        }
+        // Delete provided reservations
+        Set<String> apiDeletedProvidedReservationIdentifiers =
+                api.getCollectionItemsMarkedAsDeleted(api.PROVIDED_RESERVATION_IDENTIFIERS);
+        for (String providedReservationIdentifier : apiDeletedProvidedReservationIdentifiers) {
+            Long providedReservationId = domain.parseIdentifier(providedReservationIdentifier);
+            removeProvidedReservation(providedReservationId);
         }
     }
 

@@ -78,12 +78,12 @@ public class Scheduler extends Component
         ReservationManager reservationManager = new ReservationManager(entityManager);
         CompartmentManager compartmentManager = new CompartmentManager(entityManager);
 
-        // Delete all reservations which was marked for deletion
-        reservationManager.deleteAllNotReferencedByReservationRequest(cache);
-        // Delete all compartments which should be deleted
-        compartmentManager.deleteAllNotReferenced();
-
         try {
+            // Delete all reservations which was marked for deletion
+            reservationManager.deleteAllNotReferencedByReservationRequest(cache);
+            // Delete all compartments which should be deleted
+            compartmentManager.deleteAllNotReferenced();
+
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
             List<ReservationRequest> reservationRequests =
                     compartmentRequestManager.listCompletedReservationRequests(interval);

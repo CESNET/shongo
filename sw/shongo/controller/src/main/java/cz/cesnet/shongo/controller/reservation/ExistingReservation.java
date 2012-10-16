@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 
 import javax.persistence.Access;
@@ -42,6 +43,15 @@ public class ExistingReservation extends Reservation
     @Override
     protected cz.cesnet.shongo.controller.api.Reservation createApi()
     {
-        throw new RuntimeException("TODO: Implement ExistingReservation.createApi");
+        return new cz.cesnet.shongo.controller.api.ExistingReservation();
+    }
+
+    @Override
+    protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.ExistingReservation existingReservationApi =
+                (cz.cesnet.shongo.controller.api.ExistingReservation) api;
+        existingReservationApi.setReservation(getReservation().toApi(domain));
+        super.toApi(api, domain);
     }
 }

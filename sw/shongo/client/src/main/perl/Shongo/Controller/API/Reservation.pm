@@ -20,7 +20,9 @@ use Shongo::Controller::API::Compartment;
 our $Type = ordered_hash(
     'ResourceReservation' => 'Resource Reservation',
     'VirtualRoomReservation' => 'Virtual Room Reservation',
-    'AliasReservation' => 'Alias Reservation'
+    'AliasReservation' => 'Alias Reservation',
+    'CompartmentReservation' => 'Compartment Reservation',
+    'ExistingReservation' => 'Existing Reservation'
 );
 
 #
@@ -110,6 +112,11 @@ sub get_attributes
             my $compartment = Shongo::Controller::API::Compartment->new();
             $compartment->from_xml($self->{'compartment'});
             $attributes->{'add'}('Compartment', $compartment);
+        }
+        case 'ExistingReservation' {
+            my $reservation = Shongo::Controller::API::Reservation->new();
+            $reservation->from_xml($self->{'reservation'});
+            $attributes->{'add'}('Reservation', $reservation);
         }
     }
     if ( defined($self->{'childReservations'}) && @{$self->{'childReservations'}} > 0) {

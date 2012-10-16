@@ -248,6 +248,8 @@ public class ReservationRequest extends AbstractReservationRequest
     @PrePersist
     protected void onCreate()
     {
+        super.onCreate();
+
         // Reservation requests are by default created by user
         if (createdBy == null) {
             createdBy = CreatedBy.USER;
