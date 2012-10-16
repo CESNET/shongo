@@ -96,7 +96,7 @@ public class Preprocessor extends Component
      * Synchronize (create/modify/delete) {@link ReservationRequest}s from a single {@link ReservationRequestSet}.
      */
     private void processReservationRequestSet(ReservationRequestSet reservationRequestSet, Interval interval,
-            EntityManager entityManager)
+            EntityManager entityManager) throws FaultException
     {
         reservationRequestSet.checkPersisted();
 

@@ -1,7 +1,9 @@
 * PERMANENT
 
 * Passing existing reservations to the new reservations requests to reuse allocated resources by scheduler
-  * Create tests for reusing existing reservations in compartments
+  * Implement API
+
+* Create tests for common use cases
 
 * API
   * Popsat autentizaci v API

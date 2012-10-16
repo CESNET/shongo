@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
+import cz.cesnet.shongo.controller.compartment.CompartmentManager;
+import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
@@ -10,7 +12,6 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -74,9 +75,13 @@ public class Scheduler extends Component
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
 
-        // Delete all reservations which was marked for deletion
         ReservationManager reservationManager = new ReservationManager(entityManager);
+        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+
+        // Delete all reservations which was marked for deletion
         reservationManager.deleteAllNotReferencedByReservationRequest(cache);
+        // Delete all compartments which should be deleted
+        compartmentManager.deleteAllNotReferenced();
 
         try {
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
@@ -89,6 +94,9 @@ public class Scheduler extends Component
             for (ReservationRequest reservationRequest : reservationRequests) {
                 allocateReservationRequest(reservationRequest, entityManager);
             }
+
+            // Delete all compartments which should be deleted
+            compartmentManager.deleteAllNotReferenced();
 
             transaction.commit();
         }
@@ -131,7 +139,7 @@ public class Scheduler extends Component
 
         try {
             // Fill provided reservations to transaction
-            for (Reservation providedReservation : reservationRequest.getProvidedReservations() ) {
+            for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
                 context.getCacheTransaction().addProvidedReservation(providedReservation);
             }
 
@@ -149,6 +157,7 @@ public class Scheduler extends Component
             reservationManager.create(reservation);
 
             // Update cache
+            cache.addReservation(reservation);
             for (Reservation childReservation : reservation.getChildReservations()) {
                 cache.addReservation(childReservation);
             }
@@ -162,10 +171,23 @@ public class Scheduler extends Component
         }
         catch (ReportException exception) {
             reservationRequest.setState(ReservationRequest.State.ALLOCATION_FAILED);
+            Report report = exception.getReport();
             if (reservationTask != null) {
-                reservationRequest.setReports(reservationTask.getReports());
+                Report currentReport = reservationTask.getCurrentReport();
+                if (currentReport != null && currentReport.getParentReport() != null) {
+                    Report parentReport = currentReport.getParentReport();
+                    parentReport.replaceChildReport(currentReport, report);
+                    report.addChildReport(currentReport);
+                    reservationRequest.setReports(reservationTask.getReports());
+                    report = null;
+                }
+                else {
+                    report.addChildReports(reservationTask.getReports());
+                }
             }
-            reservationRequest.addReport(exception.getReport());
+            if (report != null) {
+                reservationRequest.addReport(report);
+            }
         }
     }
 }

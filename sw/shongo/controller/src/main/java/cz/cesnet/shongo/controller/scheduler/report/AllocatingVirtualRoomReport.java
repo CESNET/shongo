@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class AllocatingVirtualRoomReport extends Report
 {
     /**
-     * Virtual room port count.
+     * @see VirtualRoom
      */
     private VirtualRoom virtualRoom;
 

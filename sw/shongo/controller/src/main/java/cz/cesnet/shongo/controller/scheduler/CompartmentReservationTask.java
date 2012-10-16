@@ -95,6 +95,7 @@ public class CompartmentReservationTask extends ReservationTask
     private void initCompartment()
     {
         // Initialize compartment
+        compartment.setState(Compartment.State.NOT_ALLOCATED);
         compartment.setSlot(getInterval());
     }
 
@@ -252,23 +253,22 @@ public class CompartmentReservationTask extends ReservationTask
                 }
         }
 
-        Report connection = new CreatingConnectionBetweenReport(endpointFrom, endpointTo, technology);
+        beginReport(new CreatingConnectionBetweenReport(endpointFrom, endpointTo, technology));
         try {
             addConnection(endpointFrom, endpointTo, technology);
         }
         catch (ReportException firstException) {
-            connection.addChildMessage(firstException.getReport());
+            addReport(firstException.getReport());
             try {
                 addConnection(endpointTo, endpointFrom, technology);
             }
             catch (ReportException secondException) {
-                connection.addChildMessage(secondException.getReport());
+                addReport(secondException.getReport());
                 Report connectionFailed = new CannotCreateConnectionBetweenReport(endpointFrom, endpointTo);
-                connectionFailed.addChildMessage(connection);
                 throw connectionFailed.exception();
             }
         }
-        addReport(connection);
+        endReport();
     }
 
     /**
@@ -336,7 +336,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
             catch (ReportException exception) {
                 Report report = new CannotCreateConnectionFromToReport(endpointFrom, endpointTo);
-                report.addChildMessage(exception.getReport());
+                report.addChildReport(exception.getReport());
                 throw report.exception();
             }
         }
@@ -387,12 +387,12 @@ public class CompartmentReservationTask extends ReservationTask
      *
      * @return plan if possible, null otherwise
      */
-    private CompartmentReservation createNoVirtualRoomReservation() throws ReportException
+    private boolean createNoVirtualRoomReservation() throws ReportException
     {
         List<Endpoint> endpoints = compartment.getEndpoints();
         // Maximal two endpoints may be connected without virtual room
         if (compartment.getTotalEndpointCount() > 2 || endpoints.size() > 2) {
-            return null;
+            return false;
         }
 
         // Two endpoints must be standalone and interconnectable
@@ -407,7 +407,7 @@ public class CompartmentReservationTask extends ReservationTask
 
             // Check if endpoints are standalone
             if (!endpointFrom.isStandalone() || !endpointTo.isStandalone()) {
-                return null;
+                return false;
             }
 
             // Check connectivity
@@ -418,7 +418,7 @@ public class CompartmentReservationTask extends ReservationTask
                 endpointTo = endpointTemp;
                 connectivityEdge = connectivityGraph.getEdge(endpointFrom, endpointTo);
                 if (connectivityEdge == null) {
-                    return null;
+                    return false;
                 }
             }
         }
@@ -426,19 +426,15 @@ public class CompartmentReservationTask extends ReservationTask
             // Only allocated resource is allowed
             Endpoint allocatedEndpoint = endpoints.get(0);
             if (!(allocatedEndpoint instanceof ResourceEndpoint)) {
-                return null;
+                return false;
             }
         }
 
-        // Create allocated compartment
-        CompartmentReservation compartmentReservation = new CompartmentReservation();
-        compartmentReservation.setSlot(getInterval());
-        compartmentReservation.setCompartment(compartment);
         // Add connection between two standalone endpoints
         if (endpointFrom != null && endpointTo != null) {
             addConnection(endpointFrom, endpointTo);
         }
-        return compartmentReservation;
+        return true;
     }
 
     /**
@@ -458,7 +454,7 @@ public class CompartmentReservationTask extends ReservationTask
      *
      * @return plan if possible, null otherwise
      */
-    private CompartmentReservation createSingleVirtualRoomReservation() throws ReportException
+    private boolean createSingleVirtualRoomReservation() throws ReportException
     {
         Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
 
@@ -466,7 +462,7 @@ public class CompartmentReservationTask extends ReservationTask
         List<AvailableVirtualRoom> availableVirtualRooms = getCache().findAvailableVirtualRoomsByVariants(
                 getInterval(), compartment.getTotalEndpointCount(), technologySets);
         if (availableVirtualRooms.size() == 0) {
-            return null;
+            return false;
         }
         // Sort virtual rooms from the most filled to the least filled
         Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
@@ -490,12 +486,7 @@ public class CompartmentReservationTask extends ReservationTask
         for (Endpoint endpoint : compartment.getEndpoints()) {
             addConnection(virtualRoom, endpoint);
         }
-
-        // Create compartment reservation
-        CompartmentReservation compartmentReservation = new CompartmentReservation();
-        compartmentReservation.setSlot(getInterval());
-        compartmentReservation.setCompartment(compartment);
-        return compartmentReservation;
+        return true;
     }
 
     /**
@@ -567,20 +558,26 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
 
-        CompartmentReservation noVirtualRoomReservation = createNoVirtualRoomReservation();
-        if (noVirtualRoomReservation != null) {
-            return noVirtualRoomReservation;
+        beginReport(new AllocatingCompartmentReport(compartment));
+
+        if (!createNoVirtualRoomReservation()) {
+            if (!createSingleVirtualRoomReservation()) {
+                // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
+                throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(),
+                        compartment.getTotalEndpointCount()).exception();
+            }
         }
 
-        CompartmentReservation singleVirtualRoomReservation = createSingleVirtualRoomReservation();
-        if (singleVirtualRoomReservation != null) {
-            return singleVirtualRoomReservation;
-        }
+        endReport();
 
-        // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
+        // Initialize allocated compartment
+        compartment.setState(Compartment.State.NOT_STARTED);
 
-        throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(),
-                compartment.getTotalEndpointCount()).exception();
+        // Create compartment reservation for allocated compartment
+        CompartmentReservation compartmentReservation = new CompartmentReservation();
+        compartmentReservation.setSlot(getInterval());
+        compartmentReservation.setCompartment(compartment);
+        return compartmentReservation;
     }
 
     /**

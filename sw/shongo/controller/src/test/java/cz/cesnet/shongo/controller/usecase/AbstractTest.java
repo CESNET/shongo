@@ -25,13 +25,44 @@ import static junit.framework.Assert.assertEquals;
 public abstract class AbstractTest extends AbstractDatabaseTest
 {
     /**
+     * Run {@link Preprocessor}.
+     *
+     * @param cache
+     * @throws FaultException
+     */
+    protected void runPreprocessor(Cache cache) throws FaultException
+    {
+        Interval interval = Interval.parse("0/9999");
+
+        EntityManager entityManagerForPreprocessor = getEntityManager();
+        Preprocessor.createAndRun(interval, entityManagerForPreprocessor);
+        entityManagerForPreprocessor.close();
+
+    }
+
+    /**
+     * Run {@link Scheduler}.
+     *
+     * @param cache
+     * @throws FaultException
+     */
+    protected void runScheduler(Cache cache) throws FaultException
+    {
+        Interval interval = Interval.parse("0/9999");
+
+        EntityManager entityManagerForScheduler = getEntityManager();
+        Scheduler.createAndRun(interval, entityManagerForScheduler, cache);
+        entityManagerForScheduler.close();
+    }
+
+    /**
      * Create {@link ReservationRequest} in the database, allocate it to {@link Reservation}.
      *
      * @param reservationRequest
      * @param cache
      * @throws Exception
      */
-    private void process(ReservationRequest reservationRequest, Cache cache, EntityManager entityManager)
+    protected void process(ReservationRequest reservationRequest, Cache cache, EntityManager entityManager)
             throws FaultException
     {
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -44,11 +75,7 @@ public abstract class AbstractTest extends AbstractDatabaseTest
             reservationRequestManager.update(reservationRequest);
         }
 
-        Interval interval = Interval.parse("0/9999");
-
-        EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(interval, entityManagerForScheduler, cache);
-        entityManagerForScheduler.close();
+        runScheduler(cache);
     }
 
     /**
@@ -116,15 +143,8 @@ public abstract class AbstractTest extends AbstractDatabaseTest
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         reservationRequestManager.create(reservationRequestSet);
 
-        Interval interval = Interval.parse("0/9999");
-
-        EntityManager entityManagerForPreprocessor = getEntityManager();
-        Preprocessor.createAndRun(interval, entityManagerForPreprocessor);
-        entityManagerForPreprocessor.close();
-
-        EntityManager entityManagerForScheduler = getEntityManager();
-        Scheduler.createAndRun(interval, entityManagerForScheduler, cache);
-        entityManagerForScheduler.close();
+        runPreprocessor(cache);
+        runScheduler(cache);
 
         List<ReservationRequest> reservationRequests =
                 reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);

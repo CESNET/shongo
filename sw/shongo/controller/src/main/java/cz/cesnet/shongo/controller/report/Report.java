@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -66,11 +67,11 @@ public abstract class Report
             if (this.parentReport != null) {
                 Report oldParentMessage = this.parentReport;
                 this.parentReport = null;
-                oldParentMessage.removeChildMessage(this);
+                oldParentMessage.removeChildReport(this);
             }
             if (parentReport != null) {
                 this.parentReport = parentReport;
-                this.parentReport.addChildMessage(this);
+                this.parentReport.addChildReport(this);
             }
         }
     }
@@ -94,21 +95,48 @@ public abstract class Report
     }
 
     /**
-     * @param message to be added to the {@link #childReports}
+     * @param report to be added to the {@link #childReports}
      */
-    public void addChildMessage(Report message)
+    public void addChildReport(Report report)
     {
         // Manage bidirectional association
-        if (childReports.contains(message) == false) {
-            childReports.add(message);
-            message.setParentReport(this);
+        if (childReports.contains(report) == false) {
+            childReports.add(report);
+            report.setParentReport(this);
+        }
+    }
+
+    /**
+     * @param report to be searched in the {@link #childReports} and removed
+     * @param replaceBy to be added to the {@link #childReports} at the index of {@code report}
+     */
+    public void replaceChildReport(Report report, Report replaceBy)
+    {
+        for ( int index = 0; index < childReports.size(); index++ ) {
+            if (childReports.get(index).equals(report)) {
+                childReports.remove(index);
+                report.setParentReport(null);
+                childReports.add(index, replaceBy);
+                replaceBy.setParentReport(this);
+                break;
+            }
+        }
+    }
+
+    /**
+     * @param reports to be added to the {@link #childReports}
+     */
+    public void addChildReports(Collection<Report> reports)
+    {
+        for (Report report : reports) {
+            addChildReport(report);
         }
     }
 
     /**
      * @param message to be removed from the {@link #childReports}
      */
-    public void removeChildMessage(Report message)
+    public void removeChildReport(Report message)
     {
         // Manage bidirectional association
         if (childReports.contains(message)) {

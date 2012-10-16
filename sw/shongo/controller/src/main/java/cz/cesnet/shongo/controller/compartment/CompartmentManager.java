@@ -1,6 +1,10 @@
 package cz.cesnet.shongo.controller.compartment;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.controller.Executor;
+import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
 
@@ -58,8 +62,10 @@ public class CompartmentManager extends AbstractManager
         try {
             Compartment compartment = entityManager.createQuery(
                     "SELECT compartment FROM Compartment compartment"
-                            + " WHERE compartment.id = :id",
-                    Compartment.class).setParameter("id", compartmentId)
+                            + " WHERE compartment.id = :id AND compartment.state != :notAllocated",
+                    Compartment.class)
+                    .setParameter("id", compartmentId)
+                    .setParameter("notAllocated", Compartment.State.NOT_ALLOCATED)
                     .getSingleResult();
             return compartment;
         }
@@ -68,6 +74,10 @@ public class CompartmentManager extends AbstractManager
         }
     }
 
+    /**
+     * @param interval
+     * @return list of {@link Compartment} which should be executed by an {@link Executor} in given {@code interval}
+     */
     public List<Compartment> listCompartmentsForExecution(Interval interval)
     {
         List<Compartment> compartments = entityManager.createQuery(
@@ -89,10 +99,32 @@ public class CompartmentManager extends AbstractManager
      */
     public List<Compartment> list()
     {
-        List<Compartment> reservationRequestList = entityManager
-                .createQuery("SELECT compartment FROM Compartment compartment",
+        List<Compartment> compartments = entityManager
+                .createQuery("SELECT compartment FROM Compartment compartment WHERE compartment.state != :notAllocated",
                         Compartment.class)
+                .setParameter("notAllocated", Compartment.State.NOT_ALLOCATED)
                 .getResultList();
-        return reservationRequestList;
+        return compartments;
+    }
+
+    /**
+     * Delete all {@link Compartment} which are not referenced by {@link CompartmentReservation}
+     * and/or {@link AllocatingCompartmentReport} and should be deleted.
+     */
+    public void deleteAllNotReferenced()
+    {
+        List<Compartment> compartments = entityManager
+                .createQuery("SELECT compartment FROM Compartment compartment"
+                        + " WHERE (compartment.state = :notAllocated AND compartment"
+                        + "  NOT IN (SELECT report.compartment FROM AllocatingCompartmentReport report))"
+                        + " OR (compartment.state = :notStarted AND compartment"
+                        + "  NOT IN (SELECT reservation.compartment FROM CompartmentReservation reservation))",
+                        Compartment.class)
+                .setParameter("notAllocated", Compartment.State.NOT_ALLOCATED)
+                .setParameter("notStarted", Compartment.State.NOT_STARTED)
+                .getResultList();
+        for (Compartment compartment : compartments) {
+            delete(compartment);
+        }
     }
 }

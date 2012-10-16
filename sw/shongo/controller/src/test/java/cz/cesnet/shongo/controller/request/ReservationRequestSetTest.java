@@ -7,7 +7,10 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.Address;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.joda.time.Interval;
 import org.junit.Test;
 

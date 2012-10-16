@@ -4,10 +4,12 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ReservationRequestType;
+import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.*;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.junit.Test;
 
@@ -15,9 +17,7 @@ import javax.persistence.EntityManager;
 
 import java.util.ArrayList;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 
 /**
  * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.compartment.Compartment}.
@@ -139,6 +139,54 @@ public class ProvidedReservationTest extends AbstractTest
         assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
         assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
+
+        entityManager.close();
+    }
+
+    @Test
+    public void testAliasInCompartment() throws Exception
+    {
+        Cache cache = new Cache();
+        cache.setEntityManagerFactory(getEntityManagerFactory());
+        cache.init();
+
+        EntityManager entityManager = getEntityManager();
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setAllocatable(true);
+        mcu.setTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(100));
+        cache.addResource(mcu, entityManager);
+
+        Resource aliasProvider = new Resource();
+        aliasProvider.setAllocatable(true);
+        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "950000001"));
+        cache.addResource(aliasProvider, entityManager);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setType(ReservationRequestType.NORMAL);
+        aliasReservationRequest.setRequestedSlot("2012-01-01", "P1Y");
+        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
+
+        AliasReservation aliasReservation = (AliasReservation) checkSuccessfulAllocation(aliasReservationRequest, cache, entityManager);
+        assertEquals(aliasReservation.getAlias().getValue(), "950000001");
+
+        ReservationRequest compartmentReservationRequest = new ReservationRequest();
+        compartmentReservationRequest.setType(ReservationRequestType.NORMAL);
+        compartmentReservationRequest.setRequestedSlot("2012-06-22T14:00", "PT2H");
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
+        compartmentReservationRequest.setSpecification(compartmentSpecification);
+        compartmentReservationRequest.addProvidedReservation(aliasReservation);
+
+        Reservation reservation = checkSuccessfulAllocation(compartmentReservationRequest, cache, entityManager);
+
+        try {
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            reservationRequestManager.delete(aliasReservationRequest);
+            fail("Exception that reservation request is still referenced should be thrown");
+        } catch (EntityToDeleteIsReferencedException exception) {
+        }
 
         entityManager.close();
     }

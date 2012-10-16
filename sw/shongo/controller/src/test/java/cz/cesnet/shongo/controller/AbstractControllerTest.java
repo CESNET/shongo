@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.api.*;
 
 /**
  * Abstract controller test provides a {@link Controller} instance to extending classes.
@@ -13,6 +13,11 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * @see Controller
      */
     private cz.cesnet.shongo.controller.Controller controller;
+
+    /**
+     * @see Cache
+     */
+    private Cache cache;
 
     /**
      * @see ControllerClient
@@ -34,11 +39,37 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
+     * @return {@link ResourceService} from the {@link #controllerClient}
+     */
+    public ResourceService getResourceService()
+    {
+        return controllerClient.getService(ResourceService.class);
+    }
+
+    /**
+     * @return {@link ReservationService} from the {@link #controllerClient}
+     */
+    public ReservationService getReservationService()
+    {
+        return controllerClient.getService(ReservationService.class);
+    }
+
+    /**
      * Init the {@code controller}.
      *
      * @param controller to be inited
      */
-    protected abstract void onInitController(Controller controller);
+    protected void onInitController(Controller controller)
+    {
+        cache = new Cache();
+        cache.setEntityManagerFactory(getEntityManagerFactory());
+        cache.init();
+
+        ResourceServiceImpl resourceService = new ResourceServiceImpl();
+        resourceService.setCache(cache);
+        controller.addService(resourceService);
+        controller.addService(new ReservationServiceImpl());
+    }
 
     /**
      * Controller client is ready.

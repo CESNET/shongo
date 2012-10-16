@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.compartment;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -313,6 +314,12 @@ public class Compartment extends PersistentObject
      */
     public static enum State
     {
+        /**
+         * {@link Compartment} which has not been fully allocated yet (e.g., it is stored
+         * for {@link AllocatingCompartmentReport}).
+         */
+        NOT_ALLOCATED,
+
         /**
          * {@link Compartment} has not been created yet.
          */

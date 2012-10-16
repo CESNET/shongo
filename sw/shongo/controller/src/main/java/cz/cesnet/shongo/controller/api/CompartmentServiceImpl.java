@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.compartment.CompartmentManager;
+import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
@@ -74,7 +75,7 @@ public class CompartmentServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long reservationRequestId = domain.parseIdentifier(compartmentIdentifier);
+        Long compartmentId = domain.parseIdentifier(compartmentIdentifier);
 
         try {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -83,7 +84,7 @@ public class CompartmentServiceImpl extends Component
             CompartmentManager compartmentManager = new CompartmentManager(entityManager);
 
             cz.cesnet.shongo.controller.compartment.Compartment compartment =
-                    compartmentManager.get(reservationRequestId);
+                    compartmentManager.get(compartmentId);
 
             compartmentManager.delete(compartment);
 
@@ -91,8 +92,7 @@ public class CompartmentServiceImpl extends Component
             entityManager.close();
         }
         catch (javax.persistence.RollbackException exception) {
-            throw new FaultException("Compartment '" + reservationRequestId.toString() +
-                    "' cannot be deleted (it is still referenced).");
+            throw new EntityToDeleteIsReferencedException(Compartment.class, compartmentId);
         }
     }
 

@@ -23,7 +23,7 @@ public class CompartmentReservation extends Reservation
     /**
      * @return {@link #compartment}
      */
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.PERSIST)
     public Compartment getCompartment()
     {
         return compartment;

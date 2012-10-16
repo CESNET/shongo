@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory;
 import cz.cesnet.shongo.api.xmlrpc.TypeFactory;
 import cz.cesnet.shongo.controller.api.ControllerFault;
@@ -17,7 +18,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Client for a domain controller from Shongo.
@@ -35,6 +38,11 @@ public class ControllerClient
      * XML-RPC client factory for creating services.
      */
     ClientFactory clientFactory;
+
+    /**
+     * Map of services by the class.
+     */
+    Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
 
     /**
      * @see {@link ControllerFault}
@@ -84,9 +92,14 @@ public class ControllerClient
      * @param serviceClass
      * @return service from a domain controller for the given class.
      */
-    public <T> T getService(Class<T> serviceClass)
+    public <T extends Service> T getService(Class<T> serviceClass)
     {
-        return (T) clientFactory.newInstance(serviceClass);
+        Service service = serviceByClass.get(serviceClass);
+        if (service == null) {
+            service = serviceClass.cast(clientFactory.newInstance(serviceClass));
+            serviceByClass.put(serviceClass, service);
+        }
+        return serviceClass.cast(service);
     }
 
     /**

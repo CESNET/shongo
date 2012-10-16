@@ -55,18 +55,15 @@ public class ReservationManager extends AbstractManager
             CompartmentReservation compartmentReservation = (CompartmentReservation) reservation;
             CompartmentManager compartmentManager = new CompartmentManager(entityManager);
             Compartment compartment = compartmentReservation.getCompartment();
-            if (compartment.getState().equals(Compartment.State.NOT_STARTED)) {
-                compartmentManager.delete(compartment);
-            }
-            else {
-                if (compartment.getState().equals(Compartment.State.STARTED)) {
-                    if (compartment.getSlotEnd().isAfter(DateTime.now())) {
-                        compartment.setSlotEnd(DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0));
-                        compartmentManager.update(compartment);
+            if (compartment.getState().equals(Compartment.State.STARTED)) {
+                if (compartment.getSlotEnd().isAfter(DateTime.now())) {
+                    DateTime newSlotEnd = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
+                    if (newSlotEnd.isBefore(compartment.getSlotStart())) {
+                        newSlotEnd = compartment.getSlotStart();
                     }
+                    compartment.setSlotEnd(newSlotEnd);
+                    compartmentManager.update(compartment);
                 }
-                compartmentReservation.setCompartment(null);
-                super.update(compartmentReservation);
             }
         }
         // Delete all child reservations
@@ -168,8 +165,8 @@ public class ReservationManager extends AbstractManager
     public <R extends Reservation> List<R> listByInterval(Interval interval, Class<R> reservationType)
     {
         List<R> reservations = entityManager.createQuery(
-                "SELECT reservation FROM " + reservationType.getSimpleName() + " reservation "
-                        + "WHERE reservation.slotStart BETWEEN :start AND :end",
+                "SELECT reservation FROM " + reservationType.getSimpleName() + " reservation"
+                        + " WHERE reservation.slotStart BETWEEN :start AND :end",
                 reservationType)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
@@ -186,7 +183,7 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " WHERE reservation.createdBy = :createdBy "
+                        + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL AND reservation NOT IN("
                         + " SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)",
                 Reservation.class)
@@ -195,5 +192,33 @@ public class ReservationManager extends AbstractManager
         for (Reservation reservation : reservations) {
             delete(reservation, cache);
         }
+    }
+
+    /**
+     * @param reservation to be checked if it is provided to any {@link ReservationRequest} or {@link Reservation}
+     * @return true if given {@code reservation} is provided to any other {@link ReservationRequest},
+     *         false otherwise
+     */
+    public boolean isProvided(Reservation reservation)
+    {
+        // Checks whether reservation isn't referenced in existing reservations
+        List reservations = entityManager.createQuery(
+                "SELECT reservation.id FROM ExistingReservation reservation"
+                        + " WHERE reservation.reservation = :reservation")
+                .setParameter("reservation", reservation)
+                .getResultList();
+        if (reservations.size() > 0) {
+            return false;
+        }
+        // Checks whether reservation isn't referenced in existing reservation requests
+        List reservationRequests = entityManager.createQuery(
+                "SELECT reservationRequest.id FROM AbstractReservationRequest reservationRequest"
+                        + " WHERE :reservation MEMBER OF reservationRequest.providedReservations")
+                .setParameter("reservation", reservation)
+                .getResultList();
+        if (reservationRequests.size() > 0) {
+            return false;
+        }
+        return true;
     }
 }

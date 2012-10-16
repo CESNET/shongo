@@ -22,25 +22,8 @@ import static junit.framework.Assert.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationServiceImplTest extends AbstractControllerTest
+public class XmlRpcTest extends AbstractControllerTest
 {
-    /**
-     * @see ReservationService
-     */
-    private ReservationService reservationService;
-
-    @Override
-    protected void onInitController(Controller controller)
-    {
-        controller.addService(new ReservationServiceImpl());
-    }
-
-    @Override
-    protected void onControllerClientReady(ControllerClient controllerClient)
-    {
-        reservationService = controllerClient.getService(ReservationService.class);
-    }
-
     @Test
     public void testCreateReservationRequest() throws Exception
     {
@@ -54,12 +37,13 @@ public class ReservationServiceImplTest extends AbstractControllerTest
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
         compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
 
-        String identifier = reservationService.createReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
+        String identifier = getReservationService().createReservationRequest(TESTING_SECURITY_TOKEN,
+                reservationRequestSet);
         assertEquals("shongo:cz.cesnet:1", identifier);
     }
 
     @Test
-    public void testCreateReservationRequestByRawRpcXml() throws Exception
+    public void testCreateReservationRequestByRawXmlRpc() throws Exception
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put("class", "ReservationRequestSet");
@@ -136,10 +120,10 @@ public class ReservationServiceImplTest extends AbstractControllerTest
                     reservationRequestSet.addSpecification(new CompartmentSpecification());
             compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
 
-            identifier = reservationService.createReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
+            identifier = getReservationService().createReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
             assertNotNull(identifier);
 
-            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(
+            reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
                     TESTING_SECURITY_TOKEN, identifier);
             assertNotNull(reservationRequestSet);
             assertEquals(ReservationRequestType.NORMAL, reservationRequestSet.getType());
@@ -153,7 +137,7 @@ public class ReservationServiceImplTest extends AbstractControllerTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) reservationService.getReservationRequest(TESTING_SECURITY_TOKEN,
+                    (ReservationRequestSet) getReservationService().getReservationRequest(TESTING_SECURITY_TOKEN,
                             identifier);
             reservationRequestSet.setType(ReservationRequestType.PERMANENT);
             reservationRequestSet.setPurpose(null);
@@ -162,9 +146,9 @@ public class ReservationServiceImplTest extends AbstractControllerTest
                     reservationRequestSet.addSpecification(new CompartmentSpecification());
             reservationRequestSet.removeSpecification(compartmentSpecification);
 
-            reservationService.modifyReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
+            getReservationService().modifyReservationRequest(TESTING_SECURITY_TOKEN, reservationRequestSet);
 
-            reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(
+            reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
                     TESTING_SECURITY_TOKEN, identifier);
             assertNotNull(reservationRequestSet);
             assertEquals(ReservationRequestType.PERMANENT, reservationRequestSet.getType());
@@ -178,14 +162,14 @@ public class ReservationServiceImplTest extends AbstractControllerTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet =
-                    (ReservationRequestSet) reservationService.getReservationRequest(TESTING_SECURITY_TOKEN,
+                    (ReservationRequestSet) getReservationService().getReservationRequest(TESTING_SECURITY_TOKEN,
                             identifier);
             assertNotNull(reservationRequestSet);
 
-            reservationService.deleteReservationRequest(TESTING_SECURITY_TOKEN, identifier);
+            getReservationService().deleteReservationRequest(TESTING_SECURITY_TOKEN, identifier);
 
             try {
-                reservationRequestSet = (ReservationRequestSet) reservationService.getReservationRequest(
+                reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
                         TESTING_SECURITY_TOKEN, identifier);
                 fail("Exception that record doesn't exists should be thrown.");
             }
@@ -195,7 +179,20 @@ public class ReservationServiceImplTest extends AbstractControllerTest
     }
 
     @Test
-    public void testExceptions() throws Exception
+    public void testExceptionSerializing() throws Exception
+    {
+        ResourceService resourceService = getResourceService();
+        try {
+            resourceService.getResource(TESTING_SECURITY_TOKEN, "1");
+            fail(EntityNotFoundException.class.getSimpleName() + " should be thrown.");
+        } catch (EntityNotFoundException exception) {
+            assertEquals(Long.valueOf(1), exception.getEntityIdentifier());
+            assertEquals(Resource.class, exception.getEntityType());
+        }
+    }
+
+    @Test
+    public void testExceptionByRawXmlRpc() throws Exception
     {
         Map<String, Object> reservationRequest = null;
 

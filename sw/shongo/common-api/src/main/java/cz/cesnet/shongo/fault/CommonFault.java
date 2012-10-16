@@ -49,6 +49,7 @@ public class CommonFault
 
     public static final int ENTITY_NOT_FOUND = 40;
     public static final int ENTITY_VALIDATION = 41;
+    public static final int ENTITY_TO_DELETE_IS_REFERENCED = 42;
 
     public static final int SECURITY_UNKNOWN = 50;
 

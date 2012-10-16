@@ -2,7 +2,11 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -82,8 +86,9 @@ public class ReservationRequestManager extends AbstractManager
      * Delete existing {@link AbstractReservationRequest} in the database.
      *
      * @param abstractReservationRequest to be deleted from the database
+     * @throws FaultException when the deletion failed
      */
-    public void delete(AbstractReservationRequest abstractReservationRequest)
+    public void delete(AbstractReservationRequest abstractReservationRequest) throws FaultException
     {
         Transaction transaction = beginTransaction();
 
@@ -99,7 +104,16 @@ public class ReservationRequestManager extends AbstractManager
         else if (abstractReservationRequest instanceof ReservationRequest) {
             // Keep reservation (is deleted by scheduler)
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            reservationRequest.setReservation(null);
+            Reservation reservation = reservationRequest.getReservation();
+            if (reservation != null) {
+                reservationRequest.setReservation(null);
+                update(reservationRequest);
+                // Check if reservation can be deleted
+                ReservationManager reservationManager = new ReservationManager(entityManager);
+                if (!reservationManager.isProvided(reservation)) {
+                    throw new EntityToDeleteIsReferencedException(ReservationRequest.class, reservationRequest.getId());
+                }
+            }
         }
 
         super.delete(abstractReservationRequest);

@@ -30,6 +30,11 @@ public abstract class ReservationTask
     private List<Reservation> childReservations = new ArrayList<Reservation>();
 
     /**
+     * Current {@link Report}.
+     */
+    private Report currentReport = null;
+
+    /**
      * Constructor.
      */
     public ReservationTask(Context context)
@@ -46,6 +51,14 @@ public abstract class ReservationTask
     }
 
     /**
+     * @return {@link #currentReport}
+     */
+    public Report getCurrentReport()
+    {
+        return currentReport;
+    }
+
+    /**
      * @return {@link Context#reports}
      */
     public List<Report> getReports()
@@ -58,7 +71,31 @@ public abstract class ReservationTask
      */
     protected void addReport(Report report)
     {
-        context.addReport(report);
+        if (currentReport != null) {
+            currentReport.addChildReport(report);
+        } else {
+            context.addReport(report);
+        }
+    }
+
+    /**
+     * @param report to be added and to be used as parent for next reports until {@link #endReport()} is called
+     */
+    protected void beginReport(Report report)
+    {
+        addReport(report);
+        currentReport = report;
+    }
+
+    /**
+     * Stop using {@link #currentReport} as parent for next reports
+     */
+    protected void endReport()
+    {
+        if ( currentReport == null) {
+            throw new IllegalArgumentException("Current report should not be null.");
+        }
+        currentReport = currentReport.getParentReport();
     }
 
     /**
