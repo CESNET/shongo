@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Information about controlled or foreign domain.
  *
@@ -84,5 +87,23 @@ public class Domain
     public void setStatus(Status status)
     {
         this.status = status;
+    }
+
+    private static final Pattern GLOBAL_IDENTIFIER_PATTERN = Pattern.compile("shongo:.*:(\\d+)");
+
+    /**
+     * @param globalIdentifier from which the local identifier should be returned
+     * @return local identifier from given {@code globalIdentifier}
+     */
+    public static String getLocalIdentifier(String globalIdentifier)
+    {
+        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(globalIdentifier);
+
+        if (matcher.matches() && matcher.groupCount() == 1) {
+            String identifier = matcher.group(1);
+            return identifier;
+        }
+        throw new IllegalArgumentException(String.format("The identifier '%s' isn't valid global identifier!",
+                    globalIdentifier));
     }
 }

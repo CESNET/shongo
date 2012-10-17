@@ -612,7 +612,7 @@ public class Converter
             }
 
             Object value = property.getValue(object);
-            if (value == null) {
+            if (property.isEmptyValue(value)) {
                 if (changesTrackingObject == null || !options.isStoreChanges()
                         || !changesTrackingObject.isPropertyFilled(propertyName)) {
                     continue;

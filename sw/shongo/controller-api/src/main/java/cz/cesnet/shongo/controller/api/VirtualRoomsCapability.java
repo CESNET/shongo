@@ -15,6 +15,23 @@ public class VirtualRoomsCapability extends Capability
     public static final String PORT_COUNT = "portCount";
 
     /**
+     * Constructor.
+     */
+    public VirtualRoomsCapability()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param portCount sets the {@link #PORT_COUNT}
+     */
+    public VirtualRoomsCapability(Integer portCount)
+    {
+        setPortCount(portCount);
+    }
+
+    /**
      * @return {@link #PORT_COUNT}
      */
     @Required

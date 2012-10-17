@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.xmlrpc.StructType;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -10,7 +11,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Reservation
+public abstract class Reservation implements StructType
 {
     /**
      * Identifier of the {@link Reservation}.

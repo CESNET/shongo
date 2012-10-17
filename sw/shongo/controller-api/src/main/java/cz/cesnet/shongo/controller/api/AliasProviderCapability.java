@@ -37,6 +37,30 @@ public class AliasProviderCapability extends Capability
     public static final String RESTRICTED_TO_OWNER_RESOURCE = "restrictedToOwnerResource";
 
     /**
+     * Constructor.
+     */
+    public AliasProviderCapability()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #TECHNOLOGY}
+     * @param type sets the {@link #TYPE}
+     * @param pattern sets the {@link #PATTERN}
+     * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
+     */
+    public AliasProviderCapability(Technology technology, AliasType type, String pattern,
+            boolean restrictedToOwnerResource)
+    {
+        setTechnology(technology);
+        setType(type);
+        setPattern(pattern);
+        setRestrictedToOwnerResource(restrictedToOwnerResource);
+    }
+
+    /**
      * @return {@link #TECHNOLOGY}
      */
     @Required

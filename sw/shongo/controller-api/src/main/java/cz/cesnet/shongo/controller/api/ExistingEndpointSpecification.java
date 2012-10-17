@@ -15,6 +15,23 @@ public class ExistingEndpointSpecification extends ParticipantSpecification
     public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
 
     /**
+     * Constructor.
+     */
+    public ExistingEndpointSpecification()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     */
+    public ExistingEndpointSpecification(String resourceIdentifier)
+    {
+        setResourceIdentifier(resourceIdentifier);
+    }
+
+    /**
      * @return {@link #RESOURCE_IDENTIFIER}
      */
     @Required

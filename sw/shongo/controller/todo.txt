@@ -1,8 +1,5 @@
 * PERMANENT
 
-* Passing existing reservations to the new reservations requests to reuse allocated resources by scheduler
-  * Implement API
-
 * Create tests for common use cases
 
 * API

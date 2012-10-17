@@ -1,6 +1,13 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.Interval;
+
+import javax.persistence.EntityManager;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
 /**
  * Abstract controller test provides a {@link Controller} instance to extending classes.
@@ -9,6 +16,12 @@ import cz.cesnet.shongo.controller.api.*;
  */
 public abstract class AbstractControllerTest extends AbstractDatabaseTest
 {
+    /**
+     * {@link SecurityToken} which is validated in the {@link #controller}
+     */
+    protected static final SecurityToken SECURITY_TOKEN =
+            new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
+
     /**
      * @see Controller
      */
@@ -23,12 +36,6 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * @see ControllerClient
      */
     private ControllerClient controllerClient;
-
-    /**
-     * {@link SecurityToken} which is validated in the {@link #controller}
-     */
-    protected static final SecurityToken TESTING_SECURITY_TOKEN =
-            new SecurityToken("18eea565098d4620d398494b111cb87067a3b6b9");
 
     /**
      * @return {@link #controllerClient}
@@ -95,7 +102,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         controller.start();
         controller.startRpc();
-        controller.getAuthorization().setTestingAccessToken(TESTING_SECURITY_TOKEN.getAccessToken());
+        controller.getAuthorization().setTestingAccessToken(SECURITY_TOKEN.getAccessToken());
 
         // Start client
         controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
@@ -109,5 +116,54 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         controller.stop();
 
         super.after();
+    }
+
+    /**
+     * Run {@link Preprocessor}.
+     *
+     * @throws FaultException
+     */
+    protected void runPreprocessor() throws FaultException
+    {
+        Interval interval = Interval.parse("0/9999");
+
+        EntityManager entityManagerForPreprocessor = getEntityManager();
+        Preprocessor.createAndRun(interval, entityManagerForPreprocessor);
+        entityManagerForPreprocessor.close();
+
+    }
+
+    /**
+     * Run {@link Scheduler}.
+     *
+     * @throws FaultException
+     */
+    protected void runScheduler() throws FaultException
+    {
+        Interval interval = Interval.parse("0/9999");
+
+        EntityManager entityManagerForScheduler = getEntityManager();
+        Scheduler.createAndRun(interval, entityManagerForScheduler, cache);
+        entityManagerForScheduler.close();
+    }
+
+    /**
+     * Check if {@link ReservationRequest} was successfully allocated.
+     *
+     * @param reservationRequestIdentifier
+     * @return {@link Reservation}
+     * @throws Exception
+     */
+    protected Reservation checkSuccessfulAllocation(String reservationRequestIdentifier) throws Exception
+    {
+        ReservationRequest reservationRequest = (ReservationRequest)
+                getReservationService().getReservationRequest(SECURITY_TOKEN, reservationRequestIdentifier);
+        assertEquals("Reservation request should be in ALLOCATED state.",
+                ReservationRequest.State.ALLOCATED, reservationRequest.getState());
+        String reservationIdentifier = reservationRequest.getReservationIdentifier();
+        assertNotNull(reservationIdentifier);
+        Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN, reservationIdentifier);
+        assertNotNull("Reservation should be allocated for the reservation request.", reservation);
+        return reservation;
     }
 }

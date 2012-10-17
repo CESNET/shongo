@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.Period;
 
 /**
  * Request for reservation of resources.
@@ -57,6 +59,15 @@ public class ReservationRequest extends AbstractReservationRequest
     public void setSlot(Interval slot)
     {
         getPropertyStorage().setValue(SLOT, slot);
+    }
+
+    /**
+     * @param dateTime sets the date/time from the {@link #SLOT}
+     * @param duration sets the duration from the {@link #SLOT}
+     */
+    public void setSlot(String dateTime, String duration)
+    {
+        setSlot(new Interval(DateTime.parse(dateTime), Period.parse(duration)));
     }
 
     /**

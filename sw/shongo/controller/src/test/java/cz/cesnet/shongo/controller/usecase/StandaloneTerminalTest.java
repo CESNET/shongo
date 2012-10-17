@@ -1,91 +1,92 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.compartment.Compartment;
-import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-
 /**
- * Tests for allocation of {@link Compartment} with no virtual room.
+ * Tests for allocation of {@link Compartment} without virtual room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class StandaloneTerminalTest extends AbstractTest
+public class StandaloneTerminalTest extends AbstractControllerTest
 {
+    /**
+     * Test for two standalone terminals with single technology.
+     *
+     * @throws Exception
+     */
     @Test
     public void testSingleTechnology() throws Exception
     {
-        Cache cache = new Cache();
-        cache.setEntityManagerFactory(getEntityManagerFactory());
-        cache.init();
+        DeviceResource firstTerminal = new DeviceResource();
+        firstTerminal.setName("firstTerminal");
+        firstTerminal.setAddress("127.0.0.1");
+        firstTerminal.addTechnology(Technology.H323);
+        firstTerminal.addCapability(new StandaloneTerminalCapability());
+        firstTerminal.setAllocatable(true);
+        String firstTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
 
-        EntityManager entityManager = getEntityManager();
-
-        DeviceResource terminal1 = new DeviceResource();
-        terminal1.setAddress(Address.LOCALHOST);
-        terminal1.addTechnology(Technology.H323);
-        terminal1.addCapability(new StandaloneTerminalCapability());
-        terminal1.setAllocatable(true);
-        cache.addResource(terminal1, entityManager);
-
-        DeviceResource terminal2 = new DeviceResource();
-        terminal2.addTechnology(Technology.H323);
-        terminal2.addCapability(new StandaloneTerminalCapability());
-        terminal2.setAllocatable(true);
-        cache.addResource(terminal2, entityManager);
+        DeviceResource secondTerminal = new DeviceResource();
+        secondTerminal.setName("secondTerminal");
+        secondTerminal.addTechnology(Technology.H323);
+        secondTerminal.addCapability(new StandaloneTerminalCapability());
+        secondTerminal.setAllocatable(true);
+        String secondTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.setRequestedSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal1));
-        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalIdentifier));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalIdentifier));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
-
-        entityManager.close();
+        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler();
+        checkSuccessfulAllocation(identifier);
     }
 
+    /**
+     * Test for two standalone terminals with multiple technology.
+     *
+     * @throws Exception
+     */
     @Test
     public void testMultipleTechnology() throws Exception
     {
-        Cache cache = new Cache();
-        cache.setEntityManagerFactory(getEntityManagerFactory());
-        cache.init();
+        DeviceResource firstTerminal = new DeviceResource();
+        firstTerminal.setName("firstTerminal");
+        firstTerminal.setAddress("127.0.0.1");
+        firstTerminal.addTechnology(Technology.H323);
+        firstTerminal.addTechnology(Technology.SIP);
+        firstTerminal.addCapability(new StandaloneTerminalCapability());
+        firstTerminal.setAllocatable(true);
+        String firstTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
 
-        EntityManager entityManager = getEntityManager();
-
-        DeviceResource terminal1 = new DeviceResource();
-        terminal1.setAddress(Address.LOCALHOST);
-        terminal1.addTechnology(Technology.H323);
-        terminal1.addTechnology(Technology.SIP);
-        terminal1.addCapability(new StandaloneTerminalCapability());
-        terminal1.setAllocatable(true);
-        cache.addResource(terminal1, entityManager);
-
-        DeviceResource terminal2 = new DeviceResource();
-        terminal2.addTechnology(Technology.H323);
-        terminal2.addTechnology(Technology.ADOBE_CONNECT);
-        terminal2.addCapability(new StandaloneTerminalCapability());
-        terminal2.setAllocatable(true);
-        cache.addResource(terminal2, entityManager);
+        DeviceResource secondTerminal = new DeviceResource();
+        secondTerminal.setName("secondTerminal");
+        secondTerminal.addTechnology(Technology.H323);
+        secondTerminal.addTechnology(Technology.ADOBE_CONNECT);
+        secondTerminal.addCapability(new StandaloneTerminalCapability());
+        secondTerminal.setAllocatable(true);
+        String secondTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.setRequestedSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal1));
-        compartmentSpecification.addChildSpecification(new ExistingEndpointSpecification(terminal2));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalIdentifier));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalIdentifier));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
-
-        entityManager.close();
+        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler();
+        checkSuccessfulAllocation(identifier);
     }
 }

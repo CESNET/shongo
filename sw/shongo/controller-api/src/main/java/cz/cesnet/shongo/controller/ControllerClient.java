@@ -146,7 +146,7 @@ public class ControllerClient
             }
         }
         else {
-            exception = new FaultException(xmlRpcException.code, content.getMessage());
+            exception = new FaultException(xmlRpcException.code, content.getMessage(), xmlRpcException.getCause());
         }
         exception.setStackTrace(xmlRpcException.getStackTrace());
         return exception;

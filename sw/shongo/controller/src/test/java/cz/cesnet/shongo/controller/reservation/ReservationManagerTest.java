@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;

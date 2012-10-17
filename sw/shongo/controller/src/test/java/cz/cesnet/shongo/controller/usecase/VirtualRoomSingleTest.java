@@ -8,7 +8,10 @@ import cz.cesnet.shongo.controller.request.CompartmentSpecification;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.Address;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
+import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;

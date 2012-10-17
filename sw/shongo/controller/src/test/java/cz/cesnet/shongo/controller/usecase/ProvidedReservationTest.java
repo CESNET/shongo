@@ -4,20 +4,20 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
 
-import java.util.ArrayList;
-
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.fail;
 
 /**
  * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.compartment.Compartment}.
@@ -168,7 +168,8 @@ public class ProvidedReservationTest extends AbstractTest
         aliasReservationRequest.setRequestedSlot("2012-01-01", "P1Y");
         aliasReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
 
-        AliasReservation aliasReservation = (AliasReservation) checkSuccessfulAllocation(aliasReservationRequest, cache, entityManager);
+        AliasReservation aliasReservation = (AliasReservation) checkSuccessfulAllocation(aliasReservationRequest, cache,
+                entityManager);
         assertEquals(aliasReservation.getAlias().getValue(), "950000001");
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
@@ -185,7 +186,8 @@ public class ProvidedReservationTest extends AbstractTest
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.delete(aliasReservationRequest);
             fail("Exception that reservation request is still referenced should be thrown");
-        } catch (EntityToDeleteIsReferencedException exception) {
+        }
+        catch (EntityToDeleteIsReferencedException exception) {
         }
 
         entityManager.close();

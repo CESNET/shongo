@@ -194,6 +194,27 @@ public class Property
     }
 
     /**
+     * @param value
+     * @return true if given value is empty (it equals to {@code null} or it is an empty array or collection),
+     *         false otherwise
+     */
+    public boolean isEmptyValue(Object value)
+    {
+        if (value == null) {
+            return true;
+        }
+        if (isArrayOrCollection()) {
+            if (value instanceof Object[]) {
+                return ((Object[]) value).length == 0;
+            }
+            else {
+                return ((Collection) value).size() == 0;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @param annotationClass
      * @return property annotation if exists,
      *         null otherwise
