@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.compartment;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;

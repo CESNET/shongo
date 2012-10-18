@@ -293,7 +293,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * Checks whether all children resources for given {@code currentResource} are available
      * in given {@code interval} (recursive).
      *
-     * @param resource to be skipped from checking
+     * @param resource          to be skipped from checking
      * @param dependentResource
      * @param interval
      * @return

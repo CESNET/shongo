@@ -72,7 +72,7 @@ public class ConnectionByAddress extends Connection
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Dialing from %s to address '%s' in technology '%s'.",
-                    getEndpointFrom().getReportDescription(), getAddress(),
+                    getEndpointFrom().getReportDescription(), getAddress().getValue(),
                     getTechnology().getName()));
             compartmentExecutor.getLogger().debug(message.toString());
 

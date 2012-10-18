@@ -1,8 +1,6 @@
 * PERMANENT
 
-* Create tests for common use cases
-
-* AliasSpecification select value
+* Specify requested alias value in AliasSpecification
 
 * API
   * Popsat autentizaci v API

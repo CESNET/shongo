@@ -65,6 +65,15 @@ public class ReservationRequest extends AbstractReservationRequest
      * @param dateTime sets the date/time from the {@link #SLOT}
      * @param duration sets the duration from the {@link #SLOT}
      */
+    public void setSlot(DateTime dateTime, Period duration)
+    {
+        setSlot(new Interval(dateTime, duration));
+    }
+
+    /**
+     * @param dateTime sets the date/time from the {@link #SLOT}
+     * @param duration sets the duration from the {@link #SLOT}
+     */
     public void setSlot(String dateTime, String duration)
     {
         setSlot(new Interval(DateTime.parse(dateTime), Period.parse(duration)));

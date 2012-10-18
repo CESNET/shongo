@@ -1,10 +1,8 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.ResourceVirtualRoom;
 import cz.cesnet.shongo.controller.compartment.VirtualRoom;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;

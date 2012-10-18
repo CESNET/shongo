@@ -107,12 +107,12 @@ public abstract class Report
     }
 
     /**
-     * @param report to be searched in the {@link #childReports} and removed
+     * @param report    to be searched in the {@link #childReports} and removed
      * @param replaceBy to be added to the {@link #childReports} at the index of {@code report}
      */
     public void replaceChildReport(Report report, Report replaceBy)
     {
-        for ( int index = 0; index < childReports.size(); index++ ) {
+        for (int index = 0; index < childReports.size(); index++) {
             if (childReports.get(index).equals(report)) {
                 childReports.remove(index);
                 report.setParentReport(null);

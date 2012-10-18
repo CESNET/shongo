@@ -191,20 +191,20 @@ public class ResourceServiceImpl extends Component
         entityManager.getTransaction().begin();
 
         try {
-        ResourceManager resourceManager = new ResourceManager(entityManager);
+            ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        // Get the resource
-        cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
+            // Get the resource
+            cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
 
-        // Delete the resource
-        resourceManager.delete(resourceImpl);
+            // Delete the resource
+            resourceManager.delete(resourceImpl);
 
-        // Remove resource from the cache
-        if (cache != null) {
-            cache.removeResource(resourceImpl);
-        }
+            // Remove resource from the cache
+            if (cache != null) {
+                cache.removeResource(resourceImpl);
+            }
 
-        entityManager.getTransaction().commit();
+            entityManager.getTransaction().commit();
         }
         catch (Exception exception) {
             if (entityManager.getTransaction().isActive()) {

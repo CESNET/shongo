@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
+import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
 import cz.cesnet.shongo.jade.ContainerCommandSet;
 import cz.cesnet.shongo.shell.CommandHandler;
@@ -122,6 +123,14 @@ public class Controller
     }
 
     /**
+     * @return {@link #configuration}
+     */
+    public Configuration getConfiguration()
+    {
+        return configuration;
+    }
+
+    /**
      * @param configuration configuration to be set to the controller
      */
     public void setConfiguration(org.apache.commons.configuration.Configuration configuration)
@@ -171,6 +180,14 @@ public class Controller
     public Authorization getAuthorization()
     {
         return authorization;
+    }
+
+    /**
+     * @return {@link #jadeAgent}
+     */
+    public ControllerAgent getAgent()
+    {
+        return jadeAgent;
     }
 
     /**
@@ -382,12 +399,23 @@ public class Controller
     {
         logger.info("Starting Controller JADE container on {}:{} (platform {})...",
                 new Object[]{getJadeHost(), getJadePort(), getJadePlatformId()});
-
         jadeContainer = Container.createMainContainer(getJadeHost(), getJadePort(), getJadePlatformId());
-        jadeContainer.addAgent("Controller", jadeAgent, null);
         if (jadeContainer.start() == false) {
             throw new IllegalStateException("Failed to start JADE container.");
         }
+        addJadeAgent("Controller", jadeAgent);
+    }
+
+    /**
+     * Add new JADE agent to the container.
+     *
+     * @param agentName name of the agent
+     * @param agent     instance of the agent
+     */
+    public <T extends Agent> T addJadeAgent(String agentName, T agent)
+    {
+        jadeContainer.addAgent(agentName, agent, null);
+        return agent;
     }
 
     /**

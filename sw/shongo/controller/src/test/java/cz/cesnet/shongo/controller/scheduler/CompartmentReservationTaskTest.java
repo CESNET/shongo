@@ -1,14 +1,11 @@
 package cz.cesnet.shongo.controller.scheduler;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
-import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -22,7 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
 /**
  * Tests for {@link CompartmentReservationTask}.

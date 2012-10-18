@@ -94,8 +94,6 @@ public class Agent extends jade.core.Agent
     @Override
     protected void setup()
     {
-        started = true;
-
         // Register content language
         getContentManager().registerLanguage(new SLCodec());
 
@@ -110,6 +108,8 @@ public class Agent extends jade.core.Agent
         agentDescription.setName(getAID());
 
         logger.debug("Agent [{}] is ready!", getAID().getName());
+
+        started = true;
     }
 
     @Override

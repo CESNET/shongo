@@ -73,7 +73,8 @@ public abstract class ReservationTask
     {
         if (currentReport != null) {
             currentReport.addChildReport(report);
-        } else {
+        }
+        else {
             context.addReport(report);
         }
     }
@@ -92,7 +93,7 @@ public abstract class ReservationTask
      */
     protected void endReport()
     {
-        if ( currentReport == null) {
+        if (currentReport == null) {
             throw new IllegalArgumentException("Current report should not be null.");
         }
         currentReport = currentReport.getParentReport();

@@ -51,6 +51,9 @@ public class CompartmentExecutor extends Thread
     public CompartmentExecutor(Executor executor, ControllerAgent controllerAgent, Long compartmentId,
             EntityManagerFactory entityManagerFactory)
     {
+        if (controllerAgent == null) {
+            throw new IllegalArgumentException(ControllerAgent.class.getSimpleName() + " must not be null.");
+        }
         this.executor = executor;
         this.controllerAgent = controllerAgent;
         this.compartmentId = compartmentId;
@@ -149,7 +152,7 @@ public class CompartmentExecutor extends Thread
             if (virtualRoomCreated) {
                 logger.info("Waiting for virtual rooms to be created...");
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(executor.getCompartmentWaitingVirtualRoom().getMillis());
                 }
                 catch (InterruptedException exception) {
                     exception.printStackTrace();

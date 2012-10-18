@@ -49,6 +49,11 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_COMPARTMENT_END = "executor.compartment.end";
 
     /**
+     * Duration which {@link CompartmentExecutor} waits for virtual rooms to be created.
+     */
+    public static final String EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM = "executor.compartment.waiting-virtual-room";
+
+    /**
      * Period in which {@link CompartmentExecutor} checks whether the compartment should be started.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_START = "executor.compartment.waiting-start";

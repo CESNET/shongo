@@ -38,8 +38,6 @@ public class ConnectorAgent extends Agent
         registerService("connector", "Connector Service");
     }
 
-
-
     @Override
     protected void takeDown()
     {

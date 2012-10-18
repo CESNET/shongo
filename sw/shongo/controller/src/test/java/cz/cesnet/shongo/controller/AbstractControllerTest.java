@@ -37,6 +37,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     private ControllerClient controllerClient;
 
     /**
+     * @return {@link Configuration} from the {@link #controller}
+     */
+    public Controller getController()
+    {
+        return controller;
+    }
+
+    /**
      * @return {@link #controllerClient}
      */
     public ControllerClient getControllerClient()
@@ -61,11 +69,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Init the {@code controller}.
-     *
-     * @param controller to be inited
+     * On controller initialized.
      */
-    protected void onInitController(Controller controller)
+    protected void onInit()
     {
         cache = new Cache();
         cache.setEntityManagerFactory(getEntityManagerFactory());
@@ -78,9 +84,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     }
 
     /**
-     * Controller client is ready.
+     * On after controller start.
      */
-    protected void onControllerClientReady(ControllerClient controllerClient)
+    protected void onStart()
     {
     }
 
@@ -91,13 +97,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
 
         // Change XML-RPC port
         System.setProperty(Configuration.RPC_PORT, "8484");
+        System.setProperty(Configuration.JADE_PORT, "8585");
 
         // Start controller
         controller = new cz.cesnet.shongo.controller.Controller();
         controller.setDomain("cz.cesnet", "CESNET, z.s.p.o.");
         controller.setEntityManagerFactory(getEntityManagerFactory());
 
-        onInitController(controller);
+        onInit();
 
         controller.start();
         controller.startRpc();
@@ -106,7 +113,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         // Start client
         controllerClient = new ControllerClient(controller.getRpcHost(), controller.getRpcPort());
 
-        onControllerClientReady(controllerClient);
+        onStart();
     }
 
     @Override

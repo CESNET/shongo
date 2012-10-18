@@ -309,6 +309,7 @@ public class CompartmentReservationTask extends ReservationTask
         else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null) {
             ConnectionByAddress connectionByAddress = new ConnectionByAddress();
             connectionByAddress.setAddress(endpointTo.getAddress());
+            connectionByAddress.setTechnology(technology);
             connection = connectionByAddress;
         }
         else {

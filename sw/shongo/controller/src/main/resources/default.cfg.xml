@@ -53,6 +53,8 @@
             <start>PT-30S</start>
             <!-- Period modifying compartment ending date/time -->
             <end>PT-30S</end>
+            <!-- Duration of waiting for virtual rooms to be created -->
+            <waiting-virtual-room>PT5S</waiting-virtual-room>
             <!-- Period for checking starting date/time -->
             <waiting-start>PT10S</waiting-start>
             <!-- Period for checking ending date/time -->

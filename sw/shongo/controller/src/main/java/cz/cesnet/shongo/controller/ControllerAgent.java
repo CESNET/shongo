@@ -1,9 +1,13 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.Agent;
+import cz.cesnet.shongo.jade.UnknownActionException;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
 import cz.cesnet.shongo.shell.Shell;
+import jade.content.AgentAction;
 import jade.core.AID;
 import org.apache.commons.cli.CommandLine;
 
@@ -36,5 +40,12 @@ public class ControllerAgent extends Agent
     public AID[] listConnectorAgents()
     {
         return findAgentsByService("connector", 1000);
+    }
+
+    @Override
+    public Object handleAgentAction(AgentAction action, AID sender)
+            throws UnknownActionException, CommandException, CommandUnsupportedException
+    {
+        return super.handleAgentAction(action, sender);
     }
 }
