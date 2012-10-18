@@ -77,6 +77,7 @@ public class CommonFault
     protected void fill()
     {
         add(ENTITY_NOT_FOUND, EntityNotFoundException.class);
+        add(ENTITY_TO_DELETE_IS_REFERENCED, EntityToDeleteIsReferencedException.class);
         add(TODO_IMPLEMENT, TodoImplementException.class);
     }
 

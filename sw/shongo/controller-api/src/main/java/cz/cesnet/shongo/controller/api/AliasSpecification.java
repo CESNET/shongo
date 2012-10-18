@@ -27,6 +27,34 @@ public class AliasSpecification extends Specification
      */
     public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
 
+    /**
+     * Constructor.
+     */
+    public AliasSpecification()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #TECHNOLOGY}
+     */
+    public AliasSpecification(Technology technology)
+    {
+        setTechnology(technology);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #TECHNOLOGY}
+     * @param aliasType sets the {@link #ALIAS_TYPE}
+     */
+    public AliasSpecification(Technology technology, AliasType aliasType)
+    {
+        setTechnology(technology);
+        setAliasType(aliasType);
+    }
 
     /**
      * @return {@link #TECHNOLOGY}

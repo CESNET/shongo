@@ -13,7 +13,6 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -341,13 +340,9 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      */
     public boolean isResourceAvailable(Resource resource, Interval interval, Transaction transaction)
     {
-        // Get top parent resource and checks whether it is available
-        Resource parentResource = resource;
-        while (parentResource.getParentResource() != null) {
-            parentResource = parentResource.getParentResource();
-        }
         return resourceCache.isResourceAvailable(resource, interval, transaction.getResourceCacheTransaction())
-                && resourceCache.isChildResourcesAvailable(parentResource, interval, null);
+                && resourceCache.isDependentResourcesAvailable(resource, interval,
+                transaction.getResourceCacheTransaction());
     }
 
     /**
@@ -497,11 +492,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         private AliasCache.Transaction aliasCacheTransaction = new AliasCache.Transaction();
 
         /**
-         * Set of resources referenced from {@link ResourceReservation}s in the transaction.
-         */
-        private Set<Resource> referencedResources = new HashSet<Resource>();
-
-        /**
          * Constructor.
          */
         public Transaction(Interval interval)
@@ -518,6 +508,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         }
 
         /**
+         * @param resource to be added to the {@link ResourceCache.Transaction#referencedResources}
+         */
+        public void addReferencedResource(Resource resource)
+        {
+            resourceCacheTransaction.addReferencedResource(resource);
+        }
+
+        /**
          * @param reservation to be added to the {@link Transaction} as already allocated.
          */
         public void addAllocatedReservation(Reservation reservation)
@@ -527,7 +525,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     ResourceReservation resourceReservation = (ResourceReservation) reservation;
                     Resource resource = resourceReservation.getResource();
                     resourceCacheTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
-                    referencedResources.add(resource);
+                    addReferencedResource(resource);
                 }
                 if (reservation instanceof AliasReservation) {
                     AliasReservation aliasReservation = (AliasReservation) reservation;
@@ -620,7 +618,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
          */
         public boolean containsResource(Resource resource)
         {
-            return referencedResources.contains(resource);
+            return resourceCacheTransaction.containsResource(resource);
         }
     }
 }

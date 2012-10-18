@@ -48,7 +48,7 @@ public class StandaloneTerminalTest extends AbstractControllerTest
 
         String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
-        checkSuccessfulAllocation(identifier);
+        checkAllocated(identifier);
     }
 
     /**
@@ -87,6 +87,6 @@ public class StandaloneTerminalTest extends AbstractControllerTest
 
         String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
-        checkSuccessfulAllocation(identifier);
+        checkAllocated(identifier);
     }
 }

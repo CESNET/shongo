@@ -42,6 +42,18 @@ public class DateTimeSlot extends IdentifiedObject
     }
 
     /**
+     * Constructor.
+     *
+     * @param start    sets the {@link #start}
+     * @param duration sets the {@link #duration}
+     */
+    public DateTimeSlot(String start, String duration)
+    {
+        setStart(DateTime.parse(start));
+        setDuration(Period.parse(duration));
+    }
+
+    /**
      * @return {@link #start}
      */
     @Required

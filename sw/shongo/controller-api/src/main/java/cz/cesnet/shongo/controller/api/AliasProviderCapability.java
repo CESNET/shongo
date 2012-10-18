@@ -49,6 +49,20 @@ public class AliasProviderCapability extends Capability
      * @param technology sets the {@link #TECHNOLOGY}
      * @param type sets the {@link #TYPE}
      * @param pattern sets the {@link #PATTERN}
+     */
+    public AliasProviderCapability(Technology technology, AliasType type, String pattern)
+    {
+        setTechnology(technology);
+        setType(type);
+        setPattern(pattern);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #TECHNOLOGY}
+     * @param type sets the {@link #TYPE}
+     * @param pattern sets the {@link #PATTERN}
      * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
      */
     public AliasProviderCapability(Technology technology, AliasType type, String pattern,

@@ -88,6 +88,9 @@ public class ResourceReservationTask extends ReservationTask
         resourceReservation.setSlot(getInterval());
         resourceReservation.setResource(resource);
 
+        // Add resource as referenced to the cache to prevent from multiple checking of the same parent
+        cacheTransaction.addReferencedResource(resource);
+
         // Add child reservations for parent resources
         Resource parentResource = resource.getParentResource();
         if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {

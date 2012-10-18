@@ -290,25 +290,53 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     }
 
     /**
-     * Checks whether all children for {@code resource} are available (recursive).
+     * Checks whether all children resources for given {@code currentResource} are available
+     * in given {@code interval} (recursive).
      *
-     * @param resource
+     * @param resource to be skipped from checking
+     * @param dependentResource
      * @param interval
-     * @param transaction
-     * @return true if children from given {@code resource} are available (recursive),
-     *         false otherwise
+     * @return
      */
-    public boolean isChildResourcesAvailable(Resource resource, Interval interval, Transaction transaction)
+    private boolean isDependentResourceAvailable(Resource resource, Resource dependentResource, Interval interval,
+            Transaction transaction)
     {
-        for (Resource childResource : resource.getChildResources()) {
-            if (!isResourceAvailable(childResource, interval, transaction)) {
-                return false;
-            }
-            if (!isChildResourcesAvailable(childResource, interval, transaction)) {
+        // We do not consider the resource itself as dependent and thus it is ignored (considered as available)
+        if (dependentResource.equals(resource)) {
+            return true;
+        }
+        // If dependent resource is already contained in transaction, it is available
+        if (transaction.containsResource(dependentResource)) {
+            return true;
+        }
+        if (!isResourceAvailable(dependentResource, interval, transaction)) {
+            return false;
+        }
+        for (Resource childDependentResource : dependentResource.getChildResources()) {
+            if (!isDependentResourceAvailable(resource, childDependentResource, interval, transaction)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Checks whether all dependent resourcess for given {@code resource} are available
+     * in given {@code interval} (recursive).
+     *
+     * @param resource
+     * @param interval
+     * @return true if dependent resources from given {@code resource} are available (recursive),
+     *         false otherwise
+     */
+    public boolean isDependentResourcesAvailable(Resource resource, Interval interval, Transaction transaction)
+    {
+        // Get top parent resource and checks whether it is available
+        Resource parentResource = resource;
+        while (parentResource.getParentResource() != null) {
+            parentResource = parentResource.getParentResource();
+        }
+        return isDependentResourceAvailable(resource, parentResource, interval, transaction);
     }
 
     /**
@@ -394,5 +422,27 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     public static class Transaction
             extends AbstractReservationCache.Transaction<ResourceReservation>
     {
+        /**
+         * Set of resources referenced from {@link ResourceReservation}s in the transaction.
+         */
+        private Set<Resource> referencedResources = new HashSet<Resource>();
+
+        /**
+         * @param resource to be added to the {@link #referencedResources}
+         */
+        public void addReferencedResource(Resource resource)
+        {
+            referencedResources.add(resource);
+        }
+
+        /**
+         * @param resource to be checked
+         * @return true if given resource was referenced by any {@link ResourceReservation} added to the transaction,
+         *         false otherwise
+         */
+        public boolean containsResource(Resource resource)
+        {
+            return referencedResources.contains(resource);
+        }
     }
 }

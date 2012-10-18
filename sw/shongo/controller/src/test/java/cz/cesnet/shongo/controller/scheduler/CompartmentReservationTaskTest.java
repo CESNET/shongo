@@ -31,7 +31,7 @@ import static junit.framework.Assert.*;
  */
 public class CompartmentReservationTaskTest
 {
-    @Test
+    /*@Test
     public void testFailures() throws Exception
     {
         ReservationTask.Context context = new ReservationTask.Context(new Cache(), Interval.parse("2012/2013"));
@@ -213,7 +213,7 @@ public class CompartmentReservationTaskTest
         }
         catch (ReportException exception) {
         }
-    }
+    }*/
 
     @Test
     public void testDependentResource() throws Exception

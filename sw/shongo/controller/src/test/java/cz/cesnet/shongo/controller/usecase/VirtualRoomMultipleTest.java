@@ -1,25 +1,24 @@
 package cz.cesnet.shongo.controller.usecase;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.ReservationRequestType;
-import cz.cesnet.shongo.controller.compartment.Compartment;
-import cz.cesnet.shongo.controller.request.CompartmentSpecification;
-import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
-import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-
 /**
- * Tests for allocation of multiple virtual room in a {@link Compartment}.
+ * Tests for allocation of multiple virtual rooms in a {@link Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomMultipleTest extends AbstractTest
+public class VirtualRoomMultipleTest extends AbstractControllerTest
 {
+    /**
+     * Test multiple virtual room.
+     *
+     * @throws Exception
+     */
     @Test
     public void test() throws Exception
     {
@@ -29,31 +28,28 @@ public class VirtualRoomMultipleTest extends AbstractTest
             return;
         }
 
-        Cache cache = new Cache();
-        cache.setEntityManagerFactory(getEntityManagerFactory());
-        cache.init();
+        DeviceResource firstMcu = new DeviceResource();
+        firstMcu.setName("firstMcu");
+        firstMcu.addTechnology(Technology.H323);
+        firstMcu.addCapability(new VirtualRoomsCapability(6));
+        String firstMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
 
-        EntityManager entityManager = getEntityManager();
-
-        DeviceResource mcu1 = new DeviceResource();
-        mcu1.addTechnology(Technology.H323);
-        mcu1.addCapability(new VirtualRoomsCapability(6));
-        cache.addResource(mcu1, entityManager);
-
-        DeviceResource mcu2 = new DeviceResource();
-        mcu2.addTechnology(Technology.H323);
-        mcu2.addCapability(new VirtualRoomsCapability(6));
-        cache.addResource(mcu2, entityManager);
-
-        entityManager.close();
+        DeviceResource secondMcu = new DeviceResource();
+        secondMcu.setName("secondMcu");
+        secondMcu.addTechnology(Technology.H323);
+        secondMcu.addCapability(new VirtualRoomsCapability(6));
+        String secondMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setType(ReservationRequestType.NORMAL);
-        reservationRequest.setRequestedSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        checkSuccessfulAllocation(reservationRequest, cache, entityManager);
+        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        runScheduler();
+        checkAllocated(identifier);
     }
 }
