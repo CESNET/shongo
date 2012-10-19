@@ -104,6 +104,6 @@ public class Domain
             return identifier;
         }
         throw new IllegalArgumentException(String.format("The identifier '%s' isn't valid global identifier!",
-                    globalIdentifier));
+                globalIdentifier));
     }
 }

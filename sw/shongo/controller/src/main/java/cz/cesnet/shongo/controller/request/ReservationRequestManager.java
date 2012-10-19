@@ -36,9 +36,6 @@ public class ReservationRequestManager extends AbstractManager
      */
     private void validate(AbstractReservationRequest abstractReservationRequest) throws IllegalArgumentException
     {
-        if (abstractReservationRequest.getType() == null) {
-            throw new IllegalArgumentException("Reservation request must have type set!");
-        }
     }
 
     /**
@@ -63,20 +60,18 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * Update existing {@link AbstractReservationRequest} in the database.
      *
-     * @param abstractReservationRequest to be updated in the database
+     * @param reservationRequest to be updated in the database
      */
-    public void update(AbstractReservationRequest abstractReservationRequest)
+    public void update(AbstractReservationRequest reservationRequest)
     {
-        validate(abstractReservationRequest);
+        validate(reservationRequest);
 
         Transaction transaction = beginTransaction();
 
-        super.update(abstractReservationRequest);
+        super.update(reservationRequest);
 
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            ReservationRequestSetStateManager.setState(entityManager, reservationRequestSet,
-                    ReservationRequestSet.State.NOT_PREPROCESSED);
+        if (reservationRequest instanceof ReservationRequestSet || reservationRequest instanceof PermanentReservationRequest) {
+            PreprocessorStateManager.setState(entityManager, reservationRequest, PreprocessorState.NOT_PREPROCESSED);
         }
 
         transaction.commit();
@@ -99,7 +94,7 @@ public class ReservationRequestManager extends AbstractManager
                 delete(reservationRequest);
             }
             // Clear state
-            ReservationRequestSetStateManager.clear(entityManager, reservationRequestSet);
+            PreprocessorStateManager.clear(entityManager, reservationRequestSet);
         }
         else if (abstractReservationRequest instanceof ReservationRequest) {
             // Keep reservation (is deleted by scheduler)
@@ -199,16 +194,34 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @return list all reservation requests in the database which aren't preprocessed in given interval.
+     * @return list all {@link PermanentReservationRequest} which aren't preprocessed in given interval.
+     */
+    public List<PermanentReservationRequest> listNotPreprocessedPermanentReservationRequests(Interval interval)
+    {
+        List<PermanentReservationRequest> reservationRequestList = entityManager
+                .createQuery("SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
+                        + " WHERE reservationRequest NOT IN ("
+                        + " SELECT state.reservationRequest FROM PreprocessedState state"
+                        + " WHERE state.start <= :from AND state.end >= :to)",
+                        PermanentReservationRequest.class)
+                .setParameter("from", interval.getStart())
+                .setParameter("to", interval.getEnd())
+                .getResultList();
+        return reservationRequestList;
+    }
+
+    /**
+     * @return list all {@link ReservationRequestSet} which aren't preprocessed in given interval.
      */
     public List<ReservationRequestSet> listNotPreprocessedReservationRequestSets(Interval interval)
     {
         List<ReservationRequestSet> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
-                        + " WHERE reservationRequestSet NOT IN ("
-                        + " SELECT state.reservationRequestSet FROM ReservationRequestSetPreprocessedState state"
+                .createQuery("SELECT reservationRequest FROM ReservationRequestSet reservationRequest"
+                        + " WHERE reservationRequest NOT IN ("
+                        + " SELECT state.reservationRequest FROM PreprocessedState state"
                         + " WHERE state.start <= :from AND state.end >= :to)",
-                        ReservationRequestSet.class).setParameter("from", interval.getStart())
+                        ReservationRequestSet.class)
+                .setParameter("from", interval.getStart())
                 .setParameter("to", interval.getEnd())
                 .getResultList();
         return reservationRequestList;
@@ -251,7 +264,7 @@ public class ReservationRequestManager extends AbstractManager
                         + " SELECT reservationRequest.id FROM ReservationRequestSet reservationRequestSet"
                         + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
                         + " WHERE reservationRequestSet.id = :id)"
-                        + " ORDER BY reservationRequest.requestedSlotStart", ReservationRequest.class)
+                        + " ORDER BY reservationRequest.slotStart", ReservationRequest.class)
                 .setParameter("id", reservationRequestSetId)
                 .getResultList();
         return compartmentRequestList;
@@ -282,8 +295,8 @@ public class ReservationRequestManager extends AbstractManager
                 "SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
                         + " LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
                         + " WHERE reservationRequestSet.id = :id "
-                        + " AND reservationRequest.requestedSlotStart < :end"
-                        + " AND reservationRequest.requestedSlotEnd > :start",
+                        + " AND reservationRequest.slotStart < :end"
+                        + " AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
                 .setParameter("id", reservationRequestSetId)
                 .setParameter("start", interval.getStart())
@@ -302,8 +315,8 @@ public class ReservationRequestManager extends AbstractManager
         List<ReservationRequest> compartmentRequestList = entityManager.createQuery(
                 "SELECT reservationRequest FROM ReservationRequest reservationRequest"
                         + " WHERE reservationRequest.state = :state"
-                        + " AND reservationRequest.requestedSlotStart < :end"
-                        + " AND reservationRequest.requestedSlotEnd > :start",
+                        + " AND reservationRequest.slotStart < :end"
+                        + " AND reservationRequest.slotEnd > :start",
                 ReservationRequest.class)
                 .setParameter("state", ReservationRequest.State.COMPLETE)
                 .setParameter("start", interval.getStart())

@@ -44,20 +44,11 @@ public class Scheduler extends Component
         this.cache = cache;
     }
 
-    /**
-     * Run scheduler on given entityManagerFactory and interval.
-     *
-     * @param entityManager
-     * @param interval
-     */
-    public static void createAndRun(Interval interval, EntityManager entityManager, Cache resourceDatabase)
-            throws FaultException
+    @Override
+    public void init(Configuration configuration)
     {
-        Scheduler scheduler = new Scheduler();
-        scheduler.setCache(resourceDatabase);
-        scheduler.init();
-        scheduler.run(interval, entityManager);
-        scheduler.destroy();
+        checkDependency(cache, Cache.class);
+        super.init(configuration);
     }
 
     /**
@@ -80,7 +71,7 @@ public class Scheduler extends Component
 
         try {
             // Delete all reservations which was marked for deletion
-            reservationManager.deleteAllNotReferencedByReservationRequest(cache);
+            reservationManager.deleteAllNotReferenced(cache);
             // Delete all compartments which should be deleted
             compartmentManager.deleteAllNotReferenced();
 
@@ -131,10 +122,10 @@ public class Scheduler extends Component
         }
 
         // Get requested slot and check it's maximum duration
-        Interval requestedSlot = reservationRequest.getRequestedSlot();
+        Interval slot = reservationRequest.getSlot();
 
         // Create new scheduler task
-        ReservationTask.Context context = new ReservationTask.Context(cache, requestedSlot);
+        ReservationTask.Context context = new ReservationTask.Context(cache, slot);
         ReservationTask reservationTask = null;
 
         try {
@@ -189,5 +180,21 @@ public class Scheduler extends Component
                 reservationRequest.addReport(report);
             }
         }
+    }
+
+    /**
+     * Run scheduler on given entityManagerFactory and interval.
+     *
+     * @param entityManager
+     * @param interval
+     */
+    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache)
+            throws FaultException
+    {
+        Scheduler scheduler = new Scheduler();
+        scheduler.setCache(cache);
+        scheduler.init();
+        scheduler.run(interval, entityManager);
+        scheduler.destroy();
     }
 }

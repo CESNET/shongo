@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
@@ -25,7 +24,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @see ReservationRequest#TYPE
      */
-    private ReservationRequestType type;
+    private Type type;
 
     /**
      * @see ReservationRequest#NAME
@@ -82,7 +81,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @return {@link #type}
      */
-    public ReservationRequestType getType()
+    public Type getType()
     {
         return type;
     }
@@ -90,7 +89,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     /**
      * @param type sets the {@link #type}
      */
-    public void setType(ReservationRequestType type)
+    public void setType(Type type)
     {
         this.type = type;
     }
@@ -157,5 +156,22 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     public void setEarliestSlot(Interval earliestSlot)
     {
         this.earliestSlot = earliestSlot;
+    }
+
+    /**
+     * Type of reservation.
+     */
+    public static enum Type
+    {
+        /**
+         * Reservation that can be created by any user.
+         */
+        NORMAL,
+
+        /**
+         * Reservation that can be created only by owner of resources,
+         * and the reservation can request only owned resources.
+         */
+        PERMANENT
     }
 }

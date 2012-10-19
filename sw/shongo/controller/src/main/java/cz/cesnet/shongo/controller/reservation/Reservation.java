@@ -293,7 +293,7 @@ public abstract class Reservation extends PersistentObject
          * {@link Reservation} was created by a user. In fact user should never create the {@link Reservation} itself,
          * but it is useful, e.g., for testing purposes, to create a {@link Reservation} and to ensure that it will
          * not be deleted by the {@link Scheduler} when it delete all not-referenced {@link Reservation}s through
-         * {@link ReservationManager#deleteAllNotReferencedByReservationRequest(cz.cesnet.shongo.controller.Cache)}).
+         * {@link ReservationManager#deleteAllNotReferenced(cz.cesnet.shongo.controller.Cache)}).
          */
         USER,
 

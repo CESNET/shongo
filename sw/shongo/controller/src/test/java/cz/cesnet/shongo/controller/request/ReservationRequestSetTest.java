@@ -71,9 +71,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             entityManager.getTransaction().begin();
 
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-            reservationRequestSet.setType(ReservationRequestType.NORMAL);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-            reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
+            reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
             // Requests 3 guests
             compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));

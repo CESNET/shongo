@@ -6,7 +6,10 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 
+import java.util.List;
+
 import static junit.framework.Assert.*;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Abstract controller test provides a {@link Controller} instance to extending classes.
@@ -134,7 +137,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
         Interval interval = Interval.parse("0/9999");
 
         EntityManager entityManagerForPreprocessor = getEntityManager();
-        Preprocessor.createAndRun(interval, entityManagerForPreprocessor);
+        Preprocessor.createAndRun(interval, entityManagerForPreprocessor, cache);
         entityManagerForPreprocessor.close();
 
     }
@@ -164,22 +167,33 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     {
         AbstractReservationRequest abstractReservationRequest =
                 getReservationService().getReservationRequest(SECURITY_TOKEN, reservationRequestIdentifier);
-        ReservationRequest reservationRequest;
-        if (abstractReservationRequest instanceof ReservationRequestSet) {
-            ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
-            assertEquals(1, reservationRequestSet.getReservationRequests().size());
-            reservationRequest = reservationRequestSet.getReservationRequests().get(0);
+        String reservationIdentifier = null;
+        if (abstractReservationRequest instanceof NormalReservationRequest) {
+            ReservationRequest reservationRequest;
+            if (abstractReservationRequest instanceof ReservationRequestSet) {
+                ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
+                assertEquals(1, reservationRequestSet.getReservationRequests().size());
+                reservationRequest = reservationRequestSet.getReservationRequests().get(0);
+            }
+            else {
+                reservationRequest = (ReservationRequest) abstractReservationRequest;
+            }
+            if (reservationRequest.getState() != ReservationRequest.State.ALLOCATED) {
+                System.err.println(reservationRequest.getStateReport());
+                Thread.sleep(100);
+            }
+            assertEquals("Reservation request should be in ALLOCATED state.",
+                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
+            reservationIdentifier = reservationRequest.getReservationIdentifier();
         }
-        else {
-            reservationRequest = (ReservationRequest) abstractReservationRequest;
+        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
+            PermanentReservationRequest permanentReservationRequest =
+                    (PermanentReservationRequest) abstractReservationRequest;
+            List<ResourceReservation> resourceReservations = permanentReservationRequest.getResourceReservations();
+            assertTrue("Permament reservation request should have at least one resource reservation.",
+                    resourceReservations.size() > 0);
+            reservationIdentifier = resourceReservations.get(0).getIdentifier();
         }
-        if (reservationRequest.getState() != ReservationRequest.State.ALLOCATED) {
-            System.err.println(reservationRequest.getStateReport());
-            Thread.sleep(100);
-        }
-        assertEquals("Reservation request should be in ALLOCATED state.",
-                ReservationRequest.State.ALLOCATED, reservationRequest.getState());
-        String reservationIdentifier = reservationRequest.getReservationIdentifier();
         assertNotNull(reservationIdentifier);
         Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN, reservationIdentifier);
         assertNotNull("Reservation should be allocated for the reservation request.", reservation);

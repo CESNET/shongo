@@ -1,5 +1,9 @@
 * PERMANENT
 
+* Use case tests for
+   * single reservation request
+   * set of reservation requests
+
 * Specify requested alias value in AliasSpecification
 
 * API

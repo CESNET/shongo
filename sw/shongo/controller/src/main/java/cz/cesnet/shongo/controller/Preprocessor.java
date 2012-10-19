@@ -1,7 +1,13 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
+import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.resource.Resource;
+import cz.cesnet.shongo.controller.scheduler.ReservationTask;
+import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -22,6 +28,26 @@ public class Preprocessor extends Component
     private static Logger logger = LoggerFactory.getLogger(Preprocessor.class);
 
     /**
+     * @see {@link Cache}
+     */
+    private Cache cache;
+
+    /**
+     * @param cache sets the {@link #cache}
+     */
+    public void setCache(Cache cache)
+    {
+        this.cache = cache;
+    }
+
+    @Override
+    public void init(Configuration configuration)
+    {
+        checkDependency(cache, Cache.class);
+        super.init(configuration);
+    }
+
+    /**
      * Run preprocessor for a given interval.
      *
      * @param interval
@@ -33,14 +59,20 @@ public class Preprocessor extends Component
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
-            // List all not preprocessed reservation request sets
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
+            // Process all not-preprocessed permanent reservation requests
+            List<PermanentReservationRequest> permanentReservationRequests =
+                    reservationRequestManager.listNotPreprocessedPermanentReservationRequests(interval);
+            for (PermanentReservationRequest permanentReservationRequest : permanentReservationRequests) {
+                processReservationRequest(permanentReservationRequest, interval, entityManager);
+            }
+
+            // Process all not-preprocessed reservation request sets
             List<ReservationRequestSet> reservationRequestSets =
                     reservationRequestManager.listNotPreprocessedReservationRequestSets(interval);
-
-            // Process all reservation request sets
             for (ReservationRequestSet reservationRequestSet : reservationRequestSets) {
-                processReservationRequestSet(reservationRequestSet, interval, entityManager);
+                processReservationRequest(reservationRequestSet, interval, entityManager);
             }
 
             transaction.commit();
@@ -75,14 +107,14 @@ public class Preprocessor extends Component
                 throw new IllegalArgumentException(String.format("Reservation request set '%s' doesn't exist!",
                         reservationRequestSetId));
             }
-            ReservationRequestSetStateManager reservationRequestStateManager =
-                    new ReservationRequestSetStateManager(entityManager, reservationRequestSet);
-            if (reservationRequestStateManager.getState(interval) != ReservationRequestSet.State.NOT_PREPROCESSED) {
+            PreprocessorStateManager reservationRequestStateManager =
+                    new PreprocessorStateManager(entityManager, reservationRequestSet);
+            if (reservationRequestStateManager.getState(interval) != PreprocessorState.NOT_PREPROCESSED) {
                 throw new IllegalStateException(String.format(
                         "Reservation request set '%s' is already preprocessed in %s!",
                         reservationRequestSetId, interval));
             }
-            processReservationRequestSet(reservationRequestSet, interval, entityManager);
+            processReservationRequest(reservationRequestSet, interval, entityManager);
 
             transaction.commit();
         }
@@ -93,9 +125,66 @@ public class Preprocessor extends Component
     }
 
     /**
+     * Synchronize (create/modify/delete) {@link cz.cesnet.shongo.controller.reservation.ResourceReservation}s
+     * for a single {@link PermanentReservationRequest}.
+     */
+    private void processReservationRequest(PermanentReservationRequest permanentReservationRequest, Interval interval,
+            EntityManager entityManager) throws FaultException
+    {
+        permanentReservationRequest.checkPersisted();
+
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+
+        // Get list of date/time slots
+        Collection<Interval> slots = permanentReservationRequest.enumerateSlots(interval);
+        // Get resource for which the permanent reservation should be synchronized
+        Resource resource = permanentReservationRequest.getResource();
+
+        // Build map of resource reservations by slots
+        Map<Interval, ResourceReservation> resourceReservationBySlot = new HashMap<Interval, ResourceReservation>();
+        for (ResourceReservation resourceReservation : permanentReservationRequest.getResourceReservations()) {
+            resourceReservationBySlot.put(resourceReservation.getSlot(), resourceReservation);
+        }
+
+        try {
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            for (Interval slot : slots) {
+                ResourceReservation resourceReservation = resourceReservationBySlot.get(slot);
+                if (resourceReservation != null) {
+                    if (resourceReservation.getResource().equals(resource)) {
+                        // Resource reservation is up-to-date
+                        continue;
+                    }
+                    reservationManager.delete(resourceReservation, cache);
+                }
+                ReservationTask.Context context = new ReservationTask.Context(cache, slot);
+                ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, resource);
+                resourceReservation = resourceReservationTask.perform(ResourceReservation.class);
+                permanentReservationRequest.addResourceReservation(resourceReservation);
+            }
+        }
+        catch (ReportException exception) {
+            throw new FaultException(exception);
+        }
+
+        // Update reservation request
+        reservationRequestManager.update(permanentReservationRequest);
+
+        // When the reservation request hasn't got any future requested slot, the preprocessed state
+        // is until "infinite".
+        if (!permanentReservationRequest.hasSlotAfter(interval.getEnd())) {
+            interval = new Interval(interval.getStart(), PreprocessorStateManager.MAXIMUM_INTERVAL_END);
+        }
+
+        // Set state preprocessed state for the interval to reservation request
+        PreprocessorStateManager.setState(entityManager, permanentReservationRequest,
+                PreprocessorState.PREPROCESSED, interval);
+    }
+
+    /**
      * Synchronize (create/modify/delete) {@link ReservationRequest}s from a single {@link ReservationRequestSet}.
      */
-    private void processReservationRequestSet(ReservationRequestSet reservationRequestSet, Interval interval,
+    private void processReservationRequest(ReservationRequestSet reservationRequestSet, Interval interval,
             EntityManager entityManager) throws FaultException
     {
         reservationRequestSet.checkPersisted();
@@ -105,7 +194,7 @@ public class Preprocessor extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         // Get list of date/time slots
-        List<Interval> slots = reservationRequestSet.enumerateRequestedSlots(interval);
+        Collection<Interval> slots = reservationRequestSet.enumerateSlots(interval);
 
         // List all reservation requests for the set
         List<ReservationRequest> reservationRequests =
@@ -145,7 +234,7 @@ public class Preprocessor extends Component
             Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
             if (reservationRequestsForSpecification != null) {
                 for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
-                    map.put(reservationRequest.getRequestedSlot(), reservationRequest);
+                    map.put(reservationRequest.getSlot(), reservationRequest);
                     reservationRequests.remove(reservationRequest);
                 }
             }
@@ -170,7 +259,7 @@ public class Preprocessor extends Component
                 else {
                     reservationRequest = new ReservationRequest();
                     reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
-                    reservationRequest.setRequestedSlot(slot);
+                    reservationRequest.setSlot(slot);
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);
                     reservationRequestSet.addReservationRequest(reservationRequest);
                 }
@@ -204,13 +293,13 @@ public class Preprocessor extends Component
 
         // When the reservation request hasn't got any future requested slot, the preprocessed state
         // is until "infinite".
-        if (!reservationRequestSet.hasRequestedSlotAfter(interval.getEnd())) {
-            interval = new Interval(interval.getStart(), ReservationRequestSetStateManager.MAXIMUM_INTERVAL_END);
+        if (!reservationRequestSet.hasSlotAfter(interval.getEnd())) {
+            interval = new Interval(interval.getStart(), PreprocessorStateManager.MAXIMUM_INTERVAL_END);
         }
 
         // Set state preprocessed state for the interval to reservation request
-        ReservationRequestSetStateManager.setState(entityManager, reservationRequestSet,
-                ReservationRequestSet.State.PREPROCESSED, interval);
+        PreprocessorStateManager.setState(entityManager, reservationRequestSet,
+                PreprocessorState.PREPROCESSED, interval);
     }
 
     /**
@@ -304,28 +393,25 @@ public class Preprocessor extends Component
      *
      * @param entityManager
      * @param interval
+     * @param cache
      */
-    public static void createAndRun(Interval interval, EntityManager entityManager) throws FaultException
+    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache) throws FaultException
     {
         Preprocessor preprocessor = new Preprocessor();
+        preprocessor.setCache(cache);
         preprocessor.init();
         preprocessor.run(interval, entityManager);
         preprocessor.destroy();
     }
 
     /**
-     * Run preprocessor on given {@code entityManager}, for a single reservation request and given interval.
+     * Run preprocessor on given {@code entityManager} and interval.
      *
      * @param entityManager
-     * @param reservationRequestId
      * @param interval
      */
-    public static void createAndRun(long reservationRequestId, Interval interval, EntityManager entityManager)
-            throws FaultException
+    public static void createAndRun(Interval interval, EntityManager entityManager) throws FaultException
     {
-        Preprocessor preprocessor = new Preprocessor();
-        preprocessor.init();
-        preprocessor.run(reservationRequestId, interval, entityManager);
-        preprocessor.destroy();
+        createAndRun(interval, entityManager, new Cache());
     }
 }

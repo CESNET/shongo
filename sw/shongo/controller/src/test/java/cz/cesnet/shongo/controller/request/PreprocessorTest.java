@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Preprocessor;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
@@ -39,10 +38,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         // Create reservation request
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), "PT1H");
-        reservationRequestSet.addRequestedSlot(new PeriodicDateTimeSpecification(
+        reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), "PT1H");
+        reservationRequestSet.addSlot(new PeriodicDateTimeSpecification(
                 DateTime.parse("2012-07-01T14:00"), Period.parse("P1W"), LocalDate.parse("2012-07-15")),
                 Period.parse("PT2H"));
         // First compartment
@@ -77,15 +75,15 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(6, reservationRequests.size());
         assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
-                reservationRequests.get(0).getRequestedSlot());
+                reservationRequests.get(0).getSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
-                reservationRequests.get(2).getRequestedSlot());
+                reservationRequests.get(2).getSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
-                reservationRequests.get(4).getRequestedSlot());
+                reservationRequests.get(4).getSlot());
 
         // Modify reservation request
         reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
-        reservationRequestSet.removeRequestedSlot(reservationRequestSet.getRequestedSlots().get(0));
+        reservationRequestSet.removeSlot(reservationRequestSet.getSlots().get(0));
         reservationRequestSet.removeSpecification(reservationRequestSet.getSpecifications().get(1));
 
         // Update request
@@ -99,9 +97,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequests = reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
         assertEquals(2, reservationRequests.size());
         assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
-                reservationRequests.get(0).getRequestedSlot());
+                reservationRequests.get(0).getSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
-                reservationRequests.get(1).getRequestedSlot());
+                reservationRequests.get(1).getSlot());
 
         entityManager.close();
     }
@@ -113,10 +111,9 @@ public class PreprocessorTest extends AbstractDatabaseTest
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
-        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-02"), "PT1H");
+        reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
+        reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-01-02"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
@@ -164,9 +161,8 @@ public class PreprocessorTest extends AbstractDatabaseTest
         // Create reservation request set
         // -------------------------------
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.addRequestedSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
+        reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(

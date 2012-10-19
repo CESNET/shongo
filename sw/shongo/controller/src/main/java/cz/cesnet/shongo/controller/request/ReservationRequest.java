@@ -23,7 +23,7 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequest extends AbstractReservationRequest
+public class ReservationRequest extends NormalReservationRequest
 {
     /**
      * @see {@link CreatedBy}.
@@ -33,12 +33,12 @@ public class ReservationRequest extends AbstractReservationRequest
     /**
      * Start date/time from which the reservation is requested.
      */
-    private DateTime requestedSlotStart;
+    private DateTime slotStart;
 
     /**
      * End date/time to which the reservation is requested.
      */
-    private DateTime requestedSlotEnd;
+    private DateTime slotEnd;
 
     /**
      * {@link Specification} of target which is requested for a reservation.
@@ -74,60 +74,60 @@ public class ReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #requestedSlotStart}
+     * @return {@link #slotStart}
      */
     @Column
     @Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
-    public DateTime getRequestedSlotStart()
+    public DateTime getSlotStart()
     {
-        return requestedSlotStart;
+        return slotStart;
     }
 
     /**
-     * @param requestedSlotStart sets the {@link #requestedSlotStart}
+     * @param slotStart sets the {@link #slotStart}
      */
-    public void setRequestedSlotStart(DateTime requestedSlotStart)
+    public void setSlotStart(DateTime slotStart)
     {
-        this.requestedSlotStart = requestedSlotStart;
+        this.slotStart = slotStart;
     }
 
     /**
-     * @return {@link #requestedSlotEnd}
+     * @return {@link #slotEnd}
      */
     @Column
     @Type(type = "DateTime")
     @Access(AccessType.PROPERTY)
-    public DateTime getRequestedSlotEnd()
+    public DateTime getSlotEnd()
     {
-        return requestedSlotEnd;
+        return slotEnd;
     }
 
     /**
-     * @param requestedSlotEnd sets the {@link #requestedSlotEnd}
+     * @param slotEnd sets the {@link #slotEnd}
      */
-    public void setRequestedSlotEnd(DateTime requestedSlotEnd)
+    public void setSlotEnd(DateTime slotEnd)
     {
-        this.requestedSlotEnd = requestedSlotEnd;
+        this.slotEnd = slotEnd;
     }
 
     /**
-     * @return requested slot ({@link #requestedSlotStart}, {@link #requestedSlotEnd})
-     */
-    @Transient
-    public Interval getRequestedSlot()
-    {
-        return new Interval(requestedSlotStart, requestedSlotEnd);
-    }
-
-    /**
-     * @param requestedSlot sets the requested slot
+     * @return requested slot ({@link #slotStart}, {@link #slotEnd})
      */
     @Transient
-    public void setRequestedSlot(Interval requestedSlot)
+    public Interval getSlot()
     {
-        setRequestedSlotStart(requestedSlot.getStart());
-        setRequestedSlotEnd(requestedSlot.getEnd());
+        return new Interval(slotStart, slotEnd);
+    }
+
+    /**
+     * @param slot sets the requested slot
+     */
+    @Transient
+    public void setSlot(Interval slot)
+    {
+        setSlotStart(slot.getStart());
+        setSlotEnd(slot.getEnd());
     }
 
     /**
@@ -135,19 +135,9 @@ public class ReservationRequest extends AbstractReservationRequest
      * @param duration sets duration of the requested slot
      */
     @Transient
-    public void setRequestedSlot(DateTime dateTime, Period duration)
+    public void setSlot(DateTime dateTime, Period duration)
     {
-        setRequestedSlot(new Interval(dateTime, duration));
-    }
-
-    /**
-     * @param dateTime sets date/ime of the requested slot
-     * @param duration sets duration of the requested slot
-     */
-    @Transient
-    public void setRequestedSlot(String dateTime, String duration)
-    {
-        setRequestedSlot(DateTime.parse(dateTime), Period.parse(duration));
+        setSlot(new Interval(dateTime, duration));
     }
 
     /**
@@ -262,7 +252,7 @@ public class ReservationRequest extends AbstractReservationRequest
         super.fillDescriptionMap(map);
 
         map.put("state", getState());
-        map.put("slot", getRequestedSlot());
+        map.put("slot", getSlot());
         map.put("specification", getSpecification());
     }
 
@@ -284,7 +274,7 @@ public class ReservationRequest extends AbstractReservationRequest
     {
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
-        reservationRequestApi.setSlot(getRequestedSlot());
+        reservationRequestApi.setSlot(getSlot());
         reservationRequestApi.setSpecification(getSpecification().toApi(domain));
         reservationRequestApi.setState(getState().toApi());
         reservationRequestApi.setStateReport(getReportText());
@@ -302,7 +292,7 @@ public class ReservationRequest extends AbstractReservationRequest
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
         if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT)) {
-            setRequestedSlot(reservationRequestApi.getSlot());
+            setSlot(reservationRequestApi.getSlot());
         }
         if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
             cz.cesnet.shongo.controller.api.Specification specificationApi = reservationRequestApi.getSpecification();

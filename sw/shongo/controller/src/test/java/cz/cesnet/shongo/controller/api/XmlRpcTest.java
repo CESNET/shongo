@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.apache.xmlrpc.XmlRpcException;
@@ -29,7 +28,6 @@ public class XmlRpcTest extends AbstractControllerTest
     public void testCreateReservationRequest() throws Exception
     {
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-        reservationRequestSet.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
         reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
@@ -48,7 +46,6 @@ public class XmlRpcTest extends AbstractControllerTest
     {
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put("class", "ReservationRequestSet");
-        attributes.put("type", "NORMAL");
         attributes.put("purpose", "SCIENCE");
         attributes.put("slots", new ArrayList<Object>()
         {{
@@ -112,7 +109,6 @@ public class XmlRpcTest extends AbstractControllerTest
         // ---------------------------
         {
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
-            reservationRequestSet.setType(ReservationRequestType.NORMAL);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
             reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
             reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
@@ -127,7 +123,6 @@ public class XmlRpcTest extends AbstractControllerTest
             reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
                     SECURITY_TOKEN, identifier);
             assertNotNull(reservationRequestSet);
-            assertEquals(ReservationRequestType.NORMAL, reservationRequestSet.getType());
             assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequestSet.getPurpose());
             assertEquals(2, reservationRequestSet.getSlots().size());
             assertEquals(1, reservationRequestSet.getSpecifications().size());
@@ -140,7 +135,6 @@ public class XmlRpcTest extends AbstractControllerTest
             ReservationRequestSet reservationRequestSet =
                     (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN,
                             identifier);
-            reservationRequestSet.setType(ReservationRequestType.PERMANENT);
             reservationRequestSet.setPurpose(null);
             reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
             CompartmentSpecification compartmentSpecification =
@@ -152,7 +146,6 @@ public class XmlRpcTest extends AbstractControllerTest
             reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
                     SECURITY_TOKEN, identifier);
             assertNotNull(reservationRequestSet);
-            assertEquals(ReservationRequestType.PERMANENT, reservationRequestSet.getType());
             assertEquals(null, reservationRequestSet.getPurpose());
             assertEquals(1, reservationRequestSet.getSlots().size());
             assertEquals(1, reservationRequestSet.getSpecifications().size());

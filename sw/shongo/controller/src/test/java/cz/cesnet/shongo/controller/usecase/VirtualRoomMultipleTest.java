@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.usecase;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
@@ -41,7 +40,6 @@ public class VirtualRoomMultipleTest extends AbstractControllerTest
         String secondMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();

@@ -683,7 +683,9 @@ public class Controller
         // Add components
         Cache cache = new Cache();
         controller.addComponent(cache);
-        controller.addComponent(new Preprocessor());
+        Preprocessor preprocessor = new Preprocessor();
+        preprocessor.setCache(cache);
+        controller.addComponent(preprocessor);
         Scheduler scheduler = new Scheduler();
         scheduler.setCache(cache);
         controller.addComponent(scheduler);

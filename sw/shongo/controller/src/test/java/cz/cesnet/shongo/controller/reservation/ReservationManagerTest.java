@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.ReservationRequestSet;
@@ -28,21 +27,16 @@ public class ReservationManagerTest extends AbstractDatabaseTest
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.setName("test");
-        reservationRequestSet.setType(ReservationRequestType.NORMAL);
 
         ReservationRequest reservationRequest1 = new ReservationRequest();
-        reservationRequest1.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.addReservationRequest(reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
-        reservationRequest2.setType(ReservationRequestType.NORMAL);
         reservationRequestSet.addReservationRequest(reservationRequest2);
 
         reservationRequestManager.create(reservationRequestSet);
 
         ReservationRequest reservationRequest3 = new ReservationRequest();
-        reservationRequest3.setType(ReservationRequestType.NORMAL);
-
         reservationRequestManager.create(reservationRequest3);
 
         Reservation reservation1 = new ResourceReservation();

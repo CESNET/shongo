@@ -17,29 +17,13 @@ import java.util.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ReservationRequestSet extends AbstractReservationRequest
+public class ReservationRequestSet extends NormalReservationRequest
 {
-    /**
-     * State of {@link ReservationRequestSet}.
-     */
-    public static enum State
-    {
-        /**
-         * State tells that {@link ReservationRequestSet} hasn't corresponding {@link ReservationRequest}s created
-         * or the {@link ReservationRequestSet} has changed and the {@link ReservationRequest}s are out-of-sync.
-         */
-        NOT_PREPROCESSED,
-
-        /**
-         * State tells that reservation request has corresponding compartment requests synced.
-         */
-        PREPROCESSED
-    }
 
     /**
      * List of {@link DateTimeSlotSpecification}s for which the reservation is requested.
      */
-    private List<DateTimeSlotSpecification> requestedSlots = new ArrayList<DateTimeSlotSpecification>();
+    private List<DateTimeSlotSpecification> slots = new ArrayList<DateTimeSlotSpecification>();
 
     /**
      * List of {@link Specification}s for targets which are requested for a reservation.
@@ -61,13 +45,13 @@ public class ReservationRequestSet extends AbstractReservationRequest
     private Map<Specification, Specification> originalSpecifications = new HashMap<Specification, Specification>();
 
     /**
-     * @return {@link #requestedSlots}
+     * @return {@link #slots}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
-    public List<DateTimeSlotSpecification> getRequestedSlots()
+    public List<DateTimeSlotSpecification> getSlots()
     {
-        return Collections.unmodifiableList(requestedSlots);
+        return Collections.unmodifiableList(slots);
     }
 
     /**
@@ -75,9 +59,9 @@ public class ReservationRequestSet extends AbstractReservationRequest
      * @return {@link DateTimeSlotSpecification} with given {@code id}
      * @throws EntityNotFoundException when the {@link DateTimeSlotSpecification} doesn't exist
      */
-    public DateTimeSlotSpecification getRequestedSlotById(Long id) throws EntityNotFoundException
+    public DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
     {
-        for (DateTimeSlotSpecification dateTimeSlot : requestedSlots) {
+        for (DateTimeSlotSpecification dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
                 return dateTimeSlot;
             }
@@ -86,43 +70,43 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     /**
-     * @param requestedSlot to be added to the {@link #requestedSlots}
+     * @param slot to be added to the {@link #slots}
      */
-    public void addRequestedSlot(DateTimeSlotSpecification requestedSlot)
+    public void addSlot(DateTimeSlotSpecification slot)
     {
-        requestedSlots.add(requestedSlot);
+        slots.add(slot);
     }
 
     /**
      * Add new {@link DateTimeSlotSpecification} constructed from {@code dateTime} and {@code duration} to
-     * the {@link #requestedSlots}.
+     * the {@link #slots}.
      *
      * @param dateTime slot date/time
      * @param duration slot duration
      */
-    public void addRequestedSlot(DateTimeSpecification dateTime, Period duration)
+    public void addSlot(DateTimeSpecification dateTime, Period duration)
     {
-        addRequestedSlot(new DateTimeSlotSpecification(dateTime, duration));
+        addSlot(new DateTimeSlotSpecification(dateTime, duration));
     }
 
     /**
      * Add new {@link DateTimeSlotSpecification} constructed from {@code dateTime} and {@code duration} to
-     * the {@link #requestedSlots}.
+     * the {@link #slots}.
      *
      * @param dateTime slot date/time
      * @param duration slot duration
      */
-    public void addRequestedSlot(DateTimeSpecification dateTime, String duration)
+    public void addSlot(DateTimeSpecification dateTime, String duration)
     {
-        addRequestedSlot(new DateTimeSlotSpecification(dateTime, Period.parse(duration)));
+        addSlot(new DateTimeSlotSpecification(dateTime, Period.parse(duration)));
     }
 
     /**
-     * @param requestedSlot slot to be removed from the {@link #requestedSlots}
+     * @param slot slot to be removed from the {@link #slots}
      */
-    public void removeRequestedSlot(DateTimeSlotSpecification requestedSlot)
+    public void removeSlot(DateTimeSlotSpecification slot)
     {
-        requestedSlots.remove(requestedSlot);
+        slots.remove(slot);
     }
 
     /**
@@ -178,12 +162,12 @@ public class ReservationRequestSet extends AbstractReservationRequest
      * Enumerate requested date/time slots in a specific interval.
      *
      * @param interval
-     * @return list of all requested absolute date/time slots for given interval
+     * @return collection of all requested absolute date/time slots for given interval
      */
-    public List<Interval> enumerateRequestedSlots(Interval interval)
+    public Collection<Interval> enumerateSlots(Interval interval)
     {
-        List<Interval> enumeratedSlots = new ArrayList<Interval>();
-        for (DateTimeSlotSpecification slot : requestedSlots) {
+        Set<Interval> enumeratedSlots = new HashSet<Interval>();
+        for (DateTimeSlotSpecification slot : slots) {
             enumeratedSlots.addAll(slot.enumerate(interval));
         }
         return enumeratedSlots;
@@ -194,9 +178,9 @@ public class ReservationRequestSet extends AbstractReservationRequest
      * @return true whether reservation request has any requested slot after given reference date/time,
      *         false otherwise
      */
-    public boolean hasRequestedSlotAfter(DateTime referenceDateTime)
+    public boolean hasSlotAfter(DateTime referenceDateTime)
     {
-        for (DateTimeSlotSpecification slot : requestedSlots) {
+        for (DateTimeSlotSpecification slot : slots) {
             if (slot.getStart().willOccur(referenceDateTime)) {
                 return true;
             }
@@ -238,7 +222,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     }
 
     /**
-     * @param reservationRequest slot to be removed from the {@link #reservationRequests}
+     * @param reservationRequest to be removed from the {@link #reservationRequests}
      */
     public void removeReservationRequest(ReservationRequest reservationRequest)
     {
@@ -282,8 +266,8 @@ public class ReservationRequestSet extends AbstractReservationRequest
     {
         cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
-        for (DateTimeSlotSpecification requestedSlot : getRequestedSlots()) {
-            reservationRequestSetApi.addSlot(requestedSlot.toApi());
+        for (DateTimeSlotSpecification slot : getSlots()) {
+            reservationRequestSetApi.addSlot(slot.toApi());
         }
         for (Specification specification : getSpecifications()) {
             reservationRequestSetApi.addSpecification(specification.toApi(domain));
@@ -305,18 +289,18 @@ public class ReservationRequestSet extends AbstractReservationRequest
         // Create/modify slots
         for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : reservationRequestSetApi.getSlots()) {
             if (api.isCollectionItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
-                addRequestedSlot(DateTimeSlotSpecification.createFromApi(slotApi));
+                addSlot(DateTimeSlotSpecification.createFromApi(slotApi));
             }
             else {
-                DateTimeSlotSpecification requestedSlot = getRequestedSlotById(slotApi.getId().longValue());
-                requestedSlot.fromApi(slotApi);
+                DateTimeSlotSpecification slot = getSlotById(slotApi.getId().longValue());
+                slot.fromApi(slotApi);
             }
         }
         // Delete slots
-        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedRequestedSlots =
+        Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
                 api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
-        for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedRequestedSlots) {
-            removeRequestedSlot(getRequestedSlotById(slotApi.getId().longValue()));
+        for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedSlots) {
+            removeSlot(getSlotById(slotApi.getId().longValue()));
         }
 
         // Create/modify specifications
@@ -344,7 +328,7 @@ public class ReservationRequestSet extends AbstractReservationRequest
     {
         super.fillDescriptionMap(map);
 
-        map.put("slots", requestedSlots);
+        map.put("slots", slots);
         map.put("specifications", specifications);
     }
 }

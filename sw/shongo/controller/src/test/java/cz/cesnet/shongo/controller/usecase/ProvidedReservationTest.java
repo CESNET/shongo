@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.usecase;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
@@ -65,14 +64,12 @@ public class ProvidedReservationTest extends AbstractControllerTest
         String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         ReservationRequest lectureRoomReservationRequest = new ReservationRequest();
-        lectureRoomReservationRequest.setType(ReservationRequestType.NORMAL);
         lectureRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         lectureRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         lectureRoomReservationRequest.setSpecification(new ResourceSpecification(lectureRoomIdentifier));
         Reservation lectureRoomReservation = allocateAndCheck(lectureRoomReservationRequest);
 
         ReservationRequest request = new ReservationRequest();
-        request.setType(ReservationRequestType.NORMAL);
         request.setSlot("2012-06-22T14:00", "PT2H");
         request.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
         request.setPurpose(ReservationRequestPurpose.SCIENCE);

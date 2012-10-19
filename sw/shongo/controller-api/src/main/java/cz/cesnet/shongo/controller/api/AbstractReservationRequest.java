@@ -1,11 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.api.annotation.Required;
-import cz.cesnet.shongo.controller.ReservationRequestPurpose;
-import cz.cesnet.shongo.controller.ReservationRequestType;
 import org.joda.time.DateTime;
-
-import java.util.List;
 
 /**
  * Request for reservation of resources.
@@ -25,34 +20,14 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     private DateTime created;
 
     /**
-     * @see cz.cesnet.shongo.controller.ReservationRequestType
-     */
-    public static final String TYPE = "type";
-
-    /**
      * Name of the reservation request.
      */
     public static final String NAME = "name";
 
     /**
-     * @see cz.cesnet.shongo.controller.ReservationRequestPurpose
-     */
-    public static final String PURPOSE = "purpose";
-
-    /**
      * Description of the reservation request.
      */
     public static final String DESCRIPTION = "description";
-
-    /**
-     * Specifies whether the scheduler should try allocate resources from other domains.
-     */
-    public static final String INTER_DOMAIN = "interDomain";
-
-    /**
-     * Collection of identifiers for {@link Reservation}s which are provided to the {@link AbstractReservationRequest}.
-     */
-    public static final String PROVIDED_RESERVATION_IDENTIFIERS = "providedReservationIdentifiers";
 
     /**
      * Constructor.
@@ -94,23 +69,6 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     }
 
     /**
-     * @return {@link #TYPE}
-     */
-    @Required
-    public ReservationRequestType getType()
-    {
-        return getPropertyStorage().getValue(TYPE);
-    }
-
-    /**
-     * @param type sets the {@link #TYPE}
-     */
-    public void setType(ReservationRequestType type)
-    {
-        getPropertyStorage().setValue(TYPE, type);
-    }
-
-    /**
      * @return {@link #NAME}
      */
     public String getName()
@@ -127,23 +85,6 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     }
 
     /**
-     * @return {@link #PURPOSE}
-     */
-    @Required
-    public ReservationRequestPurpose getPurpose()
-    {
-        return getPropertyStorage().getValue(PURPOSE);
-    }
-
-    /**
-     * @param purpose sets the {@link #PURPOSE}
-     */
-    public void setPurpose(ReservationRequestPurpose purpose)
-    {
-        getPropertyStorage().setValue(PURPOSE, purpose);
-    }
-
-    /**
      * @return {@link #DESCRIPTION}
      */
     public String getDescription()
@@ -157,54 +98,5 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     public void setDescription(String description)
     {
         getPropertyStorage().setValue(DESCRIPTION, description);
-    }
-
-    /**
-     * @return {@link #INTER_DOMAIN}
-     */
-    public Boolean getInterDomain()
-    {
-        return getPropertyStorage().getValue(INTER_DOMAIN);
-    }
-
-    /**
-     * @param interDomain sets the {@link #INTER_DOMAIN}
-     */
-    public void setInterDomain(Boolean interDomain)
-    {
-        getPropertyStorage().setValue(INTER_DOMAIN, interDomain);
-    }
-
-    /**
-     * @return {@link #PROVIDED_RESERVATION_IDENTIFIERS}
-     */
-    public List<String> getProvidedReservationIdentifiers()
-    {
-        return getPropertyStorage().getCollection(PROVIDED_RESERVATION_IDENTIFIERS, List.class);
-    }
-
-    /**
-     * @param providedReservationIdentifiers sets the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
-     */
-    public void setProvidedReservationIdentifiers(List<String> providedReservationIdentifiers)
-    {
-        getPropertyStorage().setCollection(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifiers);
-    }
-
-    /**
-     * @param providedReservationIdentifier to be added to the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
-     */
-    public void addProvidedReservationIdentifier(String providedReservationIdentifier)
-    {
-        getPropertyStorage().addCollectionItem(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier,
-                List.class);
-    }
-
-    /**
-     * @param providedReservationIdentifier to be removed from the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
-     */
-    public void removeProvidedReservationIdentifier(String providedReservationIdentifier)
-    {
-        getPropertyStorage().removeCollectionItem(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier);
     }
 }

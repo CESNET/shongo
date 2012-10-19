@@ -48,7 +48,7 @@ public class AliasSpecification extends Specification
      * Constructor.
      *
      * @param technology sets the {@link #TECHNOLOGY}
-     * @param aliasType sets the {@link #ALIAS_TYPE}
+     * @param aliasType  sets the {@link #ALIAS_TYPE}
      */
     public AliasSpecification(Technology technology, AliasType aliasType)
     {

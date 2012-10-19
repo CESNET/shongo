@@ -96,7 +96,6 @@ public class ExecutorTest extends AbstractControllerTest
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setType(ReservationRequestType.NORMAL);
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();

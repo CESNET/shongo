@@ -181,13 +181,17 @@ public class ReservationManager extends AbstractManager
      *
      * @param cache from which the {@link Reservation}s are also deleted
      */
-    public void deleteAllNotReferencedByReservationRequest(Cache cache)
+    public void deleteAllNotReferenced(Cache cache)
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " WHERE reservation.createdBy = :createdBy"
-                        + " AND reservation.parentReservation IS NULL AND reservation NOT IN("
-                        + " SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)",
+                        + " AND reservation.parentReservation IS NULL "
+                        +  "AND reservation NOT IN("
+                        + "   SELECT request.reservation FROM ReservationRequest request)"
+                        +  "AND reservation NOT IN("
+                        + "   SELECT reservation FROM PermanentReservationRequest request"
+                        + "   LEFT JOIN request.resourceReservations reservation)",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .getResultList();
