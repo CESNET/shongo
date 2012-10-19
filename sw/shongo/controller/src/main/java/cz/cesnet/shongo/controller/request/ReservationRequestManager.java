@@ -96,6 +96,10 @@ public class ReservationRequestManager extends AbstractManager
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
         }
+        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
+            // Clear state
+            PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
+        }
         else if (abstractReservationRequest instanceof ReservationRequest) {
             // Keep reservation (is deleted by scheduler)
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;

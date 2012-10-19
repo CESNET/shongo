@@ -130,16 +130,24 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Run {@link Preprocessor}.
      *
+     * @param interval
+     * @throws FaultException
+     */
+    protected void runPreprocessor(Interval interval) throws FaultException
+    {
+        EntityManager entityManagerForPreprocessor = getEntityManager();
+        Preprocessor.createAndRun(interval, entityManagerForPreprocessor, cache);
+        entityManagerForPreprocessor.close();
+    }
+
+    /**
+     * Run {@link Preprocessor}.
+     *
      * @throws FaultException
      */
     protected void runPreprocessor() throws FaultException
     {
-        Interval interval = Interval.parse("0/9999");
-
-        EntityManager entityManagerForPreprocessor = getEntityManager();
-        Preprocessor.createAndRun(interval, entityManagerForPreprocessor, cache);
-        entityManagerForPreprocessor.close();
-
+        runPreprocessor(Interval.parse("0/9999"));
     }
 
     /**

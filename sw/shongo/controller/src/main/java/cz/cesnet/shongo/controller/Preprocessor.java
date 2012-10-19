@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ResourceReservationTask;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
@@ -100,21 +101,29 @@ public class Preprocessor extends Component
         try {
             // Get reservation request set by identifier
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-            ReservationRequestSet reservationRequestSet =
-                    reservationRequestManager.getReservationRequestSet(reservationRequestSetId);
+            AbstractReservationRequest reservationRequest =
+                    reservationRequestManager.getReservationRequest(reservationRequestSetId);
 
-            if (reservationRequestSet == null) {
+            if (reservationRequest == null) {
                 throw new IllegalArgumentException(String.format("Reservation request set '%s' doesn't exist!",
                         reservationRequestSetId));
             }
             PreprocessorStateManager reservationRequestStateManager =
-                    new PreprocessorStateManager(entityManager, reservationRequestSet);
+                    new PreprocessorStateManager(entityManager, reservationRequest);
             if (reservationRequestStateManager.getState(interval) != PreprocessorState.NOT_PREPROCESSED) {
                 throw new IllegalStateException(String.format(
                         "Reservation request set '%s' is already preprocessed in %s!",
                         reservationRequestSetId, interval));
             }
-            processReservationRequest(reservationRequestSet, interval, entityManager);
+            if (reservationRequest instanceof PermanentReservationRequest) {
+                processReservationRequest((PermanentReservationRequest) reservationRequest, interval, entityManager);
+            }
+            else if (reservationRequest instanceof ReservationRequestSet) {
+                processReservationRequest((ReservationRequestSet) reservationRequest, interval, entityManager);
+            }
+            else {
+                throw new TodoImplementException(reservationRequest.getClass().getCanonicalName());
+            }
 
             transaction.commit();
         }
@@ -143,24 +152,44 @@ public class Preprocessor extends Component
         // Build map of resource reservations by slots
         Map<Interval, ResourceReservation> resourceReservationBySlot = new HashMap<Interval, ResourceReservation>();
         for (ResourceReservation resourceReservation : permanentReservationRequest.getResourceReservations()) {
-            resourceReservationBySlot.put(resourceReservation.getSlot(), resourceReservation);
+            // Only slots which overlaps interval
+            if (resourceReservation.getSlot().overlaps(interval)) {
+                resourceReservationBySlot.put(resourceReservation.getSlot(), resourceReservation);
+            }
         }
 
         try {
             ReservationManager reservationManager = new ReservationManager(entityManager);
             for (Interval slot : slots) {
                 ResourceReservation resourceReservation = resourceReservationBySlot.get(slot);
+
+                // Remove current reservation from map (the reservation should not be deleted)
+                resourceReservationBySlot.remove(slot);
+
                 if (resourceReservation != null) {
                     if (resourceReservation.getResource().equals(resource)) {
                         // Resource reservation is up-to-date
                         continue;
                     }
+                    permanentReservationRequest.removeResourceReservation(resourceReservation);
                     reservationManager.delete(resourceReservation, cache);
                 }
                 ReservationTask.Context context = new ReservationTask.Context(cache, slot);
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, resource);
                 resourceReservation = resourceReservationTask.perform(ResourceReservation.class);
+
+                // Update reservation request
                 permanentReservationRequest.addResourceReservation(resourceReservation);
+                reservationRequestManager.update(permanentReservationRequest);
+
+                // Update cache
+                cache.addReservation(resourceReservation);
+            }
+
+            // Remove all reservations which remains in map
+            for (ResourceReservation resourceReservation : resourceReservationBySlot.values()) {
+                permanentReservationRequest.removeResourceReservation(resourceReservation);
+                reservationManager.delete(resourceReservation, cache);
             }
         }
         catch (ReportException exception) {

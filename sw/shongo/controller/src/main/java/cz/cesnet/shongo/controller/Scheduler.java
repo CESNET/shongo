@@ -153,7 +153,6 @@ public class Scheduler extends Component
                 cache.addReservation(childReservation);
             }
 
-
             // Update reservation request
             reservationRequest.setReservation(reservation);
             reservationRequest.setState(ReservationRequest.State.ALLOCATED);

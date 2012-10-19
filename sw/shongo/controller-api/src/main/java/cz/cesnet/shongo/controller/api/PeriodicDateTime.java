@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.ReadablePartial;
@@ -44,6 +46,50 @@ public class PeriodicDateTime
     {
         setStart(start);
         setPeriod(period);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param start  sets the {@link #start}
+     * @param period sets the {@link #period}
+     * @param end    sets the {@link #end}
+     */
+    public PeriodicDateTime(DateTime start, Period period, ReadablePartial end)
+    {
+        setStart(start);
+        setPeriod(period);
+        setEnd(end);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param start  sets the {@link #start}
+     * @param period sets the {@link #period}
+     */
+    public PeriodicDateTime(String start, String period)
+    {
+        setStart(DateTime.parse(start));
+        setPeriod(Period.parse(period));
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param start  sets the {@link #start}
+     * @param period sets the {@link #period}
+     * @param end    sets the {@link #end}
+     */
+    public PeriodicDateTime(String start, String period, String end)
+    {
+        setStart(DateTime.parse(start));
+        setPeriod(Period.parse(period));
+        try {
+            setEnd(Converter.convertStringToReadablePartial(end));
+        } catch (FaultException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     /**

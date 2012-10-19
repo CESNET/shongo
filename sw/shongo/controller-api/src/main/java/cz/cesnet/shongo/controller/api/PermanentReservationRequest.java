@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 import org.joda.time.Period;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -75,6 +77,18 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     }
 
     /**
+     * Add new slot to the {@link #SLOTS}.
+     *
+     * @param start
+     * @param duration
+     */
+    public void addSlot(String start, String duration)
+    {
+        DateTimeSlot dateTimeSlot = new DateTimeSlot(start, duration);
+        addSlot(dateTimeSlot);
+    }
+
+    /**
      * @param dateTimeSlot slot to be removed from the {@link #SLOTS}
      */
     public void removeSlot(DateTimeSlot dateTimeSlot)
@@ -102,6 +116,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #resourceReservations}
      */
+    @ReadOnly
     public List<ResourceReservation> getResourceReservations()
     {
         return resourceReservations;

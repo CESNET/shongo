@@ -620,7 +620,8 @@ public class Converter
             }
 
             if (property.isReadOnly() && !options.isStoreReadOnly()) {
-                throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
+                continue;
+                //throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
             }
 
             // Store collection changes

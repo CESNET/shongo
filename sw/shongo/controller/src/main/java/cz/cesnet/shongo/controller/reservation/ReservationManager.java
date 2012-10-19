@@ -152,7 +152,11 @@ public class ReservationManager extends AbstractManager
                         + " ) OR reservation IN ("
                         + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
                         + "   WHERE reservationRequest.id = :id"
-                        + " )",
+                        + " ) OR reservation IN ("
+                        + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
+                        + "   LEFT JOIN reservationRequest.resourceReservations reservation"
+                        + "   WHERE reservationRequest.id = :id"
+                        + " ) ",
                 Reservation.class)
                 .setParameter("id", reservationRequestId)
                 .getResultList();
@@ -188,10 +192,10 @@ public class ReservationManager extends AbstractManager
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL "
                         +  "AND reservation NOT IN("
-                        + "   SELECT request.reservation FROM ReservationRequest request)"
+                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)"
                         +  "AND reservation NOT IN("
-                        + "   SELECT reservation FROM PermanentReservationRequest request"
-                        + "   LEFT JOIN request.resourceReservations reservation)",
+                        + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
+                        + "   LEFT JOIN reservationRequest.resourceReservations reservation)",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .getResultList();
