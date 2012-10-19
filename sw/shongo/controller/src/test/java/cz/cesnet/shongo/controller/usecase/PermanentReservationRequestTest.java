@@ -124,6 +124,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);
 
         // Check deleted reservation
-        assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        runScheduler();
+        assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN).size());
     }
 }

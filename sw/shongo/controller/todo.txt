@@ -1,4 +1,9 @@
 * PERMANENT
+   * permanent reservation of mcu -> disables whole mcu for the slot
+
+* Preprocessor
+   * add reports for permanent reservations
+   * add reports for enumerating of set of reservation requests
 
 * Use case tests for
    * single reservation request
@@ -7,6 +12,7 @@
 * Specify requested alias value in AliasSpecification
 
 * API
+  * Update API (provided reservations, permanent)
   * Popsat autentizaci v API
   * Dokoncit popis workflow v API
 

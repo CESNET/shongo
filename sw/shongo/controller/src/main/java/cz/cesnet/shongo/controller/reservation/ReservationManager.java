@@ -126,6 +126,17 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
+     * @return list of {@link Reservation}s
+     */
+    public List<Reservation> list()
+    {
+        List<Reservation> reservations = entityManager.createQuery(
+                "SELECT reservation FROM Reservation reservation", Reservation.class)
+                .getResultList();
+        return reservations;
+    }
+
+    /**
      * @param reservationRequest from which the {@link Reservation}s should be
      *                           returned.
      * @return list of {@link Reservation}s from given {@code reservationRequest}

@@ -153,7 +153,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     /**
      * @return {@link #resourceReservations}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany
     @Access(AccessType.FIELD)
     public List<ResourceReservation> getResourceReservations()
     {

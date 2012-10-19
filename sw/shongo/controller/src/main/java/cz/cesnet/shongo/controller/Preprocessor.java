@@ -178,12 +178,12 @@ public class Preprocessor extends Component
                 ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, resource);
                 resourceReservation = resourceReservationTask.perform(ResourceReservation.class);
 
+                // Update cache
+                cache.addReservation(resourceReservation, entityManager);
+
                 // Update reservation request
                 permanentReservationRequest.addResourceReservation(resourceReservation);
                 reservationRequestManager.update(permanentReservationRequest);
-
-                // Update cache
-                cache.addReservation(resourceReservation);
             }
 
             // Remove all reservations which remains in map

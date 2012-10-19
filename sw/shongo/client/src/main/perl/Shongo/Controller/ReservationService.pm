@@ -14,6 +14,7 @@ use Shongo::Console;
 use Shongo::Controller::API::ReservationRequestAbstract;
 use Shongo::Controller::API::ReservationRequest;
 use Shongo::Controller::API::ReservationRequestSet;
+use Shongo::Controller::API::PermanentReservationRequest;
 use Shongo::Controller::API::Reservation;
 use Shongo::Controller::API::Alias;
 
@@ -28,8 +29,8 @@ sub populate()
     $shell->add_commands({
         'create-reservation-request' => {
             desc => 'Create a new reservation request',
-            options => 'type=s name=s purpose=s slot=s@ person=s@ resource=s@',
-            args => "[-type] [-name] [-purpose] [-slot] [-person] [-resource]",
+            options => 'name=s purpose=s slot=s@ person=s@ resource=s@',
+            args => "[-name] [-purpose] [-slot] [-person] [-resource]",
             method => sub {
                 my ($shell, $params, @args) = @_;
                 create_reservation_request($params->{'options'});
@@ -117,7 +118,8 @@ sub create_reservation_request()
 
     my $type = console_read_enum('Select type of reservation request', ordered_hash(
         'ReservationRequest' => 'Single Reservation Request',
-        'ReservationRequestSet' => 'Set of Reservation Requests'
+        'ReservationRequestSet' => 'Set of Reservation Requests',
+        'PermanentReservationRequest' => 'Permanent Reservation Request'
     ));
     if ( !defined($type) ) {
         return;
@@ -127,6 +129,8 @@ sub create_reservation_request()
         $identifier = Shongo::Controller::API::ReservationRequest->new()->create($attributes);
     } elsif ($type eq 'ReservationRequestSet') {
         $identifier = Shongo::Controller::API::ReservationRequestSet->new()->create($attributes);
+    } elsif ($type eq 'PermanentReservationRequest') {
+        $identifier = Shongo::Controller::API::PermanentReservationRequest->new()->create($attributes);
     }
     if ( defined($identifier) ) {
         console_print_info("Reservation request '%s' successfully created.", $identifier);
@@ -181,11 +185,15 @@ sub list_reservation_requests()
         #\' | ', 'Purpose',
         \' | ', 'Earliest Slot', \' |'
     );
+    my $Type = {
+        'NORMAL' => 'Normal',
+        'PERMANENT' => 'Permanent'
+    };
     foreach my $reservation_request (@{$response->value()}) {
         $table->add(
             $reservation_request->{'identifier'},
             format_date($reservation_request->{'created'}),
-            $Shongo::Controller::API::ReservationRequestAbstract::Type->{$reservation_request->{'type'}},
+            $Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
             #$Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             format_interval($reservation_request->{'earliestSlot'})

@@ -77,10 +77,18 @@ public interface ReservationService extends Service
     /**
      * @param token
      * @param reservationRequestIdentifier
-     * @return collection of already allocated reservation for given reservation request
+     * @return collection of already allocated {@link Reservation}s for given reservation request
      * @throws FaultException
      */
     @API
     public Collection<Reservation> listReservations(SecurityToken token,
             String reservationRequestIdentifier) throws FaultException;
+
+    /**
+     * @param token
+     * @return collection of already allocated {@link Reservation}s
+     * @throws FaultException
+     */
+    @API
+    public Collection<Reservation> listReservations(SecurityToken token) throws FaultException;
 }
