@@ -7,7 +7,7 @@ import cz.cesnet.shongo.api.annotation.Required;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceSpecification extends ParticipantSpecification
+public class ResourceSpecification extends Specification
 {
     /**
      * The resource identifier.

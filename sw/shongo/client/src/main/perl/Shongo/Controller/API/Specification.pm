@@ -21,10 +21,11 @@ use Shongo::Controller::API::Person;
 # Specification types
 #
 our $Type = ordered_hash(
+    'ResourceSpecification' => 'Resource',
     'CompartmentSpecification' => 'Compartment',
     'ExternalEndpointSpecification' => 'External Endpoint',
     'ExternalEndpointSetSpecification' => 'Set of External Endpoints',
-    'ExistingEndpointSpecification' => 'Existing Resource',
+    'ExistingEndpointSpecification' => 'Existing Endpoint',
     'LookupEndpointSpecification' => 'Lookup Resource',
     'PersonSpecification' => 'Person',
     'AliasSpecification' => 'Alias'
@@ -103,6 +104,10 @@ sub modify()
     my ($self) = @_;
 
     switch ($self->{'class'}) {
+        case 'ResourceSpecification' {
+            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 1, $Shongo::Common::IdentifierPattern, $self->{'resourceIdentifier'});
+            return $self;
+        }
         case 'ExternalEndpointSpecification' {
             $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
 
@@ -165,6 +170,9 @@ sub get_attributes
     $self->SUPER::get_attributes($attributes);
 
     switch ($self->{'class'}) {
+        case 'ResourceSpecification' {
+            $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
+        }
         case 'ExternalEndpointSpecification' {
             $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
             if ( defined($self->{'alias'}) ) {
