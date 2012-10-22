@@ -461,7 +461,7 @@ public class CompartmentReservationTask extends ReservationTask
 
         // Get available virtual rooms
         List<AvailableVirtualRoom> availableVirtualRooms = getCache().findAvailableVirtualRoomsByVariants(
-                getInterval(), compartment.getTotalEndpointCount(), technologySets);
+                getInterval(), compartment.getTotalEndpointCount(), technologySets, getCacheTransaction());
         if (availableVirtualRooms.size() == 0) {
             return false;
         }

@@ -208,6 +208,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
             permanentReservationRequestApi.addSlot(slot.toApi());
         }
         permanentReservationRequestApi.setResourceIdentifier(domain.formatIdentifier(getResource().getId()));
+        permanentReservationRequestApi.setReport(getReportText());
         for (ResourceReservation resourceReservation : getResourceReservations()) {
             permanentReservationRequestApi.addResourceReservation(resourceReservation.toApi(domain));
         }

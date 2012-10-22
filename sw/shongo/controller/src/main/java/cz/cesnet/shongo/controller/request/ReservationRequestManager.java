@@ -60,9 +60,12 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * Update existing {@link AbstractReservationRequest} in the database.
      *
-     * @param reservationRequest to be updated in the database
+     * @param reservationRequest     to be updated in the database
+     * @param clearPreprocessedState specifies whether state for {@link ReservationRequestSet} and
+     *                               {@link PermanentReservationRequest} should be set to
+     *                               {@link PreprocessorState#NOT_PREPROCESSED}
      */
-    public void update(AbstractReservationRequest reservationRequest)
+    public void update(AbstractReservationRequest reservationRequest, boolean clearPreprocessedState)
     {
         validate(reservationRequest);
 
@@ -70,11 +73,24 @@ public class ReservationRequestManager extends AbstractManager
 
         super.update(reservationRequest);
 
-        if (reservationRequest instanceof ReservationRequestSet || reservationRequest instanceof PermanentReservationRequest) {
+        if (clearPreprocessedState &&
+                (reservationRequest instanceof ReservationRequestSet
+                         || reservationRequest instanceof PermanentReservationRequest)) {
             PreprocessorStateManager.setState(entityManager, reservationRequest, PreprocessorState.NOT_PREPROCESSED);
         }
 
         transaction.commit();
+    }
+
+    /**
+     * Update existing {@link AbstractReservationRequest} in the database and set
+     * {@link PreprocessorState#NOT_PREPROCESSED} state.
+     *
+     * @param reservationRequest to be updated in the database
+     */
+    public void update(AbstractReservationRequest reservationRequest)
+    {
+        update(reservationRequest, true);
     }
 
     /**

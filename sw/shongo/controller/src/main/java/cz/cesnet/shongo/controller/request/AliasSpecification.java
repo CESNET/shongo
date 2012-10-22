@@ -174,8 +174,9 @@ public class AliasSpecification extends Specification implements ReservationTask
                     List<AliasProviderCapability> aliasProviderCapabilities =
                             resource.getCapabilities(AliasProviderCapability.class);
                     for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-                        availableAlias = getCache().getAvailableAlias(aliasProviderCapability, cacheTransaction,
-                                getTechnology(), getAliasType(), getInterval());
+                        availableAlias = getCache().getAvailableAlias(aliasProviderCapability, getTechnology(),
+                                getAliasType(), getInterval(), cacheTransaction
+                        );
                         if (availableAlias != null) {
                             break;
                         }
@@ -184,7 +185,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                 // Allocate alias from all resources in the cache
                 if (availableAlias == null) {
                     availableAlias = getCache().getAvailableAlias(
-                            cacheTransaction, getTechnology(), getAliasType(), getInterval());
+                            getTechnology(), getAliasType(), getInterval(), cacheTransaction);
                 }
                 if (availableAlias == null) {
                     throw new NoAvailableAliasReport(getTechnology(), getAliasType()).exception();

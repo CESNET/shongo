@@ -380,31 +380,33 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom}
      */
     public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
-            Set<Technology> technologies)
+            Set<Technology> technologies, Transaction transaction)
     {
         Set<Long> deviceResources = resourceCache.getDeviceResourcesByCapabilityTechnologies(
                 VirtualRoomsCapability.class,
                 technologies);
-        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources);
+        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources,
+                (transaction != null ? transaction.getResourceCacheTransaction() : null));
     }
 
     /**
      * @see {@link #findAvailableVirtualRooms}
      */
     public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
-            Technology[] technologies)
+            Technology[] technologies, Transaction transaction)
     {
         Set<Technology> technologySet = new HashSet<Technology>();
         Collections.addAll(technologySet, technologies);
-        return findAvailableVirtualRooms(interval, requiredPortCount, technologySet);
+        return findAvailableVirtualRooms(interval, requiredPortCount, technologySet, transaction);
     }
 
     /**
      * @see {@link #findAvailableVirtualRooms}
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount)
+    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
+            Transaction transaction)
     {
-        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>) null);
+        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>) null, transaction);
     }
 
     /**
@@ -417,12 +419,13 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom}
      */
     public List<AvailableVirtualRoom> findAvailableVirtualRoomsByVariants(Interval interval, int requiredPortCount,
-            Collection<Set<Technology>> technologiesVariants)
+            Collection<Set<Technology>> technologiesVariants, Transaction transaction)
     {
         Set<Long> deviceResources = resourceCache.getDeviceResourcesByCapabilityTechnologies(
                 VirtualRoomsCapability.class,
                 technologiesVariants);
-        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources);
+        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources,
+                (transaction != null ? transaction.getResourceCacheTransaction() : null));
     }
 
     /**
@@ -434,15 +437,16 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param transaction
      * @return available alias for given {@code technology} and {@code interval}
      */
-    public AvailableAlias getAvailableAlias(Transaction transaction, Technology technology, AliasType aliasType,
-            Interval interval)
+    public AvailableAlias getAvailableAlias(Technology technology, AliasType aliasType, Interval interval,
+            Transaction transaction)
     {
         for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
             if (aliasProviderCapability.isRestrictedToOwnerResource()) {
                 continue;
             }
-            AvailableAlias availableAlias = getAvailableAlias(aliasProviderCapability, transaction, technology,
-                    aliasType, interval);
+            AvailableAlias availableAlias = getAvailableAlias(aliasProviderCapability, technology, aliasType, interval,
+                    transaction
+            );
             if (availableAlias != null) {
                 return availableAlias;
             }
@@ -459,8 +463,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param transaction
      * @return available alias for given {@code technology} and {@code interval}
      */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Transaction transaction,
-            Technology technology, AliasType aliasType, Interval interval)
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Technology technology,
+            AliasType aliasType, Interval interval, Transaction transaction)
     {
         if (technology != null && !aliasProviderCapability.getTechnology().equals(technology)) {
             return null;

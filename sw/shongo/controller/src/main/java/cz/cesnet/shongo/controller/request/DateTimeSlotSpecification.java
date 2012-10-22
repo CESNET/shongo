@@ -75,7 +75,7 @@ public class DateTimeSlotSpecification extends PersistentObject
     /**
      * @return {@link #start}
      */
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
     public DateTimeSpecification getStart()
     {

@@ -26,6 +26,11 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
 
     /**
+     * Report description.
+     */
+    private String report;
+
+    /**
      * List of allocated {@link ResourceReservation}s.
      */
     private List<ResourceReservation> resourceReservations = new ArrayList<ResourceReservation>();
@@ -111,6 +116,22 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     public void setResourceIdentifier(String resourceIdentifier)
     {
         getPropertyStorage().setValue(RESOURCE_IDENTIFIER, resourceIdentifier);
+    }
+
+    /**
+     * @return {@link #report
+     */
+    public String getReport()
+    {
+        return report;
+    }
+
+    /**
+     * @param report sets the {@link #report}
+     */
+    public void setReport(String report)
+    {
+        this.report = report;
     }
 
     /**

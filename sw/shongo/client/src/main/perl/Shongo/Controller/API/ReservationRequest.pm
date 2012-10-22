@@ -148,55 +148,9 @@ sub get_state_report
     if ( defined($self->{'state'}) && $self->{'state'} eq 'ALLOCATION_FAILED' ) {
         $color = 'red';
     }
-    my $stateReport = $self->{'stateReport'};
-    my $max_line_width = get_term_width() - 23;
-    my @lines = ();
-    if ( defined($stateReport) ) {
-        @lines = split("\n", $stateReport);
-    }
-    $stateReport = '';
-    # Process each line from report
-    for ( my $index = 0; $index < scalar(@lines); $index++ ) {
-        my $line = $lines[$index];
-        my $nextLine = $lines[$index + 1];
-        if ( length($stateReport) > 0 ) {
-            $stateReport .= "\n";
-        }
-
-        # Calculate new line indent
-        my $indent = '';
-        if ( $line =~ /(^[| ]*\+?)(-+)/ ) {
-            my $start = $1;
-            $indent = $1 . $2;
-            $indent =~ s/[-]/ /g;
-
-            $start =~ s/[\+]/|/g;
-            if ( defined($nextLine) && $nextLine =~ /^\Q$start/ ) {
-                $indent =~ s/\+/|/g;
-            }
-            else {
-                $indent =~ s/\+/ /g;
-            }
-        }
-
-        # Break line to multiple lines
-        while ( length($line) > $max_line_width ) {
-            my $index = rindex($line, " ", $max_line_width);
-            if ($index == -1) {
-                $index = $max_line_width;
-            }
-            $stateReport .= substr($line, 0, $index);
-            $stateReport .= "\n". $indent;
-            $line = substr($line, $index + 1);
-        }
-
-        # Append the rest
-        $stateReport .= $line;
-    }
-    if ( !defined($stateReport) || $stateReport eq '' ) {
-        $stateReport = "-- No report --";
-    }
-    return colored($stateReport, $color);
+    my $state_report = $self->{'stateReport'};
+    $state_report = format_report($state_report, get_term_width() - 23);
+    return colored($state_report, $color);
 }
 
 # @Override

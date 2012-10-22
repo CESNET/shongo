@@ -36,17 +36,33 @@ public class VirtualRoomSingleTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        ReservationRequest firstReservationRequest = new ReservationRequest();
+        firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalIdentifier));
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
-        reservationRequest.setSpecification(compartmentSpecification);
+        firstReservationRequest.setSpecification(compartmentSpecification);
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
-        runScheduler();
-        checkAllocated(identifier);
+        allocateAndCheck(firstReservationRequest);
+
+        ReservationRequest secondReservationRequest = new ReservationRequest();
+        secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 8));
+        secondReservationRequest.setSpecification(compartmentSpecification);
+
+        allocateAndCheck(secondReservationRequest);
+
+        ReservationRequest thirddReservationRequest = new ReservationRequest();
+        thirddReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        thirddReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
+        thirddReservationRequest.setSpecification(compartmentSpecification);
+
+        allocateAndCheckFailed(thirddReservationRequest);
     }
 
     /**
@@ -91,5 +107,45 @@ public class VirtualRoomSingleTest extends AbstractControllerTest
         String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
         checkAllocated(identifier);
+    }
+
+    /**
+     * Test disabling whole MCU by reservation request of the MCU resource directly (not though virtual room).
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testDisabledReservation() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAddress("127.0.0.1");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.setAllocatable(true);
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest firstReservationRequest = new ReservationRequest();
+        firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        firstReservationRequest.setSpecification(new ResourceSpecification(mcuIdentifier));
+
+        String firstReservationRequestIdentifier = allocate(firstReservationRequest);
+        checkAllocated(firstReservationRequestIdentifier);
+
+        ReservationRequest secondReservationRequest = new ReservationRequest();
+        secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        secondReservationRequest.setSpecification(compartmentSpecification);
+
+        String secondReservationRequestIdentifier = allocate(secondReservationRequest);
+        checkAllocationFailed(secondReservationRequestIdentifier);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestIdentifier);
+
+        reallocate(secondReservationRequestIdentifier);
+        checkAllocated(secondReservationRequestIdentifier);
     }
 }

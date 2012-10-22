@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.usecase;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
+import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
 import org.joda.time.Interval;
 import org.joda.time.Period;
@@ -59,7 +61,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
                 return o1.getSlot().getStart().compareTo(o2.getSlot().getStart());
             }
         });
-        for ( int index = 0; index < 12; index++ ) {
+        for (int index = 0; index < 12; index++) {
             ResourceReservation resourceReservation = (ResourceReservation) reservations.get(index);
             assertEquals(resourceIdentifier, resourceReservation.getResourceIdentifier());
             String slot = String.format("2012-01-01T%02d:00/2012-01-01T%02d:00", index * 2, index * 2 + 1);
@@ -126,5 +128,46 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         // Check deleted reservation
         runScheduler();
         assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN).size());
+    }
+
+    /**
+     * Test disabling whole MCU by reservation request of the MCU resource directly (not though virtual room).
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testVirtualRoomsDevice() throws Exception
+    {
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAddress("127.0.0.1");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.setAllocatable(true);
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest firstReservationRequest = new ReservationRequest();
+        firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
+        firstReservationRequest.setSpecification(compartmentSpecification);
+
+        String firstReservationRequestIdentifier = allocate(firstReservationRequest);
+        checkAllocated(firstReservationRequestIdentifier);
+
+        PermanentReservationRequest secondReservationRequest = new PermanentReservationRequest();
+        secondReservationRequest.addSlot("2012-06-22T14:00", "PT2H");
+        secondReservationRequest.setResourceIdentifier(mcuIdentifier);
+
+        String secondReservationRequestIdentifier = allocate(secondReservationRequest);
+        runPreprocessor();
+        checkAllocationFailed(secondReservationRequestIdentifier);
+
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestIdentifier);
+        runScheduler();
+
+        reallocate(secondReservationRequestIdentifier);
+        checkAllocated(secondReservationRequestIdentifier);
     }
 }

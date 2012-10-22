@@ -152,6 +152,18 @@ sub modify_slots()
     );
 }
 
+#
+# @return report
+#
+sub get_report
+{
+    my ($self) = @_;
+    my $color = 'blue';
+    my $report = $self->{'report'};
+    $report = format_report($report, get_term_width() - 23);
+    return colored($report, $color);
+}
+
 # @Override
 sub create_value_instance
 {
@@ -175,6 +187,7 @@ sub get_attributes
     my ($self, $attributes) = @_;
     $self->SUPER::get_attributes($attributes);
     $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
+    $attributes->{'add'}('Report', $self->get_report());
     $attributes->{'add_collection'}($self->get_slots());
 
     my $collection = $attributes->{'add_collection'}('Created resource reservations');

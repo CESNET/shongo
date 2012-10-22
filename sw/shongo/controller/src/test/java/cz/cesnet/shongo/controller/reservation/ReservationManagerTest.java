@@ -19,7 +19,7 @@ import static junit.framework.Assert.assertEquals;
 public class ReservationManagerTest extends AbstractDatabaseTest
 {
     @Test
-    public void testQueryNotInIdentifierBug() throws Exception
+    public void testQueryNotInRelationOneIdentifierBug() throws Exception
     {
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);

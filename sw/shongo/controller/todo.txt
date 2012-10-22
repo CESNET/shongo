@@ -1,8 +1,4 @@
-* PERMANENT
-   * permanent reservation of mcu -> disables whole mcu for the slot
-
 * Preprocessor
-   * add reports for permanent reservations
    * add reports for enumerating of set of reservation requests
 
 * Use case tests for
@@ -10,6 +6,10 @@
    * set of reservation requests
 
 * Specify requested alias value in AliasSpecification
+
+* AliasProviderSpecification, multiple patterns
+
+* VirtualRoomSpecification (technologies, resource, portCount)
 
 * API
   * Update API (provided reservations, permanent)

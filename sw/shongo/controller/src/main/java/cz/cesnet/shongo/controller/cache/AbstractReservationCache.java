@@ -150,12 +150,21 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      * @param object      for which the {@code reservation} is added
      * @param reservation to be added to the cache
      */
-    public void addReservation(T object, R reservation)
+    public final void addReservation(T object, R reservation)
     {
         if (workingInterval != null && !reservation.getSlot().overlaps(workingInterval)) {
             return;
         }
         reservation.checkPersisted();
+        onAddReservation(object, reservation);
+    }
+
+    /**
+     * @param object      for which the {@code reservation} is added
+     * @param reservation to be added to the cache
+     */
+    protected void onAddReservation(T object, R reservation)
+    {
         ObjectState<R> objectState = getObjectState(object);
         objectState.addReservation(reservation);
     }
@@ -164,11 +173,20 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      * @param object      for which the {@code reservation} is removed
      * @param reservation to be removed from the cache
      */
-    public void removeReservation(T object, R reservation)
+    public final void removeReservation(T object, R reservation)
     {
         if (workingInterval != null && !reservation.getSlot().overlaps(workingInterval)) {
             return;
         }
+        onRemove(object, reservation);
+    }
+
+    /**
+     * @param object      for which the {@code reservation} is removed
+     * @param reservation to be removed from the cache
+     */
+    public void onRemove(T object, R reservation)
+    {
         ObjectState<R> objectState = getObjectState(object);
         objectState.removeReservation(reservation);
     }

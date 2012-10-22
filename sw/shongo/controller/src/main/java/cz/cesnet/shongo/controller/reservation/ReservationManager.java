@@ -201,12 +201,12 @@ public class ReservationManager extends AbstractManager
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " WHERE reservation.createdBy = :createdBy"
-                        + " AND reservation.parentReservation IS NULL "
-                        +  "AND reservation NOT IN("
+                        + " AND reservation.parentReservation IS NULL"
+                        + " AND reservation NOT IN("
                         + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)"
-                        +  "AND reservation NOT IN("
+                        + " AND reservation NOT IN("
                         + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
-                        + "   LEFT JOIN reservationRequest.resourceReservations reservation)",
+                        + "   INNER JOIN reservationRequest.resourceReservations reservation)",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .getResultList();

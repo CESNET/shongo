@@ -14,7 +14,7 @@ our @EXPORT = qw(
     ordered_hash ordered_hash_keys
     get_enum_value
     get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
-    format_datetime format_date format_datetime_partial format_interval
+    format_datetime format_date format_datetime_partial format_interval format_report
     var_dump
     get_home_directory get_term_width
     text_indent_lines
@@ -310,6 +310,65 @@ sub format_interval
     } else {
         return "";
     }
+}
+
+#
+# Format report
+#
+# @param $report
+# @param $max_line_width
+#
+sub format_report
+{
+    my ($report, $max_line_width) = @_;
+
+    my @lines = ();
+    if ( defined($report) ) {
+        @lines = split("\n", $report);
+    }
+    $report = '';
+    # Process each line from report
+    for ( my $index = 0; $index < scalar(@lines); $index++ ) {
+        my $line = $lines[$index];
+        my $nextLine = $lines[$index + 1];
+        if ( length($report) > 0 ) {
+            $report .= "\n";
+        }
+
+        # Calculate new line indent
+        my $indent = '';
+        if ( $line =~ /(^[| ]*\+?)(-+)/ ) {
+            my $start = $1;
+            $indent = $1 . $2;
+            $indent =~ s/[-]/ /g;
+
+            $start =~ s/[\+]/|/g;
+            if ( defined($nextLine) && $nextLine =~ /^\Q$start/ ) {
+                $indent =~ s/\+/|/g;
+            }
+            else {
+                $indent =~ s/\+/ /g;
+            }
+        }
+
+        # Break line to multiple lines
+        while ( length($line) > $max_line_width ) {
+            my $index = rindex($line, " ", $max_line_width);
+            if ($index == -1) {
+                $index = $max_line_width;
+            }
+            $report .= substr($line, 0, $index);
+            $report .= "\n". $indent;
+            $line = substr($line, $index + 1);
+        }
+
+        # Append the rest
+        $report .= $line;
+    }
+    if ( !defined($report) || $report eq '' ) {
+        $report = "-- No report --";
+    }
+    return $report;
 }
 
 #
