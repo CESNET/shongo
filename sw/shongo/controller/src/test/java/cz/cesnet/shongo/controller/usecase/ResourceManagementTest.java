@@ -13,7 +13,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests for creating, updating and deleting resources.
+ * Tests for creating, updating and deleting {@link Resource}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

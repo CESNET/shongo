@@ -1,15 +1,8 @@
-* Preprocessor
-   * add reports for enumerating of set of reservation requests
+* Add requested alias value attribute to AliasSpecification
 
-* Use case tests for
-   * single reservation request
-   * set of reservation requests
+* Add multiple patterns to AliasProviderSpecification
 
-* Specify requested alias value in AliasSpecification
-
-* AliasProviderSpecification, multiple patterns
-
-* VirtualRoomSpecification (technologies, resource, portCount)
+* Implement VirtualRoomSpecification (technologies, resource, portCount)
 
 * API
   * Update API (provided reservations, permanent)
