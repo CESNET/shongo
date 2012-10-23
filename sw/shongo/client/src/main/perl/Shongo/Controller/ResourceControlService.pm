@@ -537,7 +537,7 @@ sub resource_create_room
 {
     my ($resourceIdentifier, $attributes) = @_;
 
-    my $room = Shongo::Controller::API::Object->new();
+    my $room = Shongo::Controller::API::ObjectOld->new();
     $room->{'class'} = 'Room';
     $room->{'name'} = console_read_value('Name', 1, undef, $attributes->{'name'});
     $room->{'portCount'} = console_read_value('Port count', 1, '\\d+', $attributes->{'portCount'});

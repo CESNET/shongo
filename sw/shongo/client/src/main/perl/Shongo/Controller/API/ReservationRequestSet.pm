@@ -274,14 +274,14 @@ sub get_attributes
     if ( $request_count > 0 ) {
         for ( my $index = 0; $index < $request_count; $index++ ) {
             my $reservation_request = get_collection_item($self->{'reservationRequests'}, $index);
-            my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::Controller::API::Object::COLOR) . ": %s",
+            my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::Controller::API::ObjectOld::COLOR) . ": %s",
                 format_interval($reservation_request->{'slot'}),
                 $reservation_request->{'identifier'},
                 $reservation_request->get_state(),
                 $Shongo::Controller::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
             );
             if ( $reservation_request->{'state'} eq 'ALLOCATED' ) {
-                $item .= sprintf("\n  " . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
+                $item .= sprintf("\n  " . colored("reservation", $Shongo::Controller::API::ObjectOld::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
             }
             $collection->{'add'}($item);
         }
@@ -294,7 +294,7 @@ sub get_attributes
 sub get_slots()
 {
     my ($self) = @_;
-    my $collection = Shongo::Controller::API::Object::create_collection('Requested slots');
+    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Requested slots');
     for ( my $index = 0; $index < $self->get_slots_count(); $index++ ) {
         my $slot = get_collection_item($self->{'slots'}, $index);
         my $start = $slot->{'start'};
@@ -320,7 +320,7 @@ sub get_slots()
 sub get_specifications()
 {
     my ($self) = @_;
-    my $collection = Shongo::Controller::API::Object::create_collection('Specifications');
+    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Specifications');
     for ( my $index = 0; $index < $self->get_specifications_count(); $index++ ) {
         my $specification = get_collection_item($self->{'specifications'}, $index);
         $collection->{'add'}($specification);

@@ -141,7 +141,7 @@ sub get_attributes
 sub get_provided_reservations()
 {
     my ($self) = @_;
-    my $collection = Shongo::Controller::API::Object::create_collection('Provided reservations');
+    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Provided reservations');
     for ( my $index = 0; $index < $self->get_provided_reservations_count(); $index++ ) {
         my $providedReservationIdentifier = get_collection_item($self->{'providedReservationIdentifiers'}, $index);
         $collection->{'add'}(sprintf("identifier: %s", $providedReservationIdentifier));

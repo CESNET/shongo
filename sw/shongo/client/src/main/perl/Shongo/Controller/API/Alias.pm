@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Alias;
-use base qw(Shongo::Controller::API::Object);
+use base qw(Shongo::Controller::API::ObjectOld);
 
 use strict;
 use warnings;
@@ -36,7 +36,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::Controller::API::ObjectOld->new(@_);
     bless $self, $class;
 
     return $self;
@@ -148,7 +148,7 @@ sub get_aliases
 {
     my ($aliases) = @_;
 
-    my $collection = Shongo::Controller::API::Object::create_collection('Aliases');
+    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Aliases');
     for ( my $index = 0; $index < get_collection_size($aliases); $index++ ) {
         my $alias = get_collection_item($aliases, $index);
         $collection->{'add'}($alias);

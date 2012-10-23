@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Reservation;
-use base qw(Shongo::Controller::API::Object);
+use base qw(Shongo::Controller::API::ObjectOld);
 
 use strict;
 use warnings;
@@ -34,7 +34,7 @@ sub new()
 {
     my $class = shift;
     my ($type) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::Controller::API::ObjectOld->new(@_);
     bless $self, $class;
 
     return $self;
@@ -143,7 +143,7 @@ sub to_string_short
     $name =~ s/ Reservation//g;
 
     # get attributes for this object
-    my $attributes = Shongo::Controller::API::Object::create_attributes();
+    my $attributes = Shongo::Controller::API::ObjectOld::create_attributes();
     $self->get_attributes($attributes);
 
     my $ignore = {'identifier' => 1, 'slot' => 1, 'resource' => 1};

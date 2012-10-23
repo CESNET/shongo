@@ -14,6 +14,7 @@ use XML::Twig;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Authorization;
+use Shongo::Controller::API::Object;
 
 #
 # Single instance of Controller class.
@@ -111,12 +112,14 @@ sub user_info()
         return;
     }
 
-    my $attributes = Shongo::Controller::API::Object->create_attributes();
-    $attributes->{add}('Access Token', $self->{'access_token'});
-    $attributes->{add}('Name', $user_info->{'name'});
-    $attributes->{add}('Nickname', $user_info->{'nickname'});
-    $attributes->{add}('Email', $user_info->{'email'});
-    console_print_text(Shongo::Controller::API::Object::format_attributes($attributes, 'Authenticated User Information'));
+    my $object = Shongo::Controller::API::Object->new();
+
+    $object->set_object_name('Authenticated User Information');
+    $object->add_attribute('Access Token', {}, $self->{'access_token'});
+    $object->add_attribute('Name', {}, $user_info->{'name'});
+    $object->add_attribute('Nickname', {}, $user_info->{'nickname'});
+    $object->add_attribute('Email', {}, $user_info->{'email'});
+    console_print_text($object);
 }
 
 #

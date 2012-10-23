@@ -218,7 +218,7 @@ sub get_resource_allocation()
     }
     my $resource_allocation = $result->value();
 
-    my $attributes = Shongo::Controller::API::Object::create_attributes();
+    my $attributes = Shongo::Controller::API::ObjectOld::create_attributes();
     $attributes->{'add'}('Identifier', $resource_allocation->{'identifier'});
     $attributes->{'add'}('Name', $resource_allocation->{'name'});
     $attributes->{'add'}('Interval', format_interval($resource_allocation->{'interval'}));
@@ -226,7 +226,7 @@ sub get_resource_allocation()
         $attributes->{'add'}('Maximum Port Count', $resource_allocation->{'maximumPortCount'});
         $attributes->{'add'}('Available Port Count', $resource_allocation->{'availablePortCount'});
     }
-    console_print_text(Shongo::Controller::API::Object::format_attributes($attributes, 'Resource Allocation'));
+    console_print_text(Shongo::Controller::API::ObjectOld::format_attributes($attributes, 'Resource Allocation'));
 
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Slot', \' | ', 'Resource', \' | ', 'Type', \' |');
     foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
@@ -239,7 +239,7 @@ sub get_resource_allocation()
             $reservation->to_string_short()
         );
     }
-    printf(" %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::Object::COLOR_HEADER));
+    printf(" %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::ObjectOld::COLOR_HEADER));
     console_print_table($table, 1);
 }
 

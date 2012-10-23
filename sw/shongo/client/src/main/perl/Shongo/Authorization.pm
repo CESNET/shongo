@@ -16,7 +16,6 @@ use URI::QueryParam;
 use JSON;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Object;
 
 # Dummy redirect url which is
 my $CLIENT_USER_AGENT = 'Shongo Command-Line Client/1.0';

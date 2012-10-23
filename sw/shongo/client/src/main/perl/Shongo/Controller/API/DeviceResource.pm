@@ -161,7 +161,7 @@ sub get_technologies
 {
     my ($self) = @_;
 
-    my $collection = Shongo::Controller::API::Object::create_collection('Technologies');
+    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Technologies');
     for ( my $index = 0; $index < get_collection_size($self->{'technologies'}); $index++ ) {
         my $technology = get_collection_item($self->{'technologies'}, $index);
         $collection->{'add'}($Technology->{$technology});

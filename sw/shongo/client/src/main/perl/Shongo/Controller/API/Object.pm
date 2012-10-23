@@ -7,6 +7,7 @@ package Shongo::Controller::API::Object;
 
 use strict;
 use warnings;
+use warnings::register;
 
 use Shongo::Common;
 use Shongo::Console;
@@ -15,7 +16,13 @@ our $COLOR_HEADER = "bold blue";
 our $COLOR = "bold white";
 
 #
-# Create a new instance of object
+# Mapping of API classes ('hash_class' => 'perl_class').
+#
+our $ClassMapping = {
+};
+
+#
+# Create a new instance of object.
 #
 # @static
 #
@@ -25,20 +32,661 @@ sub new
     my $self = {};
     bless $self, $class;
 
-    $self->{'__to_xml_skip_attributes'} = {};
+    $self->{'__class'} = undef;
+    $self->{'__name'} = 'Object';
+    $self->{'__attributes'} = {};
 
     return $self;
 }
 
 #
-# Skip given attribute in to_xml calls
+# Set API class of the object.
+#
+# @param $name
+#
+sub set_object_class
+{
+    my ($self, $class) = @_;
+    $self->{'__class'} = $class;
+}
+
+#
+# Set name of the object for printing (e.g. "Resource" or "Person").
+#
+# @param $name
+#
+sub set_object_name
+{
+    my ($self, $name) = @_;
+    $self->{'__name'} = $name;
+}
+
+#
+# Set default value to data if not set.
+#
+# @param $data
+# @param $property
+# @param $default_value
+# @static
+#
+sub set_default_value
+{
+    my ($data, $property, $default_value) = @_;
+    if ( !defined($data->{$property}) ) {
+        $data->{$property} = $default_value;
+    }
+}
+
+#
+# Add attribute definition to this object.
+#
+# @param $attribute_name name of the attribute
+# @param $attribute hash of following values:
+#
+# 'title' => String
+#  Title used for printing and editing the attribute value.
+#
+# 'display' => 'block'|'newline' (default 'block')
+#  Specifies whether title and value should be rendered into 'block' (title on the left and value on the right) or
+#  whether title should be placed in the previous line and the value on the 'newline'.
+#
+# 'editable' => 1|0 (default 1)
+#  Specifies whether the attribute can be edited.
+#
+# 'required' => 1|0 (default 0)
+#  Specifies whether the attribute must be filled when it is edited.
+#
+# 'type' => ... (default 'string')
+#  Specifies the type of the attribute:
+#   'int'        attribute value is integer
+#   'string'     attribute value is string
+#   'collection' attribute value is collection of items
+#
+# 'string-pattern' => String
+#  When 'type' => 'string' then it specifies the regular expression which must the attribute value match.
+#
+# 'collection-menu' => 1|0 (default 0)
+#  When 'type' => 'collection' then it specifies whether add, modify and delete actions should be added to sub menu
+# (default value 0 means that actions are added to main action menu).
+#
+# 'collection-title' => String
+#  When 'type' => 'collection' then it specifies the title of an item in collection.
+#
+# 'collection-add' => Callback
+# 'collection-modify' => Callback
+# 'collection-delete' => Callback
+#  When 'type' => 'collection' then it specifies the callback for adding new items, modifying or deleting existing items.
+#
+# 'collection-class' => String
+#  When 'type' => 'collection' then instead of specifying callbacks you can specify class which will be automatically
+#  instanced in 'collection-add' and which will be modified in 'collection-modify' ('collection-delete' will be
+#  kept empty, the item is always automatically removed from the collection and marked as 'deleted').
+#
+# @param $value value to be set to the attribute
+#
+sub add_attribute
+{
+    my ($self, $name, $attribute, $value) = @_;
+    if ( !ref($attribute) ) {
+        warnings::warn("Attribute definition should be hash reference.");
+        return;
+    }
+    my $attribute_name = $name;
+    $self->{'__attributes'}->{$attribute_name} = $attribute;
+    set_default_value($attribute, 'display', 'block');
+    set_default_value($attribute, 'editable', 1);
+    set_default_value($attribute, 'required', 0);
+    set_default_value($attribute, 'type', 'string');
+    set_default_value($attribute, 'collection-menu', 0);
+
+    if ( $attribute->{'collection-class'} ) {
+        # Generate callbacks for given class
+        $attribute->{'collection-add'} = sub {
+            my $item = eval($attribute->{'collection-class'} . '->new()');
+            $item->create();
+            return $item;
+        };
+        $attribute->{'collection-modify'} = sub {
+            my ($item) = @_;
+            $item->modify();
+            return $item;
+        };
+    }
+
+    if ( defined($value) ) {
+        $self->set($name, $value);
+    }
+}
+
 #
 # @param $attribute_name
+# @return 1 if attribute with given $attribute_name exists,
+#         0 otherwise
 #
-sub to_xml_skip_attribute
+sub has_attribute
 {
     my ($self, $attribute_name) = @_;
-    $self->{'__to_xml_skip_attributes'}->{$attribute_name} = 1;
+    if ( !defined($self->{'__attributes'}->{$attribute_name}) ) {
+        return 0;
+    }
+    return 1;
+}
+
+#
+# @param $attribute_name
+# @return attribute with given $attribute_name
+#
+sub get_attribute
+{
+    my ($self, $attribute_name) = @_;
+    if ( !defined($self->{'__attributes'}->{$attribute_name}) ) {
+        warnings::warn("Attribute '$attribute_name' not defined in '$self->{'__class'}'.");
+        return undef;
+    }
+    return $self->{'__attributes'}->{$attribute_name};
+}
+
+#
+# @param $attribute_name
+# @return title for attribute with given $attribute_name
+#
+sub get_attribute_title
+{
+    my ($self, $attribute_name) = @_;
+    my $attribute = $self->get_attribute($attribute_name);
+    if ( defined($attribute) && defined($attribute->{'title'}) ) {
+        return $attribute->{title};
+    }
+    return ucfirst(lc($attribute_name));
+}
+
+#
+# Set attribute value.
+#
+# @param $attribute_name  name of attribute which value should be set
+# @param $attribute_value new value for the attribute
+#
+sub set
+{
+    my ($self, $attribute_name, $attribute_value) = @_;
+    my $attribute = $self->get_attribute($attribute_name);
+    if ( !defined($attribute) ) {
+        return;
+    }
+    $self->{$attribute_name} = $attribute_value;
+}
+
+#
+# Get attribute value.
+#
+# @param $attribute_name name of the attribute
+# @return value of attribute with given $attribute_name
+#
+sub get
+{
+    my ($self, $attribute_name) = @_;
+    my $attribute = $self->get_attribute($attribute_name);
+    if ( !defined($attribute) ) {
+        return undef;
+    }
+    return $self->{$attribute_name};
+}
+
+#
+# Format value to string.
+#
+# @param $value   value which should be formatted
+# @param $options options
+# @return formatted value to string
+#
+sub format_value
+{
+    my ($self, $value, $options) = @_;
+    if ( !defined($value) ) {
+        $value = '';
+    }
+    elsif( ref($value) ) {
+        my $items = undef;
+        if( ref($value) eq 'ARRAY' ) {
+            my ($item) = @_;
+            $items = get_collection_items($value);
+        }
+        elsif( ref($value) eq 'HASH' && (defined($value->{'modified'}) || defined($value->{'new'}) || defined($value->{'deleted'})) ) {
+            $items = get_collection_items($value);
+        }
+        if ( defined($items) ) {
+            if ( @{$items} > 0 ) {
+                $value = '';
+                for ( my $index = 0; $index < scalar(@{$items}); $index++ ) {
+                    my $item = @{$items}[$index];
+                    if ( defined($options->{'format_callback'}) ) {
+                        $item = $options->{'format_callback'}($item);
+                    }
+                    $item = $self->format_value($item);
+                    $item = text_indent_lines($item, 4, 0);
+                    if ( $options->{'single_line'} ) {
+                        if ( length($value) > 0 ) {
+                            $value .= ", ";
+                        }
+                        $value .= sprintf("%s", $item);
+                    } else {
+                        if ( length($value) > 0 ) {
+                            $value .= "\n";
+                        }
+                        $value .= sprintf("%s %s", colored(sprintf("%d)", $index + 1), $COLOR), $item);
+                    }
+                }
+            }
+            else {
+                $value = "-- None --";
+            }
+        }
+        else {
+            $value = $value->to_string();
+        }
+    }
+    return $value;
+}
+
+#
+# @param $attribute_name of attribute whose value should be formatted
+# @return formatted attribute value
+#
+sub format_attribute_value
+{
+    my ($self, $attribute_name, $single_line) = @_;
+    if ( !defined($single_line) ) {
+        $single_line = 0;
+    }
+    my $attribute = $self->get_attribute($attribute_name);
+    my $attribute_value = $self->get($attribute_name);
+    if ( $attribute->{'type'} eq 'collection' && !defined($attribute_value) ) {
+        $attribute_value = [];
+    }
+    return $self->format_value($attribute_value, {
+        'single_line' => $single_line,
+        'format_callback' => $attribute->{'format_callback'}
+    });
+}
+
+#
+# Format attributes to string.
+#
+# @return formatted string of attributes
+#
+sub format_attributes
+{
+    my ($self, $single_line) = @_;
+
+    # determine maximum attribute title length
+    my $max_length = 0;
+    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+        my $attribute = $self->get_attribute($attribute_name);
+        # max length of title is determined only from 'display' => 'block'
+        if ( $attribute->{'display'} eq 'block' ) {
+            my $attribute_title = $self->get_attribute_title($attribute_name);
+            my $attribute_value = $self->get($attribute_name);
+            my $attribute_title_length = length($attribute_title);
+            if ( defined($attribute_value) && !($attribute_value eq '') && $attribute_title_length > $max_length ) {
+                $max_length = $attribute_title_length;
+            }
+        }
+    }
+
+    # format attributes to string
+    my $string = '';
+    my $format = sprintf("%%%ds", $max_length);
+    $max_length += 3;
+    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+        my $attribute = $self->get_attribute($attribute_name);
+        my $attribute_title = $self->get_attribute_title($attribute_name);
+        my $attribute_value = $self->format_attribute_value($attribute_name, $single_line);
+        if ( defined($attribute_value) && length($attribute_value) > 0 ) {
+            if ( $single_line ) {
+                if ( length($string) > 0 ) {
+                    $string .= ", ";
+                }
+                $string .= colored(sprintf($format, lc($attribute_title)), $COLOR) . ': ' . $attribute_value;
+            } else {
+                if ( length($string) > 0 ) {
+                    $string .= "\n";
+                }
+                if ( $attribute->{'display'} eq 'block' ) {
+                    $attribute_value = text_indent_lines($attribute_value, $max_length, 0);
+                    $string .= ' ' . colored(sprintf($format, $attribute_title), $COLOR) . ': ' . $attribute_value;
+                    if ( defined($attribute->{'description'}) ) {
+                        $string .= sprintf("\n%s", text_indent_lines($attribute->{'description'}, $max_length));
+                    }
+                }
+                else {
+                    $attribute_value = text_indent_lines($attribute_value, 2, 1);
+                    $string .= ' ' . colored($attribute_title, $COLOR) . ":\n";
+                    $string .= $attribute_value;
+                    if ( defined($attribute->{'description'}) ) {
+                        $string .= sprintf("\n%s", $attribute->{'description'});
+                    }
+                }
+            }
+        }
+    }
+
+    return $string;
+}
+
+#
+# Convert object to string (could be multi-line).
+#
+# @return string describing this object
+#
+sub to_string
+{
+    my ($self) = @_;
+
+    my $content = '';
+    $content .= $self->format_attributes(0);
+    # add "|" to the beginning of each line
+    my $prefix = colored('|', $COLOR_HEADER);
+    $content =~ s/\n *$//g;
+    $content =~ s/\n/\n$prefix/g;
+    if ( length($content) > 0 ) {
+        # add "|" to the first line
+        $content = $prefix . $content;
+        # add ending newline
+        $content .= "\n";
+    }
+
+    my $string = '';
+    $string .= colored(uc($self->{'__name'}), $COLOR_HEADER) . "\n";
+    $string .= $content;
+    return $string;
+}
+
+#
+# Convert object to string (should be single-line).
+#
+# @return string describing this object
+#
+sub to_string_short
+{
+    my ($self) = @_;
+    my $string = '';
+    $string .= colored(uc($self->{'__name'}), $COLOR_HEADER);
+    $string .= colored('(', $COLOR_HEADER);
+    $string .= $self->format_attributes(1);
+    $string .= colored(')', $COLOR_HEADER);
+    return $string;
+}
+
+#
+# Create an object from this instance
+#
+# @param $attributes hash containing attributes
+#
+sub create()
+{
+    my ($self, $attributes) = @_;
+
+    if ( defined($attributes) && ref($attributes) eq 'HASH' ) {
+        $self->from_hash($attributes);
+    }
+
+    # modify required attributes
+    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+        my $attribute = $self->get_attribute($attribute_name);
+        if ( $attribute->{'required'} == 1 && !defined($self->get($attribute_name)) ) {
+            $self->modify_attribute($attribute_name, 0);
+        }
+    }
+
+    while ( $self->modify_loop('creation of ' . lc($self->{'__name'})) ) {
+        my $result = $self->on_create_confirm();
+        if ( defined($result) ) {
+            return $result;
+        }
+    }
+    return undef;
+}
+
+#
+# Event called when the creation is confirmed.
+#
+# @return identifier of the object if the creation succeeds,
+#         undef otherwise
+#
+sub on_create_confirm
+{
+    my ($self) = @_;
+    console_print_info("Creating " . lc($self->{'__name'}) . "...");
+    my $response = Shongo::Controller->instance()->secure_request(
+        'Resource.createResource',
+        $self->to_xml()
+    );
+    if ( $response->is_fault() ) {
+        return undef;
+    }
+    return $response->value();
+}
+
+#
+# Modify this object.
+#
+sub modify
+{
+    my ($self) = @_;
+    while ( $self->modify_loop('modification of ' . lc($self->{'__name'})) ) {
+        if ( on_modify_confirm() ) {
+            return;
+        }
+    }
+}
+
+#
+# Event called when the modification is confirmed.
+#
+# @return 1 when the modification succeeds,
+#         0 otherwise
+#
+sub on_modify_confirm
+{
+    my ($self) = @_;
+    console_print_info("Modifying " . lc($self->{'__name'}) . "...");
+    my $response = Shongo::Controller->instance()->secure_request(
+        'Resource.modifyResource',
+        $self->to_xml()
+    );
+    if ( $response->is_fault() ) {
+        return 0;
+    }
+    return 1;
+}
+
+#
+# Run modify loop.
+#
+# @param $message
+#
+sub modify_loop()
+{
+    my ($self, $message) = @_;
+    console_action_loop(
+        sub {
+            console_print_text($self);
+        },
+        sub {
+            my @actions = (
+                'Modify attributes' => sub {
+                    $self->modify_attributes(1);
+                    return undef;
+                }
+            );
+            $self->on_modify_loop(\@actions);
+            push(@actions, (
+                'Confirm ' . $message => sub {
+                    return 1;
+                },
+                'Cancel ' . $message => sub {
+                    return 0;
+                }
+            ));
+            return ordered_hash(@actions);
+        }
+    );
+}
+
+#
+# On modify loop.
+#
+# @param $actions array of actions
+#
+sub on_modify_loop()
+{
+    my ($self, $actions) = @_;
+
+    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+        my $attribute = $self->get_attribute($attribute_name);
+        if ( $attribute->{'editable'} == 1 && $attribute->{'type'} eq 'collection' ) {
+            # Collection by sub menu
+            if ( $attribute->{'collection-menu'} == 1 ) {
+                my $collection_title = $self->get_attribute_title($attribute_name);
+                push(@{$actions}, (
+                    'Modify ' . lc($collection_title) => sub {
+                        $self->modify_attribute($attribute_name);
+                    }
+                ));
+            }
+            # Collection into main menu
+            else {
+                $self->modify_collection_add_actions($attribute_name, $actions);
+            }
+        }
+    }
+}
+
+#
+# Add actions for modifying collection to given $actions.
+#
+# @param $attribute_name collection name
+# @param $actions where the actions should be added
+#
+sub modify_collection_add_actions
+{
+    my ($self, $attribute_name, $actions) = @_;
+    my $attribute = $self->get_attribute($attribute_name);
+    if ( $attribute->{'editable'} == 0 || !($attribute->{'type'} eq 'collection') ) {
+        warnings::warn("Collection '$attribute_name' is not editable or 'collection' type.");
+        return;
+    }
+    my $item_title = 'Item';
+    if ( defined($attribute->{'collection-title'}) ) {
+        $item_title = $attribute->{'collection-title'};
+    }
+    $item_title = lc($item_title);
+    push(@{$actions}, 'Add new ' . $item_title => sub {
+        my $item = undef;
+        if ( defined($attribute->{'collection-add'}) ) {
+            $item = $attribute->{'collection-add'}();
+        }
+        if ( defined($item) ) {
+            if ( !defined($self->{$attribute_name}) ) {
+                $self->{$attribute_name} = [];
+            }
+            add_collection_item(\$self->{$attribute_name}, $item);
+        }
+        return undef;
+    });
+    my $collection_size = get_collection_size($self->{$attribute_name});
+    if ( $collection_size > 0 ) {
+        push(@{$actions}, 'Modify existing ' . $item_title => sub {
+            my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
+            if ( defined($index) ) {
+                my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                if ( defined($attribute->{'collection-modify'}) ) {
+                    $item = $attribute->{'collection-modify'}($item);
+                }
+            }
+            return undef;
+        });
+        push(@{$actions}, 'Remove existing ' . $item_title => sub {
+            my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
+            if ( defined($index) ) {
+                my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                if ( defined($attribute->{'collection-delete'}) ) {
+                    $item = $attribute->{'collection-delete'}($item);
+                }
+                remove_collection_item(\$self->{$attribute_name}, $index - 1);
+            }
+            return undef;
+        });
+    }
+}
+
+sub modify_attribute
+{
+    my ($self, $attribute_name, $is_editing) = @_;
+    my $attribute = $self->get_attribute($attribute_name);
+    if ( $attribute->{'editable'} == 0 ) {
+        warnings::warn("Attribute '$attribute_name' is not editable.");
+        return;
+    }
+
+    my $attribute_value = $self->get($attribute_name);
+    my $attribute_title = $self->get_attribute_title($attribute_name);
+    my $attribute_required = $attribute->{'required'};
+    if ( $attribute->{'type'} eq 'int' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            '^\\d+$',
+            $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value)
+    }
+    elsif ( $attribute->{'type'} eq 'string' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $attribute->{'string-pattern'},
+            $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value);
+    }
+    elsif ( $attribute->{'type'} eq 'collection' ) {
+        my $collection_title = $self->get_attribute_title($attribute_name);
+        console_action_loop(
+            sub {
+                my $string = colored($collection_title, $COLOR) . ":\n";
+                $string .= $self->format_attribute_value($attribute_name);
+                console_print_text($string);
+            },
+            sub {
+                my @menu_actions = ();
+                $self->modify_collection_add_actions($attribute_name, \@menu_actions);
+                push(@menu_actions, 'Finish modifying ' . lc($collection_title) => sub {
+                    return 0;
+                });
+                return ordered_hash(@menu_actions);
+            }
+        );
+        return undef;
+    }
+}
+
+#
+# Modify attributes
+#
+# @param $edit
+#
+sub modify_attributes
+{
+    my ($self, $is_editing) = @_;
+    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+        my $attribute = $self->get_attribute($attribute_name);
+        if ( $attribute->{'editable'} == 1 && !($attribute->{'type'} eq 'collection') ) {
+            $self->modify_attribute($attribute_name, $is_editing);
+        }
+    }
 }
 
 #
@@ -65,7 +713,7 @@ sub to_xml_value
         return RPC::XML::array->new(from => $array);
     }
     elsif ( ref($value) ) {
-        return $value->to_xml($value);
+        return $value->to_hash($value);
     }
     elsif ( !defined($value) || $value eq NULL ) {
         return RPC::XML::struct->new();
@@ -83,11 +731,12 @@ sub to_xml()
     my ($self) = @_;
 
     my $xml = {};
-    foreach my $name (keys %{$self}) {
-        my $value = $self->{$name};
-        if ( !($name eq "__to_xml_skip_attributes") && !($self->{'__to_xml_skip_attributes'}->{$name}) ) {
-            $xml->{$name} = $self->to_xml_value($value);
-        }
+    if ( defined($self->{'__class'}) ) {
+        $xml->{'class'} = RPC::XML::string->new($self->{'__class'});
+    }
+    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+        my $attribute_value = $self->get($attribute_name);
+        $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
     }
     return RPC::XML::struct->new($xml);
 }
@@ -109,7 +758,7 @@ sub create_value_instance
 #
 # @param $value
 #
-sub from_xml_value
+sub from_hash_value
 {
     my ($self, $value, $attribute) = @_;
 
@@ -117,21 +766,21 @@ sub from_xml_value
         if ( exists $value->{'class'} ) {
             my $object = $self->create_value_instance($value->{'class'}, $attribute);
             if ( defined($object) ) {
-                $object->from_xml($value);
+                $object->from_hash($value);
                 return $object;
             }
         }
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            $hash->{$item_name} = $self->from_xml_value($item_value, $item_name);
+            $hash->{$item_name} = $self->from_hash_value($item_value, $item_name);
         }
         return $hash;
     }
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push(@{$array}, $self->from_xml_value($item, $attribute));
+            push(@{$array}, $self->from_hash_value($item, $attribute));
         }
         return $array;
     }
@@ -143,230 +792,87 @@ sub from_xml_value
 #
 # Convert object from xml
 #
-sub from_xml()
+sub from_hash()
 {
-    my ($self, $xml) = @_;
+    my ($self, $hash) = @_;
 
     # Get hash from xml
-    my $hash = $xml;
     if ( ref($hash) eq "RPC::XML::struct" ) {
-        $hash = $xml->value();
+        $hash = $hash->value();
     }
 
     if ( !ref($self) ) {
+        $self = undef;
         if ( exists $hash->{'class'} ) {
-            $self = eval('Shongo::Controller::API::' . $hash->{'class'} . '->new()');
-            if (!defined($self)) {
-                die("Cannot instantiate class '" . $hash->{'class'} . "'.");
+            my $class = $hash->{'class'};
+            if ( defined($ClassMapping->{$class}) ) {
+                $class = $ClassMapping->{$class};
             }
-        } else {
-            var_dump($hash);
-            die("Cannot convert printed hash to object.");
+            else {
+                $class = 'Shongo::Controller::API::' . $class;
+            }
+            $self = eval($class . '->new()');
+            if (!defined($self)) {
+                die("Cannot instantiate class '" . $class . "'.");
+            }
         }
+    }
+    if ( !defined($self) ) {
+        var_dump($hash);
+        die("Cannot convert printed hash to Object.");
     }
 
     # Convert hash to object
-    foreach my $name (keys %{$hash}) {
-        my $value = $hash->{$name};
-        $self->{$name} = $self->from_xml_value($value, $name);
+    foreach my $attribute_name (keys %{$hash}) {
+        my $attribute_value = $hash->{$attribute_name};
+        $attribute_value = $self->from_hash_value($attribute_value, $attribute_name);
+        if ( $self->has_attribute($attribute_name) ) {
+            $self->set($attribute_name, $attribute_value);
+        }
     }
     return $self;
 }
 
-#
-# @return name of the object
-#
-sub get_name
+
+
+
+
+sub test
 {
-    my ($self) = @_;
-    return "OBJECT"
-}
+    my $object = Shongo::Controller::API::Object->new();
 
-#
-# Get attributes for this object
-#
-# @param $attributes to be populated
-#
-sub get_attributes
-{   my ($self, $attributes) = @_;
-}
-
-#
-# Create collection
-#
-# @param $name
-# @static
-#
-sub create_collection
-{
-    my ($name, $item_to_string_callback) = @_;
-    my $collection = {};
-    $collection->{'name'} = $name;
-    $collection->{'item_to_string_callback'} = $item_to_string_callback;
-    $collection->{'items'} = [];
-    $collection->{'add'} = sub{
-        my ($item) = @_;
-        push(@{$collection->{'items'}}, $item);
-    };
-    $collection->{'to_string'} = sub{
-        my ($item) = @_;
-        my $string = colored($collection->{'name'}, $COLOR) . ':';
-        if ( @{$collection->{'items'}} > 0 ) {
-            for ( my $index = 0; $index < scalar(@{$collection->{'items'}}); $index++ ) {
-                my $item = @{$collection->{'items'}}[$index];
-                if ( defined($collection->{'item_to_string_callback'}) ) {
-                    $item = $collection->{'item_to_string_callback'}($item);
-                }
-                elsif ( ref($item) ) {
-                    $item = $item->to_string();
-                }
-                $item = text_indent_lines($item, 4, 0);
-                $string .= sprintf("\n %s %s", colored(sprintf("%d)", $index + 1), $COLOR), $item);
-            }
+    # Init class
+    $object->set_object_class('TestClass');
+    $object->set_object_name('Test');
+    $object->add_attribute(
+        'identifier', {
+            'required' => 1,
+            'type' => 'int'
         }
-        else {
-            $string .= "\n -- None --";
+    );
+    $object->add_attribute(
+        'name', {
+            'required' => 1,
+            'title' => 'Testing Name',
         }
-        return $string;
-    };
-    return $collection;
-}
-
-#
-# @return attributes object
-# @static
-#
-sub create_attributes
-{
-    my $attributes = {};
-    $attributes->{'attributes'} = [];
-    $attributes->{'collections'} = [];
-    $attributes->{'single_line'} = 0;
-    $attributes->{'add'} = sub{
-        my ($name, $value, $description) = @_;
-        push(@{$attributes->{'attributes'}}, {'name' => $name, 'value' => $value, 'description' => $description});
-    };
-    $attributes->{'add_collection'} = sub{
-        my ($name) = @_;
-        if ( ref($name) ) {
-            push(@{$attributes->{'collections'}}, $name);
-            return;
+    );
+    $object->add_attribute(
+        'items', {
+            'type' => 'collection',
+            'collection-class' => 'Shongo::Controller::API::Alias',
+            'required' => 1
         }
-        my $collection = Shongo::Controller::API::Object::create_collection($name);
-        push(@{$attributes->{'collections'}}, $collection);
-        return $collection;
-    };
-    return $attributes;
-}
+    );
 
-#
-# Format attributes to string
-#
-# @param $attributes
-# @param $name
-# @return formatted string
-#
-sub format_attributes
-{
-    my ($attributes, $name) = @_;
-
-    # determine maximum attribute name length
-    my $max_length = 0;
-    foreach my $attribute (@{$attributes->{'attributes'}}) {
-        my $length = length($attribute->{'name'});
-        if ( defined($attribute->{'value'}) && !($attribute->{'value'} eq '') && $length > $max_length ) {
-            $max_length = $length;
-        }
-    }
-    if ( $attributes->{'single_line'} ) {
-        $max_length = 0;
-    }
-
-    # format attributes to string
-    my $string = '';
-    my $format = sprintf("%%%ds", $max_length);
-    $max_length += 3;
-    foreach my $attribute (@{$attributes->{'attributes'}}) {
-        my $value = $attribute->{'value'};
-        if( ref($value) ) {
-            $value = $value->to_string();
-        }
-        $value = text_indent_lines($value, $max_length, 0);
-        if ( defined($value) && length($value) > 0 ) {
-            if ( $attributes->{'single_line'} ) {
-                if ( length($string) > 0 ) {
-                    $string .= ", ";
-                }
-                $string .= colored(sprintf($format, lc($attribute->{'name'})), $COLOR) . ': ' . $value;
-            } else {
-                if ( length($string) > 0 ) {
-                    $string .= "\n";
-                }
-                $string .= ' ' . colored(sprintf($format, $attribute->{'name'}), $COLOR) . ': ' . $value;
-                if ( defined($attribute->{'description'}) ) {
-                    $string .= sprintf("\n%s", text_indent_lines($attribute->{'description'}, $max_length));
-                }
-            }
-        }
-    }
-
-    # format collections to string
-    foreach my $collection (@{$attributes->{'collections'}}) {
-        my $collection = $collection->{'to_string'}();
-        if ( length($string) > 0 ) {
-            $string .= "\n";
-        }
-        $collection = text_indent_lines($collection, 1);
-        $string .= $collection;
-    }
-
-    my $prefix = '';
-    if ( $attributes->{'single_line'} ) {
-        # enclose in "(...)"
-        $string = colored('(', $COLOR_HEADER) . $string . colored(')', $COLOR_HEADER);
-    } else {
-        # add "|" to the beginning of each line
-        $prefix = colored('|', $COLOR_HEADER);
-        $string =~ s/\n *$//g;
-        $string =~ s/\n/\n$prefix/g;
-    }
-    if ( length($string) > 0 ) {
-        # add "|" to the first line
-        $string = $prefix . $string;
-        # add ending newline
-        $string .= "\n";
-    }
-    if ( !$attributes->{'single_line'} ) {
-        # break attributes to the new line
-        $string = "\n" . $string;
-    }
-    # prepend header
-    $string = colored(uc($name), $COLOR_HEADER) . $string;
-    return $string;
-}
-
-#
-# Convert object to string
-#
-# @return string describing this object
-#
-sub to_string
-{
-    my ($self) = @_;
-    my $attributes = Shongo::Controller::API::Object::create_attributes();
-    $self->get_attributes($attributes);
-    return Shongo::Controller::API::Object::format_attributes($attributes, $self->get_name());
-}
-
-#
-# Convert object to string
-#
-# @return string describing this object
-#
-sub to_string_short
-{
-    my ($self) = @_;
-    return $self->get_name();
+    # Init instance
+    #$object->set('identifier', '1');
+    #$object->set('name', 'Test 1');
+    #$object->set('items', ['Item 1', 'Item 2', 'Item 3']);
+    $object->create({
+        'identifier' => '1',
+        #'name' => 'Test 1',
+        #'items' => ['Item 1', 'Item 2', 'Item 3']
+    });
 }
 
 1;

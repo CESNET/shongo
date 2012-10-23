@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::ReservationRequestAbstract;
-use base qw(Shongo::Controller::API::Object);
+use base qw(Shongo::Controller::API::ObjectOld);
 
 use strict;
 use warnings;
@@ -21,7 +21,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::Controller::API::ObjectOld->new(@_);
     bless $self, $class;
 
     return $self;

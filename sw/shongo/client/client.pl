@@ -70,9 +70,9 @@ if ( $help == 1) {
     exit(0);
 }
 
-use Shongo::Controller::API::ObjectNew;
-Shongo::Controller::API::ObjectNew->test();
-die();
+#use Shongo::Controller::API::Object;
+#Shongo::Controller::API::Object->test();
+#die();
 
 my $controller = Shongo::Controller->instance();
 

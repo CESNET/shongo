@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Resource;
-use base qw(Shongo::Controller::API::Object);
+use base qw(Shongo::Controller::API::ObjectOld);
 
 use strict;
 use warnings;
@@ -22,7 +22,7 @@ sub new()
 {
     my $class = shift;
     my ($attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::Controller::API::ObjectOld->new(@_);
     bless $self, $class;
 
     $self->{'capabilities'} = [];
@@ -243,7 +243,7 @@ sub get_capabilities
 {
     my ($self) = @_;
 
-    my $collection = Shongo::Controller::API::Object::create_collection('Capabilities');
+    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Capabilities');
     for ( my $index = 0; $index < $self->get_capabilities_count(); $index++ ) {
         my $capability = get_collection_item($self->{'capabilities'}, $index);
         $collection->{'add'}($capability);
