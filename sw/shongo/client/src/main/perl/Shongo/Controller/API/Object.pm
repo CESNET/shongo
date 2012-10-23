@@ -35,6 +35,7 @@ sub new
     $self->{'__class'} = undef;
     $self->{'__name'} = 'Object';
     $self->{'__attributes'} = {};
+    $self->{'__attributes_order'} = [];
 
     return $self;
 }
@@ -100,10 +101,14 @@ sub set_default_value
 #  Specifies the type of the attribute:
 #   'int'        attribute value is integer
 #   'string'     attribute value is string
+#   'enum'       attribute value is enumeration
 #   'collection' attribute value is collection of items
 #
-# 'string-pattern' => String
+# 'string-pattern' => String|Callback
 #  When 'type' => 'string' then it specifies the regular expression which must the attribute value match.
+#
+# 'enum' => String
+#  When 'type' => 'enum' then it specifies the enumeration values (hash of 'value' => 'title')
 #
 # 'collection-menu' => 1|0 (default 0)
 #  When 'type' => 'collection' then it specifies whether add, modify and delete actions should be added to sub menu
@@ -111,6 +116,9 @@ sub set_default_value
 #
 # 'collection-title' => String
 #  When 'type' => 'collection' then it specifies the title of an item in collection.
+#
+# 'collection-short' => 1|0 (default 0)
+#  When 'type' => 'collection' then it specifies whether items should be rendered as short.
 #
 # 'collection-add' => Callback
 # 'collection-modify' => Callback
@@ -133,22 +141,24 @@ sub add_attribute
     }
     my $attribute_name = $name;
     $self->{'__attributes'}->{$attribute_name} = $attribute;
+    push(@{$self->{'__attributes_order'}}, $attribute_name);
     set_default_value($attribute, 'display', 'block');
     set_default_value($attribute, 'editable', 1);
     set_default_value($attribute, 'required', 0);
     set_default_value($attribute, 'type', 'string');
+    set_default_value($attribute, 'collection-short', 0);
     set_default_value($attribute, 'collection-menu', 0);
 
     if ( $attribute->{'collection-class'} ) {
         # Generate callbacks for given class
         $attribute->{'collection-add'} = sub {
             my $item = eval($attribute->{'collection-class'} . '->new()');
-            $item->create();
+            $item->create(undef, 1);
             return $item;
         };
         $attribute->{'collection-modify'} = sub {
             my ($item) = @_;
-            $item->modify();
+            $item->modify(1);
             return $item;
         };
     }
@@ -262,14 +272,14 @@ sub format_value
                     if ( defined($options->{'format_callback'}) ) {
                         $item = $options->{'format_callback'}($item);
                     }
-                    $item = $self->format_value($item);
-                    $item = text_indent_lines($item, 4, 0);
+                    $item = $self->format_value($item, $options);
                     if ( $options->{'single_line'} ) {
                         if ( length($value) > 0 ) {
                             $value .= ", ";
                         }
-                        $value .= sprintf("%s", $item);
+                        $value .= sprintf("%s %s", colored(sprintf("%d)", $index + 1), $COLOR), $item);
                     } else {
+                        $item = text_indent_lines($item, 4, 0);
                         if ( length($value) > 0 ) {
                             $value .= "\n";
                         }
@@ -282,7 +292,12 @@ sub format_value
             }
         }
         else {
-            $value = $value->to_string();
+            if ( $options->{'single_line_item'} ) {
+                $value = $value->to_string_short();
+            }
+            else {
+                $value = $value->to_string();
+            }
         }
     }
     return $value;
@@ -298,13 +313,21 @@ sub format_attribute_value
     if ( !defined($single_line) ) {
         $single_line = 0;
     }
+    my $single_line_item = 0;
     my $attribute = $self->get_attribute($attribute_name);
     my $attribute_value = $self->get($attribute_name);
     if ( $attribute->{'type'} eq 'collection' && !defined($attribute_value) ) {
         $attribute_value = [];
     }
+    if ( $attribute->{'type'} eq 'collection' && $attribute->{'collection-short'} == 1 ) {
+        $single_line_item = 1;
+    }
+    if ( $attribute->{'type'} eq 'enum' && defined($attribute->{'enum'}) ) {
+        $attribute_value = $attribute->{'enum'}->{$attribute_value};
+    }
     return $self->format_value($attribute_value, {
         'single_line' => $single_line,
+        'single_line_item' => $single_line_item,
         'format_callback' => $attribute->{'format_callback'}
     });
 }
@@ -320,7 +343,7 @@ sub format_attributes
 
     # determine maximum attribute title length
     my $max_length = 0;
-    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
         # max length of title is determined only from 'display' => 'block'
         if ( $attribute->{'display'} eq 'block' ) {
@@ -332,12 +355,15 @@ sub format_attributes
             }
         }
     }
+    if ( $single_line ) {
+        $max_length = 0;
+    }
 
     # format attributes to string
     my $string = '';
     my $format = sprintf("%%%ds", $max_length);
     $max_length += 3;
-    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
         my $attribute_title = $self->get_attribute_title($attribute_name);
         my $attribute_value = $self->format_attribute_value($attribute_name, $single_line);
@@ -421,24 +447,29 @@ sub to_string_short
 # Create an object from this instance
 #
 # @param $attributes hash containing attributes
+# @param $is_child specifies whether this create call is child of some parent create call
 #
 sub create()
 {
-    my ($self, $attributes) = @_;
+    my ($self, $attributes, $is_child) = @_;
 
     if ( defined($attributes) && ref($attributes) eq 'HASH' ) {
         $self->from_hash($attributes);
     }
 
-    # modify required attributes
-    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
-        my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'required'} == 1 && !defined($self->get($attribute_name)) ) {
-            $self->modify_attribute($attribute_name, 0);
+    # If modify loop is needed, then modify_attributes isn't automatically started and thus we should
+    # ask user for importatnt values
+    if ( $self->is_modify_loop_needed() ) {
+        # modify required attributes
+        foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
+            my $attribute = $self->get_attribute($attribute_name);
+            if ( $attribute->{'editable'} == 1 && $attribute->{'required'} == 1 && !defined($self->get($attribute_name)) ) {
+                $self->modify_attribute($attribute_name, 0);
+            }
         }
     }
 
-    while ( $self->modify_loop('creation of ' . lc($self->{'__name'})) ) {
+    while ( $self->modify_loop('creation of ' . lc($self->{'__name'}), $is_child) ) {
         my $result = $self->on_create_confirm();
         if ( defined($result) ) {
             return $result;
@@ -456,24 +487,21 @@ sub create()
 sub on_create_confirm
 {
     my ($self) = @_;
-    console_print_info("Creating " . lc($self->{'__name'}) . "...");
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Resource.createResource',
-        $self->to_xml()
-    );
-    if ( $response->is_fault() ) {
-        return undef;
-    }
-    return $response->value();
+    return 1;
 }
 
 #
 # Modify this object.
 #
+# @param $is_child specifies whether this modify call is child of some parent modify call
+#
 sub modify
 {
-    my ($self) = @_;
-    while ( $self->modify_loop('modification of ' . lc($self->{'__name'})) ) {
+    my ($self, $is_child) = @_;
+    while ( $self->modify_loop('modification of ' . lc($self->{'__name'}), $is_child) ) {
+        if ( $is_child ) {
+            return;
+        }
         if ( on_modify_confirm() ) {
             return;
         }
@@ -489,25 +517,38 @@ sub modify
 sub on_modify_confirm
 {
     my ($self) = @_;
-    console_print_info("Modifying " . lc($self->{'__name'}) . "...");
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Resource.modifyResource',
-        $self->to_xml()
-    );
-    if ( $response->is_fault() ) {
-        return 0;
-    }
     return 1;
+}
+
+#
+# @return 1 if some collection attribute is present,
+#         0 otherwise
+#
+sub is_modify_loop_needed
+{
+    my ($self) = @_;
+    foreach my $attribute_name (keys $self->{'__attributes'}) {
+        my $attribute = $self->get_attribute($attribute_name);
+        if ( $attribute->{'editable'} == 1 && $attribute->{'type'} eq 'collection' ) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 #
 # Run modify loop.
 #
 # @param $message
+# @param $is_child
 #
 sub modify_loop()
 {
-    my ($self, $message) = @_;
+    my ($self, $message, $is_child) = @_;
+    if ( !$self->is_modify_loop_needed() ) {
+        $self->modify_attributes(1);
+        return;
+    }
     console_action_loop(
         sub {
             console_print_text($self);
@@ -520,14 +561,23 @@ sub modify_loop()
                 }
             );
             $self->on_modify_loop(\@actions);
-            push(@actions, (
-                'Confirm ' . $message => sub {
-                    return 1;
-                },
-                'Cancel ' . $message => sub {
-                    return 0;
-                }
-            ));
+            if ( $is_child ) {
+                push(@actions, (
+                    'Finish ' . $message => sub {
+                        return 1;
+                    }
+                ));
+            }
+            else {
+                push(@actions, (
+                    'Confirm ' . $message => sub {
+                        return 1;
+                    },
+                    'Cancel ' . $message => sub {
+                        return 0;
+                    }
+                ));
+            }
             return ordered_hash(@actions);
         }
     );
@@ -542,7 +592,7 @@ sub on_modify_loop()
 {
     my ($self, $actions) = @_;
 
-    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
         if ( $attribute->{'editable'} == 1 && $attribute->{'type'} eq 'collection' ) {
             # Collection by sub menu
@@ -620,6 +670,12 @@ sub modify_collection_add_actions
     }
 }
 
+#
+# Modify attribute value
+#
+# @param $attribute_name specifies which attribute
+# @param $is_editing     specifies whether value should be edited or newly created
+#
 sub modify_attribute
 {
     my ($self, $attribute_name, $is_editing) = @_;
@@ -643,11 +699,24 @@ sub modify_attribute
         $self->set($attribute_name, $attribute_value)
     }
     elsif ( $attribute->{'type'} eq 'string' ) {
+        my $string_pattern = $attribute->{'string-pattern'};
+        if ( ref($string_pattern) eq 'CODE' ) {
+            $string_pattern = &$string_pattern();
+        }
         $attribute_value = console_auto_value(
             $is_editing,
             $attribute_title,
             $attribute_required,
-            $attribute->{'string-pattern'},
+            $string_pattern,
+            $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value);
+    }
+    elsif ( $attribute->{'type'} eq 'enum' ) {
+        $attribute_value = console_auto_enum(
+            $is_editing,
+            $attribute_title,
+            $attribute->{'enum'},
             $attribute_value
         );
         $self->set($attribute_name, $attribute_value);
@@ -681,7 +750,7 @@ sub modify_attribute
 sub modify_attributes
 {
     my ($self, $is_editing) = @_;
-    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
         if ( $attribute->{'editable'} == 1 && !($attribute->{'type'} eq 'collection') ) {
             $self->modify_attribute($attribute_name, $is_editing);
@@ -713,7 +782,7 @@ sub to_xml_value
         return RPC::XML::array->new(from => $array);
     }
     elsif ( ref($value) ) {
-        return $value->to_hash($value);
+        return $value->to_xml($value);
     }
     elsif ( !defined($value) || $value eq NULL ) {
         return RPC::XML::struct->new();
@@ -734,7 +803,7 @@ sub to_xml()
     if ( defined($self->{'__class'}) ) {
         $xml->{'class'} = RPC::XML::string->new($self->{'__class'});
     }
-    while ( my ($attribute_name, $attribute) = each(%{$self->{'__attributes'}}) ) {
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute_value = $self->get($attribute_name);
         $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
     }
@@ -860,19 +929,17 @@ sub test
         'items', {
             'type' => 'collection',
             'collection-class' => 'Shongo::Controller::API::Alias',
+            'collection-short' => 1,
             'required' => 1
         }
     );
 
     # Init instance
-    #$object->set('identifier', '1');
-    #$object->set('name', 'Test 1');
-    #$object->set('items', ['Item 1', 'Item 2', 'Item 3']);
     $object->create({
         'identifier' => '1',
-        #'name' => 'Test 1',
+        'name' => 'Test 1',
         #'items' => ['Item 1', 'Item 2', 'Item 3']
-    });
+    }, 1);
 }
 
 1;

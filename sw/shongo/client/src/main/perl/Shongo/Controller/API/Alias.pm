@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Alias;
-use base qw(Shongo::Controller::API::ObjectOld);
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
@@ -36,59 +36,39 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ObjectOld->new(@_);
+    my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
+    $self->set_object_class('Alias');
+    $self->set_object_name('Alias');
+    $self->add_attribute(
+        'technology', {
+            'required' => 1,
+            'type' => 'enum',
+            'enum' =>  $Shongo::Controller::API::DeviceResource::Technology
+        }
+    );
+    $self->add_attribute(
+        'type', {
+            'required' => 1,
+            'type' => 'enum',
+            'enum' =>  $Type
+        }
+    );
+    $self->add_attribute(
+        'value', {
+            'required' => 1,
+            'type' => 'string',
+            'string-pattern' =>  sub {
+                if ( !defined($self->get('type')) ) {
+                    return undef;
+                }
+                return $TypePattern->{$self->get('type')};
+            }
+        }
+    );
+
     return $self;
-}
-
-#
-# Create a new alias
-#
-sub create()
-{
-    my ($self, $attributes) = @_;
-
-    $self->modify();
-
-    return $self;
-}
-
-#
-# Modify the alias
-#
-sub modify()
-{
-    my ($self) = @_;
-
-    $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-    $self->{'type'} = console_edit_enum("Select type of alias", $Type, $self->{'type'});
-    $self->{'value'} = console_edit_value("Alias value", 1, $TypePattern->{$self->{'type'}}, $self->{'value'});
-}
-
-# @Override
-sub get_name
-{
-    my ($self) = @_;
-    return "Alias";
-}
-
-# @Override
-sub get_attributes
-{
-    my ($self, $attributes) = @_;
-    $self->SUPER::get_attributes($attributes);
-    $attributes->{'single_line'} = 1;
-    $attributes->{'add'}('Value', $self->{'value'});
-    $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
-    $attributes->{'add'}('Type', $Type->{$self->{'type'}});
-}
-
-# @Override
-sub to_string_short
-{
-    my ($self) = @_;
-    return $self->{'value'};
 }
 
 #
