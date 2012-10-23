@@ -70,6 +70,10 @@ if ( $help == 1) {
     exit(0);
 }
 
+use Shongo::Controller::API::ObjectNew;
+Shongo::Controller::API::ObjectNew->test();
+die();
+
 my $controller = Shongo::Controller->instance();
 
 # Set testing access token
