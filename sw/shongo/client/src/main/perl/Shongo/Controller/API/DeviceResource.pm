@@ -64,58 +64,12 @@ sub new()
         'technologies', {
             'type' => 'collection',
             'collection-title' => 'Technology',
-            'collection-add' => sub {
-                my $available_technologies = [];
-                my %technologies_hash = map { $_ => 1 } @{get_collection_items($self->get('technologies'))};
-                foreach my $key (ordered_hash_keys($Technology)) {
-                    if ( !exists($technologies_hash{$key}) ) {
-                        push(@{$available_technologies}, $key => $Technology->{$key});
-                    }
-                }
-                return console_read_enum('Select technology', ordered_hash($available_technologies));
-            },
+            'collection-enum' => $Technology,
             'required' => 1
         }
     );
 
     return $self;
-}
-
-#
-# Append actions for modifying technologies
-#
-# @static
-#
-sub append_technologies_actions()
-{
-    my ($actions, $technologies) = @_;
-
-    # Get available technologies
-    my $available_technologies = [];
-    my %technologies_hash = map { $_ => 1 } @{get_collection_items(${$technologies})};
-    foreach my $key (ordered_hash_keys($Technology)) {
-        if ( !exists($technologies_hash{$key}) ) {
-            push(@{$available_technologies}, $key => $Technology->{$key});
-        }
-    }
-    if ( get_collection_size($available_technologies) > 0 ) {
-        push(@{$actions}, 'Add new technology' => sub {
-            my $technology = console_read_enum('Select technology', ordered_hash($available_technologies));
-            if ( defined($technology) ) {
-                add_collection_item($technologies, $technology);
-            }
-            return undef;
-        });
-    }
-    if ( get_collection_size(${$technologies}) > 0 ) {
-        push(@{$actions}, 'Remove existing technology' => sub {
-            my $index = console_read_choice("Type a number of technology", 0, get_collection_size(${$technologies}));
-            if ( defined($index) ) {
-                remove_collection_item($technologies, $index - 1);
-            }
-            return undef;
-        });
-    }
 }
 
 1;

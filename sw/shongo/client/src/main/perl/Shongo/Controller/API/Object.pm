@@ -155,6 +155,10 @@ sub set_default_value
 #  When 'type' => 'collection' then instead of specifying callbacks you can specify class which will be automatically
 #  instanced in 'collection-add' and which will be modified in 'collection-modify' ('collection-delete' will be
 #  kept empty, the item is always automatically removed from the collection and marked as 'deleted').
+
+# 'collection-enum' => Hash
+#  When 'type' => 'collection' then instead of specifying callbacks you can specify has of enumeration values which will
+#  be used as values inside the collection and the callbacks are automatically added.
 #
 # @param $value value to be set to the attribute
 #
@@ -183,7 +187,7 @@ sub add_attribute
         $attribute->{'editable'} = 0;
     }
 
-    if ( $attribute->{'collection-class'} ) {
+    if ( defined($attribute->{'collection-class'}) ) {
         # Generate callbacks for given class
         $attribute->{'collection-add'} = sub {
             my $item = eval($attribute->{'collection-class'} . '->new()');
@@ -194,6 +198,25 @@ sub add_attribute
             my ($item) = @_;
             $item->modify(1);
             return $item;
+        };
+    }
+    elsif ( defined($attribute->{'collection-enum'}) ) {
+        # Generate callbacks for given class
+        $attribute->{'collection-add'} = sub {
+            my $available_values = [];
+            my %values_hash = map { $_ => 1 } @{get_collection_items($self->get('technologies'))};
+            my $count = 0;
+            foreach my $key (ordered_hash_keys($attribute->{'collection-enum'})) {
+                if ( !exists($values_hash{$key}) ) {
+                    push(@{$available_values}, $key => $attribute->{'collection-enum'}->{$key});
+                    $count++;
+                }
+            }
+            if ( $count == 0 ) {
+                console_print_error("No available value.");
+                return undef;
+            }
+            return console_read_enum('Select', ordered_hash($available_values));
         };
     }
 
@@ -314,11 +337,13 @@ sub format_value
                 $value = '';
                 for ( my $index = 0; $index < scalar(@{$items}); $index++ ) {
                     my $item = @{$items}[$index];
-                    if ( defined($options->{'format_callback'}) ) {
-                        $item = $options->{'format_callback'}($item);
+                    if ( defined($options->{'format-callback'}) ) {
+                        $item = $options->{'format-callback'}($item);
+                    } elsif ( defined($options->{'collection-enum'}) ) {
+                        $item = $options->{'collection-enum'}->{$item};
                     }
                     $item = $self->format_value($item, $options);
-                    if ( $options->{'single_line'} ) {
+                    if ( $options->{'single-line'} ) {
                         if ( length($value) > 0 ) {
                             $value .= ", ";
                         }
@@ -337,7 +362,7 @@ sub format_value
             }
         }
         else {
-            if ( $options->{'single_line_item'} ) {
+            if ( $options->{'collection-single-line'} ) {
                 $value = $value->to_string_short();
             }
             else {
@@ -364,14 +389,20 @@ sub format_attribute_value
     if ( !defined($single_line) ) {
         $single_line = 0;
     }
-    my $single_line_item = 0;
+    my $collection_single_line = 0;
+    my $collection_enum = undef;
     my $attribute = $self->get_attribute($attribute_name);
     my $attribute_value = $self->get($attribute_name);
     if ( $attribute->{'type'} eq 'collection' && !defined($attribute_value) ) {
         $attribute_value = [];
     }
-    if ( $attribute->{'type'} eq 'collection' && $attribute->{'collection-short'} == 1 ) {
-        $single_line_item = 1;
+    if ( $attribute->{'type'} eq 'collection' ) {
+        if ( $attribute->{'collection-short'} == 1 ) {
+            $collection_single_line = 1;
+        }
+        if ( defined($attribute->{'collection-enum'}) ) {
+            $collection_enum = $attribute->{'collection-enum'};
+        }
     }
     if ( $attribute->{'type'} eq 'enum' && defined($attribute->{'enum'}) ) {
         $attribute_value = $attribute->{'enum'}->{$attribute_value};
@@ -388,9 +419,10 @@ sub format_attribute_value
         return $attribute->{'format'}();
     }
     return $self->format_value($attribute_value, {
-        'single_line' => $single_line,
-        'single_line_item' => $single_line_item,
-        'format_callback' => $attribute->{'format_callback'}
+        'single-line' => $single_line,
+        'collection-single-line' => $collection_single_line,
+        'collection-enum' => $collection_enum,
+        'format-callback' => $attribute->{'format'}
     });
 }
 

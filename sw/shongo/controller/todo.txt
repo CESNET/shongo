@@ -1,3 +1,5 @@
+* Allow modification of atomic types in collection in cmd-line client
+
 * Add requested alias value attribute to AliasSpecification
 
 * Add multiple patterns to AliasProviderSpecification
