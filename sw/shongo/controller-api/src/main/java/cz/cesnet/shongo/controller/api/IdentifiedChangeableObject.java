@@ -48,4 +48,18 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     {
         this.id = id;
     }
+
+    /**
+     * @return {@link #id} as {@link Long}
+     * @throws IllegalStateException
+     */
+    public Long notNullIdAsLong()
+    {
+        if (id == null) {
+            throw new IllegalStateException("Attribute 'id' in entity '" + getClass().getSimpleName()
+
+                    + "' must not be null.");
+        }
+        return id.longValue();
+    }
 }

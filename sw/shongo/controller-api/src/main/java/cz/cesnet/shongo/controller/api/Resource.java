@@ -158,7 +158,8 @@ public class Resource extends IdentifiedChangeableObject
      */
     public Boolean getAllocatable()
     {
-        return getPropertyStorage().getValue(ALLOCATABLE);
+        Boolean allocatable = getPropertyStorage().getValue(ALLOCATABLE);
+        return (allocatable != null ? allocatable : Boolean.FALSE);
     }
 
     /**

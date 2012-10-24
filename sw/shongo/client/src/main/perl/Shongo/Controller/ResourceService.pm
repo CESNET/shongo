@@ -128,7 +128,7 @@ sub modify_resource()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = Shongo::Controller::API::Resource->from_xml($result);
+        my $resource = Shongo::Controller::API::Resource->from_hash($result);
         if ( defined($resource) ) {
             $resource->modify();
         }
@@ -189,7 +189,7 @@ sub get_resource()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = Shongo::Controller::API::Resource->from_xml($result);
+        my $resource = Shongo::Controller::API::Resource->from_hash($result);
         if ( defined($resource) ) {
             console_print_text($resource->to_string());
         }

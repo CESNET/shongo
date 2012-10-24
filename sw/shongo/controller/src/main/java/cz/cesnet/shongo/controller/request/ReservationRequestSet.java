@@ -292,7 +292,7 @@ public class ReservationRequestSet extends NormalReservationRequest
                 addSlot(DateTimeSlotSpecification.createFromApi(slotApi));
             }
             else {
-                DateTimeSlotSpecification slot = getSlotById(slotApi.getId().longValue());
+                DateTimeSlotSpecification slot = getSlotById(slotApi.notNullIdAsLong());
                 slot.fromApi(slotApi);
             }
         }
@@ -300,7 +300,7 @@ public class ReservationRequestSet extends NormalReservationRequest
         Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
                 api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
         for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedSlots) {
-            removeSlot(getSlotById(slotApi.getId().longValue()));
+            removeSlot(getSlotById(slotApi.notNullIdAsLong()));
         }
 
         // Create/modify specifications
@@ -309,7 +309,7 @@ public class ReservationRequestSet extends NormalReservationRequest
                 addSpecification(Specification.createFromApi(specApi, entityManager, domain));
             }
             else {
-                Specification specification = getSpecificationById(specApi.getId().longValue());
+                Specification specification = getSpecificationById(specApi.notNullIdAsLong());
                 specification.fromApi(specApi, entityManager, domain);
             }
         }
@@ -317,7 +317,7 @@ public class ReservationRequestSet extends NormalReservationRequest
         Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
                 api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SPECIFICATIONS);
         for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
-            removeSpecification(getSpecificationById(specApi.getId().longValue()));
+            removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }
 
         super.fromApi(api, entityManager, domain);

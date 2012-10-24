@@ -250,7 +250,7 @@ public class CompartmentSpecification extends Specification
                 addChildSpecification(Specification.createFromApi(specApi, entityManager, domain));
             }
             else {
-                Specification specification = getSpecificationById(specApi.getId().longValue());
+                Specification specification = getSpecificationById(specApi.notNullIdAsLong());
                 specification.fromApi(specApi, entityManager, domain);
             }
         }
@@ -259,7 +259,7 @@ public class CompartmentSpecification extends Specification
                 compartmentSpecificationApi.getCollectionItemsMarkedAsDeleted(
                         compartmentSpecificationApi.SPECIFICATIONS);
         for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
-            removeSpecification(getSpecificationById(specApi.getId().longValue()));
+            removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }
 
         super.fromApi(specificationApi, entityManager, domain);

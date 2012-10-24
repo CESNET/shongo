@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Capability;
-use base qw(Shongo::Controller::API::ObjectOld);
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
@@ -34,95 +34,96 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ObjectOld->new(@_);
+    my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
+
+    $self->set_object_name('Capability');
 
     return $self;
 }
 
-#
-# Get count of aliases
-#
-sub get_aliases_count()
+# @Override
+sub on_init()
 {
     my ($self) = @_;
-    return get_collection_size($self->{'aliases'});
-}
 
-#
-# Create a new capability from this instance
-#
-sub create()
-{
-    my ($self, $attributes) = @_;
-
-    my $capability = console_read_enum('Select type of capability', $Type);
-    if ( defined($capability) ) {
-        $self->{'class'} = $capability;
-        $self->modify();
-        return $self;
+    my $class = $self->get_object_class();
+    if ( !defined($class) ) {
+        return;
     }
-    return undef;
-}
 
-#
-# Modify the capability
-#
-sub modify()
-{
-    my ($self) = @_;
+    if ( exists $Type->{$class} ) {
+        $self->set_object_name($Type->{$class});
+    }
 
-    switch ($self->{'class'}) {
+    switch ($class) {
         case ['TerminalCapability', 'StandaloneTerminalCapability'] {
-            Shongo::Controller::API::Alias::modify_aliases(\$self->{aliases});
+            $self->add_attribute(
+                'aliases', {
+                    'type' => 'collection',
+                    'collection-title' => 'Alias',
+                    'collection-class' => 'Shongo::Controller::API::Alias',
+                    'collection-short' => 1,
+                }
+            );
             return $self;
         }
         case 'VirtualRoomsCapability' {
-            $self->{'portCount'} = console_edit_value('Maximum number of ports', 0, '\\d+', $self->{'portCount'});
+            $self->add_attribute(
+                'portCount', {
+                    'title' => 'Maximum Number of Ports',
+                    'required' => 1,
+                    'type' => 'int'
+                }
+            );
         }
         case 'AliasProviderCapability' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-            $self->{'type'} = console_edit_enum("Select alias type", $Shongo::Controller::API::Alias::Type, $self->{'type'});
-            $self->{'pattern'} = console_edit_value('Pattern', 0, '.+', $self->{'pattern'});
-            $self->{'restrictedToOwnerResource'} = console_edit_bool('Restricted only to owner resource', 0, $self->{'restrictedToOwnerResource'});
+            $self->add_attribute(
+                'technology', {
+                    'required' => 1,
+                    'type' => 'enum',
+                    'enum' =>  $Shongo::Controller::API::DeviceResource::Technology
+                }
+            );
+            $self->add_attribute(
+                'type', {
+                    'required' => 1,
+                    'type' => 'enum',
+                    'enum' =>  $Shongo::Controller::API::Alias::Type
+                }
+            );
+            $self->add_attribute(
+                'pattern', {
+                    'required' => 1
+                }
+            );
+            $self->add_attribute(
+                'restrictedToOwnerResource', {
+                    'title' => 'Restricted to Owner',
+                    'type' => 'bool'
+                }
+            );
         }
     }
 }
 
-
-
 # @Override
-sub get_name
-{
-    my ($self) = @_;
-    if ( defined($self->{'class'}) && exists $Type->{$self->{'class'}} ) {
-        return $Type->{$self->{'class'}};
-    } else {
-        return "Capability";
-    }
-}
-
-# @Override
-sub get_attributes
+sub on_create()
 {
     my ($self, $attributes) = @_;
-    $self->SUPER::get_attributes($attributes);
 
-    switch ($self->{'class'}) {
-        case ['TerminalCapability', 'StandaloneTerminalCapability'] {
-            if ( $self->get_aliases_count() > 0 ) {
-                $attributes->{'add_collection'}(Shongo::Controller::API::Alias::get_aliases($self->{'aliases'}));
-            }
-        }
-        case 'VirtualRoomsCapability' {
-            $attributes->{'add'}('Port Count', $self->{'portCount'});
-        }
-        case 'AliasProviderCapability' {
-            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
-            $attributes->{'add'}('Type', $Shongo::Controller::API::Alias::Type->{$self->{'type'}});
-            $attributes->{'add'}('Pattern', $self->{'pattern'});
-        }
+    my $class = console_read_enum('Select type of capability', $Type, $attributes->{'class'});
+    if ( defined($class) ) {
+        $self->set_object_class($class);
+        return 1;
     }
+    return 0;
+}
+
+sub to_stringz
+{
+    my ($self) = @_;
+    var_dump($self);
 }
 
 1;

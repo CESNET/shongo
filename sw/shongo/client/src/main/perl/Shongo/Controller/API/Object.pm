@@ -1,5 +1,5 @@
 #
-# Base API object
+# Base API object.
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
@@ -36,12 +36,24 @@ sub new
     $self->{'__name'} = 'Object';
     $self->{'__attributes'} = {};
     $self->{'__attributes_order'} = [];
+    $self->{'__attributes_preserve'} = {};
+
+    $self->add_attribute_preserve('id');
 
     return $self;
 }
 
 #
-# Set API class of the object.
+# @return class of the object (API hash class)
+#
+sub get_object_class
+{
+    my ($self) = @_;
+    return $self->{'__class'};
+}
+
+#
+# Set API class of the object (API hash class).
 #
 # @param $name
 #
@@ -94,15 +106,29 @@ sub set_default_value
 # 'editable' => 1|0 (default 1)
 #  Specifies whether the attribute can be edited.
 #
+# 'read-only' => 1|0 (default 0)
+#  Specifies that attribute should not appended to xml created from the object. If attribute is set as 'read-only' it
+#  automatically forces 'editable' => 0.
+#
 # 'required' => 1|0 (default 0)
 #  Specifies whether the attribute must be filled when it is edited.
+
+# 'format' => Callback
+#  Specifies the callback which replaces the default implementation of formatting attribute value to string.
+
+# 'modify' => Callback
+#  Specifies the callback which replaces the default implementation of attribute modification.
 #
 # 'type' => ... (default 'string')
 #  Specifies the type of the attribute:
-#   'int'        attribute value is integer
-#   'string'     attribute value is string
-#   'enum'       attribute value is enumeration
-#   'collection' attribute value is collection of items
+#   'int'               attribute value is integer
+#   'bool'              attribute value is boolean (1|0)
+#   'string'            attribute value is string
+#   'enum'              attribute value is enumeration
+#   'period'            attribute value is ISO8601 period
+#   'datetime'          attribute value is ISO8601 date/time
+#   'datetime-partial'  attribute value is partial ISO8601 date/time (components can be omitted from the end)
+#   'collection'        attribute value is collection of items
 #
 # 'string-pattern' => String|Callback
 #  When 'type' => 'string' then it specifies the regular expression which must the attribute value match.
@@ -135,6 +161,9 @@ sub set_default_value
 sub add_attribute
 {
     my ($self, $name, $attribute, $value) = @_;
+    if ( !defined($attribute) ) {
+        $attribute = {};
+    }
     if ( !ref($attribute) ) {
         warnings::warn("Attribute definition should be hash reference.");
         return;
@@ -144,10 +173,15 @@ sub add_attribute
     push(@{$self->{'__attributes_order'}}, $attribute_name);
     set_default_value($attribute, 'display', 'block');
     set_default_value($attribute, 'editable', 1);
+    set_default_value($attribute, 'read-only', 0);
     set_default_value($attribute, 'required', 0);
     set_default_value($attribute, 'type', 'string');
     set_default_value($attribute, 'collection-short', 0);
     set_default_value($attribute, 'collection-menu', 0);
+
+    if ( $attribute->{'read-only'} == 1) {
+        $attribute->{'editable'} = 0;
+    }
 
     if ( $attribute->{'collection-class'} ) {
         # Generate callbacks for given class
@@ -166,6 +200,17 @@ sub add_attribute
     if ( defined($value) ) {
         $self->set($name, $value);
     }
+}
+
+#
+# Add attribute which should not be displayed or edited by which should be loaded from hash and stored to xml.
+#
+# @param $attribute_name
+#
+sub add_attribute_preserve
+{
+    my ($self, $attribute_name) = @_;
+    $self->{'__attributes_preserve'}->{$attribute_name} = 1;
 }
 
 #
@@ -296,7 +341,13 @@ sub format_value
                 $value = $value->to_string_short();
             }
             else {
-                $value = $value->to_string();
+                if ( !(ref($value) eq 'HASH') && $value->can('to_string') ) {
+                    $value = $value->to_string();
+                }
+                else {
+                    var_dump($value);
+                    warnings::warn("Previous value hasn't method to_string.");
+                }
             }
         }
     }
@@ -324,6 +375,17 @@ sub format_attribute_value
     }
     if ( $attribute->{'type'} eq 'enum' && defined($attribute->{'enum'}) ) {
         $attribute_value = $attribute->{'enum'}->{$attribute_value};
+    }
+    if ( $attribute->{'type'} eq 'bool' ) {
+        if ( defined($attribute_value) && $attribute_value == 1 ) {
+            $attribute_value = 'yes';
+        }
+        else {
+            $attribute_value = 'no';
+        }
+    }
+    if ( defined($attribute->{'format'}) && ref($attribute->{'format'}) eq 'CODE' ) {
+        return $attribute->{'format'}();
     }
     return $self->format_value($attribute_value, {
         'single_line' => $single_line,
@@ -395,7 +457,6 @@ sub format_attributes
             }
         }
     }
-
     return $string;
 }
 
@@ -444,6 +505,26 @@ sub to_string_short
 }
 
 #
+# Initialize this object (e.g., add attributes).
+#
+sub init()
+{
+    my ($self) = @_;
+    if ( !defined($self->{'__initialized'}) ) {
+        $self->{'__initialized'} = 1;
+        $self->on_init();
+    }
+}
+
+#
+# Event called when the object should be initialized (e.g., added attributes).
+#
+sub on_init()
+{
+    my ($self) = @_
+}
+
+#
 # Create an object from this instance
 #
 # @param $attributes hash containing attributes
@@ -452,6 +533,9 @@ sub to_string_short
 sub create()
 {
     my ($self, $attributes, $is_child) = @_;
+
+    $self->on_create($attributes);
+    $self->init();
 
     if ( defined($attributes) && ref($attributes) eq 'HASH' ) {
         $self->from_hash($attributes);
@@ -479,6 +563,19 @@ sub create()
 }
 
 #
+# Event call when the object is creating.
+#
+# @param $attributes hash containing attributes
+# @return 1 of succeeds,
+#         otherwise 0
+#
+sub on_create
+{
+    my ($self, $attributes) = @_;
+    return 1;
+}
+
+#
 # Event called when the creation is confirmed.
 #
 # @return identifier of the object if the creation succeeds,
@@ -502,7 +599,7 @@ sub modify
         if ( $is_child ) {
             return;
         }
-        if ( on_modify_confirm() ) {
+        if ( $self->on_modify_confirm() ) {
             return;
         }
     }
@@ -631,42 +728,46 @@ sub modify_collection_add_actions
         $item_title = $attribute->{'collection-title'};
     }
     $item_title = lc($item_title);
-    push(@{$actions}, 'Add new ' . $item_title => sub {
-        my $item = undef;
-        if ( defined($attribute->{'collection-add'}) ) {
-            $item = $attribute->{'collection-add'}();
-        }
-        if ( defined($item) ) {
-            if ( !defined($self->{$attribute_name}) ) {
-                $self->{$attribute_name} = [];
+    # Push add action (if handler exists)
+    if ( defined($attribute->{'collection-add'}) ) {
+        push(@{$actions}, 'Add new ' . $item_title => sub {
+            my $item = $attribute->{'collection-add'}();
+            if ( defined($item) ) {
+                if ( !defined($self->{$attribute_name}) ) {
+                    $self->{$attribute_name} = [];
+                }
+                add_collection_item(\$self->{$attribute_name}, $item);
             }
-            add_collection_item(\$self->{$attribute_name}, $item);
-        }
-        return undef;
-    });
+            return undef;
+        });
+    }
     my $collection_size = get_collection_size($self->{$attribute_name});
     if ( $collection_size > 0 ) {
-        push(@{$actions}, 'Modify existing ' . $item_title => sub {
-            my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
-            if ( defined($index) ) {
-                my $item = get_collection_item($self->{$attribute_name}, $index - 1);
-                if ( defined($attribute->{'collection-modify'}) ) {
+        # Push modify action (if handler exists)
+        if ( defined($attribute->{'collection-modify'}) ) {
+            push(@{$actions}, 'Modify existing ' . $item_title => sub {
+                my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
+                if ( defined($index) ) {
+                    my $item = get_collection_item($self->{$attribute_name}, $index - 1);
                     $item = $attribute->{'collection-modify'}($item);
                 }
-            }
-            return undef;
-        });
-        push(@{$actions}, 'Remove existing ' . $item_title => sub {
-            my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
-            if ( defined($index) ) {
-                my $item = get_collection_item($self->{$attribute_name}, $index - 1);
-                if ( defined($attribute->{'collection-delete'}) ) {
-                    $item = $attribute->{'collection-delete'}($item);
+                return undef;
+            });
+        }
+        # Push delete action (if handler add or modify exists)
+        if ( defined($attribute->{'collection-add'}) || defined($attribute->{'collection-modify'}) ) {
+            push(@{$actions}, 'Remove existing ' . $item_title => sub {
+                my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
+                if ( defined($index) ) {
+                    my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                    if ( defined($attribute->{'collection-delete'}) ) {
+                        $item = $attribute->{'collection-delete'}($item);
+                    }
+                    remove_collection_item(\$self->{$attribute_name}, $index - 1);
                 }
-                remove_collection_item(\$self->{$attribute_name}, $index - 1);
-            }
-            return undef;
-        });
+                return undef;
+            });
+        }
     }
 }
 
@@ -686,6 +787,12 @@ sub modify_attribute
     }
 
     my $attribute_value = $self->get($attribute_name);
+    if ( defined($attribute->{'modify'}) ) {
+        $attribute_value = $attribute->{'modify'}($attribute_value);
+        $self->set($attribute_name, $attribute_value);
+        return;
+    }
+
     my $attribute_title = $self->get_attribute_title($attribute_name);
     my $attribute_required = $attribute->{'required'};
     if ( $attribute->{'type'} eq 'int' ) {
@@ -696,7 +803,7 @@ sub modify_attribute
             '^\\d+$',
             $attribute_value
         );
-        $self->set($attribute_name, $attribute_value)
+        $self->set($attribute_name, $attribute_value);
     }
     elsif ( $attribute->{'type'} eq 'string' ) {
         my $string_pattern = $attribute->{'string-pattern'};
@@ -720,6 +827,44 @@ sub modify_attribute
             $attribute_value
         );
         $self->set($attribute_name, $attribute_value);
+    }
+    elsif ( $attribute->{'type'} eq 'bool' ) {
+        $attribute_value = console_edit_bool(
+             $attribute_title,
+             $attribute_required,
+             $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value)
+    }
+    elsif ( $attribute->{'type'} eq 'period' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $Shongo::Common::PeriodPattern,
+            $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value)
+    }
+    elsif ( $attribute->{'type'} eq 'datetime' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $Shongo::Common::DateTimePattern,
+            $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value)
+    }
+    elsif ( $attribute->{'type'} eq 'datetime-partial' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $Shongo::Common::DateTimePartialPattern,
+            $attribute_value
+        );
+        $self->set($attribute_name, $attribute_value)
     }
     elsif ( $attribute->{'type'} eq 'collection' ) {
         my $collection_title = $self->get_attribute_title($attribute_name);
@@ -804,8 +949,16 @@ sub to_xml()
         $xml->{'class'} = RPC::XML::string->new($self->{'__class'});
     }
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
-        my $attribute_value = $self->get($attribute_name);
-        $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
+        my $attribute = $self->get_attribute($attribute_name);
+        if ( $attribute->{'read-only'} == 0 ) {
+            my $attribute_value = $self->get($attribute_name);
+            $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
+        }
+    }
+    foreach my $attribute_name (keys %{$self->{'__attributes_preserve'}}) {
+        if ( defined($self->{$attribute_name}) ) {
+            $xml->{$attribute_name} = $self->to_xml_value($self->{$attribute_name});
+        }
     }
     return RPC::XML::struct->new($xml);
 }
@@ -816,10 +969,24 @@ sub to_xml()
 # @param $class
 # @param $attribute
 #
-sub create_value_instance
+sub create_instance
 {
-    my ($self, $class, $attribute) = @_;
-    return eval('Shongo::Controller::API::' . $class . '->new()');
+    my ($class, $attribute) = @_;
+    my $perl_class = undef;
+    if ( defined($ClassMapping->{$class}) ) {
+        $perl_class = $ClassMapping->{$class};
+    }
+    else {
+        $perl_class = 'Shongo::Controller::API::' . $class;
+    }
+    my $instance = eval($perl_class . '->new()');
+    if ( !defined($instance) && defined($attribute) && defined($attribute->{'collection-class'}) ) {
+        $instance = eval($attribute->{'collection-class'} . '->new()');
+    }
+    if ( defined($instance) && !defined($instance->get_object_class()) ) {
+        $instance->set_object_class($class);
+    }
+    return $instance;
 }
 
 #
@@ -829,11 +996,15 @@ sub create_value_instance
 #
 sub from_hash_value
 {
-    my ($self, $value, $attribute) = @_;
+    my ($self, $value, $attribute_name) = @_;
 
     if ( ref($value) eq 'HASH' ) {
         if ( exists $value->{'class'} ) {
-            my $object = $self->create_value_instance($value->{'class'}, $attribute);
+            my $attribute = undef;
+            if ( defined($attribute_name) && defined($self->{'__attributes'}->{$attribute_name}) ) {
+                $attribute = $self->get_attribute($attribute_name);
+            }
+            my $object = create_instance($value->{'class'}, $attribute);
             if ( defined($object) ) {
                 $object->from_hash($value);
                 return $object;
@@ -849,7 +1020,7 @@ sub from_hash_value
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push(@{$array}, $self->from_hash_value($item, $attribute));
+            push(@{$array}, $self->from_hash_value($item, $attribute_name));
         }
         return $array;
     }
@@ -873,16 +1044,9 @@ sub from_hash()
     if ( !ref($self) ) {
         $self = undef;
         if ( exists $hash->{'class'} ) {
-            my $class = $hash->{'class'};
-            if ( defined($ClassMapping->{$class}) ) {
-                $class = $ClassMapping->{$class};
-            }
-            else {
-                $class = 'Shongo::Controller::API::' . $class;
-            }
-            $self = eval($class . '->new()');
-            if (!defined($self)) {
-                die("Cannot instantiate class '" . $class . "'.");
+            $self = create_instance($hash->{'class'});
+            if ( !defined($self) ) {
+                die("Cannot instantiate class '" . $hash->{'class'} . "'.");
             }
         }
     }
@@ -891,12 +1055,19 @@ sub from_hash()
         die("Cannot convert printed hash to Object.");
     }
 
+    $self->init();
+
     # Convert hash to object
     foreach my $attribute_name (keys %{$hash}) {
         my $attribute_value = $hash->{$attribute_name};
         $attribute_value = $self->from_hash_value($attribute_value, $attribute_name);
         if ( $self->has_attribute($attribute_name) ) {
             $self->set($attribute_name, $attribute_value);
+        }
+        elsif ( defined($self->{'__attributes_preserve'}) ) {
+            if ( defined($attribute_value) ) {
+                $self->{$attribute_name} = $attribute_value;
+            }
         }
     }
     return $self;

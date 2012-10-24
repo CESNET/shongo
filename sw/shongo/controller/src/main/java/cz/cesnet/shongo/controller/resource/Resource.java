@@ -482,7 +482,7 @@ public class Resource extends PersistentObject
                 addCapability(Capability.createFromApi(apiCapability, entityManager));
             }
             else {
-                Capability capability = getCapabilityById(apiCapability.getId().longValue());
+                Capability capability = getCapabilityById(apiCapability.notNullIdAsLong());
                 capability.fromApi(apiCapability, entityManager);
             }
         }
@@ -490,7 +490,7 @@ public class Resource extends PersistentObject
         Set<cz.cesnet.shongo.controller.api.Capability> apiDeletedCapabilities =
                 api.getCollectionItemsMarkedAsDeleted(api.CAPABILITIES);
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
-            removeCapability(getCapabilityById(apiCapability.getId().longValue()));
+            removeCapability(getCapabilityById(apiCapability.notNullIdAsLong()));
         }
     }
 

@@ -28,68 +28,57 @@ sub new()
     my $self = Shongo::Controller::API::Resource->new(@_);
     bless $self, $class;
 
-    $self->{'class'} = 'DeviceResource';
-    $self->{'technologies'} = [];
+    $self->set_object_class('DeviceResource');
+    $self->add_attribute('address');
+    $self->add_attribute('mode', {
+        'format' => sub {
+            my $mode = '';
+            if ( $self->get('mode') eq 'UNMANAGED' ) {
+                $mode = 'Unmanaged';
+            } elsif ( ref($self->get('mode')) eq 'HASH' ) {
+                $mode = 'Managed(' . $self->get('mode')->{'connectorAgentName'} . ')';
+            }
+            return $mode;
+        },
+        'modify' => sub {
+            my ($attribute_value) = @_;
+            my $mode = 0;
+            if ( ref($attribute_value) ) {
+                $mode = 1;
+            }
+            $mode = console_edit_enum('Select mode', ordered_hash(0 => 'Unmanaged', 1 => 'Managed'), $mode);
+            if ( $mode == 0 ) {
+                $attribute_value = 'UNMANAGED';
+            } else {
+                my $connectorAgentName = undef;
+                if ( ref($self->get('mode')) eq 'HASH' ) {
+                    $connectorAgentName = $self->get('mode')->{'connectorAgentName'};
+                }
+                $connectorAgentName = console_edit_value('Connector agent name', 1, undef, $connectorAgentName);
+                $attribute_value = {'connectorAgentName' => $connectorAgentName};
+            }
+            return $attribute_value;
+        }
+    });
+    $self->add_attribute(
+        'technologies', {
+            'type' => 'collection',
+            'collection-title' => 'Technology',
+            'collection-add' => sub {
+                my $available_technologies = [];
+                my %technologies_hash = map { $_ => 1 } @{get_collection_items($self->get('technologies'))};
+                foreach my $key (ordered_hash_keys($Technology)) {
+                    if ( !exists($technologies_hash{$key}) ) {
+                        push(@{$available_technologies}, $key => $Technology->{$key});
+                    }
+                }
+                return console_read_enum('Select technology', ordered_hash($available_technologies));
+            },
+            'required' => 1
+        }
+    );
 
     return $self;
-}
-
-#
-# On create
-#
-sub on_create()
-{
-    my ($self, $attributes) = @_;
-
-    # Parse technologies
-    if ( defined($attributes->{'technology'}) ) {
-        for ( my $index = 0; $index < @{$attributes->{'technology'}}; $index++ ) {
-            my $technology = $attributes->{'technology'}->[$index];
-            if ( defined($Technology->{$technology}) ) {
-                add_collection_item(\$self->{'technologies'}, $technology);
-            } else {
-                console_print_error("Illegal technology '%s' was specified!", $technology);
-            }
-        }
-    }
-
-    return Shongo::Controller::API::Resource::on_create(@_);
-}
-
-#
-# On modify
-#
-sub on_modify_loop()
-{
-    my ($self, $actions) = @_;
-
-    append_technologies_actions($actions, \$self->{'technologies'});
-}
-
-# @Override
-sub modify_attributes()
-{
-    my ($self, $edit) = @_;
-
-    Shongo::Controller::API::Resource::modify_attributes(@_);
-
-    $self->{'address'} = console_edit_value('Address', 0, undef, $self->{'address'});
-
-    my $mode = 0;
-    if ( ref($self->{'mode'}) ) {
-        $mode = 1;
-    }
-    $mode = console_edit_enum('Select mode', ordered_hash(0 => 'Unmanaged', 1 => 'Managed'), $mode);
-    if ( $mode == 0 ) {
-        $self->{'mode'} = 'UNMANAGED';
-    } else {
-        my $connectorAgentName = undef;
-        if ( ref($self->{'mode'}) eq 'HASH' ) {
-            $connectorAgentName = $self->{'mode'}->{'connectorAgentName'};
-        }
-        $connectorAgentName = console_edit_value('Connector agent name', 1, undef, $connectorAgentName);
-        $self->{'mode'} = {'connectorAgentName' => $connectorAgentName};
-    }
 }
 
 #
@@ -127,46 +116,6 @@ sub append_technologies_actions()
             return undef;
         });
     }
-}
-
-# @Override
-sub get_name
-{
-    my ($self) = @_;
-    return "Device Resource";
-}
-
-# @Override
-sub get_attributes
-{
-    my ($self, $attributes) = @_;
-    $self->SUPER::get_attributes($attributes);
-    $attributes->{'add'}('Address', $self->{'address'});
-
-    my $mode = '';
-    if ( $self->{'mode'} eq 'UNMANAGED' ) {
-        $mode = 'Unmanaged';
-    } elsif ( ref($self->{'mode'}) eq 'HASH' ) {
-        $mode = 'Managed(' . $self->{'mode'}->{'connectorAgentName'} . ')';
-    }
-    $attributes->{'add'}('Mode', $mode);
-
-    $attributes->{'add_collection'}($self->get_technologies());
-}
-
-#
-# Format technologies to string
-#
-sub get_technologies
-{
-    my ($self) = @_;
-
-    my $collection = Shongo::Controller::API::ObjectOld::create_collection('Technologies');
-    for ( my $index = 0; $index < get_collection_size($self->{'technologies'}); $index++ ) {
-        my $technology = get_collection_item($self->{'technologies'}, $index);
-        $collection->{'add'}($Technology->{$technology});
-    }
-    return $collection;
 }
 
 1;

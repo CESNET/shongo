@@ -30,4 +30,16 @@ public abstract class IdentifiedObject implements StructType
     {
         this.id = id;
     }
+
+    /**
+     * @return {@link #id} as {@link Long}
+     * @throws IllegalStateException
+     */
+    public Long notNullIdAsLong()
+    {
+        if ( id == null ) {
+            throw new IllegalStateException();
+        }
+        return id.longValue();
+    }
 }

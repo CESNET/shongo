@@ -187,7 +187,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
             if (personApi == null) {
                 setPerson(null);
             }
-            else if (getPerson() != null && getPerson().getId().equals(personApi.getId().longValue())) {
+            else if (getPerson() != null && getPerson().getId().equals(personApi.notNullIdAsLong())) {
                 getPerson().fromApi(personApi);
             }
             else {

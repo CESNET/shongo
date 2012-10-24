@@ -59,7 +59,7 @@ sub new()
         'value', {
             'required' => 1,
             'type' => 'string',
-            'string-pattern' =>  sub {
+            'string-pattern' => sub {
                 if ( !defined($self->get('type')) ) {
                     return undef;
                 }
