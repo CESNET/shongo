@@ -19,6 +19,8 @@ our $COLOR = "bold white";
 # Mapping of API classes ('hash_class' => 'perl_class').
 #
 our $ClassMapping = {
+    '^.*Reservation$' => 'Shongo::Controller::API::Reservation',
+    '^.*Specification$' => 'Shongo::Controller::API::Specification'
 };
 
 #
@@ -61,6 +63,15 @@ sub set_object_class
 {
     my ($self, $class) = @_;
     $self->{'__class'} = $class;
+}
+
+#
+# @return name of the object
+#
+sub get_object_name
+{
+    my ($self) = @_;
+    return $self->{'__name'};
 }
 
 #
@@ -130,15 +141,15 @@ sub set_default_value
 #   'datetime-partial'  attribute value is partial ISO8601 date/time (components can be omitted from the end)
 #   'collection'        attribute value is collection of items
 #
+# 'complex' => 1|0 (default 0)
+#  Specifies whether attribute is complex and it should not be edited in "modify attributes" but it should be edited
+#  as custom action in modify loop. ('type' => 'collection' is automatically 'complex')
+#
 # 'string-pattern' => String|Callback
 #  When 'type' => 'string' then it specifies the regular expression which must the attribute value match.
 #
 # 'enum' => String
 #  When 'type' => 'enum' then it specifies the enumeration values (hash of 'value' => 'title')
-#
-# 'collection-menu' => 1|0 (default 0)
-#  When 'type' => 'collection' then it specifies whether add, modify and delete actions should be added to sub menu
-# (default value 0 means that actions are added to main action menu).
 #
 # 'collection-title' => String
 #  When 'type' => 'collection' then it specifies the title of an item in collection.
@@ -181,7 +192,12 @@ sub add_attribute
     set_default_value($attribute, 'required', 0);
     set_default_value($attribute, 'type', 'string');
     set_default_value($attribute, 'collection-short', 0);
-    set_default_value($attribute, 'collection-menu', 0);
+
+    my $default_complex_value = 0;
+    if ( $attribute->{'type'} eq 'collection') {
+        $default_complex_value = 1;
+    }
+    set_default_value($attribute, 'complex', $default_complex_value);
 
     if ( $attribute->{'read-only'} == 1) {
         $attribute->{'editable'} = 0;
@@ -349,7 +365,7 @@ sub format_value
                         }
                         $value .= sprintf("%s %s", colored(sprintf("%d)", $index + 1), $COLOR), $item);
                     } else {
-                        $item = text_indent_lines($item, 4, 0);
+                        $item = text_indent_lines($item, 3, 0);
                         if ( length($value) > 0 ) {
                             $value .= "\n";
                         }
@@ -393,21 +409,31 @@ sub format_attribute_value
     my $collection_enum = undef;
     my $attribute = $self->get_attribute($attribute_name);
     my $attribute_value = $self->get($attribute_name);
-    if ( $attribute->{'type'} eq 'collection' && !defined($attribute_value) ) {
-        $attribute_value = [];
-    }
     if ( $attribute->{'type'} eq 'collection' ) {
+        if ( !defined($attribute_value) ) {
+            $attribute_value = [];
+        }
         if ( $attribute->{'collection-short'} == 1 ) {
             $collection_single_line = 1;
         }
         if ( defined($attribute->{'collection-enum'}) ) {
             $collection_enum = $attribute->{'collection-enum'};
         }
+        if ( $attribute->{'required'} == 0 && get_collection_size($attribute_value) == 0 ) {
+            return undef;
+        }
     }
-    if ( $attribute->{'type'} eq 'enum' && defined($attribute->{'enum'}) ) {
-        $attribute_value = $attribute->{'enum'}->{$attribute_value};
+    elsif ( $attribute->{'type'} eq 'enum' && defined($attribute->{'enum'}) ) {
+        if ( defined($attribute_value) ) {
+            $attribute_value = $attribute->{'enum'}->{$attribute_value};
+        }
     }
-    if ( $attribute->{'type'} eq 'bool' ) {
+    elsif ( $attribute->{'type'} eq 'interval' ) {
+        if ( defined($attribute_value) ) {
+            $attribute_value = format_interval($attribute_value);
+        }
+    }
+    elsif ( $attribute->{'type'} eq 'bool' ) {
         if ( defined($attribute_value) && $attribute_value == 1 ) {
             $attribute_value = 'yes';
         }
@@ -415,8 +441,8 @@ sub format_attribute_value
             $attribute_value = 'no';
         }
     }
-    if ( defined($attribute->{'format'}) && ref($attribute->{'format'}) eq 'CODE' ) {
-        return $attribute->{'format'}();
+    if ( defined($attribute->{'format'}) && ref($attribute->{'format'}) eq 'CODE' && !($attribute->{'type'} eq 'collection') ) {
+        return $attribute->{'format'}($attribute_value);
     }
     return $self->format_value($attribute_value, {
         'single-line' => $single_line,
@@ -658,7 +684,7 @@ sub is_modify_loop_needed
     my ($self) = @_;
     foreach my $attribute_name (keys $self->{'__attributes'}) {
         my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'editable'} == 1 && $attribute->{'type'} eq 'collection' ) {
+        if ( $attribute->{'editable'} == 1 && ($attribute->{'complex'} == 1 || $attribute->{'type'} eq 'collection') ) {
             return 1;
         }
     }
@@ -723,18 +749,17 @@ sub on_modify_loop()
 
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'editable'} == 1 && $attribute->{'type'} eq 'collection' ) {
-            # Collection by sub menu
-            if ( $attribute->{'collection-menu'} == 1 ) {
-                my $collection_title = $self->get_attribute_title($attribute_name);
+        if ( $attribute->{'editable'} == 1 ) {
+            if ( $attribute->{'complex'} == 1 ) {
+                my $collection_title = lc($self->get_attribute_title($attribute_name));
                 push(@{$actions}, (
-                    'Modify ' . lc($collection_title) => sub {
+                    'Modify ' . $collection_title => sub {
                         $self->modify_attribute($attribute_name);
+                        return undef;
                     }
                 ));
             }
-            # Collection into main menu
-            else {
+            elsif ( $attribute->{'type'} eq 'collection' ) {
                 $self->modify_collection_add_actions($attribute_name, $actions);
             }
         }
@@ -762,16 +787,29 @@ sub modify_collection_add_actions
     $item_title = lc($item_title);
     # Push add action (if handler exists)
     if ( defined($attribute->{'collection-add'}) ) {
-        push(@{$actions}, 'Add new ' . $item_title => sub {
-            my $item = $attribute->{'collection-add'}();
-            if ( defined($item) ) {
-                if ( !defined($self->{$attribute_name}) ) {
-                    $self->{$attribute_name} = [];
+        my $add_handlers = {};
+        # Multiple add handlers
+        if ( ref($attribute->{'collection-add'}) eq 'HASH' ) {
+            $add_handlers = $attribute->{'collection-add'};
+        }
+        # Single add handler
+        else {
+            $add_handlers->{'Add new ' . $item_title} = $attribute->{'collection-add'};
+        }
+        # Add all add handlers
+        foreach my $title (keys $add_handlers) {
+            push(@{$actions}, $title => sub {
+                my $handler = $add_handlers->{$title};
+                my $item = &$handler();
+                if ( defined($item) ) {
+                    if ( !defined($self->{$attribute_name}) ) {
+                        $self->{$attribute_name} = [];
+                    }
+                    add_collection_item(\$self->{$attribute_name}, $item);
                 }
-                add_collection_item(\$self->{$attribute_name}, $item);
-            }
-            return undef;
-        });
+                return undef;
+            });
+        }
     }
     my $collection_size = get_collection_size($self->{$attribute_name});
     if ( $collection_size > 0 ) {
@@ -898,6 +936,17 @@ sub modify_attribute
         );
         $self->set($attribute_name, $attribute_value)
     }
+    elsif ( $attribute->{'type'} eq 'interval' ) {
+        my $start = undef;
+        my $duration = undef;
+        if ( defined($attribute_value) && $attribute_value =~ m/(.*)\/(.*)/ ) {
+            $start = $1;
+            $duration = $2;
+        }
+        $start = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $start);
+        $duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
+        $attribute_value = $start . '/' . $duration;
+    }
     elsif ( $attribute->{'type'} eq 'collection' ) {
         my $collection_title = $self->get_attribute_title($attribute_name);
         console_action_loop(
@@ -996,6 +1045,22 @@ sub to_xml()
 }
 
 #
+# @param $class
+# @return perl class for given hash $class
+#
+sub get_perl_class
+{
+    my ($class) = @_;
+    foreach my $key (keys $ClassMapping) {
+        my $value = $ClassMapping->{$key};
+        if ( $class =~ /$key/ ) {
+            return $value;
+        }
+    }
+    return undef;
+}
+
+#
 # Create new instance of value
 #
 # @param $class
@@ -1004,11 +1069,8 @@ sub to_xml()
 sub create_instance
 {
     my ($class, $attribute) = @_;
-    my $perl_class = undef;
-    if ( defined($ClassMapping->{$class}) ) {
-        $perl_class = $ClassMapping->{$class};
-    }
-    else {
+    my $perl_class = get_perl_class($class);
+    if ( !defined($perl_class) ) {
         $perl_class = 'Shongo::Controller::API::' . $class;
     }
     my $instance = eval($perl_class . '->new()');
@@ -1074,17 +1136,22 @@ sub from_hash()
     }
 
     if ( !ref($self) ) {
-        $self = undef;
         if ( exists $hash->{'class'} ) {
-            $self = create_instance($hash->{'class'});
-            if ( !defined($self) ) {
-                die("Cannot instantiate class '" . $hash->{'class'} . "'.");
+            my $instance = create_instance($hash->{'class'});
+            if ( defined($instance) ) {
+                $self = $instance;
             }
+        }
+        if ( !ref($self) ) {
+            $self = $self->new();
         }
     }
     if ( !defined($self) ) {
         var_dump($hash);
         die("Cannot convert printed hash to Object.");
+    }
+    if ( exists $hash->{'class'} ) {
+        $self->set_object_class($hash->{'class'});
     }
 
     $self->init();

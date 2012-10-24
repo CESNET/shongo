@@ -216,22 +216,24 @@ sub get_resource_allocation()
     if ( $result->is_fault ) {
         return
     }
-    my $resource_allocation = $result->value();
 
-    my $attributes = Shongo::Controller::API::ObjectOld::create_attributes();
-    $attributes->{'add'}('Identifier', $resource_allocation->{'identifier'});
-    $attributes->{'add'}('Name', $resource_allocation->{'name'});
-    $attributes->{'add'}('Interval', format_interval($resource_allocation->{'interval'}));
-    if ($resource_allocation->{'class'} eq 'VirtualRoomsResourceAllocation') {
-        $attributes->{'add'}('Maximum Port Count', $resource_allocation->{'maximumPortCount'});
-        $attributes->{'add'}('Available Port Count', $resource_allocation->{'availablePortCount'});
+    my $result_hash = $result->value();
+    my $resource_allocation = Shongo::Controller::API::Object::->new();
+    $resource_allocation->set_object_name('Resource Allocation');
+    $resource_allocation->add_attribute('identifier');
+    $resource_allocation->add_attribute('name');
+    $resource_allocation->add_attribute('interval', {'type' => 'interval'});
+    if ($result_hash->{'class'} eq 'VirtualRoomsResourceAllocation') {
+        $resource_allocation->add_attribute('maximumPortCount', {'title' => 'Maximum Port Count'});
+        $resource_allocation->add_attribute('availablePortCount', {'title' => 'Available Port Count'});
     }
-    console_print_text(Shongo::Controller::API::ObjectOld::format_attributes($attributes, 'Resource Allocation'));
+    $resource_allocation->from_hash($result_hash);
+    console_print_text($resource_allocation);
 
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Slot', \' | ', 'Resource', \' | ', 'Type', \' |');
     foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
         my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
-        $reservation->from_xml($reservationXml);
+        $reservation->from_hash($reservationXml);
         $table->add(
             $reservation->{'identifier'},
             format_interval($reservation->{'slot'}),
@@ -239,7 +241,7 @@ sub get_resource_allocation()
             $reservation->to_string_short()
         );
     }
-    printf(" %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::ObjectOld::COLOR_HEADER));
+    printf(" %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::Object::COLOR_HEADER));
     console_print_table($table, 1);
 }
 

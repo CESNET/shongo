@@ -149,7 +149,7 @@ sub modify_reservation_request()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_xml($result);
+        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_hash($result);
         if ( defined($reservation_request) ) {
             $reservation_request->modify();
         }
@@ -214,7 +214,7 @@ sub get_reservation_request()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_xml($result);
+        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_hash($result);
         if ( defined($reservation_request) ) {
             console_print_text($reservation_request->to_string());
         }
@@ -242,8 +242,7 @@ sub get_reservation_for_request()
     print("\n");
     my $index = 0;
     foreach my $reservationXml (@{$reservations}) {
-        my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
-        $reservation->from_xml($reservationXml);
+        my $reservation = Shongo::Controller::API::Reservation->from_hash($reservationXml);
         $reservation->fetch_child_reservations(1);
         $index++;
         printf(" %d) %s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
@@ -270,8 +269,7 @@ sub get_reservation()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation = Shongo::Controller::API::Reservation->new();
-        $reservation->from_xml($result);
+        my $reservation = Shongo::Controller::API::Reservation->from_hash($result);
         $reservation->fetch_child_reservations(1);
         if ( defined($reservation) ) {
             console_print_text($reservation->to_string());

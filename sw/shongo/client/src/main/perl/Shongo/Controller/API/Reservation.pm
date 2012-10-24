@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Reservation;
-use base qw(Shongo::Controller::API::ObjectOld);
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
@@ -34,10 +34,82 @@ sub new()
 {
     my $class = shift;
     my ($type) = @_;
-    my $self = Shongo::Controller::API::ObjectOld->new(@_);
+    my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
+    $self->set_object_name('Reservation');
+    $self->set_object_class('Reservation');
+    $self->add_attribute('identifier');
+    $self->add_attribute('slot', {
+        'type' => 'interval'
+    });
+    $self->add_attribute('childReservations', {
+            'type' => 'collection',
+            'title' => 'Child Reservations'
+        }
+    );
+    $self->add_attribute('childReservationIdentifiers', {
+            'type' => 'collection',
+            'title' => 'Child Reservation Identifiers'
+        }
+    );
+
     return $self;
+}
+
+# @Override
+sub on_init
+{
+    my ($self) = @_;
+
+    my $class = $self->get_object_class();
+    if ( !defined($class) ) {
+        return;
+    }
+
+    if ( exists $Type->{$class} ) {
+        $self->set_object_name($Type->{$class});
+    }
+
+    switch ($class) {
+        case 'ResourceReservation' {
+            $self->add_attribute_preserve('resourceName');
+            $self->add_attribute_preserve('resourceIdentifier');
+            $self->add_attribute('resource', {
+                'format' => sub () {
+                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceIdentifier'});
+                }
+            });
+        }
+        case 'VirtualRoomReservation' {
+            $self->add_attribute_preserve('resourceName');
+            $self->add_attribute_preserve('resourceIdentifier');
+            $self->add_attribute('resource', {
+                'format' => sub () {
+                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceIdentifier'});
+                }
+            });
+            $self->add_attribute('portCount', {
+                'title' => 'Port Count'
+            });
+        }
+        case 'AliasReservation' {
+            $self->add_attribute_preserve('resourceName');
+            $self->add_attribute_preserve('resourceIdentifier');
+            $self->add_attribute('resource', {
+                'format' => sub () {
+                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceIdentifier'});
+                }
+            });
+            $self->add_attribute('alias');
+        }
+        case 'CompartmentReservation' {
+            $self->add_attribute('compartment');
+        }
+        case 'ExistingReservation' {
+            $self->add_attribute('reservation');
+        }
+    }
 }
 
 #
@@ -48,7 +120,7 @@ sub fetch_child_reservations
     my ($self, $recursive) = @_;
 
     if ( defined($self->{'childReservationIdentifiers'}) && @{$self->{'childReservationIdentifiers'}} > 0) {
-        $self->{'childReservations'} = [];
+        my $child_reservations = [];
         foreach my $reservation (@{$self->{'childReservationIdentifiers'}}) {
             my $result = Shongo::Controller->instance()->secure_request(
                 'Reservation.getReservation',
@@ -58,78 +130,14 @@ sub fetch_child_reservations
                 return;
             }
             my $reservationXml = $result->value();
-            my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
-            $reservation->from_xml($reservationXml);
+            my $reservation = Shongo::Controller::API::Reservation->from_hash($reservationXml);
             if ( $recursive ) {
                 $reservation->fetch_child_reservations($recursive);
             }
-            push(@{$self->{'childReservations'}}, $reservation);
+            push(@{$child_reservations}, $reservation);
         }
-    }
-}
-
-# @Override
-sub get_name
-{
-    my ($self) = @_;
-    if ( defined($self->{'class'}) && exists $Type->{$self->{'class'}} ) {
-        return $Type->{$self->{'class'}};
-    } else {
-        return "Reservation";
-    }
-}
-
-# @Override
-sub get_attributes
-{
-    my ($self, $attributes) = @_;
-    $self->SUPER::get_attributes($attributes);
-    $attributes->{'add'}('Identifier', $self->{'identifier'});
-    $attributes->{'add'}('Slot', format_interval($self->{'slot'}));
-
-    switch ($self->{'class'}) {
-        case 'ResourceReservation' {
-            $attributes->{'add'}('Resource', sprintf("%s (%s)",
-                $self->{'resourceName'},
-                $self->{'resourceIdentifier'}
-            ));
-        }
-        case 'VirtualRoomReservation' {
-            $attributes->{'add'}('Resource', sprintf("%s (%s)",
-                $self->{'resourceName'},
-                $self->{'resourceIdentifier'}
-            ));
-            $attributes->{'add'}('Port Count', $self->{'portCount'});
-        }
-        case 'AliasReservation' {
-            $attributes->{'add'}('Resource', sprintf("%s (%s)",
-                $self->{'resourceName'},
-                $self->{'resourceIdentifier'}
-            ));
-            $attributes->{'add'}('Alias', $self->{'alias'});
-        }
-        case 'CompartmentReservation' {
-            my $compartment = Shongo::Controller::API::Compartment->new();
-            $compartment->from_xml($self->{'compartment'});
-            $attributes->{'add'}('Compartment', $compartment);
-        }
-        case 'ExistingReservation' {
-            my $reservation = Shongo::Controller::API::Reservation->new();
-            $reservation->from_xml($self->{'reservation'});
-            $attributes->{'add'}('Reservation', $reservation);
-        }
-    }
-    if ( defined($self->{'childReservations'}) && @{$self->{'childReservations'}} > 0) {
-        my $collection = $attributes->{'add_collection'}("Child Reservations");
-        foreach my $reservation (@{$self->{'childReservations'}}) {
-            $collection->{'add'}($reservation);
-        }
-    }
-    elsif ( defined($self->{'childReservationIdentifiers'}) && @{$self->{'childReservationIdentifiers'}} > 0) {
-        my $collection = $attributes->{'add_collection'}("Child Reservations");
-        foreach my $reservation (@{$self->{'childReservationIdentifiers'}}) {
-            $collection->{'add'}($reservation);
-        }
+        $self->set('childReservations', $child_reservations);
+        $self->set('childReservationIdentifiers', undef);
     }
 }
 
@@ -139,29 +147,29 @@ sub get_attributes
 sub to_string_short
 {
     my ($self) = @_;
-    my $name = $self->get_name();
+    my $name = $self->get_object_name();
     $name =~ s/ Reservation//g;
-
-    # get attributes for this object
-    my $attributes = Shongo::Controller::API::ObjectOld::create_attributes();
-    $self->get_attributes($attributes);
 
     my $ignore = {'identifier' => 1, 'slot' => 1, 'resource' => 1};
     my $string = '';
-    foreach my $attribute (@{$attributes->{'attributes'}}) {
-        my $value = $attribute->{'value'};
-        if ( ref($value) ) {
-            if ( $value->can('to_string_short') ) {
-                $value = $value->to_string_short();
+    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
+        my $attribute_value = $self->get($attribute_name);
+        my $attribute_title = $self->get_attribute_title($attribute_name);
+        if ( ref($attribute_value) ) {
+            if ( defined($attribute_value->{'class'}) &&  $attribute_value->{'class'} eq 'Alias' ) {
+                $attribute_value = $attribute_value->get('value');
+            }
+            elsif ( $attribute_value->can('to_string_short') ) {
+                $attribute_value = $attribute_value->to_string_short();
             } else {
-                $value = undef;
+                $attribute_value = undef;
             }
         }
-        if( !$ignore->{lc($attribute->{'name'})} && defined($value) && length($value) > 0 ) {
+        if( !$ignore->{$attribute_name} && defined($attribute_value) && length($attribute_value) > 0 ) {
             if ( length($string) > 0 ) {
                 $string .= ", ";
             }
-            $string .= lc($attribute->{'name'}) . ': ' . $value;
+            $string .= lc($attribute_title) . ': ' . $attribute_value;
         }
     }
 

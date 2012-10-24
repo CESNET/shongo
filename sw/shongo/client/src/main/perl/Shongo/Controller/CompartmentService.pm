@@ -111,7 +111,7 @@ sub get_compartment()
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $compartment = Shongo::Controller::API::Compartment->from_xml($result);
+        my $compartment = Shongo::Controller::API::Compartment->from_hash($result);
         if ( defined($compartment) ) {
             console_print_text($compartment->to_string());
         }

@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Specification;
-use base qw(Shongo::Controller::API::ObjectOld);
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
@@ -13,7 +13,6 @@ use Switch;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Alias;
-use Shongo::Controller::API::CompartmentSpecification;
 use Shongo::Controller::API::DeviceResource;
 use Shongo::Controller::API::Person;
 
@@ -54,15 +53,15 @@ sub new()
 {
     my $class = shift;
     my ($type) = @_;
-    if ( defined($type) && $type eq 'CompartmentSpecification' ) {
-        return Shongo::Controller::API::CompartmentSpecification->new();
-    }
-    my $self = Shongo::Controller::API::ObjectOld->new(@_);
+    my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
 
     return $self;
 }
 
+#
+# @return specification class
+#
 sub select_type($)
 {
     my ($type) = @_;
@@ -70,132 +69,134 @@ sub select_type($)
     return console_edit_enum('Select type of specification', $Type, $type);
 }
 
-#
-# Create a new specification from this instance
-#
-sub create()
-{
-    my ($class, $type) = @_;
-
-    my $specification = $type;
-    if ( !defined($specification) ) {
-        $specification = $class->select_type();
-    }
-    my $self = undef;
-    if ( defined($specification) ) {
-        if ($specification eq 'CompartmentSpecification') {
-            $self = Shongo::Controller::API::CompartmentSpecification->new();
-        } else {
-            $self = Shongo::Controller::API::Specification->new();
-            $self->{'class'} = $specification;
-        }
-        $self->modify();
-        return $self;
-
-    }
-    return $self;
-}
-
-#
-# Modify the specification
-#
-sub modify()
-{
-    my ($self) = @_;
-
-    switch ($self->{'class'}) {
-        case 'ResourceSpecification' {
-            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 1, $Shongo::Common::IdentifierPattern, $self->{'resourceIdentifier'});
-            return $self;
-        }
-        case 'ExternalEndpointSpecification' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-
-            my $hasAlias = 0;
-            if ( defined($self->{'alias'}) ) {
-                $hasAlias = 1;
-            }
-            $hasAlias = console_edit_bool("Has alias", 1, $hasAlias);
-            if ( $hasAlias ) {
-                if ( !defined($self->{'alias'}) ) {
-                    $self->{'alias'} = Shongo::Controller::API::Alias->new();
-                    $self->{'alias'}->create();
-                } else {
-                    $self->{'alias'}->modify();
-                }
-            } else {
-                $self->{'alias'} = undef;
-            }
-        }
-        case 'ExternalEndpointSetSpecification' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-            $self->{'count'} = console_edit_value("Count", 1, "\\d+", $self->{'count'});
-        }
-        case 'ExistingEndpointSpecification' {
-            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 1, $Shongo::Common::IdentifierPattern, $self->{'resourceIdentifier'});
-            return $self;
-        }
-        case 'LookupEndpointSpecification' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-        }
-        case 'PersonSpecification' {
-            if ( !defined($self->{'person'}) ) {
-                $self->{'person'} = Shongo::Controller::API::Person->new();
-            }
-            $self->{'person'}->modify();
-        }
-        case 'AliasSpecification' {
-            $self->{'technology'} = console_edit_enum("Select technology", $Shongo::Controller::API::DeviceResource::Technology, $self->{'technology'});
-            $self->{'aliasType'} = console_edit_enum("Select type of alias", $AliasType, $self->{'aliasType'});
-            $self->{'resourceIdentifier'} = console_edit_value("Resource identifier", 0, $Shongo::Common::IdentifierPattern, $self->{'resourceIdentifier'});
-        }
-    }
-}
-
 # @Override
-sub get_name
-{
-    my ($self) = @_;
-    if ( defined($self->{'class'}) && exists $Type->{$self->{'class'}} ) {
-        return $Type->{$self->{'class'}};
-    } else {
-        return "Specification";
-    }
-}
-
-# @Override
-sub get_attributes
+sub on_create()
 {
     my ($self, $attributes) = @_;
-    $self->SUPER::get_attributes($attributes);
 
-    switch ($self->{'class'}) {
+    my $specification = $attributes->{'class'};
+    if ( !defined($specification) ) {
+        $specification = $self->select_type();
+    }
+    if ( defined($specification) ) {
+        $self->set_object_class($specification);
+    }
+}
+
+# @Override
+sub on_init()
+{
+    my ($self) = @_;
+
+    my $class = $self->get_object_class();
+    if ( !defined($class) ) {
+        return;
+    }
+
+    if ( exists $Type->{$class} ) {
+        $self->set_object_name($Type->{$class});
+    }
+
+    switch ($class) {
+        case 'CompartmentSpecification' {
+            $self->add_attribute('callInitiation', {
+                'type' => 'enum',
+                'enum' => $Shongo::Controller::API::Specification::CallInitiation
+            });
+            $self->add_attribute('specifications', {
+                'type' => 'collection',
+                'collection-title' => 'specification',
+                'collection-class' => 'Shongo::Controller::API::Specification',
+                'complex' => 0,
+                'display' => 'newline'
+            });
+        }
         case 'ResourceSpecification' {
-            $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
+            $self->add_attribute('resourceIdentifier', {
+                'title' => 'Resource Identifier',
+                'string-pattern' => $Shongo::Common::IdentifierPattern,
+                'required' => 1
+            });
         }
         case 'ExternalEndpointSpecification' {
-            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
-            if ( defined($self->{'alias'}) ) {
-                $attributes->{'add'}('Alias', $self->{'alias'});
-            }
+            $self->add_attribute('technology', {
+                'type' => 'enum',
+                'enum' => $Shongo::Controller::API::DeviceResource::Technology,
+                'required' => 1
+            });
+            $self->add_attribute('alias', {
+                'modify' => sub {
+                    my $hasAlias = 0;
+                    if ( defined($self->{'alias'}) ) {
+                        $hasAlias = 1;
+                    }
+                    $hasAlias = console_edit_bool("Has alias", 1, $hasAlias);
+                    if ( $hasAlias ) {
+                        if ( !defined($self->{'alias'}) ) {
+                            $self->{'alias'} = Shongo::Controller::API::Alias->new();
+                            $self->{'alias'}->create();
+                        } else {
+                            $self->{'alias'}->modify(1);
+                        }
+                    } else {
+                        $self->{'alias'} = undef;
+                    }
+                    return $self->{'alias'};
+                }
+            });
         }
         case 'ExternalEndpointSetSpecification' {
-            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
-            $attributes->{'add'}('Count', $self->{'count'});
+            $self->add_attribute('technology', {
+                'type' => 'enum',
+                'enum' => $Shongo::Controller::API::DeviceResource::Technology,
+                'required' => 1
+            });
+            $self->add_attribute('count', {
+                'type' => 'int',
+                'required' => 1
+            });
         }
         case 'ExistingEndpointSpecification' {
-            $attributes->{'add'}('Resource Identifier', $self->{'resourceIdentifier'});
+            $self->add_attribute('resourceIdentifier', {
+                'title' => 'Resource Identifier',
+                'string-pattern' => $Shongo::Common::IdentifierPattern,
+                'required' => 1
+            });
         }
         case 'LookupEndpointSpecification' {
-            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
+            $self->add_attribute('technology', {
+                'type' => 'enum',
+                'enum' => $Shongo::Controller::API::DeviceResource::Technology,
+                'required' => 1
+            });
         }
         case 'PersonSpecification' {
-            $attributes->{'add'}('Person', $self->{'person'});
+            $self->add_attribute('person', {
+                'modify' => sub() {
+                    my ($person) = @_;
+                    if ( !defined($person) ) {
+                        $person = Shongo::Controller::API::Person->new();
+                    }
+                    $person->modify(1);
+                    return $person;
+                },
+                'required' => 1
+            });
         }
         case 'AliasSpecification' {
-            $attributes->{'add'}('Technology', $Shongo::Controller::API::DeviceResource::Technology->{$self->{'technology'}});
-            $attributes->{'add'}('Alias Type', get_enum_value($AliasType, $self->{'aliasType'}));
-            $attributes->{'add'}('Preferred Resource Identifier', $self->{'resourceIdentifier'});
+            $self->add_attribute('technology', {
+                'type' => 'enum',
+                'enum' => $Shongo::Controller::API::DeviceResource::Technology
+            });
+            $self->add_attribute('aliasType', {
+                'title' => 'Alias Type',
+                'type' => 'enum',
+                'enum' => $AliasType
+            });
+            $self->add_attribute('resourceIdentifier', {
+                'title' => 'Preferred Resource Identifier',
+                'string-pattern' => $Shongo::Common::IdentifierPattern
+            });
         }
     }
 }

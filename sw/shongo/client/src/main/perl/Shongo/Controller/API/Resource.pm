@@ -27,40 +27,35 @@ sub new()
 
     $self->set_object_class('Resource');
     $self->set_object_name('Resource');
-    $self->add_attribute(
-        'identifier', {
+    $self->add_attribute('identifier', {
             'editable' => 0
         }
     );
-    $self->add_attribute(
-        'name', {
+    $self->add_attribute('name', {
             'required' => 1
         }
     );
     $self->add_attribute('description');
-    $self->add_attribute(
-        'parentIdentifier', {
+    $self->add_attribute('parentIdentifier', {
             'title' => 'Parent',
             'string-pattern' => $Shongo::Common::IdentifierPattern
         }
     );
-    $self->add_attribute(
-        'allocatable', {
+    $self->add_attribute('allocatable', {
             'type' => 'bool'
         }
     );
-    $self->add_attribute(
-        'maximumFuture', {
+    $self->add_attribute('maximumFuture', {
             'title' => 'Maximum Future',
             'type' => 'period'
         }
     );
-    $self->add_attribute(
-        'childResourceIdentifiers', {
+    $self->add_attribute('childResourceIdentifiers', {
             'title' => 'Children',
             'format' => sub {
+                my ($attribute_value) = @_;
                 my $string = '';
-                foreach my $identifier (@{$self->{'childResourceIdentifiers'}}) {
+                foreach my $identifier (@{$attribute_value}) {
                     if ( length($string) > 0 ) {
                         $string .= ', ';
                     }
@@ -71,8 +66,7 @@ sub new()
             'read-only' => 1
         }
     );
-    $self->add_attribute(
-        'capabilities', {
+    $self->add_attribute('capabilities', {
             'type' => 'collection',
             'collection-title' => 'Capability',
             'collection-class' => 'Shongo::Controller::API::Capability',

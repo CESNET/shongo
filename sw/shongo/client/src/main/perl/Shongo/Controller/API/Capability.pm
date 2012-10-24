@@ -120,10 +120,4 @@ sub on_create()
     return 0;
 }
 
-sub to_stringz
-{
-    my ($self) = @_;
-    var_dump($self);
-}
-
 1;

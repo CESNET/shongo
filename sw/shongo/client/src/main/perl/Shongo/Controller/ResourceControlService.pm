@@ -54,8 +54,8 @@ sub control_resource()
     if ( $result->is_fault ) {
         return;
     }
-    my $resource = Shongo::Controller::API::Resource->from_xml($result);
-    my $resourceIdentifier = $resource->{'identifier'};
+    my $resource = Shongo::Controller::API::Resource->from_hash($result);
+    my $resourceIdentifier = $resource->get('identifier');
     if ( !(ref($resource->{'mode'}) eq 'HASH') ) {
         console_print_error("Resource '%s' is not managed!", $resourceIdentifier);
         return;
@@ -537,12 +537,20 @@ sub resource_create_room
 {
     my ($resourceIdentifier, $attributes) = @_;
 
-    my $room = Shongo::Controller::API::ObjectOld->new();
-    $room->{'class'} = 'Room';
-    $room->{'name'} = console_read_value('Name', 1, undef, $attributes->{'name'});
-    $room->{'portCount'} = console_read_value('Port count', 1, '\\d+', $attributes->{'portCount'});
-    $room->{'aliases'} = [];
-    Shongo::Controller::API::Alias::modify_aliases(\$room->{'aliases'});
+    my $room = Shongo::Controller::API::Object->new();
+    $room->set_object_name('Room');
+    $room->set_object_class('Room');
+    $room->add_attribute('name', {'required' => 1});
+    $room->add_attribute('portCount', {'type' => 'int', 'required' => 1});
+    $room->add_attribute(
+        'aliases', {
+            'type' => 'collection',
+            'collection-title' => 'Alias',
+            'collection-class' => 'Shongo::Controller::API::Alias',
+            'collection-short' => 1,
+        }
+    );
+    $room->modify();
 
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.createRoom',

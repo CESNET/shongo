@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::Controller::API::Compartment;
-use base qw(Shongo::Controller::API::ObjectOld);
+use base qw(Shongo::Controller::API::Object);
 
 use strict;
 use warnings;
@@ -41,21 +41,102 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ObjectOld->new(@_);
+    my $self = Shongo::Controller::API::Object->new(@_);
     bless $self, $class;
+
+    $self->set_object_class('Compartment');
+    $self->set_object_name('Compartment');
+    $self->add_attribute('identifier');
+    $self->add_attribute('state', {
+        'format' => sub {
+            my ($attribute_value) = @_;
+            return format_state($attribute_value, $State);
+        }
+    });
+    $self->add_attribute('slot', {
+        'type' => 'interval'
+    });
+    $self->add_attribute(
+        'endpoints', {
+            'type' => 'collection',
+            'format' => sub {
+                my ($endpoint) = @_;
+                my $string = $endpoint->{'description'};
+                foreach my $alias (@{$endpoint->{'aliases'}}) {
+                    $string .= sprintf("\nwith assigned %s", trim($alias->to_string()));
+                    $string =~ s/\n$//g;
+                }
+                return $string;
+            },
+            'display' => 'newline'
+        }
+    );
+    $self->add_attribute(
+        'virtualRooms', {
+            'type' => 'collection',
+            'title' => 'Rooms',
+            'format' => sub {
+                my ($virtualRoom) = @_;
+                my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
+                foreach my $alias (@{$virtualRoom->{'aliases'}}) {
+                    $string .= sprintf("\nwith assigned %s", $alias->to_string_short());
+                    $string =~ s/\n$//g;
+                }
+                $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
+                return $string;
+            },
+            'display' => 'newline'
+        }
+    );
+    $self->add_attribute(
+        'connections', {
+            'type' => 'collection',
+            'format' => sub {
+                my ($connection) = @_;
+                my $endpointFrom = $self->get_endpoint($connection->{'endpointFromIdentifier'});
+                my $endpointTo = $self->get_endpoint($connection->{'endpointToIdentifier'});
+                my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
+                if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
+                    $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
+                        $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
+                } elsif ( $connection->{'class'} eq 'Compartment.ConnectionByAlias' ) {
+                    $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
+                }
+                $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
+                return $string;
+            },
+            'display' => 'newline'
+        }
+    );
 
     return $self;
 }
 
-# @Override
-sub get_name
+#
+# @param $identifier of endpoint
+# @return endpoint with given $identifier
+#
+sub get_endpoint
 {
-    my ($self) = @_;
-    return "Compartment";
+    my ($self, $identifier) = @_;
+    foreach my $endpoint (@{$self->{'endpoints'}}) {
+        if ( $endpoint->{'identifier'} eq $identifier ) {
+            return $endpoint;
+        }
+    }
+    foreach my $virtualRoom (@{$self->{'virtualRooms'}}) {
+        if ( $virtualRoom->{'identifier'} eq $identifier ) {
+            return $virtualRoom;
+        }
+    }
+    return undef;
 }
 
 #
-# Get state
+# Format given $state to string.
+#
+# @param $state
+# @param $types
 #
 sub format_state
 {
