@@ -7,6 +7,7 @@ package Shongo::Common;
 
 use strict;
 use warnings;
+use warnings::register;
 
 use Exporter;
 our @ISA = qw(Exporter);
@@ -26,6 +27,7 @@ our @EXPORT = qw(
 use DateTime::Format::ISO8601;
 use File::HomeDir;
 use Term::ANSIColor;
+use JSON -support_by_pp;
 
 # Regular Expression Patterns
 our $IdentifierPattern = '(^\\d|shongo:.+:\\d$)';

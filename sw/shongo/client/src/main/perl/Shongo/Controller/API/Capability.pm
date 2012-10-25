@@ -61,12 +61,13 @@ sub on_init()
             $self->add_attribute(
                 'aliases', {
                     'type' => 'collection',
-                    'collection-title' => 'Alias',
-                    'collection-class' => 'Shongo::Controller::API::Alias',
-                    'collection-short' => 1,
+                    'collection' => {
+                        'title' => 'Alias',
+                        'class' => 'Shongo::Controller::API::Alias',
+                        'short' => 1
+                    }
                 }
             );
-            return $self;
         }
         case 'VirtualRoomsCapability' {
             $self->add_attribute(
@@ -112,12 +113,7 @@ sub on_create()
 {
     my ($self, $attributes) = @_;
 
-    my $class = console_read_enum('Select type of capability', $Type, $attributes->{'class'});
-    if ( defined($class) ) {
-        $self->set_object_class($class);
-        return 1;
-    }
-    return 0;
+    return console_read_enum('Select type of capability', $Type, $attributes->{'class'});
 }
 
 1;

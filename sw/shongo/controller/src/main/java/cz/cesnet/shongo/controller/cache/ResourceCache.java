@@ -74,8 +74,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     @Override
     public void addObject(Resource resource, EntityManager entityManager)
     {
-        super.addObject(resource, entityManager);
-
         // If resource is a device
         if (resource instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) resource;
@@ -98,6 +96,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
                 virtualRoomStateById.put(deviceResource.getId(), new ObjectState<VirtualRoomReservation>());
             }
         }
+        super.addObject(resource, entityManager);
     }
 
     @Override

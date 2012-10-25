@@ -29,11 +29,12 @@ sub new()
     bless $self, $class;
 
     $self->set_object_class('DeviceResource');
+    $self->set_object_name('Device Resource');
     $self->add_attribute('address');
     $self->add_attribute('mode', {
         'format' => sub {
             my $mode = '';
-            if ( $self->get('mode') eq 'UNMANAGED' ) {
+            if ( !defined($self->get('mode')) || $self->get('mode') eq 'UNMANAGED' ) {
                 $mode = 'Unmanaged';
             } elsif ( ref($self->get('mode')) eq 'HASH' ) {
                 $mode = 'Managed(' . $self->get('mode')->{'connectorAgentName'} . ')';
@@ -63,8 +64,10 @@ sub new()
     $self->add_attribute(
         'technologies', {
             'type' => 'collection',
-            'collection-title' => 'Technology',
-            'collection-enum' => $Technology,
+            'collection' => {
+                'title' => 'Technology',
+                'enum' => $Technology
+            },
             'required' => 1
         }
     );

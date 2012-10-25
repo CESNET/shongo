@@ -54,7 +54,7 @@ sub new()
                 $specification = Shongo::Controller::API::Specification->new();
                 $specification->create({'class' => $class});
             } else {
-                $specification->modify(1);
+                $specification->modify();
             }
             return $specification;
         }

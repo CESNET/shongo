@@ -493,8 +493,7 @@ sub resource_dial_participant
         if ( $targetType eq 'address' ) {
             $target = console_read_value('Address', 1, undef);
         } else {
-            $target = Shongo::Controller::API::Alias->new();
-            $target->create();
+            $target = Shongo::Controller::API::Alias->create();
         }
     }
 
@@ -545,9 +544,11 @@ sub resource_create_room
     $room->add_attribute(
         'aliases', {
             'type' => 'collection',
-            'collection-title' => 'Alias',
-            'collection-class' => 'Shongo::Controller::API::Alias',
-            'collection-short' => 1,
+            'collection' => {
+                'title' => 'Alias',
+                'class' => 'Shongo::Controller::API::Alias',
+                'short' => 1
+            }
         }
     );
     $room->modify();

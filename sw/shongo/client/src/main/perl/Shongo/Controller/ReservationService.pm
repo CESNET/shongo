@@ -11,10 +11,8 @@ use Text::Table;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Shell;
 use Shongo::Controller::API::ReservationRequestAbstract;
-use Shongo::Controller::API::ReservationRequest;
-use Shongo::Controller::API::ReservationRequestSet;
-use Shongo::Controller::API::PermanentReservationRequest;
 use Shongo::Controller::API::Reservation;
 use Shongo::Controller::API::Alias;
 
@@ -29,11 +27,11 @@ sub populate()
     $shell->add_commands({
         'create-reservation-request' => {
             desc => 'Create a new reservation request',
-            options => 'name=s purpose=s slot=s@ person=s@ resource=s@',
-            args => "[-name] [-purpose] [-slot] [-person] [-resource]",
+            options => 'confirm',
+            args => '[-confirm]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                create_reservation_request($params->{'options'});
+                create_reservation_request(Shongo::Shell::parse_attributes($params), $params->{'options'});
             }
         },
         'modify-reservation-request' => {
@@ -114,24 +112,9 @@ sub select_reservation_request($)
 
 sub create_reservation_request()
 {
-    my ($attributes) = @_;
+    my ($attributes, $options) = @_;
 
-    my $type = console_read_enum('Select type of reservation request', ordered_hash(
-        'ReservationRequest' => 'Single Reservation Request',
-        'ReservationRequestSet' => 'Set of Reservation Requests',
-        'PermanentReservationRequest' => 'Permanent Reservation Request'
-    ));
-    if ( !defined($type) ) {
-        return;
-    }
-    my $identifier = undef;
-    if ($type eq 'ReservationRequest') {
-        $identifier = Shongo::Controller::API::ReservationRequest->new()->create($attributes);
-    } elsif ($type eq 'ReservationRequestSet') {
-        $identifier = Shongo::Controller::API::ReservationRequestSet->new()->create($attributes);
-    } elsif ($type eq 'PermanentReservationRequest') {
-        $identifier = Shongo::Controller::API::PermanentReservationRequest->new()->create($attributes);
-    }
+    my $identifier = Shongo::Controller::API::ReservationRequestAbstract->create($attributes, $options);
     if ( defined($identifier) ) {
         console_print_info("Reservation request '%s' successfully created.", $identifier);
     }

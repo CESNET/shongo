@@ -105,8 +105,10 @@ sub on_init()
             });
             $self->add_attribute('specifications', {
                 'type' => 'collection',
-                'collection-title' => 'specification',
-                'collection-class' => 'Shongo::Controller::API::Specification',
+                'collection' => {
+                    'title' => 'specification',
+                    'class' => 'Shongo::Controller::API::Specification'
+                },
                 'complex' => 0,
                 'display' => 'newline'
             });
@@ -133,10 +135,9 @@ sub on_init()
                     $hasAlias = console_edit_bool("Has alias", 1, $hasAlias);
                     if ( $hasAlias ) {
                         if ( !defined($self->{'alias'}) ) {
-                            $self->{'alias'} = Shongo::Controller::API::Alias->new();
-                            $self->{'alias'}->create();
+                            $self->{'alias'} = Shongo::Controller::API::Alias->create();
                         } else {
-                            $self->{'alias'}->modify(1);
+                            $self->{'alias'}->modify();
                         }
                     } else {
                         $self->{'alias'} = undef;
@@ -177,7 +178,7 @@ sub on_init()
                     if ( !defined($person) ) {
                         $person = Shongo::Controller::API::Person->new();
                     }
-                    $person->modify(1);
+                    $person->modify();
                     return $person;
                 },
                 'required' => 1

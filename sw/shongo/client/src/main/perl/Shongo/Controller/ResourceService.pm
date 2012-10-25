@@ -10,6 +10,7 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Shell;
 use Shongo::Controller::API::Resource;
 use Shongo::Controller::API::DeviceResource;
 use Shongo::Controller::API::Alias;
@@ -25,11 +26,11 @@ sub populate()
     $shell->add_commands({
         'create-resource' => {
             desc => 'Create a new resource',
-            options => 'name=s technology=s@ capability=s@',
-            args => '[-name] [-technology]',
+            options => 'confirm',
+            args => '[-confirm]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                create_resource($params->{'options'});
+                create_resource(Shongo::Shell::parse_attributes($params), $params->{'options'});
             },
         },
         'modify-resource' => {
@@ -96,21 +97,22 @@ sub select_resource($)
 
 sub create_resource()
 {
-    my ($attributes) = @_;
+    my ($attributes, $options) = @_;
 
-    my $type = console_read_enum('Select type of resource', ordered_hash(
-        'Resource' => 'Other Resource',
-        'DeviceResource' => 'Device Resource'
-    ));
-    if ( !defined($type) ) {
-        return;
-    }
-    my $identifier = undef;
-    if ($type eq 'Resource') {
-        $identifier = Shongo::Controller::API::Resource->new()->create($attributes);
-    } elsif ($type eq 'DeviceResource') {
-        $identifier = Shongo::Controller::API::DeviceResource->new()->create($attributes);
-    }
+    $options->{'on_confirm'} = sub {
+        my ($resource) = @_;
+        console_print_info("Creating resource...");
+        my $response = Shongo::Controller->instance()->secure_request(
+            'Resource.createResource',
+            $resource->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            return $response->value();
+        }
+        return undef;
+    };
+
+    my $identifier = Shongo::Controller::API::Resource->create($attributes, $options);
     if ( defined($identifier) ) {
         console_print_info("Resource '%s' successfully created.", $identifier);
     }
@@ -127,10 +129,25 @@ sub modify_resource()
         'Resource.getResource',
         RPC::XML::string->new($identifier)
     );
+
+    my $options = {};
+    $options->{'on_confirm'} = sub {
+        my ($resource) = @_;
+        console_print_info("Modifying resource...");
+        my $response = Shongo::Controller->instance()->secure_request(
+            'Resource.modifyResource',
+            $resource->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            return $resource->{'identifier'};
+        }
+        return undef;
+    };
+
     if ( !$result->is_fault ) {
         my $resource = Shongo::Controller::API::Resource->from_hash($result);
         if ( defined($resource) ) {
-            $resource->modify();
+            $resource->modify(undef, $options);
         }
     }
 }

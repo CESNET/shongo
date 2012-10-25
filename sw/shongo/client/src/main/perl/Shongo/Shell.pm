@@ -118,4 +118,38 @@ sub command
     $self->save_history();
 }
 
+#
+# Parse attributes
+#
+sub parse_attributes
+{
+    my ($shell_params) = @_;
+    my $attributes = {};
+
+    # Parse ending json
+    my $json_data = undef;
+    if ( $shell_params->{'rawline'} =~ /^.+? ({.*})($| -.+)/g ) {
+        $json_data = $1;
+    }
+    if ( defined($json_data) ) {
+        eval {
+            my $json = JSON->new();
+            $json->allow_singlequote(1);
+            $json->allow_barekey(1);
+            $json->loose(1);
+            $json_data = $json->decode($json_data);
+            foreach my $attribute_name (keys $json_data) {
+                $attributes->{$attribute_name} = $json_data->{$attribute_name};
+            }
+            1;
+        } or do {
+            my $error = $@;
+            console_print_error("JSON data cannot be parsed!");
+            console_print_text($json_data);
+            console_print_error("$error");
+        }
+    }
+    return $attributes;
+}
+
 1;

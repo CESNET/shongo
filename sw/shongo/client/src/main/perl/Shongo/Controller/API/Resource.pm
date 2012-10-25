@@ -68,42 +68,34 @@ sub new()
     );
     $self->add_attribute('capabilities', {
             'type' => 'collection',
-            'collection-title' => 'Capability',
-            'collection-class' => 'Shongo::Controller::API::Capability',
-            'required' => 1
+            'collection' => {
+                'title' => 'Capability',
+                'class' => 'Shongo::Controller::API::Capability'
+            },
+            'display-empty' => 1
         }
     );
     return $self;
 }
 
 # @Override
-sub on_create_confirm
+sub on_create
 {
-    my ($self) = @_;
-    console_print_info("Creating resource...");
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Resource.createResource',
-        $self->to_xml()
-    );
-    if ( !$response->is_fault() ) {
-        return $response->value();
-    }
-    return undef;
-}
+    my ($self, $attributes) = @_;
 
-# @Override
-sub on_modify_confirm
-{
-    my ($self) = @_;
-    console_print_info("Modifying resource...");
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Resource.modifyResource',
-        $self->to_xml()
-    );
-    if ( $response->is_fault() ) {
-        return 0;
+    my $class = $attributes->{'class'};
+    if ( !defined($class) ) {
+        $class = console_read_enum('Select type of resource', ordered_hash(
+            'Resource' => 'Other Resource',
+            'DeviceResource' => 'Device Resource'
+        ));
     }
-    return 1;
+    if ($class eq 'Resource') {
+        return Shongo::Controller::API::Resource->new();
+    } elsif ($class eq 'DeviceResource') {
+        return Shongo::Controller::API::DeviceResource->new();
+    }
+    die("Unknown resource type '$class'.");
 }
 
 1;
