@@ -29,7 +29,8 @@ sub new()
 
     $self->add_attribute('purpose', {
         'type' => 'enum',
-        'enum' => $Purpose
+        'enum' => $Purpose,
+        'required' => 1
     });
     $self->add_attribute('providedReservationIdentifiers', {
         'title' => 'Provided reservations',

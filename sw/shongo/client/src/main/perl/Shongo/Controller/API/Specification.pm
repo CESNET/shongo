@@ -100,9 +100,10 @@ sub on_init()
     switch ($class) {
         case 'CompartmentSpecification' {
             $self->add_attribute('callInitiation', {
+                'title' => 'Call Initiation',
                 'type' => 'enum',
                 'enum' => $Shongo::Controller::API::Specification::CallInitiation
-            });
+            }, NULL());
             $self->add_attribute('specifications', {
                 'type' => 'collection',
                 'collection' => {

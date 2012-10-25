@@ -31,7 +31,10 @@ sub populate()
             args => '[-confirm]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                create_reservation_request(Shongo::Shell::parse_attributes($params), $params->{'options'});
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    create_reservation_request($attributes, $params->{'options'});
+                }
             }
         },
         'modify-reservation-request' => {
@@ -114,6 +117,19 @@ sub create_reservation_request()
 {
     my ($attributes, $options) = @_;
 
+    $options->{'on_confirm'} = sub {
+        my ($reservation_request) = @_;
+        console_print_info("Creating reservation request...");
+        my $response = Shongo::Controller->instance()->secure_request(
+            'Reservation.createReservationRequest',
+            $reservation_request->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            return $response->value();
+        }
+        return undef;
+    };
+
     my $identifier = Shongo::Controller::API::ReservationRequestAbstract->create($attributes, $options);
     if ( defined($identifier) ) {
         console_print_info("Reservation request '%s' successfully created.", $identifier);
@@ -131,10 +147,25 @@ sub modify_reservation_request()
         'Reservation.getReservationRequest',
         RPC::XML::string->new($identifier)
     );
+
+    my $options = {};
+    $options->{'on_confirm'} = sub {
+        my ($reservation_request) = @_;
+        console_print_info("Modifying reservation request...");
+        my $response = Shongo::Controller->instance()->secure_request(
+            'Reservation.modifyReservationRequest',
+            $reservation_request->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            return $reservation_request->{'identifier'};
+        }
+        return undef;
+    };
+
     if ( !$result->is_fault ) {
         my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_hash($result);
         if ( defined($reservation_request) ) {
-            $reservation_request->modify();
+            $reservation_request->modify(undef, $options);
         }
     }
 }

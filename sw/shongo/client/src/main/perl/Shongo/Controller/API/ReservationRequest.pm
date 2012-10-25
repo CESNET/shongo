@@ -39,7 +39,8 @@ sub new()
     $self->add_attribute('slot', {
         'title' => 'Requested Slot',
         'type' => 'interval',
-        'complex' => 1
+        'complex' => 1,
+        'required' => 1
     });
     $self->add_attribute('specification', {
         'complex' => 1,
@@ -51,13 +52,13 @@ sub new()
             }
             $class = Shongo::Controller::API::Specification::select_type($class);
             if ( !defined($specification) || !($class eq $specification->get_object_class()) ) {
-                $specification = Shongo::Controller::API::Specification->new();
-                $specification->create({'class' => $class});
+                $specification = Shongo::Controller::API::Specification->create({'class' => $class});
             } else {
                 $specification->modify();
             }
             return $specification;
-        }
+        },
+        'required' => 1
     });
     $self->add_attribute('state', {
         'title' =>'Current State',
@@ -74,7 +75,8 @@ sub new()
             $state_report = format_report($state_report, get_term_width() - 23);
             $state .= "\n" . colored($state_report, $color);
             return $state;
-        }
+        },
+        'read-only' => 1
     });
     $self->add_attribute_preserve('reservationIdentifier');
     $self->add_attribute_preserve('stateReport');

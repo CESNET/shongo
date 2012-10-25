@@ -470,7 +470,7 @@ sub history_load
         foreach my $line (@lines) {
             $line =~ s/\s+$//g;
             if ( defined($line) && !($line eq '') ) {
-                if ( $line =~ /\[(.+)\]/ ) {
+                if ( $line =~ /^\[(.+)\]/ ) {
                     $group = $1;
                 } else {
                     if ( !defined($history->{$group}) ) {

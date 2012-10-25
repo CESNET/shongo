@@ -42,7 +42,8 @@ sub new()
         }
     );
     $self->add_attribute('allocatable', {
-            'type' => 'bool'
+            'type' => 'bool',
+            'required' => 1
         }
     );
     $self->add_attribute('maximumFuture', {

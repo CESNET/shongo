@@ -80,16 +80,18 @@ sub new()
     $self->add_attribute('reservationRequests', {
         'type' => 'collection',
         'title' => 'Reservation Requests',
-        'format' => sub() {
-            my ($reservation_request) = @_;
-            my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::Controller::API::Object::COLOR) . ": %s",
-                format_interval($reservation_request->{'slot'}),
-                $reservation_request->{'identifier'},
-                $reservation_request->get_state(),
-                $Shongo::Controller::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
-            );
-            if ( $reservation_request->{'state'} eq 'ALLOCATED' ) {
-                $item .= sprintf("\n  " . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
+        'collection' => {
+            'format' => sub() {
+                my ($reservation_request) = @_;
+                my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::Controller::API::Object::COLOR) . ": %s",
+                    format_interval($reservation_request->{'slot'}),
+                    $reservation_request->{'identifier'},
+                    $reservation_request->get_state(),
+                    $Shongo::Controller::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
+                );
+                if ( $reservation_request->{'state'} eq 'ALLOCATED' ) {
+                    $item .= sprintf("\n  " . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
+                }
             }
         },
         'display' => 'newline',

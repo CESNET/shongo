@@ -59,31 +59,35 @@ sub new()
     $self->add_attribute(
         'endpoints', {
             'type' => 'collection',
-            'format' => sub {
-                my ($endpoint) = @_;
-                my $string = $endpoint->{'description'};
-                foreach my $alias (@{$endpoint->{'aliases'}}) {
-                    $string .= sprintf("\nwith assigned %s", trim($alias->to_string()));
-                    $string =~ s/\n$//g;
+            'collection' => {
+                'format' => sub {
+                    my ($endpoint) = @_;
+                    my $string = $endpoint->{'description'};
+                    foreach my $alias (@{$endpoint->{'aliases'}}) {
+                        $string .= sprintf("\nwith assigned %s", trim($alias->to_string()));
+                        $string =~ s/\n$//g;
+                    }
+                    return $string;
                 }
-                return $string;
             },
             'display' => 'newline'
         }
     );
     $self->add_attribute(
         'virtualRooms', {
-            'type' => 'collection',
             'title' => 'Rooms',
-            'format' => sub {
-                my ($virtualRoom) = @_;
-                my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
-                foreach my $alias (@{$virtualRoom->{'aliases'}}) {
-                    $string .= sprintf("\nwith assigned %s", $alias->to_string_short());
-                    $string =~ s/\n$//g;
+            'type' => 'collection',
+            'collection' => {
+                'format' => sub {
+                    my ($virtualRoom) = @_;
+                    my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
+                    foreach my $alias (@{$virtualRoom->{'aliases'}}) {
+                        $string .= sprintf("\nwith assigned %s", $alias->to_string_short());
+                        $string =~ s/\n$//g;
+                    }
+                    $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
+                    return $string;
                 }
-                $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
-                return $string;
             },
             'display' => 'newline'
         }
@@ -91,19 +95,21 @@ sub new()
     $self->add_attribute(
         'connections', {
             'type' => 'collection',
-            'format' => sub {
-                my ($connection) = @_;
-                my $endpointFrom = $self->get_endpoint($connection->{'endpointFromIdentifier'});
-                my $endpointTo = $self->get_endpoint($connection->{'endpointToIdentifier'});
-                my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
-                if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
-                    $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
-                        $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
-                } elsif ( $connection->{'class'} eq 'Compartment.ConnectionByAlias' ) {
-                    $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
+            'collection' => {
+                'format' => sub {
+                    my ($connection) = @_;
+                    my $endpointFrom = $self->get_endpoint($connection->{'endpointFromIdentifier'});
+                    my $endpointTo = $self->get_endpoint($connection->{'endpointToIdentifier'});
+                    my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
+                    if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
+                        $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
+                            $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
+                    } elsif ( $connection->{'class'} eq 'Compartment.ConnectionByAlias' ) {
+                        $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
+                    }
+                    $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
+                    return $string;
                 }
-                $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
-                return $string;
             },
             'display' => 'newline'
         }

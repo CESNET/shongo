@@ -100,12 +100,20 @@ sub call_cmd
 }
 
 #
+# Pattern for matching JSON parameter.
+#
+our $JSON_PATTERN = '({.*})($| -.+)';
+
+#
 # Run single command
 #
 sub command
 {
     my ($self, $command) = @_;
-    print("Performing command '", $command, "'.\n");
+    my $string = $command;
+    $string =~ s/(^\s*)|\s*$//g;
+    $string =~ s/$JSON_PATTERN/.../g;
+    print("Performing command '", $string, "'.\n");
 
     # store history
     $self->{term}->addhistory($command);
@@ -128,7 +136,7 @@ sub parse_attributes
 
     # Parse ending json
     my $json_data = undef;
-    if ( $shell_params->{'rawline'} =~ /^.+? ({.*})($| -.+)/g ) {
+    if ( $shell_params->{'rawline'} =~ /^.+? $JSON_PATTERN/ ) {
         $json_data = $1;
     }
     if ( defined($json_data) ) {
@@ -147,6 +155,7 @@ sub parse_attributes
             console_print_error("JSON data cannot be parsed!");
             console_print_text($json_data);
             console_print_error("$error");
+            return undef;
         }
     }
     return $attributes;

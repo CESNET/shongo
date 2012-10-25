@@ -44,15 +44,14 @@ sub new()
         'type' => 'interval'
     });
     $self->add_attribute('childReservations', {
-            'type' => 'collection',
-            'title' => 'Child Reservations'
-        }
-    );
+        'type' => 'collection',
+        'title' => 'Child Reservations',
+        'display' => 'newline'
+    });
     $self->add_attribute('childReservationIdentifiers', {
-            'type' => 'collection',
-            'title' => 'Child Reservation Identifiers'
-        }
-    );
+        'type' => 'collection',
+        'title' => 'Child Reservation Identifiers'
+    });
 
     return $self;
 }
@@ -104,7 +103,9 @@ sub on_init
             $self->add_attribute('alias');
         }
         case 'CompartmentReservation' {
-            $self->add_attribute('compartment');
+            $self->add_attribute('compartment', {
+                'display' => 'newline'
+            });
         }
         case 'ExistingReservation' {
             $self->add_attribute('reservation');

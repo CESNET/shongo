@@ -36,7 +36,9 @@ sub new()
         'type' => 'datetime',
         'editable' => 0
     });
-    $self->add_attribute('name');
+    $self->add_attribute('name', {
+        'required' => 1
+    });
     $self->add_attribute('description');
 
     return $self;
@@ -86,14 +88,7 @@ sub on_create_confirm
 sub on_modify_confirm
 {
     my ($self) = @_;
-    console_print_info("Modifying reservation request...");
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Reservation.modifyReservationRequest',
-        $self->to_xml()
-    );
-    if ( $response->is_fault() ) {
-        return 0;
-    }
+
     return 1;
 }
 

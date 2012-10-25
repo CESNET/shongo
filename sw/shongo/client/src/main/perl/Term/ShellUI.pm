@@ -852,10 +852,10 @@ sub process_a_cmd
     }
 
     # Add to history unless it's a dupe of the previous command.
-    if($save_to_history && $str ne $self->{prevcmd}) {
-        $self->{term}->addhistory($str);
+    if($save_to_history && $rawline ne $self->{prevcmd}) {
+        $self->{term}->addhistory($rawline);
     }
-    $self->{prevcmd} = $str;
+    $self->{prevcmd} = $rawline;
 
     return $retval;
 }

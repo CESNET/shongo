@@ -395,18 +395,6 @@ sub create()
         $self->from_hash($attributes);
     }
 
-    # If modify loop is needed, then modify_attributes isn't automatically started and thus we should
-    # ask user for importatnt values
-    #if ( $self->is_modify_loop_needed() ) {
-    #    # modify required attributes
-    #    foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
-    #        my $attribute = $self->get_attribute($attribute_name);
-    #        if ( $attribute->{'editable'} == 1 && $attribute->{'required'} == 1 && !defined($self->get($attribute_name)) ) {
-    #            $self->modify_attribute($attribute_name, 0);
-    #        }
-    #    }
-    #}
-
     while ( $self->modify_loop(0, $options) ) {
         if ( defined($options->{'on_confirm'}) ) {
             my $result = $options->{'on_confirm'}($self);
@@ -475,7 +463,7 @@ sub on_modify_confirm
 }
 
 #
-# @return 1 if some collection attribute is present,
+# @return 1 if modify loop with actions is needed (it happens when some attribute is 'complex' and/or 'collection')
 #         0 otherwise
 #
 sub is_modify_loop_needed
@@ -493,7 +481,7 @@ sub is_modify_loop_needed
 #
 # Run modify loop.
 #
-# @param $message
+# @param $is_editing specifies whether the loop is started for modification of object and not for it's creation
 # @param $options
 #
 sub modify_loop()
@@ -504,7 +492,17 @@ sub modify_loop()
     }
     if ( !$self->is_modify_loop_needed() ) {
         $self->modify_attributes($is_editing);
+        # Always confirm modifying
         return 1;
+    }
+    else {
+        # modify required attributes
+        foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
+            my $attribute = $self->get_attribute($attribute_name);
+            if ( $attribute->{'editable'} == 1 && $attribute->{'required'} == 1 && !defined($self->get($attribute_name)) ) {
+                $self->modify_attribute($attribute_name, 0);
+            }
+        }
     }
 
     my $message = 'modification of ' . lc($self->get_object_name());
@@ -519,7 +517,7 @@ sub modify_loop()
         sub {
             my @actions = (
                 'Modify attributes' => sub {
-                    $self->modify_attributes($is_editing);
+                    $self->modify_attributes(1);
                     return undef;
                 }
             );
@@ -799,7 +797,7 @@ sub modify_attributes
     my ($self, $is_editing) = @_;
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'editable'} == 1 && !($attribute->{'type'} eq 'collection') ) {
+        if ( $attribute->{'editable'} == 1 && !($attribute->{'type'} eq 'collection') &&$attribute->{'complex'} == 0 ) {
             $self->modify_attribute($attribute_name, $is_editing);
         }
     }

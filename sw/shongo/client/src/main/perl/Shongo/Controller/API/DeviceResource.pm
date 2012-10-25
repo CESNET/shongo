@@ -59,7 +59,8 @@ sub new()
                 $attribute_value = {'connectorAgentName' => $connectorAgentName};
             }
             return $attribute_value;
-        }
+        },
+        'required' => 1
     });
     $self->add_attribute(
         'technologies', {

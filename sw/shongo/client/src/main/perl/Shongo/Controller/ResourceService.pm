@@ -27,15 +27,18 @@ sub populate()
         'create-resource' => {
             desc => 'Create a new resource',
             options => 'confirm',
-            args => '[-confirm]',
+            args => '[-confirm] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                create_resource(Shongo::Shell::parse_attributes($params), $params->{'options'});
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    create_resource($attributes, $params->{'options'});
+                }
             },
         },
         'modify-resource' => {
             desc => 'Modify an existing resource',
-            args => '[identifier]',
+            args => '[identifier] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 modify_resource($args[0]);
@@ -46,7 +49,13 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                delete_resource($args[0]);
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        delete_resource($identifier);
+                    }
+                } else {
+                    delete_resource();
+                }
             },
         },
         'list-resources' => {
