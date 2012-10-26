@@ -84,7 +84,8 @@ sub new()
     });
     $self->add_attribute('resourceReservations', {
         'type' => 'collection',
-        'title' => 'Reservations'
+        'title' => 'Reservations',
+        'read-only' => 1
     });
 
     return $self;

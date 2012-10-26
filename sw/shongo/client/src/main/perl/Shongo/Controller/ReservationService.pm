@@ -116,9 +116,12 @@ sub populate()
     });
 }
 
-sub select_reservation_request($)
+sub select_reservation_request
 {
-    my ($identifier) = @_;
+    my ($identifier, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'identifier'}) ) {
+        $identifier = $attributes->{'identifier'};
+    }
     $identifier = console_read_value('Identifier of the reservation request', 0, $Shongo::Common::IdentifierPattern, $identifier);
     return $identifier;
 }
@@ -148,8 +151,8 @@ sub create_reservation_request()
 
 sub modify_reservation_request()
 {
-    my ($identifier) = @_;
-    $identifier = select_reservation_request($identifier);
+    my ($identifier, $attributes, $options) = @_;
+    $identifier = select_reservation_request($identifier, $attributes);
     if ( !defined($identifier) ) {
         return;
     }
@@ -158,7 +161,6 @@ sub modify_reservation_request()
         RPC::XML::string->new($identifier)
     );
 
-    my $options = {};
     $options->{'on_confirm'} = sub {
         my ($reservation_request) = @_;
         console_print_info("Modifying reservation request...");
@@ -175,7 +177,7 @@ sub modify_reservation_request()
     if ( !$result->is_fault ) {
         my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_hash($result);
         if ( defined($reservation_request) ) {
-            $reservation_request->modify(undef, $options);
+            $reservation_request->modify($attributes, $options);
         }
     }
 }

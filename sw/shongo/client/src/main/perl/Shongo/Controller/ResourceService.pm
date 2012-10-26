@@ -101,9 +101,12 @@ sub populate()
     });
 }
 
-sub select_resource($)
+sub select_resource
 {
-    my ($identifier) = @_;
+    my ($identifier, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'identifier'}) ) {
+        $identifier = $attributes->{'identifier'};
+    }
     $identifier = console_read_value('Identifier of the resource', 0, $Shongo::Common::IdentifierPattern, $identifier);
     return $identifier;
 }
@@ -133,8 +136,8 @@ sub create_resource()
 
 sub modify_resource()
 {
-    my ($identifier) = @_;
-    $identifier = select_resource($identifier);
+    my ($identifier, $attributes, $options) = @_;
+    $identifier = select_resource($identifier, $attributes);
     if ( !defined($identifier) ) {
         return;
     }
@@ -143,7 +146,6 @@ sub modify_resource()
         RPC::XML::string->new($identifier)
     );
 
-    my $options = {};
     $options->{'on_confirm'} = sub {
         my ($resource) = @_;
         console_print_info("Modifying resource...");
@@ -160,7 +162,7 @@ sub modify_resource()
     if ( !$result->is_fault ) {
         my $resource = Shongo::Controller::API::Resource->from_hash($result);
         if ( defined($resource) ) {
-            $resource->modify(undef, $options);
+            $resource->modify($attributes, $options);
         }
     }
 }
