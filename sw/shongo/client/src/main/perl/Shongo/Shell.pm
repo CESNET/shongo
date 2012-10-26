@@ -144,6 +144,7 @@ sub parse_attributes
             my $json = JSON->new();
             $json->allow_singlequote(1);
             $json->allow_barekey(1);
+            $json->relaxed(1);
             $json->loose(1);
             $json_data = $json->decode($json_data);
             foreach my $attribute_name (keys $json_data) {

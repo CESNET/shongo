@@ -40,18 +40,18 @@ sub new()
             'add' => {
                 'Add new requested slot by absolute date/time' => sub {
                     my $slot = {};
-                    Shongo::Controller::API::ReservationRequestSet->modify_slot($slot);
+                    Shongo::Controller::API::ReservationRequestSet::modify_slot($slot);
                     return $slot;
                 },
                 'Add new requested slot by periodic date/time' => sub {
                     my $slot = {'start' => {'class' => 'PeriodicDateTime'}};
-                    Shongo::Controller::API::ReservationRequestSet->modify_slot($slot);
+                    Shongo::Controller::API::ReservationRequestSet::modify_slot($slot);
                     return $slot;
                 }
             },
             'modify' => sub {
                 my ($slot) = @_;
-                Shongo::Controller::API::ReservationRequestSet->modify_slot($slot);
+                Shongo::Controller::API::ReservationRequestSet::modify_slot($slot);
                 return $slot;
             },
             'format' => sub {
@@ -70,7 +70,8 @@ sub new()
                 }
                 return sprintf("at '%s' for '%s'", $start, $duration);
             }
-        }
+        },
+        'required' => 1
     });
     $self->add_attribute('report', {
         'format' => sub {

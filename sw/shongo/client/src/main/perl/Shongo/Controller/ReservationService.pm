@@ -28,7 +28,7 @@ sub populate()
         'create-reservation-request' => {
             desc => 'Create a new reservation request',
             options => 'confirm',
-            args => '[-confirm]',
+            args => '[-confirm] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);
@@ -39,10 +39,14 @@ sub populate()
         },
         'modify-reservation-request' => {
             desc => 'Modify an existing reservation request',
-            args => '[identifier]',
+            options => 'confirm',
+            args => '[identifier] [-confirm] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                modify_reservation_request($args[0]);
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    modify_reservation_request($args[0], $attributes, $params->{'options'});
+                }
             }
         },
         'delete-reservation-request' => {
@@ -50,7 +54,13 @@ sub populate()
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                delete_reservation_request($args[0]);
+                if (defined($args[0])) {
+                    foreach my $identifier (split(/,/, $args[0])) {
+                        delete_reservation_request($identifier);
+                    }
+                } else {
+                    delete_reservation_request();
+                }
             }
         },
         'list-reservation-requests' => {

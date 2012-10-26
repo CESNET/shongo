@@ -64,17 +64,20 @@ sub new()
         'title' =>'Current State',
         'format' => sub {
             my $state = $self->get_state();
-            if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATED' ) {
-                $state .= sprintf(" (" . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
+            if ( defined($state) ) {
+                if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATED' ) {
+                    $state .= sprintf(" (" . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
+                }
+                my $color = 'blue';
+                if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATION_FAILED' ) {
+                    $color = 'red';
+                }
+                my $state_report = $self->{'stateReport'};
+                $state_report = format_report($state_report, get_term_width() - 23);
+                $state .= "\n" . colored($state_report, $color);
+                return $state;
             }
-            my $color = 'blue';
-            if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATION_FAILED' ) {
-                $color = 'red';
-            }
-            my $state_report = $self->{'stateReport'};
-            $state_report = format_report($state_report, get_term_width() - 23);
-            $state .= "\n" . colored($state_report, $color);
-            return $state;
+            return undef;
         },
         'read-only' => 1
     });

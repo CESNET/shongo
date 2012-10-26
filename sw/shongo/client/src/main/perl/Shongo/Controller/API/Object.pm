@@ -487,9 +487,6 @@ sub is_modify_loop_needed
 sub modify_loop()
 {
     my ($self, $is_editing, $options) = @_;
-    if ( $options->{'confirm'} ) {
-        return 1;
-    }
     if ( !$self->is_modify_loop_needed() ) {
         $self->modify_attributes($is_editing);
         # Always confirm modifying
@@ -504,6 +501,12 @@ sub modify_loop()
             }
         }
     }
+    if ( $options->{'confirm'} ) {
+        # Automatically confirmed is only for the first time
+        $options->{'confirm'} = 0;
+        return 1;
+    }
+
 
     my $message = 'modification of ' . lc($self->get_object_name());
     if ( $is_editing == 0 ) {

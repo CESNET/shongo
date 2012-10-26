@@ -195,7 +195,10 @@ public abstract class ChangesTrackingObject
                 Property property = Property.getProperty(changesTrackingObject.getClass(), propertyName);
                 Object value = property.getValue(changesTrackingObject);
                 boolean required = property.isRequired();
-                if (property.isArray()) {
+                if ( value instanceof ChangesTrackingObject ) {
+                    setupNewEntity(value);
+                }
+                else if (property.isArray()) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,

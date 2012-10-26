@@ -38,10 +38,14 @@ sub populate()
         },
         'modify-resource' => {
             desc => 'Modify an existing resource',
-            args => '[identifier] [<json_attributes>]',
+            options => 'confirm',
+            args => '[identifier] [-confirm] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                modify_resource($args[0]);
+                my $attributes = Shongo::Shell::parse_attributes($params);
+                if ( defined($attributes) ) {
+                    modify_resource($args[0], $attributes, $params->{'options'});
+                }
             },
         },
         'delete-resource' => {
