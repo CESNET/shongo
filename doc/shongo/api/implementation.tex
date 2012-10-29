@@ -13,7 +13,7 @@
     % Resources
     Alias, Resource, DeviceResource, ManagedMode,
     % Reservation Requests
-    ReservationRequest, ReservationRequestSet, NORMAL, PERMANENT, EDUCATION, SCIENCE,
+    ReservationRequest, ReservationRequestSet, EDUCATION, SCIENCE,
     CompartmentSpecification,
     ExternalEndpointSpecification, ExternalEndpointSetSpecification,
     ExistingEndpointSpecification,
@@ -221,12 +221,26 @@ Here are some examples of \glspl{g:reservation-request}:
 
 \begin{itemize}
 
-\item \Gls{g:reservation-request} for a \gls{g:compartment} taking place on 12.10.2012 from 14:00 to 16:00 in which will participate Tandberg Codec C90 \gls{g:endpoint} from the \gls{g:resource} database (\codeValue{shongo:cz.cesnet:2}) and to the \gls{g:compartment} can also connect any other three H.323 endpoints. Thus for the \gls{g:compartment} must be allocated one H.323 \gls{g:device-virtual-room} with 4 available ports.
+\item Permanent \gls{g:reservation-request} which forbids the allocation of Tandberg Codec C90 \gls{g:endpoint} in January 2012.
 
 \label{oc:request1}
-\begin{ObjectCode}{ReservationRequest}{request1}{}
+\begin{ObjectCode}{PermanentReservationRequest}{request1}{}
 identifier: shongo:cz.cesnet:1,
-type: NORMAL,
+name: Example 1,
+slots: [
+  DateTimeSlot {
+    start: DateTime(2012-01-01T00:00),
+    duration: Period(P1M)
+  }
+],
+resourceIdentifier: shongo:cz.cesnet:2 // Tandberg Codec C90
+\end{ObjectCode}
+
+\item \Gls{g:reservation-request} for a \gls{g:compartment} taking place on 12.10.2012 from 14:00 to 16:00 in which will participate Tandberg Codec C90 \gls{g:endpoint} from the \gls{g:resource} database (\codeValue{shongo:cz.cesnet:2}) and to the \gls{g:compartment} can also connect any other three H.323 endpoints. Thus for the \gls{g:compartment} must be allocated one H.323 \gls{g:device-virtual-room} with 4 available ports.
+
+\label{oc:request2}
+\begin{ObjectCode}{ReservationRequest}{request2}{}
+identifier: shongo:cz.cesnet:2,
 name: Example 2,
 slot: DateTimeSlot {
   start: DateTime(2012-10-12T14:00),
@@ -247,10 +261,9 @@ specification: CompartmentSpecification {
 
 \item Set of \glspl{g:reservation-request} from which will be created a \gls{g:reservation-request} for each Wednesday from 14:00 to 16:00, first on 5.9.2012 and last on 26.6.2013. Each created request will be allocated to a \gls{g:compartment} \gls{g:reservation} with a \gls{g:device-virtual-room} for 3 ports in H.323.
 
-\label{oc:request2}
-\begin{ObjectCode}{ReservationRequestSet}{request2}{}
-identifier: shongo:cz.cesnet:2,
-type: NORMAL,
+\label{oc:request3}
+\begin{ObjectCode}{ReservationRequestSet}{request3}{}
+identifier: shongo:cz.cesnet:3,
 name: Example 3,
 slots: [
   DateTimeSlot {
@@ -276,11 +289,10 @@ specifications: [
 
 \item \Gls{g:reservation-request} for a H.323 phone number from 1.1.2012 to 31.12.2012.
 
-\label{oc:request3}
-\begin{ObjectCode}{ReservationRequest}{request3}{}
-identifier: shongo:cz.cesnet:3,
-type: NORMAL,
-name: Example 1,
+\label{oc:request4}
+\begin{ObjectCode}{ReservationRequest}{request4}{}
+identifier: shongo:cz.cesnet:4,
+name: Example 4,
 slot: DateTimeSlot {
   start: DateTime(2012-01-01T00:00),
   duration: Period(PT1Y)
@@ -341,14 +353,21 @@ The following two diagrams describes how \ApiRef{ReservationRequest}s and \ApiRe
 Here are some examples of allocated \glspl{g:reservation}:
 
 \begin{itemize}
-\item Allocated \gls{g:reservation} for \hyperref[oc:request1]{\codeValue{request1}} (which was requesting compartment for 3 external H.323 ports and existing H.323 \gls{g:endpoint}) that was described in section \ref{sec:implementation-reservation-request}.
-\begin{ObjectCode}{CompartmentReservation}{reservation1}{}
+\item Allocated permanent \gls{g:reservation} for \hyperref[oc:request1]{\codeValue{request1}} (which requested forbidding allocation of Tandberg endpoint) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{ResourceReservation}{reservation1}{}
 identifier: shongo:cz.cesnet:1,
+slot: Interval(2012-01-01T00:00/2012-02-01T00:00),
+resourceIdentifier: shongo:cz.cesnet:2
+\end{ObjectCode}
+
+\item Allocated \gls{g:reservation} for \hyperref[oc:request2]{\codeValue{request2}} (which was requesting compartment for 3 external H.323 ports and existing H.323 \gls{g:endpoint}) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{CompartmentReservation}{reservation2}{}
+identifier: shongo:cz.cesnet:2,
 slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
 childReservationIdentifiers: [
-  shongo:cz.cesnet:2, // Child reservation for Tandberg endpoint 
-  shongo:cz.cesnet:3, // Child reservation for virtual room in Codian MCU
-  shongo:cz.cesnet:4  // Child reservation for alias for virtual room
+  shongo:cz.cesnet:3, // Child reservation for Tandberg endpoint 
+  shongo:cz.cesnet:4, // Child reservation for virtual room in Codian MCU
+  shongo:cz.cesnet:5  // Child reservation for alias for virtual room
 ],
 compartment: Compartment { // Executor compartment plan
   endpoints: [
@@ -376,34 +395,34 @@ compartment: Compartment { // Executor compartment plan
   ]
 }
 \end{ObjectCode}
-\begin{ObjectCode}{ResourceReservation}{reservation2}{Child reservation for Tandberg endpoint}
-identifier: shongo:cz.cesnet:2,
-slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
-parentReservationIdentifier: shongo:cz.cesnet:1,
-resourceIdentifier: shongo:cz.cesnet:2
-\end{ObjectCode}
-\begin{ObjectCode}{VirtualRoomReservation}{reservation3}{Child reservation for virtual room in Codian MCU}
+\begin{ObjectCode}{ResourceReservation}{reservation3}{Child reservation for Tandberg endpoint}
 identifier: shongo:cz.cesnet:3,
 slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
-parentReservationIdentifier: shongo:cz.cesnet:1,
+parentReservationIdentifier: shongo:cz.cesnet:2,
+resourceIdentifier: shongo:cz.cesnet:2
+\end{ObjectCode}
+\begin{ObjectCode}{VirtualRoomReservation}{reservation4}{Child reservation for virtual room in Codian MCU}
+identifier: shongo:cz.cesnet:4,
+slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
+parentReservationIdentifier: shongo:cz.cesnet:2,
 resourceIdentifier: shongo:cz.cesnet:1,
 portCount: 4
 \end{ObjectCode}
-\begin{ObjectCode}{AliasReservation}{reservation4}{Child reservation for alias for virtual room}
-identifier: shongo:cz.cesnet:4,
+\begin{ObjectCode}{AliasReservation}{reservation5}{Child reservation for alias for virtual room}
+identifier: shongo:cz.cesnet:5,
 slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
-parentReservationIdentifier: shongo:cz.cesnet:1,
+parentReservationIdentifier: shongo:cz.cesnet:2,
 resourceIdentifier: shongo:cz.cesnet:1,
 alias: Alias { technology: H323, type: E164, value: 950087201 }
 \end{ObjectCode}
 
-\item Allocated \gls{g:reservation} for \hyperref[oc:request2]{\codeValue{request2}} on 5.9.2012 (which was requesting compartment for 3 external H.323 ports for multiple date/time slots) that was described in section \ref{sec:implementation-reservation-request}.
-\begin{ObjectCode}{CompartmentReservation}{reservation5}{}
-identifier: shongo:cz.cesnet:5,
+\item Allocated \gls{g:reservation} for \hyperref[oc:request3]{\codeValue{request3}} on 5.9.2012 (which was requesting compartment for 3 external H.323 ports for multiple date/time slots) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{CompartmentReservation}{reservation6}{}
+identifier: shongo:cz.cesnet:6,
 slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
 childReservationIdentifiers: [
-  shongo:cz.cesnet:6, // Child reservation for virtual room in Codian MCU
-  shongo:cz.cesnet:7  // Child reservation for alias for virtual room
+  shongo:cz.cesnet:7, // Child reservation for virtual room in Codian MCU
+  shongo:cz.cesnet:8  // Child reservation for alias for virtual room
 ],
 compartment: Compartment { // Executor compartment plan  
   virtualRooms: [
@@ -418,24 +437,24 @@ compartment: Compartment { // Executor compartment plan
   ]
 }
 \end{ObjectCode}
-\begin{ObjectCode}{VirtualRoomReservation}{reservation6}{Child reservation for virtual room in Codian MCU}
-identifier: shongo:cz.cesnet:6,
+\begin{ObjectCode}{VirtualRoomReservation}{reservation7}{Child reservation for virtual room in Codian MCU}
+identifier: shongo:cz.cesnet:7,
 slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
-parentReservationIdentifier: shongo:cz.cesnet:5,
+parentReservationIdentifier: shongo:cz.cesnet:6,
 resourceIdentifier: shongo:cz.cesnet:1,
 portCount: 3
 \end{ObjectCode}
-\begin{ObjectCode}{AliasReservation}{reservation7}{Child reservation for alias for virtual room}
-identifier: shongo:cz.cesnet:7,
+\begin{ObjectCode}{AliasReservation}{reservation8}{Child reservation for alias for virtual room}
+identifier: shongo:cz.cesnet:8,
 slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
-parentReservationIdentifier: shongo:cz.cesnet:5,
+parentReservationIdentifier: shongo:cz.cesnet:6,
 resourceIdentifier: shongo:cz.cesnet:1,
 alias: Alias { technology: H323, type: E164, value: 950087201 }
 \end{ObjectCode}
 
-\item Allocated \gls{g:reservation} for \hyperref[oc:request3]{\codeValue{request3}} (which was requesting H.323 phone number) that was described in section \ref{sec:implementation-reservation-request}.
-\begin{ObjectCode}{AliasReservation}{reservation8}{}
-identifier: shongo:cz.cesnet:8,
+\item Allocated \gls{g:reservation} for \hyperref[oc:request4]{\codeValue{request4}} (which was requesting H.323 phone number) that was described in section \ref{sec:implementation-reservation-request}.
+\begin{ObjectCode}{AliasReservation}{reservation9}{}
+identifier: shongo:cz.cesnet:9,
 slot: Interval(2012-01-01T00:00/2013-01-01T00:00),
 resourceIdentifier: shongo:cz.cesnet:5, // From aliasProvider resource
 alias: Alias { 

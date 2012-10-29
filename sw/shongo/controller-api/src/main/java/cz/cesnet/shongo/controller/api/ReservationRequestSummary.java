@@ -22,7 +22,7 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
     private DateTime created;
 
     /**
-     * @see ReservationRequest#TYPE
+     * @see Type
      */
     private Type type;
 

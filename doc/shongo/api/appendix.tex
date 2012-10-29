@@ -2,6 +2,89 @@
 
 \input{commands.tex}
 
+\chapter{Client Usage}
+
+Client can be started and connected to a \gls{g:controller} by the following commands:
+\begin{verbatim}
+./client.sh --connect localhost --testing-access-token
+\end{verbatim}
+New \gls{g:resource} can be interactively created by typing:
+\begin{verbatim}
+shongo> create-resource
+\end{verbatim}
+New \gls{g:resource} can be automatically created by typing:
+\begin{verbatim}
+shongo> create-resource -confirm { \
+    class: 'DeviceResource', \
+    name: 'mcu', \
+    allocatable: 1, \
+    technologies: ['H323'], \
+    mode: { \
+        connectorAgentName: 'mcu' \
+    }, \
+    capabilities: [{ \
+        class: 'VirtualRoomsCapability', \
+        portCount: 100 \
+    }, { \
+        class: 'AliasProviderCapability', \
+        technology: 'H323', \
+        type: 'E164', \
+        pattern: '9500872[dd]', \
+        restrictedToOwnerResource: 1 \
+    }] \
+}
+\end{verbatim}
+List of existing \glspl{g:resource} can be showed by typing:
+\begin{verbatim}
+shongo> list-resources
+\end{verbatim}
+Detail of existing \gls{g:resource} can be showed by typing:
+\begin{verbatim}
+shongo> get-resource <resource-identifier>
+\end{verbatim}
+Summary of allocation for existing \gls{g:resource} can be showed by typing:
+\begin{verbatim}
+shongo> get-resource-allocation <resource-identifier> [-interval 2012-01-01/P1Y]
+\end{verbatim}
+New \gls{g:reservation-request} can be interactively created by typing:
+\begin{verbatim}
+shongo> create-reservation-request
+\end{verbatim}
+New \gls{g:reservation-request} can be automatically created by typing:
+\begin{verbatim}
+shongo> create-reservation-request -confirm { \
+    class: 'PermanentReservationRequest', \
+    name: 'Example', \
+    resourceIdentifier: 'shongo:cz.cesnet:1', \
+    slots: [{ \
+        start: '2012-01-01T12:00', \
+        duration: 'PT4M' \
+    }] \
+}
+\end{verbatim}
+List of existing \glspl{g:reservation-request} can be showed by typing:
+\begin{verbatim}
+shongo> list-reservatin-requests
+\end{verbatim}
+Detail of existing \gls{g:reservation-request} can be showed by typing:
+\begin{verbatim}
+shongo> get-reservation-request <reservation-request-identifier>
+\end{verbatim}
+Allocated \gls{g:reservation}(s) for existing \gls{g:reservation-request} can be showed by typing:
+\begin{verbatim}
+shongo> get-reservation-for-request <reservation-request-identifier>
+\end{verbatim}
+Or by typing:
+\begin{verbatim}
+shongo> get-reservation <reservation-identifier>
+\end{verbatim}
+For scripting purposes it is useful to run the client with command(s) which should be executed (the client will not run the shell in this case and exits immediately):
+\begin{verbatim}
+./client.sh --connect localhost --testing-access-token \
+    --cmd "list-resources" \
+    --cmd "list-reservation-requests"
+\end{verbatim}
+
 \chapter{Controller API Usage}
 
 \section{Perl programming language}
@@ -35,14 +118,11 @@ if ( ref($response) ) {
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservation.createReservationRequest',
-    RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    ),
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839'), # access token
     RPC::XML::struct->new(
         'class' => RPC::XML::string->new('ReservationRequest'),
         'slot' => RPC::XML::string->new('20120101T12:00/PT2H'),
-        'type' => RPC::XML::string->new('NORMAL'),
+        'name' => RPC::XML::string->new('test'),
         'purpose' => RPC::XML::string->new('EDUCATION')
         ...
     )
@@ -73,10 +153,7 @@ $response = $client->send_request(
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservation.modifyReservationRequest',
-    RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    ),
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839'),
     RPC::XML::string->new('shongo:cz.cesnet:1'),
     RPC::XML::struct->new(
         'description' => RPC::XML::struct->new() # set description to null
@@ -106,10 +183,7 @@ $response = $client->send_request(
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.listReservationRequests',
-    RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    )
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839')
 );
 \end{PerlCmd}
 \begin{PerlResponse}
@@ -138,10 +212,7 @@ $response = $client->send_request(
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.listReservationRequests',
-    RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityTokenX'),
-        ...
-    )
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839')
 );
 \end{PerlCmd}
 \begin{PerlResponse}
@@ -163,10 +234,7 @@ $response = $client->send_request(
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.createReservationRequest',
-    RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    ),
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839'),
     RPC::XML::struct->new(
         'typeX' => RPC::XML::string->new('PERMANENT')
     )
@@ -191,12 +259,9 @@ $response = $client->send_request(
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.createReservationRequest',
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839'),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    ),
-    RPC::XML::struct->new(
-        'type' => RPC::XML::struct->new(
+        'purpose' => RPC::XML::struct->new(
             'class' => RPC::XML::string->new('SecurityToken')
         )
     )
@@ -207,8 +272,8 @@ $response = $client->send_request(
   <value><struct>
     <member>
       <name>faultString</name>
-      <value><string>Attribute 'type' in class 'ReservationRequest' has type
-          'ReservationRequestType' but 'SecurityToken' was presented.</string></value>
+      <value><string>Attribute 'purpose' in class 'ReservationRequest' has type
+          'ReservationRequestPurpose' but 'SecurityToken' was presented.</string></value>
     </member>
     <member>
       <name>faultCode</name>
@@ -222,12 +287,9 @@ $response = $client->send_request(
 \begin{PerlCmd}
 $response = $client->send_request(
     'Reservations.createReservationRequest',
+    RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839'),
     RPC::XML::struct->new(
-        'class' => RPC::XML::string->new('SecurityToken'),
-        ...
-    ),
-    RPC::XML::struct->new(
-        'type' => RPC::XML::string->new('PERMANENTX')
+        'purpose' => RPC::XML::string->new('SCIENCEX')
     )
 );
 \end{PerlCmd}
@@ -236,8 +298,8 @@ $response = $client->send_request(
   <value><struct>
     <member>
       <name>faultString</name>
-      <value><string>Enum value 'PERMANENTX' is not defined in enum
-          'ReservationRequestType'.</string></value>
+      <value><string>Enum value 'SCIENCEX' is not defined in enum
+          'ReservationRequestPurpose'.</string></value>
     </member>
     <member>
       <name>faultCode</name>

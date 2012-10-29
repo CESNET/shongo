@@ -219,9 +219,10 @@ Example of \gls{g:connector-agent} configuration for Codian MCU 4515:
 \section{Client}
 Client can be started and connected to a \gls{g:controller} by the following commands:
 \begin{verbatim}
-./client.sh --connect 127.0.0.1
-./client.sh --connect 127.0.0.1:8181
+./client.sh --connect 127.0.0.1 [--testing-access-token]
+./client.sh --connect 127.0.0.1:8181 [--testing-access-token]
 \end{verbatim}
+Option \codeValue{----testing-access-token} forces the client to skip the user authentication and to use testing access token which is automatically validated in the \gls{g:controller}.
 The available commands in the client shell can be displayed by typing:
 \begin{verbatim}
 shongo> <TAB>

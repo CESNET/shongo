@@ -195,12 +195,6 @@ This class represents a summary of a \gls{g:resource}. The summary of a \gls{g:r
 \ApiClassAttribute{parentIdentifier}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located.
 \end{ApiClassAttributes}
 
-\ApiEnum{ReservationRequestType}
-\begin{ApiEnumValues}
-\ApiEnumValue{NORMAL}{} One time or periodic \gls{g:reservation-request} as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time \gls{g:reservation-request} is a special case of periodic \gls{g:reservation-request}).
-\ApiEnumValue{PERNAMENT}{} Permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
-\end{ApiEnumValues}
-
 \ApiEnum{ReservationRequestPurpose}
 \begin{ApiEnumValues}
 \ApiEnumValue{SCIENCE}{} \Gls{g:reservation} is requested for research purposes.
@@ -212,14 +206,28 @@ Represents a base class for all possible types \glspl{g:reservation-request}. It
 \begin{ApiClassAttributes}
 \ApiClassAttribute{identifier}{String}{\ApiReadOnly} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
 \ApiClassAttribute{created}{DateTime}{\ApiReadOnly} Date/time when the \gls{g:reservation-request} was created.
-\ApiClassAttribute{type}{ReservationRequestType}{\ApiRequired} Type of \gls{g:reservation-request}, see \ApiRef{ReservationRequestType}.
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the \gls{g:reservation-request}.
-\ApiClassAttribute{purpose}{ReservationRequestPurpose}{\ApiRequired} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.
 \ApiClassAttribute{description}{String}{\ApiOptional} Detailed \gls{g:reservation-request} description.
-\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the \gls{g:scheduler} should try allocate also \glspl{g:resource} from other \glspl{g:domain}.
 \end{ApiClassAttributes}
 
-\ApiClass{ReservationRequestSet}{AbstractReservationRequest}
+\ApiClass{PermanentReservationRequest}{}
+Represents a permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{slots}{List}{DateTimeSlot}{\ApiRequired} List of requested \ApiCode{slots}.
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} Identifier of \gls{g:resource} for which the permanent \gls{g:reservation}(s) should be created. 
+\ApiClassAttribute{report}{String}{\ApiReadOnly} Description of current state of permanent \gls{g:reservation-request} (can contain reasons, e.g., why the allocation of any reservations failed).
+\ApiClassAttributeCollection{resourceReservations}{List}{ResourceReservation}{\ApiReadOnly} List of \glspl{g:reservation} which was already allocated for the \gls{g:resource}.
+\end{ApiClassAttributes}
+
+\ApiClass{NormalReservationRequest}{AbstractReservationRequest}
+Represents an one time or periodic \gls{g:reservation-request} as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time \gls{g:reservation-request} is a special case of periodic \gls{g:reservation-request}).
+\begin{ApiClassAttributes}
+\ApiClassAttribute{purpose}{ReservationRequestPurpose}{\ApiRequired} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.
+\ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the \gls{g:scheduler} should try allocate also \glspl{g:resource} from other \glspl{g:domain}.
+\ApiClassAttributeCollection{providedReservationIdentifiers}{List}{String}{\ApiOptional} List of identifiers for \glspl{g:reservation} which are provided to the \gls{g:reservation-request} and the \gls{g:scheduler} can use all allocated \glspl{g:resource} from these \glspl{g:reservation} when allocating the \gls{g:reservation-request}.
+\end{ApiClassAttributes}
+
+\ApiClass{ReservationRequestSet}{NormalReservationRequest}
 Represents a \gls{g:reservation-request} for one or multiple \glspl{g:reservation}. It specifies one or multiple date/time slots and one or multiple specifications and for each combination (slots x specifications) will be created one \ApiCode{ReservationRequest}.
 \begin{ApiClassAttributes}
 \ApiClassAttributeCollection{slots}{List}{DateTimeSlot}{\ApiRequired} List of requested \ApiCode{slots}.
@@ -227,7 +235,7 @@ Represents a \gls{g:reservation-request} for one or multiple \glspl{g:reservatio
 \ApiClassAttributeCollection{reservationRequests}{List}{ReservationRequest}{\ApiRequired} List of already created \ApiRef{ReservationRequest}s.
 \end{ApiClassAttributes}
 
-\ApiClass{ReservationRequest}{AbstractReservationRequest}
+\ApiClass{ReservationRequest}{NormalReservationRequest}
 Represents a \gls{g:reservation-request} for single specification at one specific date/time slot.
 Only \ApiRef{ReservationRequest}s are processed by the \gls{g:scheduler} and the \gls{g:scheduler} allocates them to \glspl{g:reservation}. 
 \begin{ApiClassAttributes}
@@ -249,6 +257,12 @@ Enumeration of possible states in which a \gls{g:reservation-request} can be.
 
 \ApiClass{Specification}{}
 Represents a base class for all possible specifications. Each specification describes a target which is requested by a \gls{g:reservation-request}.
+
+\ApiClass{ResourceSpecification}{Specification}
+Represents a specification for an \gls{g:resource} which is stored in local or foreign \gls{g:domain} \gls{g:controller} and thus it has assigned a \gls{g:resource} identifier.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} \Gls{g:resource} identifier for the \gls{g:resource}.
+\end{ApiClassAttributes}
 
 \ApiClass{CompartmentSpecification}{Specification}
 Represents a specification for a group of participants which should participate a single \gls{g:compartment}.
@@ -293,11 +307,17 @@ Represents a specification for a person that should participate in a \gls{g:comp
 \ApiClassAttribute{person}{Person}{\ApiRequired} Requested person.
 \end{ApiClassAttributes}
 
+\ApiEnum{ReservationRequestSummary.Type}
+\begin{ApiEnumValues}
+\ApiEnumValue{NORMAL}{} One time or periodic \gls{g:reservation-request} as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time \gls{g:reservation-request} is a special case of periodic \gls{g:reservation-request}).
+\ApiEnumValue{PERNAMENT}{} Permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
+\end{ApiEnumValues}
+
 \ApiClass{ReservationRequestSummary}{}
 This class represents a summary of a \gls{g:reservation-request}. The summary is lightweight and does not contain all \gls{g:reservation-request} attributes. It is suitable when listing a lot of \glspl{g:reservation-request} from the \gls{g:controller} database where the detail information about \gls{g:reservation-request} is not appropriate.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{identifier}{String}{} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{type}{ReservationRequestType}{} Type of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestType}.
+\ApiClassAttribute{type}{ReservationRequestSummary.Type}{} Type of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestSummary.Type}.
 \ApiClassAttribute{name}{String}{} Name of the \gls{g:reservation-request}.
 \ApiClassAttribute{purpose}{ReservationRequestPurpose}{} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.
 \ApiClassAttribute{description}{String}{} Description of \gls{g:reservation-request}.
@@ -336,6 +356,12 @@ Represents a successfully allocated \gls{g:resource} as a \gls{g:device-alias}.
 Represents a successfully allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{compartment}{Compartment}{} Allocated \gls{g:compartment}.
+\end{ApiClassAttributes}
+
+\ApiClass{ExistingReservation}{Reservation}
+Represents a reused \gls{g:reservation} (which was provided to the \gls{g:reservation-request}).
+\begin{ApiClassAttributes}
+\ApiClassAttribute{reservation}{Reservation}{} Existing \gls{g:reservation} which is reused.
 \end{ApiClassAttributes}
 
 \ApiClass{Compartment}{}
