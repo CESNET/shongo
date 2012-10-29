@@ -41,8 +41,8 @@ A \gls{g:resource} can be created by an instance of \ApiRef{Resource} or \ApiRef
 
 Each resource can have specified zero, one or more \code{capabilities}. Capabality specifies that a \gls{g:resource} provide some feature or service. Some capabilities can be used only for a \ApiRef{DeviceResource} (e.g., \ApiRef{TerminalCapability} or \ApiRef{VirtualRoomsCapability}). Complete description of capabilities can be found in chapter \ref{chapter:controller-api}, but here is a short summary:
 \begin{compactitem}
-\item \ApiRef{TerminalCapability} tells that a \gls{g:resource-device} can participate in a \gls{g:compartment} (must be connected into a \gls{g:device-virtual-room}).
-\item \ApiRef{StandaloneTerminalCapability} tells that a \gls{g:resource-device} can participate in a \gls{g:compartment}. The compartment may consist only of two \glspl{g:endpoint} without a \gls{g:device-virtual-room}.
+\item \ApiRef{TerminalCapability} tells that a \gls{g:resource-device} can participate in a \gls{g:compartment} (must be connected into a \gls{g:device-virtual-room}, e.g., Adobe Connect client).
+\item \ApiRef{StandaloneTerminalCapability} tells that a \gls{g:resource-device} can participate in a \gls{g:compartment}. The compartment may consist only of two \glspl{g:endpoint} without a \gls{g:device-virtual-room} (e.g., H.323 terminal).
 \item \ApiRef{VirtualRoomsCapability} tells that a \gls{g:resource-device} can host multiple \glspl{g:device-virtual-room}.
 \item \ApiRef{AliasProviderCapability} tells that a \gls{g:resource} can allocate an \gls{g:device-alias} which then can be assigned to a managed \gls{g:endpoint} or a \gls{g:device-virtual-room}.
 \end{compactitem}
@@ -162,7 +162,7 @@ Each controller runs a service component which processes incoming \glspl{g:reser
 \label{fig:cd_api_reservation_requests}
 \end{figure}
 
-There are two types of \glspl{g:reservation-request}:
+There are 3 types of \glspl{g:reservation-request}:
 \begin{enumerate}
 \item \ApiRef{ReservationRequestSet} represents a compound request which can result into multiple \ApiRef{ReservationRequest}s. It must specify one or multiple date/time \code{slots} and one or multiple \code{specifications} for targets which the user wants to get allocated. A single date/time slot can be specified as periodic (e.g., each Tuesday from 14:00 to 16:00 from September to June). 
 
@@ -175,14 +175,16 @@ Periodic date/time slots must be enumerated to absolute date/time slots and for 
 \todo{ReservationRequests created for the same date/time slot should be dependent to each other (allocation succeeds for all or none). [not implemented yet]}
 
 \item \ApiRef{ReservationRequest} represents a minimum processable unit for a \gls{g:scheduler} which can be allocated to a \gls{g:reservation}. It must specify exactly one absolute date/time \code{slot} (periodic date/time cannot be used here) and one \code{specification} for a target which should be allocated.
+
+\item \ApiRef{PermanentReservationRequest} represents a special type of request specifying single \gls{g:resource} which should be considered as not-allocatable in specified date/time slots. The request can be created by the \gls{g:resource} owner. It is useful for disabling some date/time slots when the provided resource cannot be used by the \gls{g:scheduler}.
 \end{enumerate}
-Each \gls{g:reservation-request} is identified by an unique \code{identifier} and each request also has some basic attributes, e.g., date/time when the request was \code{created}, \code{name} of the request or \code{type} (whether the request should be allocated by a scheduler -- \code{NORMAL}, or whether specified resources should not be considered as available in specified date/time slots -- \code{PERMANENT}, which can be created for a resource only by the resource owner).
+Each \gls{g:reservation-request} is identified by an unique \code{identifier} and each request also has some basic attributes, e.g., date/time when the request was \code{created} or \code{name} of the request).
 
 There are several types of specifications for targets which can be requested for allocation in \glspl{g:reservation-request}:
 \begin{enumerate}
-\item \ApiRef{AliasSpecification} allows us to get allocated an available \gls{g:device-alias}. When we receive an \gls{g:device-alias} \gls{g:reservation} we can use it for our purposes (e.g., assign the \gls{g:device-alias} to our hardware endpoint or installed software client) or we can use it when creating another \gls{g:reservation-request} and pass the \gls{g:device-alias} \gls{g:reservation} to the request. A \gls{g:scheduler} then can use the \gls{g:device-alias} as available resource when it is allocating a \gls{g:reservation} for the \gls{g:reservation-request} (e.g., assign it to any managed \gls{g:endpoint} or created \gls{g:device-virtual-room}). 
+\item \ApiRef{ResourceSpecification} allows us to get allocated a specific \gls{g:resource}. Then we can use it in the requested date/time slot for our purposes (e.g., we request a lecture room and we get allocated reservation for the the lecture room and we can do a presentation there).
 
-\todo{Passing allocated reservations to a new reservation requests isn't implemented yet.}
+\item \ApiRef{AliasSpecification} allows us to get allocated an available \gls{g:device-alias}. When we receive an \gls{g:device-alias} \gls{g:reservation} we can use it for our purposes (e.g., assign the \gls{g:device-alias} to our hardware endpoint or installed software client) or we can use it when creating another \gls{g:reservation-request} and pass the \gls{g:device-alias} \gls{g:reservation} to the request. A \gls{g:scheduler} then can use the \gls{g:device-alias} as available resource when it is allocating a \gls{g:reservation} for the \gls{g:reservation-request} (e.g., assign it to any managed \gls{g:endpoint} or created \gls{g:device-virtual-room}). 
 
 \item \ApiRef{ExistingEndpointSpecification} allows us to get allocated a specific \gls{g:endpoint} \gls{g:resource-device}. Then we can use it in the requested date/time slot for our purposes (e.g., we request an H.323 \gls{g:endpoint} in a lecture room and we get allocated reservation for the \gls{g:endpoint} and also for the lecture room, we can go to the lecture room and use the \gls{g:endpoint} to connect to a conference).
 
@@ -305,10 +307,14 @@ specification: AliasSpecification {
 There are several types of \glspl{g:reservation}:
 \begin{enumerate}
 \item \ApiRef{ResourceReservation} represents a \gls{g:reservation} for a \gls{g:resource} from the \gls{g:resource} database (e.g., \gls{g:reservation} for a H.323 \gls{g:endpoint} for a specific date/time slot or a \gls{g:reservation} for a lecture room for a specific date/time slot). For each resource and date/time slot can exist only one reservation (reservation must not collide).
+
 \item \ApiRef{VirtualRoomReservation} represents a special type of \ApiRef{ResourceReservation} for a \gls{g:device-virtual-room} in the \gls{g:resource-device} with a \ApiRef{VirtualRoomsCapability} (e.g., a \gls{g:reservation} for a \gls{g:device-virtual-room} with 5 available ports in H.323 MCU \gls{g:resource}). These \glspl{g:reservation} can collide (multiple \glspl{g:device-virtual-room} can be created at the same time), but must not exceed the maximum number of ports specified in the \ApiRef{VirtualRoomsCapability}.
 
 \item \ApiRef{AliasReservation} represents a special type of \ApiRef{ResourceReservation} for an \ApiCode{alias} from the \gls{g:resource} with an \ApiRef{AliasProviderCapability} (e.g., a \gls{g:reservation} for an \gls{g:device-alias} \ApiValue{950087201} from a \gls{g:resource} which provides \glspl{g:device-alias} with prefix \ApiValue{9500872XX}).
+
 \item \ApiRef{CompartmentReservation} represents a \gls{g:reservation} for a \gls{g:compartment} and it usually contains multiple child \glspl{g:reservation} for \glspl{g:device-virtual-room}, \glspl{g:endpoint} and \glspl{g:device-alias}. It also contains a reference to \ApiCode{compartment} (instance of \ApiRef{Compartment} class) which represents a \gls{g:compartment} plan which is used by an \gls{g:executor} to establish the \gls{g:compartment}.
+
+\item \ApiRef{ExistingReservation} represents a reused \gls{g:reservation} (which was provided in the \gls{g:reservation-request}).
 \end{enumerate}
 
 The following two diagrams describes how \ApiRef{ReservationRequest}s and \ApiRef{ReservationRequestSet}s are processed by a \gls{g:controller} and allocated to \ApiRef{Reservation}s (fig. \ref{fig:sd_reservation_request_allocation} and \ref{fig:sd_reservation_request_set_allocation}). Each controller runs these components:

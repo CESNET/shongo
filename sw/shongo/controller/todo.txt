@@ -7,7 +7,8 @@
 * Implement VirtualRoomSpecification (technologies, resource, portCount)
 
 * API
-  * Update API (provided reservations, permanent)
+  * Add examples for (provided reservations, permanent)
+  * Add examples for cmd-line scripting
   * Popsat autentizaci v API
   * Dokoncit popis workflow v API
 
