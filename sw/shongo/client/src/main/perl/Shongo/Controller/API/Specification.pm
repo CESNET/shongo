@@ -15,20 +15,25 @@ use Shongo::Console;
 use Shongo::Controller::API::Alias;
 use Shongo::Controller::API::DeviceResource;
 use Shongo::Controller::API::Person;
+use Shongo::Controller::API::ParticipantSpecification;
 
 #
 # Specification types
 #
-our $Type = ordered_hash(
+our $RootType = ordered_hash(
     'ResourceSpecification' => 'Resource',
     'CompartmentSpecification' => 'Compartment',
+    'AliasSpecification' => 'Alias',
+    'VirtualRoomSpecification' => 'Virtual Room'
+);
+our $ParticipantType = ordered_hash(
     'ExternalEndpointSpecification' => 'External Endpoint',
     'ExternalEndpointSetSpecification' => 'Set of External Endpoints',
     'ExistingEndpointSpecification' => 'Existing Endpoint',
     'LookupEndpointSpecification' => 'Lookup Resource',
     'PersonSpecification' => 'Person',
-    'AliasSpecification' => 'Alias'
 );
+our $Type = ordered_hash_merge($RootType, $ParticipantType);
 
 #
 # Call initiation
@@ -45,7 +50,7 @@ our $CallInitiation = ordered_hash(
 our $AliasType = ordered_hash(NULL() => 'Any', $Shongo::Controller::API::Alias::Type);
 
 #
-# Create a new instance of resource specification
+# Create a new instance of specification
 #
 # @static
 #
@@ -66,7 +71,7 @@ sub select_type($)
 {
     my ($type) = @_;
 
-    return console_edit_enum('Select type of specification', $Type, $type);
+    return console_edit_enum('Select type of specification', $RootType, $type);
 }
 
 # @Override
@@ -108,7 +113,7 @@ sub on_init()
                 'type' => 'collection',
                 'collection' => {
                     'title' => 'specification',
-                    'class' => 'Shongo::Controller::API::Specification'
+                    'class' => 'Shongo::Controller::API::ParticipantSpecification',
                 },
                 'complex' => 0,
                 'display' => 'newline'
@@ -194,6 +199,26 @@ sub on_init()
                 'title' => 'Alias Type',
                 'type' => 'enum',
                 'enum' => $AliasType
+            });
+            $self->add_attribute('resourceIdentifier', {
+                'title' => 'Preferred Resource Identifier',
+                'string-pattern' => $Shongo::Common::IdentifierPattern
+            });
+        }
+        case 'VirtualRoomSpecification' {
+            $self->add_attribute('technologies', {
+                'type' => 'collection',
+                'collection' => {
+                    'title' => 'Technology',
+                    'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                },
+                'complex' => 0,
+                'required' => 1
+            });
+            $self->add_attribute('portCount', {
+                'title' => 'Port Count',
+                'type' => 'int',
+                'required' => 1
             });
             $self->add_attribute('resourceIdentifier', {
                 'title' => 'Preferred Resource Identifier',

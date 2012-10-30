@@ -12,7 +12,7 @@ use warnings::register;
 use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
-    ordered_hash ordered_hash_keys
+    ordered_hash ordered_hash_keys ordered_hash_merge
     get_enum_value
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
     format_datetime format_date format_datetime_partial format_interval format_report
@@ -94,6 +94,26 @@ sub ordered_hash_keys
         @hash_keys = keys %{$hash};
     }
     return @hash_keys;
+}
+
+#
+# Merge two ordered hash
+#
+# @param hash1
+# @param hash2
+# @return merged hash
+#
+sub ordered_hash_merge
+{
+    my ($hash1, $hash2) = @_;
+    my @data = ();
+    foreach my $key (ordered_hash_keys($hash1)) {
+        push(@data, $key, $hash1->{$key});
+    }
+    foreach my $key (ordered_hash_keys($hash2)) {
+        push(@data, $key, $hash2->{$key});
+    }
+    return ordered_hash(@data);
 }
 
 #

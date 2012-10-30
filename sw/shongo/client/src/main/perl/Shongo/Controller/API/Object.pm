@@ -256,7 +256,7 @@ sub add_attribute
             # Generate callbacks for given class
             $attribute->{'collection'}->{'add'} = sub {
                 my $available_values = [];
-                my %values_hash = map { $_ => 1 } @{get_collection_items($self->get('technologies'))};
+                my %values_hash = map { $_ => 1 } @{get_collection_items($self->get($attribute_name))};
                 my $count = 0;
                 foreach my $key (ordered_hash_keys($attribute->{'collection'}->{'enum'})) {
                     if ( !exists($values_hash{$key}) ) {
