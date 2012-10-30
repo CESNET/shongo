@@ -264,6 +264,22 @@ Represents a specification for an \gls{g:resource} which is stored in local or f
 \ApiClassAttribute{resourceIdentifier}{String}{\ApiRequired} \Gls{g:resource} identifier for the \gls{g:resource}.
 \end{ApiClassAttributes}
 
+\ApiClass{AliasSpecification}{Specification}
+Represents a specification for an \gls{g:device-alias}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{technology}{Technology}{\ApiOptional} \Gls{g:technology} of the requested \gls{g:device-alias}.
+\ApiClassAttribute{aliasType}{AliasType}{\ApiOptional} Type of the requested \gls{g:device-alias}.
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a \gls{g:resource} with \ApiCode{AliasProviderCapability} which is preferred to be used as the alias provider.
+\end{ApiClassAttributes}
+
+\ApiClass{VirtualRoomSpecification}{Specification}
+Represents a specification for a \gls{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiOptional} Set of \glspl{g:technology} which the \gls{g:device-virtual-room} must support.
+\ApiClassAttribute{portCount}{int}{\ApiOptional} Number of ports which must be allocated for the \gls{g:device-virtual-room}.
+\ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a preferred \gls{g:resource-device} with \ApiCode{VirtualRoomsCapability} where should be the \gls{g:device-virtual-room} created.
+\end{ApiClassAttributes}
+
 \ApiClass{CompartmentSpecification}{Specification}
 Represents a specification for a group of participants which should participate a single \gls{g:compartment}.
 \begin{ApiClassAttributes}
@@ -293,15 +309,7 @@ Represents a specification of parameters for an \gls{g:endpoint} which will be u
 \ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} of the requested \gls{g:endpoint}.
 \end{ApiClassAttributes}
 
-\ApiClass{AliasSpecification}{Specification}
-Represents a specification for an \gls{g:device-alias}.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiOptional} \Gls{g:technology} of the requested \gls{g:device-alias}.
-\ApiClassAttribute{aliasType}{AliasType}{\ApiOptional} Type of the requested \gls{g:device-alias}.
-\ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a \gls{g:resource} with \ApiCode{AliasProviderCapability} which is preferred to be used as the alias provider.
-\end{ApiClassAttributes}
-
-\ApiClass{PersonSpecification}{Specification}
+\ApiClass{PersonSpecification}{ParticipantSpecification}
 Represents a specification for a person that should participate in a \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{person}{Person}{\ApiRequired} Requested person.
