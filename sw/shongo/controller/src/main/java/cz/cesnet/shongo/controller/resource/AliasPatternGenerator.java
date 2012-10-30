@@ -3,9 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * {@link AliasGenerator} based on pattern.
@@ -20,20 +18,56 @@ public class AliasPatternGenerator extends AliasGenerator
     Set<String> usedValues = new HashSet<String>();
 
     /**
-     * Pattern for the alias.
+     * Patterns for the alias.
      */
-    private Pattern pattern = new Pattern();
+    private List<Pattern> patterns = new ArrayList<Pattern>();
 
     /**
      * Constructor.
      *
+     * @param technology sets the {@link #technology}
+     * @param type sets the {@link #type}
+     */
+    public AliasPatternGenerator(Technology technology, AliasType type)
+    {
+        super(technology, type);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #technology}
+     * @param type sets the {@link #type}
      * @param pattern pattern for aliases.
      */
     public AliasPatternGenerator(Technology technology, AliasType type, String pattern)
     {
-        super(technology, type);
+        this(technology, type, Collections.nCopies(1, pattern));
+    }
 
-        this.pattern.parse(pattern);
+    /**
+     * Constructor.
+     *
+     * @param technology sets the {@link #technology}
+     * @param type sets the {@link #type}
+     * @param patterns patterns for aliases.
+     */
+    public AliasPatternGenerator(Technology technology, AliasType type, Collection<String> patterns)
+    {
+        super(technology, type);
+        for ( String pattern : patterns ) {
+            addPattern(pattern);
+        }
+    }
+
+    /**
+     * @param patternString from which should be parsed new {@link Pattern} and added to the {@link #patterns}
+     */
+    public void addPattern(String patternString)
+    {
+        Pattern pattern = new Pattern();
+        pattern.parse(patternString);
+        this.patterns.add(pattern);
     }
 
     /**
@@ -62,10 +96,15 @@ public class AliasPatternGenerator extends AliasGenerator
     public Alias generate()
     {
         String value = null;
-        pattern.reset();
-        do {
-            value = pattern.generate();
-        } while (value != null && usedValues.contains(value));
+        for ( Pattern pattern : patterns) {
+            pattern.reset();
+            do {
+                value = pattern.generate();
+            } while (value != null && usedValues.contains(value));
+            if (value != null) {
+                break;
+            }
+        }
         if (value == null) {
             return null;
         }

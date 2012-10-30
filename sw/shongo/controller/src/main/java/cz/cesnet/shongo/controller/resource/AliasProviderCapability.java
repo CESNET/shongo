@@ -5,6 +5,10 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Capability tells that the resource acts as alias provider which can allocate aliases for itself and/or
@@ -26,13 +30,13 @@ public class AliasProviderCapability extends Capability
     private AliasType type;
 
     /**
-     * Pattern for aliases.
+     * List of pattern for aliases.
      * <p/>
      * Examples:
      * 1) "95[ddd]"     will generate 95001, 95002, 95003, ...
      * 2) "95[dd]2[dd]" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
      */
-    private String pattern;
+    private List<String> patterns = new ArrayList<String>();
 
     /**
      * Specifies whether alias provider is restricted only to the owner resource or all resources can use the provider
@@ -52,13 +56,13 @@ public class AliasProviderCapability extends Capability
      *
      * @param technology sets the {@link #technology}
      * @param type       sets the {@link #type}
-     * @param pattern    sets the {@link #pattern}
+     * @param pattern    to be added to the {@link #patterns}
      */
     public AliasProviderCapability(Technology technology, AliasType type, String pattern)
     {
         this.technology = technology;
         this.type = type;
-        this.pattern = pattern;
+        this.addPattern(pattern);
     }
 
     /**
@@ -66,7 +70,7 @@ public class AliasProviderCapability extends Capability
      *
      * @param technology                sets the {@link #technology}
      * @param type                      sets the {@link #type}
-     * @param pattern                   sets the {@link #pattern}
+     * @param pattern                   to be added to the {@link #patterns}
      * @param restrictedToOwnerResource sets the {@link #restrictedToOwnerResource}
      */
     public AliasProviderCapability(Technology technology, AliasType type, String pattern,
@@ -74,8 +78,8 @@ public class AliasProviderCapability extends Capability
     {
         this.technology = technology;
         this.type = type;
-        this.pattern = pattern;
         this.restrictedToOwnerResource = restrictedToOwnerResource;
+        this.addPattern(pattern);
     }
 
     /**
@@ -115,20 +119,29 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #pattern}
+     * @return {@link #patterns}
      */
-    @Column
-    public String getPattern()
+    @ElementCollection
+    @Access(AccessType.FIELD)
+    public List<String> getPatterns()
     {
-        return pattern;
+        return Collections.unmodifiableList(patterns);
     }
 
     /**
-     * @param pattern sets the {@link #pattern}
+     * @param pattern to be added to the {@link #patterns}
      */
-    public void setPattern(String pattern)
+    public void addPattern(String pattern)
     {
-        this.pattern = pattern;
+        this.patterns.add(pattern);
+    }
+
+    /**
+     * @param pattern to be removed from the {@link #patterns}
+     */
+    public void removePattern(String pattern)
+    {
+        this.patterns.remove(pattern);
     }
 
     /**
@@ -161,7 +174,9 @@ public class AliasProviderCapability extends Capability
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
         apiAliasProvider.setTechnology(getTechnology());
         apiAliasProvider.setType(getType());
-        apiAliasProvider.setPattern(getPattern());
+        for ( String pattern : patterns) {
+            apiAliasProvider.addPattern(pattern);
+        }
         apiAliasProvider.setRestrictedToOwnerResource(isRestrictedToOwnerResource());
         super.toApi(api);
     }
@@ -178,18 +193,30 @@ public class AliasProviderCapability extends Capability
         if (apiAliasProvider.isPropertyFilled(apiAliasProvider.TYPE)) {
             setType(apiAliasProvider.getType());
         }
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.PATTERN)) {
-            setPattern(apiAliasProvider.getPattern());
-        }
         if (apiAliasProvider.isPropertyFilled(apiAliasProvider.RESTRICTED_TO_OWNER_RESOURCE)) {
             setRestrictedToOwnerResource(apiAliasProvider.getRestrictedToOwnerResource());
         }
+
+        // Create patterns
+        for (String pattern : apiAliasProvider.getPatterns()) {
+            if (api.isCollectionItemMarkedAsNew(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS,
+                    pattern)) {
+                addPattern(pattern);
+            }
+        }
+        // Delete patterns
+        Set<String> patternsToDelete =
+                api.getCollectionItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS);
+        for (String pattern : patternsToDelete) {
+            removePattern(pattern);
+        }
+
         super.fromApi(api, entityManager);
     }
 
     @Transient
     public AliasGenerator getAliasGenerator()
     {
-        return new AliasPatternGenerator(technology, type, pattern);
+        return new AliasPatternGenerator(technology, type, getPatterns());
     }
 }

@@ -1,14 +1,8 @@
-* Allow modification of atomic types in collection in cmd-line client
-
-* Add requested alias value attribute to AliasSpecification
-
-* Add multiple patterns to AliasProviderSpecification
-
-* Implement VirtualRoomSpecification (technologies, resource, portCount)
-
 FUTURE:
 -------
 * Persons, PersonSpecifications
+
+* Add requested alias value attribute to AliasSpecification
 
 * API synchronizovat pomoci
   http://java.net/projects/texdoclet/

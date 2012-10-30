@@ -14,7 +14,7 @@ our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys
     get_enum_value
-    get_collection_size get_collection_items get_collection_item add_collection_item remove_collection_item
+    get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
     format_datetime format_date format_datetime_partial format_interval format_report
     var_dump
     get_home_directory get_term_width
@@ -182,6 +182,35 @@ sub get_collection_item
     }
     else {
         return undef;
+    }
+}
+
+#
+# Set item item collection by index
+#
+# @param $collection  collection reference
+# @param $item_index  item index
+# @param $item  item
+#
+sub set_collection_item
+{
+    my ($collection, $item_index, $item) = @_;
+    if ( ref($collection) eq 'ARRAY' ) {
+        $collection->[$item_index] = $item;
+    }
+    elsif ( ref($collection) eq 'HASH' ) {
+        my $array = [];
+        if ( $item_index < scalar(@{$collection->{'modified'}}) ) {
+            @{$collection->{'modified'}}[$item_index] = $item;
+        }
+        else {
+            $item_index -= scalar(@{$collection->{'modified'}});
+            @{$collection->{'new'}}[$item_index] = $item;
+        }
+    }
+    else {
+        var_dump($collection);
+        die("Cannot set item to unknown printed collection.");
     }
 }
 

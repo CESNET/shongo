@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.compartment.Endpoint;
 import cz.cesnet.shongo.controller.compartment.EndpointProvider;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
+import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -21,6 +24,7 @@ import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.fail;
 
 /**
  * Tests for {@link CompartmentReservationTask}.
@@ -29,7 +33,7 @@ import static junit.framework.Assert.assertNotNull;
  */
 public class CompartmentReservationTaskTest
 {
-    /*@Test
+    @Test
     public void testFailures() throws Exception
     {
         ReservationTask.Context context = new ReservationTask.Context(new Cache(), Interval.parse("2012/2013"));
@@ -211,7 +215,7 @@ public class CompartmentReservationTaskTest
         }
         catch (ReportException exception) {
         }
-    }*/
+    }
 
     @Test
     public void testDependentResource() throws Exception

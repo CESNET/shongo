@@ -182,7 +182,7 @@ Base class for all capabilities which a \gls{g:resource} can have. A \gls{g:reso
 \begin{ApiClassAttributes}
 \ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} for which the \gls{g:device-alias} will be allocated.
 \ApiClassAttribute{type}{AliasType}{\ApiRequired} Type of \gls{g:device-alias} which will be allocated.
-\ApiClassAttribute{pattern}{String}{\ApiRequired} Pattern specifying which values will be generated as \gls{g:device-alias} (e.g., \ApiValue{950087[ddd]} pattern for generation of \ApiValue{950087001}, \ApiValue{950087002}, ... \ApiValue{950087999} values). 
+\ApiClassAttributeCollection{patterns}{List}{String}{\ApiRequired} Collection of patterns specifying which values will be generated as \gls{g:device-alias} (e.g., single \ApiValue{950087[ddd]} pattern for generation of \ApiValue{950087001}, \ApiValue{950087002}, ... \ApiValue{950087999} values). 
 \ApiClassAttribute{restrictedToOwnerResource}{boolean}{\ApiRequired} Specifies whether \glspl{g:device-alias} can be allocated only for the \gls{g:resource} which has this capability or for all other \glspl{g:resource-device}.
 \end{ApiClassAttributes}
 

@@ -20,7 +20,7 @@ import static junitx.framework.Assert.assertEquals;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomTest extends AbstractDatabaseTest
+public class CacheVirtualRoomTest extends AbstractDatabaseTest
 {
     @Test
     public void test() throws Exception

@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -489,6 +488,11 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         private Set<Resource> referencedResources = new HashSet<Resource>();
 
         /**
+         * Provided {@link VirtualRoomReservation}s in the {@link Transaction}.
+         */
+        private List<VirtualRoomReservation> providedVirtualRoomReservations = new ArrayList<VirtualRoomReservation>();
+
+        /**
          * @param resource to be added to the {@link #referencedResources}
          */
         public void addReferencedResource(Resource resource)
@@ -510,9 +514,32 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         public void addProvidedReservation(Long objectId, ResourceReservation reservation)
         {
             if (reservation instanceof VirtualRoomReservation) {
-                throw new TodoImplementException("Providing virtual room reservation is not implemented yet.");
+                VirtualRoomReservation virtualRoomReservation = (VirtualRoomReservation) reservation;
+                providedVirtualRoomReservations.add(virtualRoomReservation);
             }
-            super.addProvidedReservation(objectId, reservation);
+            else {
+                super.addProvidedReservation(objectId, reservation);
+            }
+        }
+
+        @Override
+        public void removeProvidedReservation(Long objectId, ResourceReservation reservation)
+        {
+            if (reservation instanceof VirtualRoomReservation) {
+                VirtualRoomReservation virtualRoomReservation = (VirtualRoomReservation) reservation;
+                providedVirtualRoomReservations.remove(virtualRoomReservation);
+            }
+            else {
+                super.removeProvidedReservation(objectId, reservation);
+            }
+        }
+
+        /**
+         * @return collection of provided {@link VirtualRoomReservation}
+         */
+        public Collection<VirtualRoomReservation> getProvidedVirtualRoomReservations()
+        {
+            return providedVirtualRoomReservations;
         }
     }
 }

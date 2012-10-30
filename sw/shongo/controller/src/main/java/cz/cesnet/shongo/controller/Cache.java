@@ -410,25 +410,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * Find {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom}s in given {@code interval} which have at least {@code requiredPortCount}
-     * available ports and which supports given {@code technologies}.
-     *
-     * @param interval
-     * @param requiredPortCount
-     * @param technologiesVariants
-     * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom}
-     */
-    public List<AvailableVirtualRoom> findAvailableVirtualRoomsByVariants(Interval interval, int requiredPortCount,
-            Collection<Set<Technology>> technologiesVariants, Transaction transaction)
-    {
-        Set<Long> deviceResources = resourceCache.getDeviceResourcesByCapabilityTechnologies(
-                VirtualRoomsCapability.class,
-                technologiesVariants);
-        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources,
-                (transaction != null ? transaction.getResourceCacheTransaction() : null));
-    }
-
-    /**
      * Find available alias in all resources in the database.
      *
      * @param technology

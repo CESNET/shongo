@@ -3,10 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 
-import javax.persistence.Access;
-import javax.persistence.AccessType;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
+import javax.persistence.*;
 
 /**
  * Represents a reuse of an existing {@link Reservation} to a new {@link Reservation} for
@@ -38,6 +35,13 @@ public class ExistingReservation extends Reservation
     public void setReservation(Reservation reservation)
     {
         this.reservation = reservation;
+    }
+
+    @Override
+    @Transient
+    public Reservation getTargetReservation()
+    {
+        return reservation;
     }
 
     @Override

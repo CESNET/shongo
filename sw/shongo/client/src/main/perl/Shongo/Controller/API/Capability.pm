@@ -94,7 +94,16 @@ sub on_init()
                 }
             );
             $self->add_attribute(
-                'pattern', {
+                'patterns', {
+                    'type' => 'collection',
+                    'collection' => {
+                        'title' => 'Pattern',
+                        'add' => sub {
+                            console_read_value('Pattern', 1);
+                        }
+                    },
+                    'display-empty' => 1,
+                    'complex' => 0,
                     'required' => 1
                 }
             );

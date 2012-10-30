@@ -43,7 +43,7 @@ public class AliasSpecification extends Specification implements ReservationTask
     private AliasType aliasType;
 
     /**
-     * {@link Resource} with {@link AliasProviderCapability}.
+     * Preferred {@link Resource} with {@link AliasProviderCapability}.
      */
     private Resource resource;
 

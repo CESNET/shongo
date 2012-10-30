@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.Required;
 
+import java.util.List;
+
 /**
  * Capability tells that the resource can allocated can allocate aliases from an alias range.
  *
@@ -28,7 +30,7 @@ public class AliasProviderCapability extends Capability
      * 1) "95[ddd]"     will generate 95001, 95002, 95003, ...
      * 2) "95[dd]2[dd]" will generate 9500201, 9500202, ..., 9501200, 9501201, ...
      */
-    public static final String PATTERN = "pattern";
+    public static final String PATTERNS = "patterns";
 
     /**
      * Specifies whether alias provider is restricted only to the owner resource or all resources can use the provider
@@ -48,13 +50,13 @@ public class AliasProviderCapability extends Capability
      *
      * @param technology sets the {@link #TECHNOLOGY}
      * @param type       sets the {@link #TYPE}
-     * @param pattern    sets the {@link #PATTERN}
+     * @param pattern    to be added to the {@link #PATTERNS}
      */
     public AliasProviderCapability(Technology technology, AliasType type, String pattern)
     {
         setTechnology(technology);
         setType(type);
-        setPattern(pattern);
+        addPattern(pattern);
     }
 
     /**
@@ -62,7 +64,7 @@ public class AliasProviderCapability extends Capability
      *
      * @param technology                sets the {@link #TECHNOLOGY}
      * @param type                      sets the {@link #TYPE}
-     * @param pattern                   sets the {@link #PATTERN}
+     * @param pattern                   to be added to the {@link #PATTERNS}
      * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
      */
     public AliasProviderCapability(Technology technology, AliasType type, String pattern,
@@ -70,7 +72,7 @@ public class AliasProviderCapability extends Capability
     {
         setTechnology(technology);
         setType(type);
-        setPattern(pattern);
+        addPattern(pattern);
         setRestrictedToOwnerResource(restrictedToOwnerResource);
     }
 
@@ -109,20 +111,36 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #PATTERN}
+     * @return {@link #PATTERNS}
      */
     @Required
-    public String getPattern()
+    public List<String> getPatterns()
     {
-        return getPropertyStorage().getValue(PATTERN);
+        return getPropertyStorage().getCollection(PATTERNS, List.class);
     }
 
     /**
-     * @param pattern sets the {@link #PATTERN}
+     * @param patterns sets the {@link #PATTERNS}
      */
-    public void setPattern(String pattern)
+    public void setPatterns(List<String> patterns)
     {
-        getPropertyStorage().setValue(PATTERN, pattern);
+        getPropertyStorage().setValue(PATTERNS, patterns);
+    }
+
+    /**
+     * @param pattern to be added to the {@link #PATTERNS}
+     */
+    public void addPattern(String pattern)
+    {
+        getPropertyStorage().addCollectionItem(PATTERNS, pattern, List.class);
+    }
+
+    /**
+     * @param pattern to be removed from the {@link #PATTERNS}
+     */
+    public void removePattern(String pattern)
+    {
+        getPropertyStorage().removeCollectionItem(PATTERNS, pattern);
     }
 
     /**

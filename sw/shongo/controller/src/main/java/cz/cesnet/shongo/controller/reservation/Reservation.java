@@ -244,6 +244,26 @@ public abstract class Reservation extends PersistentObject
     {
     }
 
+    /**
+     * @return this {@link Reservation} which allocates any resources (it can be overridden, e.g., by
+     *         {@link ExistingReservation} to return proper reused {@link Reservation})
+     */
+    @Transient
+    public Reservation getTargetReservation()
+    {
+        return this;
+    }
+
+    /**
+     * @param reservationType to cast result from {@link #getTargetReservation()}
+     * @see {@link #getTargetReservation()}
+     */
+    @Transient
+    public final <T extends Reservation> T getTargetReservation(Class<T> reservationType)
+    {
+        return reservationType.cast(getTargetReservation());
+    }
+
     @PrePersist
     protected void onCreate()
     {

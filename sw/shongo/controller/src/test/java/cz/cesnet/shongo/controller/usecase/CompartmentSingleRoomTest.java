@@ -11,7 +11,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomSingleTest extends AbstractControllerTest
+public class CompartmentSingleRoomTest extends AbstractControllerTest
 {
     /**
      * Test single technology virtual room.

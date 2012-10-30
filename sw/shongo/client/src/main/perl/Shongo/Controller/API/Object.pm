@@ -271,7 +271,7 @@ sub add_attribute
                 return console_read_enum('Select', ordered_hash($available_values));
             };
         }
-        if ( !defined($attribute->{'collection'}->{'add'}) && !defined($attribute->{'collection'}->{'add'}) ) {
+        if ( !defined($attribute->{'collection'}->{'add'}) && !defined($attribute->{'collection'}->{'modify'}) ) {
             $attribute->{'editable'} = 0;
         }
     }
@@ -630,6 +630,7 @@ sub modify_collection_add_actions
                 if ( defined($index) ) {
                     my $item = get_collection_item($self->{$attribute_name}, $index - 1);
                     $item = $attribute->{'collection'}->{'modify'}($item);
+                    set_collection_item($self->{$attribute_name}, $index - 1, $item);
                 }
                 return undef;
             });
@@ -641,7 +642,7 @@ sub modify_collection_add_actions
                 if ( defined($index) ) {
                     my $item = get_collection_item($self->{$attribute_name}, $index - 1);
                     if ( defined($attribute->{'collection'}->{'delete'}) ) {
-                        $item = $attribute->{'collection'}->{'delete'}($item);
+                        $attribute->{'collection'}->{'delete'}($item);
                     }
                     remove_collection_item(\$self->{$attribute_name}, $index - 1);
                 }

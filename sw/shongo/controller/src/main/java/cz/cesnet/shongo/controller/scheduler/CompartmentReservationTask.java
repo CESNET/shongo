@@ -4,7 +4,6 @@ import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.compartment.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -152,11 +151,12 @@ public class CompartmentReservationTask extends ReservationTask
      * @param reservation child {@link VirtualRoomReservation} to be added to the {@link CompartmentReservationTask}
      * @return allocated {@link VirtualRoom}
      */
-    public VirtualRoom addChildReservation(VirtualRoomReservation reservation)
+    public VirtualRoom addChildVirtualRoomReservation(Reservation reservation)
     {
         super.addChildReservation(reservation);
 
-        VirtualRoom virtualRoom = reservation.createEndpoint();
+        VirtualRoomReservation virtualRoomReservation = reservation.getTargetReservation(VirtualRoomReservation.class);
+        VirtualRoom virtualRoom = virtualRoomReservation.createEndpoint();
         addEndpoint(virtualRoom);
         return virtualRoom;
     }
@@ -386,7 +386,7 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Find plan for connecting endpoints without virtual room.
      *
-     * @return plan if possible, null otherwise
+     * @return true if succeeds, otherwise false
      */
     private boolean createNoVirtualRoomReservation() throws ReportException
     {
@@ -453,41 +453,18 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Find plan for connecting endpoints by a single virtual room
      *
-     * @return plan if possible, null otherwise
+     * @throws ReportException when the {@link VirtualRoomReservation} cannot be created
      */
-    private boolean createSingleVirtualRoomReservation() throws ReportException
+    private void createSingleVirtualRoomReservation() throws ReportException
     {
-        Collection<Set<Technology>> technologySets = getSingleVirtualRoomPlanTechnologySets();
-
-        // Get available virtual rooms
-        List<AvailableVirtualRoom> availableVirtualRooms = getCache().findAvailableVirtualRoomsByVariants(
-                getInterval(), compartment.getTotalEndpointCount(), technologySets, getCacheTransaction());
-        if (availableVirtualRooms.size() == 0) {
-            return false;
-        }
-        // Sort virtual rooms from the most filled to the least filled
-        Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
-        {
-            @Override
-            public int compare(AvailableVirtualRoom first, AvailableVirtualRoom second)
-            {
-                return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
-            }
-        });
-        // Get the first virtual room
-        AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
-
-        // Create virtual room reservation
-        VirtualRoomReservation virtualRoomReservation = new VirtualRoomReservation();
-        virtualRoomReservation.setSlot(getInterval());
-        virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
-        virtualRoomReservation.setPortCount(compartment.getTotalEndpointCount());
-        VirtualRoom virtualRoom = addChildReservation(virtualRoomReservation);
+        VirtualRoomReservationTask virtualRoomReservationTask = new VirtualRoomReservationTask(getContext(),
+                getSingleVirtualRoomPlanTechnologySets(), compartment.getTotalEndpointCount());
+        Reservation reservation = virtualRoomReservationTask.perform();
+        VirtualRoom virtualRoom = addChildVirtualRoomReservation(reservation);
         addReport(new AllocatingVirtualRoomReport(virtualRoom));
         for (Endpoint endpoint : compartment.getEndpoints()) {
             addConnection(virtualRoom, endpoint);
         }
-        return true;
     }
 
     /**
@@ -562,10 +539,11 @@ public class CompartmentReservationTask extends ReservationTask
         beginReport(new AllocatingCompartmentReport(compartment));
 
         if (!createNoVirtualRoomReservation()) {
-            if (!createSingleVirtualRoomReservation()) {
+            try {
+                createSingleVirtualRoomReservation();
+            } catch (ReportException exception) {
                 // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
-                throw new NoAvailableVirtualRoomReport(getSingleVirtualRoomPlanTechnologySets(),
-                        compartment.getTotalEndpointCount()).exception();
+                throw exception;
             }
         }
 

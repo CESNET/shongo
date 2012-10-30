@@ -11,7 +11,7 @@ import org.junit.Test;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomMultipleTest extends AbstractControllerTest
+public class CompartmentMultipleRoomTest extends AbstractControllerTest
 {
     /**
      * Test multiple virtual room.
