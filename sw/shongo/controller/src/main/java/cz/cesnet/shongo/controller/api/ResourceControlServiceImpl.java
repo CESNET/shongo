@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSummary;
+import cz.cesnet.shongo.api.RoomUser;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -19,6 +20,7 @@ import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.ListParticipants;
 import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;
@@ -244,6 +246,14 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         return (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
+    }
+
+    @Override
+    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
+            throws FaultException
+    {
+        authorization.validate(token);
+        return (List<RoomUser>) commandDevice(deviceResourceIdentifier, new ListParticipants(roomId));
     }
 
     /**

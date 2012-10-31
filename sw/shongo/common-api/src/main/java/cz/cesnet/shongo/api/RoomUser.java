@@ -1,5 +1,7 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.api.xmlrpc.StructType;
+import jade.content.Concept;
 import org.joda.time.DateTime;
 
 /**
@@ -7,11 +9,12 @@ import org.joda.time.DateTime;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class RoomUser
+public class RoomUser implements StructType, Concept
 {
     private String userId;
     private String roomId;
     private UserIdentity userIdentity;
+    private String displayName = null;
 
     private DateTime joinTime;
 
@@ -65,7 +68,7 @@ public class RoomUser
     /**
      * @return Is the user muted?
      */
-    public boolean isMuted()
+    public boolean getMuted()
     {
         return muted;
     }
@@ -141,4 +144,21 @@ public class RoomUser
     {
         this.userIdentity = userIdentity;
     }
+
+    /**
+     * @return name of the user displayed to the others (e.g., name of the person, physical room name...)
+     */
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    /**
+     * @param displayName name of the user displayed to the others (e.g., name of the person, physical room name...)
+     */
+    public void setDisplayName(String displayName)
+    {
+        this.displayName = displayName;
+    }
+
 }

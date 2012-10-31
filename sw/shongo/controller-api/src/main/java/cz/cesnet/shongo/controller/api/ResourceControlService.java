@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSummary;
+import cz.cesnet.shongo.api.RoomUser;
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -98,4 +99,8 @@ public interface ResourceControlService extends Service
     @API
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier)
             throws FaultException;
+
+    @API
+    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
+        throws FaultException;
 }

@@ -1,9 +1,11 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
+
+import jade.content.Concept;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class UserIdentity
+public class UserIdentity implements Concept
 {
     private String id;
 

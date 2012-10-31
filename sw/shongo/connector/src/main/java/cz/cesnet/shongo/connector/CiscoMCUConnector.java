@@ -174,7 +174,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         System.out.println("Listing shongo-test room:");
         Collection<RoomUser> shongoUsers = conn.listRoomUsers("shongo-test");
         for (RoomUser ru : shongoUsers) {
-            System.out.println("  - " + ru.getUserId());
+            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
         }
         System.out.println("Listing done");
 
@@ -281,9 +281,9 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         di.setName((String) device.get("model"));
 
-        String version = (String) device.get("softwareVersion")
-                + " (API: " + (String) device.get("apiVersion")
-                + ", build: " + (String) device.get("buildVersion")
+        String version = device.get("softwareVersion")
+                + " (API: " + device.get("apiVersion")
+                + ", build: " + device.get("buildVersion")
                 + ")";
         di.setSoftwareVersion(version);
 
@@ -993,7 +993,10 @@ ParamsLoop:
             ru.setUserId((String) part.get("participantName"));
             ru.setRoomId((String) part.get("conferenceName"));
 
+            @SuppressWarnings("unchecked")
             Map<String, Object> state = (Map<String, Object>) part.get("currentState");
+
+            ru.setDisplayName((String) state.get("displayName"));
 
             ru.setMuted((Boolean) state.get("audioRxMuted"));
             if (state.get("audioRxGainMode").equals("fixed")) {
