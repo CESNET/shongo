@@ -69,8 +69,7 @@ public class ActionRequestCommand extends Command
             throw new CommandException("Error in composing the command message.", e);
         }
 
-        logger.info("{} initiating action request -> {}: {}\n",
-                new Object[]{agent.getAID().getName(), performer.getName(), initMsg});
+        logger.debug("{} initiating action request -> {}\n", agent.getAID().getName(), performer.getName());
 
         agent.addBehaviour(new ActionRequesterBehaviour(agent, initMsg, this));
         // FIXME: check that the behaviour is removed from the agent once it is done (or after some timeout)
