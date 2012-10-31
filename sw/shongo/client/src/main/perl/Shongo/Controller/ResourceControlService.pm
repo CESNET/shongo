@@ -406,7 +406,7 @@ sub resource_set_microphone_level
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.setMicrophoneLevel',
         RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($level)
+        RPC::XML::int->new($level)
     );
     if ( $result->is_fault ) {
         return;
@@ -420,7 +420,7 @@ sub resource_set_playback_level
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.setPlaybackLevel',
         RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($level)
+        RPC::XML::int->new($level)
     );
     if ( $result->is_fault ) {
         return;
