@@ -1,13 +1,8 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import org.hibernate.annotations.Type;
-import org.joda.time.DateTime;
-import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -21,18 +16,8 @@ import java.util.List;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Compartment extends PersistentObject
+public class Compartment extends Executable
 {
-    /**
-     * Interval start date/time.
-     */
-    private DateTime slotStart;
-
-    /**
-     * Interval end date/time.
-     */
-    private DateTime slotEnd;
-
     /**
      * List of {@link Endpoint}s which participates in the {@link Compartment}.
      */
@@ -53,79 +38,6 @@ public class Compartment extends PersistentObject
      * {@link Endpoint} can represent multiple endpoints).
      */
     private int totalEndpointCount = 0;
-
-    /**
-     * Current state of the {@link Compartment}.
-     */
-    private State state;
-
-    /**
-     * @return {@link #slotStart}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
-    public DateTime getSlotStart()
-    {
-        return slotStart;
-    }
-
-    /**
-     * @param slotStart sets the {@link #slotStart}
-     */
-    public void setSlotStart(DateTime slotStart)
-    {
-        this.slotStart = slotStart;
-    }
-
-    /**
-     * @return {@link #slotEnd}
-     */
-    @Column
-    @Type(type = "DateTime")
-    @Access(AccessType.PROPERTY)
-    public DateTime getSlotEnd()
-    {
-        return slotEnd;
-    }
-
-    /**
-     * @param slotEnd sets the {@link #slotEnd}
-     */
-    public void setSlotEnd(DateTime slotEnd)
-    {
-        this.slotEnd = slotEnd;
-    }
-
-    /**
-     * @return slot ({@link #slotStart}, {@link #slotEnd})
-     */
-    @Transient
-    public Interval getSlot()
-    {
-        return new Interval(slotStart, slotEnd);
-    }
-
-    /**
-     * @param slot sets the slot
-     */
-    public void setSlot(Interval slot)
-    {
-        setSlotStart(slot.getStart());
-        setSlotEnd(slot.getEnd());
-    }
-
-    /**
-     * Sets the slot to new interval created from given {@code start} and {@code end}.
-     *
-     * @param start
-     * @param end
-     */
-    public void setSlot(DateTime start, DateTime end)
-    {
-        setSlotStart(start);
-        setSlotEnd(end);
-    }
 
     /**
      * @return {@link #endpoints}
@@ -221,30 +133,11 @@ public class Compartment extends PersistentObject
         return totalEndpointCount;
     }
 
-    /**
-     * @return {@link #state}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public State getState()
+    @Override
+    @Transient
+    public String getName()
     {
-        return state;
-    }
-
-    /**
-     * @param state sets the {@link #state}
-     */
-    public void setState(State state)
-    {
-        this.state = state;
-    }
-
-    @PrePersist
-    protected void onCreate()
-    {
-        if (state == null) {
-            state = State.NOT_STARTED;
-        }
+        return String.format("compartment '%d'", getId());
     }
 
     /**
@@ -309,46 +202,75 @@ public class Compartment extends PersistentObject
         return compartmentApi;
     }
 
-    /**
-     * State of the {@link Compartment}.
-     */
-    public static enum State
+    private void startImplementation(ExecutorThread executorThread, EntityManager entityManager, boolean startedNow)
     {
-        /**
-         * {@link Compartment} which has not been fully allocated yet (e.g., it is stored
-         * for {@link AllocatingCompartmentReport}).
-         */
-        NOT_ALLOCATED,
+        // Create virtual rooms
+        boolean virtualRoomCreated = false;
+        for (VirtualRoom virtualRoom : getVirtualRooms()) {
+            if (virtualRoom.getState() == VirtualRoom.State.NOT_CREATED) {
+                entityManager.getTransaction().begin();
+                virtualRoom.create(executorThread);
+                entityManager.getTransaction().commit();
+                virtualRoomCreated = true;
+            }
+        }
+        if (virtualRoomCreated) {
+            executorThread.getLogger().info("Waiting for virtual rooms to be created...");
+            try {
+                Thread.sleep(executorThread.getExecutor().getCompartmentWaitingVirtualRoom().getMillis());
+            }
+            catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+        }
 
-        /**
-         * {@link Compartment} has not been created yet.
-         */
-        NOT_STARTED,
+        // TODO: persist already assigned aliases
+        if (startedNow) {
+            // Assign aliases to endpoints
+            for (Endpoint endpoint : getEndpoints()) {
+                endpoint.assignAliases(executorThread);
+            }
+        }
 
-        /**
-         * {@link Compartment} is already created.
-         */
-        STARTED,
+        // Connect endpoints
+        for (Connection connection : getConnections()) {
+            if (connection.getState() == Connection.State.NOT_ESTABLISHED) {
+                entityManager.getTransaction().begin();
+                connection.establish(executorThread);
+                entityManager.getTransaction().commit();
+            }
+        }
+    }
 
-        /**
-         * {@link Compartment} has been already deleted.
-         */
-        FINISHED;
+    @Override
+    public void start(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        startImplementation(executorThread, entityManager, true);
+    }
 
-        /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.State}
-         */
-        public cz.cesnet.shongo.controller.api.Compartment.State toApi()
-        {
-            switch (this) {
-                case NOT_STARTED:
-                    return cz.cesnet.shongo.controller.api.Compartment.State.NOT_STARTED;
-                case STARTED:
-                    return cz.cesnet.shongo.controller.api.Compartment.State.STARTED;
-                case FINISHED:
-                    return cz.cesnet.shongo.controller.api.Compartment.State.FINISHED;
-                default:
-                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
+    @Override
+    public void resume(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        startImplementation(executorThread, entityManager, false);
+    }
+
+    @Override
+    public void stop(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        // Disconnect endpoints
+        for (Connection connection : getConnections()) {
+            if (connection.getState() == Connection.State.ESTABLISHED) {
+                entityManager.getTransaction().begin();
+                connection.close(executorThread);
+                entityManager.getTransaction().commit();
+            }
+        }
+        // Stop virtual rooms
+        for (VirtualRoom virtualRoom : getVirtualRooms()) {
+            if (virtualRoom.getState() == VirtualRoom.State.CREATED) {
+                entityManager.getTransaction().begin();
+                virtualRoom.delete(executorThread);
+                entityManager.getTransaction().commit();
             }
         }
     }

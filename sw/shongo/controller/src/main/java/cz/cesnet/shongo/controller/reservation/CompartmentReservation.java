@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.Compartment;
+import cz.cesnet.shongo.controller.executor.Compartment;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
 /**
- * Represents a {@link Reservation} for a {@link Compartment}.
+ * Represents a {@link Reservation} for a {@link cz.cesnet.shongo.controller.executor.Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -16,7 +16,7 @@ import javax.persistence.OneToOne;
 public class CompartmentReservation extends Reservation
 {
     /**
-     * {@link Compartment} which is allocated by the {@link CompartmentReservation}.
+     * {@link cz.cesnet.shongo.controller.executor.Compartment} which is allocated by the {@link CompartmentReservation}.
      */
     private Compartment compartment;
 

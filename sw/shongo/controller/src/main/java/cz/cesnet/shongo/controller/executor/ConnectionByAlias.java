@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.resource.Alias;
@@ -41,18 +41,18 @@ public class ConnectionByAlias extends Connection
     }
 
     @Override
-    protected State onEstablish(CompartmentExecutor compartmentExecutor)
+    protected State onEstablish(ExecutorThread executorThread)
     {
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
                     getEndpointFrom().getReportDescription(), getAlias().getValue(),
                     getAlias().getTechnology().getName()));
-            compartmentExecutor.getLogger().debug(message.toString());
+            executorThread.getLogger().debug(message.toString());
 
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
             if (getEndpointFrom() instanceof VirtualRoom) {
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();

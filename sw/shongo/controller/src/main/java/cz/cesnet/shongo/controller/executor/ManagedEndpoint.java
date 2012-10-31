@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 /**
  * Represents an {@link Endpoint} which is managed by a connector.

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
@@ -135,15 +135,15 @@ public abstract class Endpoint extends PersistentObject
     /**
      * Assign {@link #assignedAliases} to the {@link Endpoint}.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    public void assignAliases(CompartmentExecutor compartmentExecutor)
+    public void assignAliases(ExecutorThread executorThread)
     {
         List<Alias> aliases = getAssignedAliases();
         for (Alias alias : aliases) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
-            compartmentExecutor.getLogger().debug(message.toString());
+            executorThread.getLogger().debug(message.toString());
         }
     }
 }

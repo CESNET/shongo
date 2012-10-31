@@ -1,3 +1,5 @@
+* Finish refactorization of executor
+
 FUTURE:
 -------
 * Persons, PersonSpecifications

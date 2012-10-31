@@ -1,9 +1,9 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.compartment.Compartment;
-import cz.cesnet.shongo.controller.compartment.CompartmentExecutor;
-import cz.cesnet.shongo.controller.compartment.CompartmentManager;
+import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.executor.ExecutorThread;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -29,7 +29,7 @@ public class Executor extends Component
     private static Logger logger = LoggerFactory.getLogger(Executor.class);
 
     /**
-     * {@link EntityManagerFactory} used for loading {@link Compartment}s for execution.
+     * {@link EntityManagerFactory} used for loading {@link cz.cesnet.shongo.controller.executor.Compartment}s for execution.
      */
     private EntityManagerFactory entityManagerFactory;
 
@@ -74,9 +74,9 @@ public class Executor extends Component
     private Duration compartmentWaitingEnd;
 
     /**
-     * Map of executed {@link CompartmentExecutor}s by {@link Compartment} identifiers.
+     * Map of executed {@link ExecutorThread}s by {@link cz.cesnet.shongo.controller.executor.Compartment} identifiers.
      */
-    private Map<Long, CompartmentExecutor> executorsById = new HashMap<Long, CompartmentExecutor>();
+    private Map<Long, ExecutorThread> executorThreadById = new HashMap<Long, ExecutorThread>();
 
 
     /**
@@ -178,10 +178,10 @@ public class Executor extends Component
             }
         }
 
-        for (CompartmentExecutor executor : executorsById.values()) {
-            if (executor.isAlive()) {
-                logger.debug("Killing '{}'...", executor.getName());
-                executor.stop();
+        for (ExecutorThread executorThread : executorThreadById.values()) {
+            if (executorThread.isAlive()) {
+                logger.debug("Killing '{}'...", executorThread.getName());
+                executorThread.stop();
             }
         }
 
@@ -192,7 +192,7 @@ public class Executor extends Component
      * Execute {@link Reservation}s which should be executed for given {@code interval}.
      *
      * @param referenceDateTime specifies date/time which should be used as "now" executing {@link Reservation}s
-     * @return number of execute {@link Compartment}s
+     * @return number of execute {@link cz.cesnet.shongo.controller.executor.Compartment}s
      */
     public int execute(DateTime referenceDateTime)
     {
@@ -200,30 +200,32 @@ public class Executor extends Component
         Interval interval = new Interval(referenceDateTime, referenceDateTime.plus(lookupAhead));
         logger.info("Checking compartments for execution in '{}'...", TemporalHelper.formatInterval(interval));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
-        List<Compartment> compartments = compartmentManager.listCompartmentsForExecution(interval);
-        for (Compartment compartment : compartments) {
-            Long compartmentId = compartment.getId();
-            if (executorsById.containsKey(compartmentId)) {
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
+        List<Executable> executableList = executableManager.listExecutablesForExecution(interval);
+        for (Executable executable : executableList) {
+            Long compartmentId = executable.getId();
+            if (executorThreadById.containsKey(compartmentId)) {
                 continue;
             }
-            CompartmentExecutor executor = new CompartmentExecutor(this, controllerAgent, compartment.getId(),
-                    entityManagerFactory);
-            executor.start();
-            executorsById.put(compartmentId, executor);
+            ExecutorThread executorThread = new ExecutorThread(executable);
+            executorThread.start(this, controllerAgent, entityManagerFactory);
+            executorThreadById.put(compartmentId, executorThread);
             count++;
         }
         entityManager.close();
         return count;
     }
 
+    /**
+     * Wait for all {@link ExecutorThread}s from {@link #executorThreadById} to exit.
+     */
     public void waitForThreads()
     {
         boolean active;
         do {
             active = false;
-            for (CompartmentExecutor compartmentExecutor : executorsById.values()) {
-                if (compartmentExecutor.isAlive()) {
+            for (ExecutorThread executorThread : executorThreadById.values()) {
+                if (executorThread.isAlive()) {
                     active = true;
                 }
             }

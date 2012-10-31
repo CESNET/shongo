@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.compartment.CompartmentManager;
+import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -81,17 +81,17 @@ public class CompartmentServiceImpl extends Component
         entityManager.getTransaction().begin();
 
         try {
-            CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+            ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-            cz.cesnet.shongo.controller.compartment.Compartment compartment =
-                    compartmentManager.get(compartmentId);
+            cz.cesnet.shongo.controller.executor.Compartment compartment =
+                    (cz.cesnet.shongo.controller.executor.Compartment) executableManager.get(compartmentId);
 
-            compartmentManager.delete(compartment);
+            executableManager.delete(compartment);
 
             entityManager.getTransaction().commit();
         }
         catch (javax.persistence.RollbackException exception) {
-            throw new EntityToDeleteIsReferencedException(Compartment.class, compartmentId);
+            throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Compartment.class, compartmentId);
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -110,11 +110,13 @@ public class CompartmentServiceImpl extends Component
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.compartment.Compartment> list = compartmentManager.list();
+        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list();
         List<CompartmentSummary> summaryList = new ArrayList<CompartmentSummary>();
-        for (cz.cesnet.shongo.controller.compartment.Compartment compartment : list) {
+        for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
+            cz.cesnet.shongo.controller.executor.Compartment compartment =
+                    (cz.cesnet.shongo.controller.executor.Compartment) executable;
             CompartmentSummary summary = new CompartmentSummary();
             summary.setIdentifier(domain.formatIdentifier(compartment.getId()));
             summary.setSlot(compartment.getSlot());
@@ -128,18 +130,18 @@ public class CompartmentServiceImpl extends Component
     }
 
     @Override
-    public Compartment getCompartment(SecurityToken token, String compartmentIdentifier) throws FaultException
+    public cz.cesnet.shongo.controller.api.Compartment getCompartment(SecurityToken token, String compartmentIdentifier) throws FaultException
     {
         authorization.validate(token);
 
         Long id = domain.parseIdentifier(compartmentIdentifier);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        cz.cesnet.shongo.controller.compartment.Compartment compartment =
-                compartmentManager.get(id);
-        Compartment compartmentApi = compartment.toApi(domain);
+        cz.cesnet.shongo.controller.executor.Compartment compartment =
+                (cz.cesnet.shongo.controller.executor.Compartment) executableManager.get(id);
+        cz.cesnet.shongo.controller.api.Compartment compartmentApi = compartment.toApi(domain);
 
         entityManager.close();
 

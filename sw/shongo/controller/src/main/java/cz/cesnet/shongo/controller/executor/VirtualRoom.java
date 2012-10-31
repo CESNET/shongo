@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.api.Compartment;
 
@@ -74,30 +74,30 @@ public abstract class VirtualRoom extends Endpoint
     /**
      * Start virtual room.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    protected abstract boolean onCreate(CompartmentExecutor compartmentExecutor);
+    protected abstract boolean onCreate(ExecutorThread executorThread);
 
     /**
      * Stop virtual room.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    protected abstract boolean onDelete(CompartmentExecutor compartmentExecutor);
+    protected abstract boolean onDelete(ExecutorThread executorThread);
 
     /**
      * Start virtual room.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    public final void create(CompartmentExecutor compartmentExecutor)
+    public final void create(ExecutorThread executorThread)
     {
         if (getState() != State.NOT_CREATED) {
             throw new IllegalStateException(
                     "Virtual room can be created only if the virtual room is not created yet.");
         }
 
-        if (onCreate(compartmentExecutor)) {
+        if (onCreate(executorThread)) {
             setState(State.CREATED);
         }
         else {
@@ -108,16 +108,16 @@ public abstract class VirtualRoom extends Endpoint
     /**
      * Stop virtual room.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    public final void delete(CompartmentExecutor compartmentExecutor)
+    public final void delete(ExecutorThread executorThread)
     {
         if (getState() != State.CREATED) {
             throw new IllegalStateException(
                     "Virtual room can be deleted only if the virtual room is already created.");
         }
 
-        onDelete(compartmentExecutor);
+        onDelete(executorThread);
 
         setState(State.DELETED);
     }

@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
@@ -148,7 +148,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
 
     @Override
     @Transient
-    public boolean onCreate(CompartmentExecutor compartmentExecutor)
+    public boolean onCreate(ExecutorThread executorThread)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -156,21 +156,21 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
         if (deviceResource.hasIpAddress()) {
             message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
         }
-        compartmentExecutor.getLogger().debug(message.toString());
+        executorThread.getLogger().debug(message.toString());
         List<Alias> aliases = getAliases();
         for (Alias alias : aliases) {
             StringBuilder aliasMessage = new StringBuilder();
             aliasMessage
                     .append(String.format("%s has allocated alias '%s'.", getReportDescription(), alias.getValue()));
-            compartmentExecutor.getLogger().debug(aliasMessage.toString());
+            executorThread.getLogger().debug(aliasMessage.toString());
         }
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
 
-            String roomName = String.format("Shongo%d Comp:%d", getId(), compartmentExecutor.getCompartmentId());
+            String roomName = String.format("Shongo%d Comp:%d", getId(), executorThread.getExecutableId());
             roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
             Room room = new Room();
@@ -190,16 +190,16 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     }
 
     @Override
-    public boolean onDelete(CompartmentExecutor compartmentExecutor)
+    public boolean onDelete(ExecutorThread executorThread)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
-        compartmentExecutor.getLogger().debug(message.toString());
+        executorThread.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
             String virtualRoomId = getVirtualRoomId();
             if (virtualRoomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");

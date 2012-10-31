@@ -1,12 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.Compartment;
 
 import javax.persistence.Entity;
 
 /**
- * Represents an {@link Specification} of a target which can participate in a {@link Compartment}.
+ * Represents an {@link Specification} of a target which can participate in a {@link cz.cesnet.shongo.controller.executor.Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

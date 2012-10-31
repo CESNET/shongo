@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.controller.compartment.CompartmentExecutor;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.joda.time.Duration;
 import org.joda.time.Period;
@@ -49,17 +48,17 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_COMPARTMENT_END = "executor.compartment.end";
 
     /**
-     * Duration which {@link CompartmentExecutor} waits for virtual rooms to be created.
+     * Duration which {@link cz.cesnet.shongo.controller.executor.CompartmentExecutorThread} waits for virtual rooms to be created.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM = "executor.compartment.waiting-virtual-room";
 
     /**
-     * Period in which {@link CompartmentExecutor} checks whether the compartment should be started.
+     * Period in which {@link cz.cesnet.shongo.controller.executor.CompartmentExecutorThread} checks whether the compartment should be started.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_START = "executor.compartment.waiting-start";
 
     /**
-     * Period in which {@link CompartmentExecutor} checks whether the compartment should be stopped.
+     * Period in which {@link cz.cesnet.shongo.controller.executor.CompartmentExecutorThread} checks whether the compartment should be stopped.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_END = "executor.compartment.waiting-end";
 

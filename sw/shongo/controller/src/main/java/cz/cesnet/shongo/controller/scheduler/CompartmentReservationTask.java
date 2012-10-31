@@ -4,7 +4,7 @@ import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.compartment.*;
+import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
@@ -40,7 +40,7 @@ public class CompartmentReservationTask extends ReservationTask
     private CompartmentSpecification compartmentSpecification;
 
     /**
-     * {@link Compartment} which is created by the {@link CompartmentReservationTask}.
+     * {@link cz.cesnet.shongo.controller.executor.Compartment} which is created by the {@link CompartmentReservationTask}.
      */
     private Compartment compartment = new Compartment();
 

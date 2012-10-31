@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -121,25 +121,25 @@ public abstract class Connection extends PersistentObject
     /**
      * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    protected abstract State onEstablish(CompartmentExecutor compartmentExecutor);
+    protected abstract State onEstablish(ExecutorThread executorThread);
 
     /**
      * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    protected boolean onClose(CompartmentExecutor compartmentExecutor)
+    protected boolean onClose(ExecutorThread executorThread)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
-        compartmentExecutor.getLogger().debug(message.toString());
+        executorThread.getLogger().debug(message.toString());
 
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
             if (getEndpointFrom() instanceof VirtualRoom) {
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
@@ -161,25 +161,25 @@ public abstract class Connection extends PersistentObject
     /**
      * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    public final void establish(CompartmentExecutor compartmentExecutor)
+    public final void establish(ExecutorThread executorThread)
     {
         if (getState() != State.NOT_ESTABLISHED) {
             throw new IllegalStateException(
                     "Connection can be established only if the connection is not established yet.");
         }
 
-        State state = onEstablish(compartmentExecutor);
+        State state = onEstablish(executorThread);
         setState(state);
     }
 
     /**
      * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
      *
-     * @param compartmentExecutor
+     * @param executorThread
      */
-    public final void close(CompartmentExecutor compartmentExecutor)
+    public final void close(ExecutorThread executorThread)
     {
 
         if (getState() != State.ESTABLISHED) {
@@ -187,7 +187,7 @@ public abstract class Connection extends PersistentObject
                     "Connection can be closed only if the connection is already established.");
         }
 
-        onClose(compartmentExecutor);
+        onClose(executorThread);
 
         setState(State.CLOSED);
     }

@@ -1,14 +1,14 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.ResourceVirtualRoom;
-import cz.cesnet.shongo.controller.compartment.VirtualRoom;
+import cz.cesnet.shongo.controller.executor.ResourceVirtualRoom;
+import cz.cesnet.shongo.controller.executor.VirtualRoom;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 /**
- * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link cz.cesnet.shongo.controller.compartment.Endpoint}.
+ * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link cz.cesnet.shongo.controller.executor.Endpoint}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -37,7 +37,7 @@ public class VirtualRoomReservation extends EndpointReservation
     }
 
     /**
-     * @return allocated {@link cz.cesnet.shongo.controller.compartment.Endpoint} by the {@link cz.cesnet.shongo.controller.reservation.VirtualRoomReservation}
+     * @return allocated {@link cz.cesnet.shongo.controller.executor.Endpoint} by the {@link cz.cesnet.shongo.controller.reservation.VirtualRoomReservation}
      */
     @Transient
     @Override

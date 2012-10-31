@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents an entity (or multiple entities) which can participate in a {@link cz.cesnet.shongo.controller.compartment.Compartment}.
+ * Represents an entity (or multiple entities) which can participate in a {@link Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
