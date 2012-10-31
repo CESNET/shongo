@@ -62,14 +62,16 @@ public interface EndpointService extends CommonService
     /**
      * Sets microphone (all microphones) audio level of this endpoint to a given value.
      *
-     * @param level microphone level to set
+     * @param level microphone level to set, in range 0 to 100 (the implementing connector should adapt this value to
+     *              the range for its managed device)
      */
     void setMicrophoneLevel(int level) throws CommandException, CommandUnsupportedException;
 
     /**
      * Sets playback audio level of this endpoint to a given value.
      *
-     * @param level microphone level to set
+     * @param level microphone level to set, in range 0 to 100 (the implementing connector should adapt this value to
+     *              the range for its managed device)
      */
     void setPlaybackLevel(int level) throws CommandException, CommandUnsupportedException;
 

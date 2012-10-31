@@ -504,9 +504,9 @@ reading:
     public void setMicrophoneLevel(int level) throws CommandException
     {
         // TODO: test that it really affects the microphones gain
-        for (int i = 0; i < MICROPHONES_COUNT; i++) {
+        for (int i = 1; i <= MICROPHONES_COUNT; i++) {
             Command cmd = new Command("xConfiguration Audio Input Microphone " + i);
-            cmd.setParameter("Level", String.valueOf(level));
+            cmd.setParameter("Level", String.valueOf(level*24/100)); // range for volume is 0 to 24 (dB)
             issueCommand(cmd);
         }
     }
