@@ -38,12 +38,14 @@ To launch \textbf{client} you need to have Perl\footnote{Perl \url{http://www.pe
 \item Text::Table
 \item DateTime::Format::ISO8601
 \item JSON
+\item LWP::Protocol::https
 \end{compactenum}
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 \begin{verbatim}
 sudo apt-get install librpc-xml-perl libxml-twig-perl \
-        libtext-table-perl libdatetime-format-iso8601-perl libjson-perl
+        libtext-table-perl libdatetime-format-iso8601-perl libjson-perl \
+        liblwp-protocol-https-perl
 \end{verbatim}
 All applications (\textbf{\gls{g:controller}}, \textbf{\gls{g:connector}} or \textbf{client}) can be launched by entering the following directory:
 \begin{verbatim}
