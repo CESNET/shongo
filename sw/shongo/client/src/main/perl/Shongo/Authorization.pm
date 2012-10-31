@@ -89,7 +89,11 @@ sub authorize
         }
     }
     if (!defined($authorization_code)) {
-        console_print_error("Retrieving authorization code failed!");
+        my $error = 'No response returned!';
+        if ( defined($response) ) {
+            $error = $response->content;
+        }
+        console_print_error("Retrieving authorization code failed! " . $error);
         return;
     }
     console_print_debug("Authorization code: $authorization_code");
