@@ -172,7 +172,7 @@ $response = $client->send_request(
   </member>
   <member>
     <name>type</name>
-    <value><string>20120101T12:00:00/PT2H</string></value>    
+    <value><string>20120101T12:00:00/PT2H</string></value>
   </member>
   ...
 </struct>
@@ -199,7 +199,7 @@ $response = $client->send_request(
     </member>
     <member>
       <name>type</name>
-      <value><string>20120101T12:00:00/PT2H</string></value>    
+      <value><string>20120101T12:00:00/PT2H</string></value>
     </member>
     ...
   </struct></value>
@@ -313,15 +313,13 @@ $response = $client->send_request(
 
 Consider the following command required by this API:
 \begin{Api}
-\ApiItem{\ApiCode{RoomUser[] listRoomUsers(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{List<RoomUser> listRoomUsers(SecurityToken token, String roomId)}}
 \end{Api}
-
 The following classes should be defined to represent the command and all objects used by it:
 \begin{verbatim}
 package cz.cesnet.shongo.jade.ontology;
 
 public class ListRoomUsers implements AgentAction {
-    private SecurityToken token;
     private String roomId;
 
     public String getRoomId() {
@@ -329,23 +327,6 @@ public class ListRoomUsers implements AgentAction {
     }
     public void setRoomId(String roomId) {
         this.roomId = roomId;
-    }
-    public String getToken() {
-        return token;
-    }
-    public void setToken(String token) {
-        this.token = token;
-    }
-}
-
-public class SecurityToken implements Concept {
-    private UserIdentity user;
-
-    public UserIdentity getUser() {
-        return user;
-    }
-    public void setUser(UserIdentity user) {
-        this.user = user;
     }
 }
 
@@ -375,27 +356,35 @@ public class RoomUser implements Concept {
 The command might be encoded in the following message:
 \begin{verbatim}
 (REQUEST
- :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
- :content  "((action (agent-identifier :name
-     Controller-Main-Container@127.0.0.1:1099/JADE :addresses
-     (sequence http://localhost:7778/acc)) (ListRoomUsers)))"
- :language  fipa-sl  :ontology  shongo-ontology )
+ :sender  ( agent-identifier :name Controller@Shongo :addresses
+   (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc ))
+ :receiver  (set ( agent-identifier :name mcu@Shongo ) )
+ :content  "((action (agent-identifier :name Controller@Shongo :addresses
+   (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc)) (ListRoomUsers :
+roomId shongo-test)))"
+ :language  fipa-sl  :ontology  shongo-ontology  :protocol  fipa-request
+)
 \end{verbatim}
 
 A successful reply would then be encoded as follows:
 \begin{verbatim}
 (INFORM
- :sender  ( agent-identifier :name dev@127.0.0.1:1099/JADE  :addresses (sequence
-     http://localhost:7778/acc ))
- :receiver  (set ( agent-identifier :name Controller-Main-Container@127.0.0.1:1099/JADE
-     :addresses (sequence http://localhost:7778/acc )) )
- :content  "((result (action (agent-identifier :name
-     Controller-Main-Container@127.0.0.1:1099/JADE :addresses (sequence
-     http://localhost:7778/acc)) (ListRoomUsers)) (sequence (RoomUser :microphoneLevel 45
-     :muted false :playbackLevel 0 :roomId konf :userId Azurit :userIdentity
-     (UserIdentity :id shongololo)) (RoomUser :microphoneLevel 57 :muted false
-     :playbackLevel 0 :roomId konf :userId Shongololo :userIdentity (UserIdentity)))))"
- :reply-with  Controller-Main-Container@127.0.0.1:1099/JADE1336527079398  :language
-     fipa-sl  :ontology  shongo-ontology )
+ :sender ( agent-identifier :name mcu@Shongo  :addresses (sequence
+           http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc ))
+ :receiver (set ( agent-identifier :name Controller@Shongo  :addresses
+                  (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc)
+                 ) )
+ :content
+     "((result (action (agent-identifier :name Controller@Shongo :addresses
+      (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc))
+      (ListRoomUsers :roomId shongo-test)) (serializable :value
+      rO0ABXNyABNqYXZhLnV0aWwuQXJyYXlMaXN0eIHSHZnHYZ0DAAFJAARzaXpleHAAAAABdw
+      ...
+      wyGuMDAAB4cHcPAA1FdXJvcGUvUHJhZ3VleHhwdAALc2hvbmdvLXRlc3R0AAQzMzQ1cHg=
+ )))"
+ :reply-with  Controller@Shongo1351726810139  :language  fipa-sl
+ :ontology  shongo-ontology  :protocol  fipa-request
+ :conversation-id  C10101047_1351726810116
+)
 \end{verbatim}
-
+Note that the result value is a serialized Java collection.
