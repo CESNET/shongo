@@ -6,17 +6,19 @@
 
 \todo{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes. Groups of failure codes: Shongo-connections, connections between a connector and its device, failures reported by the devices themselves}
 
-Communication among controllers and connectors is implemented using JADE \cite{jade}. The communication is \textbf{synchronous}, i.e., the controller sends a command to a connector and waits until the connector replies. All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called |ShongoOntology|, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
+Communication among controllers and connectors is implemented using JADE \cite{jade}. The communication is \textbf{synchronous}, i.e., the controller sends a command to a connector and waits until the connector replies. The standard FIPA-Request \cite{FIPA-Request} interaction protocol: controllers send requests to perform an action, connectors receive the request, perform the action on the managed device, and send the result of the action as a reply to the controller.
+
+All messages are encoded using the FIPA SL content language \cite{FIPA-SL}. An ontology, called \ApiCode{ShongoOntology}, is used by communicating agents to give the same meaning to the symbols used in messages. This section describes the way commands defined by this API are composed to messages and interpreted by Shongo agents.
 
 The ontology used by all agents consists of concepts, predicates, and agent actions.
 \begin{description}
-\item[An agent action,] tagged by |jade.content.AgentAction| interface, expresses a request what should the receiving agent do. Each of the commands specified in this API document is defined by a class implementing |AgentAction|, declaring all the command arguments as attributes accessed by public getters and setters.
-\item[A predicate,] tagged by |jade.content.Predicate| interface, expresses a claim about a fact. In this API, we use just two predicates defined in the JADE framework, for the purpose of expressing result of a command. We use no custom predicates.
-\item[A concept,] tagged by |jade.content.Concept| interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such a class must implement the |jade.content.Concept| interface and reside within the |cz.cesnet.shongo.jade.ontology| package for the |ShongoOntology| class to be able to find it and comprise it in the ontology used for encoding messages.
+\item[An agent action,] tagged by \ApiCode{jade.content.AgentAction} interface, expresses a request what should the receiving agent do. Each of the commands specified in this API document is defined by a class implementing \ApiCode{AgentAction}, declaring all the command arguments as attributes accessed by public getters and setters.
+\item[A predicate,] tagged by \ApiCode{jade.content.Predicate} interface, expresses a claim about a fact. In Shongo, just the standard predicates from the FIPA-Request protocol are used for the purpose of expressing result of a command. We use no custom predicates.
+\item[A concept,] tagged by \ApiCode{jade.content.Concept} interface, is any entity which may be a part of an agent action or a predicate. All object types of arguments or return values must be specified as concepts for the agent content manager to be able to properly encode them in messages. In particular, any such class must implement the \ApiCode{jade.content.Concept} interface and reside within the \ApiCode{cz.cesnet.shongo.jade.ontology} or \ApiCode{cz.cesnet.shongo.*.api} package for the \ApiCode{ShongoOntology} class to be able to find it and comprise it in the ontology used for encoding messages.
 \end{description}
 
 
-For example, the |setMicrophoneLevel(int level)| command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
+For example, the \ApiCode{setMicrophoneLevel(int level)} command, defined in section \ref{sect:connector-endpoint-api}, might be specified by the following class:
 \begin{verbatim}
 package cz.cesnet.shongo.jade.ontology;
 
@@ -31,17 +33,21 @@ public class SetMicrophoneLevel implements AgentAction {
     }
 }
 \end{verbatim}
-The |setMicrophoneLevel| call implementation instantiates a new |SetMicrophoneLevel| object, sets up the |level| attribute, and passes the object to a controller agent content manager to send it to an endpoint as a |request| communicative act \cite{FIPA-ComActSpec}. The corresponding endpoint agent creates the |SetMicrophoneLevel| object received from the controller agent and implements the requested functionality according to it. The message sent during such a call might be similar to the following:
+The \ApiCode{setMicrophoneLevel} call implementation instantiates a new \ApiCode{SetMicrophoneLevel} object, sets up the \ApiCode{level} attribute, and passes the object to a controller agent content manager to send it to an endpoint as a \ApiCode{request} communicative act \cite{FIPA-ComActSpec}. The corresponding endpoint agent creates the \ApiCode{SetMicrophoneLevel} object received from the controller agent and implements the requested functionality according to it. The message sent during such a call might be similar to the following:
 \begin{verbatim}
 (REQUEST
- :receiver  (set ( agent-identifier :name dev@127.0.0.1:1099/JADE ) )
- :content  "((action (agent-identifier :name
-     Controller-Main-Container@127.0.0.1:1099/JADE :addresses (sequence
-     http://localhost:7778/acc)) (SET-MICROPHONE-LEVEL :level 46)))"
- :language  fipa-sl  :ontology  shongo-ontology )
+ :sender  ( agent-identifier :name Controller@Shongo  :addresses (sequence
+     http://127.0.0.1:7778/acc http://127.0.0.1:60273/acc ))
+ :receiver  (set ( agent-identifier :name conn@Shongo ) )
+ :content  "((action (agent-identifier :name Controller@Shongo :addresses
+     (sequence http://127.0.0.1:7778/acc http://127.0.0.1:60273/acc))
+     (SetMicrophoneLevel
+ :level 50)))"
+ :language  fipa-sl  :ontology  shongo-ontology  :protocol  fipa-request
+)
 \end{verbatim}
 
-The agent receiving a command should always send a reply as an |inform| \cite{FIPA-ComActSpec} message. In case of commands without any return value, a |Done| predicate from the package |jade.content.onto.basic| should be sent as a reply, denoting a successful command execution. When a return value is expected, a |Result| predicate, defined in \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the |cz.cesnet.shongo.jade.ontology| interface and be tagged by the |Concept| interface.
+The agent receiving a command should always send a reply as an \ApiCode{inform} \cite{FIPA-ComActSpec} message. In case of commands without any return value, a \ApiCode{Done} predicate from the package \ApiCode{jade.content.onto.basic} should be sent as a reply, denoting a successful command execution. When a return value is expected, a \ApiCode{Result} predicate, defined in \cite{FIPA-SL}, is sent, filled with the value to be returned. The same requirements apply to the class of the object to be returned as for command object arguments -- the class must reside within the \ApiCode{cz.cesnet.shongo.jade.ontology} or \ApiCode{cz.cesnet.shongo.*.api} interface and be tagged by the \ApiCode{Concept} interface.
 
 An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
 
@@ -124,14 +130,14 @@ Custom media data, typically used for uploading or downloading some content (ima
 \begin{ApiClassAttributes}
 \ApiClassAttribute{contentType}{ContentType}{\ApiRequired} Type of the data.
 \ApiClassAttribute{data}{byte[]}{\ApiRequired} The content. To be interpreted according to the content type.
-\ApiClassAttribute{compression}{CompressionAlgorithm}{\ApiOptional} Algorithm used to compress |data|.
+\ApiClassAttribute{compression}{CompressionAlgorithm}{\ApiOptional} Algorithm used to compress \ApiCode{data}.
 \end{ApiClassAttributes}
 
 \ApiClass{ContentType}{}
 Description of a media type. Any MIME Media Type listed by IANA \cite{IANA-MediaTypes}, e.g. \texttt{image/jpeg}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{type}{String}{\ApiRequired} Textual name of the type (e.g., |image| or |text|).
-\ApiClassAttribute{subtype}{String}{\ApiRequired} Textual name of the subtype (e.g., |jpeg| or |html|).
+\ApiClassAttribute{type}{String}{\ApiRequired} Textual name of the type (e.g., \ApiCode{image} or \ApiCode{text}).
+\ApiClassAttribute{subtype}{String}{\ApiRequired} Textual name of the subtype (e.g., \ApiCode{jpeg} or \ApiCode{html}).
 \end{ApiClassAttributes}
 
 \ApiEnum{CompressionAlgorithm}{}
@@ -183,10 +189,10 @@ Disables video from a user in a room.
 Gets info about an existing room.
 
 \ApiItem{\ApiCode{String createRoom(SecurityToken token, Room room)}}
-Create a new virtual room on a multipoint device that is managed by this connector. The |room| parameter specifies the room settings, see the |Room| definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the |roomId| parameter.
+Create a new virtual room on a multipoint device that is managed by this connector. The \ApiCode{room} parameter specifies the room settings, see the \ApiCode{Room} definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the \ApiCode{roomId} parameter.
 
 \ApiItem{\ApiCode{modifyRoom(SecurityToken token, String roomId, Map attributes)}}
-Modifies a room identified by |roomId|. The |attributes| map specifies |Room| attribute names mapped to new values.
+Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} map specifies \ApiCode{Room} attribute names mapped to new values.
 
 \ApiItem{\ApiCode{deleteRoom(SecurityToken token, String roomId)}}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
@@ -196,7 +202,7 @@ Gets current settings of a room exported to XML.
 \\\todo{Specify schema of the exported XML document in RelaxNG. It should contain at least room name, technology (H.323/SIP/Connect\ldots) settings, and version of the format of the exported document (for further extensions).}
 
 \ApiItem{\ApiCode{importRoomSettings(SecurityToken token, String RoomId, String settings)}}
-Sets up a room according to given |settings| previously exported by the |exportRoomSettings| method.
+Sets up a room according to given \ApiCode{settings} previously exported by the \ApiCode{exportRoomSettings} method.
 
 \end{Api}
 
@@ -229,7 +235,7 @@ Disables a given room user as a content provider in the room. Typically, all use
 \begin{Api}
 
 \ApiItem{\ApiCode{MediaData getRoomContent(SecurityToken token, String roomId)}}
-Gets all room content (e.g., documents, notes, polls, etc.) as a single archive (see the |compression| attribute of the returned object).
+Gets all room content (e.g., documents, notes, polls, etc.) as a single archive (see the \ApiCode{compression} attribute of the returned object).
 
 \ApiItem{\ApiCode{addRoomContent(SecurityToken token, String roomId, String name, MediaData data)}}
 Adds a data file to room content under a given name.
@@ -256,10 +262,10 @@ Gets the multipoint usage stats.
 Gets a list of all rooms at a given server.
 
 \ApiItem{\ApiCode{MediaData getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}}
-Gets a snapshot of the video stream received by a user in a room. See the |contentType| of the returned object to get the image format returned.
+Gets a snapshot of the video stream received by a user in a room. See the \ApiCode{contentType} of the returned object to get the image format returned.
 
 \ApiItem{\ApiCode{MediaData getSentVideoSnapshot(SecurityToken token, String RoomUserId)}}
-Gets a snapshot of the video stream that a user is sending in a room. See the |contentType| of the returned object to get the image format returned.
+Gets a snapshot of the video stream that a user is sending in a room. See the \ApiCode{contentType} of the returned object to get the image format returned.
 
 \end{Api}
 
@@ -268,22 +274,22 @@ Gets a snapshot of the video stream that a user is sending in a room. See the |c
 \begin{Api}
 
 \ApiItem{\ApiCode{int startRecording(SecurityToken token, String roomId, ContentType format, RoomLayout layout)}}
-Immediately starts recording in a room to format |format| using a given |layout| (or the default room layout, if |layout| is not specified). Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
+Immediately starts recording in a room to format \ApiCode{format} using a given \ApiCode{layout} (or the default room layout, if \ApiCode{layout} is not specified). Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
 
 \ApiItem{\ApiCode{stopRecording(SecurityToken token, int recordingId)}}
-Stops recording. The |recordingId| parameter, specifying what to stop, is an identifier previously returned by |startRecording|.
+Stops recording. The \ApiCode{recordingId} parameter, specifying what to stop, is an identifier previously returned by \ApiCode{startRecording}.
 
 \ApiItem{\ApiCode{String getRecordingDownloadURL(SecurityToken token, int recordingId)}}
-Returns a URL from where it is possible to download a recording. The |recordingId| parameter is an identifier previously returned by |startRecording|.
+Returns a URL from where it is possible to download a recording. The \ApiCode{recordingId} parameter is an identifier previously returned by \ApiCode{startRecording}.
 
 \ApiItem{\ApiCode{notifyParticipants(SecurityToken token, int recordingId)}}
 Sends an e-mail to all non-anonymous participants present in the room recorded. Participants present in any moment of the recording must be notified, not just the registered users.
 
 \ApiItem{\ApiCode{downloadRecording(SecurityToken token, String downloadURL, String targetPath)}}
-Starts downloading a recording from |downloadURL|. The recording is stored on the server under |targetPath|.
+Starts downloading a recording from \ApiCode{downloadURL}. The recording is stored on the server under \ApiCode{targetPath}.
 
 \ApiItem{\ApiCode{deleteRecording(SecurityToken token, int recordingId)}}
-Deletes a given recording. The |recordingId| parameter is an identifier previously returned by |startRecording|. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
+Deletes a given recording. The \ApiCode{recordingId} parameter is an identifier previously returned by \ApiCode{startRecording}. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
 
 \end{Api}
 
