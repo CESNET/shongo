@@ -12,6 +12,7 @@ import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.util.ConsoleAppender;
 import cz.cesnet.shongo.util.Logging;
+import cz.cesnet.shongo.util.Timer;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -672,9 +673,10 @@ public class Controller
         }
 
         logger.debug("Creating entity manager factory...");
+        Timer timer = new Timer();
         EntityManagerFactory entityManagerFactory = javax.persistence.Persistence
                 .createEntityManagerFactory("controller");
-        logger.debug("Entity manager factory created.");
+        logger.debug("Entity manager factory created in {} ms.", timer.stop());
 
         // Run controller
         Controller controller = new Controller("controller.cfg.xml");

@@ -10,6 +10,7 @@ use warnings;
 
 use LWP;
 use LWP::UserAgent;
+use LWP::Protocol::https;
 use URI;
 use URI::Escape;
 use URI::QueryParam;

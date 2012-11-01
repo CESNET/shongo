@@ -29,11 +29,19 @@ public class Timer
     }
 
     /**
+     * @return duration passed from {@link #start()}
+     */
+    public long stop()
+    {
+        return System.currentTimeMillis() - timeMillis;
+    }
+
+    /**
      * Stop the timer and print the duration from starting moment to {@link System#out}.
      */
     public void stopAndPrint()
     {
-        long duration = System.currentTimeMillis() - timeMillis;
+        long duration = stop();
         System.out.printf("Duration: %d ms\n", duration);
     }
 }

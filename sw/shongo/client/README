@@ -20,12 +20,14 @@ This client requires Perl installed to run and following Perl modules:
 3) Text::Table
 4) DateTime::Format::ISO8601
 5) JSON
+6) LWP::Protocol::https
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 
     sudo apt-get install librpc-xml-perl libxml-twig-perl \
-        libtext-table-perl libdatetime-format-iso8601-perl libjson-perl
+        libtext-table-perl libdatetime-format-iso8601-perl libjson-perl \
+        liblwp-protocol-https-perl
 
 
 On other platforms the modules can be installed for instance
