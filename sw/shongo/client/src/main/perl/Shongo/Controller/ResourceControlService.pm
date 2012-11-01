@@ -262,6 +262,18 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'modifyRoom', @supportedMethods) {
+        $shell->add_commands({
+            "modify-room" => {
+                desc => "Modify virtual room",
+                minargs => 1, args => "[roomId]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_modify_room($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
     if (grep $_ eq 'deleteRoom', @supportedMethods) {
         $shell->add_commands({
             "delete-room" => {
@@ -578,6 +590,43 @@ sub resource_create_room
         $roomId = '-- None --';
     }
     printf("Room ID: %s\n", $roomId);
+}
+
+sub resource_modify_room
+{
+    my ($resourceIdentifier, $roomId) = @_;
+
+    my $roomName = console_read_value('New room name', 0, undef, undef);
+    my $portCount = console_read_value('New port count', 0, '^\\d+$', undef);
+
+    my %attributes = ();
+    if ( defined $roomName ) {
+        $attributes{'name'} = $roomName;
+    }
+    if ( defined $portCount ) {
+        $attributes{'portCount'} = $portCount;
+    }
+    # TODO: offer modification of room aliases
+
+    my %options = (); # TODO: offer filling room options (see Room.Option enum)
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.modifyRoom',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+        RPC::XML::struct->new(%attributes),
+        RPC::XML::struct->new(%options)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $newRoomId = $result->value();
+    if ( !defined($newRoomId) ) {
+        $newRoomId = '-- None --';
+    }
+    if ( $newRoomId ne $roomId ) {
+        printf("New room ID: %s\n", $newRoomId);
+    }
 }
 
 sub resource_delete_room

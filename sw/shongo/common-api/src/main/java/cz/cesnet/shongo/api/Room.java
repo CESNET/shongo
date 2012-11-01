@@ -157,47 +157,47 @@ public class Room implements Concept
         PIN("pin", String.class),
 
         /**
-         * A boolean option whether to list the room in public lists. Default false.
+         * A boolean option whether to list the room in public lists. Defaults to false.
          */
         LISTED_PUBLICLY("listedPublicly", Boolean.class),
 
         /**
-         * A boolean option whether participants may contribute content. Default true.
+         * A boolean option whether participants may contribute content. Defaults to true.
          */
         ALLOW_CONTENT("allowContent", Boolean.class),
 
         /**
-         * A boolean option whether guests should be allowed to join. Default true.
+         * A boolean option whether guests should be allowed to join. Defaults to true.
          */
         ALLOW_GUESTS("allowGuests", Boolean.class),
 
         /**
-         * A boolean option whether audio should be muted on join. Default false.
+         * A boolean option whether audio should be muted on join. Defaults to false.
          */
         JOIN_AUDIO_MUTED("joinAudioMuted", Boolean.class),
 
         /**
-         * A boolean option whether video should be muted on join. Default false.
+         * A boolean option whether video should be muted on join. Defaults to false.
          */
         JOIN_VIDEO_MUTED("joinVideoMuted", Boolean.class),
 
         /**
-         * A boolean option whether to register the aliases with the gatekeeper. Default false.
+         * A boolean option whether to register the aliases with the gatekeeper. Defaults to false.
          */
         REGISTER_WITH_H323_GATEKEEPER("registerWithH323Gatekeeper", Boolean.class),
 
         /**
-         * A boolean option whether to register the aliases with the SIP registrar. Default false.
+         * A boolean option whether to register the aliases with the SIP registrar. Defaults to false.
          */
         REGISTER_WITH_SIP_REGISTRAR("registerWithSIPRegistrar", Boolean.class),
 
         /**
-         * A boolean option whether the room should be locked when started. Default false.
+         * A boolean option whether the room should be locked when started. Defaults to false.
          */
         START_LOCKED("startLocked", Boolean.class),
 
         /**
-         * A boolean option whether the ConferenceMe should be enabled for the room. Default false.
+         * A boolean option whether the ConferenceMe should be enabled for the room. Defaults to false.
          */
         CONFERENCE_ME_ENABLED("conferenceMeEnabled", Boolean.class);
 
