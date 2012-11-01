@@ -15,7 +15,7 @@ public class Room implements Concept
     private int portCount = -1;
     private List<Alias> aliases;
 
-    private Map<String, Object> options = new HashMap<String, Object>();
+    private Map<Option, Object> options = new EnumMap<Option, Object>(Option.class);
 
 
     public Room()
@@ -86,7 +86,7 @@ public class Room implements Concept
     /**
      * Adds a new alias under which the room is accessible.
      *
-     * @param alias
+     * @param alias alias to add for the room
      */
     public void addAlias(Alias alias)
     {
@@ -105,15 +105,13 @@ public class Room implements Concept
     }
 
     /**
-     * Returns the complete map of platform-specific options set for this room.
-     * <p/>
-     * See the OPT_* constants for more details about what can be had.
+     * Returns the complete map of options set for this room.
      * <p/>
      * NOTE: Used by Jade to compose messages containing Room objects.
      *
-     * @return platform-specific options
+     * @return options set for the room
      */
-    public Map<String, Object> getOptions()
+    public Map<Option, Object> getOptions()
     {
         return Collections.unmodifiableMap(options);
     }
@@ -145,126 +143,148 @@ public class Room implements Concept
 
     /**
      * Room options.
-     *
-     * Suitable for modifyRoom() command.
-     *
-     * NOTE: No option name should be the same as any of this class's attribute names (constant values above).
-     *
-     * NOTE: The option constants must be kept in sync with the validateOption() method.
      */
+    public static enum Option
+    {
+        /**
+         * A string option - some description of the room.
+         */
+        DESCRIPTION("description", String.class),
+
+        /**
+         * A string option - the PIN that must be entered to get to the room.
+         */
+        PIN("pin", String.class),
+
+        /**
+         * A boolean option whether to list the room in public lists. Default false.
+         */
+        LISTED_PUBLICLY("listedPublicly", Boolean.class),
+
+        /**
+         * A boolean option whether participants may contribute content. Default true.
+         */
+        ALLOW_CONTENT("allowContent", Boolean.class),
+
+        /**
+         * A boolean option whether guests should be allowed to join. Default true.
+         */
+        ALLOW_GUESTS("allowGuests", Boolean.class),
+
+        /**
+         * A boolean option whether audio should be muted on join. Default false.
+         */
+        JOIN_AUDIO_MUTED("joinAudioMuted", Boolean.class),
+
+        /**
+         * A boolean option whether video should be muted on join. Default false.
+         */
+        JOIN_VIDEO_MUTED("joinVideoMuted", Boolean.class),
+
+        /**
+         * A boolean option whether to register the aliases with the gatekeeper. Default false.
+         */
+        REGISTER_WITH_H323_GATEKEEPER("registerWithH323Gatekeeper", Boolean.class),
+
+        /**
+         * A boolean option whether to register the aliases with the SIP registrar. Default false.
+         */
+        REGISTER_WITH_SIP_REGISTRAR("registerWithSIPRegistrar", Boolean.class),
+
+        /**
+         * A boolean option whether the room should be locked when started. Default false.
+         */
+        START_LOCKED("startLocked", Boolean.class),
+
+        /**
+         * A boolean option whether the ConferenceMe should be enabled for the room. Default false.
+         */
+        CONFERENCE_ME_ENABLED("conferenceMeEnabled", Boolean.class);
+
+        private String name;
+        private Class valueClass;
+
+        private Option(String name, Class valueClass)
+        {
+            this.name = name;
+            this.valueClass = valueClass;
+        }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public Class getValueClass()
+        {
+            return valueClass;
+        }
+
+        @Override
+        public String toString()
+        {
+            return name;
+        }
+    }
+
 
     /**
-     * A boolean option whether to list the room in public lists. Default false.
-     */
-    public static final String OPT_LISTED_PUBLICLY = "listedPublicly";
-    /**
-     * A boolean option whether participants may contribute content. Default true.
-     */
-    public static final String OPT_ALLOW_CONTENT = "allowContent";
-    /**
-     * A boolean option whether guests should be allowed to join. Default true.
-     */
-    public static final String OPT_ALLOW_GUESTS = "allowGuests";
-    /**
-     * A boolean option whether audio should be muted on join. Default false.
-     */
-    public static final String OPT_JOIN_AUDIO_MUTED = "joinAudioMuted";
-    /**
-     * A boolean option whether video should be muted on join. Default false.
-     */
-    public static final String OPT_JOIN_VIDEO_MUTED = "joinVideoMuted";
-    /**
-     * A boolean option whether to register the aliases with the gatekeeper. Default false.
-     */
-    public static final String OPT_REGISTER_WITH_H323_GATEKEEPER = "registerWithH323Gatekeeper";
-    /**
-     * A boolean option whether to register the aliases with the SIP registrar. Default false.
-     */
-    public static final String OPT_REGISTER_WITH_SIP_REGISTRAR = "registerWithSIPRegistrar";
-    /**
-     * A string option - the PIN that must be entered to get to the room.
-     */
-    public static final String OPT_PIN = "pin";
-    /**
-     * A string option - some description of the room.
-     */
-    public static final String OPT_DESCRIPTION = "description";
-    /**
-     * A boolean option whether the room should be locked when started. Default false.
-     */
-    public static final String OPT_START_LOCKED = "startLocked";
-    /**
-     * A boolean option whether the ConferenceMe should be enabled for the room. Default false.
-     */
-    public static final String OPT_CONFERENCE_ME_ENABLED = "conferenceMeEnabled";
-
-    /**
-     * Sets platform-specific options for this room.
-     * <p/>
-     * There are option names mapped to some values. See the OPT_* constants for options that might be recognized.
+     * Sets options for this room.
      *
-     * @param options platform-specific options
+     * @param options options to set for the room
      * @throws IllegalArgumentException if a value is not of the type required by the corresponding option
      */
-    public void setOptions(Map<String, Object> options)
+    public void setOptions(Map<Option, Object> options)
     {
-        for (Map.Entry<String, Object> entry : options.entrySet()) {
+        for (Map.Entry<Option, Object> entry : options.entrySet()) {
             validateOption(entry.getKey(), entry.getValue());
         }
         this.options = options;
     }
 
     /**
-     * Finds out whether a given platform-specific option is set.
-     * <p/>
-     * See the OPT_* constants for available options.
+     * Finds out whether a given option is set.
      *
-     * @param option option name
-     * @return true if option with the given name is set, false if not
+     * @param option option to find
+     * @return <code>true</code> if option with the given name is set, <code>false</code> if not
      */
-    public boolean hasOption(String option)
+    public boolean hasOption(Option option)
     {
         return options.containsKey(option);
     }
 
     /**
-     * Returns the value of a platform-specific option.
-     * <p/>
-     * See the OPT_* constants for available options.
+     * Returns the value of an option.
      *
-     * @param option option name
-     * @return value of option, or null if the option is not set
+     * @param option option to get value of
+     * @return value of option, or <code>null</code> if the option is not set
      */
-    public Object getOption(String option)
+    public Object getOption(Option option)
     {
         return options.get(option);
     }
 
     /**
-     * Returns the value of a platform-specific option if it is set, or default value if the option is not set.
-     * <p/>
-     * See the OPT_* constants for available options.
+     * Returns the value of an option if it is set, or default value if the option is not set.
      *
-     * @param option       option name
+     * @param option       option to get value of
      * @param defaultValue default value to return if the option is not set
-     * @return value of option, or defaultValue if the option is not set
+     * @return value of option, or <code>defaultValue</code> if the option is not set
      */
-    public Object getOption(String option, Object defaultValue)
+    public Object getOption(Option option, Object defaultValue)
     {
         Object value = options.get(option);
         return (value == null ? defaultValue : value);
     }
 
     /**
-     * Sets a single platform-specific option
-     * <p/>
-     * See the OPT_* constants for available options.
+     * Sets a single option.
      *
-     * @param option option name
-     * @param value  value to be set; or null to unset the option
+     * @param option option to set
+     * @param value  value to be set; or <code>null</code> to unset the option
      * @throws IllegalArgumentException if the value is not of the type required by the specified option
      */
-    public void setOption(String option, Object value)
+    public void setOption(Option option, Object value)
     {
         if (value == null) {
             unsetOption(option);
@@ -276,69 +296,26 @@ public class Room implements Concept
     }
 
     /**
-     * Validates that a given platform-specific option has the correct type of value.
-     * <p/>
-     * Must be kept in sync with OPT_* constants.
+     * Validates that a given option has the correct type of value.
      *
-     * @param option option name
+     * @param option option to validate value of
      * @param value  value to be set
      * @throws IllegalArgumentException if the value is not of the type required by the specified option
      */
-    private static void validateOption(String option, Object value)
+    private static void validateOption(Option option, Object value)
     {
-        if (option.equals(OPT_LISTED_PUBLICLY)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_ALLOW_CONTENT)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_ALLOW_GUESTS)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_JOIN_AUDIO_MUTED)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_JOIN_VIDEO_MUTED)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_REGISTER_WITH_H323_GATEKEEPER)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_REGISTER_WITH_SIP_REGISTRAR)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_PIN)) {
-            assertInstance(option, value, String.class);
-        }
-        else if (option.equals(OPT_DESCRIPTION)) {
-            assertInstance(option, value, String.class);
-        }
-        else if (option.equals(OPT_START_LOCKED)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else if (option.equals(OPT_CONFERENCE_ME_ENABLED)) {
-            assertInstance(option, value, Boolean.class);
-        }
-        else {
-            throw new IllegalArgumentException("Unknown option: " + option);
-        }
-    }
-
-    private static void assertInstance(String option, Object obj, Class clazz)
-    {
-        if (!clazz.isInstance(obj)) {
-            throw new IllegalArgumentException("Option " + option + " requires value of class " + clazz.getName());
+        if (!option.getValueClass().isInstance(value)) {
+            String message = "Option " + option + " requires value of class " + option.getValueClass().getName();
+            throw new IllegalArgumentException(message);
         }
     }
 
     /**
-     * Unsets a single platform-specific option.
-     * <p/>
-     * See the OPT_* constants for available options.
+     * Unsets a single option.
      *
-     * @param option option name
+     * @param option option to unset
      */
-    public void unsetOption(String option)
+    public void unsetOption(Option option)
     {
         options.remove(option);
     }

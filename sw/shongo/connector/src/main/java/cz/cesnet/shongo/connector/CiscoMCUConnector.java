@@ -157,39 +157,40 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        }
 
         // test of bad caching
-        Room newRoom = new Room("shongo-testX", 5);
-        String newRoomId = conn.createRoom(newRoom);
-        System.out.println("Created room " + newRoomId);
-        Collection<RoomSummary> roomList = conn.getRoomList();
-        System.out.println("Existing rooms:");
-        for (RoomSummary roomSummary : roomList) {
-            System.out.println(roomSummary);
-        }
-        conn.deleteRoom(newRoomId);
-        System.out.println("Deleted room " + newRoomId);
-        Map<String, Object> atts = new HashMap<String, Object>();
-        atts.put(Room.NAME, "shongo-testing");
-        String changedRoomId = conn.modifyRoom("shongo-test", atts);
-        Collection<RoomSummary> newRoomList = conn.getRoomList();
-        System.out.println("Existing rooms:");
-        for (RoomSummary roomSummary : newRoomList) {
-            System.out.println(roomSummary);
-        }
-        atts = new HashMap<String, Object>();
-        atts.put(Room.NAME, "shongo-test");
-        conn.modifyRoom(changedRoomId, atts);
-
-        // test of modifyRoom() method
-//        System.out.println("Modifying shongo-test");
+//        Room newRoom = new Room("shongo-testX", 5);
+//        String newRoomId = conn.createRoom(newRoom);
+//        System.out.println("Created room " + newRoomId);
+//        Collection<RoomSummary> roomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomSummary roomSummary : roomList) {
+//            System.out.println(roomSummary);
+//        }
+//        conn.deleteRoom(newRoomId);
+//        System.out.println("Deleted room " + newRoomId);
 //        Map<String, Object> atts = new HashMap<String, Object>();
 //        atts.put(Room.NAME, "shongo-testing");
-//        atts.put(Room.OPT_LISTED_PUBLICLY, false);
-//        atts.put(Room.OPT_PIN, "1234");
-//        conn.modifyRoom("shongo-test", atts);
-//        Map<String, Object> atts2 = new HashMap<String, Object>();
-//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-//        atts2.put(Room.NAME, "shongo-test");
-//        conn.modifyRoom("shongo-testing", atts2);
+//        String changedRoomId = conn.modifyRoom("shongo-test", atts, null);
+//        Collection<RoomSummary> newRoomList = conn.getRoomList();
+//        System.out.println("Existing rooms:");
+//        for (RoomSummary roomSummary : newRoomList) {
+//            System.out.println(roomSummary);
+//        }
+//        atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom(changedRoomId, atts, null);
+
+        // test of modifyRoom() method
+        System.out.println("Modifying shongo-test");
+        Map<String, Object> atts = new HashMap<String, Object>();
+        atts.put(Room.NAME, "shongo-testing");
+        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
+        opts.put(Room.Option.LISTED_PUBLICLY, false);
+        opts.put(Room.Option.PIN, "1234");
+        conn.modifyRoom("shongo-test", atts, opts);
+        Map<String, Object> atts2 = new HashMap<String, Object>();
+        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+        atts2.put(Room.NAME, "shongo-test");
+        conn.modifyRoom("shongo-testing", atts2, null);
 
         // test of listParticipants() method
 //        System.out.println("Listing shongo-test room:");
@@ -830,21 +831,21 @@ ParamsLoop:
         cmd.setParameter("durationSeconds", 0); // set the room forever
 
         // options
-        setCommandOption(cmd, room, "registerWithGatekeeper", Room.OPT_REGISTER_WITH_H323_GATEKEEPER);
-        setCommandOption(cmd, room, "registerWithSIPRegistrar", Room.OPT_REGISTER_WITH_SIP_REGISTRAR);
-        if (room.hasOption(Room.OPT_LISTED_PUBLICLY)) {
-            cmd.setParameter("private", !(Boolean) room.getOption(Room.OPT_LISTED_PUBLICLY));
+        setCommandOption(cmd, room, "registerWithGatekeeper", Room.Option.REGISTER_WITH_H323_GATEKEEPER);
+        setCommandOption(cmd, room, "registerWithSIPRegistrar", Room.Option.REGISTER_WITH_SIP_REGISTRAR);
+        if (room.hasOption(Room.Option.LISTED_PUBLICLY)) {
+            cmd.setParameter("private", !(Boolean) room.getOption(Room.Option.LISTED_PUBLICLY));
         }
-        setCommandOption(cmd, room, "contentContribution", Room.OPT_ALLOW_CONTENT);
-        setCommandOption(cmd, room, "joinAudioMuted", Room.OPT_JOIN_AUDIO_MUTED);
-        setCommandOption(cmd, room, "joinVideoMuted", Room.OPT_JOIN_VIDEO_MUTED);
-        setCommandOption(cmd, room, "pin", Room.OPT_PIN);
-        setCommandOption(cmd, room, "description", Room.OPT_DESCRIPTION);
-        setCommandOption(cmd, room, "startLocked", Room.OPT_START_LOCKED);
-        setCommandOption(cmd, room, "conferenceMeEnabled", Room.OPT_CONFERENCE_ME_ENABLED);
+        setCommandOption(cmd, room, "contentContribution", Room.Option.ALLOW_CONTENT);
+        setCommandOption(cmd, room, "joinAudioMuted", Room.Option.JOIN_AUDIO_MUTED);
+        setCommandOption(cmd, room, "joinVideoMuted", Room.Option.JOIN_VIDEO_MUTED);
+        setCommandOption(cmd, room, "pin", Room.Option.PIN);
+        setCommandOption(cmd, room, "description", Room.Option.DESCRIPTION);
+        setCommandOption(cmd, room, "startLocked", Room.Option.START_LOCKED);
+        setCommandOption(cmd, room, "conferenceMeEnabled", Room.Option.CONFERENCE_ME_ENABLED);
     }
 
-    private static void setCommandOption(Command cmd, Room room, String cmdParam, String roomOption)
+    private static void setCommandOption(Command cmd, Room room, String cmdParam, Room.Option roomOption)
     {
         if (room.hasOption(roomOption)) {
             cmd.setParameter(cmdParam, room.getOption(roomOption));
@@ -852,25 +853,33 @@ ParamsLoop:
     }
 
     @Override
-    public String modifyRoom(String roomId, Map<String, Object> attributes) throws CommandException
+    public String modifyRoom(String roomId, Map<String, Object> attributes, Map<Room.Option, Object> options)
+            throws CommandException
     {
         // based on attributes, construct a Room instance, according to which we build the command
         Room room = new Room();
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            String att = entry.getKey();
-            Object val = entry.getValue();
-            if (att.equals(Room.NAME)) {
-                room.setName((String) val);
+
+        if (attributes != null) {
+            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+                String att = entry.getKey();
+                Object val = entry.getValue();
+                if (att.equals(Room.NAME)) {
+                    room.setName((String) val);
+                }
+                else if (att.equals(Room.PORT_COUNT)) {
+                    room.setPortCount((Integer) val);
+                }
+                else if (att.equals(Room.ALIASES)) {
+                    room.setAliases((List<Alias>) val);
+                }
+                else {
+                    throw new IllegalArgumentException("Unknown room attribute: " + att);
+                }
             }
-            else if (att.equals(Room.PORT_COUNT)) {
-                room.setPortCount((Integer) val);
-            }
-            else if (att.equals(Room.ALIASES)) {
-                room.setAliases((List<Alias>) val);
-            }
-            else {
-                room.setOption(att, val);
-            }
+        }
+
+        if (options != null) {
+            room.setOptions(options);
         }
 
         // build the command
