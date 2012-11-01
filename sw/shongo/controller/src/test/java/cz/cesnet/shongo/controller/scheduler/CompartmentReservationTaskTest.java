@@ -320,7 +320,7 @@ public class CompartmentReservationTaskTest
                         }
 
                         @Override
-                        public void addAssignedAlias(Alias alias)
+                        public void addAssignedAlias(Alias alias) throws ReportException
                         {
                         }
 

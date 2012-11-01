@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
@@ -88,6 +89,29 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     }
 
     @Override
+    protected cz.cesnet.shongo.controller.api.Executable createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.VirtualRoom();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    {
+        super.toApi(executableApi, domain);
+
+        cz.cesnet.shongo.controller.api.VirtualRoom virtualRoomApi =
+                (cz.cesnet.shongo.controller.api.VirtualRoom) executableApi;
+        virtualRoomApi.setIdentifier(domain.formatIdentifier(getId()));
+        virtualRoomApi.setSlot(getSlot());
+        virtualRoomApi.setState(getState().toApi());
+        virtualRoomApi.setPortCount(getPortCount());
+        virtualRoomApi.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        for (Alias alias : getAssignedAliases()) {
+            virtualRoomApi.addAlias(alias.toApi());
+        }
+    }
+
+        @Override
     @Transient
     public Set<Technology> getTechnologies()
     {

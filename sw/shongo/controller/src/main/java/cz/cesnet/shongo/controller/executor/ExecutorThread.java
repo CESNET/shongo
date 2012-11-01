@@ -130,7 +130,7 @@ public class ExecutorThread extends Thread
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             Executable executable = getExecutable(entityManager);
             entityManager.close();
-            DateTime start = executable.getSlot().getEnd();
+            DateTime start = executable.getSlot().getStart();
             start = start.plus(executor.getCompartmentStart());
             if (!DateTime.now().isBefore(start)) {
                 break;

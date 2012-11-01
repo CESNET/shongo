@@ -700,7 +700,7 @@ public class Controller
         controller.addService(resourceService);
         controller.addService(new ResourceControlServiceImpl());
         controller.addService(new ReservationServiceImpl());
-        controller.addService(new CompartmentServiceImpl());
+        controller.addService(new ExecutorServiceImpl());
 
         // Start, run and stop the controller
         controller.startAll();

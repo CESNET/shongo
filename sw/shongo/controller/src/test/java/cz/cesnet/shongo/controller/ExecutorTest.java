@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
@@ -80,6 +81,12 @@ public class ExecutorTest extends AbstractControllerTest
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
 
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.setAllocatable(true);
+        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "9500872[dd]"));
+        String aliasProviderIdentifier = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
         terminal.addTechnology(Technology.H323);
@@ -90,7 +97,6 @@ public class ExecutorTest extends AbstractControllerTest
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
-        mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new VirtualRoomsCapability(10));
         mcu.setAllocatable(true);
@@ -220,6 +226,9 @@ public class ExecutorTest extends AbstractControllerTest
         assertEquals("Thread should execute virtual room.",
                 cz.cesnet.shongo.controller.executor.ResourceVirtualRoom.class,
                 executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();

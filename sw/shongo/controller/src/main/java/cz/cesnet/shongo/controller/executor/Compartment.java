@@ -107,13 +107,25 @@ public class Compartment extends Executable
         return String.format("compartment '%d'", getId());
     }
 
-    /**
-     * @param domain
-     * @return {@link Compartment} converted to the {@link cz.cesnet.shongo.controller.api.Compartment}
-     */
+    @Override
+    protected cz.cesnet.shongo.controller.api.Executable createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.Compartment();
+    }
+
+    @Override
     public cz.cesnet.shongo.controller.api.Compartment toApi(Domain domain)
     {
-        cz.cesnet.shongo.controller.api.Compartment compartmentApi = new cz.cesnet.shongo.controller.api.Compartment();
+        return (cz.cesnet.shongo.controller.api.Compartment) super.toApi(domain);
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    {
+        super.toApi(executableApi, domain);
+
+        cz.cesnet.shongo.controller.api.Compartment compartmentApi =
+                (cz.cesnet.shongo.controller.api.Compartment) executableApi;
         compartmentApi.setIdentifier(domain.formatIdentifier(getId()));
         compartmentApi.setSlot(getSlot());
         compartmentApi.setState(getState().toApi());
@@ -166,19 +178,12 @@ public class Compartment extends Executable
                 throw new TodoImplementException(connection.getClass().getCanonicalName());
             }
         }
-        return compartmentApi;
     }
 
-    private State startImplementation(ExecutorThread executorThread, EntityManager entityManager, boolean startedNow)
+    private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Create virtual rooms
-        boolean virtualRoomCreated = false;
-        for (VirtualRoom virtualRoom : getVirtualRooms()) {
-            if (virtualRoom.getState() == State.NOT_STARTED) {
-                virtualRoom.start(executorThread, entityManager);
-                virtualRoomCreated = true;
-            }
-        }
+        boolean virtualRoomCreated = (startChildren(VirtualRoom.class, executorThread, entityManager) > 0);
         if (virtualRoomCreated) {
             executorThread.getLogger().info("Waiting for virtual rooms to be created...");
             try {
@@ -189,50 +194,36 @@ public class Compartment extends Executable
             }
         }
 
-        // TODO: persist already assigned aliases
-        if (startedNow) {
-            // Assign aliases to endpoints
-            for (Endpoint endpoint : getEndpoints()) {
-                endpoint.assignAliases(executorThread);
-            }
-        }
+        // Start other endpoints (e.g., assign aliases to them)
+        startChildren(Endpoint.class, executorThread, entityManager);
 
-        // Connect endpoints
-        for (Connection connection : getConnections()) {
-            if (connection.getState() == State.NOT_STARTED) {
-                connection.start(executorThread, entityManager);
-            }
-        }
+        // Start connections
+        startChildren(Connection.class, executorThread, entityManager);
+
         return super.onStart(executorThread, entityManager);
     }
 
     @Override
     public State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
-        return startImplementation(executorThread, entityManager, true);
+        return startImplementation(executorThread, entityManager);
     }
 
     @Override
     public State onResume(ExecutorThread executorThread, EntityManager entityManager)
     {
-        return startImplementation(executorThread, entityManager, false);
+        return startImplementation(executorThread, entityManager);
     }
 
     @Override
     public State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
-        // Disconnect endpoints
-        for (Connection connection : getConnections()) {
-            if (connection.getState() == State.STARTED) {
-                connection.stop(executorThread, entityManager);
-            }
-        }
-        // Stop virtual rooms
-        for (VirtualRoom virtualRoom : getVirtualRooms()) {
-            if (virtualRoom.getState() == State.STARTED) {
-                virtualRoom.stop(executorThread, entityManager);
-            }
-        }
+        // Stop connections
+        stopChildren(Connection.class, executorThread, entityManager);
+
+        // Stop endpoints (virtual rooms too)
+        stopChildren(Endpoint.class, executorThread, entityManager);
+
         return super.onStop(executorThread, entityManager);
     }
 }

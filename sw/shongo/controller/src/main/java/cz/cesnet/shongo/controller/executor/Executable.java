@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -163,6 +165,36 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
+     * @param domain
+     * @return {@link Executable} converted to {@link cz.cesnet.shongo.controller.api.Executable}
+     */
+    public cz.cesnet.shongo.controller.api.Executable toApi(Domain domain)
+    {
+        cz.cesnet.shongo.controller.api.Executable api = createApi();
+        toApi(api, domain);
+        return api;
+    }
+
+    /**
+     * @return new instance of {@link cz.cesnet.shongo.controller.api.Executable}
+     */
+    protected cz.cesnet.shongo.controller.api.Executable createApi()
+    {
+        throw new TodoImplementException(getClass().getCanonicalName());
+    }
+
+    /**
+     * Synchronize to {@link cz.cesnet.shongo.controller.api.Executable}.
+     *
+     * @param executableApi which should be filled from this {@link cz.cesnet.shongo.controller.executor.Executable}
+     * @param domain
+     */
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    {
+        executableApi.setIdentifier(domain.formatIdentifier(getId()));
+    }
+
+    /**
      * @return printable name of this {@link Executable}
      */
     @Transient
@@ -220,6 +252,52 @@ public abstract class Executable extends PersistentObject
         entityManager.getTransaction().begin();
         setState(state);
         entityManager.getTransaction().commit();
+    }
+
+    /**
+     * Start all {@link #childExecutables} which are instance of {@code childrenType}.
+     *
+     * @param childrenType
+     * @param executorThread
+     * @param entityManager
+     * @return number of child {@link Executable}s which were started by the method invocation
+     */
+    protected final int startChildren(Class<? extends Executable> childrenType, ExecutorThread executorThread,
+            EntityManager entityManager)
+    {
+        int count = 0;
+        for (Executable childExecutable : childExecutables) {
+            if (!childrenType.isInstance(childExecutable)) {
+                 continue;
+            }
+            if (childExecutable.getState() == State.NOT_STARTED) {
+                childExecutable.start(executorThread, entityManager);
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Stop all {@link #childExecutables} which are instance of {@code childrenType}.
+     *
+     * @param childrenType
+     * @param executorThread
+     * @param entityManager
+     * @return number of child {@link Executable}s which were started by the method invocation
+     */
+    protected final int stopChildren(Class<? extends Executable> childrenType, ExecutorThread executorThread,
+            EntityManager entityManager)
+    {
+        int count = 0;
+        for (Executable childExecutable : childExecutables) {
+            if (!childrenType.isInstance(childExecutable)) {
+                continue;
+            }
+            if (childExecutable.getState() == State.STARTED) {
+                childExecutable.stop(executorThread, entityManager);
+            }
+        }
+        return count;
     }
 
     /**

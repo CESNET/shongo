@@ -12,7 +12,6 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Compartment;
 
 #
 # Reservation types

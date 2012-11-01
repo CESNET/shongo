@@ -104,7 +104,11 @@ public class ExecutableManager extends AbstractManager
     public List<Executable> list()
     {
         List<Executable> executables = entityManager
-                .createQuery("SELECT executable FROM Executable executable WHERE executable.state != :notAllocated",
+                .createQuery("SELECT executable FROM Executable executable WHERE executable.state != :notAllocated"
+                        + " AND executable NOT IN("
+                        +"    SELECT childExecutable FROM Executable executable "
+                        + "   INNER JOIN executable.childExecutables childExecutable"
+                        + " )",
                         Executable.class)
                 .setParameter("notAllocated", Executable.State.NOT_ALLOCATED)
                 .getResultList();

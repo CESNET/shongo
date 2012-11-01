@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 
@@ -63,7 +64,7 @@ public abstract class Endpoint extends Executable
     /**
      * @param assignedAlias alias to be added to the {@link #assignedAliases}
      */
-    public void addAssignedAlias(Alias assignedAlias)
+    public void addAssignedAlias(Alias assignedAlias) throws ReportException
     {
         assignedAliases.add(assignedAlias);
     }
@@ -129,20 +130,5 @@ public abstract class Endpoint extends Executable
     public CallInitiation getCallInitiation()
     {
         return null;
-    }
-
-    /**
-     * Assign {@link #assignedAliases} to the {@link Endpoint}.
-     *
-     * @param executorThread
-     */
-    public void assignAliases(ExecutorThread executorThread)
-    {
-        List<Alias> aliases = getAssignedAliases();
-        for (Alias alias : aliases) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
-            executorThread.getLogger().debug(message.toString());
-        }
     }
 }

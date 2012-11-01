@@ -1,5 +1,8 @@
 * Finish refactorization of executor
-  * Refactorize starting/stopping child executables in compartment
+  * Add option for allocating alias for virtual room reservation without compartment
+  * Add virtualRoom to VirtualRoomReservation (in API)
+  * Update API diagrams
+  * Update API document
 
 FUTURE:
 -------
