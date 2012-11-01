@@ -827,22 +827,7 @@ ParamsLoop:
             }
         }
 
-        if (room.getStartTime() != null) {
-            cmd.setParameter("startTime", room.getStartTime());
-        }
-        if (room.getEndTime() != null) {
-            final long milliDiff;
-            if (room.getStartTime() != null) {
-                milliDiff = room.getEndTime().getTime() - room.getStartTime().getTime();
-            }
-            else {
-                milliDiff = 0; // FIXME: get current room start time
-            }
-            cmd.setParameter("durationSeconds", milliDiff / 1000);
-        }
-        else {
-            cmd.setParameter("durationSeconds", 0);
-        }
+        cmd.setParameter("durationSeconds", 0); // set the room forever
 
         // options
         setCommandOption(cmd, room, "registerWithGatekeeper", Room.OPT_REGISTER_WITH_H323_GATEKEEPER);
@@ -882,12 +867,6 @@ ParamsLoop:
             }
             else if (att.equals(Room.ALIASES)) {
                 room.setAliases((List<Alias>) val);
-            }
-            else if (att.equals(Room.START_TIME)) {
-                room.setStartTime((Date) val);
-            }
-            else if (att.equals(Room.END_TIME)) {
-                room.setEndTime((Date) val);
             }
             else {
                 room.setOption(att, val);

@@ -17,10 +17,6 @@ public class Room implements Concept
 
     private Map<String, Object> options = new HashMap<String, Object>();
 
-    // FIXME: will startTime and endTime ever be used by Shongo?
-    private Date startTime = null;
-    private Date endTime = null;
-
 
     public Room()
     {
@@ -77,38 +73,6 @@ public class Room implements Concept
         }
 
         this.portCount = portCount;
-    }
-
-    /**
-     * @return time when the room shall start, or null if it shall start immediately
-     */
-    public Date getStartTime()
-    {
-        return startTime;
-    }
-
-    /**
-     * @param startTime time when the room shall start, or null if it shall start immediately
-     */
-    public void setStartTime(Date startTime)
-    {
-        this.startTime = startTime;
-    }
-
-    /**
-     * @return time when the room shall end, or null if the room shall not ever stop
-     */
-    public Date getEndTime()
-    {
-        return endTime;
-    }
-
-    /**
-     * @param endTime time when the room shall end, or null if the room shall not ever stop
-     */
-    public void setEndTime(Date endTime)
-    {
-        this.endTime = endTime;
     }
 
     /**
@@ -177,14 +141,6 @@ public class Room implements Concept
      * Aliases of the room. Type: List<Alias>
      */
     public static final String ALIASES = "aliases";
-    /**
-     * Time of starting the room. Type: java.util.Date
-     */
-    public static final String START_TIME = "startTime";
-    /**
-     * Time of ending the room. Type: java.util.Date
-     */
-    public static final String END_TIME = "endTime";
 
 
     /**
