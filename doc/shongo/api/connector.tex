@@ -1,10 +1,8 @@
-\chapter{Connector API Specification}
+\chapter{Connector API}
 
 \input{commands}
 
 \section{Communication Protocol}
-
-\todo{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes. Groups of failure codes: Shongo-connections, connections between a connector and its device, failures reported by the devices themselves}
 
 Communication among controllers and connectors is implemented using JADE \cite{jade}. The communication is \textbf{synchronous}, i.e., the controller sends a command to a connector and waits until the connector replies. The standard FIPA-Request \cite{FIPA-Request} interaction protocol: controllers send requests to perform an action, connectors receive the request, perform the action on the managed device, and send the result of the action as a reply to the controller.
 
@@ -52,6 +50,13 @@ The agent receiving a command should always send a reply as an \ApiCode{inform} 
 An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
 
 
+\section{Failures}
+
+Once the connector receives an \ApiCode{AgentAction} command, it tries to perform the action. Errors that occur on performing the action are reported by the same means as a valid result of the action -- a \ApiCode{Result} predicate is used in the reply, holding an object which describes the error. It is either a \ApiCode{CommandError} object, or a \ApiCode{CommandNotSupported} object, both of which contain an error message. In addition, the reply is of the \ApiCode{FAILURE} performative, which distinguishes it from valid return values.
+
+If the connector does not know the requested action, it replies with a \ApiCode{REFUSE} message.
+
+Other kinds of failures, e.g. when contents of communication cannot be decoded or understood, result in a \ApiCode{NOT\_UNDERSTOOD} message sent as a reply.
 
 
 \section{Data Types}
