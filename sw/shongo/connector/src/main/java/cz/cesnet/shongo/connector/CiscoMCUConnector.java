@@ -38,8 +38,6 @@ import java.util.regex.Pattern;
  * - Cisco TelePresence MCU MSE 8510
  * <p/>
  * FIXME: string parameters to device commands have to be at most 31 characters long
- * <p/>
- * FIXME: caching does not work properly (create a new room, list rooms, delete the room, list rooms - and the listing still contains the deleted room)
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
@@ -158,6 +156,29 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //            System.out.println(room);
 //        }
 
+        // test of bad caching
+        Room newRoom = new Room("shongo-testX", 5);
+        String newRoomId = conn.createRoom(newRoom);
+        System.out.println("Created room " + newRoomId);
+        Collection<RoomSummary> roomList = conn.getRoomList();
+        System.out.println("Existing rooms:");
+        for (RoomSummary roomSummary : roomList) {
+            System.out.println(roomSummary);
+        }
+        conn.deleteRoom(newRoomId);
+        System.out.println("Deleted room " + newRoomId);
+        Map<String, Object> atts = new HashMap<String, Object>();
+        atts.put(Room.NAME, "shongo-testing");
+        String changedRoomId = conn.modifyRoom("shongo-test", atts);
+        Collection<RoomSummary> newRoomList = conn.getRoomList();
+        System.out.println("Existing rooms:");
+        for (RoomSummary roomSummary : newRoomList) {
+            System.out.println(roomSummary);
+        }
+        atts = new HashMap<String, Object>();
+        atts.put(Room.NAME, "shongo-test");
+        conn.modifyRoom(changedRoomId, atts);
+
         // test of modifyRoom() method
 //        System.out.println("Modifying shongo-test");
 //        Map<String, Object> atts = new HashMap<String, Object>();
@@ -171,12 +192,12 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        conn.modifyRoom("shongo-testing", atts2);
 
         // test of listParticipants() method
-        System.out.println("Listing shongo-test room:");
-        Collection<RoomUser> shongoUsers = conn.listParticipants("shongo-test");
-        for (RoomUser ru : shongoUsers) {
-            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
-        }
-        System.out.println("Listing done");
+//        System.out.println("Listing shongo-test room:");
+//        Collection<RoomUser> shongoUsers = conn.listParticipants("shongo-test");
+//        for (RoomUser ru : shongoUsers) {
+//            System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
+//        }
+//        System.out.println("Listing done");
 
         // user connect by alias
 //        String ruId = conn.dialParticipant("shongo-test", new Alias(Technology.H323, AliasType.E164, "950081038"));
@@ -489,8 +510,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * @param enumField       the field name from which the supplied results where taken within the command result
      */
     private void populateResultsFromCache(List<Map<String, Object>> results, Integer currentRevision,
-            Integer lastRevision,
-            Command command, String enumField)
+            Integer lastRevision, Command command, String enumField)
     {
         // we got just the difference since lastRevision (or full set if this is the first issue of the command)
         final String cacheId = getCommandCacheId(command);
@@ -500,7 +520,15 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             ListIterator<Map<String, Object>> iterator = results.listIterator();
             while (iterator.hasNext()) {
                 Map<String, Object> item = iterator.next();
-                if (!itemChanged(item, enumField)) {
+
+                if (isItemDead(item)) {
+                    // from the MCU API: "The device will also never return a dead record if listAll is set to true."
+                    // unfortunately, the buggy MCU still reports some items as dead even though listAll = true, so we
+                    //   must remove them by ourselves (according to the API, a dead item should not have been ever
+                    //   listed when listAll = true
+                    iterator.remove();
+                }
+                else if (!hasItemChanged(item)) {
                     ResultsCache cache = resultsCache.get(cacheId);
                     iterator.set(cache.getItem(item));
                 }
@@ -516,23 +544,53 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         rc.store(currentRevision, results);
     }
 
-    private boolean itemChanged(Map<String, Object> item, String enumField)
+    /**
+     * Tells whether an item from a result of an enumeration command has been removed since last time the command was
+     * issued.
+     *
+     * @param item    an item from the resulting list
+     * @return <code>true</code> if the item is marked as removed, <code>false</code> if not
+     */
+    private static boolean isItemDead(Map<String, Object> item)
     {
-        Map<String, Object> changedStruct = null;
-
-        if (enumField.equals("conferences")) {
-            changedStruct = item;
-        }
-        else if (enumField.equals("participants")) {
-            changedStruct = (Map<String, Object>) item.get("currentState");
-        }
-
-        if (changedStruct == null) {
+        // try directly the item "dead" attribute
+        if (Boolean.TRUE.equals(item.get("dead"))) {
             return true;
         }
-        else {
-            return !(changedStruct.containsKey("changed") && changedStruct.get("changed").equals(Boolean.FALSE));
+
+        // for some enumeration items (namely "participants"), the "dead" attribute might? (who knows, it shouldn't
+        //   have been there for any result, since listAll=true) be listed in "currentState"
+        @SuppressWarnings("unchecked")
+        Map<String, Object> currentState = (Map<String, Object>) item.get("currentState");
+        if (currentState != null && Boolean.TRUE.equals(currentState.get("dead"))) {
+            return true;
         }
+
+        return false; // not reported as dead
+    }
+
+    /**
+     * Tells whether an item from a result of an enumeration command changed since last time the command was issued.
+     *
+     * @param item      an item from the resulting list
+     * @return <code>false</code> if the item is marked as not changed,
+     *         <code>true</code> if the item is not marked as not changed
+     */
+    private static boolean hasItemChanged(Map<String, Object> item)
+    {
+        // try directly the item "changed" attribute
+        if (Boolean.FALSE.equals(item.get("changed"))) {
+            return false;
+        }
+
+        // for some enumeration items (namely "participants"), the "changed" attribute might be listed in "currentState"
+        @SuppressWarnings("unchecked")
+        Map<String, Object> currentState = (Map<String, Object>) item.get("currentState");
+        if (currentState != null && Boolean.FALSE.equals(currentState.get("changed"))) {
+            return false;
+        }
+
+        return true; // not reported as not changed
     }
 
 
@@ -910,7 +968,8 @@ ParamsLoop:
     //<editor-fold desc="USER SERVICE">
 
     @Override
-    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public RoomUser getParticipant(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
@@ -1061,13 +1120,15 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void disableParticipantVideo(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void enableParticipantVideo(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
