@@ -313,13 +313,13 @@ $response = $client->send_request(
 
 Consider the following command required by this API:
 \begin{Api}
-\ApiItem{\ApiCode{List<RoomUser> listRoomUsers(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{List<RoomUser> listParticipants(SecurityToken token, String roomId)}}
 \end{Api}
 The following classes should be defined to represent the command and all objects used by it:
 \begin{verbatim}
 package cz.cesnet.shongo.jade.ontology;
 
-public class ListRoomUsers implements AgentAction {
+public class ListParticipants implements AgentAction {
     private String roomId;
 
     public String getRoomId() {
@@ -360,7 +360,7 @@ The command might be encoded in the following message:
    (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc ))
  :receiver  (set ( agent-identifier :name mcu@Shongo ) )
  :content  "((action (agent-identifier :name Controller@Shongo :addresses
-   (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc)) (ListRoomUsers :
+   (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc)) (ListParticipants :
 roomId shongo-test)))"
  :language  fipa-sl  :ontology  shongo-ontology  :protocol  fipa-request
 )
@@ -377,7 +377,7 @@ A successful reply would then be encoded as follows:
  :content
      "((result (action (agent-identifier :name Controller@Shongo :addresses
       (sequence http://127.0.0.1:7778/acc http://127.0.0.1:49879/acc))
-      (ListRoomUsers :roomId shongo-test)) (serializable :value
+      (ListParticipants :roomId shongo-test)) (serializable :value
       rO0ABXNyABNqYXZhLnV0aWwuQXJyYXlMaXN0eIHSHZnHYZ0DAAFJAARzaXpleHAAAAABdw
       ...
       wyGuMDAAB4cHcPAA1FdXJvcGUvUHJhZ3VleHhwdAALc2hvbmdvLXRlc3R0AAQzMzQ1cHg=

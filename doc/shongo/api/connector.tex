@@ -105,7 +105,7 @@ Usage stats of a given multipoint device.
 \ApiClassAttribute{callLog}{byte[]}{} Call log in CDR. Should contain at least start time and duration of each call.
 \end{ApiClassAttributes}
 
-\ApiClass{RoomInfo}{}
+\ApiClass{RoomSummary}{}
 A brief info about a virtual room at a server.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
@@ -160,24 +160,6 @@ A compression algorithm used to compress data files.
 \ApiItem{\ApiCode{ConnectorInfo getConnectorInfo()}}
 Get information about connector.
 
-\ApiItem{\ApiCode{muteRoomUser(SecurityToken token, String RoomUserId)}}
-Mutes a user in a room.
-
-\ApiItem{\ApiCode{unmuteRoomUser(SecurityToken token, String RoomUserId)}}
-Unmutes a user in a room.
-
-\ApiItem{\ApiCode{setMicrophoneLevel(SecurityToken token, String RoomUserId, int level)}}
-Sets microphone audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound). The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
-
-\ApiItem{\ApiCode{setPlaybackLevel(SecurityToken token, String RoomUserId, int level)}}
-Sets playback audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound). The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
-
-\ApiItem{\ApiCode{enableUserVideo(SecurityToken token, String RoomUserId)}}
-Enables video from a user in a room.
-
-\ApiItem{\ApiCode{disableUserVideo(SecurityToken token, String RoomUserId)}}
-Disables video from a user in a room.
-
 \end{Api}
 
 \section{Multipoint Device} \label{sect:connector-api-multipoint}
@@ -185,7 +167,10 @@ Disables video from a user in a room.
 \subsection{Room Management}
 \begin{Api}
 
-\ApiItem{\ApiCode{RoomInfo getRoomInfo(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{Collection<RoomSummary> getRoomList()}}
+Gets a list of all rooms at a given server.
+
+\ApiItem{\ApiCode{RoomSummary getRoomSummary(SecurityToken token, String roomId)}}
 Gets info about an existing room.
 
 \ApiItem{\ApiCode{String createRoom(SecurityToken token, Room room)}}
@@ -210,23 +195,21 @@ Sets up a room according to given \ApiCode{settings} previously exported by the 
 \subsection{User Management}
 \begin{Api}
 
-\ApiItem{\ApiCode{List<RoomUser> listRoomUsers(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{Collection<RoomUser> listParticipants(SecurityToken token, String roomId)}}
 
-\ApiItem{\ApiCode{RoomUser getRoomUser(SecurityToken token, String roomId, String roomUserId)}}
+\ApiItem{\ApiCode{RoomUser getParticipant(SecurityToken token, String roomId, String roomUserId)}}
 Gets user information and settings in a room.
 
-\ApiItem{\ApiCode{modifyRoomUser(SecurityToken token, String roomId, String roomUserId, Map attributes)}}
+\ApiItem{\ApiCode{dialParticipant(SecurityToken token, String roomId, String deviceAddress)}}
+\ApiItem{\ApiCode{dialParticipant(SecurityToken token, String roomId, Alias alias)}}
+Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
+
+\ApiItem{\ApiCode{modifyParticipant(SecurityToken token, String roomId, String roomUserId, Map attributes)}}
 Modifies user settings in the room (suitable for setting
 microphone/playback level, muting/unmuting, user layout\ldots).
 
-\ApiItem{\ApiCode{disconnectRoomUser(SecurityToken token, String roomId, String roomUserId)}}
+\ApiItem{\ApiCode{disconnectParticipant(SecurityToken token, String roomId, String roomUserId)}}
 Disconnect user from the room.
-
-\ApiItem{\ApiCode{enableContentProvider(SecurityToken token, String roomUserId)}}
-Enables a given room user as a content provider in the room. This is typically enabled by default.
-
-\ApiItem{\ApiCode{disableContentProvider(SecurityToken token, String roomUserId)}}
-Disables a given room user as a content provider in the room. Typically, all users are allowed to fight for being the content provider. Using this method, a user is not allowed to do this.
 
 \end{Api}
 
@@ -249,6 +232,36 @@ Clears all room content.
 \end{Api}
 
 
+\subsection{I/O}
+\begin{Api}
+
+\ApiItem{\ApiCode{muteParticipant(SecurityToken token, String roomUserId)}}
+Mutes a user in a room.
+
+\ApiItem{\ApiCode{unmuteParticipant(SecurityToken token, String roomUserId)}}
+Unmutes a user in a room.
+
+\ApiItem{\ApiCode{setParticipantMicrophoneLevel(SecurityToken token, String roomUserId, int level)}}
+Sets microphone audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound). The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
+
+\ApiItem{\ApiCode{setParticipantPlaybackLevel(SecurityToken token, String roomUserId, int level)}}
+Sets playback audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound). The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
+
+\ApiItem{\ApiCode{enableParticipantVideo(SecurityToken token, String roomUserId)}}
+Enables video from a user in a room.
+
+\ApiItem{\ApiCode{disableParticipantVideo(SecurityToken token, String roomUserId)}}
+Disables video from a user in a room.
+
+\ApiItem{\ApiCode{enableContentProvider(SecurityToken token, String roomUserId)}}
+Enables a given room user as a content provider in the room. This is typically enabled by default.
+
+\ApiItem{\ApiCode{disableContentProvider(SecurityToken token, String roomUserId)}}
+Disables a given room user as a content provider in the room. Typically, all users are allowed to fight for being the content provider. Using this method, a user is not allowed to do this.
+
+\end{Api}
+
+
 \subsection{Monitoring}
 \begin{Api}
 
@@ -258,13 +271,10 @@ Gets info about current load of the device.
 \ApiItem{\ApiCode{UsageStats getUsageStats()}}
 Gets the multipoint usage stats.
 
-\ApiItem{\ApiCode{RoomInfo[] getRoomList()}}
-Gets a list of all rooms at a given server.
-
-\ApiItem{\ApiCode{MediaData getReceivedVideoSnapshot(SecurityToken token, String RoomUserId)}}
+\ApiItem{\ApiCode{MediaData getReceivedVideoSnapshot(SecurityToken token, String roomUserId)}}
 Gets a snapshot of the video stream received by a user in a room. See the \ApiCode{contentType} of the returned object to get the image format returned.
 
-\ApiItem{\ApiCode{MediaData getSentVideoSnapshot(SecurityToken token, String RoomUserId)}}
+\ApiItem{\ApiCode{MediaData getSentVideoSnapshot(SecurityToken token, String roomUserId)}}
 Gets a snapshot of the video stream that a user is sending in a room. See the \ApiCode{contentType} of the returned object to get the image format returned.
 
 \end{Api}
@@ -298,23 +308,50 @@ Deletes a given recording. The \ApiCode{recordingId} parameter is an identifier 
 
 \begin{Api}
 
-\ApiItem{\ApiCode{dial(SecurityToken token, String server)}}
-Dials a server.
+\ApiItem{\ApiCode{String dial(SecurityToken token, String address)}}
+\ApiItem{\ApiCode{String dial(SecurityToken token, Alias alias)}}
+Dials a server. Returns the device's identification of the call so that the call may be referred to by other methods.
+
+\ApiItem{\ApiCode{hangUp(SecurityToken token, String callId)}}
+Hangs up a call. The \ApiCode{callId} argument is that previously returned by the \ApiCode{dial} method.
+
+\ApiItem{\ApiCode{hangUpAll(SecurityToken token)}}
+Hangs up all calls.
+
+\ApiItem{\ApiCode{standBy(SecurityToken token)}}
+Sets the device to standby mode.
 
 \ApiItem{\ApiCode{resetDevice(SecurityToken token)}}
 Resets the device.
+
+\ApiItem{\ApiCode{mute(SecurityToken token)}}
+Mutes the endpoint.
+
+\ApiItem{\ApiCode{unmute(SecurityToken token)}}
+Unmutes the endpoint.
+
+\ApiItem{\ApiCode{setMicrophoneLevel(SecurityToken token, int level)}}
+Sets microphone (all microphones) audio level to a given value. The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
+
+\ApiItem{\ApiCode{setPlaybackLevel(SecurityToken token, int level)}}
+Sets playback audio level to a given value. The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
+
+\ApiItem{\ApiCode{enableVideo(SecurityToken token)}}
+Enables video from the endpoint.
+
+\ApiItem{\ApiCode{disableVideo(SecurityToken token)}}
+Disables video from the endpoint.
+
+\ApiItem{\ApiCode{startPresentation(SecurityToken token)}}
+Starts the presentation mode (turns on the media stream).
+
+\ApiItem{\ApiCode{stopPresentation(SecurityToken token)}}
+Stops the presentation mode (turns off the media stream).
 
 \end{Api}
 
 
 \section{Technology Specific API}
 \todo{Cover use cases \ref{UC:ops:room:room-techspec} and \ref{UC:ops:room:user-techspec}.}
-\\\todo{How to structure this section? List the supported commands for each technology separately, or list them on a single place, stating the technologies supporting a functionality for each command?}
 
-\begin{Api}
-
-\ApiItem{\ApiCode{dial(SecurityToken token, String deviceAddress)}}
-Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
-
-\end{Api}
 

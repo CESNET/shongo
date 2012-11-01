@@ -126,8 +126,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
 //        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
 
-        // test of getRoomInfo() command
-//        RoomInfo shongoTestRoom = conn.getRoomInfo("shongo-test");
+        // test of getRoomSummary() command
+//        RoomInfo shongoTestRoom = conn.getRoomSummary("shongo-test");
 //        System.out.println("shongo-test room:");
 //        System.out.println(shongoTestRoom);
 
@@ -170,9 +170,9 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        atts2.put(Room.NAME, "shongo-test");
 //        conn.modifyRoom("shongo-testing", atts2);
 
-        // test of listRoomUsers() method
+        // test of listParticipants() method
         System.out.println("Listing shongo-test room:");
-        Collection<RoomUser> shongoUsers = conn.listRoomUsers("shongo-test");
+        Collection<RoomUser> shongoUsers = conn.listParticipants("shongo-test");
         for (RoomUser ru : shongoUsers) {
             System.out.println("  - " + ru.getUserId() + " (" + ru.getDisplayName() + ")");
         }
@@ -695,7 +695,7 @@ ParamsLoop:
     //<editor-fold desc="ROOM SERVICE">
 
     @Override
-    public RoomSummary getRoomInfo(String roomId) throws CommandException
+    public RoomSummary getRoomSummary(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.status");
         cmd.setParameter("conferenceName", roomId);
@@ -910,7 +910,7 @@ ParamsLoop:
     //<editor-fold desc="USER SERVICE">
 
     @Override
-    public RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
@@ -976,7 +976,7 @@ ParamsLoop:
     }
 
     @Override
-    public Collection<RoomUser> listRoomUsers(String roomId) throws CommandException
+    public Collection<RoomUser> listParticipants(String roomId) throws CommandException
     {
         Command cmd = new Command("participant.enumerate");
         cmd.setParameter("operationScope", new String[]{"currentState"});
@@ -1026,7 +1026,7 @@ ParamsLoop:
     }
 
     @Override
-    public void modifyRoomUser(String roomId, String roomUserId, Map attributes)
+    public void modifyParticipant(String roomId, String roomUserId, Map attributes)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
@@ -1061,39 +1061,39 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void enableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void muteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void setUserMicrophoneLevel(String roomId, String roomUserId, int level)
+    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void setUserPlaybackLevel(String roomId, String roomUserId, int level)
+    public void setParticipantPlaybackLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }
 
     @Override
-    public void unmuteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
     }

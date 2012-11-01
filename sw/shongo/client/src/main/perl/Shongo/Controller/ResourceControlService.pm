@@ -286,7 +286,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'listRoomUsers', @supportedMethods) {
+    if (grep $_ eq 'listParticipants', @supportedMethods) {
         $shell->add_commands({
             "list-participants" => {
                 desc => "List participants in a given room",

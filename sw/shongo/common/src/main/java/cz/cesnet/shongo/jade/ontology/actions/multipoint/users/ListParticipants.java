@@ -34,7 +34,7 @@ public class ListParticipants extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        return getMultipoint(connector).listRoomUsers(roomId);
+        return getMultipoint(connector).listParticipants(roomId);
     }
 
     public String toString()

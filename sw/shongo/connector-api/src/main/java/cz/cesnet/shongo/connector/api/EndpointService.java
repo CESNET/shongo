@@ -45,6 +45,11 @@ public interface EndpointService extends CommonService
     void hangUpAll() throws CommandException, CommandUnsupportedException;
 
     /**
+     * Sets the device to standby mode.
+     */
+    void standBy() throws CommandException, CommandUnsupportedException;
+
+    /**
      * Resets the device.
      */
     void resetDevice() throws CommandException, CommandUnsupportedException;
@@ -91,13 +96,8 @@ public interface EndpointService extends CommonService
     void startPresentation() throws CommandException, CommandUnsupportedException;
 
     /**
-     * Stop the presentation mode (turns off the media stream).
+     * Stops the presentation mode (turns off the media stream).
      */
     void stopPresentation() throws CommandException, CommandUnsupportedException;
-
-    /**
-     * Sets the device in standby mode.
-     */
-    void standBy() throws CommandException, CommandUnsupportedException;
 
 }

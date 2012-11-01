@@ -14,21 +14,21 @@ public class RoomServiceImpl implements RoomService
     }
 
     /*@Override
-    public RoomUser[] listRoomUsers(Types.SecurityToken token, String roomId)
+    public RoomUser[] listParticipants(Types.SecurityToken token, String roomId)
     {
-        throw new RuntimeException("TODO: Implement RoomServiceImpl.listRoomUsers");
+        throw new RuntimeException("TODO: Implement RoomServiceImpl.listParticipants");
     }
 
     @Override
-    public RoomUser getRoomUser(Types.SecurityToken token, String roomId, String userId)
+    public RoomUser getParticipant(Types.SecurityToken token, String roomId, String userId)
     {
-        throw new RuntimeException("TODO: Implement RoomServiceImpl.getRoomUser");
+        throw new RuntimeException("TODO: Implement RoomServiceImpl.getParticipant");
     }
 
     @Override
-    public void modifyRoomUser(Types.SecurityToken token, String roomId, String userId, Map attributes)
+    public void modifyParticipant(Types.SecurityToken token, String roomId, String userId, Map attributes)
     {
-        throw new RuntimeException("TODO: Implement RoomServiceImpl.modifyRoomUser");
+        throw new RuntimeException("TODO: Implement RoomServiceImpl.modifyParticipant");
     }
 
     @Override
