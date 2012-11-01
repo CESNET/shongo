@@ -4,6 +4,8 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.api.Compartment;
+import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.jade.ActionRequestResponderBehaviour;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownActionException;
@@ -65,12 +67,12 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link Compartment} for one existing and one external endpoint and execute it.
+     * Allocate {@link Compartment} and execute it.
      *
      * @throws Exception
      */
     @Test
-    public void test() throws Exception
+    public void testCompartment() throws Exception
     {
         ConnectorAgent terminalAgent = getController().addJadeAgent("terminal", new ConnectorAgent());
         ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
@@ -95,6 +97,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
+        // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
@@ -102,13 +105,13 @@ public class ExecutorTest extends AbstractControllerTest
         compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalIdentifier));
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
         reservationRequest.setSpecification(compartmentSpecification);
-
-        // Allocate reservation request
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
-        int count = executor.execute(dateTime);
-        assertEquals("One compartment should be executed.", 1, count);
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
 
         // Wait for executor threads to end
         executor.waitForThreads();
@@ -119,6 +122,185 @@ public class ExecutorTest extends AbstractControllerTest
                 add(cz.cesnet.shongo.jade.ontology.actions.endpoint.Dial.class);
                 add(cz.cesnet.shongo.jade.ontology.actions.endpoint.HangUpAll.class);
             }}, terminalAgent.getPerformedActions());
+        assertEquals(new ArrayList()
+        {{
+                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedActions());
+    }
+
+    /**
+     * Allocate {@link VirtualRoom} and execute it.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testVirtualRoom() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAddress("127.0.0.1");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        virtualRoomSpecification.addTechnology(Technology.H323);
+        virtualRoomSpecification.setPortCount(5);
+        reservationRequest.setSpecification(virtualRoomSpecification);
+
+        // Allocate reservation request
+        allocateAndCheck(reservationRequest);
+
+        // Execute virtual room
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute virtual room.",
+                cz.cesnet.shongo.controller.executor.ResourceVirtualRoom.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList()
+        {{
+                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedActions());
+    }
+
+    /**
+     * Allocate {@link VirtualRoom}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both of them separately (first {@link VirtualRoom} and then
+     * {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testProvidedVirtualRoomStartedSeparately() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAddress("127.0.0.1");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        // Create virtual room reservation
+        ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
+        virtualRoomReservationRequest.setSlot(dateTime, duration);
+        virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        virtualRoomSpecification.addTechnology(Technology.H323);
+        virtualRoomSpecification.setPortCount(10);
+        virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
+        String virtualRoomReservationIdentifier = allocateAndCheck(virtualRoomReservationRequest).getIdentifier();
+
+        // Execute virtual room
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute virtual room.",
+                cz.cesnet.shongo.controller.executor.ResourceVirtualRoom.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Create compartment reservation
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        reservationRequest.setSpecification(compartmentSpecification);
+        reservationRequest.addProvidedReservationIdentifier(virtualRoomReservationIdentifier);
+        allocateAndCheck(reservationRequest);
+
+        // Execute compartment
+        executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList()
+        {{
+                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedActions());
+    }
+
+    /**
+     * Allocate {@link VirtualRoom}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both at once ({@link VirtualRoom} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testProvidedVirtualRoomStartedAtOnce() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAddress("127.0.0.1");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        // Create virtual room reservation
+        ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
+        virtualRoomReservationRequest.setSlot(dateTime, duration);
+        virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        virtualRoomSpecification.addTechnology(Technology.H323);
+        virtualRoomSpecification.setPortCount(10);
+        virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
+        String virtualRoomReservationIdentifier = allocateAndCheck(virtualRoomReservationRequest).getIdentifier();
+
+        // Create compartment reservation
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
+        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
+        reservationRequest.setSpecification(compartmentSpecification);
+        reservationRequest.addProvidedReservationIdentifier(virtualRoomReservationIdentifier);
+        allocateAndCheck(reservationRequest);
+
+        // Execute compartment
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
         assertEquals(new ArrayList()
         {{
                 add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);

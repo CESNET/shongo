@@ -16,8 +16,7 @@ import javax.persistence.*;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Connection extends PersistentObject
+public abstract class Connection extends Executable
 {
     /**
      * The {@link Endpoint} which initiates the {@link Connection}.
@@ -28,11 +27,6 @@ public abstract class Connection extends PersistentObject
      * The {@link Endpoint} which accepts incoming connection.
      */
     private Endpoint endpointTo;
-
-    /**
-     * Current state of the connection.
-     */
-    private State state;
 
     /**
      * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link Connection}.
@@ -76,24 +70,6 @@ public abstract class Connection extends PersistentObject
     }
 
     /**
-     * @return {@link #state}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public State getState()
-    {
-        return state;
-    }
-
-    /**
-     * @param state sets the {@link #state}
-     */
-    public void setState(State state)
-    {
-        this.state = state;
-    }
-
-    /**
      * @return {@link #connectionId}
      */
     @Column
@@ -110,27 +86,8 @@ public abstract class Connection extends PersistentObject
         this.connectionId = connectionId;
     }
 
-    @PrePersist
-    protected void onCreate()
-    {
-        if (state == null) {
-            state = State.NOT_ESTABLISHED;
-        }
-    }
-
-    /**
-     * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
-     *
-     * @param executorThread
-     */
-    protected abstract State onEstablish(ExecutorThread executorThread);
-
-    /**
-     * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
-     *
-     * @param executorThread
-     */
-    protected boolean onClose(ExecutorThread executorThread)
+    @Override
+    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
@@ -152,88 +109,9 @@ public abstract class Connection extends PersistentObject
                 command = controllerAgent.performCommand(new ActionRequestCommand(agentName, new HangUpAll()));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
+                return State.STARTED;
             }
         }
-        return true;
-    }
-
-    /**
-     * Establish connection between {@link #endpointFrom} and {@link #endpointTo}.
-     *
-     * @param executorThread
-     */
-    public final void establish(ExecutorThread executorThread)
-    {
-        if (getState() != State.NOT_ESTABLISHED) {
-            throw new IllegalStateException(
-                    "Connection can be established only if the connection is not established yet.");
-        }
-
-        State state = onEstablish(executorThread);
-        setState(state);
-    }
-
-    /**
-     * Close connection between {@link #endpointFrom} and {@link #endpointTo}.
-     *
-     * @param executorThread
-     */
-    public final void close(ExecutorThread executorThread)
-    {
-
-        if (getState() != State.ESTABLISHED) {
-            throw new IllegalStateException(
-                    "Connection can be closed only if the connection is already established.");
-        }
-
-        onClose(executorThread);
-
-        setState(State.CLOSED);
-    }
-
-    /**
-     * State of the {@link Connection}.
-     */
-    public static enum State
-    {
-        /**
-         * {@link Connection} has not been established yet.
-         */
-        NOT_ESTABLISHED,
-
-        /**
-         * {@link Connection} is already established.
-         */
-        ESTABLISHED,
-
-        /**
-         * {@link Connection} failed to establish.
-         */
-        FAILED,
-
-        /**
-         * {@link Connection} has been already closed.
-         */
-        CLOSED;
-
-        /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.Connection.State}
-         */
-        public cz.cesnet.shongo.controller.api.Compartment.Connection.State toApi()
-        {
-            switch (this) {
-                case NOT_ESTABLISHED:
-                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.NOT_ESTABLISHED;
-                case ESTABLISHED:
-                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.ESTABLISHED;
-                case FAILED:
-                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.FAILED;
-                case CLOSED:
-                    return cz.cesnet.shongo.controller.api.Compartment.Connection.State.CLOSED;
-                default:
-                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
-            }
-        }
+        return super.onStop(executorThread, entityManager);
     }
 }

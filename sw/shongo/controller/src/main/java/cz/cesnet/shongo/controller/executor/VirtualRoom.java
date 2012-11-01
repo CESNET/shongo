@@ -13,38 +13,29 @@ import javax.persistence.*;
 public abstract class VirtualRoom extends Endpoint
 {
     /**
-     * Current state of the {@link VirtualRoom}.
-     */
-    private State state;
-
-    /**
      * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link VirtualRoom}.
      */
     private String virtualRoomId;
+
+    @Override
+    @Transient
+    public String getName()
+    {
+        return String.format("virtual room '%d'", getId());
+    }
+
+    @Override
+    @Transient
+    public int getCount()
+    {
+        return 0;
+    }
 
     /**
      * @return port count of the {@link VirtualRoom}
      */
     @Transient
     public abstract Integer getPortCount();
-
-    /**
-     * @return {@link #state}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public State getState()
-    {
-        return state;
-    }
-
-    /**
-     * @param state sets the {@link #state}
-     */
-    public void setState(State state)
-    {
-        this.state = state;
-    }
 
     /**
      * @return {@link #virtualRoomId}
@@ -61,109 +52,5 @@ public abstract class VirtualRoom extends Endpoint
     public void setVirtualRoomId(String virtualRoomId)
     {
         this.virtualRoomId = virtualRoomId;
-    }
-
-    @PrePersist
-    protected void onCreate()
-    {
-        if (state == null) {
-            state = State.NOT_CREATED;
-        }
-    }
-
-    /**
-     * Start virtual room.
-     *
-     * @param executorThread
-     */
-    protected abstract boolean onCreate(ExecutorThread executorThread);
-
-    /**
-     * Stop virtual room.
-     *
-     * @param executorThread
-     */
-    protected abstract boolean onDelete(ExecutorThread executorThread);
-
-    /**
-     * Start virtual room.
-     *
-     * @param executorThread
-     */
-    public final void create(ExecutorThread executorThread)
-    {
-        if (getState() != State.NOT_CREATED) {
-            throw new IllegalStateException(
-                    "Virtual room can be created only if the virtual room is not created yet.");
-        }
-
-        if (onCreate(executorThread)) {
-            setState(State.CREATED);
-        }
-        else {
-            setState(State.FAILED);
-        }
-    }
-
-    /**
-     * Stop virtual room.
-     *
-     * @param executorThread
-     */
-    public final void delete(ExecutorThread executorThread)
-    {
-        if (getState() != State.CREATED) {
-            throw new IllegalStateException(
-                    "Virtual room can be deleted only if the virtual room is already created.");
-        }
-
-        onDelete(executorThread);
-
-        setState(State.DELETED);
-    }
-
-    /**
-     * State of the {@link VirtualRoom}.
-     */
-    public static enum State
-    {
-        /**
-         * {@link VirtualRoom} has not been created yet.
-         */
-        NOT_CREATED,
-
-        /**
-         * {@link VirtualRoom} is already created.
-         */
-        CREATED,
-
-        /**
-         * {@link VirtualRoom} failed to create.
-         */
-        FAILED,
-
-        /**
-         * {@link VirtualRoom} has been already deleted.
-         */
-        DELETED;
-
-        /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.VirtualRoom.State}
-         */
-        public Compartment.VirtualRoom.State toApi()
-        {
-            switch (this) {
-                case NOT_CREATED:
-                    return cz.cesnet.shongo.controller.api.Compartment.VirtualRoom.State.NOT_CREATED;
-                case CREATED:
-                    return Compartment.VirtualRoom.State.CREATED;
-                case FAILED:
-                    return Compartment.VirtualRoom.State.FAILED;
-                case DELETED:
-                    return Compartment.VirtualRoom.State.DELETED;
-                default:
-                    throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
-            }
-        }
     }
 }

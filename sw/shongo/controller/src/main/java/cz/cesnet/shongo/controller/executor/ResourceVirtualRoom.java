@@ -11,10 +11,7 @@ import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -147,8 +144,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     }
 
     @Override
-    @Transient
-    public boolean onCreate(ExecutorThread executorThread)
+    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -170,7 +166,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
 
-            String roomName = String.format("Shongo%d Comp:%d", getId(), executorThread.getExecutableId());
+            String roomName = String.format("Shongo%d [exec:%d]", getId(), executorThread.getExecutableId());
             roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
             Room room = new Room();
@@ -182,15 +178,15 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName,
                     new CreateRoom(room)));
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
+                return State.STARTING_FAILED;
             }
             setVirtualRoomId((String) command.getResult());
         }
-        return true;
+        return super.onStart(executorThread, entityManager);
     }
 
     @Override
-    public boolean onDelete(ExecutorThread executorThread)
+    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
@@ -207,9 +203,9 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             Command command = controllerAgent
                     .performCommandAndWait(new ActionRequestCommand(agentName, new DeleteRoom(virtualRoomId)));
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
+                return State.STARTED;
             }
         }
-        return true;
+        return super.onStop(executorThread, entityManager);
     }
 }

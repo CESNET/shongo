@@ -7,5 +7,5 @@ package cz.cesnet.shongo.controller.executor;
  */
 public interface EndpointProvider
 {
-    public Endpoint createEndpoint();
+    public Endpoint getEndpoint();
 }

@@ -1,12 +1,14 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
-import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
+import cz.cesnet.shongo.controller.report.Report;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents an object which can be executed by an {@link cz.cesnet.shongo.controller.Executor}.
@@ -31,6 +33,11 @@ public abstract class Executable extends PersistentObject
      * Current state of the {@link Compartment}.
      */
     private State state;
+
+    /**
+     * List of child {@link Executable}s.
+     */
+    private List<Executable> childExecutables = new ArrayList<Executable>();
 
     /**
      * @return {@link #slotStart}
@@ -116,13 +123,42 @@ public abstract class Executable extends PersistentObject
     public void setState(State state)
     {
         this.state = state;
+
+        // Apply NOT_STARTED state to all children (recursively)
+        if (state == State.NOT_STARTED) {
+            for (Executable childExecutable : childExecutables) {
+                State childExecutableState = childExecutable.getState();
+                if (childExecutableState == null || childExecutableState == State.NOT_ALLOCATED) {
+                    childExecutable.setState(State.NOT_STARTED);
+                }
+            }
+        }
+    }
+
+    /**
+     * @return {@link #childExecutables}
+     */
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(inverseJoinColumns = {@JoinColumn(name = "child_executable_id")})
+    @Access(AccessType.FIELD)
+    public List<Executable> getChildExecutables()
+    {
+        return childExecutables;
+    }
+
+    /**
+     * @param executable to be added to the {@link #childExecutables}
+     */
+    public void addChildExecutable(Executable executable)
+    {
+        childExecutables.add(executable);
     }
 
     @PrePersist
     protected void onCreate()
     {
         if (state == null) {
-            state = State.NOT_STARTED;
+            state = State.NOT_ALLOCATED;
         }
     }
 
@@ -141,7 +177,16 @@ public abstract class Executable extends PersistentObject
      * @param executorThread thread which is executing
      * @param entityManager  which can be used for starting
      */
-    public abstract void start(ExecutorThread executorThread, EntityManager entityManager);
+    public final void start(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        if (getState() != State.NOT_STARTED) {
+            throw new IllegalStateException(getName() + " can be started only if it is not started yet.");
+        }
+        State state = onStart(executorThread, entityManager);
+        entityManager.getTransaction().begin();
+        setState(state);
+        entityManager.getTransaction().commit();
+    }
 
     /**
      * Resume given {@code executable}.
@@ -149,54 +194,117 @@ public abstract class Executable extends PersistentObject
      * @param executorThread thread which is executing
      * @param entityManager  which can be used for resuming
      */
-    public abstract void resume(ExecutorThread executorThread, EntityManager entityManager);
+    public final void resume(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        if (getState() != State.STARTED) {
+            throw new IllegalStateException(getName() + " can be resumed only if it is started.");
+        }
+        State state = onResume(executorThread, entityManager);
+        entityManager.getTransaction().begin();
+        setState(state);
+        entityManager.getTransaction().commit();
+    }
+
+    /**
+     * Start given {@code executable}.
+     *
+     * @param executorThread thread which is executing
+     * @param entityManager  which can be used for starting
+     */
+    public final void stop(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        if (getState() != State.STARTED) {
+            throw new IllegalStateException(getName() + " can be stopped only if it is started.");
+        }
+        State state = onStop(executorThread, entityManager);
+        entityManager.getTransaction().begin();
+        setState(state);
+        entityManager.getTransaction().commit();
+    }
+
+    /**
+     * Start given {@code executable}.
+     *
+     * @param executorThread thread which is executing
+     * @param entityManager  which can be used for starting
+     * @return new {@link State}
+     */
+    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        return State.STARTED;
+    }
+
+    /**
+     * Resume given {@code executable}.
+     *
+     * @param executorThread thread which is executing
+     * @param entityManager  which can be used for resuming
+     * @return new {@link State}
+     */
+    protected State onResume(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        return State.STARTED;
+    }
 
     /**
      * Stop given {@code executable}.
      *
      * @param executorThread thread which is executing
      * @param entityManager  which can be used for stopping
+     * @return new {@link State}
      */
-    public abstract void stop(ExecutorThread executorThread, EntityManager entityManager);
+    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
+    {
+        return State.STOPPED;
+    }
 
     /**
-     * State of the {@link Compartment}.
+     * State of the {@link Executable}.
      */
     public static enum State
     {
         /**
-         * {@link Compartment} which has not been fully allocated yet (e.g., {@link Compartment} is stored
-         * for {@link AllocatingCompartmentReport}).
+         * {@link Executable} which has not been fully allocated yet (e.g., {@link Executable} is stored for
+         * {@link Report}).
          */
         NOT_ALLOCATED,
 
         /**
-         * {@link Compartment} has not been created yet.
+         * {@link Executable} has not been started yet.
          */
         NOT_STARTED,
 
         /**
-         * {@link Compartment} is already created.
+         * {@link Executable} is already started.
          */
         STARTED,
 
         /**
-         * {@link Compartment} has been already deleted.
+         * {@link Executable} failed to start.
          */
-        FINISHED;
+        STARTING_FAILED,
 
         /**
-         * @return converted to {@link cz.cesnet.shongo.controller.api.Compartment.State}
+         * {@link Executable} has been already stopped.
          */
-        public cz.cesnet.shongo.controller.api.Compartment.State toApi()
+        STOPPED;
+
+        /**
+         * @return converted to {@link cz.cesnet.shongo.controller.api.Executable.State}
+         */
+        public cz.cesnet.shongo.controller.api.Executable.State toApi()
         {
             switch (this) {
+                case NOT_ALLOCATED:
+                    throw new IllegalStateException(this.toString() + " should not be converted to API.");
                 case NOT_STARTED:
-                    return cz.cesnet.shongo.controller.api.Compartment.State.NOT_STARTED;
+                    return cz.cesnet.shongo.controller.api.Executable.State.NOT_STARTED;
                 case STARTED:
-                    return cz.cesnet.shongo.controller.api.Compartment.State.STARTED;
-                case FINISHED:
-                    return cz.cesnet.shongo.controller.api.Compartment.State.FINISHED;
+                    return cz.cesnet.shongo.controller.api.Executable.State.STARTED;
+                case STARTING_FAILED:
+                    return cz.cesnet.shongo.controller.api.Executable.State.STARTING_FAILED;
+                case STOPPED:
+                    return cz.cesnet.shongo.controller.api.Executable.State.STOPPED;
                 default:
                     throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
             }

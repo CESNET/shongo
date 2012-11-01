@@ -8,7 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 
 /**
- * Represents a {@link Reservation} for a {@link cz.cesnet.shongo.controller.executor.Compartment}.
+ * Represents a {@link Reservation} for a {@link Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -16,7 +16,7 @@ import javax.persistence.OneToOne;
 public class CompartmentReservation extends Reservation
 {
     /**
-     * {@link cz.cesnet.shongo.controller.executor.Compartment} which is allocated by the {@link CompartmentReservation}.
+     * {@link Compartment} which is allocated by the {@link CompartmentReservation}.
      */
     private Compartment compartment;
 
@@ -36,7 +36,6 @@ public class CompartmentReservation extends Reservation
     {
         this.compartment = compartment;
     }
-
 
     @Override
     protected cz.cesnet.shongo.controller.api.Reservation createApi()

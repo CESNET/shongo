@@ -171,7 +171,8 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     }
 
     @Override
-    public Endpoint createEndpoint()
+    @Transient
+    public Endpoint getEndpoint()
     {
         return new ExternalEndpoint(this);
     }

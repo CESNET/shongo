@@ -13,9 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -192,11 +190,11 @@ public class Executor extends Component
      * Execute {@link Reservation}s which should be executed for given {@code interval}.
      *
      * @param referenceDateTime specifies date/time which should be used as "now" executing {@link Reservation}s
-     * @return number of execute {@link cz.cesnet.shongo.controller.executor.Compartment}s
+     * @return list of executed {@link ExecutorThread}s
      */
-    public int execute(DateTime referenceDateTime)
+    public List<ExecutorThread> execute(DateTime referenceDateTime)
     {
-        int count = 0;
+        List<ExecutorThread> executorThreads = new ArrayList<ExecutorThread>();
         Interval interval = new Interval(referenceDateTime, referenceDateTime.plus(lookupAhead));
         logger.info("Checking compartments for execution in '{}'...", TemporalHelper.formatInterval(interval));
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -210,10 +208,10 @@ public class Executor extends Component
             ExecutorThread executorThread = new ExecutorThread(executable);
             executorThread.start(this, controllerAgent, entityManagerFactory);
             executorThreadById.put(compartmentId, executorThread);
-            count++;
+            executorThreads.add(executorThread);
         }
         entityManager.close();
-        return count;
+        return executorThreads;
     }
 
     /**

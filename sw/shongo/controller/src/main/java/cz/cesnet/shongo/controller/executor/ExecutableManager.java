@@ -81,9 +81,14 @@ public class ExecutableManager extends AbstractManager
     {
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
-                        + " WHERE (executable.state = :notStarted AND "
+                        + " WHERE executable NOT IN("
+                        +"    SELECT childExecutable FROM Executable executable "
+                        + "   INNER JOIN executable.childExecutables childExecutable"
+                        + " ) AND ("
+                        + "   (executable.state = :notStarted AND "
                         + "        executable.slotStart < :end AND executable.slotEnd > :start)"
-                        + " OR (executable.state = :started)",
+                        + "   OR (executable.state = :started)"
+                        + " )",
                 Executable.class)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
@@ -107,17 +112,24 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * Delete all {@link Executable}s which are not referenced by {@link CompartmentReservation}
-     * and/or {@link AllocatingCompartmentReport} and should be deleted.
+     * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
+     * any {@link CompartmentReservation} or {@link AllocatingCompartmentReport} and which should be automatically
+     * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
      */
     public void deleteAllNotReferenced()
     {
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable"
-                        + " WHERE (executable.state = :notAllocated AND executable"
-                        + "  NOT IN (SELECT report.compartment FROM AllocatingCompartmentReport report))"
-                        + " OR (executable.state = :notStarted AND executable"
-                        + "  NOT IN (SELECT reservation.compartment FROM CompartmentReservation reservation))",
+                        + " WHERE executable NOT IN("
+                        +"    SELECT childExecutable FROM Executable executable "
+                        + "   INNER JOIN executable.childExecutables childExecutable"
+                        + " ) AND ("
+                        + "   (executable.state = :notAllocated AND executable"
+                        + "     NOT IN (SELECT report.compartment FROM AllocatingCompartmentReport report))"
+                        + "   OR (executable.state = :notStarted"
+                        + "     AND executable NOT IN (SELECT res.compartment FROM CompartmentReservation res)"
+                        + "     AND executable NOT IN (SELECT res.virtualRoom FROM VirtualRoomReservation res))"
+                        + " )",
                         Executable.class)
                 .setParameter("notAllocated", Executable.State.NOT_ALLOCATED)
                 .setParameter("notStarted", Executable.State.NOT_STARTED)

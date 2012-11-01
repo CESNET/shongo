@@ -706,5 +706,7 @@ public class Controller
         controller.startAll();
         controller.run();
         controller.stop();
+
+        Container.killAllJadeThreads();
     }
 }

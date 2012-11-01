@@ -19,108 +19,75 @@ import java.util.List;
 public class Compartment extends Executable
 {
     /**
-     * List of {@link Endpoint}s which participates in the {@link Compartment}.
-     */
-    private List<Endpoint> endpoints = new ArrayList<Endpoint>();
-
-    /**
-     * List of {@link VirtualRoom}s which participates in the {@link Compartment}.
-     */
-    private List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
-
-    /**
-     * List of {@link Connection}s which are established in the {@link Compartment}.
-     */
-    private List<Connection> connections = new ArrayList<Connection>();
-
-    /**
      * Total sum of endpoints (calculated as sum of {@link Endpoint#getCount()} because one
      * {@link Endpoint} can represent multiple endpoints).
      */
     private int totalEndpointCount = 0;
 
+    @Override
+    public void addChildExecutable(Executable executable)
+    {
+        if ( executable instanceof Endpoint) {
+            Endpoint endpoint = (Endpoint) executable;
+
+            // Update total endpoint count
+            totalEndpointCount += endpoint.getCount();
+        }
+        super.addChildExecutable(executable);
+    }
+
     /**
-     * @return {@link #endpoints}
+     * @return list of {@link Endpoint}s in the {@link Compartment}
      */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
+    @Transient
     public List<Endpoint> getEndpoints()
     {
+        List<Endpoint> endpoints = new ArrayList<Endpoint>();
+        for ( Executable childExecutable : getChildExecutables()) {
+            if ( !(childExecutable instanceof Endpoint)) {
+                continue;
+            }
+            Endpoint endpoint = (Endpoint) childExecutable;
+            if ( endpoint instanceof VirtualRoom) {
+                continue;
+            }
+            endpoints.add(endpoint);
+        }
         return endpoints;
     }
 
     /**
-     * @param endpoint to be added to the {@link #endpoints}
+     * @return list of {@link VirtualRoom}s in the {@link Compartment}
      */
-    public void addEndpoint(Endpoint endpoint)
-    {
-        endpoints.add(endpoint);
-
-        // Update total endpoint count
-        totalEndpointCount += endpoint.getCount();
-    }
-
-    /**
-     * @param endpoint to be removed from the {@link #endpoints}
-     */
-    public void removeEndpoint(Endpoint endpoint)
-    {
-        // Update total endpoint count
-        totalEndpointCount -= endpoint.getCount();
-
-        endpoints.remove(endpoint);
-    }
-
-    /**
-     * @return {@link #virtualRooms}
-     */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
+    @Transient
     public List<VirtualRoom> getVirtualRooms()
     {
+        List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
+        for ( Executable childExecutable : getChildExecutables()) {
+            if ( !(childExecutable instanceof VirtualRoom)) {
+                continue;
+            }
+            VirtualRoom virtualRoom = (VirtualRoom) childExecutable;
+            virtualRooms.add(virtualRoom);
+        }
         return virtualRooms;
     }
 
     /**
-     * @param virtualRoom to be added to the {@link #virtualRooms}
+     * @return list of {@link Connection}s in the {@link Compartment}
      */
-    public void addVirtualRoom(VirtualRoom virtualRoom)
-    {
-        virtualRooms.add(virtualRoom);
-    }
-
-    /**
-     * @param virtualRoom to be removed from the {@link #virtualRooms}
-     */
-    public void removeVirtualRoom(VirtualRoom virtualRoom)
-    {
-        virtualRooms.remove(virtualRoom);
-    }
-
-    /**
-     * @return {@link #connections}
-     */
-    @OneToMany(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
+    @Transient
     public List<Connection> getConnections()
     {
+        List<Connection> connections = new ArrayList<Connection>();
+        for ( Executable childExecutable : getChildExecutables()) {
+            if ( !(childExecutable instanceof Connection)) {
+                continue;
+            }
+            Connection connection = (Connection) childExecutable;
+            connections.add(connection);
+        }
         return connections;
-    }
-
-    /**
-     * @param connection to be added to the {@link #connections}
-     */
-    public void addConnection(Connection connection)
-    {
-        connections.add(connection);
-    }
-
-    /**
-     * @param connection to be removed from the {@link #connections}
-     */
-    public void removeConnection(Connection connection)
-    {
-        connections.remove(connection);
     }
 
     /**
@@ -202,15 +169,13 @@ public class Compartment extends Executable
         return compartmentApi;
     }
 
-    private void startImplementation(ExecutorThread executorThread, EntityManager entityManager, boolean startedNow)
+    private State startImplementation(ExecutorThread executorThread, EntityManager entityManager, boolean startedNow)
     {
         // Create virtual rooms
         boolean virtualRoomCreated = false;
         for (VirtualRoom virtualRoom : getVirtualRooms()) {
-            if (virtualRoom.getState() == VirtualRoom.State.NOT_CREATED) {
-                entityManager.getTransaction().begin();
-                virtualRoom.create(executorThread);
-                entityManager.getTransaction().commit();
+            if (virtualRoom.getState() == State.NOT_STARTED) {
+                virtualRoom.start(executorThread, entityManager);
                 virtualRoomCreated = true;
             }
         }
@@ -234,44 +199,40 @@ public class Compartment extends Executable
 
         // Connect endpoints
         for (Connection connection : getConnections()) {
-            if (connection.getState() == Connection.State.NOT_ESTABLISHED) {
-                entityManager.getTransaction().begin();
-                connection.establish(executorThread);
-                entityManager.getTransaction().commit();
+            if (connection.getState() == State.NOT_STARTED) {
+                connection.start(executorThread, entityManager);
             }
         }
+        return super.onStart(executorThread, entityManager);
     }
 
     @Override
-    public void start(ExecutorThread executorThread, EntityManager entityManager)
+    public State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
-        startImplementation(executorThread, entityManager, true);
+        return startImplementation(executorThread, entityManager, true);
     }
 
     @Override
-    public void resume(ExecutorThread executorThread, EntityManager entityManager)
+    public State onResume(ExecutorThread executorThread, EntityManager entityManager)
     {
-        startImplementation(executorThread, entityManager, false);
+        return startImplementation(executorThread, entityManager, false);
     }
 
     @Override
-    public void stop(ExecutorThread executorThread, EntityManager entityManager)
+    public State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Disconnect endpoints
         for (Connection connection : getConnections()) {
-            if (connection.getState() == Connection.State.ESTABLISHED) {
-                entityManager.getTransaction().begin();
-                connection.close(executorThread);
-                entityManager.getTransaction().commit();
+            if (connection.getState() == State.STARTED) {
+                connection.stop(executorThread, entityManager);
             }
         }
         // Stop virtual rooms
         for (VirtualRoom virtualRoom : getVirtualRooms()) {
-            if (virtualRoom.getState() == VirtualRoom.State.CREATED) {
-                entityManager.getTransaction().begin();
-                virtualRoom.delete(executorThread);
-                entityManager.getTransaction().commit();
+            if (virtualRoom.getState() == State.STARTED) {
+                virtualRoom.stop(executorThread, entityManager);
             }
         }
+        return super.onStop(executorThread, entityManager);
     }
 }

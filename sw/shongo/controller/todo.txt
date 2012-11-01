@@ -1,4 +1,5 @@
 * Finish refactorization of executor
+  * Refactorize starting/stopping child executables in compartment
 
 FUTURE:
 -------

@@ -338,7 +338,7 @@ public class CompartmentReservationTaskTest
                     };
 
                     @Override
-                    public Endpoint createEndpoint()
+                    public Endpoint getEndpoint()
                     {
                         return endpoint;
                     }

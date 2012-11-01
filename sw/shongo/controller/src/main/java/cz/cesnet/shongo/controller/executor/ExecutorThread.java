@@ -86,7 +86,7 @@ public class ExecutorThread extends Thread
      * @param entityManager
      * @return loaded compartment from the given {@code entityManager}
      */
-    protected Executable getExecutable(EntityManager entityManager)
+    public Executable getExecutable(EntityManager entityManager)
     {
         ExecutableManager executableManager = new ExecutableManager(entityManager);
         Executable executable = null;
@@ -150,9 +150,6 @@ public class ExecutorThread extends Thread
 
             if (executable.getState() == Compartment.State.NOT_STARTED) {
                 logger.info("Starting {}...", executable.getName());
-                entityManager.getTransaction().begin();
-                executable.setState(Compartment.State.STARTED);
-                entityManager.getTransaction().commit();
                 executable.start(this, entityManager);
             }
             else {
@@ -188,12 +185,7 @@ public class ExecutorThread extends Thread
 
             if (executable.getState() == Compartment.State.STARTED) {
                 logger.info("Stopping {}...", executable.getName());
-
                 executable.stop(this, entityManager);
-
-                entityManager.getTransaction().begin();
-                executable.setState(Compartment.State.FINISHED);
-                entityManager.getTransaction().commit();
             }
 
             entityManager.close();

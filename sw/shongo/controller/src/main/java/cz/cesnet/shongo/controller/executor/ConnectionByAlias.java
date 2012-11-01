@@ -41,7 +41,7 @@ public class ConnectionByAlias extends Connection
     }
 
     @Override
-    protected State onEstablish(ExecutorThread executorThread)
+    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
@@ -64,11 +64,13 @@ public class ConnectionByAlias extends Connection
                         agentName, new Dial(getAlias().toApi())));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return State.FAILED;
+                return State.STARTING_FAILED;
             }
             setConnectionId((String) command.getResult());
-            return State.ESTABLISHED;
+            return super.onStart(executorThread, entityManager);
         }
-        return State.NOT_ESTABLISHED;
+        else {
+            return State.NOT_STARTED;
+        }
     }
 }

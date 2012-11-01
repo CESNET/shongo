@@ -94,7 +94,6 @@ public class CompartmentReservationTask extends ReservationTask
     private void initCompartment()
     {
         // Initialize compartment
-        compartment.setState(Compartment.State.NOT_ALLOCATED);
         compartment.setSlot(getInterval());
     }
 
@@ -124,7 +123,7 @@ public class CompartmentReservationTask extends ReservationTask
         }
         else if (childSpecification instanceof EndpointProvider) {
             EndpointProvider endpointProvider = (EndpointProvider) childSpecification;
-            addEndpoint(endpointProvider.createEndpoint());
+            addEndpoint(endpointProvider.getEndpoint());
         }
         else {
             throw new IllegalArgumentException(String.format("%s is not supported by the %s.",
@@ -137,13 +136,10 @@ public class CompartmentReservationTask extends ReservationTask
     {
         super.addChildReservation(reservation);
 
-        if (reservation instanceof ExistingReservation) {
-            ExistingReservation existingReservation = (ExistingReservation) reservation;
-            reservation = existingReservation.getReservation();
-        }
+        reservation = reservation.getTargetReservation();
         if (reservation instanceof EndpointProvider) {
             EndpointProvider endpointProvider = (EndpointProvider) reservation;
-            addEndpoint(endpointProvider.createEndpoint());
+            addEndpoint(endpointProvider.getEndpoint());
         }
     }
 
@@ -153,12 +149,9 @@ public class CompartmentReservationTask extends ReservationTask
      */
     public VirtualRoom addChildVirtualRoomReservation(Reservation reservation)
     {
-        super.addChildReservation(reservation);
-
+        addChildReservation(reservation);
         VirtualRoomReservation virtualRoomReservation = reservation.getTargetReservation(VirtualRoomReservation.class);
-        VirtualRoom virtualRoom = virtualRoomReservation.createEndpoint();
-        addEndpoint(virtualRoom);
-        return virtualRoom;
+        return virtualRoomReservation.getVirtualRoom();
     }
 
     /**
@@ -166,12 +159,9 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
-        if (endpoint instanceof VirtualRoom) {
-            compartment.addVirtualRoom((VirtualRoom) endpoint);
-        }
-        else {
-            compartment.addEndpoint(endpoint);
+        compartment.addChildExecutable(endpoint);
 
+        if (!(endpoint instanceof VirtualRoom)) {
             // Setup connectivity graph
             connectivityGraph.addVertex(endpoint);
             for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
@@ -348,7 +338,7 @@ public class CompartmentReservationTask extends ReservationTask
 
         connection.setEndpointFrom(endpointFrom);
         connection.setEndpointTo(endpointTo);
-        compartment.addConnection(connection);
+        compartment.addChildExecutable(connection);
     }
 
     /**
@@ -541,7 +531,8 @@ public class CompartmentReservationTask extends ReservationTask
         if (!createNoVirtualRoomReservation()) {
             try {
                 createSingleVirtualRoomReservation();
-            } catch (ReportException exception) {
+            }
+            catch (ReportException exception) {
                 // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints
                 throw exception;
             }

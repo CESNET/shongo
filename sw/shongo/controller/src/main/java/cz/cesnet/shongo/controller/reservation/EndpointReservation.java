@@ -39,7 +39,7 @@ public class EndpointReservation extends ResourceReservation implements Endpoint
      * @return allocated {@link Endpoint} by the {@link EndpointReservation}
      */
     @Transient
-    public Endpoint createEndpoint()
+    public Endpoint getEndpoint()
     {
         return new ResourceEndpoint(getDeviceResource());
     }

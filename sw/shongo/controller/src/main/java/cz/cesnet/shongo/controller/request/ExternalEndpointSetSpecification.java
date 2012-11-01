@@ -141,7 +141,8 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     }
 
     @Override
-    public Endpoint createEndpoint()
+    @Transient
+    public Endpoint getEndpoint()
     {
         return new ExternalEndpointSet(this);
     }

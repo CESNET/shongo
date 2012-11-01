@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
+import cz.cesnet.shongo.controller.executor.ResourceVirtualRoom;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.VirtualRoomSpecification;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
@@ -121,11 +122,18 @@ public class VirtualRoomReservationTask extends ReservationTask
         // Get the first virtual room
         AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
 
+        ResourceVirtualRoom virtualRoom = new ResourceVirtualRoom();
+        virtualRoom.setDeviceResource(availableVirtualRoom.getDeviceResource());
+        virtualRoom.setPortCount(portCount);
+        virtualRoom.setSlot(getInterval());
+        virtualRoom.setState(ResourceVirtualRoom.State.NOT_STARTED);
+
         // Create virtual room reservation
         VirtualRoomReservation virtualRoomReservation = new VirtualRoomReservation();
         virtualRoomReservation.setSlot(getInterval());
         virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
         virtualRoomReservation.setPortCount(portCount);
+        virtualRoomReservation.setVirtualRoom(virtualRoom);
         return virtualRoomReservation;
     }
 }

@@ -20,8 +20,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Endpoint extends PersistentObject
+public abstract class Endpoint extends Executable
 {
     /**
      * List of {@link Person}s which use the {@link Endpoint} in the {@link Compartment}.
