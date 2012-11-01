@@ -286,6 +286,18 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'listParticipants', @supportedMethods) {
+        $shell->add_commands({
+            "list-participants" => {
+                desc => "List participants in a given room",
+                minargs => 1, args => "[roomId]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_list_participants($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
 
     $shell->run();
 }
@@ -406,7 +418,7 @@ sub resource_set_microphone_level
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.setMicrophoneLevel',
         RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($level)
+        RPC::XML::int->new($level)
     );
     if ( $result->is_fault ) {
         return;
@@ -420,7 +432,7 @@ sub resource_set_playback_level
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.setPlaybackLevel',
         RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($level)
+        RPC::XML::int->new($level)
     );
     if ( $result->is_fault ) {
         return;
@@ -599,6 +611,29 @@ sub resource_list_rooms
             $room->{'name'},
             $room->{'description'},
             format_datetime($room->{'startDateTime'})
+        );
+    }
+    console_print_table($table);
+}
+
+sub resource_list_participants
+{
+    my ($resourceIdentifier, $roomId) = @_;
+
+    my $response = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.listParticipants',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId)
+    );
+    if ( $response->is_fault() ) {
+        return;
+    }
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ', 'Join time', \' | ');
+    foreach my $roomUser (@{$response->value()}) {
+        $table->add(
+            $roomUser->{'userId'},
+            $roomUser->{'displayName'},
+            format_datetime($roomUser->{'joinTime'})
         );
     }
     console_print_table($table);

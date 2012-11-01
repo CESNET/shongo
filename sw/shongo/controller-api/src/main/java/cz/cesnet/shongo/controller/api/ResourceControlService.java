@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSummary;
+import cz.cesnet.shongo.api.RoomUser;
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -19,8 +20,9 @@ public interface ResourceControlService extends Service
      * Gets collection of method names supported by the identified device.
      * <p/>
      * Watch out, that the names refer to methods on the connector interfaces, not from this API!
-     * For example, the listRooms() method from this interface is in fact implemented by calling the getRoomList()
-     * method on connector, so the returned list of supported methods contains "getRoomList" rather than "listRooms".
+     * For example, the listRooms() method from this interface was in fact implemented by calling the getRoomList()
+     * method on connector, so the returned list of supported methods must have contained "getRoomList" rather than
+     * "listRooms".
      * <p/>
      * FIXME: fix the aforementioned shortcoming - return directly the names from this interface
      *
@@ -98,4 +100,8 @@ public interface ResourceControlService extends Service
     @API
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier)
             throws FaultException;
+
+    @API
+    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
+        throws FaultException;
 }

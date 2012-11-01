@@ -44,11 +44,15 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
         super(agent, requestMsg);
         requestMsg.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
         this.command = command;
+
+        logger.debug("Sending message: {}", requestMsg);
     }
 
     @Override
     protected void handleInform(ACLMessage msg)
     {
+        logger.debug("Received message: {}", msg);
+
         ContentManager cm = myAgent.getContentManager();
         try {
             ContentElement contentElement = cm.extractContent(msg);
@@ -98,6 +102,8 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
     @Override
     protected void handleNotUnderstood(ACLMessage msg)
     {
+        logger.debug("Received message: {}", msg);
+
         logger.error("Execution of the command failed: {}", msg);
         command.setState(Command.State.FAILED, "The requested command was not understood by the connector.");
     }
@@ -105,6 +111,8 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
     @Override
     protected void handleFailure(ACLMessage msg)
     {
+        logger.debug("Received message: {}", msg);
+
         logger.error("Execution of the command failed: {}", msg);
         command.setState(Command.State.FAILED, getErrorMessage(msg));
     }
@@ -112,6 +120,8 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
     @Override
     protected void handleRefuse(ACLMessage msg)
     {
+        logger.debug("Received message: {}", msg);
+
         logger.error("Execution of the command failed: {}", msg);
         command.setState(Command.State.FAILED, "The requested command is unknown to the connector.");
     }

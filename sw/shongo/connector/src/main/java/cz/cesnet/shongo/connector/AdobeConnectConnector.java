@@ -6,7 +6,6 @@ import cz.cesnet.shongo.connector.api.*;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
@@ -102,19 +101,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void muteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         // TODO: Check function in AC setting
     }
 
     @java.lang.Override
-    public void unmuteUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         // TODO: Check function in AC setting
     }
 
     @java.lang.Override
-    public void setUserMicrophoneLevel(String roomId, String roomUserId, int level)
+    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
@@ -122,21 +121,21 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void setUserPlaybackLevel(String roomId, String roomUserId, int level)
+    public void setParticipantPlaybackLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException("Adobe Connect does not support changing playback level.");
     }
 
     @java.lang.Override
-    public void enableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
                 "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
     }
 
     @java.lang.Override
-    public void disableUserVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
                 "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
@@ -274,7 +273,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public RoomSummary getRoomInfo(String roomId) throws CommandException, CommandUnsupportedException
+    public RoomSummary getRoomSummary(String roomId) throws CommandException, CommandUnsupportedException
     {
         RoomSummary roomSummary = new RoomSummary();
         HashMap<String, String> attributes = new HashMap<String, String>();
@@ -387,19 +386,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public Collection<RoomUser> listRoomUsers(String roomId) throws CommandException, CommandUnsupportedException
+    public Collection<RoomUser> listParticipants(String roomId) throws CommandException, CommandUnsupportedException
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
-    public RoomUser getRoomUser(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
-    public void modifyRoomUser(String roomId, String roomUserId, Map attributes)
+    public void modifyParticipant(String roomId, String roomUserId, Map attributes)
             throws CommandException, CommandUnsupportedException
     {
         //To change body of implemented methods use File | Settings | File Templates.

@@ -1,11 +1,13 @@
-package cz.cesnet.shongo.connector.api;
+package cz.cesnet.shongo.api;
+
+import jade.content.Concept;
 
 /**
  * Layout of a virtual room.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public enum RoomLayout
+public enum RoomLayout implements Concept
 {
     /**
      * Only a single, fixed participant is displayed.
@@ -40,7 +42,7 @@ public enum RoomLayout
      * @param layoutIndex      index of the layout as defined by Cisco
      * @param defaultLayout    default layout to use when not recognized
      * @param voiceSwitched    whether the layout should be voice-switched
-     * @return
+     * @return room layout according to the given layout index
      */
     public static RoomLayout getByCiscoId(int layoutIndex, RoomLayout defaultLayout, VoiceSwitching voiceSwitched)
     {

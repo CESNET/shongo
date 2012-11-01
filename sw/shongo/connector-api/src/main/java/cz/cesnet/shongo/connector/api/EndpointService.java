@@ -45,6 +45,11 @@ public interface EndpointService extends CommonService
     void hangUpAll() throws CommandException, CommandUnsupportedException;
 
     /**
+     * Sets the device to standby mode.
+     */
+    void standBy() throws CommandException, CommandUnsupportedException;
+
+    /**
      * Resets the device.
      */
     void resetDevice() throws CommandException, CommandUnsupportedException;
@@ -62,14 +67,16 @@ public interface EndpointService extends CommonService
     /**
      * Sets microphone (all microphones) audio level of this endpoint to a given value.
      *
-     * @param level microphone level to set
+     * @param level microphone level to set, in range 0 to 100 (the implementing connector should adapt this value to
+     *              the range for its managed device)
      */
     void setMicrophoneLevel(int level) throws CommandException, CommandUnsupportedException;
 
     /**
      * Sets playback audio level of this endpoint to a given value.
      *
-     * @param level microphone level to set
+     * @param level microphone level to set, in range 0 to 100 (the implementing connector should adapt this value to
+     *              the range for its managed device)
      */
     void setPlaybackLevel(int level) throws CommandException, CommandUnsupportedException;
 
@@ -89,13 +96,8 @@ public interface EndpointService extends CommonService
     void startPresentation() throws CommandException, CommandUnsupportedException;
 
     /**
-     * Stop the presentation mode (turns off the media stream).
+     * Stops the presentation mode (turns off the media stream).
      */
     void stopPresentation() throws CommandException, CommandUnsupportedException;
-
-    /**
-     * Sets the device in standby mode.
-     */
-    void standBy() throws CommandException, CommandUnsupportedException;
 
 }

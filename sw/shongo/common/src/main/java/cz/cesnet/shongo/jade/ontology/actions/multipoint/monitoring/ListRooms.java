@@ -20,4 +20,10 @@ public class ListRooms extends ConnectorAgentAction
         logger.info("GetRoomList agent action");
         return getMultipoint(connector).getRoomList();
     }
+
+    @Override
+    public String toString()
+    {
+        return "ListRooms agent action";
+    }
 }

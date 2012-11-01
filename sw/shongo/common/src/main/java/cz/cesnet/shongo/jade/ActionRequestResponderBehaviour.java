@@ -71,6 +71,8 @@ public class ActionRequestResponderBehaviour extends SimpleAchieveREResponder
     @Override
     protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException
     {
+        logger.debug("Received message: {}", request);
+
         ACLMessage reply = request.createReply();
 
         ContentManager cm = myAgent.getContentManager();
@@ -114,6 +116,8 @@ public class ActionRequestResponderBehaviour extends SimpleAchieveREResponder
             logger.info("Received a request which the agent did not understand (wrong content type): {}", request);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
+
+        logger.debug("Sending reply: {}", reply);
 
         return reply;
     }
