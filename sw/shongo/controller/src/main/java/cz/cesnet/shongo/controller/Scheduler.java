@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
-import cz.cesnet.shongo.controller.compartment.CompartmentManager;
+import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -67,13 +67,13 @@ public class Scheduler extends Component
         cache.setWorkingInterval(interval, entityManager);
 
         ReservationManager reservationManager = new ReservationManager(entityManager);
-        CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+        ExecutableManager executableManager = new ExecutableManager(entityManager);
 
         try {
             // Delete all reservations which was marked for deletion
             reservationManager.deleteAllNotReferenced(cache);
             // Delete all compartments which should be deleted
-            compartmentManager.deleteAllNotReferenced();
+            executableManager.deleteAllNotReferenced();
 
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
             List<ReservationRequest> reservationRequests =
@@ -87,7 +87,7 @@ public class Scheduler extends Component
             }
 
             // Delete all compartments which should be deleted
-            compartmentManager.deleteAllNotReferenced();
+            executableManager.deleteAllNotReferenced();
 
             transaction.commit();
         }

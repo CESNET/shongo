@@ -35,16 +35,6 @@ public class VirtualRoomSpecification extends Specification
     }
 
     /**
-     * Constructor.
-     *
-     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
-     */
-    public VirtualRoomSpecification(String resourceIdentifier)
-    {
-        setResourceIdentifier(resourceIdentifier);
-    }
-
-    /**
      * @return {@link #TECHNOLOGIES}
      */
     public Set<Technology> getTechnologies()

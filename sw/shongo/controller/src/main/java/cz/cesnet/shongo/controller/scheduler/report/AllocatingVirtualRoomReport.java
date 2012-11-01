@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.compartment.VirtualRoom;
+import cz.cesnet.shongo.controller.executor.VirtualRoom;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;

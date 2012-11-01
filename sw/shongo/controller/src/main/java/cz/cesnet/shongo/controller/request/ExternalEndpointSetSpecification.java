@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.Endpoint;
-import cz.cesnet.shongo.controller.compartment.EndpointProvider;
-import cz.cesnet.shongo.controller.compartment.ExternalEndpointSet;
+import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.executor.EndpointProvider;
+import cz.cesnet.shongo.controller.executor.ExternalEndpointSet;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
@@ -141,7 +141,8 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     }
 
     @Override
-    public Endpoint createEndpoint()
+    @Transient
+    public Endpoint getEndpoint()
     {
         return new ExternalEndpointSet(this);
     }

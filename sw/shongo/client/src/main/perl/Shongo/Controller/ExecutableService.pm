@@ -1,9 +1,9 @@
 #
-# Management of compartments.
+# Management of executables.
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::CompartmentService;
+package Shongo::Controller::ExecutableService;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Text::Table;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Compartment;
+use Shongo::Controller::API::Executable;
 
 #
 # Populate shell by options for management of reservations.
@@ -22,98 +22,107 @@ sub populate()
 {
     my ($self, $shell) = @_;
     $shell->add_commands({
-        'delete-compartment' => {
-            desc => 'Delete an existing compartment',
+        'delete-executable' => {
+            desc => 'Delete an existing executable',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                delete_compartment($args[0]);
+                delete_executable($args[0]);
             }
         },
-        'list-compartments' => {
-            desc => 'List summary of all existing compartments',
+        'list-executables' => {
+            desc => 'List summary of all existing executables',
             opts => '',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                list_compartments($params->{'options'});
+                list_executables($params->{'options'});
             }
         },
-        'get-compartment' => {
-            desc => 'Get existing compartment',
+        'get-executable' => {
+            desc => 'Get existing executable',
             args => '[identifier]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
                     foreach my $identifier (split(/,/, $args[0])) {
-                        get_compartment($identifier);
+                        get_executable($identifier);
                     }
                 } else {
-                    get_compartment();
+                    get_executable();
                 }
             }
         },
     });
 }
 
-sub select_compartment($)
+sub select_executable($)
 {
     my ($identifier) = @_;
-    $identifier = console_read_value('Identifier of the compartment', 0, $Shongo::Common::IdentifierPattern, $identifier);
+    $identifier = console_read_value('Identifier of the executable', 0, $Shongo::Common::IdentifierPattern, $identifier);
     return $identifier;
 }
 
-sub delete_compartment()
+sub delete_executable()
 {
     my ($identifier) = @_;
-    $identifier = select_compartment($identifier);
+    $identifier = select_executable($identifier);
     if ( !defined($identifier) ) {
         return;
     }
     Shongo::Controller->instance()->secure_request(
-        'Compartment.deleteCompartment',
+        'Executable.deleteExecutable',
         RPC::XML::string->new($identifier)
     );
 }
 
-sub list_compartments()
+sub list_executables()
 {
     my $response = Shongo::Controller->instance()->secure_request(
-        'Compartment.listCompartments'
+        'Executable.listExecutables'
     );
     if ( $response->is_fault() ) {
         return
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
+        \' | ', 'Type',
         \' | ', 'Slot',
         \' | ', 'State',
         \' |'
     );
-    foreach my $compartment (@{$response->value()}) {
+    foreach my $executable (@{$response->value()}) {
+        my $type = '';
+        if ( $executable->{'type'} eq 'COMPARTMENT' ) {
+            $type = 'Compartment';
+        }
+        elsif ( $executable->{'type'} eq 'VIRTUAL_ROOM' ) {
+            $type = 'Virtual Room';
+        }
         $table->add(
-            $compartment->{'identifier'},
-            format_interval($compartment->{'slot'}),
-            Shongo::Controller::API::Compartment::format_state($compartment->{'state'}, $Shongo::Controller::API::Compartment::State)
+            $executable->{'identifier'},
+            $type,
+            format_interval($executable->{'slot'}),
+            Shongo::Controller::API::Executable::format_state($executable->{'state'}, $Shongo::Controller::API::Executable::State)
         );
     }
     console_print_table($table);
 }
 
-sub get_compartment()
+sub get_executable()
 {
     my ($identifier) = @_;
-    $identifier = select_compartment($identifier);
+    $identifier = select_executable($identifier);
     if ( !defined($identifier) ) {
         return;
     }
     my $result = Shongo::Controller->instance()->secure_request(
-        'Compartment.getCompartment',
+        'Executable.getExecutable',
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $compartment = Shongo::Controller::API::Compartment->from_hash($result);
-        if ( defined($compartment) ) {
-            console_print_text($compartment->to_string());
+        my $executable = Shongo::Controller::API::Executable->from_hash($result);
+        if ( defined($executable) ) {
+            console_print_text($executable->to_string());
         }
     }
 }

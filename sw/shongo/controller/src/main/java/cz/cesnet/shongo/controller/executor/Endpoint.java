@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
@@ -6,6 +6,7 @@ import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.report.Report;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 
@@ -20,8 +21,7 @@ import java.util.Set;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class Endpoint extends PersistentObject
+public abstract class Endpoint extends Executable
 {
     /**
      * List of {@link Person}s which use the {@link Endpoint} in the {@link Compartment}.
@@ -64,7 +64,7 @@ public abstract class Endpoint extends PersistentObject
     /**
      * @param assignedAlias alias to be added to the {@link #assignedAliases}
      */
-    public void addAssignedAlias(Alias assignedAlias)
+    public void addAssignedAlias(Alias assignedAlias) throws ReportException
     {
         assignedAliases.add(assignedAlias);
     }
@@ -130,20 +130,5 @@ public abstract class Endpoint extends PersistentObject
     public CallInitiation getCallInitiation()
     {
         return null;
-    }
-
-    /**
-     * Assign {@link #assignedAliases} to the {@link Endpoint}.
-     *
-     * @param compartmentExecutor
-     */
-    public void assignAliases(CompartmentExecutor compartmentExecutor)
-    {
-        List<Alias> aliases = getAssignedAliases();
-        for (Alias alias : aliases) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
-            compartmentExecutor.getLogger().debug(message.toString());
-        }
     }
 }

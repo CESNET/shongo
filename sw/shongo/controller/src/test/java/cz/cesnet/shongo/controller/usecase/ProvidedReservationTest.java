@@ -12,7 +12,7 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.compartment.Compartment}.
+ * Tests for allocation of single virtual room in a {@link cz.cesnet.shongo.controller.executor.Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

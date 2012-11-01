@@ -235,10 +235,6 @@ public class Container
                 logger.error("Failed to kill container.", exception);
             }
         }
-
-        // Kill JADE threads
-        logger.debug("Killing all JADE threads...");
-        ThreadHelper.killThreadGroup("JADE");
     }
 
     /**
@@ -614,5 +610,14 @@ public class Container
             logger.error("Failed to list containers", exception);
         }
         return new ArrayList<ContainerID>();
+    }
+
+    /**
+     * Kill JADE threads
+     */
+    public static void killAllJadeThreads()
+    {
+        logger.debug("Killing all JADE threads...");
+        ThreadHelper.killThreadGroup("JADE");
     }
 }

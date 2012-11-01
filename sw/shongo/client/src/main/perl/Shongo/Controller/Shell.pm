@@ -16,7 +16,7 @@ use Shongo::Controller::CommonService;
 use Shongo::Controller::ResourceService;
 use Shongo::Controller::ResourceControlService;
 use Shongo::Controller::ReservationService;
-use Shongo::Controller::CompartmentService;
+use Shongo::Controller::ExecutableService;
 
 #
 # Create a new shell for controller client
@@ -45,7 +45,7 @@ sub new
     Shongo::Controller::ResourceService->populate($self);
     Shongo::Controller::ResourceControlService->populate($self);
     Shongo::Controller::ReservationService->populate($self);
-    Shongo::Controller::CompartmentService->populate($self);
+    Shongo::Controller::ExecutableService->populate($self);
 
     return(bless($self, $class));;
 }

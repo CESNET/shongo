@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.reservation;
 
-import cz.cesnet.shongo.controller.compartment.Endpoint;
-import cz.cesnet.shongo.controller.compartment.EndpointProvider;
-import cz.cesnet.shongo.controller.compartment.ResourceEndpoint;
+import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.executor.EndpointProvider;
+import cz.cesnet.shongo.controller.executor.ResourceEndpoint;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 
@@ -39,7 +39,7 @@ public class EndpointReservation extends ResourceReservation implements Endpoint
      * @return allocated {@link Endpoint} by the {@link EndpointReservation}
      */
     @Transient
-    public Endpoint createEndpoint()
+    public Endpoint getEndpoint()
     {
         return new ResourceEndpoint(getDeviceResource());
     }

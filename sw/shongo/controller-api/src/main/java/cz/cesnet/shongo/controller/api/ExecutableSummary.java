@@ -3,26 +3,31 @@ package cz.cesnet.shongo.controller.api;
 import org.joda.time.Interval;
 
 /**
- * Represents summary of an allocated compartment.
+ * Represents summary of an allocated {@link Executable}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CompartmentSummary
+public class ExecutableSummary
 {
     /**
-     * Identifier of the {@link Compartment}.
+     * Identifier of the {@link Executable}.
      */
     private String identifier;
 
     /**
-     * Slot of the {@link cz.cesnet.shongo.controller.api.CompartmentSummary}.
+     * Type of {@link Executable}.
+     */
+    private Type type;
+
+    /**
+     * Slot of the {@link ExecutableSummary}.
      */
     private Interval slot;
 
     /**
-     * Current state of the {@link cz.cesnet.shongo.controller.api.CompartmentSummary}.
+     * Current state of the {@link ExecutableSummary}.
      */
-    private Compartment.State state;
+    private Executable.State state;
 
     /**
      * @return {@link #identifier}
@@ -38,6 +43,22 @@ public class CompartmentSummary
     public void setIdentifier(String identifier)
     {
         this.identifier = identifier;
+    }
+
+    /**
+     * @return {@link #type}
+     */
+    public Type getType()
+    {
+        return type;
+    }
+
+    /**
+     * @param type sets the {@link #type}
+     */
+    public void setType(Type type)
+    {
+        this.type = type;
     }
 
     /**
@@ -59,7 +80,7 @@ public class CompartmentSummary
     /**
      * @return {@link #state}
      */
-    public Compartment.State getState()
+    public Executable.State getState()
     {
         return state;
     }
@@ -67,8 +88,24 @@ public class CompartmentSummary
     /**
      * @param state sets the {@link #state}
      */
-    public void setState(Compartment.State state)
+    public void setState(Executable.State state)
     {
         this.state = state;
+    }
+
+    /**
+     * Type of {@link Executable}.
+     */
+    public static enum Type
+    {
+        /**
+         * Represents {@link Compartment}
+         */
+        COMPARTMENT,
+
+        /**
+         * Represents {@link VirtualRoom}
+         */
+        VIRTUAL_ROOM
     }
 }

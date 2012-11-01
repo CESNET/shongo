@@ -12,18 +12,8 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Compartment
+public class Compartment extends Executable
 {
-    /**
-     * Identifier of the {@link Compartment}.
-     */
-    private String identifier;
-
-    /**
-     * Slot of the {@link Compartment}.
-     */
-    private Interval slot;
-
     /**
      * List of {@link cz.cesnet.shongo.controller.api.Compartment.Endpoint}s.
      */
@@ -38,43 +28,6 @@ public class Compartment
      * List of {@link cz.cesnet.shongo.controller.api.Compartment.Connection}s.
      */
     private List<Connection> connections = new ArrayList<Connection>();
-
-    /**
-     * Current state of the {@link Compartment}.
-     */
-    private State state;
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
-
-    /**
-     * @return {@link #slot}
-     */
-    public Interval getSlot()
-    {
-        return slot;
-    }
-
-    /**
-     * @param slot sets the {@link #slot}
-     */
-    public void setSlot(Interval slot)
-    {
-        this.slot = slot;
-    }
 
     /**
      * @return {@link #endpoints}
@@ -149,46 +102,9 @@ public class Compartment
     }
 
     /**
-     * @return {@link #state}
-     */
-    public State getState()
-    {
-        return state;
-    }
-
-    /**
-     * @param state sets the {@link #state}
-     */
-    public void setState(State state)
-    {
-        this.state = state;
-    }
-
-    /**
-     * State of the {@link Compartment}.
-     */
-    public static enum State
-    {
-        /**
-         * {@link Compartment} has not been created yet.
-         */
-        NOT_STARTED,
-
-        /**
-         * {@link Compartment} is already created.
-         */
-        STARTED,
-
-        /**
-         * {@link Compartment} has been already deleted.
-         */
-        FINISHED
-    }
-
-    /**
      * Represents an endpoint which is participating in the {@link cz.cesnet.shongo.controller.api.Compartment}.
      */
-    public static class Endpoint
+    public static class Endpoint extends Executable
     {
         /**
          * Identifier of the {@link Endpoint}.
@@ -273,11 +189,6 @@ public class Compartment
         private int portCount;
 
         /**
-         * Current state of the {@link VirtualRoom}.
-         */
-        private State state;
-
-        /**
          * @return {@link #portCount}
          */
         public int getPortCount()
@@ -292,54 +203,12 @@ public class Compartment
         {
             this.portCount = portCount;
         }
-
-        /**
-         * @return {@link #state}
-         */
-        public State getState()
-        {
-            return state;
-        }
-
-        /**
-         * @param state sets the {@link #state}
-         */
-        public void setState(State state)
-        {
-            this.state = state;
-        }
-
-        /**
-         * State of the {@link VirtualRoom}.
-         */
-        public static enum State
-        {
-            /**
-             * {@link VirtualRoom} has not been created yet.
-             */
-            NOT_CREATED,
-
-            /**
-             * {@link VirtualRoom} is already created.
-             */
-            CREATED,
-
-            /**
-             * {@link VirtualRoom} failed to create.
-             */
-            FAILED,
-
-            /**
-             * {@link VirtualRoom} has been already deleted.
-             */
-            DELETED
-        }
     }
 
     /**
      * Represents a connection between {@link cz.cesnet.shongo.controller.api.Compartment.Endpoint}s in the {@link cz.cesnet.shongo.controller.api.Compartment}.
      */
-    public static class Connection
+    public static class Connection extends Executable
     {
         /**
          * Identifier of endpoint which initiates the {@link Connection}.
@@ -350,11 +219,6 @@ public class Compartment
          * Target endpoint for the {@link Connection}.
          */
         private String endpointToIdentifier;
-
-        /**
-         * Current state of the {@link Connection}.
-         */
-        private State state;
 
         /**
          * @return {@link #endpointFromIdentifier}
@@ -386,48 +250,6 @@ public class Compartment
         public void setEndpointToIdentifier(String endpointToIdentifier)
         {
             this.endpointToIdentifier = endpointToIdentifier;
-        }
-
-        /**
-         * @return {@link #state}
-         */
-        public State getState()
-        {
-            return state;
-        }
-
-        /**
-         * @param state sets the {@link #state}
-         */
-        public void setState(State state)
-        {
-            this.state = state;
-        }
-
-        /**
-         * State of the {@link Connection}.
-         */
-        public static enum State
-        {
-            /**
-             * {@link Connection} has not been established yet.
-             */
-            NOT_ESTABLISHED,
-
-            /**
-             * {@link Connection} is already established.
-             */
-            ESTABLISHED,
-
-            /**
-             * {@link cz.cesnet.shongo.controller.api.Compartment.VirtualRoom} failed to establish.
-             */
-            FAILED,
-
-            /**
-             * {@link Connection} has been already closed.
-             */
-            CLOSED
         }
     }
 

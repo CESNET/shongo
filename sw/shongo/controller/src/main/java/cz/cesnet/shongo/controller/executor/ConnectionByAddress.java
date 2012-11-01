@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.ControllerAgent;
@@ -9,10 +9,7 @@ import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.endpoint.Dial;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 
 /**
  * Represents a {@link Connection} by which is establish by a {@link Alias}.
@@ -67,18 +64,18 @@ public class ConnectionByAddress extends Connection
     }
 
     @Override
-    protected State onEstablish(CompartmentExecutor compartmentExecutor)
+    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Dialing from %s to address '%s' in technology '%s'.",
                     getEndpointFrom().getReportDescription(), getAddress().getValue(),
                     getTechnology().getName()));
-            compartmentExecutor.getLogger().debug(message.toString());
+            executorThread.getLogger().debug(message.toString());
 
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
             if (getEndpointFrom() instanceof VirtualRoom) {
                 VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
@@ -90,11 +87,13 @@ public class ConnectionByAddress extends Connection
                         agentName, new Dial(getAddress().getValue())));
             }
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return State.FAILED;
+                return State.STARTING_FAILED;
             }
             setConnectionId((String) command.getResult());
-            return State.ESTABLISHED;
+            return super.onStart(executorThread, entityManager);
         }
-        return State.NOT_ESTABLISHED;
+        else {
+            return State.NOT_STARTED;
+        }
     }
 }

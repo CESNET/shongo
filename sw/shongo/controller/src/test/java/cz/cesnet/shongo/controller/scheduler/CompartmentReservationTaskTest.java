@@ -4,8 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.compartment.Endpoint;
-import cz.cesnet.shongo.controller.compartment.EndpointProvider;
+import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.executor.EndpointProvider;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ExistingEndpointSpecification;
 import cz.cesnet.shongo.controller.request.ExternalEndpointSetSpecification;
@@ -320,7 +320,7 @@ public class CompartmentReservationTaskTest
                         }
 
                         @Override
-                        public void addAssignedAlias(Alias alias)
+                        public void addAssignedAlias(Alias alias) throws ReportException
                         {
                         }
 
@@ -338,7 +338,7 @@ public class CompartmentReservationTaskTest
                     };
 
                     @Override
-                    public Endpoint createEndpoint()
+                    public Endpoint getEndpoint()
                     {
                         return endpoint;
                     }

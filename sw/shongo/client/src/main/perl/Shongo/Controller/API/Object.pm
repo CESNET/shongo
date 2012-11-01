@@ -21,7 +21,9 @@ our $COLLECTION_EMPTY = "-- None --";
 #
 our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::Controller::API::Reservation',
-    '^.*Specification$' => 'Shongo::Controller::API::Specification'
+    '^.*Specification$' => 'Shongo::Controller::API::Specification',
+    'Compartment' => 'Shongo::Controller::API::Executable',
+    'VirtualRoom' => 'Shongo::Controller::API::Executable'
 };
 
 #

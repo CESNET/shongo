@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.compartment.Compartment;
+import cz.cesnet.shongo.controller.executor.Compartment;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -36,7 +36,6 @@ public class CompartmentReservation extends Reservation
     {
         this.compartment = compartment;
     }
-
 
     @Override
     protected cz.cesnet.shongo.controller.api.Reservation createApi()

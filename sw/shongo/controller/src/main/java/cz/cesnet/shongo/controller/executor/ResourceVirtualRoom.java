@@ -1,8 +1,9 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
@@ -11,10 +12,7 @@ import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -91,6 +89,29 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     }
 
     @Override
+    protected cz.cesnet.shongo.controller.api.Executable createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.VirtualRoom();
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
+    {
+        super.toApi(executableApi, domain);
+
+        cz.cesnet.shongo.controller.api.VirtualRoom virtualRoomApi =
+                (cz.cesnet.shongo.controller.api.VirtualRoom) executableApi;
+        virtualRoomApi.setIdentifier(domain.formatIdentifier(getId()));
+        virtualRoomApi.setSlot(getSlot());
+        virtualRoomApi.setState(getState().toApi());
+        virtualRoomApi.setPortCount(getPortCount());
+        virtualRoomApi.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        for (Alias alias : getAssignedAliases()) {
+            virtualRoomApi.addAlias(alias.toApi());
+        }
+    }
+
+        @Override
     @Transient
     public Set<Technology> getTechnologies()
     {
@@ -147,8 +168,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
     }
 
     @Override
-    @Transient
-    public boolean onCreate(CompartmentExecutor compartmentExecutor)
+    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -156,21 +176,21 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
         if (deviceResource.hasIpAddress()) {
             message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
         }
-        compartmentExecutor.getLogger().debug(message.toString());
+        executorThread.getLogger().debug(message.toString());
         List<Alias> aliases = getAliases();
         for (Alias alias : aliases) {
             StringBuilder aliasMessage = new StringBuilder();
             aliasMessage
                     .append(String.format("%s has allocated alias '%s'.", getReportDescription(), alias.getValue()));
-            compartmentExecutor.getLogger().debug(aliasMessage.toString());
+            executorThread.getLogger().debug(aliasMessage.toString());
         }
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
 
-            String roomName = String.format("Shongo%d Comp:%d", getId(), compartmentExecutor.getCompartmentId());
+            String roomName = String.format("Shongo%d [exec:%d]", getId(), executorThread.getExecutableId());
             roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
             Room room = new Room();
@@ -182,24 +202,24 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName,
                     new CreateRoom(room)));
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
+                return State.STARTING_FAILED;
             }
             setVirtualRoomId((String) command.getResult());
         }
-        return true;
+        return super.onStart(executorThread, entityManager);
     }
 
     @Override
-    public boolean onDelete(CompartmentExecutor compartmentExecutor)
+    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
-        compartmentExecutor.getLogger().debug(message.toString());
+        executorThread.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = compartmentExecutor.getControllerAgent();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
             String virtualRoomId = getVirtualRoomId();
             if (virtualRoomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
@@ -207,9 +227,9 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             Command command = controllerAgent
                     .performCommandAndWait(new ActionRequestCommand(agentName, new DeleteRoom(virtualRoomId)));
             if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
+                return State.STARTED;
             }
         }
-        return true;
+        return super.onStop(executorThread, entityManager);
     }
 }

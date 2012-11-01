@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.compartment.Compartment;
+import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
@@ -13,7 +13,7 @@ import javax.persistence.*;
 public class AllocatingCompartmentReport extends Report
 {
     /**
-     * @see Compartment
+     * @see cz.cesnet.shongo.controller.executor.Compartment
      */
     private Compartment compartment;
 

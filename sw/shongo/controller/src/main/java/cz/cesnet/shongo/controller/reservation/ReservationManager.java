@@ -2,8 +2,8 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.compartment.Compartment;
-import cz.cesnet.shongo.controller.compartment.CompartmentManager;
+import cz.cesnet.shongo.controller.executor.Compartment;
+import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -53,7 +53,7 @@ public class ReservationManager extends AbstractManager
     {
         if (reservation instanceof CompartmentReservation) {
             CompartmentReservation compartmentReservation = (CompartmentReservation) reservation;
-            CompartmentManager compartmentManager = new CompartmentManager(entityManager);
+            ExecutableManager executableManager = new ExecutableManager(entityManager);
             Compartment compartment = compartmentReservation.getCompartment();
             if (compartment.getState().equals(Compartment.State.STARTED)) {
                 if (compartment.getSlotEnd().isAfter(DateTime.now())) {
@@ -62,7 +62,7 @@ public class ReservationManager extends AbstractManager
                         newSlotEnd = compartment.getSlotStart();
                     }
                     compartment.setSlotEnd(newSlotEnd);
-                    compartmentManager.update(compartment);
+                    executableManager.update(compartment);
                 }
             }
         }

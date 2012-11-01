@@ -420,5 +420,7 @@ public class Connector
         connector.run();
 
         logger.info("Connector exiting...");
+
+        Container.killAllJadeThreads();
     }
 }

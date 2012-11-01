@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.controller.compartment;
+package cz.cesnet.shongo.controller.executor;
 
 /**
  * TODO:
@@ -7,5 +7,5 @@ package cz.cesnet.shongo.controller.compartment;
  */
 public interface EndpointProvider
 {
-    public Endpoint createEndpoint();
+    public Endpoint getEndpoint();
 }
