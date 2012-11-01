@@ -170,23 +170,23 @@ Get information about connector.
 \ApiItem{\ApiCode{Collection<RoomSummary> getRoomList()}}
 Gets a list of all rooms at a given server.
 
-\ApiItem{\ApiCode{RoomSummary getRoomSummary(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{RoomSummary getRoomSummary(String roomId)}}
 Gets info about an existing room.
 
-\ApiItem{\ApiCode{String createRoom(SecurityToken token, Room room)}}
+\ApiItem{\ApiCode{String createRoom(Room room)}}
 Create a new virtual room on a multipoint device that is managed by this connector. The \ApiCode{room} parameter specifies the room settings, see the \ApiCode{Room} definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the \ApiCode{roomId} parameter.
 
-\ApiItem{\ApiCode{modifyRoom(SecurityToken token, String roomId, Map attributes)}}
+\ApiItem{\ApiCode{modifyRoom(String roomId, Map attributes)}}
 Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} map specifies \ApiCode{Room} attribute names mapped to new values.
 
-\ApiItem{\ApiCode{deleteRoom(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{deleteRoom(String roomId)}}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
 
-\ApiItem{\ApiCode{String exportRoomSettings(SecurityToken token, String RoomId)}}
+\ApiItem{\ApiCode{String exportRoomSettings(String RoomId)}}
 Gets current settings of a room exported to XML.
 \\\todo{Specify schema of the exported XML document in RelaxNG. It should contain at least room name, technology (H.323/SIP/Connect\ldots) settings, and version of the format of the exported document (for further extensions).}
 
-\ApiItem{\ApiCode{importRoomSettings(SecurityToken token, String RoomId, String settings)}}
+\ApiItem{\ApiCode{importRoomSettings(String RoomId, String settings)}}
 Sets up a room according to given \ApiCode{settings} previously exported by the \ApiCode{exportRoomSettings} method.
 
 \end{Api}
@@ -195,20 +195,20 @@ Sets up a room according to given \ApiCode{settings} previously exported by the 
 \subsection{User Management}
 \begin{Api}
 
-\ApiItem{\ApiCode{Collection<RoomUser> listParticipants(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{Collection<RoomUser> listParticipants(String roomId)}}
 
-\ApiItem{\ApiCode{RoomUser getParticipant(SecurityToken token, String roomId, String roomUserId)}}
+\ApiItem{\ApiCode{RoomUser getParticipant(String roomId, String roomUserId)}}
 Gets user information and settings in a room.
 
-\ApiItem{\ApiCode{dialParticipant(SecurityToken token, String roomId, String deviceAddress)}}
-\ApiItem{\ApiCode{dialParticipant(SecurityToken token, String roomId, Alias alias)}}
+\ApiItem{\ApiCode{dialParticipant(String roomId, String deviceAddress)}}
+\ApiItem{\ApiCode{dialParticipant(String roomId, Alias alias)}}
 Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
 
-\ApiItem{\ApiCode{modifyParticipant(SecurityToken token, String roomId, String roomUserId, Map attributes)}}
+\ApiItem{\ApiCode{modifyParticipant(String roomId, String roomUserId, Map attributes)}}
 Modifies user settings in the room (suitable for setting
 microphone/playback level, muting/unmuting, user layout\ldots).
 
-\ApiItem{\ApiCode{disconnectParticipant(SecurityToken token, String roomId, String roomUserId)}}
+\ApiItem{\ApiCode{disconnectParticipant(String roomId, String roomUserId)}}
 Disconnect user from the room.
 
 \end{Api}
@@ -217,16 +217,16 @@ Disconnect user from the room.
 \subsection{Room Content Management}
 \begin{Api}
 
-\ApiItem{\ApiCode{MediaData getRoomContent(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{MediaData getRoomContent(String roomId)}}
 Gets all room content (e.g., documents, notes, polls, etc.) as a single archive (see the \ApiCode{compression} attribute of the returned object).
 
-\ApiItem{\ApiCode{addRoomContent(SecurityToken token, String roomId, String name, MediaData data)}}
+\ApiItem{\ApiCode{addRoomContent(String roomId, String name, MediaData data)}}
 Adds a data file to room content under a given name.
 
-\ApiItem{\ApiCode{removeRoomContentFile(SecurityToken token, String roomId, String name)}}
+\ApiItem{\ApiCode{removeRoomContentFile(String roomId, String name)}}
 Removes a file of a given name from room content.
 
-\ApiItem{\ApiCode{clearRoomContent(SecurityToken token, String roomId)}}
+\ApiItem{\ApiCode{clearRoomContent(String roomId)}}
 Clears all room content.
 
 \end{Api}
@@ -235,28 +235,28 @@ Clears all room content.
 \subsection{I/O}
 \begin{Api}
 
-\ApiItem{\ApiCode{muteParticipant(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{muteParticipant(String roomUserId)}}
 Mutes a user in a room.
 
-\ApiItem{\ApiCode{unmuteParticipant(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{unmuteParticipant(String roomUserId)}}
 Unmutes a user in a room.
 
-\ApiItem{\ApiCode{setParticipantMicrophoneLevel(SecurityToken token, String roomUserId, int level)}}
+\ApiItem{\ApiCode{setParticipantMicrophoneLevel(String roomUserId, int level)}}
 Sets microphone audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound). The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
 
-\ApiItem{\ApiCode{setParticipantPlaybackLevel(SecurityToken token, String roomUserId, int level)}}
+\ApiItem{\ApiCode{setParticipantPlaybackLevel(String roomUserId, int level)}}
 Sets playback audio level of a user in a room to a given value. Note that the implementation differs between multipoint and endpoint types of devices. On an endpoint, the playback level is set using the device amplifier, while calling this on a multipoint device results in software adaptation of the output sound data (which may result in a distorted sound). The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
 
-\ApiItem{\ApiCode{enableParticipantVideo(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{enableParticipantVideo(String roomUserId)}}
 Enables video from a user in a room.
 
-\ApiItem{\ApiCode{disableParticipantVideo(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{disableParticipantVideo(String roomUserId)}}
 Disables video from a user in a room.
 
-\ApiItem{\ApiCode{enableContentProvider(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{enableContentProvider(String roomUserId)}}
 Enables a given room user as a content provider in the room. This is typically enabled by default.
 
-\ApiItem{\ApiCode{disableContentProvider(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{disableContentProvider(String roomUserId)}}
 Disables a given room user as a content provider in the room. Typically, all users are allowed to fight for being the content provider. Using this method, a user is not allowed to do this.
 
 \end{Api}
@@ -271,10 +271,10 @@ Gets info about current load of the device.
 \ApiItem{\ApiCode{UsageStats getUsageStats()}}
 Gets the multipoint usage stats.
 
-\ApiItem{\ApiCode{MediaData getReceivedVideoSnapshot(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{MediaData getReceivedVideoSnapshot(String roomUserId)}}
 Gets a snapshot of the video stream received by a user in a room. See the \ApiCode{contentType} of the returned object to get the image format returned.
 
-\ApiItem{\ApiCode{MediaData getSentVideoSnapshot(SecurityToken token, String roomUserId)}}
+\ApiItem{\ApiCode{MediaData getSentVideoSnapshot(String roomUserId)}}
 Gets a snapshot of the video stream that a user is sending in a room. See the \ApiCode{contentType} of the returned object to get the image format returned.
 
 \end{Api}
@@ -283,22 +283,22 @@ Gets a snapshot of the video stream that a user is sending in a room. See the \A
 \subsection{Recording}
 \begin{Api}
 
-\ApiItem{\ApiCode{int startRecording(SecurityToken token, String roomId, ContentType format, RoomLayout layout)}}
+\ApiItem{\ApiCode{int startRecording(String roomId, ContentType format, RoomLayout layout)}}
 Immediately starts recording in a room to format \ApiCode{format} using a given \ApiCode{layout} (or the default room layout, if \ApiCode{layout} is not specified). Returns an identifier for further reference, unique among other recordings on the device. Does not have any effect and returns 0 if the room is already being recorded.
 
-\ApiItem{\ApiCode{stopRecording(SecurityToken token, int recordingId)}}
+\ApiItem{\ApiCode{stopRecording(int recordingId)}}
 Stops recording. The \ApiCode{recordingId} parameter, specifying what to stop, is an identifier previously returned by \ApiCode{startRecording}.
 
-\ApiItem{\ApiCode{String getRecordingDownloadURL(SecurityToken token, int recordingId)}}
+\ApiItem{\ApiCode{String getRecordingDownloadURL(int recordingId)}}
 Returns a URL from where it is possible to download a recording. The \ApiCode{recordingId} parameter is an identifier previously returned by \ApiCode{startRecording}.
 
-\ApiItem{\ApiCode{notifyParticipants(SecurityToken token, int recordingId)}}
+\ApiItem{\ApiCode{notifyParticipants(int recordingId)}}
 Sends an e-mail to all non-anonymous participants present in the room recorded. Participants present in any moment of the recording must be notified, not just the registered users.
 
-\ApiItem{\ApiCode{downloadRecording(SecurityToken token, String downloadURL, String targetPath)}}
+\ApiItem{\ApiCode{downloadRecording(String downloadURL, String targetPath)}}
 Starts downloading a recording from \ApiCode{downloadURL}. The recording is stored on the server under \ApiCode{targetPath}.
 
-\ApiItem{\ApiCode{deleteRecording(SecurityToken token, int recordingId)}}
+\ApiItem{\ApiCode{deleteRecording(int recordingId)}}
 Deletes a given recording. The \ApiCode{recordingId} parameter is an identifier previously returned by \ApiCode{startRecording}. If the recording is being worked with somehow (still being recorded, being uploaded, etc.), the operation is deferred to the moment when current operations are completed.
 
 \end{Api}
@@ -308,44 +308,44 @@ Deletes a given recording. The \ApiCode{recordingId} parameter is an identifier 
 
 \begin{Api}
 
-\ApiItem{\ApiCode{String dial(SecurityToken token, String address)}}
-\ApiItem{\ApiCode{String dial(SecurityToken token, Alias alias)}}
+\ApiItem{\ApiCode{String dial(String address)}}
+\ApiItem{\ApiCode{String dial(Alias alias)}}
 Dials a server. Returns the device's identification of the call so that the call may be referred to by other methods.
 
-\ApiItem{\ApiCode{hangUp(SecurityToken token, String callId)}}
+\ApiItem{\ApiCode{hangUp(String callId)}}
 Hangs up a call. The \ApiCode{callId} argument is that previously returned by the \ApiCode{dial} method.
 
-\ApiItem{\ApiCode{hangUpAll(SecurityToken token)}}
+\ApiItem{\ApiCode{hangUpAll()}}
 Hangs up all calls.
 
-\ApiItem{\ApiCode{standBy(SecurityToken token)}}
+\ApiItem{\ApiCode{standBy()}}
 Sets the device to standby mode.
 
-\ApiItem{\ApiCode{resetDevice(SecurityToken token)}}
+\ApiItem{\ApiCode{resetDevice()}}
 Resets the device.
 
-\ApiItem{\ApiCode{mute(SecurityToken token)}}
+\ApiItem{\ApiCode{mute()}}
 Mutes the endpoint.
 
-\ApiItem{\ApiCode{unmute(SecurityToken token)}}
+\ApiItem{\ApiCode{unmute()}}
 Unmutes the endpoint.
 
-\ApiItem{\ApiCode{setMicrophoneLevel(SecurityToken token, int level)}}
+\ApiItem{\ApiCode{setMicrophoneLevel(int level)}}
 Sets microphone (all microphones) audio level to a given value. The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
 
-\ApiItem{\ApiCode{setPlaybackLevel(SecurityToken token, int level)}}
+\ApiItem{\ApiCode{setPlaybackLevel(int level)}}
 Sets playback audio level to a given value. The range for \ApiCode{level} is 0 to 100. The implementing connector adapts this value to the range for its managed device.
 
-\ApiItem{\ApiCode{enableVideo(SecurityToken token)}}
+\ApiItem{\ApiCode{enableVideo()}}
 Enables video from the endpoint.
 
-\ApiItem{\ApiCode{disableVideo(SecurityToken token)}}
+\ApiItem{\ApiCode{disableVideo()}}
 Disables video from the endpoint.
 
-\ApiItem{\ApiCode{startPresentation(SecurityToken token)}}
+\ApiItem{\ApiCode{startPresentation()}}
 Starts the presentation mode (turns on the media stream).
 
-\ApiItem{\ApiCode{stopPresentation(SecurityToken token)}}
+\ApiItem{\ApiCode{stopPresentation()}}
 Stops the presentation mode (turns off the media stream).
 
 \end{Api}
