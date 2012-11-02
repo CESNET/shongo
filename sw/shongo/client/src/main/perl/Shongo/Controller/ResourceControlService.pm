@@ -251,6 +251,19 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'getRoomSummary', @supportedMethods) {
+        $shell->add_commands({
+            "get-room-summary" => {
+                desc => "Gets summary info about a virtual room",
+                options => 'roomId=s',
+                args => '[-roomId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_get_room_summary($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
     if (grep $_ eq 'createRoom', @supportedMethods) {
         $shell->add_commands({
             "create-room" => {
@@ -554,6 +567,32 @@ sub resource_disconnect_participant
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
+}
+
+sub resource_get_room_summary
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getRoomSummary',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $room = $result->value();
+    if ( !defined($room) ) {
+        print "No room summary returned\n";
+    }
+    else {
+        printf("Identifier:      %s\n", $room->{'identifier'});
+        printf("Name:            %s\n", $room->{'name'});
+        printf("Description:     %s\n", $room->{'description'});
+        printf("Start date/time: %s\n", format_datetime($room->{'startDateTime'}));
+    }
 }
 
 sub resource_create_room

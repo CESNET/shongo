@@ -93,6 +93,10 @@ public interface ResourceControlService extends Service
             String roomUserId) throws FaultException;
 
     @API
+    public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
+        throws FaultException;
+
+    @API
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
 
     /**

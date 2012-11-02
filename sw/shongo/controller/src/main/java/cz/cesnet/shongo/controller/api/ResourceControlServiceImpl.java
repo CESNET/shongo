@@ -18,6 +18,7 @@ import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.monitoring.ListRooms;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.GetRoomSummary;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
@@ -227,6 +228,14 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new DisconnectParticipant(roomId, roomUserId));
+    }
+
+    @Override
+    public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
+            throws FaultException
+    {
+        authorization.validate(token);
+        return (RoomSummary) commandDevice(deviceResourceIdentifier, new GetRoomSummary(roomId));
     }
 
     @Override
