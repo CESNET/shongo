@@ -1125,14 +1125,16 @@ ParamsLoop:
     public void enableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException(); // TODO
+        // NOTE: it seems it is not possible to enable content using current API (2.9)
+        throw new CommandUnsupportedException();
     }
 
     @Override
     public void disableContentProvider(String roomId, String roomUserId)
             throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException(); // TODO
+        // NOTE: it seems it is not possible to disable content using current API (2.9)
+        throw new CommandUnsupportedException();
     }
 
     //</editor-fold>
