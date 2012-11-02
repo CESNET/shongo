@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
@@ -959,8 +960,7 @@ ParamsLoop:
     public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException
     {
         Command cmd = new Command("participant.status");
-        cmd.setParameter("conferenceName", roomId);
-        cmd.setParameter("participantName", roomUserId);
+        identifyParticipant(cmd, roomId, roomUserId);
         cmd.setParameter("operationScope", new String[]{"currentState"});
 
         Map<String, Object> result = exec(cmd);
@@ -980,17 +980,25 @@ ParamsLoop:
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
 
         // FIXME: slow...
-        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions
+//        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", roomId);
-        cmd.setParameter("participantName", roomUserId);
+//        cmd.setParameter("participantName", roomUserId);
         cmd.setParameter("address", address);
-        cmd.setParameter("participantType", "by_address");
+        cmd.setParameter("participantType", "ad_hoc");
+        cmd.setParameter("addResponse", Boolean.TRUE);
 
-        exec(cmd);
+        Map<String, Object> result = exec(cmd);
 
-        return roomUserId;
+        @SuppressWarnings("unchecked")
+        Map<String, Object> participant = (Map<String, Object>) result.get("participant");
+        if (participant == null) {
+            return null;
+        }
+        else {
+            return String.valueOf(participant.get("participantName"));
+        }
     }
 
     /**
@@ -1099,10 +1107,18 @@ ParamsLoop:
     public void disconnectParticipant(String roomId, String roomUserId) throws CommandException
     {
         Command cmd = new Command("participant.remove");
-        cmd.setParameter("conferenceName", roomId);
-        cmd.setParameter("participantName", roomUserId);
+        identifyParticipant(cmd, roomId, roomUserId);
 
         exec(cmd);
+    }
+
+    private void identifyParticipant(Command cmd, String roomId, String roomUserId)
+    {
+        cmd.setParameter("conferenceName", roomId);
+        cmd.setParameter("participantName", roomUserId);
+        // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
+        //       numbers, so we distinguish the type by the fact whether the name is a number or not
+        cmd.setParameter("participantType", (StringUtils.isNumeric(roomUserId) ? "ad_hoc" : "by_address"));
     }
 
     @Override
