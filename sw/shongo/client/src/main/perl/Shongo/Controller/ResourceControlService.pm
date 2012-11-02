@@ -323,6 +323,19 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'getParticipant', @supportedMethods) {
+        $shell->add_commands({
+            "get-participant" => {
+                desc => "Gets user information and room settings for given participant.",
+                options => 'roomId=s participantId=s',
+                args => '[-roomId] [-participantId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_get_participant($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
 
     $shell->run();
 }
@@ -726,5 +739,40 @@ sub resource_list_participants
     }
     console_print_table($table);
 }
+
+sub resource_get_participant
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getParticipant',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+        RPC::XML::string->new($participantId)
+    );
+    if ( $result->is_fault() ) {
+        return;
+    }
+    my $participant = $result->value();
+    if ( !defined($participant) ) {
+        print "No participant info returned\n";
+    }
+    else {
+        printf("Room ID:          %s\n", $participant->{'roomId'});
+        printf("Participant ID:   %s\n", $participant->{'userId'});
+        printf("User identity:    %s\n", $participant->{'userIdentity'});
+        printf("Display name:     %s\n", $participant->{'displayName'});
+        printf("Join time:        %s\n", format_datetime($participant->{'joinTime'}));
+        printf("Muted:            %s\n", $participant->{'muted'});
+        printf("Microphone level: %s\n", $participant->{'microphoneLevel'});
+        printf("Playback level:   %s\n", $participant->{'playbackLevel'});
+        printf("Layout:           %s\n", $participant->{'layout'});
+    }
+}
+
+
 
 1;

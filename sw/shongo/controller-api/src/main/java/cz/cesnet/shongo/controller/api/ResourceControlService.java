@@ -94,7 +94,7 @@ public interface ResourceControlService extends Service
 
     @API
     public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
-        throws FaultException;
+            throws FaultException;
 
     @API
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
@@ -124,4 +124,8 @@ public interface ResourceControlService extends Service
     @API
     public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
             throws FaultException;
+
+    @API
+    public RoomUser getParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException;
 }

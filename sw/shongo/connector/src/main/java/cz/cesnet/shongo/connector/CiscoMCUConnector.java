@@ -549,7 +549,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      * Tells whether an item from a result of an enumeration command has been removed since last time the command was
      * issued.
      *
-     * @param item    an item from the resulting list
+     * @param item an item from the resulting list
      * @return <code>true</code> if the item is marked as removed, <code>false</code> if not
      */
     private static boolean isItemDead(Map<String, Object> item)
@@ -573,7 +573,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     /**
      * Tells whether an item from a result of an enumeration command changed since last time the command was issued.
      *
-     * @param item      an item from the resulting list
+     * @param item an item from the resulting list
      * @return <code>false</code> if the item is marked as not changed,
      *         <code>true</code> if the item is not marked as not changed
      */
@@ -956,10 +956,16 @@ ParamsLoop:
     //<editor-fold desc="USER SERVICE">
 
     @Override
-    public RoomUser getParticipant(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
+    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Command cmd = new Command("participant.status");
+        cmd.setParameter("conferenceName", roomId);
+        cmd.setParameter("participantName", roomUserId);
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+
+        Map<String, Object> result = exec(cmd);
+
+        return extractRoomUser(result);
     }
 
     @Override
@@ -1035,41 +1041,51 @@ ParamsLoop:
             if (!part.get("conferenceName").equals(roomId)) {
                 continue; // not from this room
             }
-            RoomUser ru = new RoomUser();
-
-            ru.setUserId((String) part.get("participantName"));
-            ru.setRoomId((String) part.get("conferenceName"));
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> state = (Map<String, Object>) part.get("currentState");
-
-            ru.setDisplayName((String) state.get("displayName"));
-
-            ru.setMuted((Boolean) state.get("audioRxMuted"));
-            if (state.get("audioRxGainMode").equals("fixed")) {
-                ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
-            }
-            ru.setJoinTime(new DateTime(state.get("connectTime")));
-
-            // room layout
-            if (state.containsKey("currentLayout")) {
-                RoomLayout.VoiceSwitching vs;
-                if (state.get("focusType").equals("voiceActivated")) {
-                    vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
-                }
-                else {
-                    vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
-                }
-                final Integer layoutIndex = (Integer) state.get("currentLayout");
-                RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
-
-                ru.setLayout(rl);
-            }
-
-            result.add(ru);
+            result.add(extractRoomUser(part));
         }
 
         return result;
+    }
+
+    /**
+     * Extracts a room-user out of participant.enumerate or participant.status result.
+     *
+     * @param participant participant structure, as defined in the MCU API, command participant.status
+     * @return room user extracted from the participant structure
+     */
+    private static RoomUser extractRoomUser(Map<String, Object> participant)
+    {
+        RoomUser ru = new RoomUser();
+
+        ru.setUserId((String) participant.get("participantName"));
+        ru.setRoomId((String) participant.get("conferenceName"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> state = (Map<String, Object>) participant.get("currentState");
+
+        ru.setDisplayName((String) state.get("displayName"));
+
+        ru.setMuted((Boolean) state.get("audioRxMuted"));
+        if (state.get("audioRxGainMode").equals("fixed")) {
+            ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
+        }
+        ru.setJoinTime(new DateTime(state.get("connectTime")));
+
+        // room layout
+        if (state.containsKey("currentLayout")) {
+            RoomLayout.VoiceSwitching vs;
+            if (state.get("focusType").equals("voiceActivated")) {
+                vs = RoomLayout.VoiceSwitching.VOICE_SWITCHED;
+            }
+            else {
+                vs = RoomLayout.VoiceSwitching.NOT_VOICE_SWITCHED;
+            }
+            final Integer layoutIndex = (Integer) state.get("currentLayout");
+            RoomLayout rl = RoomLayout.getByCiscoId(layoutIndex, RoomLayout.SPEAKER_CORNER, vs);
+
+            ru.setLayout(rl);
+        }
+        return ru;
     }
 
     @Override
