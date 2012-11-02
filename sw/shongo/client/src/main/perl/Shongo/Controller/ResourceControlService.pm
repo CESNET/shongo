@@ -763,10 +763,10 @@ sub resource_get_participant
     else {
         printf("Room ID:          %s\n", $participant->{'roomId'});
         printf("Participant ID:   %s\n", $participant->{'userId'});
-        printf("User identity:    %s\n", $participant->{'userIdentity'});
+        printf("User identity:    %s\n", ($participant->{'userIdentity'} ? $participant->{'userIdentity'} : "(not defined)"));
         printf("Display name:     %s\n", $participant->{'displayName'});
         printf("Join time:        %s\n", format_datetime($participant->{'joinTime'}));
-        printf("Muted:            %s\n", $participant->{'muted'});
+        printf("Muted:            %s\n", ($participant->{'muted'} ? "yes" : "no"));
         printf("Microphone level: %s\n", $participant->{'microphoneLevel'});
         printf("Playback level:   %s\n", $participant->{'playbackLevel'});
         printf("Layout:           %s\n", $participant->{'layout'});
