@@ -15,13 +15,14 @@ use URI;
 use URI::Escape;
 use URI::QueryParam;
 use JSON;
+use MIME::Base64;
 use Shongo::Common;
 use Shongo::Console;
 
 # Dummy redirect url which is
 my $CLIENT_USER_AGENT = 'Shongo Command-Line Client/1.0';
 my $CLIENT_ID = 'test-console-client';
-my $CLIENT_URL = 'https://dummy/';
+my $CLIENT_URL = 'https://dummy/';  # https://cli-client.shongo.cesnet.cz/
 my $AUTHENTICATION_SERVER = 'https://hroch.cesnet.cz/phpid-server/oic/';
 
 #
@@ -44,6 +45,15 @@ sub escape_hash
 #
 sub authorize
 {
+    my $username = undef;
+    my $password = undef;
+
+    $username = console_read_value('Username', 1);
+    $password = console_read_password('Password');
+    if ( !defined($password) ) {
+        $password = '';
+    }
+
     # Generate random state identifier (against XSRF attacks)
     my $state = join "", map { unpack "H*", chr(rand(256)) } 1..10;
 
@@ -63,7 +73,11 @@ sub authorize
         'state'         => $state,
         'prompt'        => 'login'
     );
-    my $response = $user_agent->simple_request(HTTP::Request->new(GET => $url));
+    my $authorization = $username . ':' . $password;
+    $authorization = encode_base64($authorization);
+    my $request = HTTP::Request->new(GET => $url);
+    $request->header('Authorization' => 'Basic ' . $authorization);
+    my $response = $user_agent->simple_request($request);
 
     # Authorization redirect loop
     my $authorization_code = undef;
@@ -100,7 +114,7 @@ sub authorize
 
     # Retrieve console_print_debug token
     console_print_debug("Retrieving access token for authorization code '$authorization_code'...");
-    my $request = HTTP::Request->new(POST => $AUTHENTICATION_SERVER . 'token');
+    $request = HTTP::Request->new(POST => $AUTHENTICATION_SERVER . 'token');
     $request->content_type('application/x-www-form-urlencoded');
     $request->content(escape_hash(
         'client_id' => $CLIENT_ID,
