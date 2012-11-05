@@ -316,7 +316,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public String modifyRoom(String roomId, Map<String, Object> attributes)
+    public String modifyRoom(String roomId, Map<String, Object> attributes, Map<Room.Option, Object> options)
             throws CommandException, CommandUnsupportedException
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.

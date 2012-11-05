@@ -251,6 +251,19 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'getRoomSummary', @supportedMethods) {
+        $shell->add_commands({
+            "get-room-summary" => {
+                desc => "Gets summary info about a virtual room",
+                options => 'roomId=s',
+                args => '[-roomId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_get_room_summary($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
     if (grep $_ eq 'createRoom', @supportedMethods) {
         $shell->add_commands({
             "create-room" => {
@@ -258,6 +271,18 @@ sub control_resource()
                 method => sub {
                     my ($shell, $params, @args) = @_;
                     resource_create_room($resourceIdentifier);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'modifyRoom', @supportedMethods) {
+        $shell->add_commands({
+            "modify-room" => {
+                desc => "Modify virtual room",
+                minargs => 1, args => "[roomId]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_modify_room($resourceIdentifier, $args[0]);
                 }
             }
         });
@@ -294,6 +319,19 @@ sub control_resource()
                 method => sub {
                     my ($shell, $params, @args) = @_;
                     resource_list_participants($resourceIdentifier, $args[0]);
+                }
+            }
+        });
+    }
+    if (grep $_ eq 'getParticipant', @supportedMethods) {
+        $shell->add_commands({
+            "get-participant" => {
+                desc => "Gets user information and room settings for given participant.",
+                options => 'roomId=s participantId=s',
+                args => '[-roomId] [-participantId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_get_participant($resourceIdentifier, $params->{'options'});
                 }
             }
         });
@@ -544,6 +582,32 @@ sub resource_disconnect_participant
     );
 }
 
+sub resource_get_room_summary
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getRoomSummary',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $room = $result->value();
+    if ( !defined($room) ) {
+        print "No room summary returned\n";
+    }
+    else {
+        printf("Identifier:      %s\n", $room->{'identifier'});
+        printf("Name:            %s\n", $room->{'name'});
+        printf("Description:     %s\n", $room->{'description'});
+        printf("Start date/time: %s\n", format_datetime($room->{'startDateTime'}));
+    }
+}
+
 sub resource_create_room
 {
     my ($resourceIdentifier, $attributes) = @_;
@@ -578,6 +642,43 @@ sub resource_create_room
         $roomId = '-- None --';
     }
     printf("Room ID: %s\n", $roomId);
+}
+
+sub resource_modify_room
+{
+    my ($resourceIdentifier, $roomId) = @_;
+
+    my $roomName = console_read_value('New room name', 0, undef, undef);
+    my $portCount = console_read_value('New port count', 0, '^\\d+$', undef);
+
+    my %attributes = ();
+    if ( defined $roomName ) {
+        $attributes{'name'} = $roomName;
+    }
+    if ( defined $portCount ) {
+        $attributes{'portCount'} = $portCount;
+    }
+    # TODO: offer modification of room aliases
+
+    my %options = (); # TODO: offer filling room options (see Room.Option enum)
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.modifyRoom',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+        RPC::XML::struct->new(%attributes),
+        RPC::XML::struct->new(%options)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $newRoomId = $result->value();
+    if ( !defined($newRoomId) ) {
+        $newRoomId = '-- None --';
+    }
+    if ( $newRoomId ne $roomId ) {
+        printf("New room ID: %s\n", $newRoomId);
+    }
 }
 
 sub resource_delete_room
@@ -638,5 +739,40 @@ sub resource_list_participants
     }
     console_print_table($table);
 }
+
+sub resource_get_participant
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getParticipant',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+        RPC::XML::string->new($participantId)
+    );
+    if ( $result->is_fault() ) {
+        return;
+    }
+    my $participant = $result->value();
+    if ( !defined($participant) ) {
+        print "No participant info returned\n";
+    }
+    else {
+        printf("Room ID:          %s\n", $participant->{'roomId'});
+        printf("Participant ID:   %s\n", $participant->{'userId'});
+        printf("User identity:    %s\n", ($participant->{'userIdentity'} ? $participant->{'userIdentity'} : "(not defined)"));
+        printf("Display name:     %s\n", $participant->{'displayName'});
+        printf("Join time:        %s\n", format_datetime($participant->{'joinTime'}));
+        printf("Muted:            %s\n", ($participant->{'muted'} ? "yes" : "no"));
+        printf("Microphone level: %s\n", $participant->{'microphoneLevel'});
+        printf("Playback level:   %s\n", $participant->{'playbackLevel'});
+        printf("Layout:           %s\n", $participant->{'layout'});
+    }
+}
+
+
 
 1;

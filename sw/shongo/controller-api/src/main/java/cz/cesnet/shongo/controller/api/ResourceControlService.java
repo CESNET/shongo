@@ -8,6 +8,7 @@ import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Interface to the service handling control operations on resources.
@@ -92,7 +93,26 @@ public interface ResourceControlService extends Service
             String roomUserId) throws FaultException;
 
     @API
+    public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
+            throws FaultException;
+
+    @API
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
+
+    /**
+     * Modifies a room.
+     *
+     * @param token                    security token
+     * @param deviceResourceIdentifier identifier of the device to perform the action
+     * @param roomId                   identifier of the room to modify
+     * @param attributes               attributes to change; attribute having <code>null</code> is unset on the room
+     * @param options                  room options to change; options having <code>null</code> are unset
+     * @return new room identifier (it may have changed due to some attribute change)
+     * @throws FaultException
+     */
+    @API
+    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            Map<String, Object> attributes, Map<Room.Option, Object> options) throws FaultException;
 
     @API
     public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException;
@@ -103,5 +123,9 @@ public interface ResourceControlService extends Service
 
     @API
     public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
-        throws FaultException;
+            throws FaultException;
+
+    @API
+    public RoomUser getParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException;
 }

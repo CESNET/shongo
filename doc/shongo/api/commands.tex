@@ -79,6 +79,7 @@
 \providecommand{\ApiReadOnly}{{\color{red!50!black}\textbf{ReadOnly}}}
 \providecommand{\ApiClassAttribute}[3]{\ApiItem{\ApiRef{#2} \ApiCode{#1} \hspace{1mm}(\ifx&#3&\ApiReadOnly\else#3\fi)}}
 \providecommand{\ApiClassAttributeCollection}[4]{\ApiItem{\ApiCode{#2<}\ApiRef{#3}\ApiCode{>} \ApiCode{#1} \hspace{1mm}(\ifx&#4&\ApiReadOnly\else#4\fi)}}
+\providecommand{\ApiClassAttributeMap}[5]{\ApiItem{\ApiCode{#2<}\ApiRef{#3}\ApiCode{,}\ApiRef{#4}\ApiCode{>} \ApiCode{#1} \hspace{1mm}(\ifx&#5&\ApiReadOnly\else#5\fi)}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % API enum
@@ -122,11 +123,11 @@
 \ifthenelse{\equal{\ApiTmp}{long}}{\def\tmpResult{\boolean{true}}}{}%
 \ifthenelse{\equal{\ApiTmp}{float}}{\def\tmpResult{\boolean{true}}}{}%
 \ifthenelse{\equal{\ApiTmp}{byte[]}}{\def\tmpResult{\boolean{true}}}{}%
-% 
+%
 \ifthenelse{\tmpResult}{%
 \textbf{\texttt{\ApiTmp}}
 }{%
 \hyperref[api:\ApiTmp]{\code{\ApiTmp}}%
-}%  
+}%
 }%
 }

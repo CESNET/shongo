@@ -15,11 +15,10 @@ import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
 import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.monitoring.ListRooms;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.*;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.GetParticipant;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.ListParticipants;
 import jade.content.AgentAction;
 
@@ -27,6 +26,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Resource service implementation.
@@ -228,10 +228,26 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
+            throws FaultException
+    {
+        authorization.validate(token);
+        return (RoomSummary) commandDevice(deviceResourceIdentifier, new GetRoomSummary(roomId));
+    }
+
+    @Override
     public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
         authorization.validate(token);
         return (String) commandDevice(deviceResourceIdentifier, new CreateRoom(room));
+    }
+
+    @Override
+    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            Map<String, Object> attributes, Map<Room.Option, Object> options) throws FaultException
+    {
+        authorization.validate(token);
+        return (String) commandDevice(deviceResourceIdentifier, new ModifyRoom(roomId, attributes, options));
     }
 
     @Override
@@ -254,6 +270,14 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         return (List<RoomUser>) commandDevice(deviceResourceIdentifier, new ListParticipants(roomId));
+    }
+
+    @Override
+    public RoomUser getParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException
+    {
+        authorization.validate(token);
+        return (RoomUser) commandDevice(deviceResourceIdentifier, new GetParticipant(roomId, roomUserId));
     }
 
     /**

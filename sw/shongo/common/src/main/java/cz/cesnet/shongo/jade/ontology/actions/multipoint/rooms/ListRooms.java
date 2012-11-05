@@ -1,4 +1,4 @@
-package cz.cesnet.shongo.jade.ontology.actions.multipoint.monitoring;
+package cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;

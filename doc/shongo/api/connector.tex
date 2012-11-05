@@ -1,10 +1,8 @@
-\chapter{Connector API Specification}
+\chapter{Connector API}
 
 \input{commands}
 
 \section{Communication Protocol}
-
-\todo{Merge with XML-RPC description. Afterwards, just state, what is used for which communication acts (XML-RPC for user interface, Jade ontologies for Jade messaging). Use common failure codes. Groups of failure codes: Shongo-connections, connections between a connector and its device, failures reported by the devices themselves}
 
 Communication among controllers and connectors is implemented using JADE \cite{jade}. The communication is \textbf{synchronous}, i.e., the controller sends a command to a connector and waits until the connector replies. The standard FIPA-Request \cite{FIPA-Request} interaction protocol: controllers send requests to perform an action, connectors receive the request, perform the action on the managed device, and send the result of the action as a reply to the controller.
 
@@ -52,6 +50,13 @@ The agent receiving a command should always send a reply as an \ApiCode{inform} 
 An example of a complex command is shown in appendix \ref{appendix:jade-command-encoding}.
 
 
+\section{Failures}
+
+Once the connector receives an \ApiCode{AgentAction} command, it tries to perform the action. Errors that occur on performing the action are reported by the same means as a valid result of the action -- a \ApiCode{Result} predicate is used in the reply, holding an object which describes the error. It is either a \ApiCode{CommandError} object, or a \ApiCode{CommandNotSupported} object, both of which contain an error message. In addition, the reply is of the \ApiCode{FAILURE} performative, which distinguishes it from valid return values.
+
+If the connector does not know the requested action, it replies with a \ApiCode{REFUSE} message.
+
+Other kinds of failures, e.g. when contents of communication cannot be decoded or understood, result in a \ApiCode{NOT\_UNDERSTOOD} message sent as a reply.
 
 
 \section{Data Types}
@@ -91,13 +96,27 @@ Current device load information. A negative value in any attribute means the val
 \ApiClass{Room}{}
 Represents a virtual room on a multipoint server device.
 \begin{ApiClassAttributes}
-\ApiClassAttributeCollection{users}{List}{RoomUser}{\ApiRequired} List of allowed users.
-\ApiClassAttribute{allowGuests}{boolean}{\ApiRequired} A flag indicating whether to allow guest users to join the room.
-\ApiClassAttribute{licenseCount}{int}{\ApiRequired} Number of licenses that multipoint server can utilize for this room.
-\ApiClassAttribute{layout}{RoomLayout}{\ApiRequired} The default room layout (used for all participants who did not specify a layout of their own choice).
-\ApiClassAttributeCollection{configuration}{List}{String}{\ApiOptional} Platform specific configuration.
+\ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
+\ApiClassAttribute{portCount}{int}{\ApiRequired} Number of ports that multipoint server can utilize for this room.
+\ApiClassAttributeCollection{aliases}{List}{Alias}{\ApiOptional} List of aliases under which the room is accessible.
+\ApiClassAttributeMap{options}{Map}{Room.Option}{Object}{\ApiOptional} Room specific configuration options.
 \end{ApiClassAttributes}
-\todo{Room settings should be auto-modified in time be uploaded calendar}
+
+\ApiEnum{Room.Option}
+Room options (not all options must be supported by the implementing connector).
+\begin{ApiEnumValues}
+\ApiEnumValue{Description}{} Some description of the room.
+\ApiEnumValue{Pin}{} PIN that must be entered to get to the room.
+\ApiEnumValue{ListedPublicly}{} Whether to list the room in public lists. Defaults to false.
+\ApiEnumValue{AllowContent}{} Whether participants may contribute content. Defaults to true.
+\ApiEnumValue{AllowGuests}{} Whether guests should be allowed to join. Defaults to true.
+\ApiEnumValue{JoinAudioMuted}{} Whether audio should be muted on join. Defaults to false.
+\ApiEnumValue{JoinVideoMuted}{} Whether video should be muted on join. Defaults to false.
+\ApiEnumValue{RegisterWithH323Gatekeeper}{} Whether to register the aliases with the gatekeeper. Defaults to false.
+\ApiEnumValue{RegisterWithSIPRegistrar}{} Whether to register the aliases with the SIP registrar. Defaults to false.
+\ApiEnumValue{StartLocked}{} Whether the room should be locked when started. Defaults to false.
+\ApiEnumValue{ConferenceMeEnabled}{} Whether the ConferenceMe should be enabled for the room. Defaults to false.
+\end{ApiEnumValues}
 
 \ApiClass{UsageStats}{}
 Usage stats of a given multipoint device.
@@ -176,8 +195,8 @@ Gets info about an existing room.
 \ApiItem{\ApiCode{String createRoom(Room room)}}
 Create a new virtual room on a multipoint device that is managed by this connector. The \ApiCode{room} parameter specifies the room settings, see the \ApiCode{Room} definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the \ApiCode{roomId} parameter.
 
-\ApiItem{\ApiCode{modifyRoom(String roomId, Map attributes)}}
-Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} map specifies \ApiCode{Room} attribute names mapped to new values.
+\ApiItem{\ApiCode{modifyRoom(String roomId, Map<String,Object> attributes, Map<Room.Option,Object> options)}}
+Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} and \ApiCode{options} maps specify \ApiCode{Room} attribute names and options, respectivelly, mapped to new values. Any attribute or option value may be \ApiCode{null} which means it should be unset.
 
 \ApiItem{\ApiCode{deleteRoom(String roomId)}}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
