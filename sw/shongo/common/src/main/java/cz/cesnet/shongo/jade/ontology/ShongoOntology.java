@@ -29,7 +29,7 @@ public class ShongoOntology extends BeanOntology
         super(NAME, new Ontology[]{BasicOntology.getInstance(), SerializableOntology.getInstance()});
 
         try {
-            // add Java classes to be serializable
+            // add some Java classes to be serializable to the ontology
             ObjectSchema serializableSchema = getSchema(SerializableOntology.SERIALIZABLE);
             SerializableOntology.getInstance().add(serializableSchema, java.util.Map.class);
             SerializableOntology.getInstance().add(serializableSchema, java.util.HashMap.class);
@@ -38,14 +38,6 @@ public class ShongoOntology extends BeanOntology
             // add commands within this package
             String packageName = getClass().getPackage().getName();
             add(packageName);
-            add(packageName + ".actions.common");
-            add(packageName + ".actions.endpoint");
-            add(packageName + ".actions.multipoint.rooms");
-            add(packageName + ".actions.multipoint.users");
-            //add(packageName + ".actions.multipoint.monitoring");
-            //add(packageName + ".actions.multipoint.io");
-            //add(packageName + ".actions.multipoint.recording");
-            //add(packageName + ".actions.multipoint.roomcontent");
 
             // add any API classes
             for (String item : ClassHelper.getPackages()) {
