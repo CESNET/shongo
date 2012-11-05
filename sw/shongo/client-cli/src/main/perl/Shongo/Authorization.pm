@@ -125,7 +125,7 @@ sub authorize
     $response = $user_agent->simple_request($request);
     my $response_data = decode_json($response->content);
     if (!$response->is_success) {
-        console_print_error("Error: $response_data->{'error'}. $response_data->{'error_description'}");
+        console_print_error("$response_data->{'error'}. $response_data->{'error_description'}");
         console_print_error("Retrieving access token failed!");
         return;
     }
@@ -145,6 +145,7 @@ sub user_info
 {
     my ($access_token) = @_;
     if (!defined($access_token)) {
+        console_print_error("No user is authenticated, use the 'authenticate' command.");
         return;
     }
 

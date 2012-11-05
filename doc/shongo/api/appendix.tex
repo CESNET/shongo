@@ -6,7 +6,7 @@
 
 Client can be started and connected to a \gls{g:controller} by the following commands:
 \begin{verbatim}
-./client.sh --connect localhost --testing-access-token
+./client-cli.sh --connect localhost --testing-access-token
 \end{verbatim}
 New \gls{g:resource} can be interactively created by typing:
 \begin{verbatim}
@@ -80,7 +80,7 @@ shongo> get-reservation <reservation-identifier>
 \end{verbatim}
 For scripting purposes it is useful to run the client with command(s) which should be executed (the client will not run the shell in this case and exits immediately):
 \begin{verbatim}
-./client.sh --connect localhost --testing-access-token \
+./client-cli.sh --connect localhost --testing-access-token \
     --cmd "list-resources" \
     --cmd "list-reservation-requests"
 \end{verbatim}

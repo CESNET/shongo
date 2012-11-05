@@ -78,8 +78,9 @@ sub populate()
             desc => "Perform user authentication",
             method => sub {
                 my $controller = Shongo::Controller->instance();
-                $controller->authenticate();
-                $controller->user_info($controller->{'access_token'});
+                if ( defined($controller->authenticate()) ) {
+                    $controller->user_info($controller->{'access_token'});
+                }
             }
         },
         "user-info" => {
@@ -99,6 +100,7 @@ sub authenticate()
 {
     my ($self) = @_;
     $self->{'access_token'} = Shongo::Authorization::authorize();
+    return $self->{'access_token'};
 }
 
 #

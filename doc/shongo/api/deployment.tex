@@ -8,7 +8,7 @@ This chapter describes the deployment of \gls{g:shongo} to a new \gls{g:domain}.
 \begin{enumerate}
 \item \textbf{\Gls{g:controller}} represents a command-line application which should be launched in single instance for each \gls{g:domain} and it acts as the main \gls{g:shongo} application for the \gls{g:domain}.
 \item \textbf{\Gls{g:connector}} represents a command-line application which can be launched in multiple instances for each \gls{g:domain} and each instance can manage one or multiple \glspl{g:resource}.
-\item \textbf{Client} is command-line interface to a \gls{g:controller} which can be used to setup \gls{g:resource} database and to create \glspl{g:reservation-request}. Multiple instances of \glspl{g:controller-client} can run at the same time.
+\item \textbf{Client CLI} is command-line interface to a \gls{g:controller} which can be used to setup \gls{g:resource} database and to create \glspl{g:reservation-request}. Multiple instances of \glspl{g:controller-client} can run at the same time.
 \end{enumerate}
 
 \section{Installation}
@@ -30,8 +30,8 @@ mvn package
 \end{verbatim}
 \textbf{Controller} and \textbf{connector} should be successfully built and tested. 
 
-\subsection{Client}
-To launch \textbf{client} you need to have Perl\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
+\subsection{Client CLI}
+To launch \textbf{command-line client} you need to have Perl\footnote{Perl \url{http://www.perl.org/get.html}} installed and also the following perl modules:
 \begin{compactenum}
 \item RPC::XML
 \item XML::Twig
@@ -55,7 +55,7 @@ And type the \code{./<application>.sh} command:
 \begin{verbatim}
 ./controller.sh
 ./connector.sh
-./client.sh
+./client-cli.sh
 \end{verbatim}
 
 \section{Controller}
@@ -218,13 +218,13 @@ Example of \gls{g:connector-agent} configuration for Codian MCU 4515:
 \end{itemize}
 
 
-\section{Client}
-Client can be started and connected to a \gls{g:controller} by the following commands:
+\section{Client CLI}
+Command-line client can be started and connected to a \gls{g:controller} by the following commands:
 \begin{verbatim}
-./client.sh --connect 127.0.0.1 [--testing-access-token]
-./client.sh --connect 127.0.0.1:8181 [--testing-access-token]
+./client-cli.sh --connect 127.0.0.1 [--testing-access-token]
+./client-cli.sh --connect 127.0.0.1:8181 [--testing-access-token]
 \end{verbatim}
-Option \codeValue{----testing-access-token} forces the client to skip the user authentication and to use testing access token which is automatically validated in the \gls{g:controller}.
+Option \codeValue{----testing-access-token} forces the client to skip the user authentication and to use a testing access token which is automatically validated in the \gls{g:controller}.
 The available commands in the client shell can be displayed by typing:
 \begin{verbatim}
 shongo> <TAB>
