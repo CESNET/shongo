@@ -118,6 +118,7 @@ sub user_info()
 
     $object->set_object_name('Authenticated User Information');
     $object->add_attribute('Access Token', {}, $self->{'access_token'});
+    $object->add_attribute('Identity', {}, $user_info->{'id'});
     $object->add_attribute('Name', {}, $user_info->{'name'});
     $object->add_attribute('Nickname', {}, $user_info->{'nickname'});
     $object->add_attribute('Email', {}, $user_info->{'email'});

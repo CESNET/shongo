@@ -21,8 +21,8 @@ use Shongo::Console;
 
 # Dummy redirect url which is
 my $CLIENT_USER_AGENT = 'Shongo Command-Line Client/1.0';
-my $CLIENT_ID = 'test-console-client';
-my $CLIENT_URL = 'https://dummy/';  # https://cli-client.shongo.cesnet.cz/
+my $CLIENT_ID = 'cz.cesnet.shongo.client-cli';
+my $CLIENT_URL = 'https://client-cli.shongo.cesnet.cz/';
 my $AUTHENTICATION_SERVER = 'https://hroch.cesnet.cz/phpid-server/oic/';
 
 #
@@ -73,11 +73,12 @@ sub authorize
         'state'         => $state,
         'prompt'        => 'login'
     );
+    my $request = HTTP::Request->new(GET => $url);
+    my $response = $user_agent->simple_request($request);
+
+    # Prepare Basic authorization code
     my $authorization = $username . ':' . $password;
     $authorization = encode_base64($authorization);
-    my $request = HTTP::Request->new(GET => $url);
-    $request->header('Authorization' => 'Basic ' . $authorization);
-    my $response = $user_agent->simple_request($request);
 
     # Authorization redirect loop
     my $authorization_code = undef;
@@ -88,18 +89,34 @@ sub authorize
             $response = undef;
         }
         elsif ($url =~ /^$CLIENT_URL/) {
+            # Check for error
+            my $pound = '#';
+            if ( $url =~ /${pound}error=/ ) {
+                $url =~ s/${pound}error=/\?error=/g;
+                $url = URI->new($url);
+                console_print_error("Retrieving authorization code failed! " . $url->query_param('error') . ": "
+                    . $url->query_param('error_description'));
+                return;
+            }
+
+            # Process response
             $url = URI->new($url);
             my $code = $url->query_param('code');
             my $newState = $url->query_param('state');
+            if ( !defined($newState) ) {
+                $newState = '';
+            }
             if (!($newState eq $state)) {
-                console_print_error("Failed to verify authorization state ($newState != $state), XSRF attack?");
+                console_print_error("Failed to verify authorization state ('$newState' != '$state'), XSRF attack?");
             }
             $authorization_code = $code;
             $response = undef;
         }
         else {
             console_print_debug("Redirecting to '$url'...");
-            $response = $user_agent->simple_request(HTTP::Request->new(GET => $url));
+            my $request = HTTP::Request->new(GET => $url);
+            $request->header('Authorization' => 'Basic ' . $authorization);
+            $response = $user_agent->simple_request($request);
         }
     }
     if (!defined($authorization_code)) {
