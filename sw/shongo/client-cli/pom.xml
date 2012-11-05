@@ -11,7 +11,7 @@
         <version>1.0</version>
     </parent>
 
-    <artifactId>client</artifactId>
+    <artifactId>client-cli</artifactId>
     <name>Shongo Controller Command-Line Client</name>
     <description>Command-line client for Shongo controller platform.</description>
     <packaging>pom</packaging>
