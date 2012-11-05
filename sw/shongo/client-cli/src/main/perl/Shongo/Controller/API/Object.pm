@@ -477,7 +477,7 @@ sub on_modify_confirm
 sub is_modify_loop_needed
 {
     my ($self) = @_;
-    foreach my $attribute_name (keys $self->{'__attributes'}) {
+    foreach my $attribute_name (keys %{$self->{'__attributes'}}) {
         my $attribute = $self->get_attribute($attribute_name);
         if ( $attribute->{'editable'} == 1 && ($attribute->{'complex'} == 1 || $attribute->{'type'} eq 'collection') ) {
             return 1;
@@ -615,7 +615,7 @@ sub modify_collection_add_actions
             $add_handlers->{'Add new ' . $item_title} = $attribute->{'collection'}->{'add'};
         }
         # Add all add handlers
-        foreach my $title (keys $add_handlers) {
+        foreach my $title (keys %{$add_handlers}) {
             push(@{$actions}, $title => sub {
                 my $handler = $add_handlers->{$title};
                 my $item = &$handler();
@@ -1113,7 +1113,7 @@ sub to_xml()
 sub get_perl_class
 {
     my ($class) = @_;
-    foreach my $key (keys $ClassMapping) {
+    foreach my $key (keys %{$ClassMapping}) {
         my $value = $ClassMapping->{$key};
         if ( $class =~ /$key/ ) {
             return $value;
