@@ -12,7 +12,7 @@ Each failure in API is reported by \textbf{fault code} (number value) and \textb
 \begin{longtable}{|r|p{5cm}|p{7.5cm}|}
 \hline
 \textbf{\multirow{2}{*}{\centering\begin{minipage}{8mm}fault \\ \hspace*{0.5mm}code\end{minipage}}} & \multirow{2}{*}{\textbf{description}} & \multirow{2}{*}{\textbf{fault string}} \\ 
- & & \\ \hline 
+ & & \\ \hline
 \fault{0}{Unknown fault.}{Describes the unknown fault.}
 \fault{10}{The \ApiValue{class} is not defined.}{Specifies which \ApiValue{class}.}
 \fault{11}{The \ApiValue{class} cannot be instanced.}{Specifies which \ApiValue{class}.}
@@ -169,8 +169,10 @@ Room unique identifier. \todo{The identifier should contain a part denoting the 
 \ApiClassAttribute{userIdentity}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
 \ApiClassAttribute{joinTime}{DateTime}{} Date and time when the user joined the room.
-\ApiClassAttribute{muted}{boolean}{}
-Is the user muted?
+\ApiClassAttribute{audioMuted}{boolean}{}
+Is the user audio-muted?
+\ApiClassAttribute{videoMuted}{boolean}{}
+Is the user video-muted?
 \ApiClassAttribute{microphoneLevel}{int}{}
 Microphone level.
 \ApiClassAttribute{playbackLevel}{int}{}

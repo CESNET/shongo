@@ -215,6 +215,7 @@ Sets up a room according to given \ApiCode{settings} previously exported by the 
 \begin{Api}
 
 \ApiItem{\ApiCode{Collection<RoomUser> listParticipants(String roomId)}}
+Lists participants in a given room.
 
 \ApiItem{\ApiCode{RoomUser getParticipant(String roomId, String roomUserId)}}
 Gets user information and settings in a room.
@@ -223,7 +224,7 @@ Gets user information and settings in a room.
 \ApiItem{\ApiCode{dialParticipant(String roomId, Alias alias)}}
 Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
 
-\ApiItem{\ApiCode{modifyParticipant(String roomId, String roomUserId, Map attributes)}}
+\ApiItem{\ApiCode{modifyParticipant(String roomId, String roomUserId, Map<String,Object> attributes)}}
 Modifies user settings in the room (suitable for setting
 microphone/playback level, muting/unmuting, user layout\ldots).
 
