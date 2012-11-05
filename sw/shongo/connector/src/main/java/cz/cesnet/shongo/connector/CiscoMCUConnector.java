@@ -762,6 +762,23 @@ ParamsLoop:
     //<editor-fold desc="ROOM SERVICE">
 
     @Override
+    public Collection<RoomSummary> getRoomList() throws CommandException
+    {
+        Command cmd = new Command("conference.enumerate");
+        cmd.setParameter("moreThanFour", Boolean.TRUE);
+        cmd.setParameter("enumerateFilter", "!completed");
+
+        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
+        List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
+        for (Map<String, Object> conference : conferences) {
+            RoomSummary info = extractRoomInfo(conference);
+            rooms.add(info);
+        }
+
+        return rooms;
+    }
+
+    @Override
     public RoomSummary getRoomSummary(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.status");
@@ -1174,43 +1191,55 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableParticipantVideo(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
+    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
-    public void enableParticipantVideo(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
+    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.VIDEO_MUTED, Boolean.FALSE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
-    public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteParticipant(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.AUDIO_MUTED, Boolean.TRUE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level)
-            throws CommandException, CommandUnsupportedException
+    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.MICROPHONE_LEVEL, level);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
     public void setParticipantPlaybackLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException(); // TODO
+        throw new CommandUnsupportedException();
     }
 
     @Override
-    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.AUDIO_MUTED, Boolean.FALSE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     //</editor-fold>
@@ -1280,23 +1309,6 @@ ParamsLoop:
     public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public Collection<RoomSummary> getRoomList() throws CommandException
-    {
-        Command cmd = new Command("conference.enumerate");
-        cmd.setParameter("moreThanFour", Boolean.TRUE);
-        cmd.setParameter("enumerateFilter", "!completed");
-
-        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
-        List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
-        for (Map<String, Object> conference : conferences) {
-            RoomSummary info = extractRoomInfo(conference);
-            rooms.add(info);
-        }
-
-        return rooms;
     }
 
     @Override

@@ -132,4 +132,28 @@ public interface ResourceControlService extends Service
     @API
     public void modifyParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId, Map<String, Object> attributes) throws FaultException;
+
+    @API
+    public void muteParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId)
+            throws FaultException;
+
+    @API
+    public void unmuteParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException;
+
+    @API
+    public void enableParticipantVideo(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException;
+
+    @API
+    public void disableParticipantVideo(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId) throws FaultException;
+
+    @API
+    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId, int level) throws FaultException;
+
+    @API
+    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId, int level) throws FaultException;
 }
