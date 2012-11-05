@@ -339,6 +339,7 @@ Represents base class for all possible types of successfully allocated \gls{g:re
 \ApiClassAttribute{slot}{Interval}{} Date/time slot for which the \gls{g:reservation} is allocated.
 \ApiClassAttribute{parentReservationIdentifier}{String}{} Identifier of parent \gls{g:reservation}.
 \ApiClassAttributeCollection{childReservationIdentifiers}{List}{String}{} Identifiers of child \glspl{g:reservation}. Each \gls{g:reservation} can contain multiple child \glspl{g:reservation} which have been allocated to satisfy the parent \gls{g:reservation} needs.
+\ApiClassAttribute{executable}{Executable}{} \Gls{g:executor} plan.
 \end{ApiClassAttributes}
 
 \ApiClass{ResourceReservation}{Reservation}
@@ -360,31 +361,50 @@ Represents a successfully allocated \gls{g:resource} as a \gls{g:device-alias}.
 \ApiClassAttribute{alias}{Alias}{} Allocated \gls{g:device-alias}.
 \end{ApiClassAttributes}
 
-\ApiClass{CompartmentReservation}{Reservation}
-Represents a successfully allocated \gls{g:compartment}.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{compartment}{Compartment}{} Allocated \gls{g:compartment}.
-\end{ApiClassAttributes}
-
 \ApiClass{ExistingReservation}{Reservation}
 Represents a reused \gls{g:reservation} (which was provided to the \gls{g:reservation-request}).
 \begin{ApiClassAttributes}
 \ApiClassAttribute{reservation}{Reservation}{} Existing \gls{g:reservation} which is reused.
 \end{ApiClassAttributes}
 
-\ApiClass{Compartment}{}
+\ApiClass{Executable}{}
+Represents an \gls{g:executor} plan.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{} Unique identifier of the \gls{g:executor} plan.
+\ApiClassAttribute{slot}{Interval}{} Date/time slot when the plan should be executed.
+\ApiClassAttribute{state}{Executable.State}{} Current state of the \gls{g:executor} plan.
+\end{ApiClassAttributes}
+
+\ApiEnum{Executable.State}
+\begin{ApiEnumValues}
+\ApiEnumValue{NOT_STARTED}{} \ApiRef{Executable} has not been started yet
+\ApiEnumValue{STARTED}{} \ApiRef{Executable} is already started.
+\ApiEnumValue{STARTING_FAILED}{} \ApiRef{Executable} failed to start.
+\ApiEnumValue{STOPPED}{} \ApiRef{Executable} has been already stopped.
+\end{ApiEnumValues}
+
+\ApiClass{VirtualRoom}{Executable}
+Represents an \gls{g:executor} plan for a \gls{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{portCount}{int}{} Number of available ports in the \gls{g:device-virtual-room}
+\ApiClassAttribute{resourceIdentifier}{String}{} Identifier of \gls{g:resource-device} in which the \gls{g:device-virtual-room} will be started.
+\ApiClassAttribute{state}{Executable.State}{} Current state of the \gls{g:executor} plan.
+\end{ApiClassAttributes}
+
+\ApiClass{Compartment}{Executable}
 Represents an allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttributeCollection{endpoints}{List}{Compartment.Endpoint}{} List of participating \glspl{g:endpoint}.
 \ApiClassAttributeCollection{virtualRooms}{List}{Compartment.VirtualRoom}{} List of \glspl{g:device-virtual-room}.
 \ApiClassAttributeCollection{connections}{List}{Compartment.Connection}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
+\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assigned \glspl{g:device-alias} to the \gls{g:device-virtual-room}.
 \end{ApiClassAttributes}
 
 \ApiClass{Compartment.Endpoint}{}
 Represents an \gls{g:endpoint} in allocated \gls{g:compartment}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{description}{String}{} Description of the \gls{g:endpoint}.
-\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assinged \glspl{g:device-alias} to the \gls{g:endpoint}.
+\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assigned \glspl{g:device-alias} to the \gls{g:endpoint}.
 \end{ApiClassAttributes}
 
 \ApiClass{Compartment.VirtualRoom}{Compartment.Endpoint}

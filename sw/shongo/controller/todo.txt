@@ -1,6 +1,3 @@
-* Finish refactorization of executor
-  * Update API document
-
 FUTURE:
 -------
 * Persons, PersonSpecifications
