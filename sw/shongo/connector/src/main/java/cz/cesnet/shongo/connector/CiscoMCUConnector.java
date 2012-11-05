@@ -979,8 +979,9 @@ ParamsLoop:
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
 
-        // FIXME: slow...
-//        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions
+        // NOTE: adding participants as ad_hoc - the MCU autogenerates their IDs (but they are just IDs, not names),
+        //       thus, commented out the following generation of participant names
+//        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions; and it is slow...
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", roomId);
@@ -1073,7 +1074,8 @@ ParamsLoop:
 
         ru.setDisplayName((String) state.get("displayName"));
 
-        ru.setMuted((Boolean) state.get("audioRxMuted"));
+        ru.setAudioMuted((Boolean) state.get("audioRxMuted"));
+        ru.setVideoMuted((Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
             ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
         }

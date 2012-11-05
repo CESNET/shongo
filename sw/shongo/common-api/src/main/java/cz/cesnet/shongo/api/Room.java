@@ -122,22 +122,14 @@ public class Room implements Concept
      *
      * Suitable for modifyRoom() command.
      *
-     * NOTE: No value should be the same as any of this class's option names (OPT_* constants).
-     *
      * NOTE: Keep in sync with actual attributes of the class.
      */
 
-    /**
-     * Room name. Type: String
-     */
+    /** Room name. Type: String */
     public static final String NAME = "name";
-    /**
-     * Number of ports to use for the room. Type: int
-     */
+    /** Number of ports to use for the room. Type: int */
     public static final String PORT_COUNT = "portCount";
-    /**
-     * Aliases of the room. Type: List<Alias>
-     */
+    /** Aliases of the room. Type: List<Alias> */
     public static final String ALIASES = "aliases";
 
 
