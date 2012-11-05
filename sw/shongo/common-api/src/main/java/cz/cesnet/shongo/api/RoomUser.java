@@ -21,7 +21,12 @@ public class RoomUser implements StructType, Concept
     private boolean audioMuted;
     private boolean videoMuted;
     private int microphoneLevel;
+
+    /**
+     * FIXME: remove? does it make any sense? is it implemented somewhere?
+     */
     private int playbackLevel;
+
     private RoomLayout layout;
 
 

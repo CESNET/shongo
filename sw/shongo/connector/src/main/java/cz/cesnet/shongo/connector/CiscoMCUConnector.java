@@ -181,17 +181,17 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        conn.modifyRoom(changedRoomId, atts, null);
 
         // test of modifyRoom() method
-        System.out.println("Modifying shongo-test");
-        Map<String, Object> atts = new HashMap<String, Object>();
-        atts.put(Room.NAME, "shongo-testing");
-        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
-        opts.put(Room.Option.LISTED_PUBLICLY, false);
-        opts.put(Room.Option.PIN, "1234");
-        conn.modifyRoom("shongo-test", atts, opts);
-        Map<String, Object> atts2 = new HashMap<String, Object>();
-        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-        atts2.put(Room.NAME, "shongo-test");
-        conn.modifyRoom("shongo-testing", atts2, null);
+//        System.out.println("Modifying shongo-test");
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-testing");
+//        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
+//        opts.put(Room.Option.LISTED_PUBLICLY, false);
+//        opts.put(Room.Option.PIN, "1234");
+//        conn.modifyRoom("shongo-test", atts, opts);
+//        Map<String, Object> atts2 = new HashMap<String, Object>();
+//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+//        atts2.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom("shongo-testing", atts2, null);
 
         // test of listParticipants() method
 //        System.out.println("Listing shongo-test room:");
@@ -210,6 +210,13 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        conn.disconnectParticipant("shongo-test", "participant1");
 
 //        System.out.println("All done, disconnecting");
+
+        // test of modifyParticipant
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
+        conn.modifyParticipant("shongo-test", "3447", attributes);
+
         conn.disconnect();
     }
 
@@ -861,22 +868,7 @@ ParamsLoop:
         Room room = new Room();
 
         if (attributes != null) {
-            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                String att = entry.getKey();
-                Object val = entry.getValue();
-                if (att.equals(Room.NAME)) {
-                    room.setName((String) val);
-                }
-                else if (att.equals(Room.PORT_COUNT)) {
-                    room.setPortCount((Integer) val);
-                }
-                else if (att.equals(Room.ALIASES)) {
-                    room.setAliases((List<Alias>) val);
-                }
-                else {
-                    throw new IllegalArgumentException("Unknown room attribute: " + att);
-                }
-            }
+            room.setAttributes(attributes);
         }
 
         if (options != null) {
@@ -1104,7 +1096,9 @@ ParamsLoop:
     {
         Command cmd = new Command("participant.modify");
         identifyParticipant(cmd, roomId, roomUserId);
-        cmd.setParameter("operationScope", new String[]{"currentState"});
+
+        // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
+        cmd.setParameter("operationScope", "activeState");
 
         for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
             String attName = attribute.getKey();

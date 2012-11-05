@@ -128,4 +128,8 @@ public interface ResourceControlService extends Service
     @API
     public RoomUser getParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException;
+
+    @API
+    public void modifyParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId, Map<String, Object> attributes) throws FaultException;
 }

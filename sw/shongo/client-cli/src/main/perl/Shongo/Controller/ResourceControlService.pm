@@ -336,6 +336,19 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'modifyParticipant', @supportedMethods) {
+        $shell->add_commands({
+            "modify-participant" => {
+                desc => "Modifies some participant settings.",
+                options => 'roomId=s participantId=s',
+                args => '[-roomId] [-participantId]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_modify_participant($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
 
     $shell->run();
 }
@@ -651,6 +664,7 @@ sub resource_modify_room
     my $roomName = console_read_value('New room name', 0, undef, undef);
     my $portCount = console_read_value('New port count', 0, '^\\d+$', undef);
 
+    # NOTE: attribute names must match Room attribute name constants
     my %attributes = ();
     if ( defined $roomName ) {
         $attributes{'name'} = $roomName;
@@ -772,6 +786,48 @@ sub resource_get_participant
         printf("Playback level:   %s\n", $participant->{'playbackLevel'});
         printf("Layout:           %s\n", $participant->{'layout'});
     }
+}
+
+sub resource_modify_participant
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+    my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
+
+    printf("\n");
+    my $displayName = console_read_value('New display name', 0, undef, undef);
+    my $audioMuted = console_read_value('Audio muted (y/n)', 0, '^[yn]$', undef);
+    my $videoMuted = console_read_value('Video muted (y/n)', 0, '^[yn]$', undef);
+    my $microphoneLevel = console_read_value('Microphone level', 0, '^\\d+$', undef);
+    my $playbackLevel = console_read_value('Playback level', 0, '^\\d+$', undef);
+
+    # NOTE: attribute names must match RoomUser attribute name constants
+    my %attributes = ();
+    if ( defined $displayName ) {
+        $attributes{'displayName'} = $displayName;
+    }
+    if ( defined $audioMuted ) {
+        $attributes{'audioMuted'} = RPC::XML::boolean->new(($audioMuted eq 'y'));
+    }
+    if ( defined $videoMuted ) {
+        $attributes{'videoMuted'} = RPC::XML::boolean->new(($videoMuted eq 'y'));
+    }
+    if ( defined $microphoneLevel ) {
+        $attributes{'microphoneLevel'} = $microphoneLevel;
+    }
+    if ( defined $playbackLevel ) {
+        $attributes{'playbackLevel'} = $playbackLevel;
+    }
+    # TODO: offer modification of room layout
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.modifyParticipant',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomId),
+        RPC::XML::string->new($participantId),
+        RPC::XML::struct->new(%attributes)
+    );
 }
 
 

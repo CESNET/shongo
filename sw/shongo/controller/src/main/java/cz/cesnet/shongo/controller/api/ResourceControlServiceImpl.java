@@ -16,10 +16,7 @@ import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
 import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DialParticipant;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.DisconnectParticipant;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.GetParticipant;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.ListParticipants;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.*;
 import jade.content.AgentAction;
 
 import javax.persistence.EntityManager;
@@ -278,6 +275,14 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         return (RoomUser) commandDevice(deviceResourceIdentifier, new GetParticipant(roomId, roomUserId));
+    }
+
+    @Override
+    public void modifyParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+            String roomUserId, Map<String, Object> attributes) throws FaultException
+    {
+        authorization.validate(token);
+        commandDevice(deviceResourceIdentifier, new ModifyParticipant(roomId, roomUserId, attributes));
     }
 
     /**
