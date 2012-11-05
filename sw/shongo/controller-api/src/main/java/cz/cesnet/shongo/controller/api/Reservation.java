@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class Reservation implements StructType
+public class Reservation implements StructType
 {
     /**
      * Identifier of the {@link Reservation}.
@@ -32,6 +32,11 @@ public abstract class Reservation implements StructType
      * Child {@link Reservation} identifiers.
      */
     private List<String> childReservationIdentifiers = new ArrayList<String>();
+
+    /**
+     * @see {@link Executable}
+     */
+    private Executable executable;
 
     /**
      * @return {@link #slot}
@@ -103,5 +108,21 @@ public abstract class Reservation implements StructType
     public void setIdentifier(String identifier)
     {
         this.identifier = identifier;
+    }
+
+    /**
+     * @return {@link #executable}
+     */
+    public Executable getExecutable()
+    {
+        return executable;
+    }
+
+    /**
+     * @param executable sets the {@link #executable}
+     */
+    public void setExecutable(Executable executable)
+    {
+        this.executable = executable;
     }
 }

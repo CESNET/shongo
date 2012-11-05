@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
@@ -36,6 +37,11 @@ public class VirtualRoomSpecification extends Specification implements Reservati
     private int portCount;
 
     /**
+     * Specifies whether {@link Alias} should be acquired for each {@link Technology} from {@link #technologies}.
+     */
+    private boolean withAlias;
+
+    /**
      * Preferred {@link Resource} with {@link VirtualRoomsCapability}.
      */
     private DeviceResource deviceResource;
@@ -56,6 +62,14 @@ public class VirtualRoomSpecification extends Specification implements Reservati
     public Set<Technology> getTechnologies()
     {
         return Collections.unmodifiableSet(technologies);
+    }
+
+    /**
+     * @param technologies sets the {@link #technologies}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        this.technologies = technologies;
     }
 
     /**
@@ -91,6 +105,23 @@ public class VirtualRoomSpecification extends Specification implements Reservati
     }
 
     /**
+     * @return {@link #withAlias}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isWithAlias()
+    {
+        return withAlias;
+    }
+
+    /**
+     * @param withAlias sets the {@link #withAlias}
+     */
+    public void setWithAlias(boolean withAlias)
+    {
+        this.withAlias = withAlias;
+    }
+
+    /**
      * @return {@link #deviceResource}
      */
     @OneToOne
@@ -110,12 +141,21 @@ public class VirtualRoomSpecification extends Specification implements Reservati
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
-        VirtualRoomSpecification resourceSpecification = (VirtualRoomSpecification) specification;
+        VirtualRoomSpecification virtualRoomSpecification = (VirtualRoomSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getDeviceResource(), resourceSpecification.getDeviceResource());
+        modified |= !ObjectUtils.equals(getPortCount(), virtualRoomSpecification.getPortCount());
+        modified |= !ObjectUtils.equals(isWithAlias(), virtualRoomSpecification.isWithAlias());
+        modified |= !ObjectUtils.equals(getDeviceResource(), virtualRoomSpecification.getDeviceResource());
 
-        setDeviceResource(resourceSpecification.getDeviceResource());
+        if (!technologies.equals(virtualRoomSpecification.getTechnologies())) {
+            setTechnologies(virtualRoomSpecification.getTechnologies());
+            modified = true;
+        }
+
+        setPortCount(virtualRoomSpecification.getPortCount());
+        setWithAlias(virtualRoomSpecification.isWithAlias());
+        setDeviceResource(virtualRoomSpecification.getDeviceResource());
 
         return modified;
     }
@@ -141,6 +181,7 @@ public class VirtualRoomSpecification extends Specification implements Reservati
             virtualRoomSpecificationApi.addTechnology(technology);
         }
         virtualRoomSpecificationApi.setPortCount(getPortCount());
+        virtualRoomSpecificationApi.setWithAlias(isWithAlias());
         if (deviceResource != null) {
             virtualRoomSpecificationApi.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
         }
@@ -155,6 +196,9 @@ public class VirtualRoomSpecification extends Specification implements Reservati
                 (cz.cesnet.shongo.controller.api.VirtualRoomSpecification) specificationApi;
         if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.PORT_COUNT)) {
             setPortCount(virtualRoomSpecificationApi.getPortCount());
+        }
+        if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.WITH_ALIAS)) {
+            setWithAlias(virtualRoomSpecificationApi.getWithAlias());
         }
         if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.RESOURCE_IDENTIFIER)) {
             if (virtualRoomSpecificationApi.getResourceIdentifier() == null) {

@@ -151,7 +151,7 @@ public class CompartmentReservationTask extends ReservationTask
     {
         addChildReservation(reservation);
         VirtualRoomReservation virtualRoomReservation = reservation.getTargetReservation(VirtualRoomReservation.class);
-        return virtualRoomReservation.getVirtualRoom();
+        return virtualRoomReservation.getEndpoint();
     }
 
     /**
@@ -544,9 +544,9 @@ public class CompartmentReservationTask extends ReservationTask
         compartment.setState(Compartment.State.NOT_STARTED);
 
         // Create compartment reservation for allocated compartment
-        CompartmentReservation compartmentReservation = new CompartmentReservation();
+        Reservation compartmentReservation = new Reservation();
         compartmentReservation.setSlot(getInterval());
-        compartmentReservation.setCompartment(compartment);
+        compartmentReservation.setExecutable(compartment);
         return compartmentReservation;
     }
 

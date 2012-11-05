@@ -22,8 +22,8 @@ our $COLLECTION_EMPTY = "-- None --";
 our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::Controller::API::Reservation',
     '^.*Specification$' => 'Shongo::Controller::API::Specification',
-    'Compartment' => 'Shongo::Controller::API::Executable',
-    'VirtualRoom' => 'Shongo::Controller::API::Executable'
+    '^Compartment$' => 'Shongo::Controller::API::Executable',
+    '^VirtualRoom$' => 'Shongo::Controller::API::Executable'
 };
 
 #
@@ -57,6 +57,11 @@ sub init()
     if ( !defined($self->{'__initialized'}) ) {
         $self->{'__initialized'} = 1;
         $self->on_init();
+
+        # Order columns
+        @{$self->{'__attributes_order'}} = sort
+            {$self->{'__attributes'}->{$a}->{'order'} <=> $self->{'__attributes'}->{$b}->{'order'}}
+            @{$self->{'__attributes_order'}};
     }
 }
 
@@ -219,6 +224,7 @@ sub add_attribute
     my $attribute_name = $name;
     $self->{'__attributes'}->{$attribute_name} = $attribute;
     push(@{$self->{'__attributes_order'}}, $attribute_name);
+    set_default_value($attribute, 'order', 0);
     set_default_value($attribute, 'display', 'block');
     set_default_value($attribute, 'display-empty', 0);
     set_default_value($attribute, 'editable', 1);
@@ -843,7 +849,7 @@ sub format_value
                 for ( my $index = 0; $index < scalar(@{$items}); $index++ ) {
                     my $item = @{$items}[$index];
                     $item = $self->format_value($item, $options->{'collection'});
-                    if ( $options->{'single-line'} ) {
+                    if ( $options->{'short'} ) {
                         if ( length($value) > 0 ) {
                             $value .= ", ";
                         }
@@ -862,7 +868,7 @@ sub format_value
             }
         }
         else {
-            if ( $options->{'single-line'} ) {
+            if ( $options->{'short'} ) {
                 $value = $value->to_string_short();
             }
             else {
@@ -891,7 +897,7 @@ sub format_attribute_value
     if ( !defined($single_line) ) {
         $single_line = 0;
     }
-    $options->{'single-line'} = $single_line;
+    $options->{'short'} = $single_line;
     $options->{'format'} = $attribute->{'format'};
 
     my $attribute_value = $self->get($attribute_name);

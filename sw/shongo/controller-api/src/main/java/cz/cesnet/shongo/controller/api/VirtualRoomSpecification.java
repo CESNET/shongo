@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.Set;
@@ -21,6 +22,11 @@ public class VirtualRoomSpecification extends Specification
      * Number of ports which must be allocated for the virtual room.
      */
     public static final String PORT_COUNT = "portCount";
+
+    /**
+     * Specifies whether {@link Alias} should be acquired for each {@link Technology} from {@link #TECHNOLOGIES}.
+     */
+    public static final String WITH_ALIAS = "withAlias";
 
     /**
      * Preferred {@link Resource} identifier with {@link AliasProviderCapability}.
@@ -81,6 +87,22 @@ public class VirtualRoomSpecification extends Specification
     public void setPortCount(Integer portCount)
     {
         getPropertyStorage().setValue(PORT_COUNT, portCount);
+    }
+
+    /**
+     * @return {@link #WITH_ALIAS}
+     */
+    public Boolean getWithAlias()
+    {
+        return getPropertyStorage().getValue(WITH_ALIAS);
+    }
+
+    /**
+     * @param withAlias sets the {@link #WITH_ALIAS}
+     */
+    public void setWithAlias(Boolean withAlias)
+    {
+        getPropertyStorage().setValue(WITH_ALIAS, withAlias);
     }
 
     /**

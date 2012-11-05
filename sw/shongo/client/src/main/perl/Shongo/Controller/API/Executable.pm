@@ -152,7 +152,10 @@ sub on_init()
                 'title' => 'Resource Identifier'
             });
             $self->add_attribute('aliases', {
-                'type' => 'collection'
+                'type' => 'collection',
+                'collection' => {
+                    'short' => 1
+                }
             });
         }
     }

@@ -5,11 +5,10 @@ import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.executor.ResourceVirtualRoom;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.request.VirtualRoomSpecification;
-import cz.cesnet.shongo.controller.reservation.ExistingReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
-import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
+import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
@@ -36,6 +35,11 @@ public class VirtualRoomReservationTask extends ReservationTask
     private int portCount;
 
     /**
+     * Specifies whether {@link Alias} should be acquired for each {@link Technology}.
+     */
+    private boolean withAlias = false;
+
+    /**
      * Preferred {@link Resource} with {@link VirtualRoomsCapability}.
      */
     private DeviceResource deviceResource;
@@ -51,6 +55,7 @@ public class VirtualRoomReservationTask extends ReservationTask
         super(context);
         this.technologySets.add(virtualRoomSpecification.getTechnologies());
         this.portCount = virtualRoomSpecification.getPortCount();
+        this.withAlias = virtualRoomSpecification.isWithAlias();
         this.deviceResource = virtualRoomSpecification.getDeviceResource();
     }
 
@@ -122,18 +127,43 @@ public class VirtualRoomReservationTask extends ReservationTask
         // Get the first virtual room
         AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
 
+        // Get technologies for the virtual room
+        Set<Technology> technologies = null;
+        Set<Technology> deviceTechnologies = availableVirtualRoom.getDeviceResource().getTechnologies();
+        for ( Set<Technology> possibleTechnologies : technologySets) {
+            if (deviceTechnologies.containsAll(possibleTechnologies)) {
+                technologies = possibleTechnologies;
+            }
+        }
+        if (technologies == null) {
+            throw new IllegalStateException(
+                    "Virtual room which was found doesn't match any required set of technologies.");
+        }
+
+        // Create virtual room
         ResourceVirtualRoom virtualRoom = new ResourceVirtualRoom();
         virtualRoom.setDeviceResource(availableVirtualRoom.getDeviceResource());
         virtualRoom.setPortCount(portCount);
         virtualRoom.setSlot(getInterval());
         virtualRoom.setState(ResourceVirtualRoom.State.NOT_STARTED);
 
+        // TODO: create virtual room only for specified technologies
+
+        // Allocate aliases for each technology
+        if ( withAlias ) {
+            for ( Technology technology : technologies) {
+                AliasSpecification aliasSpecification = new AliasSpecification(technology);
+                AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
+                virtualRoom.addAssignedAlias(aliasReservation.getAlias().clone());
+            }
+        }
+
         // Create virtual room reservation
         VirtualRoomReservation virtualRoomReservation = new VirtualRoomReservation();
         virtualRoomReservation.setSlot(getInterval());
         virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
         virtualRoomReservation.setPortCount(portCount);
-        virtualRoomReservation.setVirtualRoom(virtualRoom);
+        virtualRoomReservation.setExecutable(virtualRoom);
         return virtualRoomReservation;
     }
 }
