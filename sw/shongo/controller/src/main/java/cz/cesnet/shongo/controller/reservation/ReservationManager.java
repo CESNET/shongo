@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.executor.Compartment;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -51,18 +52,17 @@ public class ReservationManager extends AbstractManager
      */
     public void delete(Reservation reservation, Cache cache)
     {
-        if (reservation instanceof CompartmentReservation) {
-            CompartmentReservation compartmentReservation = (CompartmentReservation) reservation;
+        Executable executable = reservation.getExecutable();
+        if (executable != null) {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
-            Compartment compartment = compartmentReservation.getCompartment();
-            if (compartment.getState().equals(Compartment.State.STARTED)) {
-                if (compartment.getSlotEnd().isAfter(DateTime.now())) {
+            if (executable.getState().equals(Compartment.State.STARTED)) {
+                if (executable.getSlotEnd().isAfter(DateTime.now())) {
                     DateTime newSlotEnd = DateTime.now().withField(DateTimeFieldType.millisOfSecond(), 0);
-                    if (newSlotEnd.isBefore(compartment.getSlotStart())) {
-                        newSlotEnd = compartment.getSlotStart();
+                    if (newSlotEnd.isBefore(executable.getSlotStart())) {
+                        newSlotEnd = executable.getSlotStart();
                     }
-                    compartment.setSlotEnd(newSlotEnd);
-                    executableManager.update(compartment);
+                    executable.setSlotEnd(newSlotEnd);
+                    executableManager.update(executable);
                 }
             }
         }

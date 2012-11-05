@@ -297,7 +297,7 @@ identifier: shongo:cz.cesnet:4,
 name: Example 4,
 slot: DateTimeSlot {
   start: DateTime(2012-01-01T00:00),
-  duration: Period(PT1Y)
+  duration: Period(P1Y)
 },
 specification: AliasSpecification {
   technology: H323,
@@ -326,7 +326,7 @@ There are several types of \glspl{g:reservation}:
 
 \item \ApiRef{AliasReservation} represents a special type of \ApiRef{ResourceReservation} for an \ApiCode{alias} from the \gls{g:resource} with an \ApiRef{AliasProviderCapability} (e.g., a \gls{g:reservation} for an \gls{g:device-alias} \ApiValue{950087201} from a \gls{g:resource} which provides \glspl{g:device-alias} with prefix \ApiValue{9500872XX}).
 
-\item \ApiRef{CompartmentReservation} represents a \gls{g:reservation} for a \gls{g:compartment} and it usually contains multiple child \glspl{g:reservation} for \glspl{g:device-virtual-room}, \glspl{g:endpoint} and \glspl{g:device-alias}. It also contains a reference to \ApiCode{compartment} (instance of \ApiRef{Compartment} class) which represents a \gls{g:compartment} plan which is used by an \gls{g:executor} to establish the \gls{g:compartment}.
+\item \ApiRef{Reservation} represents a base class for all \glspl{g:reservation} but also can be directly used as allocation for a \gls{g:compartment} and in that case it usually contains multiple child \glspl{g:reservation} for \glspl{g:device-virtual-room}, \glspl{g:endpoint} and \glspl{g:device-alias}. \Gls{g:reservation} can reference a plan for an \gls{g:executor} (\ApiRef{Executable}) which can be executed (e.g., \gls{g:compartment}, instance of \ApiRef{Compartment} class, or \gls{g:device-virtual-room}, instance of \ApiRef{VirtualRoom} class).
 
 \item \ApiRef{ExistingReservation} represents a reused \gls{g:reservation} (which was provided in the \gls{g:reservation-request}).
 \end{enumerate}
@@ -334,7 +334,7 @@ There are several types of \glspl{g:reservation}:
 The following two diagrams describes how \ApiRef{ReservationRequest}s and \ApiRef{ReservationRequestSet}s are processed by a \gls{g:controller} and allocated to \ApiRef{Reservation}s (fig. \ref{fig:sd_reservation_request_allocation} and \ref{fig:sd_reservation_request_set_allocation}). Each controller runs these components:
 \begin{enumerate}
 \item \textbf{Reservation service} accepts new \glspl{g:reservation-request} from users (through \glspl{g:controller-client}) and also new \glspl{g:reservation} from the \gls{g:scheduler} and persist them to \gls{g:controller}'s storage.
-\item \textbf{\Gls{g:preprocessor}} uses the service to get not-preprocessed \ApiRef{ReservationRequestSet}s and creates new \ApiRef{ReservationRequest}s from them. \Gls{g:preprocessor} creates only requests which take place in working interval (e.g., one month ahead). It allows an user to create a \ApiRef{ReservationRequestSet} specifying never-ending periodic date/time (e.g., each Thursday from 14:00 to 16:00) and as the weeks goes the \gls{g:preprocessor} will create more and more \ApiRef{ReservationRequest}s.
+\item \textbf{\Gls{g:preprocessor}} uses the service to get not-preprocessed \ApiRef{ReservationRequestSet}s and creates new \ApiRef{ReservationRequest}s from them. \Gls{g:preprocessor} creates only requests which take place in working interval (e.g., one month ahead). It allows an user to create a \ApiRef{ReservationRequestSet} specifying never-ending periodic date/time (e.g., each Thursday from 14:00 to 16:00) and as the weeks goes the \gls{g:preprocessor} will create more and more \ApiRef{ReservationRequest}s. Preprocessor also processes permanent \glspl{g:reservation-request} and disables \gls{g:scheduler} to allocate referenced resources in specified date/time slots.
 \item \textbf{\Gls{g:scheduler}} uses the service to get complete \ApiRef{ReservationRequest}s and allocates them to \ApiRef{Reservation}s. The scheduler also allocates only requests in a working interval (e.g., one month ahead).
 \end{enumerate}
 
@@ -363,7 +363,7 @@ resourceIdentifier: shongo:cz.cesnet:2
 \end{ObjectCode}
 
 \item Allocated \gls{g:reservation} for \hyperref[oc:request2]{\codeValue{request2}} (which was requesting compartment for 3 external H.323 ports and existing H.323 \gls{g:endpoint}) that was described in section \ref{sec:implementation-reservation-request}.
-\begin{ObjectCode}{CompartmentReservation}{reservation2}{}
+\begin{ObjectCode}{Reservation}{reservation2}{Reservation for compartment}
 identifier: shongo:cz.cesnet:2,
 slot: Interval(2012-10-12T14:00/2012-10-12T16:00),
 childReservationIdentifiers: [
@@ -371,7 +371,7 @@ childReservationIdentifiers: [
   shongo:cz.cesnet:4, // Child reservation for virtual room in Codian MCU
   shongo:cz.cesnet:5  // Child reservation for alias for virtual room
 ],
-compartment: Compartment { // Executor compartment plan
+executable: Compartment { // Executor compartment plan
   endpoints: [
     Endpoint { // Tandberg Codec C90 endpoint
       identifier: 2,
@@ -419,14 +419,14 @@ alias: Alias { technology: H323, type: E164, value: 950087201 }
 \end{ObjectCode}
 
 \item Allocated \gls{g:reservation} for \hyperref[oc:request3]{\codeValue{request3}} on 5.9.2012 (which was requesting compartment for 3 external H.323 ports for multiple date/time slots) that was described in section \ref{sec:implementation-reservation-request}.
-\begin{ObjectCode}{CompartmentReservation}{reservation6}{}
+\begin{ObjectCode}{Reservation}{reservation6}{Reservation for compartment}
 identifier: shongo:cz.cesnet:6,
 slot: Interval(2012-09-05T14:00/2012-09-05T16:00),
 childReservationIdentifiers: [
   shongo:cz.cesnet:7, // Child reservation for virtual room in Codian MCU
   shongo:cz.cesnet:8  // Child reservation for alias for virtual room
 ],
-compartment: Compartment { // Executor compartment plan  
+executable: Compartment { // Executor compartment plan  
   virtualRooms: [
     VirtualRoom { // Virtual room with 3 available ports in Codian MCU 4515
       identifier: 3,

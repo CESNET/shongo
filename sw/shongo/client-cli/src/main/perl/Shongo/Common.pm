@@ -39,6 +39,18 @@ our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\
 use constant NULL => '__null__';
 
 #
+# Checks whether $value exists in the $array
+#
+# @param $value
+# @param $array
+#
+sub array_value_exits
+{
+    my ($value, @array) = @_;
+    return grep(/^$value$/, @array);
+}
+
+#
 # Create hash from given values which has item "__keys" as array with keys in insertion order.
 #
 # @param values array of pair of items (even count)

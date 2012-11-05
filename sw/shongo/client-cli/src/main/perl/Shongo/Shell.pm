@@ -147,7 +147,7 @@ sub parse_attributes
             $json->relaxed(1);
             $json->loose(1);
             $json_data = $json->decode($json_data);
-            foreach my $attribute_name (keys $json_data) {
+            foreach my $attribute_name (keys %{$json_data}) {
                 $attributes->{$attribute_name} = $json_data->{$attribute_name};
             }
             1;

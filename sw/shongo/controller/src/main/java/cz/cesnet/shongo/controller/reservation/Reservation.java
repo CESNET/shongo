@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.ReportException;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class Reservation extends PersistentObject
+public class Reservation extends PersistentObject
 {
     /**
      * @see {@link CreatedBy}.
@@ -47,6 +48,11 @@ public abstract class Reservation extends PersistentObject
      * Child {@link Reservation}s that are allocated for the {@link Reservation}.
      */
     private List<Reservation> childReservations = new ArrayList<Reservation>();
+
+    /**
+     * {@link Executable} which is allocated for execution by the {@link Reservation}.
+     */
+    private Executable executable;
 
     /**
      * @return {@link #createdBy}
@@ -212,6 +218,23 @@ public abstract class Reservation extends PersistentObject
     }
 
     /**
+     * @return {@link #executable}
+     */
+    @OneToOne(cascade = CascadeType.PERSIST)
+    public Executable getExecutable()
+    {
+        return executable;
+    }
+
+    /**
+     * @param executable sets the {@link #executable}
+     */
+    public void setExecutable(Executable executable)
+    {
+        this.executable = executable;
+    }
+
+    /**
      * @return child {@link Reservation}s, theirs child {@link Reservation}, etc. (recursive)
      */
     @Transient
@@ -286,7 +309,10 @@ public abstract class Reservation extends PersistentObject
     /**
      * @return new instance of {@link cz.cesnet.shongo.controller.api.Reservation}
      */
-    protected abstract cz.cesnet.shongo.controller.api.Reservation createApi();
+    protected cz.cesnet.shongo.controller.api.Reservation createApi()
+    {
+        return new cz.cesnet.shongo.controller.api.Reservation();
+    }
 
     /**
      * @param api    {@link cz.cesnet.shongo.controller.api.AbstractReservationRequest} to be filled
@@ -296,6 +322,9 @@ public abstract class Reservation extends PersistentObject
     {
         api.setIdentifier(domain.formatIdentifier(getId()));
         api.setSlot(getSlot());
+        if (getExecutable() != null) {
+            api.setExecutable(getExecutable().toApi(domain));
+        }
         if (getParentReservation() != null) {
             api.setParentReservationIdentifier(domain.formatIdentifier(getParentReservation().getId()));
         }

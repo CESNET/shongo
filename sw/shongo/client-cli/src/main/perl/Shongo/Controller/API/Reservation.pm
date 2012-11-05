@@ -20,7 +20,6 @@ our $Type = ordered_hash(
     'ResourceReservation' => 'Resource Reservation',
     'VirtualRoomReservation' => 'Virtual Room Reservation',
     'AliasReservation' => 'Alias Reservation',
-    'CompartmentReservation' => 'Compartment Reservation',
     'ExistingReservation' => 'Existing Reservation'
 );
 
@@ -45,11 +44,17 @@ sub new()
     $self->add_attribute('childReservations', {
         'type' => 'collection',
         'title' => 'Child Reservations',
-        'display' => 'newline'
+        'display' => 'newline',
+        'order' => 2
     });
     $self->add_attribute('childReservationIdentifiers', {
         'type' => 'collection',
-        'title' => 'Child Reservation Identifiers'
+        'title' => 'Child Reservation Identifiers',
+        'order' => 2
+    });
+    $self->add_attribute('executable', {
+        'display' => 'newline',
+        'order' => 1
     });
 
     return $self;
@@ -100,11 +105,6 @@ sub on_init
                 }
             });
             $self->add_attribute('alias');
-        }
-        case 'CompartmentReservation' {
-            $self->add_attribute('compartment', {
-                'display' => 'newline'
-            });
         }
         case 'ExistingReservation' {
             $self->add_attribute('reservation');

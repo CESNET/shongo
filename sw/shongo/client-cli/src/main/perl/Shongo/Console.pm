@@ -19,15 +19,17 @@ our @EXPORT = qw(
     console_auto_value console_read_value console_edit_value
     console_auto_enum console_read_enum console_edit_enum
     console_edit_bool
+    console_read_password
 );
 
 BEGIN {
     if ($^O eq "MSWin32")
     {
         require Win32::Console::ANSI;
-        Win32::Console::ANSI->import();  # assuming you would not be passing arguments to "use Module"
+        Win32::Console::ANSI->import();
     }
 }
+use Term::ReadKey;
 use Shongo::Common;
 
 #
@@ -436,6 +438,27 @@ sub console_edit_bool
         return 0;
     }
     return undef;
+}
+
+#
+# Read password value
+#
+# @param $message   message to be shown as prompt
+# @param $required  option whether not empty value should be returned
+#
+sub console_read_password
+{
+    my ($message, $required) = @_;
+
+    print(colored(sprintf("%s: ", $message), "bold blue"));
+
+    ReadMode('noecho');
+    chomp(my $password = <STDIN>);
+    ReadMode('restore');
+
+    print("\n");
+
+    return $password;
 }
 
 1;

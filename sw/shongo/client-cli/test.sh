@@ -1,5 +1,7 @@
 #! /bin/sh
 
+DATE=$(date --date='tomorrow' +%Y-%m-%d)
+
 ./client.sh --connect localhost --testing-access-token \
 --cmd "\
     create-resource -confirm { \
@@ -36,12 +38,20 @@
     }" \
 --cmd "\
     create-reservation-request -confirm { \
-        class: 'PermanentReservationRequest', \
-        name: 'test', \
-        resourceIdentifier: 'shongo:cz.cesnet:1', \
+        class: 'ReservationRequestSet', \
+        name: 'demo', \
+        purpose: 'SCIENCE', \
         slots: [{ \
-            start: '2012-01-01T12:00', \
+            start: '${DATE}T12:00', \
             duration: 'PT4M' \
+        }], \
+        specifications: [{ \
+            class: 'CompartmentSpecification', \
+            specifications: [{ \
+                class: 'ExternalEndpointSetSpecification', \
+                technology: 'H323', \
+                count: 5 \
+            }] \
         }] \
     }" \
 --cmd "\
@@ -49,7 +59,7 @@
         class: 'ReservationRequest', \
         name: 'demo', \
         purpose: 'SCIENCE', \
-        slot: '2012-01-01T12:00/PT4M', \
+        slot: '${DATE}T14:00/PT4M', \
         specification : { \
             class: 'CompartmentSpecification', \
             specifications: [{ \
@@ -61,19 +71,13 @@
     }" \
 --cmd "\
     create-reservation-request -confirm { \
-        class: 'ReservationRequestSet', \
+        class: 'ReservationRequest', \
         name: 'demo', \
         purpose: 'SCIENCE', \
-        slots: [{ \
-            start: '2012-01-01T12:00', \
-            duration: 'PT4M' \
-        }], \
-        specifications: [{ \
-            class: 'CompartmentSpecification', \
-            specifications: [{ \
-                class: 'ExternalEndpointSetSpecification', \
-                technology: 'H323', \
-                count: 5 \
-            }] \
-        }] \
+        slot: '${DATE}T14:00/PT4M', \
+        specification : { \
+            class: 'VirtualRoomSpecification', \
+            technologies: ['H323'], \
+            portCount: 5 \
+        } \
     }" \

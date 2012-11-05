@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.controller.reservation.CompartmentReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
@@ -82,7 +82,7 @@ public class ExecutableManager extends AbstractManager
         List<Executable> executables = entityManager.createQuery(
                 "SELECT executable FROM Executable executable"
                         + " WHERE executable NOT IN("
-                        +"    SELECT childExecutable FROM Executable executable "
+                        + "    SELECT childExecutable FROM Executable executable "
                         + "   INNER JOIN executable.childExecutables childExecutable"
                         + " ) AND ("
                         + "   (executable.state = :notStarted AND "
@@ -106,7 +106,7 @@ public class ExecutableManager extends AbstractManager
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable WHERE executable.state != :notAllocated"
                         + " AND executable NOT IN("
-                        +"    SELECT childExecutable FROM Executable executable "
+                        + "    SELECT childExecutable FROM Executable executable "
                         + "   INNER JOIN executable.childExecutables childExecutable"
                         + " )",
                         Executable.class)
@@ -117,7 +117,7 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * Delete all {@link Executable}s which are not placed inside another {@link Executable} and not referenced by
-     * any {@link CompartmentReservation} or {@link AllocatingCompartmentReport} and which should be automatically
+     * any {@link Reservation} or {@link AllocatingCompartmentReport} and which should be automatically
      * deleted ({@link Executable.State#NOT_ALLOCATED} or {@link Executable.State#NOT_STARTED}).
      */
     public void deleteAllNotReferenced()
@@ -125,14 +125,13 @@ public class ExecutableManager extends AbstractManager
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable"
                         + " WHERE executable NOT IN("
-                        +"    SELECT childExecutable FROM Executable executable "
+                        + "    SELECT childExecutable FROM Executable executable "
                         + "   INNER JOIN executable.childExecutables childExecutable"
                         + " ) AND ("
                         + "   (executable.state = :notAllocated AND executable"
                         + "     NOT IN (SELECT report.compartment FROM AllocatingCompartmentReport report))"
                         + "   OR (executable.state = :notStarted"
-                        + "     AND executable NOT IN (SELECT res.compartment FROM CompartmentReservation res)"
-                        + "     AND executable NOT IN (SELECT res.virtualRoom FROM VirtualRoomReservation res))"
+                        + "     AND executable NOT IN (SELECT reservation.executable FROM Reservation reservation))"
                         + " )",
                         Executable.class)
                 .setParameter("notAllocated", Executable.State.NOT_ALLOCATED)

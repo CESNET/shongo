@@ -1,17 +1,15 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.executor.Compartment;
-import cz.cesnet.shongo.controller.executor.ResourceVirtualRoom;
+import cz.cesnet.shongo.controller.executor.Endpoint;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.VirtualRoom;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**
- * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link cz.cesnet.shongo.controller.executor.Endpoint}.
+ * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link Endpoint}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -22,11 +20,6 @@ public class VirtualRoomReservation extends EndpointReservation
      * Allocated port count.
      */
     private Integer portCount;
-
-    /**
-     * {@link VirtualRoom} which is allocated by the {@link VirtualRoomReservation}.
-     */
-    private ResourceVirtualRoom virtualRoom;
 
     /**
      * @return {@link #portCount}
@@ -44,31 +37,20 @@ public class VirtualRoomReservation extends EndpointReservation
         this.portCount = portCount;
     }
 
-    /**
-     * @return {@link #virtualRoom}
-     */
-    @OneToOne(cascade = CascadeType.PERSIST, optional = false)
-    public VirtualRoom getVirtualRoom()
+    @Override
+    public void setExecutable(Executable executable)
     {
-        return virtualRoom;
+        if (!(executable instanceof VirtualRoom)) {
+            throw new IllegalArgumentException("Only virtual room can be executed by the virtual room reservation.");
+        }
+        super.setExecutable(executable);
     }
 
-    /**
-     * @param virtualRoom sets the {@link #virtualRoom}
-     */
-    public void setVirtualRoom(ResourceVirtualRoom virtualRoom)
-    {
-        this.virtualRoom = virtualRoom;
-    }
-
-    /**
-     * @return allocated {@link cz.cesnet.shongo.controller.executor.Endpoint} by the {@link cz.cesnet.shongo.controller.reservation.VirtualRoomReservation}
-     */
     @Transient
     @Override
-    public ResourceVirtualRoom getEndpoint()
+    public VirtualRoom getEndpoint()
     {
-        return virtualRoom;
+        return (VirtualRoom) getExecutable();
     }
 
     @Override

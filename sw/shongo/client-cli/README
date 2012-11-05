@@ -6,11 +6,11 @@ To run client application go to directory
 <shongo_repository>/sw/shongo and type the
 following command:
 
-    ./client.sh
+    ./client-cli.sh
 
 For printing application help type:
 
-    ./client.sh --help
+    ./client-cli.sh --help
 
 REQUIREMENTS
 

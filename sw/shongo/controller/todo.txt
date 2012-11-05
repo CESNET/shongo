@@ -1,9 +1,3 @@
-* Finish refactorization of executor
-  * Add option for allocating alias for virtual room reservation without compartment
-  * Add virtualRoom to VirtualRoomReservation (in API)
-  * Update API diagrams
-  * Update API document
-
 FUTURE:
 -------
 * Persons, PersonSpecifications
