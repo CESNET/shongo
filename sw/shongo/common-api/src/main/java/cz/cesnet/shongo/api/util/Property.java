@@ -36,9 +36,17 @@ public class Property
     private Class type;
 
     /**
-     * Array of allowed types for the property or for items contained in array or collection property.
+     * Array of types which are allowed to be used as :
+     * 1) value in the atomic property
+     * 2) item in the array or {@link Collection} property
+     * 3) value in the {@link Map} property
      */
-    private Class[] allowedTypes;
+    private Class[] valueAllowedTypes;
+
+    /**
+     * Type which is allowed to be used as key {@link Map} property.
+     */
+    private Class keyAllowedType;
 
     /**
      * Field of the property.
@@ -150,11 +158,19 @@ public class Property
     }
 
     /**
-     * @return {@link #allowedTypes}
+     * @return {@link #valueAllowedTypes}
      */
-    public Class[] getAllowedTypes()
+    public Class[] getValueAllowedTypes()
     {
-        return allowedTypes;
+        return valueAllowedTypes;
+    }
+
+    /**
+     * @return {@link #keyAllowedType}
+     */
+    public Class getKeyAllowedType()
+    {
+        return keyAllowedType;
     }
 
     /**
@@ -185,6 +201,15 @@ public class Property
     }
 
     /**
+     * @return true if property is of {@link Map} type,
+     *         false otherwise
+     */
+    public boolean isMap()
+    {
+        return Map.class.isAssignableFrom(type);
+    }
+
+    /**
      * @return true if property is of {@link Object[]} or {@link Collection} type,
      *         false otherwise
      */
@@ -195,21 +220,22 @@ public class Property
 
     /**
      * @param value
-     * @return true if given value is empty (it equals to {@code null} or it is an empty array or collection),
-     *         false otherwise
+     * @return true if given value is empty (it equals to {@code null} or it is an empty array, {@link Collection} or
+     *         {@link Map), false otherwise
      */
     public boolean isEmptyValue(Object value)
     {
         if (value == null) {
             return true;
         }
-        if (isArrayOrCollection()) {
-            if (value instanceof Object[]) {
-                return ((Object[]) value).length == 0;
-            }
-            else {
-                return ((Collection) value).size() == 0;
-            }
+        if (isArray()) {
+            return ((Object[]) value).length == 0;
+        }
+        else if (isCollection()) {
+            return ((Collection) value).size() == 0;
+        }
+        else if (isMap()) {
+            return ((Map) value).size() == 0;
         }
         return false;
     }
@@ -255,37 +281,78 @@ public class Property
             this.type = type;
         }
 
+        // Type of value in Array, Collection or Map
+        Class valueAllowedType = null;
+        // Type of key in Map
+        Class keyAllowedType = null;
+
         // If type is array or collection
-        if (this.type.isArray() || Collection.class.isAssignableFrom(this.type)) {
-            Class argumentType = null;
-            if (this.type.isArray()) {
-                argumentType = this.type.getComponentType();
+        if (isArray()) {
+            valueAllowedType = this.type.getComponentType();
+        }
+        else if (isCollection()) {
+            if (!(genericType instanceof ParameterizedType)) {
+                throw new IllegalStateException("Array or collection class should be ParameterizedType.");
+            }
+            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            Type[] arguments = parameterizedType.getActualTypeArguments();
+            // We support only one argument
+            if (arguments.length != 1) {
+                throw new IllegalStateException("Array or collection class should have one generic argument.");
+            }
+            // Argument should be Class
+            if (!(arguments[0] instanceof Class)) {
+                throw new IllegalStateException("Generic argument should be class");
+            }
+            valueAllowedType = (Class) arguments[0];
+        }
+        // If type is map
+        else if (isMap()) {
+            if (!(genericType instanceof ParameterizedType)) {
+                throw new IllegalStateException("Map class should be ParameterizedType.");
+            }
+            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            Type[] arguments = parameterizedType.getActualTypeArguments();
+            // We support only one argument
+            if (arguments.length != 2) {
+                throw new IllegalStateException("Map class should have two generic arguments.");
+            }
+            // Argument should be Class
+            if (!(arguments[0] instanceof Class)) {
+                throw new IllegalStateException("Generic argument should be class");
+            }
+            keyAllowedType = (Class) arguments[0];
+            valueAllowedType = (Class) arguments[1];
+        }
+
+        // Check or set value allowed type
+        if (valueAllowedType != null) {
+            // If value allowed types already exist
+            if (this.valueAllowedTypes != null) {
+                // Check it it same as new value allowed type
+                if (this.valueAllowedTypes.length != 1 || !this.valueAllowedTypes[0].equals(valueAllowedType)) {
+                    throw new IllegalStateException(
+                            String.format("Property '%s' in object of class '%s' should have same generic type.",
+                                    name, getClassShortName(classType)));
+                }
             }
             else {
-                if (!(genericType instanceof ParameterizedType)) {
-                    throw new IllegalStateException("Array or collection class should be ParameterizedType.");
-                }
-                ParameterizedType parameterizedType = (ParameterizedType) genericType;
-                Type[] arguments = parameterizedType.getActualTypeArguments();
-                // We support only one argument
-                if (arguments.length != 1) {
-                    throw new IllegalStateException("Array or collection class should have one generic argument.");
-                }
-                // Argument should be Class
-                if (!(arguments[0] instanceof Class)) {
-                    throw new IllegalStateException("Generic argument should be class");
-                }
-                argumentType = (Class) arguments[0];
+                this.valueAllowedTypes = new Class[]{valueAllowedType};
             }
-            if (this.allowedTypes != null) {
-                if (!(this.allowedTypes.length == 1 && this.allowedTypes[0].equals(argumentType))) {
+        }
+        // Check or set key allowed type
+        if (keyAllowedType != null) {
+            // If key allowed type already exist
+            if (this.keyAllowedType != null) {
+                // Check it it same as new key allowed type
+                if (!this.keyAllowedType.equals(keyAllowedType)) {
                     throw new IllegalStateException(String.format(
                             "Property '%s' in object of class '%s' should have same generic type.",
                             name, getClassShortName(classType)));
                 }
             }
             else {
-                this.allowedTypes = new Class[]{argumentType};
+                this.keyAllowedType = keyAllowedType;
             }
         }
     }
@@ -380,7 +447,7 @@ public class Property
         // Explicitly by annotation
         if (allowedTypes != null) {
             if (allowedTypes.value().length > 0) {
-                property.allowedTypes = allowedTypes.value();
+                property.valueAllowedTypes = allowedTypes.value();
             }
         }
 
@@ -529,13 +596,13 @@ public class Property
     /**
      * @param type
      * @param name
-     * @return result from {@link Property#getAllowedTypes()} for property
+     * @return result from {@link Property#getValueAllowedTypes()} for property
      * @throws FaultException
      */
-    public static Class[] getPropertyAllowedTypes(Class type, String name) throws FaultException
+    public static Class[] getPropertyValueAllowedTypes(Class type, String name) throws FaultException
     {
         Property property = getPropertyNotNull(type, name);
-        return property.getAllowedTypes();
+        return property.getValueAllowedTypes();
     }
 
     /**

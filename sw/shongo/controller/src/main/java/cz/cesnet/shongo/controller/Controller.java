@@ -2,7 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.xmlrpc.WebServer;
+import cz.cesnet.shongo.controller.api.xmlrpc.RpcServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
@@ -69,7 +69,7 @@ public class Controller
     /**
      * XML-RPC server.
      */
-    WebServer rpcServer;
+    RpcServer rpcServer;
 
     /**
      * Jade container.
@@ -383,7 +383,7 @@ public class Controller
         logger.info("Starting Controller XML-RPC server on {}:{}...", (rpcHost.isEmpty() ? "*" : rpcHost),
                 getRpcPort());
 
-        rpcServer = new WebServer(rpcHost.isEmpty() ? null : rpcHost, getRpcPort());
+        rpcServer = new RpcServer(rpcHost.isEmpty() ? null : rpcHost, getRpcPort());
         for (Service service : services) {
             logger.debug("Adding XML-RPC service '" + service.getServiceName() + "'...");
             rpcServer.addHandler(service.getServiceName(), service);

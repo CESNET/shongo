@@ -116,17 +116,17 @@ public class PropertyTest
             assertEquals(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
         }
 
-        // Get getPropertyType and getPropertyAllowedTypes
+        // getPropertyType and getPropertyValueAllowedTypes
         assertEquals(List.class, Property.getPropertyType(Foo.class, "field4"));
-        assertArrayEquals(new Class[]{SecurityToken.class}, Property.getPropertyAllowedTypes(Foo.class, "field4"));
+        assertArrayEquals(new Class[]{SecurityToken.class}, Property.getPropertyValueAllowedTypes(Foo.class, "field4"));
         assertEquals(List.class, Property.getPropertyType(Foo.class, "field5"));
         assertArrayEquals(new Class[]{String.class, DateTime.class},
-                Property.getPropertyAllowedTypes(Foo.class, "field5"));
+                Property.getPropertyValueAllowedTypes(Foo.class, "field5"));
         assertEquals(Object.class, Property.getPropertyType(Foo.class, "field6"));
         assertArrayEquals(new Class[]{String.class, DateTime.class},
-                Property.getPropertyAllowedTypes(Foo.class, "field6"));
+                Property.getPropertyValueAllowedTypes(Foo.class, "field6"));
         assertEquals(SecurityToken[].class, Property.getPropertyType(Foo.class, "field7"));
         assertArrayEquals(new Class[]{SecurityToken.class},
-                Property.getPropertyAllowedTypes(Foo.class, "field7"));
+                Property.getPropertyValueAllowedTypes(Foo.class, "field7"));
     }
 }

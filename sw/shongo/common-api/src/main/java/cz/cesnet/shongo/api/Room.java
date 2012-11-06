@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 
 import java.util.*;
@@ -9,8 +10,9 @@ import java.util.*;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room implements Concept
+public class Room implements Concept, StructType
 {
+    private String identifier;
     private String name = null;
     private int portCount = -1;
     private List<Alias> aliases;
@@ -33,6 +35,16 @@ public class Room implements Concept
 
         this.name = name;
         this.portCount = portCount;
+    }
+
+    public String getIdentifier()
+    {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier)
+    {
+        this.identifier = identifier;
     }
 
     /**

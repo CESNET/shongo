@@ -413,7 +413,7 @@ public class Converter
 
                 // Get property type and allowed types
                 Class type = property.getType();
-                Class[] allowedTypes = property.getAllowedTypes();
+                Class[] allowedTypes = property.getValueAllowedTypes();
 
                 // Parse collection changes
                 if (value instanceof Map && property.isArrayOrCollection()) {
