@@ -12,6 +12,7 @@ import org.apache.xmlrpc.parser.MapParser;
 import org.apache.xmlrpc.parser.TypeParser;
 import org.apache.xmlrpc.serializer.MapSerializer;
 import org.apache.xmlrpc.serializer.TypeSerializer;
+import org.apache.xmlrpc.serializer.TypeSerializerImpl;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -85,57 +86,75 @@ public class TypeFactory extends TypeFactoryImpl
         }
     }
 
+    private TypeSerializer getNullSerializer(XmlRpcStreamConfig pConfig)
+    {
+        return new MapSerializer(this, pConfig)
+        {
+            @Override
+            public void write(ContentHandler pHandler, Object pObject) throws SAXException
+            {
+                super.write(pHandler, new HashMap());
+            }
+        };
+    }
+
+    private TypeSerializer getObjectSerializer(XmlRpcStreamConfig pConfig)
+    {
+        return new MapSerializer(this, pConfig)
+        {
+            @Override
+            public void write(ContentHandler pHandler, Object pObject) throws SAXException
+            {
+                try {
+                    Map<String, Object> map = Converter.convertObjectToMap(pObject, options);
+                    super.write(pHandler, map);
+                }
+                catch (FaultException exception) {
+
+                }
+            }
+        };
+    }
+
     @Override
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
+        // Null values are serialized as empty maps
         if (pObject == null) {
-            return new MapSerializer(this, pConfig)
-            {
-                @Override
-                public void write(ContentHandler pHandler, Object pObject) throws SAXException
-                {
-                    super.write(pHandler, new HashMap());
-                }
-            };
+            return getNullSerializer(pConfig);
         }
+        // Atomic values are converted to basic types (which are serialized by default)
         else if (Converter.isAtomic(pObject)) {
-            return new MapSerializer(this, pConfig)
-            {
-                @Override
-                public void write(ContentHandler pHandler, Object pObject) throws SAXException
+            pObject = Converter.convertAtomicToBasic(pObject);
+            if (pObject == null) {
+                return getNullSerializer(pConfig);
+            }
+            else {
+                final TypeSerializer serializer = super.getSerializer(pConfig, pObject);
+                return new TypeSerializer()
                 {
-                    String value = Converter.convertAtomicToString(pObject);
-                    if (value == null) {
-                        super.write(pHandler, new HashMap());
+                    @Override
+                    public void write(ContentHandler pHandler, Object pObject) throws SAXException
+                    {
+                        pObject = Converter.convertAtomicToBasic(pObject);
+                        serializer.write(pHandler, pObject);
                     }
-                    else {
-                        write(pHandler, null, value);
-                    }
-                }
-            };
+                };
+            }
         }
-        TypeSerializer serializer = null;
-        if (!(pObject instanceof StructType)) {
-            serializer = super.getSerializer(pConfig, pObject);
+        // Structure types are converted to maps (which are serialized by default)
+        else if (pObject instanceof StructType) {
+            return getObjectSerializer(pConfig);
         }
-        // If none serializer was found, serialize by object attributes
-        if (serializer == null) {
-            // Create custom map serializer to serialize object to map
-            serializer = new MapSerializer(this, pConfig)
-            {
-                @Override
-                public void write(ContentHandler pHandler, Object pObject) throws SAXException
-                {
-                    try {
-                        Map<String, Object> map = Converter.convertObjectToMap(pObject, options);
-                        super.write(pHandler, map);
-                    }
-                    catch (FaultException exception) {
-                        throw new SAXException(exception);
-                    }
-                }
-            };
+
+        // Get default serializer
+        TypeSerializer serializer = super.getSerializer(pConfig, pObject);
+        // If default serializer was found, use it
+        if (serializer != null) {
+            return serializer;
         }
-        return serializer;
+
+        // If no default serializer was found, serialize value as map
+        return getObjectSerializer(pConfig);
     }
 }

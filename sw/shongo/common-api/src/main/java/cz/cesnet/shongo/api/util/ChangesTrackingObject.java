@@ -193,12 +193,13 @@ public abstract class ChangesTrackingObject
             String[] propertyNames = Property.getPropertyNames(type, ChangesTrackingObject.class);
             for (String propertyName : propertyNames) {
                 Property property = Property.getProperty(changesTrackingObject.getClass(), propertyName);
+                int propertyTypeFlags = property.getTypeFlags();
                 Object value = property.getValue(changesTrackingObject);
                 boolean required = property.isRequired();
                 if ( value instanceof ChangesTrackingObject ) {
                     setupNewEntity(value);
                 }
-                else if (property.isArray()) {
+                else if (Property.TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
@@ -208,7 +209,7 @@ public abstract class ChangesTrackingObject
                         setupNewEntity(item);
                     }
                 }
-                else if (property.isCollection()) {
+                else if (Property.TypeFlags.isCollection(propertyTypeFlags)) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,

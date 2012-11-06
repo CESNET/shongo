@@ -1,10 +1,15 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.api.AtomicType;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.ReadablePartial;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -34,6 +39,11 @@ public class Property
      * Type of the property.
      */
     private Class type;
+
+    /**
+     * @see TypeFlags
+     */
+    private int typeFlags;
 
     /**
      * Array of types which are allowed to be used as :
@@ -150,11 +160,27 @@ public class Property
     }
 
     /**
+     * @return {@link #name}
+     */
+    public String getName()
+    {
+        return name;
+    }
+
+    /**
      * @return {@link #type}
      */
     public Class getType()
     {
         return type;
+    }
+
+    /**
+     * @return {@link #typeFlags}
+     */
+    public int getTypeFlags()
+    {
+        return typeFlags;
     }
 
     /**
@@ -183,42 +209,6 @@ public class Property
     }
 
     /**
-     * @return true if property is of {@link Object[]} type,
-     *         false otherwise
-     */
-    public boolean isArray()
-    {
-        return type.isArray();
-    }
-
-    /**
-     * @return true if property is of {@link Collection} type,
-     *         false otherwise
-     */
-    public boolean isCollection()
-    {
-        return Collection.class.isAssignableFrom(type);
-    }
-
-    /**
-     * @return true if property is of {@link Map} type,
-     *         false otherwise
-     */
-    public boolean isMap()
-    {
-        return Map.class.isAssignableFrom(type);
-    }
-
-    /**
-     * @return true if property is of {@link Object[]} or {@link Collection} type,
-     *         false otherwise
-     */
-    public boolean isArrayOrCollection()
-    {
-        return isArray() || isCollection();
-    }
-
-    /**
      * @param value
      * @return true if given value is empty (it equals to {@code null} or it is an empty array, {@link Collection} or
      *         {@link Map), false otherwise
@@ -228,13 +218,13 @@ public class Property
         if (value == null) {
             return true;
         }
-        if (isArray()) {
+        if (TypeFlags.isArray(typeFlags)) {
             return ((Object[]) value).length == 0;
         }
-        else if (isCollection()) {
+        else if (TypeFlags.isCollection(typeFlags)) {
             return ((Collection) value).size() == 0;
         }
-        else if (isMap()) {
+        else if (TypeFlags.isMap(typeFlags)) {
             return ((Map) value).size() == 0;
         }
         return false;
@@ -279,6 +269,7 @@ public class Property
         else {
             // Set the property type
             this.type = type;
+            this.typeFlags = TypeFlags.getTypeFlags(type);
         }
 
         // Type of value in Array, Collection or Map
@@ -287,10 +278,10 @@ public class Property
         Class keyAllowedType = null;
 
         // If type is array or collection
-        if (isArray()) {
+        if (TypeFlags.isArray(typeFlags)) {
             valueAllowedType = this.type.getComponentType();
         }
-        else if (isCollection()) {
+        else if (TypeFlags.isCollection(typeFlags)) {
             if (!(genericType instanceof ParameterizedType)) {
                 throw new IllegalStateException("Array or collection class should be ParameterizedType.");
             }
@@ -307,7 +298,7 @@ public class Property
             valueAllowedType = (Class) arguments[0];
         }
         // If type is map
-        else if (isMap()) {
+        else if (TypeFlags.isMap(typeFlags)) {
             if (!(genericType instanceof ParameterizedType)) {
                 throw new IllegalStateException("Map class should be ParameterizedType.");
             }
@@ -617,5 +608,200 @@ public class Property
     {
         Property property = getPropertyNotNull(type, name);
         return property.getAnnotation(annotationClass);
+    }
+
+    /**
+     * Utility class which can be used to determine whether some {@link Class} is, e.g., {@link #BASIC} or
+     * {@link #ARRAY}, etc.).
+     */
+    public static class TypeFlags
+    {
+        /**
+         * Specifies that type is contained in {@link #BASIC_CLASSES} (all {@link #PRIMITIVE} types are
+         * {@link #BASIC} too).
+         */
+        public static final int BASIC = 0x00000001;
+
+        /**
+         * Specifies whether type is primitive (determined by {@link Class#isPrimitive()}).
+         */
+        public static final int PRIMITIVE = 0x00000002;
+
+        /**
+         * Specifies whether class is array (extends {@link Object[]}).
+         */
+        public static final int ARRAY = 0x00000004;
+
+        /**
+         * Specifies whether class is {@link Collection}.
+         */
+        public static final int COLLECTION = 0x00000008;
+
+        /**
+         * Specifies whether class is {@link Map}.
+         */
+        public static final int MAP = 0x000000010;
+
+        /**
+         * Specifies whether class is type which can be converted to any of {@link #BASIC} class.
+         */
+        public static final int ATOMIC = 0x000000020;
+
+        /**
+         * Cache of type flags.
+         */
+        private static Map<Class, Integer> typeFlagsByType = new HashMap<Class, Integer>();
+
+        /**
+         * @param type for which the flags should be returned
+         * @return flags for given {@code type}
+         */
+        public static int getTypeFlags(Class type)
+        {
+            Integer typeFlags = typeFlagsByType.get(type);
+            if (typeFlags != null) {
+                return typeFlags;
+            }
+
+            // Initialize new type flags
+            typeFlags = 0;
+
+            // Determine types containing items
+            if (type.isArray()) {
+                typeFlags |= ARRAY;
+            }
+            else if (Collection.class.isAssignableFrom(type)) {
+                typeFlags |= COLLECTION;
+            }
+            else if (Map.class.isAssignableFrom(type)) {
+                typeFlags |= MAP;
+            }
+
+            // Determine primitive basic types
+            if (type.isPrimitive()) {
+                typeFlags |= BASIC | PRIMITIVE;
+            }
+            else if (BASIC_CLASSES.contains(type)) {
+                typeFlags |= BASIC;
+            }
+
+            // Determine atomic types
+            if (isBasic(typeFlags) || ATOMIC_FINAL_CLASSES.contains(type)) {
+                typeFlags |= ATOMIC;
+            }
+            else {
+                for (Class atomicBaseClass : ATOMIC_BASE_CLASSES) {
+                    if (atomicBaseClass.isAssignableFrom(type)) {
+                        typeFlags |= ATOMIC;
+                        break;
+                    }
+                }
+            }
+
+            typeFlagsByType.put(type, typeFlags);
+
+            return typeFlags;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #BASIC} flag, false otherwise
+         */
+        public static boolean isBasic(int typeFlags)
+        {
+            return (typeFlags & BASIC) != 0;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #PRIMITIVE} flag, false otherwise
+         */
+        public static boolean isPrimitive(int typeFlags)
+        {
+            return (typeFlags & PRIMITIVE) != 0;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #ARRAY} flag, false otherwise
+         */
+        public static boolean isArray(int typeFlags)
+        {
+            return (typeFlags & ARRAY) != 0;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #COLLECTION} flag, false otherwise
+         */
+        public static boolean isCollection(int typeFlags)
+        {
+            return (typeFlags & COLLECTION) != 0;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #MAP} flag, false otherwise
+         */
+        public static boolean isMap(int typeFlags)
+        {
+            return (typeFlags & MAP) != 0;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #ATOMIC} flag, false otherwise
+         */
+        public static boolean isAtomic(int typeFlags)
+        {
+            return (typeFlags & ATOMIC) != 0;
+        }
+
+        /**
+         * @param typeFlags to be checked
+         * @return true whether given {@code typeFlags} has {@link #ARRAY}, {@link #COLLECTION} or {@link Map} flag,
+         *         false otherwise
+         */
+        public static boolean isArrayOrCollectionOrMap(int typeFlags)
+        {
+            return isArray(typeFlags) || isCollection(typeFlags) || isMap(typeFlags);
+        }
+
+        /**
+         * Set of basic Java classes.
+         */
+        private static final Set<Class> BASIC_CLASSES = new HashSet<Class>()
+        {{
+                add(Boolean.class);
+                add(Character.class);
+                add(Byte.class);
+                add(Short.class);
+                add(Integer.class);
+                add(Long.class);
+                add(Float.class);
+                add(Double.class);
+                add(Void.class);
+            }};
+
+        /**
+         * Set of final types considered as {@link #ATOMIC}.
+         */
+        private static final Set<Class> ATOMIC_BASE_CLASSES = new HashSet<Class>()
+        {{
+                add(String.class);
+                add(Enum.class);
+                add(AtomicType.class);
+                add(ReadablePartial.class);
+            }};
+
+        /**
+         * Set of base types considered as {@link #ATOMIC}.
+         */
+        private static final Set<Class> ATOMIC_FINAL_CLASSES = new HashSet<Class>()
+        {{
+                add(Period.class);
+                add(DateTime.class);
+                add(Interval.class);
+            }};
     }
 }

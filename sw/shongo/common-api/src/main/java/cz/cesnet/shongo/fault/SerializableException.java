@@ -68,7 +68,7 @@ public interface SerializableException
             if (value instanceof String) {
                 string = (String) value;
             }
-            else if (Converter.isPrimitive(value)) {
+            else if (Property.TypeFlags.isBasic(Property.TypeFlags.getTypeFlags(value.getClass()))) {
                 string = value.toString();
             }
             else if (value instanceof Class) {
@@ -166,13 +166,7 @@ public interface SerializableException
                     String propertyValue = getParameter(propertyName);
                     if ( propertyValue != null) {
                         Property property = Property.getProperty(toException.getClass(), propertyName);
-                        Class propertyType = property.getType();
-                        Object propertyConvertedValue;
-                        if (propertyType.equals(Class.class)) {
-                            propertyConvertedValue = ClassHelper.getClassFromShortName(propertyValue);
-                        } else {
-                            propertyConvertedValue = Converter.convert(propertyValue, propertyType);
-                        }
+                        Object propertyConvertedValue = Converter.convert(propertyValue, property);
                         Property.setPropertyValue(toException, propertyName, propertyConvertedValue, true);
                     }
                 }

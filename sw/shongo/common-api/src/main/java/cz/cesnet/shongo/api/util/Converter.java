@@ -25,67 +25,87 @@ public class Converter
     private static Logger logger = LoggerFactory.getLogger(Converter.class);
 
     /**
-     * Convert given value to target type with list of allowed types.
+     * Convert given {@code value} to a {@code valueType}.
      *
-     * @param value
-     * @param targetType
-     * @param allowedTypes
-     * @param name
-     * @param options
+     * @param value              which should be converted
+     * @param targetType         to which the given {@code value} should be converted
+     * @param targetAllowedTypes restricts types to which the value can be converted
+     * @param property           specifies property for whose value the conversion is done
      * @return converted value
-     * @throws FaultException
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException when the value cannot be converted to specified type
+     * @throws FaultException           when the conversion fails from some reason
      */
-    public static Object convert(Object value, Class targetType, Class[] allowedTypes, String name, Options options)
-            throws FaultException, IllegalArgumentException
+    public static Object convert(Object value, Class targetType, Class[] targetAllowedTypes, Options options,
+            Property property)
+            throws IllegalArgumentException, FaultException
     {
+        // Null values aren't converted
         if (value == null) {
             return null;
         }
 
-        if (allowedTypes != null && allowedTypes.length > 0) {
-            // When some allowed types are present
-            if (!(value instanceof Object[] || value instanceof Collection)) {
-                // When not converting array/collection
-                if (allowedTypes.length == 1) {
-                    // If only one allowed type is present set the single allowed type as target type
-                    targetType = allowedTypes[0];
+        // Get type flags
+        int valueTypeFlags = Property.TypeFlags.getTypeFlags(value.getClass());
+        int targetTypeFlags = Property.TypeFlags.getTypeFlags(targetType);
+
+        // Iterate through allowed types for value and try the conversion for each one (this operation should not be
+        // performed for types containing items, it will be performed for each item in nested call)
+        if (targetAllowedTypes != null && targetAllowedTypes.length > 0
+                && !Property.TypeFlags.isArrayOrCollectionOrMap(targetTypeFlags)) {
+            // When not converting array/collection
+            if (targetAllowedTypes.length == 1) {
+                // If only one allowed type is present set the single allowed type as target type
+                targetType = targetAllowedTypes[0];
+            }
+            else {
+                // Iterate through each allowed type and try to convert the value to it
+                Object allowedValue = null;
+                List<Exception> exceptionList = new ArrayList<Exception>(targetAllowedTypes.length);
+                for (Class allowedType : targetAllowedTypes) {
+                    try {
+                        allowedValue = Converter.convert(value, allowedType, null, options, null);
+                        break;
+                    }
+                    catch (Exception exception) {
+                        exceptionList.add(exception);
+                    }
+                }
+                if (allowedValue != null) {
+                    return allowedValue;
                 }
                 else {
-                    // Iterate through each allowed type and try to convert the value to it
-                    Object allowedValue = null;
-                    List<Exception> exceptionList = new ArrayList<Exception>(allowedTypes.length);
-                    for (Class allowedType : allowedTypes) {
-                        try {
-                            allowedValue = Converter.convert(value, allowedType, null, null, options);
-                            break;
-                        }
-                        catch (Exception exception) {
-                            exceptionList.add(exception);
-                        }
+                    for (int index = 0; index < exceptionList.size(); index++) {
+                        logger.debug(String.format("Cannot convert value '%s' to '%s'.",
+                                value.getClass().getCanonicalName(), targetAllowedTypes[index].getCanonicalName()),
+                                exceptionList.get(index));
                     }
-                    if (allowedValue != null) {
-                        return allowedValue;
-                    }
-                    else {
-                        for (int index = 0; index < exceptionList.size(); index++) {
-                            logger.debug(String.format("Cannot convert value '%s' to '%s'.",
-                                    value.getClass().getCanonicalName(), allowedTypes[index].getCanonicalName()),
-                                    exceptionList.get(index));
-                        }
-                        throw new IllegalArgumentException();
-                    }
+                    throw new IllegalArgumentException();
                 }
             }
         }
 
         // If types are compatible
         if (targetType.isAssignableFrom(value.getClass())) {
+            // Process map
+            if (value instanceof Map) {
+                // Convert keys to proper type
+                if (property != null && property.getKeyAllowedType() != null) {
+                    Map map = (Map) value;
+                    Map newMap = new HashMap<Object, Object>();
+                    for ( Object itemKey : map.keySet()) {
+                        Object itemValue = map.get(itemKey);
+                        itemKey = convert(itemKey, property.getKeyAllowedType(), null, options, null);;
+                        itemValue = convert(itemValue, Object.class, targetAllowedTypes, options, null);;
+                        newMap.put(itemKey, itemValue);
+                    }
+                    return newMap;
+                }
+            }
             // Do nothing
             return value;
         }
-        // Convert from primitive types
-        else if (isPrimitive(value)) {
+        // Convert from basic types
+        else if (Property.TypeFlags.isBasic(valueTypeFlags)) {
             if (targetType.isPrimitive()) {
                 return value;
             }
@@ -102,6 +122,15 @@ public class Converter
         }
         // Convert atomic types
         else if (value instanceof String) {
+            // If Class is required
+            if (targetType.equals(Class.class)) {
+                try {
+                    return ClassHelper.getClassFromShortName((String) value);
+                }
+                catch (ClassNotFoundException exception) {
+                    throw new FaultException(CommonFault.CLASS_NOT_DEFINED, value);
+                }
+            }
             // If boolean is required
             if (targetType.equals(Boolean.class)) {
                 return Boolean.parseBoolean((String) value);
@@ -152,9 +181,9 @@ public class Converter
                 Object[] arrayValue = (Object[]) value;
                 Object[] newArray = createArray(componentType, arrayValue.length);
                 for (int index = 0; index < arrayValue.length; index++) {
-                    Object item = convert(arrayValue[index], componentType, allowedTypes, null, options);
+                    Object item = convert(arrayValue[index], componentType, targetAllowedTypes, options, null);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, name);
+                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
                     }
                     newArray[index] = item;
                 }
@@ -165,28 +194,14 @@ public class Converter
                 Object[] arrayValue = (Object[]) value;
                 Collection<Object> collection = createCollection(targetType, arrayValue.length);
                 for (Object item : arrayValue) {
-                    item = convert(item, Object.class, allowedTypes, null, options);
+                    item = convert(item, Object.class, targetAllowedTypes, options, null);
                     if (item == null) {
-                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, name);
+                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
                     }
                     collection.add(item);
                 }
                 return collection;
             }
-        }
-        // Convert map to specific map
-        else if (value instanceof Map && Map.class.isAssignableFrom(targetType)) {
-            Map map = null;
-            try {
-                map = (Map) targetType.newInstance();
-
-            }
-            catch (Exception exception) {
-                throw new RuntimeException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED,
-                        targetType));
-            }
-            map.putAll((Map) value);
-            return map;
         }
         // If map is given convert to object
         else if (value instanceof Map) {
@@ -197,17 +212,26 @@ public class Converter
     }
 
     /**
-     * Convert given value to the specified type.
+     * Convert given {@code value} to a type specified by a given {@code property}.
      *
-     * @param value
-     * @param targetType
-     * @return converted value to specified class
-     * @throws IllegalArgumentException when the value cannot be converted to specified type
-     * @throws FaultException           when the conversion fails
+     * @see #convert(Object, Class, Class[], Options, Property)
      */
-    public static <T> T convert(Object value, Class<T> targetType) throws FaultException
+    @SuppressWarnings("unchecked")
+    public static <T> T convert(Object value, Property property, Options options)
+            throws IllegalArgumentException, FaultException
     {
-        return (T) convert(value, targetType, null, null, Options.SERVER);
+        return (T) convert(value, property.getType(), property.getValueAllowedTypes(), options, property);
+    }
+
+    /**
+     * Convert given {@code value} to a type specified by a given {@code property}.
+     *
+     * @see #convert(Object, Class, Class[], Options, Property)
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T convert(Object value, Property property) throws IllegalArgumentException, FaultException
+    {
+        return (T) convert(value, property.getType(), property.getValueAllowedTypes(), Options.SERVER, property);
     }
 
     /**
@@ -411,36 +435,45 @@ public class Converter
                     throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
                 }
 
-                // Get property type and allowed types
-                Class type = property.getType();
-                Class[] allowedTypes = property.getValueAllowedTypes();
+                // Get property type and type flags
+                Class propertyType = property.getType();
+                int propertyTypeFlags = property.getTypeFlags();
+
+                if (value instanceof Map) {
+                    Map mapValue = (Map) value;
+                    if (Property.TypeFlags.isArray(propertyTypeFlags)) {
+                    }
+                    else if (Property.TypeFlags.isCollection(propertyTypeFlags)) {
+                    }
+                    else if (Property.TypeFlags.isMap(propertyTypeFlags)) {
+                    }
+                }
+
 
                 // Parse collection changes
-                if (value instanceof Map && property.isArrayOrCollection()) {
+                if (value instanceof Map && Property.TypeFlags.isArrayOrCollectionOrMap(propertyTypeFlags)) {
                     Map collectionChanges = (Map) value;
                     Object newItems = null;
                     Object modifiedItems = null;
                     Object deletedItems = null;
                     if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_NEW)) {
-                        newItems = Converter.convert(collectionChanges.get(ChangesTrackingObject.COLLECTION_NEW),
-                                type, allowedTypes, propertyName, options);
+                        newItems = Converter.convert(
+                                collectionChanges.get(ChangesTrackingObject.COLLECTION_NEW), property, options);
                     }
                     if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_MODIFIED)) {
-                        modifiedItems = Converter
-                                .convert(collectionChanges.get(ChangesTrackingObject.COLLECTION_MODIFIED),
-                                        type, allowedTypes, propertyName, options);
+                        modifiedItems = Converter.convert(
+                                collectionChanges.get(ChangesTrackingObject.COLLECTION_MODIFIED), property, options);
                     }
                     if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_DELETED)) {
-                        deletedItems = Converter
-                                .convert(collectionChanges.get(ChangesTrackingObject.COLLECTION_DELETED),
-                                        type, allowedTypes, propertyName, options);
+                        deletedItems = Converter.convert(
+                                collectionChanges.get(ChangesTrackingObject.COLLECTION_DELETED), property, options);
                     }
                     if (newItems != null || modifiedItems != null || deletedItems != null) {
-                        if (property.isArray()) {
+                        if (Property.TypeFlags.isArray(propertyTypeFlags)) {
                             int size = (newItems != null ? ((Object[]) newItems).length : 0)
                                     + (modifiedItems != null ? ((Object[]) modifiedItems).length : 0);
                             int index = 0;
-                            Object[] array = Converter.createArray(type.getComponentType(), size);
+                            Object[] array = Converter.createArray(propertyType.getComponentType(), size);
                             if (newItems != null) {
                                 for (Object newItem : (Object[]) newItems) {
                                     array[index++] = newItem;
@@ -463,8 +496,8 @@ public class Converter
                             }
                             value = array;
                         }
-                        else if (property.isCollection()) {
-                            Collection<Object> collection = Converter.createCollection(type, 0);
+                        else if (Property.TypeFlags.isCollection(propertyTypeFlags)) {
+                            Collection<Object> collection = Converter.createCollection(propertyType, 0);
                             if (newItems != null) {
                                 for (Object newItem : (Collection) newItems) {
                                     collection.add(newItem);
@@ -491,14 +524,14 @@ public class Converter
                 }
 
                 try {
-                    value = Converter.convert(value, type, allowedTypes, propertyName, options);
+                    value = Converter.convert(value, property, options);
                 }
                 catch (IllegalArgumentException exception) {
-                    Object requiredType = type;
+                    Object requiredType = propertyType;
                     Object givenType = value.getClass();
-                    if (allowedTypes != null) {
+                    if (property.getValueAllowedTypes() != null) {
                         StringBuilder builder = new StringBuilder();
-                        for (Class allowedType : allowedTypes) {
+                        for (Class allowedType : property.getValueAllowedTypes()) {
                             if (builder.length() > 0) {
                                 builder.append("|");
                             }
@@ -525,22 +558,6 @@ public class Converter
             return (T) object;
         }
     }
-
-    /**
-     * Set of primitive type classes.
-     */
-    private static Set<Class> primitiveClasses = new HashSet<Class>()
-    {{
-            add(Boolean.class);
-            add(Character.class);
-            add(Byte.class);
-            add(Short.class);
-            add(Integer.class);
-            add(Long.class);
-            add(Float.class);
-            add(Double.class);
-            add(Void.class);
-        }};
 
     /**
      * Convert given object if possible to {@link Map} or {@link Object[]} (recursive).
@@ -573,7 +590,7 @@ public class Converter
             }
             return newArray;
         }
-        else if (isAtomic(object) || isPrimitive(object)) {
+        else if (isAtomic(object)) {
             return object;
         }
         return convertObjectToMap(object, options);
@@ -623,11 +640,15 @@ public class Converter
                 continue;
             }
 
-            // Store collection changes
-            if (options.isStoreChanges() && property.isArrayOrCollection()) {
+            // Store changes for items
+            if (options.isStoreChanges() && Property.TypeFlags.isArrayOrCollectionOrMap(property.getTypeFlags())) {
                 Object[] items;
                 if (value instanceof Object[]) {
                     items = (Object[]) value;
+                }
+                else if (value instanceof Map) {
+                    Set keys = ((Map) value).keySet();
+                    items = keys.toArray();
                 }
                 else {
                     Collection collection = (Collection) value;
@@ -635,7 +656,7 @@ public class Converter
                 }
 
                 // Map of changes
-                Map<String, Object> mapCollection = new HashMap<String, Object>();
+                Map<String, Object> mapItemChanges = new HashMap<String, Object>();
                 // List of modified items
                 List<Object> modifiedItems = new ArrayList<Object>();
 
@@ -655,11 +676,11 @@ public class Converter
                         modifiedItems.add(item);
                     }
                     if (collectionChanges.newItems.size() > 0) {
-                        mapCollection.put(ChangesTrackingObject.COLLECTION_NEW,
+                        mapItemChanges.put(ChangesTrackingObject.COLLECTION_NEW,
                                 Converter.convertToMapOrArray(collectionChanges.newItems, options));
                     }
                     if (collectionChanges.deletedItems.size() > 0) {
-                        mapCollection.put(ChangesTrackingObject.COLLECTION_DELETED,
+                        mapItemChanges.put(ChangesTrackingObject.COLLECTION_DELETED,
                                 Converter.convertToMapOrArray(collectionChanges.deletedItems, options));
                     }
                 }
@@ -670,14 +691,18 @@ public class Converter
                     }
                 }
                 if (modifiedItems.size() > 0) {
-                    mapCollection.put(ChangesTrackingObject.COLLECTION_MODIFIED,
+                    mapItemChanges.put(ChangesTrackingObject.COLLECTION_MODIFIED,
                             Converter.convertToMapOrArray(modifiedItems, options));
                 }
                 // Skip empty changes
-                if (mapCollection.isEmpty()) {
+                if (mapItemChanges.isEmpty()) {
                     continue;
                 }
-                value = mapCollection;
+                // Append values for Map
+                if (value instanceof Map) {
+                    mapItemChanges.put("__map", value);
+                }
+                value = mapItemChanges;
             }
 
 
@@ -695,16 +720,20 @@ public class Converter
     }
 
     /**
-     * @param object Instance of atomic type
-     * @return converted atomic type to string
+     * @param value of {@link Property.TypeFlags#ATOMIC} type
+     * @return converted {@link Property.TypeFlags#BASIC}
      */
-    public static String convertAtomicToString(Object object)
+    public static Object convertAtomicToBasic(Object value)
     {
-        if (object instanceof Interval) {
-            Interval interval = (Interval) object;
+        int valueTypeFlags = Property.TypeFlags.getTypeFlags(value.getClass());
+        if (Property.TypeFlags.isBasic(valueTypeFlags)) {
+            return value;
+        }
+        if (value instanceof Interval) {
+            Interval interval = (Interval) value;
             return convertIntervalToString(interval);
         }
-        return object.toString();
+        return value.toString();
     }
 
     /**
@@ -717,34 +746,25 @@ public class Converter
     }
 
     /**
-     * @param value
-     * @return true if object is primitive type (see {@link #primitiveClasses})
+     * @param value to be checked
+     * @return true if given {@code value} is {@link Property.TypeFlags#PRIMITIVE}
      *         false otherwise
      */
     public static boolean isPrimitive(Object value)
     {
-        return primitiveClasses.contains(value.getClass());
+        int valueTypeFlags = Property.TypeFlags.getTypeFlags(value.getClass());
+        return Property.TypeFlags.isPrimitive(valueTypeFlags);
     }
 
     /**
-     * @param object
-     * @return true if object is of atomic type (e.g., {@link String}, {@link AtomicType}, {@link Enum},
-     *         {@link Period} or {@link DateTime}),
+     * @param value to be checked
+     * @return true if given {@code value} is {@link Property.TypeFlags#ATOMIC},
      *         false otherwise
      */
-    public static boolean isAtomic(Object object)
+    public static boolean isAtomic(Object value)
     {
-        if (object instanceof String || object instanceof Enum) {
-            return true;
-        }
-        if (object instanceof AtomicType) {
-            return true;
-        }
-        if (object instanceof Period || object instanceof DateTime || object instanceof ReadablePartial
-                || object instanceof Interval) {
-            return true;
-        }
-        return false;
+        int valueTypeFlags = Property.TypeFlags.getTypeFlags(value.getClass());
+        return Property.TypeFlags.isAtomic(valueTypeFlags);
     }
 
     /**

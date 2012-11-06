@@ -161,81 +161,68 @@ public class Room implements Concept, StructType
         /**
          * A string option - some description of the room.
          */
-        DESCRIPTION("description", String.class),
+        DESCRIPTION(String.class),
 
         /**
          * A string option - the PIN that must be entered to get to the room.
          */
-        PIN("pin", String.class),
+        PIN(String.class),
 
         /**
          * A boolean option whether to list the room in public lists. Defaults to false.
          */
-        LISTED_PUBLICLY("listedPublicly", Boolean.class),
+        LISTED_PUBLICLY(Boolean.class),
 
         /**
          * A boolean option whether participants may contribute content. Defaults to true.
          */
-        ALLOW_CONTENT("allowContent", Boolean.class),
+        ALLOW_CONTENT(Boolean.class),
 
         /**
          * A boolean option whether guests should be allowed to join. Defaults to true.
          */
-        ALLOW_GUESTS("allowGuests", Boolean.class),
+        ALLOW_GUESTS(Boolean.class),
 
         /**
          * A boolean option whether audio should be muted on join. Defaults to false.
          */
-        JOIN_AUDIO_MUTED("joinAudioMuted", Boolean.class),
+        JOIN_AUDIO_MUTED(Boolean.class),
 
         /**
          * A boolean option whether video should be muted on join. Defaults to false.
          */
-        JOIN_VIDEO_MUTED("joinVideoMuted", Boolean.class),
+        JOIN_VIDEO_MUTED(Boolean.class),
 
         /**
          * A boolean option whether to register the aliases with the gatekeeper. Defaults to false.
          */
-        REGISTER_WITH_H323_GATEKEEPER("registerWithH323Gatekeeper", Boolean.class),
+        REGISTER_WITH_H323_GATEKEEPER(Boolean.class),
 
         /**
          * A boolean option whether to register the aliases with the SIP registrar. Defaults to false.
          */
-        REGISTER_WITH_SIP_REGISTRAR("registerWithSIPRegistrar", Boolean.class),
+        REGISTER_WITH_SIP_REGISTRAR(Boolean.class),
 
         /**
          * A boolean option whether the room should be locked when started. Defaults to false.
          */
-        START_LOCKED("startLocked", Boolean.class),
+        START_LOCKED(Boolean.class),
 
         /**
          * A boolean option whether the ConferenceMe should be enabled for the room. Defaults to false.
          */
-        CONFERENCE_ME_ENABLED("conferenceMeEnabled", Boolean.class);
+        CONFERENCE_ME_ENABLED(Boolean.class);
 
-        private String name;
         private Class valueClass;
 
-        private Option(String name, Class valueClass)
+        private Option(Class valueClass)
         {
-            this.name = name;
             this.valueClass = valueClass;
-        }
-
-        public String getName()
-        {
-            return name;
         }
 
         public Class getValueClass()
         {
             return valueClass;
-        }
-
-        @Override
-        public String toString()
-        {
-            return name;
         }
     }
 
