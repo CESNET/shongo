@@ -9,32 +9,39 @@ import jade.content.Concept;
  */
 public enum RoomLayout implements Concept
 {
-    /**
-     * Only a single, fixed participant is displayed.
-     */
-    SINGLE_PARTICIPANT,
+    /** Only a single, fixed participant is displayed. */
+    SINGLE_PARTICIPANT(VoiceSwitching.NOT_VOICE_SWITCHED),
 
-    /**
-     * Only a single, currently speaking participant is viewed.
-     */
-    VOICE_SWITCHED_SINGLE_PARTICIPANT,
+    /** Only a single, currently speaking participant is viewed. */
+    VOICE_SWITCHED_SINGLE_PARTICIPANT(VoiceSwitching.VOICE_SWITCHED),
 
-    /**
-     * A fixed participant is in the upper-left corner, other participants around.
-     */
-    SPEAKER_CORNER,
+    /** A fixed participant is in the upper-left corner, other participants around. */
+    SPEAKER_CORNER(VoiceSwitching.NOT_VOICE_SWITCHED),
 
-    /**
-     * The currently speaking participant is in the upper-left corner, other participants around.
-     */
-    VOICE_SWITCHED_SPEAKER_CORNER,
+    /** The currently speaking participant is in the upper-left corner, other participants around. */
+    VOICE_SWITCHED_SPEAKER_CORNER(VoiceSwitching.VOICE_SWITCHED),
 
-    /**
-     * All participants are spread in a regular grid.
-     */
-    GRID,
+    /** All participants are spread in a regular grid. */
+    GRID(VoiceSwitching.NOT_VOICE_SWITCHED),
 
     ;
+
+    private VoiceSwitching voiceSwitching;
+
+    private RoomLayout(VoiceSwitching voiceSwitching)
+    {
+        this.voiceSwitching = voiceSwitching;
+    }
+
+    /**
+     * @return voice-switching mode of this layout
+     */
+    public VoiceSwitching getVoiceSwitching()
+    {
+        return voiceSwitching;
+    }
+
+
 
     /**
      * Gets a room layout based on the Cisco layout index.
@@ -73,6 +80,7 @@ public enum RoomLayout implements Concept
                 return defaultLayout;
         }
     }
+
 
     public enum VoiceSwitching
     {

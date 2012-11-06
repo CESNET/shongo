@@ -57,7 +57,8 @@ public interface UserService
      * @param roomUserId identifier of the user within the given room
      * @param attributes map of attributes to change
      */
-    void modifyParticipant(String roomId, String roomUserId, Map attributes) throws CommandException, CommandUnsupportedException;
+    void modifyParticipant(String roomId, String roomUserId, Map<String, Object> attributes)
+            throws CommandException, CommandUnsupportedException;
 
     /**
      * Disconnects a user from a room.

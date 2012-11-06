@@ -18,10 +18,39 @@ public class RoomUser implements StructType, Concept
 
     private DateTime joinTime;
 
-    private boolean muted;
+    private boolean audioMuted;
+    private boolean videoMuted;
     private int microphoneLevel;
+
+    /**
+     * FIXME: remove? does it make any sense? is it implemented somewhere?
+     */
     private int playbackLevel;
+
     private RoomLayout layout;
+
+
+    /**
+     * RoomUser attribute names.
+     * <p/>
+     * Suitable for modifyParticipant() command.
+     * <p/>
+     * NOTE: Keep in sync with actual attributes of the class.
+     */
+
+    /** Display name. Type: String */
+    public static final String DISPLAY_NAME = "displayName";
+    /** Is the user audio-muted? Type: boolean */
+    public static final String AUDIO_MUTED = "audioMuted";
+    /** Is the user video-muted? Type: boolean */
+    public static final String VIDEO_MUTED = "videoMuted";
+    /** Microphone level. Type: int */
+    public static final String MICROPHONE_LEVEL = "microphoneLevel";
+    /** Playback level. Type: int */
+    public static final String PLAYBACK_LEVEL = "playbackLevel";
+    /** Layout of the virtual room. Type: RoomLayout */
+    public static final String LAYOUT = "layout";
+
 
     public DateTime getJoinTime()
     {
@@ -66,19 +95,35 @@ public class RoomUser implements StructType, Concept
     }
 
     /**
-     * @return Is the user muted?
+     * @return Is the user audio-muted?
      */
-    public boolean getMuted()
+    public boolean getAudioMuted()
     {
-        return muted;
+        return audioMuted;
     }
 
     /**
-     * @param muted Is the user muted?
+     * @param audioMuted Is the user audio-muted?
      */
-    public void setMuted(boolean muted)
+    public void setAudioMuted(boolean audioMuted)
     {
-        this.muted = muted;
+        this.audioMuted = audioMuted;
+    }
+
+    /**
+     * @return Is the user video-muted?
+     */
+    public boolean getVideoMuted()
+    {
+        return videoMuted;
+    }
+
+    /**
+     * @param videoMuted Is the user video-muted?
+     */
+    public void setVideoMuted(boolean videoMuted)
+    {
+        this.videoMuted = videoMuted;
     }
 
     /**

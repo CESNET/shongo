@@ -134,8 +134,6 @@ public class Room implements Concept, StructType
      *
      * Suitable for modifyRoom() command.
      *
-     * NOTE: No value should be the same as any of this class's option names (OPT_* constants).
-     *
      * NOTE: Keep in sync with actual attributes of the class.
      */
 
@@ -151,6 +149,35 @@ public class Room implements Concept, StructType
      * Aliases of the room. Type: List<Alias>
      */
     public static final String ALIASES = "aliases";
+
+    /**
+     * Sets room attributes.
+     *
+     * @param attributes map of attribute names to values
+     */
+    public void setAttributes(Map<String, Object> attributes)
+    {
+        if (attributes == null) {
+            throw new NullPointerException("attributes");
+        }
+
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            String att = entry.getKey();
+            Object val = entry.getValue();
+            if (att.equals(Room.NAME)) {
+                setName((String) val);
+            }
+            else if (att.equals(Room.PORT_COUNT)) {
+                setPortCount((Integer) val);
+            }
+            else if (att.equals(Room.ALIASES)) {
+                setAliases((List<Alias>) val);
+            }
+            else {
+                throw new IllegalArgumentException("Unknown room attribute: " + att);
+            }
+        }
+    }
 
 
     /**

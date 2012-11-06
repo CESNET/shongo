@@ -181,17 +181,17 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        conn.modifyRoom(changedRoomId, atts, null);
 
         // test of modifyRoom() method
-        System.out.println("Modifying shongo-test");
-        Map<String, Object> atts = new HashMap<String, Object>();
-        atts.put(Room.NAME, "shongo-testing");
-        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
-        opts.put(Room.Option.LISTED_PUBLICLY, false);
-        opts.put(Room.Option.PIN, "1234");
-        conn.modifyRoom("shongo-test", atts, opts);
-        Map<String, Object> atts2 = new HashMap<String, Object>();
-        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
-        atts2.put(Room.NAME, "shongo-test");
-        conn.modifyRoom("shongo-testing", atts2, null);
+//        System.out.println("Modifying shongo-test");
+//        Map<String, Object> atts = new HashMap<String, Object>();
+//        atts.put(Room.NAME, "shongo-testing");
+//        Map<Room.Option, Object> opts = new EnumMap<Room.Option, Object>(Room.Option.class);
+//        opts.put(Room.Option.LISTED_PUBLICLY, false);
+//        opts.put(Room.Option.PIN, "1234");
+//        conn.modifyRoom("shongo-test", atts, opts);
+//        Map<String, Object> atts2 = new HashMap<String, Object>();
+//        atts2.put(Room.ALIASES, Collections.singletonList(new Alias(Technology.H323, AliasType.E164, "950087201")));
+//        atts2.put(Room.NAME, "shongo-test");
+//        conn.modifyRoom("shongo-testing", atts2, null);
 
         // test of listParticipants() method
 //        System.out.println("Listing shongo-test room:");
@@ -210,6 +210,13 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        conn.disconnectParticipant("shongo-test", "participant1");
 
 //        System.out.println("All done, disconnecting");
+
+        // test of modifyParticipant
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
+        conn.modifyParticipant("shongo-test", "3447", attributes);
+
         conn.disconnect();
     }
 
@@ -755,6 +762,23 @@ ParamsLoop:
     //<editor-fold desc="ROOM SERVICE">
 
     @Override
+    public Collection<RoomSummary> getRoomList() throws CommandException
+    {
+        Command cmd = new Command("conference.enumerate");
+        cmd.setParameter("moreThanFour", Boolean.TRUE);
+        cmd.setParameter("enumerateFilter", "!completed");
+
+        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
+        List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
+        for (Map<String, Object> conference : conferences) {
+            RoomSummary info = extractRoomInfo(conference);
+            rooms.add(info);
+        }
+
+        return rooms;
+    }
+
+    @Override
     public RoomSummary getRoomSummary(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.status");
@@ -832,21 +856,21 @@ ParamsLoop:
         cmd.setParameter("durationSeconds", 0); // set the room forever
 
         // options
-        setCommandOption(cmd, room, "registerWithGatekeeper", Room.Option.REGISTER_WITH_H323_GATEKEEPER);
-        setCommandOption(cmd, room, "registerWithSIPRegistrar", Room.Option.REGISTER_WITH_SIP_REGISTRAR);
+        setCommandRoomOption(cmd, room, "registerWithGatekeeper", Room.Option.REGISTER_WITH_H323_GATEKEEPER);
+        setCommandRoomOption(cmd, room, "registerWithSIPRegistrar", Room.Option.REGISTER_WITH_SIP_REGISTRAR);
         if (room.hasOption(Room.Option.LISTED_PUBLICLY)) {
             cmd.setParameter("private", !(Boolean) room.getOption(Room.Option.LISTED_PUBLICLY));
         }
-        setCommandOption(cmd, room, "contentContribution", Room.Option.ALLOW_CONTENT);
-        setCommandOption(cmd, room, "joinAudioMuted", Room.Option.JOIN_AUDIO_MUTED);
-        setCommandOption(cmd, room, "joinVideoMuted", Room.Option.JOIN_VIDEO_MUTED);
-        setCommandOption(cmd, room, "pin", Room.Option.PIN);
-        setCommandOption(cmd, room, "description", Room.Option.DESCRIPTION);
-        setCommandOption(cmd, room, "startLocked", Room.Option.START_LOCKED);
-        setCommandOption(cmd, room, "conferenceMeEnabled", Room.Option.CONFERENCE_ME_ENABLED);
+        setCommandRoomOption(cmd, room, "contentContribution", Room.Option.ALLOW_CONTENT);
+        setCommandRoomOption(cmd, room, "joinAudioMuted", Room.Option.JOIN_AUDIO_MUTED);
+        setCommandRoomOption(cmd, room, "joinVideoMuted", Room.Option.JOIN_VIDEO_MUTED);
+        setCommandRoomOption(cmd, room, "pin", Room.Option.PIN);
+        setCommandRoomOption(cmd, room, "description", Room.Option.DESCRIPTION);
+        setCommandRoomOption(cmd, room, "startLocked", Room.Option.START_LOCKED);
+        setCommandRoomOption(cmd, room, "conferenceMeEnabled", Room.Option.CONFERENCE_ME_ENABLED);
     }
 
-    private static void setCommandOption(Command cmd, Room room, String cmdParam, Room.Option roomOption)
+    private static void setCommandRoomOption(Command cmd, Room room, String cmdParam, Room.Option roomOption)
     {
         if (room.hasOption(roomOption)) {
             cmd.setParameter(cmdParam, room.getOption(roomOption));
@@ -861,22 +885,7 @@ ParamsLoop:
         Room room = new Room();
 
         if (attributes != null) {
-            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                String att = entry.getKey();
-                Object val = entry.getValue();
-                if (att.equals(Room.NAME)) {
-                    room.setName((String) val);
-                }
-                else if (att.equals(Room.PORT_COUNT)) {
-                    room.setPortCount((Integer) val);
-                }
-                else if (att.equals(Room.ALIASES)) {
-                    room.setAliases((List<Alias>) val);
-                }
-                else {
-                    throw new IllegalArgumentException("Unknown room attribute: " + att);
-                }
-            }
+            room.setAttributes(attributes);
         }
 
         if (options != null) {
@@ -979,8 +988,9 @@ ParamsLoop:
     {
         // FIXME: refine just as the createRoom() method - get just a RoomUser object and set parameters according to it
 
-        // FIXME: slow...
-//        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions
+        // NOTE: adding participants as ad_hoc - the MCU autogenerates their IDs (but they are just IDs, not names),
+        //       thus, commented out the following generation of participant names
+//        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions; and it is slow...
 
         Command cmd = new Command("participant.add");
         cmd.setParameter("conferenceName", roomId);
@@ -1073,7 +1083,8 @@ ParamsLoop:
 
         ru.setDisplayName((String) state.get("displayName"));
 
-        ru.setMuted((Boolean) state.get("audioRxMuted"));
+        ru.setAudioMuted((Boolean) state.get("audioRxMuted"));
+        ru.setVideoMuted((Boolean) state.get("videoRxMuted"));
         if (state.get("audioRxGainMode").equals("fixed")) {
             ru.setMicrophoneLevel((Integer) state.get("audioRxGainMillidB"));
         }
@@ -1097,10 +1108,48 @@ ParamsLoop:
     }
 
     @Override
-    public void modifyParticipant(String roomId, String roomUserId, Map attributes)
-            throws CommandException, CommandUnsupportedException
+    public void modifyParticipant(String roomId, String roomUserId, Map<String, Object> attributes)
+            throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Command cmd = new Command("participant.modify");
+        identifyParticipant(cmd, roomId, roomUserId);
+
+        // NOTE: oh yes, Cisco MCU wants "activeState" for modify while for status, it gets "currentState"...
+        cmd.setParameter("operationScope", "activeState");
+
+        for (Map.Entry<String, Object> attribute : attributes.entrySet()) {
+            String attName = attribute.getKey();
+            Object attValue = attribute.getValue();
+
+            if (attName.equals(RoomUser.DISPLAY_NAME)) {
+                cmd.setParameter("displayNameOverrideValue", attValue);
+                cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
+            }
+            else if (attName.equals(RoomUser.AUDIO_MUTED)) {
+                cmd.setParameter("audioRxMuted", attValue);
+            }
+            else if (attName.equals(RoomUser.VIDEO_MUTED)) {
+                cmd.setParameter("videoRxMuted", attValue);
+            }
+            else if (attName.equals(RoomUser.MICROPHONE_LEVEL)) {
+                cmd.setParameter("audioRxGainMillidB", attValue);
+                cmd.setParameter("audioRxGainMode", "fixed"); // for the value to take effect
+            }
+            else if (attName.equals(RoomUser.PLAYBACK_LEVEL)) {
+                logger.info("Ignoring request to set PLAYBACK_LEVEL - Cisco MCU does not support it.");
+            }
+            else if (attName.equals(RoomUser.LAYOUT)) {
+                RoomLayout layout = (RoomLayout) attValue;
+                cmd.setParameter("focusType",
+                        (layout.getVoiceSwitching() == RoomLayout.VoiceSwitching.VOICE_SWITCHED ? "voiceActivated" : "participant"));
+                logger.info("Setting only voice-switching mode. The layout itself cannot be set by Cisco MCU.");
+            }
+            else {
+                throw new IllegalArgumentException("Unknown RoomUser attribute: " + attName);
+            }
+        }
+
+        exec(cmd);
     }
 
     @Override
@@ -1142,43 +1191,55 @@ ParamsLoop:
     //<editor-fold desc="I/O SERVICE">
 
     @Override
-    public void disableParticipantVideo(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
+    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
-    public void enableParticipantVideo(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
+    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.VIDEO_MUTED, Boolean.FALSE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
-    public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void muteParticipant(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.AUDIO_MUTED, Boolean.TRUE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
-    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level)
-            throws CommandException, CommandUnsupportedException
+    public void setParticipantMicrophoneLevel(String roomId, String roomUserId, int level) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.MICROPHONE_LEVEL, level);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     @Override
     public void setParticipantPlaybackLevel(String roomId, String roomUserId, int level)
             throws CommandException, CommandUnsupportedException
     {
-        throw new CommandUnsupportedException(); // TODO
+        throw new CommandUnsupportedException();
     }
 
     @Override
-    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void unmuteParticipant(String roomId, String roomUserId) throws CommandException
     {
-        throw new CommandUnsupportedException(); // TODO
+        Map<String, Object> attributes = new HashMap<String, Object>();
+        attributes.put(RoomUser.AUDIO_MUTED, Boolean.FALSE);
+
+        modifyParticipant(roomId, roomUserId, attributes);
     }
 
     //</editor-fold>
@@ -1248,23 +1309,6 @@ ParamsLoop:
     public UsageStats getUsageStats() throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(); // TODO
-    }
-
-    @Override
-    public Collection<RoomSummary> getRoomList() throws CommandException
-    {
-        Command cmd = new Command("conference.enumerate");
-        cmd.setParameter("moreThanFour", Boolean.TRUE);
-        cmd.setParameter("enumerateFilter", "!completed");
-
-        Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
-        List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
-        for (Map<String, Object> conference : conferences) {
-            RoomSummary info = extractRoomInfo(conference);
-            rooms.add(info);
-        }
-
-        return rooms;
     }
 
     @Override
