@@ -199,7 +199,7 @@ public abstract class ChangesTrackingObject
                 if ( value instanceof ChangesTrackingObject ) {
                     setupNewEntity(value);
                 }
-                else if (Property.TypeFlags.isArray(propertyTypeFlags)) {
+                else if (TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
@@ -209,7 +209,7 @@ public abstract class ChangesTrackingObject
                         setupNewEntity(item);
                     }
                 }
-                else if (Property.TypeFlags.isCollection(propertyTypeFlags)) {
+                else if (TypeFlags.isCollection(propertyTypeFlags)) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,

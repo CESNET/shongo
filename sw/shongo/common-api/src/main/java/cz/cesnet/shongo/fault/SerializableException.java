@@ -3,6 +3,7 @@ package cz.cesnet.shongo.fault;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Property;
+import cz.cesnet.shongo.api.util.TypeFlags;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -68,7 +69,7 @@ public interface SerializableException
             if (value instanceof String) {
                 string = (String) value;
             }
-            else if (Property.TypeFlags.isBasic(Property.TypeFlags.getTypeFlags(value.getClass()))) {
+            else if (TypeFlags.isAtomic(TypeFlags.get(value))) {
                 string = value.toString();
             }
             else if (value instanceof Class) {

@@ -12,7 +12,7 @@ public final class Options
      * <p/>
      * <code>{@link #storeChanges} = true</code>
      * We want to propagate changes in entities from client to server. And thus
-     * {@link Converter#convertObjectToMap(Object, Options)} should store changes in client.
+     * {@link Converter#convertObjectToBasic(Object, Options)} should store changes in client.
      * <p/>
      * <code>{@link #forceAccessible} = true<code/>
      * On client side we want to serialize/deserialize all properties.
@@ -24,7 +24,7 @@ public final class Options
      * <p/>
      * <code>{@link #storeChanges} = false</code>
      * We don't want to propagate changes in entities from server to client. Client always get
-     * "clean" object without changes. And thus {@link Converter#convertObjectToMap(Object, Options)} should not
+     * "clean" object without changes. And thus {@link Converter#convertObjectToBasic(Object, Options)} should not
      * store changes on server.
      * <p/>
      * <code>{@link #forceAccessible} = false</code>

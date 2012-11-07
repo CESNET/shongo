@@ -110,7 +110,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
                 String value = (String) pObject;
                 try {
-                    return Converter.convertStringToEnum(value, clazz);
+                    return Converter.Atomic.convertStringToEnum(value, clazz);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -196,7 +196,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
 
                 try {
-                    return Converter.convertStringToInterval((String) pObject);
+                    return Converter.Atomic.convertStringToInterval((String) pObject);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -211,7 +211,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (result == null) {
                 return null;
             }
-            return Converter.convertIntervalToString((Interval) result);
+            return Converter.Atomic.convertIntervalToString((Interval) result);
         }
     }
 
@@ -234,7 +234,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
 
                 try {
-                    return Converter.convertStringToDateTime((String) pObject);
+                    return Converter.Atomic.convertStringToDateTime((String) pObject);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -272,7 +272,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
 
                 try {
-                    return Converter.convertStringToPeriod((String) pObject);
+                    return Converter.Atomic.convertStringToPeriod((String) pObject);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -330,7 +330,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof Map) {
                 try {
-                    return Converter.convertMapToObject((Map) pObject, type, options);
+                    return Converter.convertFromBasic(pObject, type, options);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -343,7 +343,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object pObject)
         {
             try {
-                return Converter.convertObjectToMap(pObject, options);
+                return Converter.convertToBasic(pObject, options);
             }
             catch (FaultException exception) {
                 throw new RuntimeException(exception);
@@ -391,7 +391,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         {
             if (pObject instanceof StructType) {
                 try {
-                    return Converter.convertObjectToMap(pObject, options);
+                    return Converter.convertToBasic(pObject, options);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);

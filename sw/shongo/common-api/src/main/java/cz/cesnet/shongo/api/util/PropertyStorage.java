@@ -75,7 +75,7 @@ public class PropertyStorage
         Collection collection = (Collection) values.get(property);
         if (collection == null && collectionType != null) {
             try {
-                collection = Converter.createCollection(collectionType, 0);
+                collection = ClassHelper.createCollection(collectionType, 0);
             }
             catch (FaultException exception) {
                 throw new RuntimeException(exception);

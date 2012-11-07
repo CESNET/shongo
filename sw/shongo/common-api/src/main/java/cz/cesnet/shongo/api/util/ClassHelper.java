@@ -3,7 +3,8 @@ package cz.cesnet.shongo.api.util;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 
-import java.util.ArrayList;
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Class help for API types. Converts long class names to short class names and vice versa.
@@ -105,5 +106,35 @@ public class ClassHelper
             throw new IllegalStateException(new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type));
         }
         return instance;
+    }
+
+    /**
+     * @param componentType
+     * @param size
+     * @return new instance of array of given size
+     */
+    public static Object[] createArray(Class componentType, int size)
+    {
+        return (Object[]) Array.newInstance(componentType, size);
+    }
+
+    /**
+     * @param type type of {@link Collection}
+     * @param size size of {@link Collection}
+     * @return new instance of {@link Collection} of given size
+     * @throws cz.cesnet.shongo.fault.FaultException
+     */
+    public static Collection<Object> createCollection(Class type, int size) throws FaultException
+    {
+        if (List.class.isAssignableFrom(type)) {
+            return new ArrayList<Object>(size);
+        }
+        else if (Set.class.isAssignableFrom(type)) {
+            return new HashSet<Object>(size);
+        }
+        else if (Collection.class.equals(type)) {
+            return new ArrayList<Object>(size);
+        }
+        throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, type);
     }
 }

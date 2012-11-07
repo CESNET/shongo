@@ -19,12 +19,12 @@ public class ConverterTest
     {
         String[] values = new String[]{"2012", "2012-12", "2012-12-01", "2012-12-01T12", "2012-12-01T12:34"};
         for (int index = 0; index < values.length; index++) {
-            ReadablePartial readablePartial = Converter.convertStringToReadablePartial(values[index]);
+            ReadablePartial readablePartial = Converter.Atomic.convertStringToReadablePartial(values[index]);
             assertEquals(values[index], readablePartial.toString());
         }
 
         ReadablePartial readablePartial;
-        readablePartial = Converter.convertStringToReadablePartial("2012");
+        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012");
         assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
         try {
             readablePartial.get(DateTimeFieldType.monthOfYear());
@@ -32,7 +32,7 @@ public class ConverterTest
         }
         catch (IllegalArgumentException exception) {
         }
-        readablePartial = Converter.convertStringToReadablePartial("2012-01-01T12");
+        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012-01-01T12");
         assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
         assertEquals(01, readablePartial.get(DateTimeFieldType.monthOfYear()));
         assertEquals(01, readablePartial.get(DateTimeFieldType.dayOfMonth()));
