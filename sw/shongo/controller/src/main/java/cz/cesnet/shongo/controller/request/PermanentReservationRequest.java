@@ -225,7 +225,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
 
         // Create/modify slots
         for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : permanentReservationRequestApi.getSlots()) {
-            if (api.isCollectionItemMarkedAsNew(permanentReservationRequestApi.SLOTS, slotApi)) {
+            if (api.isPropertyItemMarkedAsNew(permanentReservationRequestApi.SLOTS, slotApi)) {
                 addSlot(DateTimeSlotSpecification.createFromApi(slotApi));
             }
             else {
@@ -235,7 +235,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
         }
         // Delete slots
         Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
-                api.getCollectionItemsMarkedAsDeleted(permanentReservationRequestApi.SLOTS);
+                api.getPropertyItemsMarkedAsDeleted(permanentReservationRequestApi.SLOTS);
         for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedSlots) {
             removeSlot(getSlotById(slotApi.notNullIdAsLong()));
         }

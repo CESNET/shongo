@@ -181,6 +181,16 @@ public class TypeFlags
 
     /**
      * @param typeFlags to be checked
+     * @return true whether given {@code typeFlags} has {@link #ARRAY} or {@link #COLLECTION} flag,
+     *         false otherwise
+     */
+    public static boolean isArrayOrCollection(int typeFlags)
+    {
+        return isArray(typeFlags) || isCollection(typeFlags);
+    }
+
+    /**
+     * @param typeFlags to be checked
      * @return true whether given {@code typeFlags} has {@link #ARRAY}, {@link #COLLECTION} or {@link java.util.Map} flag,
      *         false otherwise
      */

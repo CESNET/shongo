@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.api;
 
-import cz.cesnet.shongo.api.util.ChangesTrackingObject;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
@@ -14,12 +13,24 @@ import java.util.*;
  */
 public class Room extends IdentifiedChangeableObject implements Concept, StructType
 {
-    private String name = null;
-    private int portCount = -1;
-    private List<Alias> aliases;
+    /**
+     * Room name. Type: String
+     */
+    public static final String NAME = "name";
+    /**
+     * Number of ports to use for the room. Type: int
+     */
+    public static final String PORT_COUNT = "portCount";
 
-    private Map<Option, Object> options = new EnumMap<Option, Object>(Option.class);
+    /**
+     * Aliases of the room. Type: List<Alias>
+     */
+    public static final String ALIASES = "aliases";
 
+    /**
+     * Options of the room. Type: Map<Option, Object>
+     */
+    public static final String OPTIONS = "options";
 
     public Room()
     {
@@ -34,8 +45,8 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
             throw new IllegalArgumentException("Port count must be non-negative");
         }
 
-        this.name = name;
-        this.portCount = portCount;
+        setName(name);
+        setPortCount(portCount);
     }
 
     /**
@@ -43,7 +54,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public String getName()
     {
-        return name;
+        return getPropertyStorage().getValue(NAME);
     }
 
     /**
@@ -55,7 +66,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
             throw new NullPointerException("name");
         }
 
-        this.name = name;
+        getPropertyStorage().setValue(NAME, name);
     }
 
     /**
@@ -63,7 +74,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public int getPortCount()
     {
-        return portCount;
+        return getPropertyStorage().getValueAsInt(PORT_COUNT);
     }
 
     /**
@@ -75,7 +86,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
             throw new IllegalArgumentException("portCount must be non-negative");
         }
 
-        this.portCount = portCount;
+        getPropertyStorage().setValue(PORT_COUNT, portCount);
     }
 
     /**
@@ -83,7 +94,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public List<Alias> getAliases()
     {
-        return aliases;
+        return getPropertyStorage().getCollection(ALIASES, List.class);
     }
 
     /**
@@ -93,10 +104,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public void addAlias(Alias alias)
     {
-        if (aliases == null) {
-            aliases = new ArrayList<Alias>();
-        }
-        aliases.add(alias);
+        getPropertyStorage().addCollectionItem(ALIASES, alias, List.class);
     }
 
     /**
@@ -104,7 +112,7 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public void setAliases(List<Alias> aliases)
     {
-        this.aliases = aliases;
+        getPropertyStorage().setCollection(ALIASES, aliases);
     }
 
     /**
@@ -116,30 +124,100 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public Map<Option, Object> getOptions()
     {
-        return Collections.unmodifiableMap(options);
+        return getPropertyStorage().getMap(OPTIONS);
     }
 
+    /**
+     * Sets options for this room.
+     *
+     * @param options options to set for the room
+     * @throws IllegalArgumentException if a value is not of the type required by the corresponding option
+     */
+    public void setOptions(Map<Option, Object> options)
+    {
+        for (Map.Entry<Option, Object> entry : options.entrySet()) {
+            validateOption(entry.getKey(), entry.getValue());
+        }
+        getPropertyStorage().setMap(OPTIONS, options);
+    }
 
     /**
-     * Room attribute names.
+     * Finds out whether a given option is set.
      *
-     * Suitable for modifyRoom() command.
-     *
-     * NOTE: Keep in sync with actual attributes of the class.
+     * @param option option to find
+     * @return <code>true</code> if option with the given name is set, <code>false</code> if not
      */
+    public boolean hasOption(Option option)
+    {
+        return getPropertyStorage().getMap(OPTIONS).containsKey(option);
+    }
 
     /**
-     * Room name. Type: String
+     * Returns the value of an option.
+     *
+     * @param option option to get value of
+     * @return value of option, or <code>null</code> if the option is not set
      */
-    public static final String NAME = "name";
+    public Object getOption(Option option)
+    {
+        return getPropertyStorage().getMap(OPTIONS).get(option);
+    }
+
     /**
-     * Number of ports to use for the room. Type: int
+     * Returns the value of an option if it is set, or default value if the option is not set.
+     *
+     * @param option       option to get value of
+     * @param defaultValue default value to return if the option is not set
+     * @return value of option, or <code>defaultValue</code> if the option is not set
      */
-    public static final String PORT_COUNT = "portCount";
+    public Object getOption(Option option, Object defaultValue)
+    {
+        Object value = getOption(option);
+        return (value == null ? defaultValue : value);
+    }
+
     /**
-     * Aliases of the room. Type: List<Alias>
+     * Sets a single option.
+     *
+     * @param option option to set
+     * @param value  value to be set; or <code>null</code> to unset the option
+     * @throws IllegalArgumentException if the value is not of the type required by the specified option
      */
-    public static final String ALIASES = "aliases";
+    public void setOption(Option option, Object value)
+    {
+        if (value == null) {
+            removeOption(option);
+        }
+        else {
+            validateOption(option, value);
+            getPropertyStorage().addMapItem(OPTIONS, option, value);
+        }
+    }
+
+    /**
+     * Unsets a single option.
+     *
+     * @param option option to unset
+     */
+    public void removeOption(Option option)
+    {
+        getPropertyStorage().removeMapItem(OPTIONS, option);
+    }
+
+    /**
+     * Validates that a given option has the correct type of value.
+     *
+     * @param option option to validate value of
+     * @param value  value to be set
+     * @throws IllegalArgumentException if the value is not of the type required by the specified option
+     */
+    private static void validateOption(Option option, Object value)
+    {
+        if (!option.getValueClass().isInstance(value)) {
+            String message = "Option " + option + " requires value of class " + option.getValueClass().getName();
+            throw new IllegalArgumentException(message);
+        }
+    }
 
     /**
      * Sets room attributes.
@@ -148,6 +226,9 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
      */
     public void setAttributes(Map<String, Object> attributes)
     {
+        if ( true ) {
+            throw new RuntimeException("Delete this method (should not be used, the Room itself should be transferred through JADE!)");
+        }
         if (attributes == null) {
             throw new NullPointerException("attributes");
         }
@@ -169,7 +250,6 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
             }
         }
     }
-
 
     /**
      * Room options.
@@ -243,98 +323,4 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
             return valueClass;
         }
     }
-
-
-    /**
-     * Sets options for this room.
-     *
-     * @param options options to set for the room
-     * @throws IllegalArgumentException if a value is not of the type required by the corresponding option
-     */
-    public void setOptions(Map<Option, Object> options)
-    {
-        for (Map.Entry<Option, Object> entry : options.entrySet()) {
-            validateOption(entry.getKey(), entry.getValue());
-        }
-        this.options = options;
-    }
-
-    /**
-     * Finds out whether a given option is set.
-     *
-     * @param option option to find
-     * @return <code>true</code> if option with the given name is set, <code>false</code> if not
-     */
-    public boolean hasOption(Option option)
-    {
-        return options.containsKey(option);
-    }
-
-    /**
-     * Returns the value of an option.
-     *
-     * @param option option to get value of
-     * @return value of option, or <code>null</code> if the option is not set
-     */
-    public Object getOption(Option option)
-    {
-        return options.get(option);
-    }
-
-    /**
-     * Returns the value of an option if it is set, or default value if the option is not set.
-     *
-     * @param option       option to get value of
-     * @param defaultValue default value to return if the option is not set
-     * @return value of option, or <code>defaultValue</code> if the option is not set
-     */
-    public Object getOption(Option option, Object defaultValue)
-    {
-        Object value = options.get(option);
-        return (value == null ? defaultValue : value);
-    }
-
-    /**
-     * Sets a single option.
-     *
-     * @param option option to set
-     * @param value  value to be set; or <code>null</code> to unset the option
-     * @throws IllegalArgumentException if the value is not of the type required by the specified option
-     */
-    public void setOption(Option option, Object value)
-    {
-        if (value == null) {
-            unsetOption(option);
-        }
-        else {
-            validateOption(option, value);
-            options.put(option, value);
-        }
-    }
-
-    /**
-     * Validates that a given option has the correct type of value.
-     *
-     * @param option option to validate value of
-     * @param value  value to be set
-     * @throws IllegalArgumentException if the value is not of the type required by the specified option
-     */
-    private static void validateOption(Option option, Object value)
-    {
-        if (!option.getValueClass().isInstance(value)) {
-            String message = "Option " + option + " requires value of class " + option.getValueClass().getName();
-            throw new IllegalArgumentException(message);
-        }
-    }
-
-    /**
-     * Unsets a single option.
-     *
-     * @param option option to unset
-     */
-    public void unsetOption(Option option)
-    {
-        options.remove(option);
-    }
-
 }

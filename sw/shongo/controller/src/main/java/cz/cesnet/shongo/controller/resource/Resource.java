@@ -478,7 +478,7 @@ public class Resource extends PersistentObject
 
         // Create/modify capabilities
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : api.getCapabilities()) {
-            if (api.isCollectionItemMarkedAsNew(api.CAPABILITIES, apiCapability)) {
+            if (api.isPropertyItemMarkedAsNew(api.CAPABILITIES, apiCapability)) {
                 addCapability(Capability.createFromApi(apiCapability, entityManager));
             }
             else {
@@ -488,7 +488,7 @@ public class Resource extends PersistentObject
         }
         // Delete capabilities
         Set<cz.cesnet.shongo.controller.api.Capability> apiDeletedCapabilities =
-                api.getCollectionItemsMarkedAsDeleted(api.CAPABILITIES);
+                api.getPropertyItemsMarkedAsDeleted(api.CAPABILITIES);
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
             removeCapability(getCapabilityById(apiCapability.notNullIdAsLong()));
         }

@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.xmlrpc.RpcClient;
@@ -8,15 +11,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashSet;
+
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
 
 /**
- * Tests for using the implementation of {@link cz.cesnet.shongo.controller.api.ReservationService} through XML-RPC.
+ * Tests for serializing changes in {@link java.util.Map} through XML-RPC.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class XmlRpcTypeTest
+public class XmlRpcTypeMapTest
 {
     private static final SecurityToken SECURITY_TOKEN = new SecurityToken();
 
@@ -55,10 +59,9 @@ public class XmlRpcTypeTest
 
         room.setPortCount(10);
         room.setOption(Room.Option.PIN, "100");
+        room.removeOption(Room.Option.DESCRIPTION);
 
         getRoomService().modifyRoom(SECURITY_TOKEN, room);
-
-        throw new RuntimeException("TODO: check changes");
     }
 
     public interface RoomService extends Service
@@ -87,6 +90,7 @@ public class XmlRpcTypeTest
             room.setIdentifier("1");
             room.setName("room");
             room.setPortCount(5);
+            room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
             room.setOption(Room.Option.DESCRIPTION, "room description");
             return room;
         }
@@ -96,6 +100,14 @@ public class XmlRpcTypeTest
         {
             assertEquals("1", room.getIdentifier());
             assertEquals(10, room.getPortCount());
+            assertEquals(new HashSet<Room.Option>()
+            {{
+                    add(Room.Option.PIN);
+                }}, room.getPropertyItemsMarkedAsNew(Room.OPTIONS));
+            assertEquals(new HashSet<Room.Option>()
+            {{
+                    add(Room.Option.DESCRIPTION);
+                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
         }
     }
 }

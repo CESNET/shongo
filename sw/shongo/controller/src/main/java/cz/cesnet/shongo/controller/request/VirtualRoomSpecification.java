@@ -213,13 +213,13 @@ public class VirtualRoomSpecification extends Specification implements Reservati
 
         // Create technologies
         for (Technology technology : virtualRoomSpecificationApi.getTechnologies()) {
-            if (specificationApi.isCollectionItemMarkedAsNew(
+            if (specificationApi.isPropertyItemMarkedAsNew(
                     cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
                 addTechnology(technology);
             }
         }
         // Delete technologies
-        Set<Technology> technologies = specificationApi.getCollectionItemsMarkedAsDeleted(
+        Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
                 cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
         for (Technology technology : technologies) {
             removeTechnology(technology);

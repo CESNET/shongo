@@ -65,6 +65,11 @@ public class PropertyStorage
         return value;
     }
 
+    public int getValueAsInt(String property)
+    {
+        return (Integer) getValue(property);
+    }
+
     /**
      * @param property
      * @return internal collection
@@ -156,7 +161,7 @@ public class PropertyStorage
         Collection<Object> collection = getInternalCollection(property, collectionType);
         if (collection.add(item)) {
             if (changesTrackingObject != null) {
-                changesTrackingObject.markCollectionItemAsNew(property, item);
+                changesTrackingObject.markPropertyItemAsNew(property, item);
             }
             return true;
         }
@@ -180,7 +185,87 @@ public class PropertyStorage
         }
         if (collection.remove(item)) {
             if (changesTrackingObject != null) {
-                changesTrackingObject.markCollectionItemAsDeleted(property, item);
+                changesTrackingObject.markPropertyItemAsDeleted(property, item);
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * @param property
+     * @return internal {@link Map}
+     */
+    private Map<Object, Object> getInternalMap(String property)
+    {
+        @SuppressWarnings("unchecked")
+        Map<Object, Object> map = (Map<Object, Object>) values.get(property);
+        if (map == null) {
+            map = new HashMap<Object, Object>();
+            values.put(property, map);
+        }
+        return map;
+    }
+
+    /**
+     * @param property name of the property
+     * @return return {@link Map} for given {@code property}
+     */
+    public Map getMap(String property)
+    {
+        return getInternalMap(property);
+    }
+
+    /**
+     * Set property {@link Map} value.
+     *
+     * @param property name of the property
+     * @param map      {@link Map} value to be set
+     */
+    public <T> void setMap(String property, Map map)
+    {
+        values.put(property, map);
+    }
+
+    /**
+     * Add given new item to to the collection property.
+     *
+     * @param property
+     * @param itemKey
+     * @param itemValue
+     * @return true if adding was successful,
+     *         false otherwise
+     */
+    public <T extends Collection> boolean addMapItem(String property, Object itemKey, Object itemValue)
+    {
+        Map<Object, Object> map = getInternalMap(property);
+        if (map.put(itemKey, itemValue) == null) {
+            if (changesTrackingObject != null) {
+                changesTrackingObject.markPropertyItemAsNew(property, itemKey);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove given item from the collection property.
+     *
+     * @param property
+     * @param itemKey
+     * @return true if removing was successful,
+     *         false otherwise
+     */
+    public boolean removeMapItem(String property, Object itemKey)
+    {
+        Map map = (Map) values.get(property);
+        if (map == null) {
+            return false;
+        }
+        if (map.remove(itemKey) != null) {
+            if (changesTrackingObject != null) {
+                changesTrackingObject.markPropertyItemAsDeleted(property, itemKey);
             }
             return true;
         }

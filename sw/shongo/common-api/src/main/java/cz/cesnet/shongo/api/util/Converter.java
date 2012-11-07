@@ -304,7 +304,12 @@ public class Converter
                 }
 
                 // Set changes for items
-                if (value instanceof Map && TypeFlags.isArrayOrCollectionOrMap(property.getTypeFlags())) {
+                int propertyTypeFlags = property.getTypeFlags();
+                boolean storeChanges = (value instanceof Map)
+                        && (TypeFlags.isArrayOrCollection(propertyTypeFlags)
+                                    || (TypeFlags.isMap(propertyTypeFlags)
+                                                && ((Map) value).containsKey(ChangesTrackingObject.MAP_DATA)));
+                if (storeChanges) {
                     value = setValueItemChanges(value, property, changesTrackingObject, options);
                     if (value == null) {
                         // No changes so skip the property
@@ -422,7 +427,7 @@ public class Converter
         }
         // Append values for Map
         if (value instanceof Map) {
-            mapValueItemChanges.put("__map", value);
+            mapValueItemChanges.put(ChangesTrackingObject.MAP_DATA, value);
         }
         return mapValueItemChanges;
     }
@@ -441,41 +446,44 @@ public class Converter
     private static Object setValueItemChanges(Object value, Property property,
             ChangesTrackingObject changesTrackingObject, Options options) throws FaultException
     {
+        Map changes = (Map) value;
+
         // Get property type and type flags
         String propertyName = property.getName();
         Class propertyType = property.getType();
         Class[] propertyAllowedTypes = property.getValueAllowedTypes();
         int propertyTypeFlags = property.getTypeFlags();
 
-        Class changesType = property.getType();
+        Class changesType = propertyType;
+        Class[] changesAllowedTypes = propertyAllowedTypes;
         if (TypeFlags.isMap(propertyTypeFlags)) {
             changesType = Set.class;
+            changesAllowedTypes = new Class[]{property.getKeyAllowedType()};
         }
 
         // Get changes
-        Map changes = (Map) value;
         Object newItems = null;
         Object modifiedItems = null;
         Object deletedItems = null;
         if (changes.containsKey(ChangesTrackingObject.COLLECTION_NEW)) {
             newItems = changes.get(ChangesTrackingObject.COLLECTION_NEW);
-            newItems = Converter.convert(newItems, changesType, propertyAllowedTypes, property, options);
+            newItems = Converter.convert(newItems, changesType, changesAllowedTypes, property, options);
             if (changesTrackingObject != null) {
                 for (Object newItem : (Collection) newItems) {
-                    changesTrackingObject.markCollectionItemAsNew(propertyName, newItem);
+                    changesTrackingObject.markPropertyItemAsNew(propertyName, newItem);
                 }
             }
         }
         if (changes.containsKey(ChangesTrackingObject.COLLECTION_MODIFIED)) {
             modifiedItems = changes.get(ChangesTrackingObject.COLLECTION_MODIFIED);
-            modifiedItems = Converter.convert(modifiedItems, changesType, propertyAllowedTypes, property, options);
+            modifiedItems = Converter.convert(modifiedItems, changesType, changesAllowedTypes, property, options);
         }
         if (changes.containsKey(ChangesTrackingObject.COLLECTION_DELETED)) {
             deletedItems = changes.get(ChangesTrackingObject.COLLECTION_DELETED);
-            deletedItems = Converter.convert(deletedItems, changesType, propertyAllowedTypes, property, options);
+            deletedItems = Converter.convert(deletedItems, changesType, changesAllowedTypes, property, options);
             if (changesTrackingObject != null) {
                 for (Object deletedItem : (Collection) deletedItems) {
-                    changesTrackingObject.markCollectionItemAsDeleted(propertyName, deletedItem);
+                    changesTrackingObject.markPropertyItemAsDeleted(propertyName, deletedItem);
                 }
             }
         }
@@ -515,7 +523,8 @@ public class Converter
         }
         else if (TypeFlags.isMap(propertyTypeFlags)) {
             Map map = (Map) value;
-            value = convert(map.get("__map"), property.getType(), propertyAllowedTypes, property, options);
+            value = convert(map.get(ChangesTrackingObject.MAP_DATA), property.getType(), propertyAllowedTypes,
+                    property, options);
         }
         return value;
     }
@@ -603,14 +612,14 @@ public class Converter
         }
         // Convert from basic types
         else if (TypeFlags.isPrimitive(valueTypeFlags)) {
-            if (TypeFlags.isPrimitive(targetTypeFlags)) {
-                return value;
-            }
-            else if (targetType.equals(String.class)) {
+            if (targetType.equals(String.class)) {
                 return value.toString();
             }
             else if (targetType.equals(Boolean.class) && value instanceof Integer) {
                 return ((Integer) value).intValue() != 0;
+            }
+            else if (TypeFlags.isPrimitive(targetTypeFlags)) {
+                return value;
             }
         }
         // Convert from date

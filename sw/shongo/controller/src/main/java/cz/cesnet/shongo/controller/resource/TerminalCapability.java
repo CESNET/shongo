@@ -88,7 +88,7 @@ public class TerminalCapability extends DeviceCapability
         // Create/modify aliases
         for (cz.cesnet.shongo.api.Alias apiAlias : apiTerminalCapability.getAliases()) {
             Alias alias;
-            if (api.isCollectionItemMarkedAsNew(apiTerminalCapability.ALIASES, apiAlias)) {
+            if (api.isPropertyItemMarkedAsNew(apiTerminalCapability.ALIASES, apiAlias)) {
                 alias = new Alias();
                 addAlias(alias);
             }
@@ -99,7 +99,7 @@ public class TerminalCapability extends DeviceCapability
         }
         // Delete aliases
         Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases = api
-                .getCollectionItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
+                .getPropertyItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
         for (cz.cesnet.shongo.api.Alias aliasApi : apiDeletedAliases) {
             Alias alias = getAliasById(aliasApi.notNullIdAsLong());
             removeAlias(alias);
