@@ -65,7 +65,7 @@ sub new()
     $self->add_attribute(
         'technologies', {
             'type' => 'collection',
-            'collection' => {
+            'item' => {
                 'title' => 'Technology',
                 'enum' => $Technology
             },

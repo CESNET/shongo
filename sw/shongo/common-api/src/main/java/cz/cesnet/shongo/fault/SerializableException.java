@@ -66,7 +66,10 @@ public interface SerializableException
         public void setParameter(String name, Object value)
         {
             String string;
-            if (value instanceof String) {
+            if (value == null) {
+                string = null;
+            }
+            else if (value instanceof String) {
                 string = (String) value;
             }
             else if (TypeFlags.isAtomic(TypeFlags.get(value))) {
@@ -76,7 +79,7 @@ public interface SerializableException
                 string = ClassHelper.getClassShortName((Class) value);
             }
             else {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(value.getClass().getCanonicalName());
             }
             parameters.put(name, string);
         }

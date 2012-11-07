@@ -86,7 +86,7 @@ sub on_init()
             $self->add_attribute(
                 'endpoints', {
                     'type' => 'collection',
-                    'collection' => {
+                    'item' => {
                         'format' => sub {
                             my ($endpoint) = @_;
                             my $string = $endpoint->{'description'};
@@ -104,7 +104,7 @@ sub on_init()
                 'virtualRooms', {
                     'title' => 'Rooms',
                     'type' => 'collection',
-                    'collection' => {
+                    'item' => {
                         'format' => sub {
                             my ($virtualRoom) = @_;
                             my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
@@ -122,7 +122,7 @@ sub on_init()
             $self->add_attribute(
                 'connections', {
                     'type' => 'collection',
-                    'collection' => {
+                    'item' => {
                         'format' => sub {
                             my ($connection) = @_;
                             my $endpointFrom = $self->get_endpoint($connection->{'endpointFromIdentifier'});
@@ -153,7 +153,7 @@ sub on_init()
             });
             $self->add_attribute('aliases', {
                 'type' => 'collection',
-                'collection' => {
+                'item' => {
                     'short' => 1
                 }
             });

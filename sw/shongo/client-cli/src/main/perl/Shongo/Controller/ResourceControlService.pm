@@ -12,6 +12,7 @@ use Shongo::Common;
 use Shongo::Console;
 use Shongo::Controller::API::Resource;
 use Shongo::Controller::API::Alias;
+use Shongo::Controller::API::Room;
 
 #
 # Populate shell by options for management of resources.
@@ -264,7 +265,7 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'createRoom', @supportedMethods) {
+    #if (grep $_ eq 'createRoom', @supportedMethods) {
         $shell->add_commands({
             "create-room" => {
                 desc => "Create virtual room",
@@ -274,8 +275,8 @@ sub control_resource()
                 }
             }
         });
-    }
-    if (grep $_ eq 'modifyRoom', @supportedMethods) {
+    #}
+    #if (grep $_ eq 'modifyRoom', @supportedMethods) {
         $shell->add_commands({
             "modify-room" => {
                 desc => "Modify virtual room",
@@ -286,7 +287,8 @@ sub control_resource()
                 }
             }
         });
-    }
+    #}
+    print("TODO: UNCOMMENT\n");
     if (grep $_ eq 'deleteRoom', @supportedMethods) {
         $shell->add_commands({
             "delete-room" => {
@@ -703,73 +705,63 @@ sub resource_create_room
 {
     my ($resourceIdentifier, $attributes) = @_;
 
-    my $room = Shongo::Controller::API::Object->new();
-    $room->set_object_name('Room');
-    $room->set_object_class('Room');
-    $room->add_attribute('name', {'required' => 1});
-    $room->add_attribute('portCount', {'type' => 'int', 'required' => 1});
-    $room->add_attribute(
-        'aliases', {
-            'type' => 'collection',
-            'collection' => {
-                'title' => 'Alias',
-                'class' => 'Shongo::Controller::API::Alias',
-                'short' => 1
+    Shongo::Controller::API::Room->create(undef, {
+        'on_confirm' => sub {
+            my ($room) = @_;
+            my $result = Shongo::Controller->instance()->secure_request(
+                'ResourceControl.createRoom',
+                RPC::XML::string->new($resourceIdentifier),
+                $room->to_xml()
+            );
+            if ( $result->is_fault ) {
+                return;
             }
+            my $roomIdentifier = $result->value();
+            if ( !defined($roomIdentifier) ) {
+                $roomIdentifier = '-- None --';
+            }
+            printf("Room ID: %s\n", $roomIdentifier);
+            return $roomIdentifier;
         }
-    );
-    $room->modify();
-
-    my $result = Shongo::Controller->instance()->secure_request(
-        'ResourceControl.createRoom',
-        RPC::XML::string->new($resourceIdentifier),
-        $room->to_xml()
-    );
-    if ( $result->is_fault ) {
-        return;
-    }
-    my $roomId = $result->value();
-    if ( !defined($roomId) ) {
-        $roomId = '-- None --';
-    }
-    printf("Room ID: %s\n", $roomId);
+    });
 }
 
 sub resource_modify_room
 {
-    my ($resourceIdentifier, $roomId) = @_;
+    my ($resourceIdentifier, $roomIdentifier) = @_;
 
-    my $roomName = console_read_value('New room name', 0, undef, undef);
-    my $portCount = console_read_value('New port count', 0, '^\\d+$', undef);
-
-    # NOTE: attribute names must match Room attribute name constants
-    my %attributes = ();
-    if ( defined $roomName ) {
-        $attributes{'name'} = $roomName;
-    }
-    if ( defined $portCount ) {
-        $attributes{'portCount'} = $portCount;
-    }
-    # TODO: offer modification of room aliases
-
-    my %options = (); # TODO: offer filling room options (see Room.Option enum)
-
-    my $result = Shongo::Controller->instance()->secure_request(
-        'ResourceControl.modifyRoom',
-        RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($roomId),
-        RPC::XML::struct->new(%attributes),
-        RPC::XML::struct->new(%options)
-    );
-    if ( $result->is_fault ) {
+    my ($identifier, $attributes, $options) = @_;
+    if ( !defined($identifier) ) {
         return;
     }
-    my $newRoomId = $result->value();
-    if ( !defined($newRoomId) ) {
-        $newRoomId = '-- None --';
-    }
-    if ( $newRoomId ne $roomId ) {
-        printf("New room ID: %s\n", $newRoomId);
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getRoom',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($roomIdentifier)
+    );
+
+    $options->{'on_confirm'} = sub {
+        my ($room) = @_;
+        my $response = Shongo::Controller->instance()->secure_request(
+            'ResourceControl.modifyRoom',
+            RPC::XML::string->new($resourceIdentifier),
+            $room->to_xml()
+        );
+        if ( !$response->is_fault() ) {
+            my $newRoomId = $response->value();
+            if ( $newRoomId ne $roomIdentifier ) {
+                printf("New room ID: %s\n", $newRoomId);
+            }
+            return $room->{'identifier'};
+        }
+        return undef;
+    };
+
+    if ( !$result->is_fault ) {
+        my $room = Shongo::Controller::API::Room->from_hash($result);
+        if ( defined($room) ) {
+            $room->modify(undef, $options);
+        }
     }
 }
 

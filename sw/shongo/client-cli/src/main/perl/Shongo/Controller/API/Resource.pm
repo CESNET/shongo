@@ -69,7 +69,7 @@ sub new()
     );
     $self->add_attribute('capabilities', {
             'type' => 'collection',
-            'collection' => {
+            'item' => {
                 'title' => 'Capability',
                 'class' => 'Shongo::Controller::API::Capability'
             },

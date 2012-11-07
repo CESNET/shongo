@@ -1,8 +1,11 @@
-* Map editation in cmd-line client
+* Modify API for modifying rooms to accept current flow from cmd-line client
 * Minimize serializing ChangesTrackingObject through JADE
+* Setup deployment and send access to all
 
 FUTURE:
 -------
+* Cmd-line client - remove default "modified" mark for collection items
+
 * Create tests for Converter (and simplify Converter.convert() method)
 
 * Persons, PersonSpecifications

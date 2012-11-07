@@ -35,7 +35,7 @@ sub new()
     });
     $self->add_attribute('slots', {
         'type' => 'collection',
-        'collection' => {
+        'item' => {
             'title' => 'Requested Slot',
             'add' => {
                 'Add new requested slot by absolute date/time' => sub {

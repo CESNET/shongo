@@ -92,8 +92,13 @@ public interface ResourceControlService extends Service
     public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException;
 
+    // TODO: Odstranit getRoomSummary az bude fungovat getRoom
     @API
     public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
+            throws FaultException;
+
+    @API
+    public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId)
             throws FaultException;
 
     @API
@@ -104,15 +109,12 @@ public interface ResourceControlService extends Service
      *
      * @param token                    security token
      * @param deviceResourceIdentifier identifier of the device to perform the action
-     * @param roomId                   identifier of the room to modify
-     * @param attributes               attributes to change; attribute having <code>null</code> is unset on the room
-     * @param options                  room options to change; options having <code>null</code> are unset
+     * @param room                     see {@link Room}
      * @return new room identifier (it may have changed due to some attribute change)
      * @throws FaultException
      */
     @API
-    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, String roomId,
-            Map<String, Object> attributes, Map<Room.Option, Object> options) throws FaultException;
+    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
 
     @API
     public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException;
