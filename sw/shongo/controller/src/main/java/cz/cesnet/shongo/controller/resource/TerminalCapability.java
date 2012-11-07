@@ -93,7 +93,7 @@ public class TerminalCapability extends DeviceCapability
                 addAlias(alias);
             }
             else {
-                alias = getAliasById(apiAlias.getId().longValue());
+                alias = getAliasById(apiAlias.notNullIdAsLong());
             }
             alias.fromApi(apiAlias);
         }
@@ -101,7 +101,7 @@ public class TerminalCapability extends DeviceCapability
         Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases = api
                 .getCollectionItemsMarkedAsDeleted(apiTerminalCapability.ALIASES);
         for (cz.cesnet.shongo.api.Alias aliasApi : apiDeletedAliases) {
-            Alias alias = getAliasById(aliasApi.getId().longValue());
+            Alias alias = getAliasById(aliasApi.notNullIdAsLong());
             removeAlias(alias);
         }
         super.fromApi(api, entityManager);

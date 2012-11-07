@@ -395,16 +395,17 @@ public class Property
                     property.readMethod = method;
                 }
                 if (method.getName().equals(writeMethodName) && method.getParameterTypes().length == 1) {
-                    property.writeMethod = method;
+                    if (property.writeMethod == null) {
+                        property.writeMethod = method;
+                    }
                 }
             }
             currentType = currentType.getSuperclass();
         }
 
-        // If all values are null, property was not found
+        // If getter and field are null, property was not found
         if ((property.field == null || !Modifier.isPublic(property.field.getModifiers()))
-                && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))
-                && (property.writeMethod == null || !Modifier.isPublic(property.writeMethod.getModifiers()))) {
+                && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))) {
             // TODO: Cache also not found properties
             return null;
         }
@@ -499,9 +500,7 @@ public class Property
             for (Method method : methods) {
                 String methodName = method.getName();
                 int parameterCount = method.getParameterTypes().length;
-                if (((methodName.startsWith("get") && parameterCount == 0)
-                             || (methodName.startsWith("set") && parameterCount == 1))
-                        && Modifier.isPublic(method.getModifiers())) {
+                if (methodName.startsWith("get") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
                     String name = methodName.substring(3);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);
                     propertyNames.add(name);

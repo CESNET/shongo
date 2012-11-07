@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
+
 /**
  * Specification for {@link ReservationRequest}s.
  *

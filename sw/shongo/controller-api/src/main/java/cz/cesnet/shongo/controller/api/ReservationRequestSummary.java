@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -9,13 +10,8 @@ import org.joda.time.Interval;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ReservationRequestSummary extends IdentifiedChangeableObject
+public class ReservationRequestSummary extends IdentifiedObject
 {
-    /**
-     * Identifier of the resource.
-     */
-    private String identifier;
-
     /**
      * Date/time when the reservation request was created.
      */
@@ -45,22 +41,6 @@ public class ReservationRequestSummary extends IdentifiedChangeableObject
      * Earliest slot.
      */
     private Interval earliestSlot;
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
 
     /**
      * @return {@link #created}

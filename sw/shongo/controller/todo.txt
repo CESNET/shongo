@@ -1,16 +1,6 @@
-* Refactorize Converter
-  OK add Map, Array as Basic types
-  OK rename old basic types to primitive types, remove old primitive
-  OK add objectToBasic, basicToObject,  atomicToBasic, basicToAtomic, arrayToBasic, basicToArray, collection, map.
-   * Allow changes for map
-
-* Convertor:
-   * doc: conversion from ObjectToBasic and BasicToObject with Options
-  OK other methods private
-
 FUTURE:
 -------
-* Create tests for Converter
+* Create tests for Converter (and simplify Converter.convert() method)
 
 * Persons, PersonSpecifications
 

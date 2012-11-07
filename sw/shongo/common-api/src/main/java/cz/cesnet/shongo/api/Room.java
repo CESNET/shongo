@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.api.util.ChangesTrackingObject;
+import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 
@@ -10,9 +12,8 @@ import java.util.*;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room implements Concept, StructType
+public class Room extends IdentifiedChangeableObject implements Concept, StructType
 {
-    private String identifier;
     private String name = null;
     private int portCount = -1;
     private List<Alias> aliases;
@@ -35,16 +36,6 @@ public class Room implements Concept, StructType
 
         this.name = name;
         this.portCount = portCount;
-    }
-
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
     }
 
     /**

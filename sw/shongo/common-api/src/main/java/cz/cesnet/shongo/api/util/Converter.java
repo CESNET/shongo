@@ -182,86 +182,48 @@ public class Converter
                 throw new FaultException("Cannot get property '%s' from class '%s'.", propertyName, object.getClass());
             }
 
-            Object value = property.getValue(object);
-            if (property.isEmptyValue(value)) {
-                if (changesTrackingObject == null || !options.isStoreChanges()
-                        || !changesTrackingObject.isPropertyFilled(propertyName)) {
-                    continue;
-                }
-            }
-
+            // Skip read-only properties
             if (property.isReadOnly() && !options.isStoreReadOnly()) {
                 continue;
             }
 
-            // Store changes for items
-            if (options.isStoreChanges() && TypeFlags.isArrayOrCollectionOrMap(property.getTypeFlags())) {
-                Object[] items;
-                if (value instanceof Object[]) {
-                    items = (Object[]) value;
-                }
-                else if (value instanceof Map) {
-                    Set keys = ((Map) value).keySet();
-                    items = keys.toArray();
-                }
-                else {
-                    Collection collection = (Collection) value;
-                    items = collection.toArray();
-                }
+            // Get property value
+            Object value = property.getValue(object);
 
-                // Map of changes
-                Map<String, Object> mapItemChanges = new HashMap<String, Object>();
-                // List of modified items
-                List<Object> modifiedItems = new ArrayList<Object>();
-
-                // Store collection changes into map
-                ChangesTrackingObject.CollectionChanges collectionChanges = changesTrackingObject != null ? changesTrackingObject
-                        .getCollectionChanges(propertyName) : null;
-                if (collectionChanges != null) {
-                    // Find all modified items (not marked items are by default modified)
-                    for (Object item : items) {
-                        if (collectionChanges.newItems.contains(item)) {
-                            continue;
-                        }
-                        if (collectionChanges.deletedItems.contains(item)) {
-                            throw new IllegalStateException(
-                                    "Item has been marked as delete but not removed from the collection.");
-                        }
-                        modifiedItems.add(item);
-                    }
-                    if (collectionChanges.newItems.size() > 0) {
-                        mapItemChanges.put(ChangesTrackingObject.COLLECTION_NEW,
-                                Converter.convertToBasic(collectionChanges.newItems, options));
-                    }
-                    if (collectionChanges.deletedItems.size() > 0) {
-                        mapItemChanges.put(ChangesTrackingObject.COLLECTION_DELETED,
-                                Converter.convertToBasic(collectionChanges.deletedItems, options));
-                    }
-                }
-                else {
-                    // If no collection changes are present then all items are modified
-                    for (Object item : items) {
-                        modifiedItems.add(item);
-                    }
-                }
-                if (modifiedItems.size() > 0) {
-                    mapItemChanges.put(ChangesTrackingObject.COLLECTION_MODIFIED,
-                            Converter.convertToBasic(modifiedItems, options));
-                }
-                // Skip empty changes
-                if (mapItemChanges.isEmpty()) {
+            // If value is empty, it can be skipped in some cases
+            if (property.isEmptyValue(value)) {
+                // Skip empty values if we do not track changes (a missing value is interpreted as empty)
+                if (changesTrackingObject == null) {
                     continue;
                 }
-                // Append values for Map
-                if (value instanceof Map) {
-                    mapItemChanges.put("__map", value);
+                // Skip empty values if we should not save changes (a missing value is interpreted as empty)
+                if (!options.isStoreChanges()) {
+                    continue;
                 }
-                value = mapItemChanges;
+                // If value was not filled (e.g., modified) we should skip empty values too
+                if (!changesTrackingObject.isPropertyFilled(propertyName)) {
+                    continue;
+                }
             }
 
-
-            // Convert value to map or array if the conversion is possible
-            value = Converter.convertToBasic(value, options);
+            // If changes should be stored and the property has items, we must save the property by custom structure
+            // with "new"/"modified"/"deleted" arrays
+            if (options.isStoreChanges() && TypeFlags.isArrayOrCollectionOrMap(property.getTypeFlags())) {
+                ChangesTrackingObject.CollectionChanges collectionChanges =
+                        (changesTrackingObject != null ?
+                                 changesTrackingObject.getCollectionChanges(propertyName) : null);
+                value = getValueItemChanges(value, collectionChanges, options);
+                if (value == null) {
+                    // No changes so skip the property
+                    continue;
+                }
+                // No further conversion of value is needed (already performed inside the getValueItemChanges)
+            }
+            // Only convert value
+            else {
+                // Convert value to basic if the conversion is possible
+                value = Converter.convertToBasic(value, options);
+            }
 
             // Skip empty arrays
             if (value instanceof Object[] && ((Object[]) value).length == 0) {
@@ -341,114 +303,39 @@ public class Converter
                     throw new FaultException(CommonFault.CLASS_ATTRIBUTE_READ_ONLY, propertyName, object.getClass());
                 }
 
-                // Get property type and type flags
-                Class propertyType = property.getType();
-                int propertyTypeFlags = property.getTypeFlags();
-
-                if (value instanceof Map) {
-                    Map mapValue = (Map) value;
-                    if (TypeFlags.isArray(propertyTypeFlags)) {
-                    }
-                    else if (TypeFlags.isCollection(propertyTypeFlags)) {
-                    }
-                    else if (TypeFlags.isMap(propertyTypeFlags)) {
+                // Set changes for items
+                if (value instanceof Map && TypeFlags.isArrayOrCollectionOrMap(property.getTypeFlags())) {
+                    value = setValueItemChanges(value, property, changesTrackingObject, options);
+                    if (value == null) {
+                        // No changes so skip the property
+                        continue;
                     }
                 }
-
-                // Parse collection changes
-                if (value instanceof Map && TypeFlags.isArrayOrCollectionOrMap(propertyTypeFlags)) {
-                    Map collectionChanges = (Map) value;
-                    Object newItems = null;
-                    Object modifiedItems = null;
-                    Object deletedItems = null;
-                    if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_NEW)) {
-                        newItems = Converter.convert(
-                                collectionChanges.get(ChangesTrackingObject.COLLECTION_NEW), property, options);
+                // Only convert value
+                else {
+                    try {
+                        value = Converter.convert(value, property.getType(), property.getValueAllowedTypes(),
+                                property, options);
                     }
-                    if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_MODIFIED)) {
-                        modifiedItems = Converter.convert(
-                                collectionChanges.get(ChangesTrackingObject.COLLECTION_MODIFIED), property, options);
-                    }
-                    if (collectionChanges.containsKey(ChangesTrackingObject.COLLECTION_DELETED)) {
-                        deletedItems = Converter.convert(
-                                collectionChanges.get(ChangesTrackingObject.COLLECTION_DELETED), property, options);
-                    }
-                    if (newItems != null || modifiedItems != null || deletedItems != null) {
-                        if (TypeFlags.isArray(propertyTypeFlags)) {
-                            int size = (newItems != null ? ((Object[]) newItems).length : 0)
-                                    + (modifiedItems != null ? ((Object[]) modifiedItems).length : 0);
-                            int index = 0;
-                            Object[] array = ClassHelper.createArray(propertyType.getComponentType(), size);
-                            if (newItems != null) {
-                                for (Object newItem : (Object[]) newItems) {
-                                    array[index++] = newItem;
-                                    if (changesTrackingObject != null) {
-                                        changesTrackingObject.markCollectionItemAsNew(propertyName, newItem);
-                                    }
+                    catch (IllegalArgumentException exception) {
+                        Object requiredType = property.getType();
+                        Object givenType = value.getClass();
+                        if (property.getValueAllowedTypes() != null) {
+                            StringBuilder builder = new StringBuilder();
+                            for (Class allowedType : property.getValueAllowedTypes()) {
+                                if (builder.length() > 0) {
+                                    builder.append("|");
                                 }
+                                builder.append(ClassHelper.getClassShortName(allowedType));
                             }
-                            if (modifiedItems != null) {
-                                for (Object modifiedItem : (Object[]) modifiedItems) {
-                                    array[index++] = modifiedItem;
-                                }
-                            }
-                            if (deletedItems != null) {
-                                for (Object deletedItem : (Object[]) deletedItems) {
-                                    if (changesTrackingObject != null) {
-                                        changesTrackingObject.markCollectionItemAsDeleted(propertyName, deletedItem);
-                                    }
-                                }
-                            }
-                            value = array;
+                            requiredType = builder.toString();
                         }
-                        else if (TypeFlags.isCollection(propertyTypeFlags)) {
-                            Collection<Object> collection = ClassHelper.createCollection(propertyType, 0);
-                            if (newItems != null) {
-                                for (Object newItem : (Collection) newItems) {
-                                    collection.add(newItem);
-                                    if (changesTrackingObject != null) {
-                                        changesTrackingObject.markCollectionItemAsNew(propertyName, newItem);
-                                    }
-                                }
-                            }
-                            if (modifiedItems != null) {
-                                for (Object modifiedItem : (Collection) modifiedItems) {
-                                    collection.add(modifiedItem);
-                                }
-                            }
-                            if (deletedItems != null) {
-                                for (Object deletedItem : (Collection) deletedItems) {
-                                    if (changesTrackingObject != null) {
-                                        changesTrackingObject.markCollectionItemAsDeleted(propertyName, deletedItem);
-                                    }
-                                }
-                            }
-                            value = collection;
+                        if (value instanceof String) {
+                            givenType = String.format("String(%s)", value);
                         }
+                        throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
+                                object.getClass(), requiredType, givenType);
                     }
-                }
-
-                try {
-                    value = Converter.convert(value, property, options);
-                }
-                catch (IllegalArgumentException exception) {
-                    Object requiredType = propertyType;
-                    Object givenType = value.getClass();
-                    if (property.getValueAllowedTypes() != null) {
-                        StringBuilder builder = new StringBuilder();
-                        for (Class allowedType : property.getValueAllowedTypes()) {
-                            if (builder.length() > 0) {
-                                builder.append("|");
-                            }
-                            builder.append(ClassHelper.getClassShortName(allowedType));
-                        }
-                        requiredType = builder.toString();
-                    }
-                    if (value instanceof String) {
-                        givenType = String.format("String(%s)", value);
-                    }
-                    throw new FaultException(CommonFault.CLASS_ATTRIBUTE_TYPE_MISMATCH, propertyName,
-                            object.getClass(), requiredType, givenType);
                 }
 
                 // Set the value to property
@@ -462,6 +349,175 @@ public class Converter
 
             return object;
         }
+    }
+
+    /**
+     * Get item changes for given {@code value}.
+     *
+     * @param value             of type {@link Object[]}, {@link Collection} or {@link Map}
+     * @param collectionChanges changes which should be stored
+     * @param options           see {@link Options}
+     * @return {@link Map} containing changes for given {@code value} or null when no changes are present
+     *         (the changes are also converted to {@link TypeFlags#BASIC} types)
+     * @throws FaultException when the method fails
+     */
+    private static Map<String, Object> getValueItemChanges(Object value,
+            ChangesTrackingObject.CollectionChanges collectionChanges, Options options) throws FaultException
+    {
+        // Map of changes
+        Map<String, Object> mapValueItemChanges = new HashMap<String, Object>();
+
+        // Get items from value (for Map the keys are used)
+        Object[] items;
+        if (value instanceof Object[]) {
+            items = (Object[]) value;
+        }
+        else if (value instanceof Map) {
+            Set keys = ((Map) value).keySet();
+            items = keys.toArray();
+        }
+        else {
+            Collection collection = (Collection) value;
+            items = collection.toArray();
+        }
+
+        // List of modified items
+        List<Object> modifiedItems = new ArrayList<Object>();
+
+        // Store collection changes into map
+        if (collectionChanges != null) {
+            // Find all modified items (not marked items are by default modified)
+            for (Object item : items) {
+                if (collectionChanges.newItems.contains(item)) {
+                    continue;
+                }
+                if (collectionChanges.deletedItems.contains(item)) {
+                    throw new IllegalStateException(
+                            "Item has been marked as delete but not removed from the collection.");
+                }
+                modifiedItems.add(item);
+            }
+            if (collectionChanges.newItems.size() > 0) {
+                mapValueItemChanges.put(ChangesTrackingObject.COLLECTION_NEW,
+                        Converter.convertToBasic(collectionChanges.newItems, options));
+            }
+            if (collectionChanges.deletedItems.size() > 0) {
+                mapValueItemChanges.put(ChangesTrackingObject.COLLECTION_DELETED,
+                        Converter.convertToBasic(collectionChanges.deletedItems, options));
+            }
+        }
+        else {
+            // If no collection changes are present then all items are modified
+            for (Object item : items) {
+                modifiedItems.add(item);
+            }
+        }
+        if (modifiedItems.size() > 0) {
+            mapValueItemChanges.put(ChangesTrackingObject.COLLECTION_MODIFIED,
+                    Converter.convertToBasic(modifiedItems, options));
+        }
+        // Skip empty changes
+        if (mapValueItemChanges.isEmpty()) {
+            return null;
+        }
+        // Append values for Map
+        if (value instanceof Map) {
+            mapValueItemChanges.put("__map", value);
+        }
+        return mapValueItemChanges;
+    }
+
+    /**
+     * Set changes from given {@code value} to the given {@code changesTrackingObject} and return value which should
+     * be set to the {@code property}.
+     *
+     * @param value                 of type {@link Object[]}, {@link Collection} or {@link Map}
+     * @param property              to which the value belongs
+     * @param changesTrackingObject {@link ChangesTrackingObject} to which the changes should be filled
+     * @param options               see {@link Options}
+     * @return value which should be set to the given {@code property} (converted from{@link TypeFlags#BASIC} types)
+     * @throws FaultException when the method fails
+     */
+    private static Object setValueItemChanges(Object value, Property property,
+            ChangesTrackingObject changesTrackingObject, Options options) throws FaultException
+    {
+        // Get property type and type flags
+        String propertyName = property.getName();
+        Class propertyType = property.getType();
+        Class[] propertyAllowedTypes = property.getValueAllowedTypes();
+        int propertyTypeFlags = property.getTypeFlags();
+
+        Class changesType = property.getType();
+        if (TypeFlags.isMap(propertyTypeFlags)) {
+            changesType = Set.class;
+        }
+
+        // Get changes
+        Map changes = (Map) value;
+        Object newItems = null;
+        Object modifiedItems = null;
+        Object deletedItems = null;
+        if (changes.containsKey(ChangesTrackingObject.COLLECTION_NEW)) {
+            newItems = changes.get(ChangesTrackingObject.COLLECTION_NEW);
+            newItems = Converter.convert(newItems, changesType, propertyAllowedTypes, property, options);
+            if (changesTrackingObject != null) {
+                for (Object newItem : (Collection) newItems) {
+                    changesTrackingObject.markCollectionItemAsNew(propertyName, newItem);
+                }
+            }
+        }
+        if (changes.containsKey(ChangesTrackingObject.COLLECTION_MODIFIED)) {
+            modifiedItems = changes.get(ChangesTrackingObject.COLLECTION_MODIFIED);
+            modifiedItems = Converter.convert(modifiedItems, changesType, propertyAllowedTypes, property, options);
+        }
+        if (changes.containsKey(ChangesTrackingObject.COLLECTION_DELETED)) {
+            deletedItems = changes.get(ChangesTrackingObject.COLLECTION_DELETED);
+            deletedItems = Converter.convert(deletedItems, changesType, propertyAllowedTypes, property, options);
+            if (changesTrackingObject != null) {
+                for (Object deletedItem : (Collection) deletedItems) {
+                    changesTrackingObject.markCollectionItemAsDeleted(propertyName, deletedItem);
+                }
+            }
+        }
+        if (newItems == null && modifiedItems == null && deletedItems == null) {
+            return null;
+        }
+        if (TypeFlags.isArray(propertyTypeFlags)) {
+            int size = (newItems != null ? ((Object[]) newItems).length : 0)
+                    + (modifiedItems != null ? ((Object[]) modifiedItems).length : 0);
+            int index = 0;
+            Object[] array = ClassHelper.createArray(propertyType.getComponentType(), size);
+            if (newItems != null) {
+                for (Object newItem : (Object[]) newItems) {
+                    array[index++] = newItem;
+                }
+            }
+            if (modifiedItems != null) {
+                for (Object modifiedItem : (Object[]) modifiedItems) {
+                    array[index++] = modifiedItem;
+                }
+            }
+            value = array;
+        }
+        else if (TypeFlags.isCollection(propertyTypeFlags)) {
+            Collection<Object> collection = ClassHelper.createCollection(propertyType, 0);
+            if (newItems != null) {
+                for (Object newItem : (Collection) newItems) {
+                    collection.add(newItem);
+                }
+            }
+            if (modifiedItems != null) {
+                for (Object modifiedItem : (Collection) modifiedItems) {
+                    collection.add(modifiedItem);
+                }
+            }
+            value = collection;
+        }
+        else if (TypeFlags.isMap(propertyTypeFlags)) {
+            Map map = (Map) value;
+            value = convert(map.get("__map"), property.getType(), propertyAllowedTypes, property, options);
+        }
+        return value;
     }
 
     /**
@@ -531,14 +587,12 @@ public class Converter
             if (value instanceof Map) {
                 // Convert keys to proper type
                 if (property != null && property.getKeyAllowedType() != null) {
-                    Map map = (Map) value;
-                    Map newMap = new HashMap<Object, Object>();
-                    for (Object itemKey : map.keySet()) {
-                        Object itemValue = map.get(itemKey);
+                    Map oldMap = (Map) value;
+                    Map<Object, Object> newMap = new HashMap<Object, Object>();
+                    for (Object itemKey : oldMap.keySet()) {
+                        Object itemValue = oldMap.get(itemKey);
                         itemKey = convert(itemKey, property.getKeyAllowedType(), null, null, options);
-                        ;
                         itemValue = convert(itemValue, Object.class, targetAllowedTypes, null, options);
-                        ;
                         newMap.put(itemKey, itemValue);
                     }
                     return newMap;

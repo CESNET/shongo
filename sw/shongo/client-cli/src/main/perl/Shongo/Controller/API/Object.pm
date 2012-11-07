@@ -43,7 +43,7 @@ sub new
     $self->{'__attributes_order'} = [];
     $self->{'__attributes_preserve'} = {};
 
-    $self->add_attribute_preserve('id');
+    $self->add_attribute_preserve('identifier');
 
     return $self;
 }

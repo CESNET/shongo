@@ -299,7 +299,7 @@ public class ReservationRequest extends NormalReservationRequest
             if (specificationApi == null) {
                 setSpecification(null);
             }
-            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
+            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getIdentifier())) {
                 getSpecification().fromApi(specificationApi, entityManager, domain);
             }
             else {

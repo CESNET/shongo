@@ -1,17 +1,14 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedObject;
+
 /**
  * Represents an entity that can be scheduled.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceSummary
+public class ResourceSummary extends IdentifiedObject
 {
-    /**
-     * Identifier of the resource.
-     */
-    private String identifier;
-
     /**
      * Name of the resource.
      */
@@ -26,22 +23,6 @@ public class ResourceSummary
      * Parent resource identifier.
      */
     private String parentIdentifier;
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
 
     /**
      * @return {@link #name}

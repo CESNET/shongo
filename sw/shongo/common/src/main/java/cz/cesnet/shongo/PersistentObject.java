@@ -39,11 +39,11 @@ public abstract class PersistentObject extends PrintableObject
      * @return true whether {@link #id} equals given {@code id},
      *         false otherwise
      */
-    public boolean equalsId(Integer id)
+    public boolean equalsId(String id)
     {
         Long longId = null;
         if (id != null) {
-            longId = id.longValue();
+            longId = Long.valueOf(id);
         }
         return this.id.equals(longId);
     }

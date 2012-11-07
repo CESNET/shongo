@@ -57,6 +57,8 @@ public class XmlRpcTypeTest
         room.setOption(Room.Option.PIN, "100");
 
         getRoomService().modifyRoom(SECURITY_TOKEN, room);
+
+        throw new RuntimeException("TODO: check changes");
     }
 
     public interface RoomService extends Service
