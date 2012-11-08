@@ -1295,9 +1295,9 @@ ParamsLoop:
         Map<String, Object> status = exec(new Command("device.query"));
 
         DeviceLoadInfo info = new DeviceLoadInfo();
-        info.setCpuLoad((Integer) health.get("cpuLoad"));
+        info.setCpuLoad(((Integer) health.get("cpuLoad")).doubleValue());
         if (status.containsKey("uptime")) {
-            info.setUpTime((Long) status.get("uptime")); // NOTE: 'uptime' not documented, but it is there
+            info.setUptime((Integer) status.get("uptime")); // NOTE: 'uptime' not documented, but it is there
         }
 
         // NOTE: memory and disk usage not accessible via API

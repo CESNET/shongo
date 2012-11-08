@@ -9,13 +9,6 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 public interface MonitoringService
 {
     /**
-     * Gets info about current load of the device.
-     *
-     * @return current load info
-     */
-    DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException;
-
-    /**
      * Gets the multipoint usage stats.
      *
      * @return usage stats

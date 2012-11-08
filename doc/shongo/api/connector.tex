@@ -95,14 +95,14 @@ State description of a device.
 \todo{}
 
 \ApiClass{DeviceLoadInfo}{}
-Current device load information. A negative value in any attribute means the value could not be determined.
+Current device load information. A \ApiCode{null} value in any attribute means the value could not be determined. Note that \ApiCode{String} data type is used for some attributes, as XML-RPC is not capable of transmitting long integers. Thus, strings containing decimal representation of long integer values are used instead.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{cpuLoad}{float}{}
-\ApiClassAttribute{memoryOccupied}{long}{}
-\ApiClassAttribute{memoryAvailable}{long}{}
-\ApiClassAttribute{diskSpaceOccupied}{long}{}
-\ApiClassAttribute{diskSpaceAvailable}{long}{}
-\ApiClassAttribute{uptime}{long}{}
+\ApiClassAttribute{cpuLoad}{Double}{} CPU load as a percentage of maximum
+\ApiClassAttribute{memoryOccupied}{String}{} total amount of memory currently occupied in bytes
+\ApiClassAttribute{memoryAvailable}{String}{} total amount of available memory in bytes
+\ApiClassAttribute{diskSpaceOccupied}{String}{} total amount of occupied disk space in bytes
+\ApiClassAttribute{diskSpaceAvailable}{String}{} total amount of available disk space in bytes
+\ApiClassAttribute{uptime}{Integer}{} device uptime in seconds
 \end{ApiClassAttributes}
 
 \ApiClass{Room}{}

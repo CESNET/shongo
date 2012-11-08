@@ -1021,7 +1021,7 @@ sub resource_get_device_load_info
         print "No info returned\n";
     }
     else {
-        if ($info->{'uptime'} >= 0) {
+        if (defined($info->{'uptime'})) {
             my $uptime = $info->{'uptime'};
             my $uptimeStr = '';
             if ($uptime >= 60*60*24) {
@@ -1039,20 +1039,20 @@ sub resource_get_device_load_info
             $uptimeStr .= sprintf('%ds', $uptime);
             printf("Uptime:               %s\n", $uptimeStr);
         }
-        if ($info->{'cpuLoad'} >= 0) {
-            printf("CPU load:             %.0f\n", $info->{'cpuLoad'});
+        if (defined($info->{'cpuLoad'})) {
+            printf("CPU load:             %.1f %%\n", $info->{'cpuLoad'});
         }
-        if ($info->{'memoryOccupied'} >= 0) {
-            printf("Memory occupied:      %d\n",   $info->{'memoryOccupied'});
+        if (defined($info->{'memoryOccupied'})) {
+            printf("Memory occupied:      %d bytes\n",   $info->{'memoryOccupied'});
         }
-        if ($info->{'memoryAvailable'} >= 0) {
-            printf("Memory available:     %d\n",   $info->{'memoryAvailable'});
+        if (defined($info->{'memoryAvailable'})) {
+            printf("Memory available:     %d bytes\n",   $info->{'memoryAvailable'});
         }
-        if ($info->{'diskSpaceOccupied'} >= 0) {
-            printf("Disk space occupied:  %d\n",   $info->{'diskSpaceOccupied'});
+        if (defined($info->{'diskSpaceOccupied'})) {
+            printf("Disk space occupied:  %d bytes\n",   $info->{'diskSpaceOccupied'});
         }
-        if ($info->{'diskSpaceAvailable'} >= 0) {
-            printf("Disk space available: %d\n",   $info->{'diskSpaceAvailable'});
+        if (defined($info->{'diskSpaceAvailable'})) {
+            printf("Disk space available: %d bytes\n",   $info->{'diskSpaceAvailable'});
         }
     }
 }

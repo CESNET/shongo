@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.connector.api;
 
 import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.util.Address;
 
 import java.util.List;
@@ -35,6 +37,13 @@ public interface CommonService
      * @return information about the connector
      */
     ConnectorInfo getConnectorInfo();
+
+    /**
+     * Gets info about current load of the device.
+     *
+     * @return current load info
+     */
+    DeviceLoadInfo getDeviceLoadInfo() throws CommandException, CommandUnsupportedException;
 
     /**
      * Lists names of all implemented methods supported by the implementing connector.
