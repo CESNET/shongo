@@ -188,7 +188,13 @@ A compression algorithm used to compress data files.
 \begin{Api}
 
 \ApiItem{\ApiCode{ConnectorInfo getConnectorInfo()}}
-Get information about connector.
+Gets information about connector.
+
+\ApiItem{\ApiCode{DeviceLoadInfo getDeviceLoadInfo()}}
+Gets info about current load of the device.
+
+\ApiItem{\ApiCode{List<String> getSupportedMethods()}}
+Lists names of all implemented methods supported by the implementing connector.
 
 \end{Api}
 
@@ -294,9 +300,6 @@ Disables a given room user as a content provider in the room. Typically, all use
 
 \subsection{Monitoring}
 \begin{Api}
-
-\ApiItem{\ApiCode{DeviceLoadInfo getDeviceLoadInfo()}}
-Gets info about current load of the device.
 
 \ApiItem{\ApiCode{UsageStats getUsageStats()}}
 Gets the multipoint usage stats.
