@@ -302,7 +302,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         Element respose = request("sco-update", attributes);
 
         for (RoomUser roomUser : room.getUsers()) {
-            String principalId = roomUser.getUserIdentity().getId();
+            String principalId = roomUser.getUserIdentity().getIdentifier();
             HashMap<String,String> userAttributes = new HashMap<String, String>();
             userAttributes.put("acl-id",respose.getChild("sco").getAttributeValue("sco-id"));
             userAttributes.put("principal-id",principalId);

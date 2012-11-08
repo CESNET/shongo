@@ -2,19 +2,15 @@ package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Alias implements StructType, Concept
+public class Alias extends IdentifiedObject implements StructType, Concept
 {
-    /**
-     * Identifier.
-     */
-    private Integer id;
-
     /**
      * Technology of alias.
      */
@@ -49,22 +45,6 @@ public class Alias implements StructType, Concept
         this.technology = technology;
         this.type = type;
         this.value = value;
-    }
-
-    /**
-     * @return {@link #id
-     */
-    public Integer getId()
-    {
-        return id;
-    }
-
-    /**
-     * @param id sets the {@link #id}
-     */
-    public void setId(Integer id)
-    {
-        this.id = id;
     }
 
     /**

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.api.xmlrpc;
 
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
+import cz.cesnet.shongo.api.util.TypeFlags;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.apache.xmlrpc.XmlRpcException;
@@ -68,10 +69,10 @@ public class TypeFactory extends TypeFactoryImpl
                         setResult(null);
                     }
                     // If the class key is present convert the map to object
-                    else if (map.containsKey("class")) {
+                    else {
                         // Convert map to object of the class
                         try {
-                            setResult(Converter.convertMapToObject(map, options));
+                            setResult(Converter.convertFromBasic(map, options));
                         }
                         catch (FaultException exception) {
                             throw new SAXException(exception);
@@ -85,57 +86,75 @@ public class TypeFactory extends TypeFactoryImpl
         }
     }
 
+    /**
+     * @param pConfig
+     * @return {@link TypeSerializer} for {@code null} value
+     */
+    private TypeSerializer getNullSerializer(XmlRpcStreamConfig pConfig)
+    {
+        return new MapSerializer(this, pConfig)
+        {
+            @Override
+            public void write(ContentHandler pHandler, Object pObject) throws SAXException
+            {
+                super.write(pHandler, new HashMap());
+            }
+        };
+    }
+
+    /**
+     * {@link TypeSerializer} for values to be converted by {@link Converter} to {@link TypeFlags#BASIC} types.
+     */
+    public class ConverterTypeSerializer implements TypeSerializer
+    {
+        /**
+         * @see XmlRpcStreamConfig
+         */
+        XmlRpcStreamConfig config;
+
+        /**
+         * Constructor.
+         *
+         * @param config sets the {@link #config}
+         */
+        public ConverterTypeSerializer(XmlRpcStreamConfig config)
+        {
+            this.config = config;
+        }
+
+        @Override
+        public void write(ContentHandler handler, Object object) throws SAXException
+        {
+            try {
+                object = Converter.convertToBasic(object, options);
+            }
+            catch (FaultException exception) {
+                throw new SAXException(exception);
+            }
+            TypeSerializer serializer = null;
+            if (object == null) {
+                serializer = getNullSerializer(config);
+            }
+            else {
+                serializer = getSerializer(config, object);
+            }
+            serializer.write(handler, object);
+        }
+    }
+
     @Override
     public TypeSerializer getSerializer(XmlRpcStreamConfig pConfig, Object pObject) throws SAXException
     {
+        int typeFlags = TypeFlags.get(pObject);
+        // Null values are serialized as empty maps
         if (pObject == null) {
-            return new MapSerializer(this, pConfig)
-            {
-                @Override
-                public void write(ContentHandler pHandler, Object pObject) throws SAXException
-                {
-                    super.write(pHandler, new HashMap());
-                }
-            };
+            return getNullSerializer(pConfig);
         }
-        else if (Converter.isAtomic(pObject)) {
-            return new MapSerializer(this, pConfig)
-            {
-                @Override
-                public void write(ContentHandler pHandler, Object pObject) throws SAXException
-                {
-                    String value = Converter.convertAtomicToString(pObject);
-                    if (value == null) {
-                        super.write(pHandler, new HashMap());
-                    }
-                    else {
-                        write(pHandler, null, value);
-                    }
-                }
-            };
+        // Basic values are serialized by default
+        else if ( TypeFlags.isBasic(typeFlags)) {
+            return super.getSerializer(pConfig, pObject);
         }
-        TypeSerializer serializer = null;
-        if (!(pObject instanceof StructType)) {
-            serializer = super.getSerializer(pConfig, pObject);
-        }
-        // If none serializer was found, serialize by object attributes
-        if (serializer == null) {
-            // Create custom map serializer to serialize object to map
-            serializer = new MapSerializer(this, pConfig)
-            {
-                @Override
-                public void write(ContentHandler pHandler, Object pObject) throws SAXException
-                {
-                    try {
-                        Map<String, Object> map = Converter.convertObjectToMap(pObject, options);
-                        super.write(pHandler, map);
-                    }
-                    catch (FaultException exception) {
-                        throw new SAXException(exception);
-                    }
-                }
-            };
-        }
-        return serializer;
+        // Other values must be converted to basic and serialized by default
+        return new ConverterTypeSerializer(pConfig);
     }
 }

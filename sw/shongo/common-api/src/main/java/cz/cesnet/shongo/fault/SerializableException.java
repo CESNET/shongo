@@ -3,6 +3,7 @@ package cz.cesnet.shongo.fault;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Property;
+import cz.cesnet.shongo.api.util.TypeFlags;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,17 +66,20 @@ public interface SerializableException
         public void setParameter(String name, Object value)
         {
             String string;
-            if (value instanceof String) {
+            if (value == null) {
+                string = null;
+            }
+            else if (value instanceof String) {
                 string = (String) value;
             }
-            else if (Converter.isPrimitive(value)) {
+            else if (TypeFlags.isAtomic(TypeFlags.get(value))) {
                 string = value.toString();
             }
             else if (value instanceof Class) {
                 string = ClassHelper.getClassShortName((Class) value);
             }
             else {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(value.getClass().getCanonicalName());
             }
             parameters.put(name, string);
         }
@@ -166,13 +170,7 @@ public interface SerializableException
                     String propertyValue = getParameter(propertyName);
                     if ( propertyValue != null) {
                         Property property = Property.getProperty(toException.getClass(), propertyName);
-                        Class propertyType = property.getType();
-                        Object propertyConvertedValue;
-                        if (propertyType.equals(Class.class)) {
-                            propertyConvertedValue = ClassHelper.getClassFromShortName(propertyValue);
-                        } else {
-                            propertyConvertedValue = Converter.convert(propertyValue, propertyType);
-                        }
+                        Object propertyConvertedValue = Converter.convert(propertyValue, property);
                         Property.setPropertyValue(toException, propertyName, propertyConvertedValue, true);
                     }
                 }

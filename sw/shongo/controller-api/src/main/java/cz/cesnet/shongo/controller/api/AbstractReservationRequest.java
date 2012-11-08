@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import org.joda.time.DateTime;
 
 /**
@@ -9,11 +10,6 @@ import org.joda.time.DateTime;
  */
 public abstract class AbstractReservationRequest extends IdentifiedChangeableObject
 {
-    /**
-     * Identifier of the resource.
-     */
-    private String identifier;
-
     /**
      * Date/time when the reservation request was created.
      */
@@ -34,22 +30,6 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
      */
     public AbstractReservationRequest()
     {
-    }
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
     }
 
     /**

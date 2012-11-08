@@ -31,13 +31,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * XmlRpc WebServer with improved type factory
+ * Server for XML-RPC with improved type factory.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class WebServer extends org.apache.xmlrpc.webserver.WebServer
+public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
 {
-    private static Logger logger = LoggerFactory.getLogger(WebServer.class);
+    private static Logger logger = LoggerFactory.getLogger(RpcServer.class);
 
     /**
      * Handler mapping, provide set of service instances
@@ -69,7 +69,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
      * @param host
      * @param pPort
      */
-    public WebServer(String host, int pPort)
+    public RpcServer(String host, int pPort)
     {
         super(pPort, getHostByName(host));
 
@@ -373,7 +373,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
                         throw (XmlRpcException) throwable;
                     }
                     else if (throwable instanceof Fault) {
-                        XmlRpcException xmlRpcException = WebServer.convertException((Fault) throwable,
+                        XmlRpcException xmlRpcException = RpcServer.convertException((Fault) throwable,
                                 throwable.getCause());
                         xmlRpcException.setStackTrace(throwable.getStackTrace());
                         throw xmlRpcException;
@@ -431,7 +431,7 @@ public class WebServer extends org.apache.xmlrpc.webserver.WebServer
             if (pError instanceof RuntimeException || pError instanceof SAXException) {
                 Throwable cause = pError.getCause();
                 if (cause instanceof Fault) {
-                    return WebServer.convertException((Fault) cause, cause.getCause());
+                    return RpcServer.convertException((Fault) cause, cause.getCause());
                 }
             }
             if (pError instanceof XmlRpcException) {

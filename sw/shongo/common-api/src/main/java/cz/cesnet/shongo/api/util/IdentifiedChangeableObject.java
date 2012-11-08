@@ -1,7 +1,5 @@
-package cz.cesnet.shongo.controller.api;
+package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.util.ChangesTrackingObject;
-import cz.cesnet.shongo.api.util.PropertyStorage;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 
 /**
@@ -15,7 +13,7 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     /**
      * Identifier.
      */
-    private Integer id;
+    private String identifier;
 
     /**
      * Storage for properties.
@@ -34,32 +32,40 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     }
 
     /**
-     * @return {@link #id
+     * @return {@link #identifier
      */
-    public Integer getId()
+    public String getIdentifier()
     {
-        return id;
+        return identifier;
     }
 
     /**
-     * @param id sets the {@link #id}
+     * @param identifier sets the {@link #identifier}
      */
-    public void setId(Integer id)
+    public void setIdentifier(String identifier)
     {
-        this.id = id;
+        this.identifier = identifier;
     }
 
     /**
-     * @return {@link #id} as {@link Long}
+     * @param identifier sets the {@link #identifier}
+     */
+    public void setIdentifier(Long identifier)
+    {
+        this.identifier = identifier.toString();
+    }
+
+    /**
+     * @return {@link #identifier} as {@link Long}
      * @throws IllegalStateException
      */
     public Long notNullIdAsLong()
     {
-        if (id == null) {
+        if (identifier == null) {
             throw new IllegalStateException("Attribute 'id' in entity '" + getClass().getSimpleName()
 
                     + "' must not be null.");
         }
-        return id.longValue();
+        return Long.valueOf(identifier);
     }
 }

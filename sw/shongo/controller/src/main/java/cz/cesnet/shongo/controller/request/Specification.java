@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.request;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
@@ -128,7 +127,7 @@ public abstract class Specification extends PersistentObject
      */
     public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
     {
-        specificationApi.setId(getId().intValue());
+        specificationApi.setIdentifier(getId());
     }
 
     /**

@@ -111,7 +111,7 @@ sub on_init()
             }, NULL());
             $self->add_attribute('specifications', {
                 'type' => 'collection',
-                'collection' => {
+                'item' => {
                     'title' => 'specification',
                     'class' => 'Shongo::Controller::API::ParticipantSpecification',
                 },
@@ -208,7 +208,7 @@ sub on_init()
         case 'VirtualRoomSpecification' {
             $self->add_attribute('technologies', {
                 'type' => 'collection',
-                'collection' => {
+                'item' => {
                     'title' => 'Technology',
                     'enum' => $Shongo::Controller::API::DeviceResource::Technology
                 },

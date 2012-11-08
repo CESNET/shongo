@@ -68,7 +68,7 @@ public class PropertyTest
         // hasProperty
         assertTrue(Property.hasProperty(Foo.class, "field1"));
         assertTrue(Property.hasProperty(Foo.class, "field2"));
-        assertTrue(Property.hasProperty(Foo.class, "field3"));
+        assertFalse(Property.hasProperty(Foo.class, "field3"));
         assertTrue(Property.hasProperty(Foo.class, "field4"));
         assertTrue(Property.hasProperty(Foo.class, "field5"));
         assertTrue(Property.hasProperty(Foo.class, "field6"));
@@ -77,12 +77,11 @@ public class PropertyTest
         // getPropertyNames
         String[] propertyNames = Property.getPropertyNames(Foo.class);
         Arrays.sort(propertyNames);
-        assertArrayEquals(new String[]{"field1", "field2", "field3", "field4", "field5", "field6", "field7"},
+        assertArrayEquals(new String[]{"field1", "field2", "field4", "field5", "field6", "field7"},
                 propertyNames);
 
         // setPropertyValue
         Property.setPropertyValue(foo, "field1", "test", true);
-        Property.setPropertyValue(foo, "field3", Long.valueOf(3));
         try {
             Property.setPropertyValue(foo, "field2", 111);
             fail("Exception that field is read-only should be thrown.");
@@ -103,10 +102,10 @@ public class PropertyTest
         assertEquals(2, Property.getPropertyValue(foo, "field2"));
         try {
             assertEquals(Long.valueOf(1), Property.getPropertyValue(foo, "field3"));
-            fail("Exception that field is write-only should be thrown.");
+            fail("Exception that field is not defined should be thrown.");
         }
         catch (FaultException exception) {
-            assertEquals(CommonFault.UNKNOWN, exception.getCode());
+            assertEquals(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
         }
         try {
             Property.getPropertyValue(foo, "fieldNot");
@@ -116,17 +115,17 @@ public class PropertyTest
             assertEquals(CommonFault.CLASS_ATTRIBUTE_NOT_DEFINED.getCode(), exception.getCode());
         }
 
-        // Get getPropertyType and getPropertyAllowedTypes
+        // getPropertyType and getPropertyValueAllowedTypes
         assertEquals(List.class, Property.getPropertyType(Foo.class, "field4"));
-        assertArrayEquals(new Class[]{SecurityToken.class}, Property.getPropertyAllowedTypes(Foo.class, "field4"));
+        assertArrayEquals(new Class[]{SecurityToken.class}, Property.getPropertyValueAllowedTypes(Foo.class, "field4"));
         assertEquals(List.class, Property.getPropertyType(Foo.class, "field5"));
         assertArrayEquals(new Class[]{String.class, DateTime.class},
-                Property.getPropertyAllowedTypes(Foo.class, "field5"));
+                Property.getPropertyValueAllowedTypes(Foo.class, "field5"));
         assertEquals(Object.class, Property.getPropertyType(Foo.class, "field6"));
         assertArrayEquals(new Class[]{String.class, DateTime.class},
-                Property.getPropertyAllowedTypes(Foo.class, "field6"));
+                Property.getPropertyValueAllowedTypes(Foo.class, "field6"));
         assertEquals(SecurityToken[].class, Property.getPropertyType(Foo.class, "field7"));
         assertArrayEquals(new Class[]{SecurityToken.class},
-                Property.getPropertyAllowedTypes(Foo.class, "field7"));
+                Property.getPropertyValueAllowedTypes(Foo.class, "field7"));
     }
 }

@@ -296,14 +296,14 @@ public class DeviceResource extends Resource
 
         // Create technologies
         for (Technology technology : apiDevice.getTechnologies()) {
-            if (api.isCollectionItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,
+            if (api.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES,
                     technology)) {
                 addTechnology(technology);
             }
         }
         // Delete technologies
         Set<Technology> technologies =
-                api.getCollectionItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+                api.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
         for (Technology technology : technologies) {
             removeTechnology(technology);
         }

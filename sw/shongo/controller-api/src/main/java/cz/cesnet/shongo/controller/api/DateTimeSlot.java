@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 

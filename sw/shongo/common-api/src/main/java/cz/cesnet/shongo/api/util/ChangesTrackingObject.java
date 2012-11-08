@@ -21,6 +21,11 @@ public abstract class ChangesTrackingObject
     public static final String COLLECTION_DELETED = "deleted";
 
     /**
+     * Key whose value contains the whole {@link Map} data.
+     */
+    public static final String MAP_DATA = "__map";
+
+    /**
      * Set of properties which are marked as filled.
      */
     private Set<String> filledProperties = new HashSet<String>();
@@ -94,7 +99,7 @@ public abstract class ChangesTrackingObject
      * @param property
      * @param item
      */
-    public void markCollectionItemAsNew(String property, Object item)
+    public void markPropertyItemAsNew(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges == null) {
@@ -110,7 +115,7 @@ public abstract class ChangesTrackingObject
      * @param property
      * @param item
      */
-    public void markCollectionItemAsDeleted(String property, Object item)
+    public void markPropertyItemAsDeleted(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges == null) {
@@ -131,7 +136,7 @@ public abstract class ChangesTrackingObject
      * @return true if collection item is marked as new or when all not marked items are by default new,
      *         false otherwise
      */
-    public boolean isCollectionItemMarkedAsNew(String property, Object item)
+    public boolean isPropertyItemMarkedAsNew(String property, Object item)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges != null) {
@@ -144,7 +149,24 @@ public abstract class ChangesTrackingObject
      * @param property
      * @return set of items from given collection which are marked as deleted
      */
-    public <T> Set<T> getCollectionItemsMarkedAsDeleted(String property)
+    public <T> Set<T> getPropertyItemsMarkedAsNew(String property)
+    {
+        CollectionChanges collectionChanges = collectionChangesMap.get(property);
+        if (collectionChanges != null) {
+            @SuppressWarnings("unchecked")
+            Set<T> newItems = (Set) collectionChanges.newItems;
+            return newItems;
+        }
+        else {
+            return new HashSet<T>();
+        }
+    }
+
+    /**
+     * @param property
+     * @return set of items from given collection which are marked as deleted
+     */
+    public <T> Set<T> getPropertyItemsMarkedAsDeleted(String property)
     {
         CollectionChanges collectionChanges = collectionChangesMap.get(property);
         if (collectionChanges != null) {
@@ -193,12 +215,13 @@ public abstract class ChangesTrackingObject
             String[] propertyNames = Property.getPropertyNames(type, ChangesTrackingObject.class);
             for (String propertyName : propertyNames) {
                 Property property = Property.getProperty(changesTrackingObject.getClass(), propertyName);
+                int propertyTypeFlags = property.getTypeFlags();
                 Object value = property.getValue(changesTrackingObject);
                 boolean required = property.isRequired();
                 if ( value instanceof ChangesTrackingObject ) {
                     setupNewEntity(value);
                 }
-                else if (property.isArray()) {
+                else if (TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
@@ -208,7 +231,7 @@ public abstract class ChangesTrackingObject
                         setupNewEntity(item);
                     }
                 }
-                else if (property.isCollection()) {
+                else if (TypeFlags.isCollection(propertyTypeFlags)) {
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,

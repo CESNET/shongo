@@ -35,7 +35,7 @@ sub new()
     $self->add_attribute('providedReservationIdentifiers', {
         'title' => 'Provided reservations',
         'type' => 'collection',
-        'collection' => {
+        'item' => {
             'title' => 'provided reservation',
             'add' => sub {
                 return console_edit_value("Reservation identifier", 1, $Shongo::Common::IdentifierPattern);

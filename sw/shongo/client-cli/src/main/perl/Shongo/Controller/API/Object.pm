@@ -43,7 +43,7 @@ sub new
     $self->{'__attributes_order'} = [];
     $self->{'__attributes_preserve'} = {};
 
-    $self->add_attribute_preserve('id');
+    $self->add_attribute_preserve('identifier');
 
     return $self;
 }
@@ -172,10 +172,11 @@ sub set_default_value
 #   'datetime-partial'  attribute value is partial ISO8601 date/time (components can be omitted from the end)
 #   'class'             attribute value is collection of items
 #   'collection'        attribute value is collection of items
+#   'map'               attribute value is map of item keys and values
 #
 # 'complex' => 1|0 (default 0)
 #  Specifies whether attribute is complex and it should not be edited in "modify attributes" but it should be edited
-#  as custom action in modify loop. ('type' => 'collection' is automatically 'complex')
+#  as custom action in modify loop. ('type' => 'collection' or 'type' => 'map' is automatically 'complex')
 #
 # 'string-pattern' => String|Callback
 #  When 'type' => 'string' then it specifies the regular expression which must the attribute value match.
@@ -186,8 +187,8 @@ sub set_default_value
 # 'class' => String
 #  When 'type' => 'class' then it specifies the class which will be create/edited in the attribue value
 #
-# 'collection' => String
-#  When 'type' => 'collection' then it specifies additionally options:
+# 'item' => String
+#  When 'type' => 'collection' or 'type' => 'map' then it specifies additionally options:
 #
 #     'title' => String
 #      It specifies the title of an item in collection.
@@ -206,7 +207,7 @@ sub set_default_value
 #      kept empty, the item is always automatically removed from the collection and marked as 'deleted').
 
 #     'enum' => Hash
-#      When 'type' => 'collection' then instead of specifying callbacks you can specify hash of enumeration values which
+#      Instead of specifying callbacks you can specify hash of enumeration values which
 #      will be used as values inside the collection and the callbacks are automatically added.
 #
 # @param $value value to be set to the attribute
@@ -233,7 +234,7 @@ sub add_attribute
     set_default_value($attribute, 'type', 'string');
 
     my $default_complex_value = 0;
-    if ( $attribute->{'type'} eq 'collection') {
+    if ( $attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map' ) {
         $default_complex_value = 1;
     }
     set_default_value($attribute, 'complex', $default_complex_value);
@@ -242,33 +243,37 @@ sub add_attribute
         $attribute->{'editable'} = 0;
     }
 
-    if ( $attribute->{'type'} eq 'collection') {
-        if ( !defined($attribute->{'collection'}) ) {
-            $attribute->{'collection'} = {};
+    # Initialize collection or map "item"
+    if ( $attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map' ) {
+        if ( !defined($attribute->{'item'}) ) {
+            $attribute->{'item'} = {};
         }
-        set_default_value($attribute->{'collection'}, 'short', 0);
+        set_default_value($attribute->{'item'}, 'short', 0);
+    }
 
-        if ( defined($attribute->{'collection'}->{'class'}) ) {
+    # Generate "add" and/or "modify" callback(s) for "type" => "collection"
+    if ( $attribute->{'type'} eq 'collection' ) {
+        if ( defined($attribute->{'item'}->{'class'}) ) {
             # Generate callbacks for given class
-            $attribute->{'collection'}->{'add'} = sub {
-                my $item = $attribute->{'collection'}->{'class'}->create();
+            $attribute->{'item'}->{'add'} = sub {
+                my $item = $attribute->{'item'}->{'class'}->create();
                 return $item;
             };
-            $attribute->{'collection'}->{'modify'} = sub {
+            $attribute->{'item'}->{'modify'} = sub {
                 my ($item) = @_;
                 $item->modify();
                 return $item;
             };
         }
-        elsif ( defined($attribute->{'collection'}->{'enum'}) ) {
+        elsif ( defined($attribute->{'item'}->{'enum'}) ) {
             # Generate callbacks for given class
-            $attribute->{'collection'}->{'add'} = sub {
+            $attribute->{'item'}->{'add'} = sub {
                 my $available_values = [];
                 my %values_hash = map { $_ => 1 } @{get_collection_items($self->get($attribute_name))};
                 my $count = 0;
-                foreach my $key (ordered_hash_keys($attribute->{'collection'}->{'enum'})) {
+                foreach my $key (ordered_hash_keys($attribute->{'item'}->{'enum'})) {
                     if ( !exists($values_hash{$key}) ) {
-                        push(@{$available_values}, $key => $attribute->{'collection'}->{'enum'}->{$key});
+                        push(@{$available_values}, $key => $attribute->{'item'}->{'enum'}->{$key});
                         $count++;
                     }
                 }
@@ -279,11 +284,12 @@ sub add_attribute
                 return console_read_enum('Select', ordered_hash($available_values));
             };
         }
-        if ( !defined($attribute->{'collection'}->{'add'}) && !defined($attribute->{'collection'}->{'modify'}) ) {
+        if ( !defined($attribute->{'item'}->{'add'}) && !defined($attribute->{'item'}->{'modify'}) ) {
             $attribute->{'editable'} = 0;
         }
     }
 
+    # Set default value for the attribute
     if ( defined($value) ) {
         $self->set($name, $value);
     }
@@ -383,9 +389,11 @@ sub get
 #
 sub create()
 {
-    my ($class, $attributes, $options) = @_;
+    my ($self, $attributes, $options) = @_;
 
-    my $self = $class->new();
+    if ( !ref($self) ) {
+        $self = $self->new();
+    }
     my $on_create_result = $self->on_create($attributes);
     if ( defined($on_create_result) ) {
         # Result is new instance
@@ -471,7 +479,7 @@ sub on_modify_confirm
 }
 
 #
-# @return 1 if modify loop with actions is needed (it happens when some attribute is 'complex' and/or 'collection')
+# @return 1 if modify loop with actions is needed (it happens when some attribute is 'complex' and/or 'collection' or 'map')
 #         0 otherwise
 #
 sub is_modify_loop_needed
@@ -479,7 +487,7 @@ sub is_modify_loop_needed
     my ($self) = @_;
     foreach my $attribute_name (keys %{$self->{'__attributes'}}) {
         my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'editable'} == 1 && ($attribute->{'complex'} == 1 || $attribute->{'type'} eq 'collection') ) {
+        if ( $attribute->{'editable'} == 1 && ($attribute->{'complex'} == 1 || $attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map') ) {
             return 1;
         }
     }
@@ -576,8 +584,8 @@ sub on_modify_loop()
                     }
                 ));
             }
-            elsif ( $attribute->{'type'} eq 'collection' ) {
-                $self->modify_collection_add_actions($attribute_name, $actions);
+            elsif ( $attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map' ) {
+                $self->modify_attribute_items_add_actions($attribute_name, $actions);
             }
         }
     }
@@ -589,75 +597,208 @@ sub on_modify_loop()
 # @param $attribute_name collection name
 # @param $actions where the actions should be added
 #
-sub modify_collection_add_actions
+sub modify_attribute_items_add_actions
 {
     my ($self, $attribute_name, $actions) = @_;
     my $attribute = $self->get_attribute($attribute_name);
-    if ( $attribute->{'editable'} == 0 || !($attribute->{'type'} eq 'collection') ) {
-        warnings::warn("Collection '$attribute_name' is not editable or 'collection' type.");
+    if ( $attribute->{'editable'} == 0 || !($attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map') ) {
+        warnings::warn("Collection '$attribute_name' is not editable or 'collection' or 'map' type.");
         return;
     }
     my $attribute_title = $self->get_attribute_title($attribute_name);
     my $item_title = 'Item';
-    if ( defined($attribute->{'collection'}->{'title'}) ) {
-        $item_title = $attribute->{'collection'}->{'title'};
+    if ( defined($attribute->{'item'}->{'title'}) ) {
+        $item_title = $attribute->{'item'}->{'title'};
     }
     $item_title = lc($item_title);
     # Push add action (if handler exists)
-    if ( defined($attribute->{'collection'}->{'add'}) ) {
+    if ( defined($attribute->{'item'}->{'add'}) ) {
         my $add_handlers = {};
         # Multiple add handlers
-        if ( ref($attribute->{'collection'}->{'add'}) eq 'HASH' ) {
-            $add_handlers = $attribute->{'collection'}->{'add'};
+        if ( ref($attribute->{'item'}->{'add'}) eq 'HASH' ) {
+            $add_handlers = $attribute->{'item'}->{'add'};
         }
         # Single add handler
         else {
-            $add_handlers->{'Add new ' . $item_title} = $attribute->{'collection'}->{'add'};
+            $add_handlers->{'Add new ' . $item_title} = $attribute->{'item'}->{'add'};
         }
         # Add all add handlers
         foreach my $title (keys %{$add_handlers}) {
             push(@{$actions}, $title => sub {
                 my $handler = $add_handlers->{$title};
-                my $item = &$handler();
-                if ( defined($item) ) {
-                    if ( !defined($self->{$attribute_name}) ) {
-                        $self->{$attribute_name} = [];
+                # Add item to collection
+                if ( $attribute->{'type'} eq 'collection' ) {
+                    my $item = &$handler();
+                    if ( defined($item) ) {
+                        if ( !defined($self->{$attribute_name}) ) {
+                            $self->{$attribute_name} = [];
+                        }
+                        add_collection_item(\$self->{$attribute_name}, $item);
                     }
-                    add_collection_item(\$self->{$attribute_name}, $item);
+                }
+                # Add item to map
+                else {
+                    my ($itemKey, $itemValue) = &$handler();
+                    if ( defined($itemKey) ) {
+                        if ( !defined($self->{$attribute_name}) ) {
+                            $self->{$attribute_name} = {};
+                        }
+                        add_map_item(\$self->{$attribute_name}, $itemKey, $itemValue);
+                    }
                 }
                 return undef;
             });
         }
     }
-    my $collection_size = get_collection_size($self->{$attribute_name});
-    if ( $collection_size > 0 ) {
+
+    my $item_count = 0;
+    if ( $attribute->{'type'} eq 'collection' ) {
+        $item_count = get_collection_size($self->{$attribute_name});
+    }
+    elsif ( $attribute->{'type'} eq 'map' ) {
+        $item_count = get_map_size($self->{$attribute_name});
+    }
+    if ( $item_count > 0 ) {
         # Push modify action (if handler exists)
-        if ( defined($attribute->{'collection'}->{'modify'}) ) {
+        if ( defined($attribute->{'item'}->{'modify'}) ) {
             push(@{$actions}, 'Modify existing ' . $item_title => sub {
-                my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
+                my $index = console_read_choice("Type a number of " . $item_title, 0, $item_count);
                 if ( defined($index) ) {
-                    my $item = get_collection_item($self->{$attribute_name}, $index - 1);
-                    $item = $attribute->{'collection'}->{'modify'}($item);
-                    set_collection_item($self->{$attribute_name}, $index - 1, $item);
+                    # Modify item in collection
+                    if ( $attribute->{'type'} eq 'collection' ) {
+                        my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                        $item = $attribute->{'item'}->{'modify'}($item);
+                        set_collection_item($self->{$attribute_name}, $index - 1, $item);
+                    }
+                    # Remove item in map
+                    else {
+                        my $item_key = get_map_item_key($self->{$attribute_name}, $index - 1);
+                        my $item_value = get_map_item_value($self->{$attribute_name}, $item_key);
+                        $item_value = $attribute->{'item'}->{'modify'}($item_key, $item_value);
+                        set_map_item(\$self->{$attribute_name}, $item_key, $item_value);
+                    }
                 }
                 return undef;
             });
         }
         # Push delete action (if handler add or modify exists)
-        if ( defined($attribute->{'collection'}->{'add'}) || defined($attribute->{'collection'}->{'modify'}) ) {
+        if ( defined($attribute->{'item'}->{'add'}) || defined($attribute->{'item'}->{'modify'}) ) {
             push(@{$actions}, 'Remove existing ' . $item_title => sub {
-                my $index = console_read_choice("Type a number of " . $item_title, 0, $collection_size);
+                my $index = console_read_choice("Type a number of " . $item_title, 0, $item_count);
                 if ( defined($index) ) {
-                    my $item = get_collection_item($self->{$attribute_name}, $index - 1);
-                    if ( defined($attribute->{'collection'}->{'delete'}) ) {
-                        $attribute->{'collection'}->{'delete'}($item);
+                    # Remove item from collection
+                    if ( $attribute->{'type'} eq 'collection' ) {
+                        my $item = get_collection_item($self->{$attribute_name}, $index - 1);
+                        if ( defined($attribute->{'item'}->{'delete'}) ) {
+                            $attribute->{'item'}->{'delete'}($item);
+                        }
+                        remove_collection_item(\$self->{$attribute_name}, $index - 1);
                     }
-                    remove_collection_item(\$self->{$attribute_name}, $index - 1);
+                    # Remove item from map
+                    else {
+                        my $item_key = get_map_item_key($self->{$attribute_name}, $index - 1);
+                        if ( defined($attribute->{'item'}->{'delete'}) ) {
+                            $attribute->{'item'}->{'delete'}($item_key);
+                        }
+                        remove_map_item(\$self->{$attribute_name}, $item_key);
+                    }
                 }
                 return undef;
             });
         }
     }
+}
+
+#
+# Modify attribute value
+#
+sub modify_attribute_value
+{
+    my ($self, $attribute_title, $attribute_value, $attribute, $is_editing) = @_;
+    my $attribute_required = $attribute->{'required'};
+    if ( $attribute->{'type'} eq 'int' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            '^\\d+$',
+            $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'string' ) {
+        my $string_pattern = $attribute->{'string-pattern'};
+        if ( ref($string_pattern) eq 'CODE' ) {
+            $string_pattern = &$string_pattern();
+        }
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $string_pattern,
+            $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'enum' ) {
+        $attribute_value = console_auto_enum(
+            $is_editing,
+            $attribute_title,
+            $attribute->{'enum'},
+            $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'bool' ) {
+        $attribute_value = console_edit_bool(
+             $attribute_title,
+             $attribute_required,
+             $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'period' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $Shongo::Common::PeriodPattern,
+            $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'datetime' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $Shongo::Common::DateTimePattern,
+            $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'datetime-partial' ) {
+        $attribute_value = console_auto_value(
+            $is_editing,
+            $attribute_title,
+            $attribute_required,
+            $Shongo::Common::DateTimePartialPattern,
+            $attribute_value
+        );
+    }
+    elsif ( $attribute->{'type'} eq 'interval' ) {
+        my $start = undef;
+        my $duration = undef;
+        if ( defined($attribute_value) && $attribute_value =~ m/(.*)\/(.*)/ ) {
+            $start = $1;
+            $duration = $2;
+        }
+        $start = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $start);
+        $duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
+        $attribute_value = $start . '/' . $duration;
+    }
+    elsif ( $attribute->{'type'} eq 'class' ) {
+        if ( !defined($attribute_value) ) {
+            $attribute_value = Shongo::Controller::API::Specification->create();
+        } else {
+            $attribute_value->modify();
+        }
+    }
+    return $attribute_value;
 }
 
 #
@@ -683,99 +824,8 @@ sub modify_attribute
     }
 
     my $attribute_title = $self->get_attribute_title($attribute_name);
-    my $attribute_required = $attribute->{'required'};
-    if ( $attribute->{'type'} eq 'int' ) {
-        $attribute_value = console_auto_value(
-            $is_editing,
-            $attribute_title,
-            $attribute_required,
-            '^\\d+$',
-            $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value);
-    }
-    elsif ( $attribute->{'type'} eq 'string' ) {
-        my $string_pattern = $attribute->{'string-pattern'};
-        if ( ref($string_pattern) eq 'CODE' ) {
-            $string_pattern = &$string_pattern();
-        }
-        $attribute_value = console_auto_value(
-            $is_editing,
-            $attribute_title,
-            $attribute_required,
-            $string_pattern,
-            $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value);
-    }
-    elsif ( $attribute->{'type'} eq 'enum' ) {
-        $attribute_value = console_auto_enum(
-            $is_editing,
-            $attribute_title,
-            $attribute->{'enum'},
-            $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value);
-    }
-    elsif ( $attribute->{'type'} eq 'bool' ) {
-        $attribute_value = console_edit_bool(
-             $attribute_title,
-             $attribute_required,
-             $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value)
-    }
-    elsif ( $attribute->{'type'} eq 'period' ) {
-        $attribute_value = console_auto_value(
-            $is_editing,
-            $attribute_title,
-            $attribute_required,
-            $Shongo::Common::PeriodPattern,
-            $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value)
-    }
-    elsif ( $attribute->{'type'} eq 'datetime' ) {
-        $attribute_value = console_auto_value(
-            $is_editing,
-            $attribute_title,
-            $attribute_required,
-            $Shongo::Common::DateTimePattern,
-            $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value)
-    }
-    elsif ( $attribute->{'type'} eq 'datetime-partial' ) {
-        $attribute_value = console_auto_value(
-            $is_editing,
-            $attribute_title,
-            $attribute_required,
-            $Shongo::Common::DateTimePartialPattern,
-            $attribute_value
-        );
-        $self->set($attribute_name, $attribute_value)
-    }
-    elsif ( $attribute->{'type'} eq 'interval' ) {
-        my $start = undef;
-        my $duration = undef;
-        if ( defined($attribute_value) && $attribute_value =~ m/(.*)\/(.*)/ ) {
-            $start = $1;
-            $duration = $2;
-        }
-        $start = console_edit_value("Type a date/time", 1, $Shongo::Common::DateTimePattern, $start);
-        $duration = console_edit_value("Type a slot duration", 1, $Shongo::Common::PeriodPattern, $duration);
-        $attribute_value = $start . '/' . $duration;
-        $self->set($attribute_name, $attribute_value)
-    }
-    elsif ( $attribute->{'type'} eq 'class' ) {
-        if ( !defined($attribute_value) ) {
-            $attribute_value = Shongo::Controller::API::Specification->create();
-        } else {
-            $attribute_value->modify();
-        }
-        $self->set($attribute_name, $attribute_value)
-    }
-    elsif ( $attribute->{'type'} eq 'collection' ) {
+
+    if ( $attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map' ) {
         my $collection_title = $self->get_attribute_title($attribute_name);
         console_action_loop(
             sub {
@@ -788,7 +838,7 @@ sub modify_attribute
             },
             sub {
                 my @menu_actions = ();
-                $self->modify_collection_add_actions($attribute_name, \@menu_actions);
+                $self->modify_attribute_items_add_actions($attribute_name, \@menu_actions);
                 push(@menu_actions, 'Finish modifying ' . lc($collection_title) => sub {
                     return 0;
                 });
@@ -796,6 +846,10 @@ sub modify_attribute
             }
         );
         return undef;
+    }
+    else {
+        $attribute_value = $self->modify_attribute_value($attribute_title, $attribute_value, $attribute, $is_editing);
+        $self->set($attribute_name, $attribute_value);
     }
 }
 
@@ -809,7 +863,7 @@ sub modify_attributes
     my ($self, $is_editing) = @_;
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute = $self->get_attribute($attribute_name);
-        if ( $attribute->{'editable'} == 1 && !($attribute->{'type'} eq 'collection') &&$attribute->{'complex'} == 0 ) {
+        if ( $attribute->{'editable'} == 1 && !($attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map') && $attribute->{'complex'} == 0) {
             $self->modify_attribute($attribute_name, $is_editing);
         }
     }
@@ -826,7 +880,14 @@ sub format_value
 {
     my ($self, $value, $options) = @_;
     if ( defined($options->{'format'}) && ref($options->{'format'}) eq 'CODE' ) {
-        return $options->{'format'}($value);
+        # Format value as (key,value) pair
+        if (ref($value) eq 'HASH' && defined($value->{'__key'}) ) {
+            return $options->{'format'}($value->{'__key'}, $value->{'__value'});
+        }
+        # Format single value
+        else {
+            return $options->{'format'}($value);
+        }
     }
     elsif ( defined($options->{'enum'}) && defined($value) && defined($options->{'enum'}->{$value}) ) {
         return $options->{'enum'}->{$value};
@@ -836,19 +897,31 @@ sub format_value
     }
     elsif( ref($value) ) {
         my $items = undef;
+        # get array items
         if( ref($value) eq 'ARRAY' ) {
             my ($item) = @_;
             $items = get_collection_items($value);
         }
-        elsif( ref($value) eq 'HASH' && (defined($value->{'modified'}) || defined($value->{'new'}) || defined($value->{'deleted'})) ) {
-            $items = get_collection_items($value);
+        # get array with changes items
+        elsif( ref($value) eq 'HASH' ) {
+            if ( (defined($value->{'modified'}) || defined($value->{'new'}) || defined($value->{'deleted'})) && !defined($value->{'__map'})) {
+                $items = get_collection_items($value);
+            }
+            else {
+                my $map_items = get_map_items($value);
+                $items = [];
+                foreach my $itemKey (keys %{$map_items}) {
+                    my $itemValue = $map_items->{$itemKey};
+                    push(@{$items}, {'__key' => $itemKey, '__value' => $itemValue});
+                }
+            }
         }
         if ( defined($items) ) {
             if ( @{$items} > 0 ) {
                 $value = '';
                 for ( my $index = 0; $index < scalar(@{$items}); $index++ ) {
                     my $item = @{$items}[$index];
-                    $item = $self->format_value($item, $options->{'collection'});
+                    $item = $self->format_value($item, $options->{'item'});
                     if ( $options->{'short'} ) {
                         if ( length($value) > 0 ) {
                             $value .= ", ";
@@ -887,6 +960,7 @@ sub format_value
 
 #
 # @param $attribute_name of attribute whose value should be formatted
+# @param $single_line specifies whether attribute should be formatted to single line
 # @return formatted attribute value
 #
 sub format_attribute_value
@@ -901,13 +975,23 @@ sub format_attribute_value
     $options->{'format'} = $attribute->{'format'};
 
     my $attribute_value = $self->get($attribute_name);
-    if ( $attribute->{'type'} eq 'collection' ) {
-        $options->{'collection'} = $attribute->{'collection'};
+    if ( $attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map' ) {
+        $options->{'item'} = $attribute->{'item'};
         if ( !defined($attribute_value) ) {
             $attribute_value = [];
         }
-        if ( $attribute->{'display-empty'} == 0 && get_collection_size($attribute_value) == 0 ) {
-            return undef;
+        if ( $attribute->{'display-empty'} == 0 ) {
+            # Check for none items
+            my $item_count = 0;
+            if ( $attribute->{'type'} eq 'collection' ) {
+                $item_count = get_collection_size($self->{$attribute_name});
+            }
+            elsif ( $attribute->{'type'} eq 'map' ) {
+                $item_count = get_map_size($self->{$attribute_name});
+            }
+            if ( $item_count == 0 ) {
+                return undef;
+            }
         }
     }
     elsif ( $attribute->{'type'} eq 'enum' && defined($attribute->{'enum'}) ) {
@@ -1136,8 +1220,10 @@ sub create_instance
         $perl_class = 'Shongo::Controller::API::' . $class;
     }
     my $instance = eval($perl_class . '->new()');
-    if ( !defined($instance) && defined($attribute) && $attribute->{'type'} eq 'collection' && defined($attribute->{'collection'}->{'class'}) ) {
-        $instance = eval($attribute->{'collection'}->{'class'} . '->new()');
+    if ( !defined($instance) && defined($attribute) && ($attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map')
+         && defined($attribute->{'item'}->{'class'}) )
+    {
+        $instance = eval($attribute->{'item'}->{'class'} . '->new()');
     }
     if ( defined($instance) && !defined($instance->get_object_class()) ) {
         $instance->set_object_class($class);
@@ -1261,7 +1347,7 @@ sub test
     $object->add_attribute(
         'items', {
             'type' => 'collection',
-            'collection' => {
+            'item' => {
                 'class' => 'Shongo::Controller::API::Alias',
                 'short' => 1
             },

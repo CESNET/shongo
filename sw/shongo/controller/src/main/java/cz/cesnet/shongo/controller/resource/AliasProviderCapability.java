@@ -199,14 +199,14 @@ public class AliasProviderCapability extends Capability
 
         // Create patterns
         for (String pattern : apiAliasProvider.getPatterns()) {
-            if (api.isCollectionItemMarkedAsNew(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS,
+            if (api.isPropertyItemMarkedAsNew(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS,
                     pattern)) {
                 addPattern(pattern);
             }
         }
         // Delete patterns
         Set<String> patternsToDelete =
-                api.getCollectionItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS);
+                api.getPropertyItemsMarkedAsDeleted(cz.cesnet.shongo.controller.api.AliasProviderCapability.PATTERNS);
         for (String pattern : patternsToDelete) {
             removePattern(pattern);
         }

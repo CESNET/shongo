@@ -288,7 +288,7 @@ public class ReservationRequestSet extends NormalReservationRequest
 
         // Create/modify slots
         for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : reservationRequestSetApi.getSlots()) {
-            if (api.isCollectionItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
+            if (api.isPropertyItemMarkedAsNew(reservationRequestSetApi.SLOTS, slotApi)) {
                 addSlot(DateTimeSlotSpecification.createFromApi(slotApi));
             }
             else {
@@ -298,14 +298,14 @@ public class ReservationRequestSet extends NormalReservationRequest
         }
         // Delete slots
         Set<cz.cesnet.shongo.controller.api.DateTimeSlot> apiDeletedSlots =
-                api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
+                api.getPropertyItemsMarkedAsDeleted(reservationRequestSetApi.SLOTS);
         for (cz.cesnet.shongo.controller.api.DateTimeSlot slotApi : apiDeletedSlots) {
             removeSlot(getSlotById(slotApi.notNullIdAsLong()));
         }
 
         // Create/modify specifications
         for (cz.cesnet.shongo.controller.api.Specification specApi : reservationRequestSetApi.getSpecifications()) {
-            if (api.isCollectionItemMarkedAsNew(reservationRequestSetApi.SPECIFICATIONS, specApi)) {
+            if (api.isPropertyItemMarkedAsNew(reservationRequestSetApi.SPECIFICATIONS, specApi)) {
                 addSpecification(Specification.createFromApi(specApi, entityManager, domain));
             }
             else {
@@ -315,7 +315,7 @@ public class ReservationRequestSet extends NormalReservationRequest
         }
         // Delete specifications
         Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
-                api.getCollectionItemsMarkedAsDeleted(reservationRequestSetApi.SPECIFICATIONS);
+                api.getPropertyItemsMarkedAsDeleted(reservationRequestSetApi.SPECIFICATIONS);
         for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
             removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }

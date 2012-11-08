@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import org.joda.time.Interval;
 
 import java.util.ArrayList;
@@ -10,13 +11,8 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ResourceAllocation
+public class ResourceAllocation extends IdentifiedObject
 {
-    /**
-     * Identifier of the resource.
-     */
-    private String identifier;
-
     /**
      * Name of the resource.
      */
@@ -31,22 +27,6 @@ public class ResourceAllocation
      * {@link ResourceReservation} of the resource.
      */
     private List<ResourceReservation> reservations = new ArrayList<ResourceReservation>();
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
 
     /**
      * @return {@link #name}

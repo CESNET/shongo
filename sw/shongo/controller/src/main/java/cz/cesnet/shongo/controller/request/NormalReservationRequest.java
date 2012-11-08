@@ -181,7 +181,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         // Create/modify provided reservations
         ReservationManager reservationManager = new ReservationManager(entityManager);
         for (String providedReservationIdentifier : normalReservationRequestApi.getProvidedReservationIdentifiers()) {
-            if (api.isCollectionItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDENTIFIERS,
+            if (api.isPropertyItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDENTIFIERS,
                     providedReservationIdentifier)) {
                 Long providedReservationId = domain.parseIdentifier(providedReservationIdentifier);
                 Reservation providedReservation = reservationManager.get(providedReservationId);
@@ -190,7 +190,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         }
         // Delete provided reservations
         Set<String> apiDeletedProvidedReservationIdentifiers =
-                api.getCollectionItemsMarkedAsDeleted(normalReservationRequestApi.PROVIDED_RESERVATION_IDENTIFIERS);
+                api.getPropertyItemsMarkedAsDeleted(normalReservationRequestApi.PROVIDED_RESERVATION_IDENTIFIERS);
         for (String providedReservationIdentifier : apiDeletedProvidedReservationIdentifiers) {
             Long providedReservationId = domain.parseIdentifier(providedReservationIdentifier);
             removeProvidedReservation(providedReservationId);

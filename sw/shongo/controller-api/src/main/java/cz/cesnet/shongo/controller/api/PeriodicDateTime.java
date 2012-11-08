@@ -86,7 +86,7 @@ public class PeriodicDateTime
         setStart(DateTime.parse(start));
         setPeriod(Period.parse(period));
         try {
-            setEnd(Converter.convertStringToReadablePartial(end));
+            setEnd(Converter.Atomic.convertStringToReadablePartial(end));
         } catch (FaultException exception) {
             throw new RuntimeException(exception);
         }

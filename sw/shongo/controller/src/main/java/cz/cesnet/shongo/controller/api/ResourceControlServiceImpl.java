@@ -1,5 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.PrintableObject;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSummary;
@@ -11,6 +14,7 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
@@ -226,11 +230,30 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
+    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        authorization.validate(token);
+        return (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
+    }
+
+    @Override
     public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
             throws FaultException
     {
         authorization.validate(token);
         return (RoomSummary) commandDevice(deviceResourceIdentifier, new GetRoomSummary(roomId));
+    }
+
+    @Override
+    public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
+    {
+        Room room = new Room();
+        room.setIdentifier("1");
+        room.setName("Fixed Testing Room (TODO: Remove it)");
+        room.setPortCount(5);
+        room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
+        room.setOption(Room.Option.DESCRIPTION, "room description");
+        return room;
     }
 
     @Override
@@ -241,11 +264,11 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, String roomId,
-            Map<String, Object> attributes, Map<Room.Option, Object> options) throws FaultException
+    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new ModifyRoom(roomId, attributes, options));
+        //return (String) commandDevice(deviceResourceIdentifier, new ModifyRoom(roomId, attributes, options));
+        throw new TodoImplementException();
     }
 
     @Override
@@ -253,13 +276,6 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         commandDevice(deviceResourceIdentifier, new DeleteRoom(roomId));
-    }
-
-    @Override
-    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
-    {
-        authorization.validate(token);
-        return (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
     }
 
     @Override
@@ -349,7 +365,6 @@ public class ResourceControlServiceImpl extends Component
             return command.getResult();
         }
         throw new FaultException(command.getStateDescription());
-
     }
 
     /**

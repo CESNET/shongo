@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 import org.joda.time.DateTime;
@@ -11,13 +12,8 @@ import org.joda.time.DateTime;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class RoomSummary implements StructType, Concept
+public class RoomSummary extends IdentifiedObject implements StructType, Concept
 {
-    /**
-     * Technology specific room identifier.
-     */
-    private String identifier;
-
     /**
      * User readable name of the room.
      */
@@ -32,22 +28,6 @@ public class RoomSummary implements StructType, Concept
      * Date/time when the room was started.
      */
     private DateTime startDateTime;
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
 
     /**
      * @return {@link #name}

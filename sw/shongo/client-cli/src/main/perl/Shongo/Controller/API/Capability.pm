@@ -61,7 +61,7 @@ sub on_init()
             $self->add_attribute(
                 'aliases', {
                     'type' => 'collection',
-                    'collection' => {
+                    'item' => {
                         'title' => 'Alias',
                         'class' => 'Shongo::Controller::API::Alias',
                         'short' => 1
@@ -96,7 +96,7 @@ sub on_init()
             $self->add_attribute(
                 'patterns', {
                     'type' => 'collection',
-                    'collection' => {
+                    'item' => {
                         'title' => 'Pattern',
                         'add' => sub {
                             console_read_value('Pattern', 1);

@@ -36,9 +36,22 @@ public class Property
     private Class type;
 
     /**
-     * Array of allowed types for the property or for items contained in array or collection property.
+     * @see TypeFlags
      */
-    private Class[] allowedTypes;
+    private int typeFlags;
+
+    /**
+     * Array of types which are allowed to be used as :
+     * 1) value in the atomic property
+     * 2) item in the array or {@link Collection} property
+     * 3) value in the {@link Map} property
+     */
+    private Class[] valueAllowedTypes;
+
+    /**
+     * Type which is allowed to be used as key {@link Map} property.
+     */
+    private Class keyAllowedType;
 
     /**
      * Field of the property.
@@ -142,6 +155,14 @@ public class Property
     }
 
     /**
+     * @return {@link #name}
+     */
+    public String getName()
+    {
+        return name;
+    }
+
+    /**
      * @return {@link #type}
      */
     public Class getType()
@@ -150,11 +171,27 @@ public class Property
     }
 
     /**
-     * @return {@link #allowedTypes}
+     * @return {@link #typeFlags}
      */
-    public Class[] getAllowedTypes()
+    public int getTypeFlags()
     {
-        return allowedTypes;
+        return typeFlags;
+    }
+
+    /**
+     * @return {@link #valueAllowedTypes}
+     */
+    public Class[] getValueAllowedTypes()
+    {
+        return valueAllowedTypes;
+    }
+
+    /**
+     * @return {@link #keyAllowedType}
+     */
+    public Class getKeyAllowedType()
+    {
+        return keyAllowedType;
     }
 
     /**
@@ -167,49 +204,23 @@ public class Property
     }
 
     /**
-     * @return true if property is of {@link Object[]} type,
-     *         false otherwise
-     */
-    public boolean isArray()
-    {
-        return type.isArray();
-    }
-
-    /**
-     * @return true if property is of {@link Collection} type,
-     *         false otherwise
-     */
-    public boolean isCollection()
-    {
-        return Collection.class.isAssignableFrom(type);
-    }
-
-    /**
-     * @return true if property is of {@link Object[]} or {@link Collection} type,
-     *         false otherwise
-     */
-    public boolean isArrayOrCollection()
-    {
-        return isArray() || isCollection();
-    }
-
-    /**
      * @param value
-     * @return true if given value is empty (it equals to {@code null} or it is an empty array or collection),
-     *         false otherwise
+     * @return true if given value is empty (it equals to {@code null} or it is an empty array, {@link Collection} or
+     *         {@link Map), false otherwise
      */
     public boolean isEmptyValue(Object value)
     {
         if (value == null) {
             return true;
         }
-        if (isArrayOrCollection()) {
-            if (value instanceof Object[]) {
-                return ((Object[]) value).length == 0;
-            }
-            else {
-                return ((Collection) value).size() == 0;
-            }
+        if (TypeFlags.isArray(typeFlags)) {
+            return ((Object[]) value).length == 0;
+        }
+        else if (TypeFlags.isCollection(typeFlags)) {
+            return ((Collection) value).size() == 0;
+        }
+        else if (TypeFlags.isMap(typeFlags)) {
+            return ((Map) value).size() == 0;
         }
         return false;
     }
@@ -253,39 +264,81 @@ public class Property
         else {
             // Set the property type
             this.type = type;
+            this.typeFlags = TypeFlags.get(type);
         }
 
+        // Type of value in Array, Collection or Map
+        Class valueAllowedType = null;
+        // Type of key in Map
+        Class keyAllowedType = null;
+
         // If type is array or collection
-        if (this.type.isArray() || Collection.class.isAssignableFrom(this.type)) {
-            Class argumentType = null;
-            if (this.type.isArray()) {
-                argumentType = this.type.getComponentType();
+        if (TypeFlags.isArray(typeFlags)) {
+            valueAllowedType = this.type.getComponentType();
+        }
+        else if (TypeFlags.isCollection(typeFlags)) {
+            if (!(genericType instanceof ParameterizedType)) {
+                throw new IllegalStateException("Array or collection class should be ParameterizedType.");
+            }
+            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            Type[] arguments = parameterizedType.getActualTypeArguments();
+            // We support only one argument
+            if (arguments.length != 1) {
+                throw new IllegalStateException("Array or collection class should have one generic argument.");
+            }
+            // Argument should be Class
+            if (!(arguments[0] instanceof Class)) {
+                throw new IllegalStateException("Generic argument should be class");
+            }
+            valueAllowedType = (Class) arguments[0];
+        }
+        // If type is map
+        else if (TypeFlags.isMap(typeFlags)) {
+            if (!(genericType instanceof ParameterizedType)) {
+                throw new IllegalStateException("Map class should be ParameterizedType.");
+            }
+            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+            Type[] arguments = parameterizedType.getActualTypeArguments();
+            // We support only one argument
+            if (arguments.length != 2) {
+                throw new IllegalStateException("Map class should have two generic arguments.");
+            }
+            // Argument should be Class
+            if (!(arguments[0] instanceof Class)) {
+                throw new IllegalStateException("Generic argument should be class");
+            }
+            keyAllowedType = (Class) arguments[0];
+            valueAllowedType = (Class) arguments[1];
+        }
+
+        // Check or set value allowed type
+        if (valueAllowedType != null) {
+            // If value allowed types already exist
+            if (this.valueAllowedTypes != null) {
+                // Check it it same as new value allowed type
+                if (this.valueAllowedTypes.length != 1 || !this.valueAllowedTypes[0].equals(valueAllowedType)) {
+                    throw new IllegalStateException(
+                            String.format("Property '%s' in object of class '%s' should have same generic type.",
+                                    name, getClassShortName(classType)));
+                }
             }
             else {
-                if (!(genericType instanceof ParameterizedType)) {
-                    throw new IllegalStateException("Array or collection class should be ParameterizedType.");
-                }
-                ParameterizedType parameterizedType = (ParameterizedType) genericType;
-                Type[] arguments = parameterizedType.getActualTypeArguments();
-                // We support only one argument
-                if (arguments.length != 1) {
-                    throw new IllegalStateException("Array or collection class should have one generic argument.");
-                }
-                // Argument should be Class
-                if (!(arguments[0] instanceof Class)) {
-                    throw new IllegalStateException("Generic argument should be class");
-                }
-                argumentType = (Class) arguments[0];
+                this.valueAllowedTypes = new Class[]{valueAllowedType};
             }
-            if (this.allowedTypes != null) {
-                if (!(this.allowedTypes.length == 1 && this.allowedTypes[0].equals(argumentType))) {
+        }
+        // Check or set key allowed type
+        if (keyAllowedType != null) {
+            // If key allowed type already exist
+            if (this.keyAllowedType != null) {
+                // Check it it same as new key allowed type
+                if (!this.keyAllowedType.equals(keyAllowedType)) {
                     throw new IllegalStateException(String.format(
                             "Property '%s' in object of class '%s' should have same generic type.",
                             name, getClassShortName(classType)));
                 }
             }
             else {
-                this.allowedTypes = new Class[]{argumentType};
+                this.keyAllowedType = keyAllowedType;
             }
         }
     }
@@ -342,16 +395,17 @@ public class Property
                     property.readMethod = method;
                 }
                 if (method.getName().equals(writeMethodName) && method.getParameterTypes().length == 1) {
-                    property.writeMethod = method;
+                    if (property.writeMethod == null) {
+                        property.writeMethod = method;
+                    }
                 }
             }
             currentType = currentType.getSuperclass();
         }
 
-        // If all values are null, property was not found
+        // If getter and field are null, property was not found
         if ((property.field == null || !Modifier.isPublic(property.field.getModifiers()))
-                && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))
-                && (property.writeMethod == null || !Modifier.isPublic(property.writeMethod.getModifiers()))) {
+                && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))) {
             // TODO: Cache also not found properties
             return null;
         }
@@ -380,7 +434,7 @@ public class Property
         // Explicitly by annotation
         if (allowedTypes != null) {
             if (allowedTypes.value().length > 0) {
-                property.allowedTypes = allowedTypes.value();
+                property.valueAllowedTypes = allowedTypes.value();
             }
         }
 
@@ -446,9 +500,7 @@ public class Property
             for (Method method : methods) {
                 String methodName = method.getName();
                 int parameterCount = method.getParameterTypes().length;
-                if (((methodName.startsWith("get") && parameterCount == 0)
-                             || (methodName.startsWith("set") && parameterCount == 1))
-                        && Modifier.isPublic(method.getModifiers())) {
+                if (methodName.startsWith("get") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
                     String name = methodName.substring(3);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);
                     propertyNames.add(name);
@@ -529,13 +581,13 @@ public class Property
     /**
      * @param type
      * @param name
-     * @return result from {@link Property#getAllowedTypes()} for property
+     * @return result from {@link Property#getValueAllowedTypes()} for property
      * @throws FaultException
      */
-    public static Class[] getPropertyAllowedTypes(Class type, String name) throws FaultException
+    public static Class[] getPropertyValueAllowedTypes(Class type, String name) throws FaultException
     {
         Property property = getPropertyNotNull(type, name);
-        return property.getAllowedTypes();
+        return property.getValueAllowedTypes();
     }
 
     /**
@@ -551,4 +603,5 @@ public class Property
         Property property = getPropertyNotNull(type, name);
         return property.getAnnotation(annotationClass);
     }
+
 }

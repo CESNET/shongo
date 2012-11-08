@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import org.joda.time.Interval;
 
 /**
@@ -7,13 +8,8 @@ import org.joda.time.Interval;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ExecutableSummary
+public class ExecutableSummary extends IdentifiedObject
 {
-    /**
-     * Identifier of the {@link Executable}.
-     */
-    private String identifier;
-
     /**
      * Type of {@link Executable}.
      */
@@ -28,22 +24,6 @@ public class ExecutableSummary
      * Current state of the {@link ExecutableSummary}.
      */
     private Executable.State state;
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
 
     /**
      * @return {@link #type}

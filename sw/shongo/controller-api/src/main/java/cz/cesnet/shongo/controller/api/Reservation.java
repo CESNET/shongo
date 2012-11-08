@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import org.joda.time.Interval;
 
@@ -11,13 +12,8 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Reservation implements StructType
+public class Reservation extends IdentifiedObject implements StructType
 {
-    /**
-     * Identifier of the {@link Reservation}.
-     */
-    private String identifier;
-
     /**
      * Slot fot which the {@link Reservation} is allocated.
      */
@@ -92,22 +88,6 @@ public class Reservation implements StructType
     public void addChildReservationIdentifier(String childReservationIdentifier)
     {
         childReservationIdentifiers.add(childReservationIdentifier);
-    }
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
     }
 
     /**

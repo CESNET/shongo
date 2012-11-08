@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 
@@ -16,11 +17,6 @@ import java.util.List;
  */
 public class Resource extends IdentifiedChangeableObject
 {
-    /**
-     * Identifier of the resource.
-     */
-    private String identifier;
-
     /**
      * Parent resource identifier for the resource.
      */
@@ -55,22 +51,6 @@ public class Resource extends IdentifiedChangeableObject
      * Child resources identifiers.
      */
     private List<String> childResourceIdentifiers = new ArrayList<String>();
-
-    /**
-     * @return {@link #identifier}
-     */
-    public String getIdentifier()
-    {
-        return identifier;
-    }
-
-    /**
-     * @param identifier sets the {@link #identifier}
-     */
-    public void setIdentifier(String identifier)
-    {
-        this.identifier = identifier;
-    }
 
     /**
      * @return {@link #PARENT_RESOURCE_IDENTIFIER}

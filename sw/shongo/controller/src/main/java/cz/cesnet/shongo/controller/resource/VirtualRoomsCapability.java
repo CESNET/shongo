@@ -64,7 +64,7 @@ public class VirtualRoomsCapability extends DeviceCapability
     {
         cz.cesnet.shongo.controller.api.VirtualRoomsCapability virtualRoomsCapability =
                 (cz.cesnet.shongo.controller.api.VirtualRoomsCapability) api;
-        virtualRoomsCapability.setId(getId().intValue());
+        virtualRoomsCapability.setIdentifier(getId());
         virtualRoomsCapability.setPortCount(getPortCount());
         super.toApi(api);
     }

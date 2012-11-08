@@ -151,7 +151,7 @@ public class PeriodicDateTimeSpecificationTest
         PeriodicDateTimeSpecification periodicDateTime = new PeriodicDateTimeSpecification();
         periodicDateTime.setStart(DateTime.parse("2012-03-01T12:00"));
         periodicDateTime.setPeriod(Period.parse("P1W"));
-        periodicDateTime.setEnd(Converter.convertStringToReadablePartial("2012-03"));
+        periodicDateTime.setEnd(Converter.Atomic.convertStringToReadablePartial("2012-03"));
         assertEquals(5, periodicDateTime.enumerate().size());
     }
 }

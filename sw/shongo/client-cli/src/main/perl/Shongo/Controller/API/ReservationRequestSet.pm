@@ -31,7 +31,7 @@ sub new()
 
     $self->add_attribute('slots', {
         'type' => 'collection',
-        'collection' => {
+        'item' => {
             'title' => 'Requested Slot',
             'add' => {
                 'Add new requested slot by absolute date/time' => sub {
@@ -71,7 +71,7 @@ sub new()
     });
     $self->add_attribute('specifications', {
         'type' => 'collection',
-        'collection' => {
+        'item' => {
             'title' => 'specification',
             'class' => 'Shongo::Controller::API::Specification'
         },
@@ -80,7 +80,7 @@ sub new()
     $self->add_attribute('reservationRequests', {
         'type' => 'collection',
         'title' => 'Reservation Requests',
-        'collection' => {
+        'item' => {
             'format' => sub() {
                 my ($reservation_request) = @_;
                 my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::Controller::API::Object::COLOR) . ": %s",

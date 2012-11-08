@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.util.IdentifiedObject;
 
 /**
  * Represents a person in Shongo.
