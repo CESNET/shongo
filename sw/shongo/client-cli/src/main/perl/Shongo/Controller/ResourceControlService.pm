@@ -825,6 +825,7 @@ sub resource_list_participants
         return;
     }
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ', 'Join time', \' | ');
+    # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
     foreach my $roomUser (@{$response->value()}) {
         $table->add(
             $roomUser->{'userId'},
