@@ -429,6 +429,17 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'getDeviceLoadInfo', @supportedMethods) {
+        $shell->add_commands({
+            "get-device-load-info" => {
+                desc => "Get info about current load of the controlled device",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_get_device_load_info($resourceIdentifier);
+                }
+            }
+        });
+    }
 
     $shell->run();
 }
@@ -994,6 +1005,57 @@ sub resource_set_participant_playback_level
     );
 }
 
+sub resource_get_device_load_info
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getDeviceLoadInfo',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $info = $result->value();
+    if ( !defined($info) ) {
+        print "No info returned\n";
+    }
+    else {
+        if ($info->{'uptime'} >= 0) {
+            my $uptime = $info->{'uptime'};
+            my $uptimeStr = '';
+            if ($uptime >= 60*60*24) {
+                $uptimeStr .= sprintf('%dd ', $uptime/(60*60*24));
+                $uptime %= 60*60*24;
+            }
+            if ($uptime >= 60*60) {
+                $uptimeStr .= sprintf('%dh ', $uptime/(60*60));
+                $uptime %= 60*60;
+            }
+            if ($uptime >= 60) {
+                $uptimeStr .= sprintf('%dm ', $uptime/(60));
+                $uptime %= 60;
+            }
+            $uptimeStr .= sprintf('%ds', $uptime);
+            printf("Uptime:               %s\n", $uptimeStr);
+        }
+        if ($info->{'cpuLoad'} >= 0) {
+            printf("CPU load:             %.0f\n", $info->{'cpuLoad'});
+        }
+        if ($info->{'memoryOccupied'} >= 0) {
+            printf("Memory occupied:      %d\n",   $info->{'memoryOccupied'});
+        }
+        if ($info->{'memoryAvailable'} >= 0) {
+            printf("Memory available:     %d\n",   $info->{'memoryAvailable'});
+        }
+        if ($info->{'diskSpaceOccupied'} >= 0) {
+            printf("Disk space occupied:  %d\n",   $info->{'diskSpaceOccupied'});
+        }
+        if ($info->{'diskSpaceAvailable'} >= 0) {
+            printf("Disk space available: %d\n",   $info->{'diskSpaceAvailable'});
+        }
+    }
+}
 
 
 1;
