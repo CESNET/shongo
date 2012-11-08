@@ -390,13 +390,35 @@ public class Property
             }
 
             Method[] methods = currentType.getDeclaredMethods();
+            List<Method> writeMethods = new ArrayList<Method>();
             for (Method method : methods) {
                 if (method.getName().equals(readMethodName) && method.getParameterTypes().length == 0) {
                     property.readMethod = method;
                 }
                 if (method.getName().equals(writeMethodName) && method.getParameterTypes().length == 1) {
+                    writeMethods.add(method);
+                }
+            }
+            if (writeMethods.size() > 0) {
+                // Select first found write method
+                if (writeMethods.size() == 1 || property.readMethod == null) {
+                    property.writeMethod = writeMethods.get(0);
+                }
+                // Select write method which matches readMethod return type
+                else {
+                    Class readMethodReturnType = property.readMethod.getReturnType();
+                    for (Method writeMethod : writeMethods) {
+                        Class writeMethodParameterType = writeMethod.getParameterTypes()[0];
+                        if (writeMethodParameterType.equals(readMethodReturnType)) {
+                            property.writeMethod = writeMethod;
+                            break;
+                        }
+                    }
                     if (property.writeMethod == null) {
-                        property.writeMethod = method;
+                        throw new IllegalStateException(
+                                String.format("No write method '%s' has one parameter of type '%s'"
+                                        + " (which comes from the return type of the getter).",
+                                        writeMethodName, readMethodReturnType.getCanonicalName()));
                     }
                 }
             }
