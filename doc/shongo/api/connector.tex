@@ -67,7 +67,8 @@ Other kinds of failures, e.g. when contents of communication cannot be decoded o
 Information about connector.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{} the connector name
-\ApiClassAttribute{device}{Resource}{} the device managed by this connector (must be a resource of type ManagedDevice -- see chapter \ref{sect:common:other})
+\ApiClassAttribute{deviceInfo}{DeviceInfo}{} info about the device managed by this connector
+\ApiClassAttribute{deviceAddress}{Address}{} address of the managed device
 \ApiClassAttribute{connectionState}{ConnectionState}{} connection state to the device
 \ApiClassAttribute{deviceState}{DeviceState}{} state of the device, maintained by the connector for performance reasons
 \end{ApiClassAttributes}
@@ -75,9 +76,19 @@ Information about connector.
 \ApiEnum{ConnectionState}
 State of connection between a connector and a device it manages.
 \begin{ApiEnumValues}
-\ApiEnumValue{Connected}{}
-\ApiEnumValue{Disconnected}{}
+\ApiEnumValue{CONNECTED}{} The connection is established.
+\ApiEnumValue{LOOSELY_CONNECTED}{} The connection was established but is not maintained (the communication is stateless).
+\ApiEnumValue{DISCONNECTED}{} The connection is not established.
 \end{ApiEnumValues}
+
+\ApiClass{DeviceInfo}{}
+Brief static info about a device.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{} name of the device
+\ApiClassAttribute{description}{String}{} description of the device
+\ApiClassAttribute{serialNumber}{String}{} serial number of the device (or several serial number of some device parts)
+\ApiClassAttribute{softwareVersion}{String}{} version of software controlling the device
+\end{ApiClassAttributes}
 
 \ApiClass{DeviceState}{}
 State description of a device.
@@ -91,6 +102,7 @@ Current device load information. A negative value in any attribute means the val
 \ApiClassAttribute{memoryAvailable}{long}{}
 \ApiClassAttribute{diskSpaceOccupied}{long}{}
 \ApiClassAttribute{diskSpaceAvailable}{long}{}
+\ApiClassAttribute{upTime}{long}{}
 \end{ApiClassAttributes}
 
 \ApiClass{Room}{}
@@ -105,17 +117,17 @@ Represents a virtual room on a multipoint server device.
 \ApiEnum{Room.Option}
 Room options (not all options must be supported by the implementing connector).
 \begin{ApiEnumValues}
-\ApiEnumValue{Description}{} Some description of the room.
-\ApiEnumValue{Pin}{} PIN that must be entered to get to the room.
-\ApiEnumValue{ListedPublicly}{} Whether to list the room in public lists. Defaults to false.
-\ApiEnumValue{AllowContent}{} Whether participants may contribute content. Defaults to true.
-\ApiEnumValue{AllowGuests}{} Whether guests should be allowed to join. Defaults to true.
-\ApiEnumValue{JoinAudioMuted}{} Whether audio should be muted on join. Defaults to false.
-\ApiEnumValue{JoinVideoMuted}{} Whether video should be muted on join. Defaults to false.
-\ApiEnumValue{RegisterWithH323Gatekeeper}{} Whether to register the aliases with the gatekeeper. Defaults to false.
-\ApiEnumValue{RegisterWithSIPRegistrar}{} Whether to register the aliases with the SIP registrar. Defaults to false.
-\ApiEnumValue{StartLocked}{} Whether the room should be locked when started. Defaults to false.
-\ApiEnumValue{ConferenceMeEnabled}{} Whether the ConferenceMe should be enabled for the room. Defaults to false.
+\ApiEnumValue{DESCRIPTION}{\ApiCode{String}} Some description of the room.
+\ApiEnumValue{PIN}{\ApiCode{String}} PIN that must be entered to get to the room.
+\ApiEnumValue{LISTED_PUBLICLY}{\ApiCode{Boolean}} Whether to list the room in public lists. Defaults to false.
+\ApiEnumValue{ALLOW_CONTENT}{\ApiCode{Boolean}} Whether participants may contribute content. Defaults to true.
+\ApiEnumValue{ALLOW_GUESTS}{\ApiCode{Boolean}} Whether guests should be allowed to join. Defaults to true.
+\ApiEnumValue{JOIN_AUDIO_MUTED}{\ApiCode{Boolean}} Whether audio should be muted on join. Defaults to false.
+\ApiEnumValue{JOIN_VIDEO_MUTED}{\ApiCode{Boolean}} Whether video should be muted on join. Defaults to false.
+\ApiEnumValue{REGISTER_WITH_H323_GATEKEEPER}{\ApiCode{Boolean}} Whether to register the aliases with the gatekeeper. Defaults to false.
+\ApiEnumValue{REGISTER_WITH_SIP_REGISTRAR}{\ApiCode{Boolean}} Whether to register the aliases with the SIP registrar. Defaults to false.
+\ApiEnumValue{START_LOCKED}{\ApiCode{Boolean}} Whether the room should be locked when started. Defaults to false.
+\ApiEnumValue{CONFERENCE_ME_ENABLED}{\ApiCode{Boolean}} Whether the ConferenceMe should be enabled for the room. Defaults to false.
 \end{ApiEnumValues}
 
 \ApiClass{UsageStats}{}
@@ -127,21 +139,20 @@ Usage stats of a given multipoint device.
 \ApiClass{RoomSummary}{}
 A brief info about a virtual room at a server.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
-\ApiClassAttribute{owner}{String}{} Identification of the room owner.
-\ApiClassAttribute{startTime}{DateTime}{} Date and time when the room was (or is to be) started.
-\ApiClassAttribute{reservation}{Reservation}{} Reservation for which this room was created (to satisfy use-case \ref{UC:ops:room:shongo-options}).
-\ApiClassAttribute{type}{Technology}{} Type of the room.
+\ApiClassAttribute{identifier}{String}{\ApiRequired} Technology specific room identifier.
+\ApiClassAttribute{name}{String}{\ApiRequired} User readable name of the room.
+\ApiClassAttribute{description}{String}{} Long description of the room.
+\ApiClassAttribute{startDateTime}{DateTime}{} Date/time when the room was started.
 \end{ApiClassAttributes}
 
 \ApiEnum{RoomLayout}{}
 Layout of a virtual room.
 \begin{ApiEnumValues}
-\ApiEnumValue{SingleParticipant}{only a single, fixed participant is displayed}
-\ApiEnumValue{VoiceSwitchedSingleParticipant}{only a single, currently speaking participant is displayed}
-\ApiEnumValue{SpeakerCorner}{a fixed participant is in the upper-left corner, other participants around}
-\ApiEnumValue{VoiceSwitchedSpeakerCorner}{the currently speaking participant is in the upper-left corner, other participants around}
-\ApiEnumValue{Grid}{all participants are spread in a regular grid}
+\ApiEnumValue{SINGLE_PARTICIPANT}{only a single, fixed participant is displayed}
+\ApiEnumValue{VOICE_SWITCHED_SINGLE_PARTICIPANT}{only a single, currently speaking participant is displayed}
+\ApiEnumValue{SPEAKER_CORNER}{a fixed participant is in the upper-left corner, other participants around}
+\ApiEnumValue{VOICE_SWITCHED_SPEAKER_CORNER}{the currently speaking participant is in the upper-left corner, other participants around}
+\ApiEnumValue{GRID}{all participants are spread in a regular grid}
 \end{ApiEnumValues}
 
 \ApiClass{MediaData}{}
@@ -196,7 +207,7 @@ Gets info about an existing room.
 Create a new virtual room on a multipoint device that is managed by this connector. The \ApiCode{room} parameter specifies the room settings, see the \ApiCode{Room} definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the \ApiCode{roomId} parameter.
 
 \ApiItem{\ApiCode{modifyRoom(String roomId, Map<String,Object> attributes, Map<Room.Option,Object> options)}}
-Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} and \ApiCode{options} maps specify \ApiCode{Room} attribute names and options, respectivelly, mapped to new values. Any attribute or option value may be \ApiCode{null} which means it should be unset.
+Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} and \ApiCode{options} maps specify \ApiCode{Room} attribute names and options, respectivelly, mapped to new values. For available \ApiCode{options}, see the \ApiCode{Room.Option} enumeration (options are used as keys, values should be of the type specified for the option). In the \ApiCode{attributes} map, any \ApiCode{Room} attribute name (\ApiCode{name}, \ApiCode{portCount}, \ldots) may be used as the key mapped to a value of the corresponding type.
 
 \ApiItem{\ApiCode{deleteRoom(String roomId)}}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
@@ -222,11 +233,10 @@ Gets user information and settings in a room.
 
 \ApiItem{\ApiCode{dialParticipant(String roomId, String deviceAddress)}}
 \ApiItem{\ApiCode{dialParticipant(String roomId, Alias alias)}}
-Dials a device, multipoint or endpoint. Dialing a client is available only on \textbf{H.323} and \textbf{SIP}.
+Dials a device -- multipoint or endpoint. Dialing an endpoint is available only on \textbf{H.323} and \textbf{SIP}.
 
 \ApiItem{\ApiCode{modifyParticipant(String roomId, String roomUserId, Map<String,Object> attributes)}}
-Modifies user settings in the room (suitable for setting
-microphone/playback level, muting/unmuting, user layout\ldots).
+Modifies user settings in the room (suitable for setting microphone level, muting/unmuting, user layout\ldots). In the \ApiCode{attributes} map, any \ApiCode{RoomUser} attribute name (\ApiCode{displayName}, \ApiCode{audioMuted}, \ldots) may be used as the key mapped to a value of the corresponding type, except \ApiCode{userId}, \ApiCode{roomId}, \ApiCode{userIdentity}, and \ApiCode{joinTime}, which cannot be modified.
 
 \ApiItem{\ApiCode{disconnectParticipant(String roomId, String roomUserId)}}
 Disconnect user from the room.

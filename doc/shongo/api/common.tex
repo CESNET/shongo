@@ -168,6 +168,7 @@ User identification in room (technology specific).
 Room unique identifier. \todo{The identifier should contain a part denoting the user and a part denoting his/her session -- as requested by use case \ref{UC:ops:room:users-list}. resolved on the UserIdentity level}
 \ApiClassAttribute{userIdentity}{UserIdentity}{\ApiReadOnly}
 User identity which in some cases may be \ApiValue{null} (e.g., when the user is calling from cell phone).
+\ApiClassAttribute{displayName}{String}{} Display name, i.e., name of the user displayed to others.
 \ApiClassAttribute{joinTime}{DateTime}{} Date and time when the user joined the room.
 \ApiClassAttribute{audioMuted}{boolean}{}
 Is the user audio-muted?
