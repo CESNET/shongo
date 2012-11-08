@@ -38,6 +38,14 @@ public class ShongoOntology extends BeanOntology
             // add commands within this package
             String packageName = getClass().getPackage().getName();
             add(packageName);
+            add(packageName + ".actions.common");
+            add(packageName + ".actions.endpoint");
+            add(packageName + ".actions.multipoint.rooms");
+            add(packageName + ".actions.multipoint.users");
+//            add(packageName + ".actions.multipoint.monitoring");
+            add(packageName + ".actions.multipoint.io");
+//            add(packageName + ".actions.multipoint.recording");
+//            add(packageName + ".actions.multipoint.roomcontent");
 
             // add any API classes
             for (String item : ClassHelper.getPackages()) {
