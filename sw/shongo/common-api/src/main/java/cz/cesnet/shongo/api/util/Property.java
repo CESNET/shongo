@@ -3,6 +3,7 @@ package cz.cesnet.shongo.api.util;
 import cz.cesnet.shongo.api.annotation.AllowedTypes;
 import cz.cesnet.shongo.api.annotation.ReadOnly;
 import cz.cesnet.shongo.api.annotation.Required;
+import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -488,33 +489,56 @@ public class Property
     }
 
     /**
+     * Classes to skip
+     */
+    private static final Set<Class> breakClasses = new HashSet<Class>()
+    {{
+            add(ChangesTrackingObject.class);
+        }};
+
+    /**
      * @param type
      * @return array of property names for given class
      */
     public static String[] getPropertyNames(Class type)
     {
-        return getPropertyNames(type, ChangesTrackingObject.class);
+        return getPropertyNames(type, breakClasses);
 
     }
 
     /**
-     * @param type      type from which the property names should be returned
-     * @param breakType super type from which the properties should not be returned (and all super super types)
+     * @param type
      * @return array of property names for given class
      */
     public static String[] getPropertyNames(Class type, Class breakType)
+    {
+        Set<Class> breakTypes = new HashSet<Class>();
+        breakTypes.add(breakType);
+        return getPropertyNames(type, breakTypes);
+
+    }
+
+    /**
+     * @param type       type from which the property names should be returned
+     * @param breakTypes super types from which the properties should not be returned (and all super super types)
+     * @return array of property names for given class
+     */
+    public static String[] getPropertyNames(Class type, Set<Class> breakTypes)
     {
         Set<String> propertyNames = new HashSet<String>();
 
         // Add properties by fields
         Class currentType = type;
         while (currentType != null) {
-            if (currentType.equals(breakType) || currentType.equals(Object.class)) {
+            if (currentType.equals(Object.class) || breakTypes.contains(currentType)) {
                 break;
             }
             Field[] declaredFields = currentType.getDeclaredFields();
             for (Field field : declaredFields) {
                 if (Modifier.isPublic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
+                    if (field.getAnnotation(Transient.class) != null) {
+                        continue;
+                    }
                     propertyNames.add(field.getName());
                 }
             }
@@ -523,6 +547,9 @@ public class Property
                 String methodName = method.getName();
                 int parameterCount = method.getParameterTypes().length;
                 if (methodName.startsWith("get") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
+                    if (method.getAnnotation(Transient.class) != null) {
+                        continue;
+                    }
                     String name = methodName.substring(3);
                     name = name.substring(0, 1).toLowerCase() + name.substring(1);
                     propertyNames.add(name);

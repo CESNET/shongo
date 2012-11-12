@@ -11,7 +11,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class ChangesTrackingObject
+public class ChangesTrackingObject
 {
     /**
      * Keys that are used in map for collection changes.
@@ -72,6 +72,14 @@ public abstract class ChangesTrackingObject
     public boolean isPropertyFilled(String property)
     {
         return filledProperties.contains(property);
+    }
+
+    /**
+     * @return changes for collections
+     */
+    public Map<String, CollectionChanges> getCollectionChanges()
+    {
+        return collectionChangesMap;
     }
 
     /**
@@ -212,7 +220,7 @@ public abstract class ChangesTrackingObject
             ChangesTrackingObject changesTrackingObject = (ChangesTrackingObject) object;
             changesTrackingObject.collectionItemIsByDefaultNew = true;
             Class type = changesTrackingObject.getClass();
-            String[] propertyNames = Property.getPropertyNames(type, ChangesTrackingObject.class);
+            String[] propertyNames = Property.getPropertyNames(type);
             for (String propertyName : propertyNames) {
                 Property property = Property.getProperty(changesTrackingObject.getClass(), propertyName);
                 int propertyTypeFlags = property.getTypeFlags();
@@ -257,6 +265,25 @@ public abstract class ChangesTrackingObject
             Collection collection = (Collection) object;
             for (Object item : collection) {
                 setupNewEntity(item);
+            }
+        }
+    }
+
+    /**
+     * @param changesTrackingObject to be filled from
+     */
+    public void fill(ChangesTrackingObject changesTrackingObject)
+    {
+        for (String property : changesTrackingObject.filledProperties) {
+            filledProperties.add(property);
+        }
+        for ( String collection : changesTrackingObject.collectionChangesMap.keySet()) {
+            CollectionChanges collectionChanges = changesTrackingObject.collectionChangesMap.get(collection);
+            for (Object object : collectionChanges.newItems) {
+                markPropertyItemAsNew(collection, object);
+            }
+            for (Object object : collectionChanges.deletedItems) {
+                markPropertyItemAsDeleted(collection, object);
             }
         }
     }

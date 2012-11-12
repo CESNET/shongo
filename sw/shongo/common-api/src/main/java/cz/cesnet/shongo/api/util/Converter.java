@@ -175,7 +175,7 @@ public class Converter
                 ((object instanceof ChangesTrackingObject) ? (ChangesTrackingObject) object : null);
 
         Map<String, Object> map = new HashMap<String, Object>();
-        String[] propertyNames = Property.getPropertyNames(object.getClass(), ChangesTrackingObject.class);
+        String[] propertyNames = Property.getPropertyNames(object.getClass());
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(object.getClass(), propertyName);
             if (property == null) {

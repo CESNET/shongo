@@ -114,15 +114,18 @@ public class ActionRequestResponderBehaviour extends SimpleAchieveREResponder
             }
         }
         catch (Codec.CodecException e) {
-            logger.info("Received a request which the agent did not understand (wrong codec): {}", request);
+            logger.info(String.format("Received a request which the agent did not understand (wrong codec):%s",
+                    request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
         catch (OntologyException e) {
-            logger.info("Received a request which the agent did not understand (wrong ontology): {}", request);
+            logger.info(String.format("Received a request which the agent did not understand (wrong ontology): %s",
+                    request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
         catch (ClassCastException e) {
-            logger.info("Received a request which the agent did not understand (wrong content type): {}", request);
+            logger.info(String.format("Received a request which the agent did not understand (wrong content type): %s",
+                    request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
 

@@ -1,7 +1,11 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
+import jade.content.Concept;
 
+import java.io.IOException;
+import java.io.ObjectStreamException;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -10,7 +14,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PropertyStorage
+public class PropertyStorage implements Concept
 {
     /**
      * Internal store for property values.
@@ -65,9 +69,17 @@ public class PropertyStorage
         return value;
     }
 
+    /**
+     * @param property
+     * @return value of given property as int
+     */
     public int getValueAsInt(String property)
     {
-        return (Integer) getValue(property);
+        Object value = getValue(property);
+        if (value == null) {
+            return 0;
+        }
+        return (Integer) value;
     }
 
     /**
@@ -270,5 +282,60 @@ public class PropertyStorage
             return true;
         }
         return false;
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws IOException
+    {
+        Map<String, Object> replaceChanges = new HashMap<String, Object>();
+        if (changesTrackingObject != null) {
+            Map<String, ChangesTrackingObject.CollectionChanges> changes =
+                    changesTrackingObject.getCollectionChanges();
+            for (String collection : changes.keySet()) {
+                ChangesTrackingObject.CollectionChanges sourceCollectionChanges = changes.get(collection);
+                Map<String, Collection<Object>> replaceCollectionChanges = new HashMap<String, Collection<Object>>();
+                replaceCollectionChanges.put("new", sourceCollectionChanges.newItems);
+                replaceCollectionChanges.put("deleted", sourceCollectionChanges.deletedItems);
+                replaceChanges.put(collection, replaceCollectionChanges);
+            }
+        }
+        out.writeObject(replaceChanges);
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException
+    {
+        Map<String, Object> changes = (Map<String, Object>) in.readObject();
+        if (changesTrackingObject == null) {
+            changesTrackingObject = new ChangesTrackingObject();
+        }
+        for (String collection : changes.keySet()) {
+            Map<String, Collection<Object>> collectionChanges =
+                    (Map<String, Collection<Object>>) changes.get(collection);
+            if (collectionChanges.containsKey("new")) {
+                for (Object object : collectionChanges.get("new")) {
+                    changesTrackingObject.markPropertyItemAsNew(collection, object);
+                }
+            }
+            if (collectionChanges.containsKey("deleted")) {
+                for (Object object : collectionChanges.get("deleted")) {
+                    changesTrackingObject.markPropertyItemAsDeleted(collection, object);
+                }
+            }
+        }
+        values = new HashMap<String, Object>();
+    }
+
+    /**
+     * @param propertyStorage to be filled from
+     */
+    public void fill(PropertyStorage propertyStorage)
+    {
+        for (String property : propertyStorage.values.keySet()) {
+            values.put(property, propertyStorage.values.get(property));
+        }
+        if (changesTrackingObject != null && propertyStorage.changesTrackingObject != null) {
+            changesTrackingObject.fill(propertyStorage.changesTrackingObject);
+        }
     }
 }

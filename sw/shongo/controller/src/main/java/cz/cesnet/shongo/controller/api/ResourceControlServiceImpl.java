@@ -1,7 +1,5 @@
 package cz.cesnet.shongo.controller.api;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Domain;
@@ -10,17 +8,13 @@ import cz.cesnet.shongo.controller.resource.ManagedMode;
 import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.actions.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
 import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.io.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.GetRoomSummary;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.ListRooms;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.*;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.*;
 import jade.content.AgentAction;
 
@@ -245,23 +239,10 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
-            throws FaultException
-    {
-        authorization.validate(token);
-        return (RoomSummary) commandDevice(deviceResourceIdentifier, new GetRoomSummary(roomId));
-    }
-
-    @Override
     public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
     {
-        Room room = new Room();
-        room.setIdentifier("1");
-        room.setName("Fixed Testing Room (TODO: Remove it)");
-        room.setPortCount(5);
-        room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
-        room.setOption(Room.Option.DESCRIPTION, "room description");
-        return room;
+        authorization.validate(token);
+        return (Room) commandDevice(deviceResourceIdentifier, new GetRoom(roomId));
     }
 
     @Override
@@ -275,8 +256,7 @@ public class ResourceControlServiceImpl extends Component
     public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
     {
         authorization.validate(token);
-        //return (String) commandDevice(deviceResourceIdentifier, new ModifyRoom(roomId, attributes, options));
-        throw new TodoImplementException();
+        return (String) commandDevice(deviceResourceIdentifier, new ModifyRoom(room));
     }
 
     @Override

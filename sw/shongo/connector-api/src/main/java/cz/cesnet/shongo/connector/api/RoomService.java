@@ -26,7 +26,7 @@ public interface RoomService
      * @param roomId id of the room to get info about
      * @return information about a room with roomId
      */
-    RoomSummary getRoomSummary(String roomId) throws CommandException, CommandUnsupportedException;
+    Room getRoom(String roomId) throws CommandException, CommandUnsupportedException;
 
     /**
      * Create a new virtual room on a multipoint device that is managed by this connector.
@@ -42,13 +42,11 @@ public interface RoomService
      *
      * The attributes may name any of Room attributes (see constants in the Room class).
      *
-     * @param roomId     room identifier
-     * @param attributes map of room attributes to change; may be <code>null</code> for no changes in room attributes
-     * @param options    map of room options to change; may be <code>null</code> for no changes in room options
+     * @param room     room to be modified
      * @return new room identifier (shall be the same for most connectors, but may change due to changes in some
      *         attributes)
      */
-    String modifyRoom(String roomId, Map<String, Object> attributes, Map<Room.Option, Object> options)
+    String modifyRoom(Room room)
             throws CommandException, CommandUnsupportedException;
 
     /**

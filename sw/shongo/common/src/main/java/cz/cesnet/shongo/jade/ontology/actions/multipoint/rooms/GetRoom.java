@@ -8,15 +8,15 @@ import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class GetRoomSummary extends ConnectorAgentAction
+public class GetRoom extends ConnectorAgentAction
 {
     private String roomId;
 
-    public GetRoomSummary()
+    public GetRoom()
     {
     }
 
-    public GetRoomSummary(String roomId)
+    public GetRoom(String roomId)
     {
         this.roomId = roomId;
     }
@@ -34,13 +34,13 @@ public class GetRoomSummary extends ConnectorAgentAction
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Getting room summary on {}", roomId);
-        return getMultipoint(connector).getRoomSummary(roomId);
+        logger.info("Getting room {}", roomId);
+        return getMultipoint(connector).getRoom(roomId);
     }
 
     @Override
     public String toString()
     {
-        return String.format("GetRoomSummary agent action (roomId: %s)", roomId);
+        return String.format("GetRoom agent action (roomId: %s)", roomId);
     }
 }

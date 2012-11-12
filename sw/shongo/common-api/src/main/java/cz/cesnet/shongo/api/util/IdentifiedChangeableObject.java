@@ -1,7 +1,9 @@
 package cz.cesnet.shongo.api.util;
 
+import cz.cesnet.shongo.api.annotation.Transient;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
+import jade.content.onto.annotations.SuppressSlot;
 
 /**
  * Represents a type for a API that can be serialized
@@ -24,12 +26,21 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     /**
      * @return {@link #propertyStorage}
      */
-    protected PropertyStorage getPropertyStorage()
+    @Transient
+    public PropertyStorage getPropertyStorage()
     {
         if (propertyStorage == null) {
             propertyStorage = new PropertyStorage(this);
         }
         return propertyStorage;
+    }
+
+    /**
+     * @param propertyStorage sets the {@link #propertyStorage}
+     */
+    public void setPropertyStorage(PropertyStorage propertyStorage)
+    {
+        getPropertyStorage().fill(propertyStorage);
     }
 
     /**
@@ -51,6 +62,7 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     /**
      * @param identifier sets the {@link #identifier}
      */
+    @SuppressSlot
     public void setIdentifier(Long identifier)
     {
         this.identifier = identifier.toString();
@@ -64,7 +76,6 @@ public abstract class IdentifiedChangeableObject extends ChangesTrackingObject i
     {
         if (identifier == null) {
             throw new IllegalStateException("Attribute 'id' in entity '" + getClass().getSimpleName()
-
                     + "' must not be null.");
         }
         return Long.valueOf(identifier);

@@ -353,6 +353,7 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                 logger.debug("request: ->", pInstance.getClass().getSimpleName(), pMethod.getName());
                 logger.debug("request: invoking '{}.{}'...", pInstance.getClass().getSimpleName(), pMethod.getName());
                 try {
+                    pMethod.setAccessible(true);
                     Object result = pMethod.invoke(pInstance, pArgs);
                     logger.debug("request: <-");
                     return result;

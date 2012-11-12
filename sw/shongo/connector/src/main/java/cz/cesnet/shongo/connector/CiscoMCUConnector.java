@@ -125,8 +125,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        List<Map<String, Object>> confs = conn.execEnumerate(enumConfCmd, "conferences");
 //        List<Map<String, Object>> confs2 = conn.execEnumerate(enumConfCmd, "conferences");
 
-        // test of getRoomSummary() command
-//        RoomInfo shongoTestRoom = conn.getRoomSummary("shongo-test");
+        // test of getRoom() command
+//        Room shongoTestRoom = conn.getRoom("shongo-test");
 //        System.out.println("shongo-test room:");
 //        System.out.println(shongoTestRoom);
 
@@ -779,12 +779,19 @@ ParamsLoop:
     }
 
     @Override
-    public RoomSummary getRoomSummary(String roomId) throws CommandException
+    public Room getRoom(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.status");
         cmd.setParameter("conferenceName", roomId);
         Map<String, Object> result = exec(cmd);
-        return extractRoomInfo(result);
+
+        Room room = new Room();
+        room.setIdentifier((String) result.get("conferenceName"));
+        room.setName((String) result.get("conferenceName"));
+
+        // TODO: get room options
+
+        return room;
     }
 
     @Override
@@ -878,37 +885,62 @@ ParamsLoop:
     }
 
     @Override
-    public String modifyRoom(String roomId, Map<String, Object> attributes, Map<Room.Option, Object> options)
+    public String modifyRoom(Room room)
             throws CommandException
     {
-        // based on attributes, construct a Room instance, according to which we build the command
-        Room room = new Room();
-
-        if (attributes != null) {
-            room.setAttributes(attributes);
-        }
-
-        if (options != null) {
-            room.setOptions(options);
-        }
-
         // build the command
         Command cmd = new Command("conference.modify");
         setConferenceParametersByRoom(cmd, room);
         // treat the name and new name of the conference
-        cmd.setParameter("conferenceName", roomId);
-        if (room.getName() != null) {
+        cmd.setParameter("conferenceName", room.getIdentifier());
+        if (room.isPropertyFilled(Room.NAME)) {
             cmd.setParameter("newConferenceName", room.getName());
+        }
+        if (room.isPropertyFilled(Room.PORT_COUNT)) {
+            // TODO: set port count
+            logger.debug("Set port count {}", room.getPortCount());
+        }
+        // Create/Update aliases
+        for (Alias alias : room.getAliases()) {
+            if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
+                // TODO: new alias
+                logger.debug("New alias {}", alias);
+            } else {
+                // TODO: modified alias
+                logger.debug("Modified alias {}", alias);
+            }
+        }
+        // Delete aliases
+        Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
+        for (Alias alias : aliasesToDelete) {
+            // TODO: delete alias
+            logger.debug("Delete alias {}", alias);
+        }
+        // Create/Update options
+        for (Room.Option option : room.getOptions().keySet()) {
+            if (room.isPropertyItemMarkedAsNew(Room.OPTIONS, option)) {
+                // TODO: new option
+                logger.debug("New option {} = {}", option, room.getOption(option));
+            } else {
+                // TODO: modified option
+                logger.debug("Modified option {} = {}", option, room.getOption(option));
+            }
+        }
+        // Delete aliases
+        Set<Room.Option> optionsToDelete = room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS);
+        for (Room.Option option : optionsToDelete) {
+            // TODO: delete option
+            logger.debug("Delete option {}", option);
         }
 
         exec(cmd);
 
-        if (room.getName() != null) {
+        if (room.isPropertyFilled(Room.NAME)) {
             // the room name changed - the room ID must change, too
             return room.getName();
         }
         else {
-            return roomId;
+            return room.getIdentifier();
         }
     }
 

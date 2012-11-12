@@ -20,6 +20,7 @@ import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
+import jade.wrapper.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -355,6 +356,14 @@ public class Container
     }
 
     /**
+     * @return collection of agent names
+     */
+    public Collection<String> getAgentNames()
+    {
+        return agents.keySet();
+    }
+
+    /**
      * Add agent to container by it's class. The agent will be started when the container
      * will start and stopped when the container stops.
      *
@@ -416,9 +425,16 @@ public class Container
         if (!agents.containsKey(agentName)) {
             return false;
         }
+        Object agent = agents.get(agentName);
+        if (agent instanceof Agent) {
+            Agent agentInstance = (Agent) agent;
+            if (!agentInstance.isStarted()) {
+                return false;
+            }
+        }
         AgentController agentController = agentControllers.get(agentName);
         try {
-            agentController.getState();
+            State state = agentController.getState();
         }
         catch (Exception exception) {
             return false;

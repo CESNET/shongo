@@ -11,7 +11,7 @@ import java.util.*;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class Room extends IdentifiedChangeableObject implements Concept, StructType
+public class Room extends IdentifiedChangeableObject implements StructType, Concept
 {
     /**
      * Room name. Type: String
@@ -216,38 +216,6 @@ public class Room extends IdentifiedChangeableObject implements Concept, StructT
         if (!option.getValueClass().isInstance(value)) {
             String message = "Option " + option + " requires value of class " + option.getValueClass().getName();
             throw new IllegalArgumentException(message);
-        }
-    }
-
-    /**
-     * Sets room attributes.
-     *
-     * @param attributes map of attribute names to values
-     */
-    public void setAttributes(Map<String, Object> attributes)
-    {
-        if ( true ) {
-            throw new RuntimeException("Delete this method (should not be used, the Room itself should be transferred through JADE!)");
-        }
-        if (attributes == null) {
-            throw new NullPointerException("attributes");
-        }
-
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            String att = entry.getKey();
-            Object val = entry.getValue();
-            if (att.equals(Room.NAME)) {
-                setName((String) val);
-            }
-            else if (att.equals(Room.PORT_COUNT)) {
-                setPortCount((Integer) val);
-            }
-            else if (att.equals(Room.ALIASES)) {
-                setAliases((List<Alias>) val);
-            }
-            else {
-                throw new IllegalArgumentException("Unknown room attribute: " + att);
-            }
         }
     }
 

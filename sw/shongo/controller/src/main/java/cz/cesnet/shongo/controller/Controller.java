@@ -420,6 +420,28 @@ public class Controller
     }
 
     /**
+     * Wait for all JADE agents to start.
+     */
+    public void waitForJadeAgentsToStart()
+    {
+        boolean started;
+        do {
+            started = true;
+            try {
+                Thread.sleep(50);
+            }
+            catch (InterruptedException exception) {
+            }
+            for (String agentName : jadeContainer.getAgentNames()) {
+                if (!jadeContainer.isAgentStarted(agentName)) {
+                    started = false;
+                }
+            }
+        }
+        while (!started);
+    }
+
+    /**
      * Start worker thread which periodically runs preprocessor and scheduler
      */
     public void startWorkerThread()

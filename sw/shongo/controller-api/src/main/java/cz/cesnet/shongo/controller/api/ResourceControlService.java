@@ -92,11 +92,6 @@ public interface ResourceControlService extends Service
     public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId) throws FaultException;
 
-    // TODO: Odstranit getRoomSummary az bude fungovat getRoom
-    @API
-    public RoomSummary getRoomSummary(SecurityToken token, String deviceResourceIdentifier, String roomId)
-            throws FaultException;
-
     @API
     public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId)
             throws FaultException;

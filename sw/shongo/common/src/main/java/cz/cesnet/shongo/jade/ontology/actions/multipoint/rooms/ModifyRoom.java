@@ -13,70 +13,36 @@ import java.util.Map;
  */
 public class ModifyRoom extends ConnectorAgentAction
 {
-    private String roomId;
-    private Map<String, Object> attributes;
-    private Map<Room.Option, Object> options;
+    private Room room;
 
     public ModifyRoom()
     {
     }
 
-    public ModifyRoom(String roomId, Map<String, Object> attributes, Map<Room.Option, Object> options)
+    public ModifyRoom(Room room)
     {
-        this.attributes = attributes;
-        this.options = options;
-        this.roomId = roomId;
+        this.room = room;
     }
 
-    public Map<String, Object> getAttributes()
+    public Room getRoom()
     {
-        return attributes;
+        return room;
     }
 
-    public void setAttributes(Map<String, Object> attributes)
+    public void setRoom(Room room)
     {
-        this.attributes = attributes;
-    }
-
-    public Map<Room.Option, Object> getOptions()
-    {
-        return options;
-    }
-
-    public void setOptions(Map<Room.Option, Object> options)
-    {
-        this.options = options;
-    }
-
-    public String getRoomId()
-    {
-        return roomId;
-    }
-
-    public void setRoomId(String roomId)
-    {
-        this.roomId = roomId;
+        this.room = room;
     }
 
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Modifying room {}", roomId);
-        if (attributes != null) {
-            for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                logger.info("  - setting attribute '{}' to '{}'", entry.getKey(), entry.getValue());
-            }
-        }
-        if (options != null) {
-            for (Map.Entry<Room.Option, Object> entry : options.entrySet()) {
-                logger.info("  - setting option '{}' to '{}'", entry.getKey(), entry.getValue());
-            }
-        }
-        return getMultipoint(connector).modifyRoom(roomId, attributes, options);
+        logger.info("Modifying room {}", room.getIdentifier());
+        return getMultipoint(connector).modifyRoom(room);
     }
 
     public String toString()
     {
-        return String.format("ModifyRoom agent action (room: %s)", roomId);
+        return String.format("ModifyRoom agent action (room: %s)", room.getIdentifier());
     }
 }

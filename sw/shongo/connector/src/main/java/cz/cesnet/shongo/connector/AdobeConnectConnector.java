@@ -273,22 +273,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public RoomSummary getRoomSummary(String roomId) throws CommandException, CommandUnsupportedException
+    public Room getRoom(String roomId) throws CommandException, CommandUnsupportedException
     {
-        RoomSummary roomSummary = new RoomSummary();
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("sco-id", roomId);
 
         Element response = request("sco-info", attributes);
 
         // TODO: WTF roomSummary.setType(Technology.ADOBE_CONNECT);
-        roomSummary.setName(response.getChild("sco").getChild("name").getText());
+        Room room = new Room();
+        room.setIdentifier(roomId);
+        room.setName(response.getChild("sco").getChild("name").getText());
 
         // TODO: roomInfo.setOwner();
         // TODO: roomInfo.setCreation();
         // TODO: roomInfo.setReservation();
 
-        return roomSummary;
+        return room;
     }
 
     @java.lang.Override
@@ -316,7 +317,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public String modifyRoom(String roomId, Map<String, Object> attributes, Map<Room.Option, Object> options)
+    public String modifyRoom(Room room)
             throws CommandException, CommandUnsupportedException
     {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
