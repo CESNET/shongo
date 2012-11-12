@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.api.xmlrpc.StructType;
+import jade.content.Concept;
 
 /**
  * Represents a type for a API that can be serialized
@@ -8,7 +9,7 @@ import cz.cesnet.shongo.api.xmlrpc.StructType;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public abstract class IdentifiedObject implements StructType
+public abstract class IdentifiedObject implements StructType, Concept
 {
     /**
      * Identifier.

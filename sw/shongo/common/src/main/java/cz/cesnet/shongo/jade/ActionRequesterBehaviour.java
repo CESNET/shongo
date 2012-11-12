@@ -11,7 +11,6 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
-import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SimpleAchieveREInitiator;
@@ -94,13 +93,16 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
             }
         }
         catch (Codec.CodecException e) {
-            command.setState(Command.State.FAILED, "The result of the command could not be decoded.");
+            command.setState(Command.State.FAILED, String.format("The result of the command could not be decoded. %s",
+                    e.getMessage()));
         }
         catch (OntologyException e) {
-            command.setState(Command.State.FAILED, "The result of the command could not be decoded.");
+            command.setState(Command.State.FAILED, String.format("The result of the command could not be decoded. %s",
+                    e.getMessage()));
         }
         catch (ClassCastException e) {
-            command.setState(Command.State.FAILED, "The result of the command could not be decoded.");
+            command.setState(Command.State.FAILED, String.format("The result of the command could not be decoded. %s",
+                    e.getMessage()));
         }
     }
 

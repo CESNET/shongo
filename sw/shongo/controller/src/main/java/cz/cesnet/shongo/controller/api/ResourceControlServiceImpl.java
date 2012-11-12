@@ -233,7 +233,8 @@ public class ResourceControlServiceImpl extends Component
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         authorization.validate(token);
-        return (List<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
+        Collection<RoomSummary> rooms = (Collection<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
+        return rooms;
     }
 
     @Override

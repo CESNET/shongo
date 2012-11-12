@@ -265,7 +265,7 @@ sub control_resource()
             }
         });
     }
-    #if (grep $_ eq 'createRoom', @supportedMethods) {
+    if (grep $_ eq 'createRoom', @supportedMethods) {
         $shell->add_commands({
             "create-room" => {
                 desc => "Create virtual room",
@@ -275,8 +275,8 @@ sub control_resource()
                 }
             }
         });
-    #}
-    #if (grep $_ eq 'modifyRoom', @supportedMethods) {
+    }
+    if (grep $_ eq 'modifyRoom', @supportedMethods) {
         $shell->add_commands({
             "modify-room" => {
                 desc => "Modify virtual room",
@@ -287,8 +287,7 @@ sub control_resource()
                 }
             }
         });
-    #}
-    print("TODO: UNCOMMENT\n");
+    }
     if (grep $_ eq 'deleteRoom', @supportedMethods) {
         $shell->add_commands({
             "delete-room" => {
