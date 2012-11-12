@@ -3,9 +3,12 @@ package cz.cesnet.shongo.jade.ontology;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import jade.content.onto.*;
 import jade.content.schema.ObjectSchema;
+import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -26,7 +29,7 @@ public class ShongoOntology extends BeanOntology
 
     private ShongoOntology()
     {
-        super(NAME, new Ontology[]{BasicOntology.getInstance(), SerializableOntology.getInstance()});
+        super(NAME, new Ontology[]{ExceptionOntology.getInstance(), SerializableOntology.getInstance()});
 
         try {
             // add some Java classes to be serializable to the ontology

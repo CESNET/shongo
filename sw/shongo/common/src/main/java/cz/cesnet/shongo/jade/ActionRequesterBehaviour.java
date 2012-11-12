@@ -11,20 +11,25 @@ import jade.content.onto.OntologyException;
 import jade.content.onto.basic.Action;
 import jade.content.onto.basic.Done;
 import jade.content.onto.basic.Result;
+import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SimpleAchieveREInitiator;
+import jade.wrapper.ControllerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Behaviour that requests a connector to perform an action.
- *
+ * <p/>
  * Automatically run on the controller by a command processing.
- *
+ * <p/>
  * Implements the initiator part of the standard FIPA-Request protocol (see the Jade Programmer's Guide or the Ontology
  * example found in the Jade distribution in examples/src/examples/ontology).
- *
+ * <p/>
  * See ActionRequestResponderBehaviour class for the other party of the conversation.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -129,11 +134,28 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
     /**
      * Tries to parse error message out of a message.
      *
-     * @param msg    an error, should contain a Result with value of type CommandError or CommandNotSupported
+     * @param msg an error, should contain a Result with value of type CommandError or CommandNotSupported
      * @return error message found in the message, or null if it was not there
      */
     private String getErrorMessage(ACLMessage msg)
     {
+        if (msg.getSender().equals(myAgent.getAMS())) {
+            String content = msg.getContent();
+            Pattern pattern = Pattern.compile("internal-error \"(.*)\"");
+            Matcher matcher = pattern.matcher(content);
+            if (matcher.find()) {
+                content = matcher.group(1);
+            }
+            String containerName = "Unknown";
+            try {
+                containerName = myAgent.getContainerController().getContainerName();
+            }
+            catch (ControllerException exception) {
+            }
+            containerName = String.format("Container %s", containerName);
+            content = content.replace("getContainerID()", containerName);
+            return content;
+        }
         ContentManager cm = myAgent.getContentManager();
         try {
             ContentElement contentElement = cm.extractContent(msg);
