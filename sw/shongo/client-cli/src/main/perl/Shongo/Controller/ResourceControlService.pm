@@ -428,6 +428,17 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'getDeviceLoadInfo', @supportedMethods) {
+        $shell->add_commands({
+            "get-device-load-info" => {
+                desc => "Get info about current load of the controlled device",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_get_device_load_info($resourceIdentifier);
+                }
+            }
+        });
+    }
 
     $shell->run();
 }
@@ -813,6 +824,7 @@ sub resource_list_participants
         return;
     }
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ', 'Join time', \' | ');
+    # TODO: add an --all switch to the command and, if used, print all available info to the table (see resource_get_participant)
     foreach my $roomUser (@{$response->value()}) {
         $table->add(
             $roomUser->{'userId'},
@@ -993,6 +1005,57 @@ sub resource_set_participant_playback_level
     );
 }
 
+sub resource_get_device_load_info
+{
+    my ($resourceIdentifier) = @_;
+
+    my $result = Shongo::Controller->instance()->secure_request(
+        'ResourceControl.getDeviceLoadInfo',
+        RPC::XML::string->new($resourceIdentifier)
+    );
+    if ( $result->is_fault ) {
+        return;
+    }
+    my $info = $result->value();
+    if ( !defined($info) ) {
+        print "No info returned\n";
+    }
+    else {
+        if (defined($info->{'uptime'})) {
+            my $uptime = $info->{'uptime'};
+            my $uptimeStr = '';
+            if ($uptime >= 60*60*24) {
+                $uptimeStr .= sprintf('%dd ', $uptime/(60*60*24));
+                $uptime %= 60*60*24;
+            }
+            if ($uptime >= 60*60) {
+                $uptimeStr .= sprintf('%dh ', $uptime/(60*60));
+                $uptime %= 60*60;
+            }
+            if ($uptime >= 60) {
+                $uptimeStr .= sprintf('%dm ', $uptime/(60));
+                $uptime %= 60;
+            }
+            $uptimeStr .= sprintf('%ds', $uptime);
+            printf("Uptime:               %s\n", $uptimeStr);
+        }
+        if (defined($info->{'cpuLoad'})) {
+            printf("CPU load:             %.1f %%\n", $info->{'cpuLoad'});
+        }
+        if (defined($info->{'memoryOccupied'})) {
+            printf("Memory occupied:      %d bytes\n",   $info->{'memoryOccupied'});
+        }
+        if (defined($info->{'memoryAvailable'})) {
+            printf("Memory available:     %d bytes\n",   $info->{'memoryAvailable'});
+        }
+        if (defined($info->{'diskSpaceOccupied'})) {
+            printf("Disk space occupied:  %d bytes\n",   $info->{'diskSpaceOccupied'});
+        }
+        if (defined($info->{'diskSpaceAvailable'})) {
+            printf("Disk space available: %d bytes\n",   $info->{'diskSpaceAvailable'});
+        }
+    }
+}
 
 
 1;

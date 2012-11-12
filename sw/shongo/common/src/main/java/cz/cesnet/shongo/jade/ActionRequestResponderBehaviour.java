@@ -94,6 +94,15 @@ public class ActionRequestResponderBehaviour extends SimpleAchieveREResponder
                 ContentElement response = new Result(act, new CommandError(message));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
+            catch (ClassCastException e) {
+                logger.info("Failure executing a command requested by " + request.getSender().getName(), e);
+                String message = e.getMessage();
+                if (e.getCause() != null) {
+                    message += " (" + e.getCause().getMessage() + ")";
+                }
+                ContentElement response = new Result(act, new CommandError(message));
+                fillMessage(reply, ACLMessage.FAILURE, response);
+            }
             catch (CommandUnsupportedException e) {
                 logger.info("Unsupported command requested by " + request.getSender().getName(), e);
                 ContentElement response = new Result(act, new CommandNotSupported(e.getMessage()));

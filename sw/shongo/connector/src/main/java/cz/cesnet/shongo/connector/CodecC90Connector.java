@@ -7,6 +7,7 @@ import com.jcraft.jsch.Session;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
@@ -440,6 +441,22 @@ reading:
         return "Uncategorized error";
     }
 
+    @Override
+    public DeviceLoadInfo getDeviceLoadInfo() throws CommandException
+    {
+        Command command = new Command("xStatus SystemUnit Uptime");
+        Document result = issueCommand(command);
+        try {
+            String uptime = getResultString(result, "/XmlDoc/Status/SystemUnit/Uptime");
+
+            DeviceLoadInfo info = new DeviceLoadInfo();
+            info.setUptime(Integer.valueOf(uptime));
+            return info;
+        }
+        catch (XPathExpressionException e) {
+            throw new CommandException("Program error in parsing the command result.", e);
+        }
+    }
 
     // ENDPOINT SERVICE
 

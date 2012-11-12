@@ -1,12 +1,8 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.PrintableObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.Room;
-import cz.cesnet.shongo.api.RoomSummary;
-import cz.cesnet.shongo.api.RoomUser;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -17,10 +13,14 @@ import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
+import cz.cesnet.shongo.jade.ontology.actions.common.GetDeviceLoadInfo;
 import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
 import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.io.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.*;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.GetRoomSummary;
+import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.ListRooms;
 import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.*;
 import jade.content.AgentAction;
 
@@ -104,6 +104,13 @@ public class ResourceControlServiceImpl extends Component
     {
         authorization.validate(token);
         return (List<String>) commandDevice(deviceResourceIdentifier, new GetSupportedMethods());
+    }
+
+    @Override
+    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    {
+        authorization.validate(token);
+        return (DeviceLoadInfo) commandDevice(deviceResourceIdentifier, new GetDeviceLoadInfo());
     }
 
     @Override
