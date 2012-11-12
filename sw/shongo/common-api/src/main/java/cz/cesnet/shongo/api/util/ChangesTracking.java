@@ -1,17 +1,18 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
+import jade.content.Concept;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
- * Abstract object which is able to keep changes.
+ * Tracks changes for some object.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class ChangesTrackingObject
+public class ChangesTracking implements Concept
 {
     /**
      * Keys that are used in map for collection changes.
@@ -21,7 +22,7 @@ public class ChangesTrackingObject
     public static final String COLLECTION_DELETED = "deleted";
 
     /**
-     * Key whose value contains the whole {@link Map} data.
+     * Key whose value contains the whole {@link java.util.Map} data.
      */
     public static final String MAP_DATA = "__map";
 
@@ -197,43 +198,33 @@ public class ChangesTrackingObject
     }
 
     /**
-     * Checks whether all properties with {@link Required} annotation are marked as filled and
-     * sets the {@link #collectionItemIsByDefaultNew} to true (recursive).
-     *
-     * @throws FaultException when some required field isn't filled
-     */
-    public void setupNewEntity() throws FaultException
-    {
-        setupNewEntity(this);
-    }
-
-    /**
-     * Check {@link Required} in all properties of {@link ChangesTrackingObject} or in all items of
+     * Check {@link cz.cesnet.shongo.api.annotation.Required} in all properties of {@link cz.cesnet.shongo.api.util.ChangesTracking} or in all items of
      * arrays and collections (recursive).
      *
      * @param object
-     * @throws FaultException
+     * @throws cz.cesnet.shongo.fault.FaultException
+     *
      */
-    private static void setupNewEntity(Object object) throws FaultException
+    public static void setupNewEntity(Object object) throws FaultException
     {
-        if (object instanceof ChangesTrackingObject) {
-            ChangesTrackingObject changesTrackingObject = (ChangesTrackingObject) object;
+        if (object instanceof Changeable) {
+            ChangesTracking changesTrackingObject = ((Changeable) object).getChangesTracking();
             changesTrackingObject.collectionItemIsByDefaultNew = true;
-            Class type = changesTrackingObject.getClass();
+            Class type = object.getClass();
             String[] propertyNames = Property.getPropertyNames(type);
             for (String propertyName : propertyNames) {
-                Property property = Property.getProperty(changesTrackingObject.getClass(), propertyName);
+                Property property = Property.getProperty(object.getClass(), propertyName);
                 int propertyTypeFlags = property.getTypeFlags();
-                Object value = property.getValue(changesTrackingObject);
+                Object value = property.getValue(object);
                 boolean required = property.isRequired();
-                if ( value instanceof ChangesTrackingObject ) {
+                if (value instanceof Changeable) {
                     setupNewEntity(value);
                 }
                 else if (TypeFlags.isArray(propertyTypeFlags)) {
                     Object[] array = (Object[]) value;
                     if (required && array.length == 0) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
-                                changesTrackingObject.getClass());
+                                type);
                     }
                     for (Object item : array) {
                         setupNewEntity(item);
@@ -243,7 +234,7 @@ public class ChangesTrackingObject
                     Collection collection = (Collection) value;
                     if (required && collection.isEmpty()) {
                         throw new FaultException(CommonFault.CLASS_ATTRIBUTE_COLLECTION_IS_REQUIRED, propertyName,
-                                changesTrackingObject.getClass());
+                                type);
                     }
                     for (Object item : collection) {
                         setupNewEntity(item);
@@ -251,7 +242,7 @@ public class ChangesTrackingObject
                 }
                 else if (required && value == null) {
                     throw new FaultException(CommonFault.CLASS_ATTRIBUTE_IS_REQUIRED, propertyName,
-                            changesTrackingObject.getClass());
+                            type);
                 }
             }
         }
@@ -272,12 +263,12 @@ public class ChangesTrackingObject
     /**
      * @param changesTrackingObject to be filled from
      */
-    public void fill(ChangesTrackingObject changesTrackingObject)
+    public void fill(ChangesTracking changesTrackingObject)
     {
         for (String property : changesTrackingObject.filledProperties) {
             filledProperties.add(property);
         }
-        for ( String collection : changesTrackingObject.collectionChangesMap.keySet()) {
+        for (String collection : changesTrackingObject.collectionChangesMap.keySet()) {
             CollectionChanges collectionChanges = changesTrackingObject.collectionChangesMap.get(collection);
             for (Object object : collectionChanges.newItems) {
                 markPropertyItemAsNew(collection, object);
@@ -286,5 +277,55 @@ public class ChangesTrackingObject
                 markPropertyItemAsDeleted(collection, object);
             }
         }
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out)
+            throws IOException
+    {
+        Map<String, Object> replaceChanges = new HashMap<String, Object>();
+        Map<String, ChangesTracking.CollectionChanges> changes =
+                getCollectionChanges();
+        for (String collection : changes.keySet()) {
+            ChangesTracking.CollectionChanges sourceCollectionChanges = changes.get(collection);
+            Map<String, Collection<Object>> replaceCollectionChanges = new HashMap<String, Collection<Object>>();
+            replaceCollectionChanges.put("new", sourceCollectionChanges.newItems);
+            replaceCollectionChanges.put("deleted", sourceCollectionChanges.deletedItems);
+            replaceChanges.put(collection, replaceCollectionChanges);
+        }
+        out.writeObject(replaceChanges);
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException
+    {
+        filledProperties = new HashSet<String>();
+        collectionChangesMap = new HashMap<String, CollectionChanges>();
+
+        Map<String, Object> changes = (Map<String, Object>) in.readObject();
+        for (String collection : changes.keySet()) {
+            Map<String, Collection<Object>> collectionChanges =
+                    (Map<String, Collection<Object>>) changes.get(collection);
+            if (collectionChanges.containsKey("new")) {
+                for (Object object : collectionChanges.get("new")) {
+                    markPropertyItemAsNew(collection, object);
+                }
+            }
+            if (collectionChanges.containsKey("deleted")) {
+                for (Object object : collectionChanges.get("deleted")) {
+                    markPropertyItemAsDeleted(collection, object);
+                }
+            }
+        }
+    }
+
+    /**
+     * Interface which should be implemented by objects which provides {@link ChangesTracking}.
+     */
+    public static interface Changeable
+    {
+        /**
+         * @return {@link ChangesTracking} for this object
+         */
+        public ChangesTracking getChangesTracking();
     }
 }

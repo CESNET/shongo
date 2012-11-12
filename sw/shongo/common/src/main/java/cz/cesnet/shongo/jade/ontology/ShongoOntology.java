@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.jade.ontology;
 
+import cz.cesnet.shongo.api.util.ChangesTracking;
 import cz.cesnet.shongo.api.util.ClassHelper;
 import cz.cesnet.shongo.api.util.PropertyStorage;
 import jade.content.onto.*;
@@ -40,7 +41,7 @@ public class ShongoOntology extends BeanOntology
             SerializableOntology.getInstance().add(serializableSchema, java.util.HashMap.class);
             SerializableOntology.getInstance().add(serializableSchema, Period.class);
             SerializableOntology.getInstance().add(serializableSchema, DateTime.class);
-            SerializableOntology.getInstance().add(serializableSchema, PropertyStorage.class);
+            SerializableOntology.getInstance().add(serializableSchema, ChangesTracking.class);
 
             // add commands within this package
             String packageName = getClass().getPackage().getName();

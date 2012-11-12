@@ -161,7 +161,7 @@ public class Converter
      * Convert object to a map. Map will contain all object's properties that are:
      * 1) simple (not {@link Object[]} or {@link Collection}) with not {@link null} value
      * 2) simple with {@link null} value but marked as filled through
-     * ({@link ChangesTrackingObject#markPropertyAsFilled(String)}
+     * ({@link ChangesTracking#markPropertyAsFilled(String)}
      * 3) {@link Object[]} or {@link Collection} which is not empty
      *
      * @param object  to be converted
@@ -171,8 +171,9 @@ public class Converter
      */
     private static Map convertObjectToMap(Object object, Options options) throws FaultException
     {
-        ChangesTrackingObject changesTrackingObject =
-                ((object instanceof ChangesTrackingObject) ? (ChangesTrackingObject) object : null);
+        ChangesTracking changesTrackingObject =
+                ((object instanceof ChangesTracking.Changeable) ?
+                         ((ChangesTracking.Changeable) object).getChangesTracking() : null);
 
         Map<String, Object> map = new HashMap<String, Object>();
         String[] propertyNames = Property.getPropertyNames(object.getClass());
@@ -209,7 +210,7 @@ public class Converter
             // If changes should be stored and the property has items, we must save the property by custom structure
             // with "new"/"modified"/"deleted" arrays
             if (options.isStoreChanges() && TypeFlags.isArrayOrCollectionOrMap(property.getTypeFlags())) {
-                ChangesTrackingObject.CollectionChanges collectionChanges =
+                ChangesTracking.CollectionChanges collectionChanges =
                         (changesTrackingObject != null ?
                                  changesTrackingObject.getCollectionChanges(propertyName) : null);
                 value = getValueItemChanges(value, collectionChanges, options);
@@ -277,8 +278,9 @@ public class Converter
                 throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, targetType);
             }
 
-            ChangesTrackingObject changesTrackingObject =
-                    ((object instanceof ChangesTrackingObject) ? (ChangesTrackingObject) object : null);
+            ChangesTracking changesTrackingObject =
+                    ((object instanceof ChangesTracking.Changeable) ?
+                             ((ChangesTracking.Changeable) object).getChangesTracking() : null);
 
             // Clear all filled properties
             if (changesTrackingObject != null) {
@@ -308,7 +310,7 @@ public class Converter
                 boolean storeChanges = (value instanceof Map)
                         && (TypeFlags.isArrayOrCollection(propertyTypeFlags)
                                     || (TypeFlags.isMap(propertyTypeFlags)
-                                                && ((Map) value).containsKey(ChangesTrackingObject.MAP_DATA)));
+                                                && ((Map) value).containsKey(ChangesTracking.MAP_DATA)));
                 if (storeChanges) {
                     value = setValueItemChanges(value, property, changesTrackingObject, options);
                     if (value == null) {
@@ -367,7 +369,7 @@ public class Converter
      * @throws FaultException when the method fails
      */
     private static Map<String, Object> getValueItemChanges(Object value,
-            ChangesTrackingObject.CollectionChanges collectionChanges, Options options) throws FaultException
+            ChangesTracking.CollectionChanges collectionChanges, Options options) throws FaultException
     {
         // Map of changes
         Map<String, Object> mapValueItemChanges = new HashMap<String, Object>();
@@ -403,11 +405,11 @@ public class Converter
                 modifiedItems.add(item);
             }
             if (collectionChanges.newItems.size() > 0) {
-                mapValueItemChanges.put(ChangesTrackingObject.COLLECTION_NEW,
+                mapValueItemChanges.put(ChangesTracking.COLLECTION_NEW,
                         Converter.convertToBasic(collectionChanges.newItems, options));
             }
             if (collectionChanges.deletedItems.size() > 0) {
-                mapValueItemChanges.put(ChangesTrackingObject.COLLECTION_DELETED,
+                mapValueItemChanges.put(ChangesTracking.COLLECTION_DELETED,
                         Converter.convertToBasic(collectionChanges.deletedItems, options));
             }
         }
@@ -418,7 +420,7 @@ public class Converter
             }
         }
         if (modifiedItems.size() > 0) {
-            mapValueItemChanges.put(ChangesTrackingObject.COLLECTION_MODIFIED,
+            mapValueItemChanges.put(ChangesTracking.COLLECTION_MODIFIED,
                     Converter.convertToBasic(modifiedItems, options));
         }
         // Skip empty changes
@@ -427,24 +429,24 @@ public class Converter
         }
         // Append values for Map
         if (value instanceof Map) {
-            mapValueItemChanges.put(ChangesTrackingObject.MAP_DATA, value);
+            mapValueItemChanges.put(ChangesTracking.MAP_DATA, value);
         }
         return mapValueItemChanges;
     }
 
     /**
-     * Set changes from given {@code value} to the given {@code changesTrackingObject} and return value which should
+     * Set changes from given {@code value} to the given {@code changesTracking} and return value which should
      * be set to the {@code property}.
      *
-     * @param value                 of type {@link Object[]}, {@link Collection} or {@link Map}
-     * @param property              to which the value belongs
-     * @param changesTrackingObject {@link ChangesTrackingObject} to which the changes should be filled
-     * @param options               see {@link Options}
+     * @param value           of type {@link Object[]}, {@link Collection} or {@link Map}
+     * @param property        to which the value belongs
+     * @param changesTracking {@link ChangesTracking} to which the changes should be filled
+     * @param options         see {@link Options}
      * @return value which should be set to the given {@code property} (converted from{@link TypeFlags#BASIC} types)
      * @throws FaultException when the method fails
      */
-    private static Object setValueItemChanges(Object value, Property property,
-            ChangesTrackingObject changesTrackingObject, Options options) throws FaultException
+    private static Object setValueItemChanges(Object value, Property property, ChangesTracking changesTracking,
+            Options options) throws FaultException
     {
         Map changes = (Map) value;
 
@@ -465,25 +467,25 @@ public class Converter
         Object newItems = null;
         Object modifiedItems = null;
         Object deletedItems = null;
-        if (changes.containsKey(ChangesTrackingObject.COLLECTION_NEW)) {
-            newItems = changes.get(ChangesTrackingObject.COLLECTION_NEW);
+        if (changes.containsKey(ChangesTracking.COLLECTION_NEW)) {
+            newItems = changes.get(ChangesTracking.COLLECTION_NEW);
             newItems = Converter.convert(newItems, changesType, changesAllowedTypes, property, options);
-            if (changesTrackingObject != null) {
+            if (changesTracking != null) {
                 for (Object newItem : (Collection) newItems) {
-                    changesTrackingObject.markPropertyItemAsNew(propertyName, newItem);
+                    changesTracking.markPropertyItemAsNew(propertyName, newItem);
                 }
             }
         }
-        if (changes.containsKey(ChangesTrackingObject.COLLECTION_MODIFIED)) {
-            modifiedItems = changes.get(ChangesTrackingObject.COLLECTION_MODIFIED);
+        if (changes.containsKey(ChangesTracking.COLLECTION_MODIFIED)) {
+            modifiedItems = changes.get(ChangesTracking.COLLECTION_MODIFIED);
             modifiedItems = Converter.convert(modifiedItems, changesType, changesAllowedTypes, property, options);
         }
-        if (changes.containsKey(ChangesTrackingObject.COLLECTION_DELETED)) {
-            deletedItems = changes.get(ChangesTrackingObject.COLLECTION_DELETED);
+        if (changes.containsKey(ChangesTracking.COLLECTION_DELETED)) {
+            deletedItems = changes.get(ChangesTracking.COLLECTION_DELETED);
             deletedItems = Converter.convert(deletedItems, changesType, changesAllowedTypes, property, options);
-            if (changesTrackingObject != null) {
+            if (changesTracking != null) {
                 for (Object deletedItem : (Collection) deletedItems) {
-                    changesTrackingObject.markPropertyItemAsDeleted(propertyName, deletedItem);
+                    changesTracking.markPropertyItemAsDeleted(propertyName, deletedItem);
                 }
             }
         }
@@ -523,7 +525,7 @@ public class Converter
         }
         else if (TypeFlags.isMap(propertyTypeFlags)) {
             Map map = (Map) value;
-            value = convert(map.get(ChangesTrackingObject.MAP_DATA), property.getType(), propertyAllowedTypes,
+            value = convert(map.get(ChangesTracking.MAP_DATA), property.getType(), propertyAllowedTypes,
                     property, options);
         }
         return value;

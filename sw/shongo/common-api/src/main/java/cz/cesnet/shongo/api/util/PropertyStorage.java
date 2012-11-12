@@ -1,11 +1,7 @@
 package cz.cesnet.shongo.api.util;
 
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
-import jade.content.Concept;
 
-import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.lang.reflect.Array;
 import java.util.*;
 
@@ -14,7 +10,7 @@ import java.util.*;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class PropertyStorage implements Concept
+public class PropertyStorage
 {
     /**
      * Internal store for property values.
@@ -22,10 +18,9 @@ public class PropertyStorage implements Concept
     private Map<String, Object> values = new HashMap<String, Object>();
 
     /**
-     * Reference to {@link ChangesTrackingObject} which should be notified about property changes;
+     * Reference to {@link ChangesTracking} which should be notified about property changes;
      */
-    ChangesTrackingObject changesTrackingObject;
-
+    ChangesTracking changesTracking;
 
     /**
      * Constructor.
@@ -37,11 +32,11 @@ public class PropertyStorage implements Concept
     /**
      * Constructor.
      *
-     * @param changesKeepingObject sets the {@link #changesTrackingObject}
+     * @param changesKeeping sets the {@link #changesTracking}
      */
-    public PropertyStorage(ChangesTrackingObject changesKeepingObject)
+    public PropertyStorage(ChangesTracking changesKeeping)
     {
-        this.changesTrackingObject = changesKeepingObject;
+        this.changesTracking = changesKeeping;
     }
 
     /**
@@ -53,8 +48,8 @@ public class PropertyStorage implements Concept
     public void setValue(String property, Object value)
     {
         values.put(property, value);
-        if (changesTrackingObject != null) {
-            changesTrackingObject.markPropertyAsFilled(property);
+        if (changesTracking != null) {
+            changesTracking.markPropertyAsFilled(property);
         }
     }
 
@@ -172,8 +167,8 @@ public class PropertyStorage implements Concept
         @SuppressWarnings("unchecked")
         Collection<Object> collection = getInternalCollection(property, collectionType);
         if (collection.add(item)) {
-            if (changesTrackingObject != null) {
-                changesTrackingObject.markPropertyItemAsNew(property, item);
+            if (changesTracking != null) {
+                changesTracking.markPropertyItemAsNew(property, item);
             }
             return true;
         }
@@ -196,8 +191,8 @@ public class PropertyStorage implements Concept
             return false;
         }
         if (collection.remove(item)) {
-            if (changesTrackingObject != null) {
-                changesTrackingObject.markPropertyItemAsDeleted(property, item);
+            if (changesTracking != null) {
+                changesTracking.markPropertyItemAsDeleted(property, item);
             }
             return true;
         }
@@ -253,8 +248,8 @@ public class PropertyStorage implements Concept
     {
         Map<Object, Object> map = getInternalMap(property);
         if (map.put(itemKey, itemValue) == null) {
-            if (changesTrackingObject != null) {
-                changesTrackingObject.markPropertyItemAsNew(property, itemKey);
+            if (changesTracking != null) {
+                changesTracking.markPropertyItemAsNew(property, itemKey);
             }
             return true;
         }
@@ -276,66 +271,11 @@ public class PropertyStorage implements Concept
             return false;
         }
         if (map.remove(itemKey) != null) {
-            if (changesTrackingObject != null) {
-                changesTrackingObject.markPropertyItemAsDeleted(property, itemKey);
+            if (changesTracking != null) {
+                changesTracking.markPropertyItemAsDeleted(property, itemKey);
             }
             return true;
         }
         return false;
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out)
-            throws IOException
-    {
-        Map<String, Object> replaceChanges = new HashMap<String, Object>();
-        if (changesTrackingObject != null) {
-            Map<String, ChangesTrackingObject.CollectionChanges> changes =
-                    changesTrackingObject.getCollectionChanges();
-            for (String collection : changes.keySet()) {
-                ChangesTrackingObject.CollectionChanges sourceCollectionChanges = changes.get(collection);
-                Map<String, Collection<Object>> replaceCollectionChanges = new HashMap<String, Collection<Object>>();
-                replaceCollectionChanges.put("new", sourceCollectionChanges.newItems);
-                replaceCollectionChanges.put("deleted", sourceCollectionChanges.deletedItems);
-                replaceChanges.put(collection, replaceCollectionChanges);
-            }
-        }
-        out.writeObject(replaceChanges);
-    }
-
-    private void readObject(java.io.ObjectInputStream in)
-            throws IOException, ClassNotFoundException
-    {
-        Map<String, Object> changes = (Map<String, Object>) in.readObject();
-        if (changesTrackingObject == null) {
-            changesTrackingObject = new ChangesTrackingObject();
-        }
-        for (String collection : changes.keySet()) {
-            Map<String, Collection<Object>> collectionChanges =
-                    (Map<String, Collection<Object>>) changes.get(collection);
-            if (collectionChanges.containsKey("new")) {
-                for (Object object : collectionChanges.get("new")) {
-                    changesTrackingObject.markPropertyItemAsNew(collection, object);
-                }
-            }
-            if (collectionChanges.containsKey("deleted")) {
-                for (Object object : collectionChanges.get("deleted")) {
-                    changesTrackingObject.markPropertyItemAsDeleted(collection, object);
-                }
-            }
-        }
-        values = new HashMap<String, Object>();
-    }
-
-    /**
-     * @param propertyStorage to be filled from
-     */
-    public void fill(PropertyStorage propertyStorage)
-    {
-        for (String property : propertyStorage.values.keySet()) {
-            values.put(property, propertyStorage.values.get(property));
-        }
-        if (changesTrackingObject != null && propertyStorage.changesTrackingObject != null) {
-            changesTrackingObject.fill(propertyStorage.changesTrackingObject);
-        }
     }
 }

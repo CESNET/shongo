@@ -493,7 +493,7 @@ public class Property
      */
     private static final Set<Class> breakClasses = new HashSet<Class>()
     {{
-            add(ChangesTrackingObject.class);
+            add(ChangesTracking.class);
         }};
 
     /**
