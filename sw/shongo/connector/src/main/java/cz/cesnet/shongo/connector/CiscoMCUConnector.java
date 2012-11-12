@@ -473,7 +473,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         return Collections.unmodifiableList(results);
     }
 
-    private static RoomSummary extractRoomInfo(Map<String, Object> conference)
+    private static RoomSummary extractRoomSummary(Map<String, Object> conference)
     {
         RoomSummary info = new RoomSummary();
         info.setIdentifier((String) conference.get("conferenceName"));
@@ -771,7 +771,7 @@ ParamsLoop:
         Collection<RoomSummary> rooms = new ArrayList<RoomSummary>();
         List<Map<String, Object>> conferences = execEnumerate(cmd, "conferences");
         for (Map<String, Object> conference : conferences) {
-            RoomSummary info = extractRoomInfo(conference);
+            RoomSummary info = extractRoomSummary(conference);
             rooms.add(info);
         }
 
@@ -789,6 +789,11 @@ ParamsLoop:
         room.setIdentifier((String) result.get("conferenceName"));
         room.setName((String) result.get("conferenceName"));
 
+        if (result.get("description") != null) {
+            room.setOption(Room.Option.DESCRIPTION, result.get("description"));
+        }
+
+        // TODO: get room aliases
         // TODO: get room options
 
         return room;
@@ -925,12 +930,19 @@ ParamsLoop:
                 // TODO: modified option
                 logger.debug("Modified option {} = {}", option, room.getOption(option));
             }
+
+            if (option == Room.Option.DESCRIPTION) {
+                cmd.setParameter("description", room.getOption(Room.Option.DESCRIPTION));
+            }
         }
         // Delete aliases
         Set<Room.Option> optionsToDelete = room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS);
         for (Room.Option option : optionsToDelete) {
             // TODO: delete option
             logger.debug("Delete option {}", option);
+            if (option == Room.Option.DESCRIPTION) {
+                cmd.setParameter("description", null);
+            }
         }
 
         exec(cmd);

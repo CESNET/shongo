@@ -408,7 +408,6 @@ sub set_map_item
         push(@{${$map}->{'modified'}}, $item_key);
     }
     ${$map}->{'__map'}->{$item_key} = $item_value;
-    var_dump($map);
 }
 
 #
@@ -450,7 +449,6 @@ sub add_map_item
     }
 
     ${$map}->{'__map'}->{$item_key} = $item_value;
-    var_dump($map);
 }
 
 #
@@ -479,7 +477,6 @@ sub remove_map_item
         push(@{${$map}->{'deleted'}}, $item_key);
     }
     delete ${$map}->{'__map'}->{$item_key};
-    var_dump($map);
 }
 
 #
