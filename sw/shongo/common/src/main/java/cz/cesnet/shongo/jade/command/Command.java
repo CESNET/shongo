@@ -43,6 +43,14 @@ public abstract class Command
     }
 
     /**
+     * @return name of the command which can be used, e.g., for depicting the command in failures
+     */
+    public String getName()
+    {
+        return getClass().getSimpleName();
+    }
+
+    /**
      * @return {@link #state}
      */
     public State getState()
@@ -76,7 +84,9 @@ public abstract class Command
     {
         this.state = State.FAILED;
         this.failure = failure;
-
+        if (this.failure != null) {
+            this.failure.setCommand(getName());
+        }
     }
 
     /**

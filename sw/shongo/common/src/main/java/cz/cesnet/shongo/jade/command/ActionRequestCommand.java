@@ -50,6 +50,12 @@ public class ActionRequestCommand extends Command
     }
 
     @Override
+    public String getName()
+    {
+        return action.getClass().getSimpleName();
+    }
+
+    @Override
     public void process(Agent agent) throws CommandException
     {
         ACLMessage initMsg = new ACLMessage(ACLMessage.REQUEST);

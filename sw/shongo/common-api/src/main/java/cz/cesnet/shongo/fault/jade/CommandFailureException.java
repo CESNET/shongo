@@ -10,6 +10,11 @@ import cz.cesnet.shongo.fault.FaultException;
 public class CommandFailureException extends FaultException
 {
     /**
+     * Command which failed.
+     */
+    private String command;
+
+    /**
      * Constructor.
      */
     public CommandFailureException()
@@ -32,6 +37,22 @@ public class CommandFailureException extends FaultException
     public CommandFailureException(Throwable throwable)
     {
         super(throwable);
+    }
+
+    /**
+     * @return {@link #command}
+     */
+    public String getCommand()
+    {
+        return command;
+    }
+
+    /**
+     * @param command sets the {@link #command}
+     */
+    public void setCommand(String command)
+    {
+        this.command = command;
     }
 
     @Override

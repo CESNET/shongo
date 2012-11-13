@@ -31,6 +31,13 @@ Each failure in API is reported by \textbf{fault code} (number value) and \textb
 \fault{31}{Null value cannot be used as item in collection.}{Specifies which \ApiValue{collection}.}
 \fault{40}{Entity was not found}{Specifies which \ApiValue{entity}.}
 \fault{41}{Entity validation failed}{Specifies which \ApiValue{entity}.}
+\fault{50}{Security failure}{Describes the failure.}
+\fault{60}{JADE command unknown failure}{Specifies which command and describes the failure.}
+\fault{61}{JADE command timeout}{Specifies which command.}
+\fault{62}{Decoding of result from JADE command failed}{Specifies which command.}
+\fault{63}{JADE command is not understood}{Specifies which command.}
+\fault{64}{JADE command is refused}{Specifies which command.}
+\fault{65}{Connector agent was not found}{Specificies which connector agent.}
 \fault{99}{The request is not implemented yet. An application log must be checked for more details.}{Specifies what is not implemented.}
 \end{longtable}
 
