@@ -108,6 +108,7 @@ Current device load information. A \ApiCode{null} value in any attribute means t
 \ApiClass{Room}{}
 Represents a virtual room on a multipoint server device.
 \begin{ApiClassAttributes}
+\ApiClassAttribute{identifier}{String}{\ApiRequired} Unique identifier of the room in the \gls{g:device}.
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the room.
 \ApiClassAttribute{portCount}{int}{\ApiRequired} Number of ports that multipoint server can utilize for this room.
 \ApiClassAttributeCollection{aliases}{List}{Alias}{\ApiOptional} List of aliases under which the room is accessible.
@@ -206,14 +207,14 @@ Lists names of all implemented methods supported by the implementing connector.
 \ApiItem{\ApiCode{Collection<RoomSummary> getRoomList()}}
 Gets a list of all rooms at a given server.
 
-\ApiItem{\ApiCode{RoomSummary getRoomSummary(String roomId)}}
+\ApiItem{\ApiCode{Room getRoom(String roomId)}}
 Gets info about an existing room.
 
 \ApiItem{\ApiCode{String createRoom(Room room)}}
 Create a new virtual room on a multipoint device that is managed by this connector. The \ApiCode{room} parameter specifies the room settings, see the \ApiCode{Room} definition. Returns an identifier of the created room, unique within the device, to be used for further identification of the room as the \ApiCode{roomId} parameter.
 
-\ApiItem{\ApiCode{modifyRoom(String roomId, Map<String,Object> attributes, Map<Room.Option,Object> options)}}
-Modifies a room identified by \ApiCode{roomId}. The \ApiCode{attributes} and \ApiCode{options} maps specify \ApiCode{Room} attribute names and options, respectivelly, mapped to new values. For available \ApiCode{options}, see the \ApiCode{Room.Option} enumeration (options are used as keys, values should be of the type specified for the option). In the \ApiCode{attributes} map, any \ApiCode{Room} attribute name (\ApiCode{name}, \ApiCode{portCount}, \ldots) may be used as the key mapped to a value of the corresponding type.
+\ApiItem{\ApiCode{modifyRoom(Room room)}}
+Modifies a room by the \ApiRef{Room} object. The \ApiCode{identifier} must be filled.
 
 \ApiItem{\ApiCode{deleteRoom(String roomId)}}
 Delete an existing virtual room on a multipoint device that is managed by this connector.
