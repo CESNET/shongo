@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.jade;
 
+import cz.cesnet.shongo.fault.jade.*;
 import cz.cesnet.shongo.jade.command.ActionRequestCommand;
 import cz.cesnet.shongo.jade.command.Command;
 import cz.cesnet.shongo.jade.ontology.CommandError;
@@ -14,7 +15,6 @@ import jade.content.onto.basic.Result;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.proto.SimpleAchieveREInitiator;
-import jade.wrapper.ControllerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,16 +93,13 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
             }
         }
         catch (Codec.CodecException e) {
-            command.setState(Command.State.FAILED, String.format("The result of the command could not be decoded. %s",
-                    e.getMessage()));
+            command.setFailed(new CommandResultDecodingException(e));
         }
         catch (OntologyException e) {
-            command.setState(Command.State.FAILED, String.format("The result of the command could not be decoded. %s",
-                    e.getMessage()));
+            command.setFailed(new CommandResultDecodingException(e));
         }
         catch (ClassCastException e) {
-            command.setState(Command.State.FAILED, String.format("The result of the command could not be decoded. %s",
-                    e.getMessage()));
+            command.setFailed(new CommandResultDecodingException(e));
         }
     }
 
@@ -112,7 +109,7 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of the command failed: {}", msg);
-        command.setState(Command.State.FAILED, "The requested command was not understood by the connector.");
+        command.setFailed(new CommandNotUnderstoodException());
     }
 
     @Override
@@ -121,7 +118,7 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of the command failed: {}", msg);
-        command.setState(Command.State.FAILED, getErrorMessage(msg));
+        command.setFailed(getFailure(msg));
     }
 
     @Override
@@ -130,8 +127,19 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
         logger.debug("Received message: {}", msg);
 
         logger.error("Execution of the command failed: {}", msg);
-        command.setState(Command.State.FAILED, "The requested command is unknown to the connector.");
+        command.setFailed(new CommandRefusedException());
     }
+
+    /**
+     * Pattern for matching JADE internal errors.
+     */
+    private static final Pattern PATTERN_INTERNAL_ERROR = Pattern.compile("internal-error \"(.*)\"");
+
+    /**
+     * Pattern for matching agent not found JADE errors.
+     */
+    private static final Pattern PATTERN_AGENT_NOT_FOUND =
+            Pattern.compile("Agent not found: getContainerID\\(\\) failed to find agent (.*)@.*");
 
     /**
      * Tries to parse error message out of a message.
@@ -139,48 +147,38 @@ public class ActionRequesterBehaviour extends SimpleAchieveREInitiator
      * @param msg an error, should contain a Result with value of type CommandError or CommandNotSupported
      * @return error message found in the message, or null if it was not there
      */
-    private String getErrorMessage(ACLMessage msg)
+    private CommandFailureException getFailure(ACLMessage msg)
     {
+        String content = msg.getContent();
         if (msg.getSender().equals(myAgent.getAMS())) {
-            String content = msg.getContent();
-            Pattern pattern = Pattern.compile("internal-error \"(.*)\"");
-            Matcher matcher = pattern.matcher(content);
+            Matcher matcher = PATTERN_INTERNAL_ERROR.matcher(content);
             if (matcher.find()) {
                 content = matcher.group(1);
             }
-            String containerName = "Unknown";
+            Matcher agentNotFoundMatcher = PATTERN_AGENT_NOT_FOUND.matcher(content);
+            if (agentNotFoundMatcher.find()) {
+                String connectorAgentName = agentNotFoundMatcher.group(1);
+                return new CommandConnectorNotFoundException(connectorAgentName);
+            }
+        }
+        else {
+            ContentManager cm = myAgent.getContentManager();
             try {
-                containerName = myAgent.getContainerController().getContainerName();
+                ContentElement contentElement = cm.extractContent(msg);
+                Result result = (Result) contentElement;
+                Object commandError = result.getValue();
+                if (commandError instanceof CommandNotSupported) {
+                    content = ((CommandNotSupported) commandError).getDescription();
+                }
+                if (commandError instanceof CommandError) {
+                    content = ((CommandError) commandError).getDescription();
+                }
             }
-            catch (ControllerException exception) {
-            }
-            containerName = String.format("Container %s", containerName);
-            content = content.replace("getContainerID()", containerName);
-            return content;
-        }
-        ContentManager cm = myAgent.getContentManager();
-        try {
-            ContentElement contentElement = cm.extractContent(msg);
-            Result result = (Result) contentElement;
-            Object commandError = result.getValue();
-            if (commandError instanceof CommandNotSupported) {
-                return ((CommandNotSupported) commandError).getDescription();
-            }
-            if (commandError instanceof CommandError) {
-                return ((CommandError) commandError).getDescription();
+            catch (Exception exception) {
+                logger.error("Contents of the error message could not be decoded for message " + msg, exception);
             }
         }
-        catch (Codec.CodecException e) {
-            logger.error("Contents of the error message could not be decoded for message " + msg, e);
-        }
-        catch (OntologyException e) {
-            logger.error("Contents of the error message could not be decoded for message " + msg, e);
-        }
-        catch (ClassCastException e) {
-            logger.error("Contents of the error message could not be cast for message " + msg, e);
-        }
-
-        return null;
+        return new CommandFailureException(content);
     }
 
 }

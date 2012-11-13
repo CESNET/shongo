@@ -47,12 +47,52 @@ public class CommonFault
     public static final Fault COLLECTION_ITEM_NULL = new SimpleFault(
             31, "Null value cannot be added to collection '%s'.");
 
+    /**
+     * @see EntityNotFoundException
+     */
     public static final int ENTITY_NOT_FOUND = 40;
+    /**
+     * @see EntityValidationException
+     */
     public static final int ENTITY_VALIDATION = 41;
+    /**
+     * @see EntityToDeleteIsReferencedException
+     */
     public static final int ENTITY_TO_DELETE_IS_REFERENCED = 42;
 
+    /**
+     * @see SecurityException
+     */
     public static final int SECURITY_UNKNOWN = 50;
 
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandFailureException
+     */
+    public static final int JADE_COMMAND_UNKNOWN = 60;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandTimeoutException
+     */
+    public static final int JADE_COMMAND_TIMEOUT = 61;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandResultDecodingException
+     */
+    public static final int JADE_COMMAND_RESULT_DECODING = 62;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandNotUnderstoodException
+     */
+    public static final int JADE_COMMAND_NOT_UNDERSTOOD = 63;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandRefusedException
+     */
+    public static final int JADE_COMMAND_REFUSED = 64;
+    /**
+     * @see cz.cesnet.shongo.fault.jade.CommandConnectorNotFoundException
+     */
+    public static final int JADE_COMMAND_CONNECTOR_NOT_FOUND = 65;
+
+    /**
+     * @see TodoImplementException
+     */
     public static final int TODO_IMPLEMENT = 99;
 
     /**

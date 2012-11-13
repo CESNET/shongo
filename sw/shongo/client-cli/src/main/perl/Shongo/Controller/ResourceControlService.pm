@@ -76,7 +76,11 @@ sub control_resource()
         }
     });
 
-    my @supportedMethods = resource_get_supported_methods($resourceIdentifier);
+    my $supportedMethods = resource_get_supported_methods($resourceIdentifier);
+    if ( !defined($supportedMethods) ) {
+        return;
+    }
+    my @supportedMethods = @{$supportedMethods};
 
     if (grep $_ eq 'dial', @supportedMethods) {
         $shell->add_commands({
@@ -257,10 +261,10 @@ sub control_resource()
             "get-room" => {
                 desc => "Gets info about a virtual room",
                 options => 'roomId=s',
-                args => '[-roomId]',
+                args => '[<ROOM-ID>] [-roomId <ROOM-ID>]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_get_room($resourceIdentifier, $params->{'options'});
+                    resource_get_room($resourceIdentifier, $args[0], $params->{'options'});
                 }
             }
         });
@@ -280,10 +284,10 @@ sub control_resource()
         $shell->add_commands({
             "modify-room" => {
                 desc => "Modify virtual room",
-                minargs => 1, args => "[roomId]",
+                args => '[<ROOM-ID>] [-roomId <ROOM-ID>]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_modify_room($resourceIdentifier, $args[0]);
+                    resource_modify_room($resourceIdentifier, $args[0], $params->{'options'});
                 }
             }
         });
@@ -454,7 +458,7 @@ sub resource_get_supported_methods
     if ( $response->is_fault() ) {
         return;
     }
-    return @{$response->value()};
+    return $response->value();
 }
 
 sub resource_dial
@@ -685,16 +689,28 @@ sub resource_disconnect_participant
     );
 }
 
+sub select_room
+{
+    my ($identifier, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'roomId'}) ) {
+        $identifier = $attributes->{'roomId'};
+    }
+    $identifier = console_read_value('Identifier of the room', 0, undef, $identifier);
+    return $identifier;
+}
+
 sub resource_get_room
 {
-    my ($resourceIdentifier, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+    my ($resourceIdentifier, $roomIdentifier, $attributes) = @_;
+    $roomIdentifier = select_room($roomIdentifier, $attributes);
+    if ( !defined($resourceIdentifier) || !defined($roomIdentifier) ) {
+        return;
+    }
 
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.getRoom',
         RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($roomId)
+        RPC::XML::string->new($roomIdentifier)
     );
     if ( $result->is_fault ) {
         return;
@@ -735,18 +751,19 @@ sub resource_create_room
 
 sub resource_modify_room
 {
-    my ($resourceIdentifier, $roomIdentifier) = @_;
-
-    my ($identifier, $attributes, $options) = @_;
-    if ( !defined($identifier) ) {
+    my ($resourceIdentifier, $roomIdentifier, $attributes) = @_;
+    $roomIdentifier = select_room($roomIdentifier, $attributes);
+    if ( !defined($resourceIdentifier) || !defined($roomIdentifier) ) {
         return;
     }
+
     my $result = Shongo::Controller->instance()->secure_request(
         'ResourceControl.getRoom',
         RPC::XML::string->new($resourceIdentifier),
         RPC::XML::string->new($roomIdentifier)
     );
 
+    my $options = {};
     $options->{'on_confirm'} = sub {
         my ($room) = @_;
         my $response = Shongo::Controller->instance()->secure_request(
@@ -796,12 +813,11 @@ sub resource_list_rooms
     if ( $response->is_fault() ) {
         return;
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Description', \' | ', 'Start date/time', \' |');
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Start date/time', \' |');
     foreach my $room (@{$response->value()}) {
         $table->add(
             $room->{'identifier'},
             $room->{'name'},
-            $room->{'description'},
             format_datetime($room->{'startDateTime'})
         );
     }

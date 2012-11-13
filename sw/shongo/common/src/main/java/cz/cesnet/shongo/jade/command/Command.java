@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.jade.command;
 
 import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.fault.jade.CommandFailureException;
+import cz.cesnet.shongo.fault.jade.CommandTimeoutException;
 import cz.cesnet.shongo.jade.Agent;
 
 /**
@@ -23,9 +25,9 @@ public abstract class Command
     private State state;
 
     /**
-     * State description.
+     * {@link CommandFailureException}.
      */
-    private String stateDescription;
+    private CommandFailureException failure;
 
     /**
      * Result of the command.
@@ -66,21 +68,23 @@ public abstract class Command
     }
 
     /**
-     * @param state            sets the {@link #state}
-     * @param stateDescription sets the {@link #stateDescription}
+     * Sets the {@link #state} as {@link State#FAILED}.
+     *
+     * @param failure sets the {@link #failure}
      */
-    public void setState(State state, String stateDescription)
+    public void setFailed(CommandFailureException failure)
     {
-        this.stateDescription = stateDescription;
-        this.state = state;
+        this.state = State.FAILED;
+        this.failure = failure;
+
     }
 
     /**
-     * @return {@link #stateDescription}
+     * @return {@link #failure}
      */
-    public String getStateDescription()
+    public CommandFailureException getFailure()
     {
-        return stateDescription;
+        return failure;
     }
 
     /**
@@ -125,7 +129,7 @@ public abstract class Command
             }
         }
         if (getState() == Command.State.UNKNOWN) {
-            setState(Command.State.FAILED, "Timeout");
+            setFailed(new CommandTimeoutException());
         }
     }
 
