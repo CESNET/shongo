@@ -1,9 +1,5 @@
-* Setup deployment and send access to all
-
 FUTURE:
 -------
-* Cmd-line client - remove default "modified" mark for collection items
-
 * Property - make field retrieving only once for base classes too
 
 * Create tests for Converter (and simplify Converter.convert() method)

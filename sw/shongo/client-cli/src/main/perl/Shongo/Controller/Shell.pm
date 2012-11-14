@@ -17,6 +17,7 @@ use Shongo::Controller::ResourceService;
 use Shongo::Controller::ResourceControlService;
 use Shongo::Controller::ReservationService;
 use Shongo::Controller::ExecutableService;
+use Shongo::Test;
 
 #
 # Create a new shell for controller client
@@ -48,6 +49,17 @@ sub new
     Shongo::Controller::ExecutableService->populate($self);
 
     return(bless($self, $class));;
+}
+
+sub command
+{
+    my ($self, $command) = @_;
+    if ( $command eq 'test' ) {
+        Shongo::Test::test();
+    }
+    else {
+        $self->SUPER::command($command);
+    }
 }
 
 1;

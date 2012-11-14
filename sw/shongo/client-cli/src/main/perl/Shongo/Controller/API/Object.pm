@@ -668,7 +668,7 @@ sub modify_attribute_items_add_actions
                     if ( $attribute->{'type'} eq 'collection' ) {
                         my $item = get_collection_item($self->{$attribute_name}, $index - 1);
                         $item = $attribute->{'item'}->{'modify'}($item);
-                        set_collection_item($self->{$attribute_name}, $index - 1, $item);
+                        set_collection_item(\$self->{$attribute_name}, $index - 1, $item);
                     }
                     # Remove item in map
                     else {
@@ -1142,8 +1142,10 @@ sub to_xml_value
     if ( ref($value) eq 'HASH' ) {
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
-            my $item_value = $value->{$item_name};
-            $hash->{$item_name} = $self->to_xml_value($item_value);
+            if ( !($item_name eq '__array') ) {
+                my $item_value = $value->{$item_name};
+                $hash->{$item_name} = $self->to_xml_value($item_value);
+            }
         }
         return RPC::XML::struct->new($hash);
     }
@@ -1181,6 +1183,15 @@ sub to_xml()
         if ( $attribute->{'read-only'} == 0 ) {
             if ( defined($self->{$attribute_name}) ) {
                 my $attribute_value = $self->get($attribute_name);
+                # Collection must be always converted to changes map
+                if ( $attribute->{'type'} eq 'collection' ) {
+                    Shongo::Common::convert_collection_to_hash(\$attribute_value);
+                }
+                # Map must be also always converted to changes map
+                if ( $attribute->{'type'} eq 'map' ) {
+                    Shongo::Common::convert_map_to_hash(\$attribute_value);
+                }
+                # Store attribute to xml
                 $xml->{$attribute_name} = $self->to_xml_value($attribute_value);
             }
         }
@@ -1244,12 +1255,19 @@ sub from_hash_value
     my ($self, $value, $attribute_name) = @_;
 
     if ( ref($value) eq 'HASH' ) {
+        my $attribute = undef;
+        if ( defined($attribute_name) && defined($self->{'__attributes'}->{$attribute_name}) ) {
+            $attribute = $self->get_attribute($attribute_name);
+        }
+        my $class = undef;
         if ( exists $value->{'class'} ) {
-            my $attribute = undef;
-            if ( defined($attribute_name) && defined($self->{'__attributes'}->{$attribute_name}) ) {
-                $attribute = $self->get_attribute($attribute_name);
-            }
-            my $object = create_instance($value->{'class'}, $attribute);
+           $class = $value->{'class'};
+        }
+        elsif ( exists $attribute->{'item'} && exists $attribute->{'item'}->{'class'} ) {
+            $class = $attribute->{'item'}->{'class'};
+        }
+        if ( defined($class) ) {
+            my $object = create_instance($class, $attribute);
             if ( defined($object) ) {
                 $object->from_hash($value);
                 return $object;

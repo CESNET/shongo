@@ -182,6 +182,9 @@ sub get_collection_items
     }
     elsif ( ref($collection) eq 'HASH' ) {
         my $array = [];
+        if ( defined($collection->{'__array'}) ) {
+            push(@{$array}, @{$collection->{'__array'}});
+        }
         if ( defined($collection->{'modified'}) ) {
             push(@{$array}, @{$collection->{'modified'}});
         }
@@ -211,29 +214,31 @@ sub get_collection_item
 #
 # Set item item collection by index
 #
-# @param $collection  collection reference
+# @param $collection  reference to collection reference
 # @param $item_index  item index
 # @param $item  item
 #
 sub set_collection_item
 {
     my ($collection, $item_index, $item) = @_;
-    if ( ref($collection) eq 'ARRAY' ) {
-        $collection->[$item_index] = $item;
-    }
-    elsif ( ref($collection) eq 'HASH' ) {
-        my $array = [];
-        if ( $item_index < scalar(@{$collection->{'modified'}}) ) {
-            @{$collection->{'modified'}}[$item_index] = $item;
+    convert_collection_to_hash($collection);
+
+    if ( $item_index < scalar(@{${$collection}->{'__array'}}) ) {
+        splice(@{${$collection}->{'__array'}}, $item_index, 1);
+        if ( !defined(${$collection}->{'modified'}) ) {
+            ${$collection}->{'modified'} = [];
         }
-        else {
-            $item_index -= scalar(@{$collection->{'modified'}});
-            @{$collection->{'new'}}[$item_index] = $item;
-        }
+        push(@{${$collection}->{'modified'}}, $item);
     }
     else {
-        var_dump($collection);
-        die("Cannot set item to unknown printed collection.");
+        $item_index -= scalar(@{${$collection}->{'__array'}});
+        if ( $item_index < scalar(@{${$collection}->{'modified'}}) ) {
+            @{${$collection}->{'modified'}}[$item_index] = $item;
+        }
+        else {
+            $item_index -= scalar(@{${$collection}->{'modified'}});
+            @{${$collection}->{'new'}}[$item_index] = $item;
+        }
     }
 }
 
@@ -249,7 +254,7 @@ sub convert_collection_to_hash
         # Do nothing
     }
     elsif ( ref(${$collection}) eq 'ARRAY' ) {
-        ${$collection} = {'modified' => ${$collection}};
+        ${$collection} = {'__array' => ${$collection}};
     }
     else {
         ${$collection} = {};
@@ -282,26 +287,44 @@ sub remove_collection_item
 {
     my ($collection, $item_index) = @_;
     convert_collection_to_hash($collection);
-    if ( defined(${$collection}->{'modified'}) ) {
+    my $item = undef;
+    # Remove item from original array
+    if ( defined(${$collection}->{'__array'}) ) {
+        my $array_count = scalar(@{${$collection}->{'__array'}});
+        if ( $item_index < $array_count ) {
+            $item = ${$collection}->{'__array'}[$item_index];
+            splice(@{${$collection}->{'__array'}}, $item_index, 1);
+            $item_index = undef;
+        } else {
+            $item_index -= $array_count;
+        }
+    }
+    # Remove item from modified array
+    if ( defined($item_index) && defined(${$collection}->{'modified'}) ) {
         my $modified_count = scalar(@{${$collection}->{'modified'}});
         if ( $item_index < $modified_count ) {
-            my $item = ${$collection}->{'modified'}[$item_index];
+            $item = ${$collection}->{'modified'}[$item_index];
             splice(@{${$collection}->{'modified'}}, $item_index, 1);
-            if ( !defined(${$collection}->{'deleted'}) ) {
-                ${$collection}->{'deleted'} = [];
-            }
-            push(@{${$collection}->{'deleted'}}, $item);
-            return;
+            $item_index = undef;
         } else {
             $item_index -= $modified_count;
         }
     }
-    if ( defined(${$collection}->{'new'}) ) {
+    # Remove item from new array
+    if ( defined($item_index) && defined(${$collection}->{'new'}) ) {
         my $new_count = scalar(@{${$collection}->{'new'}});
         if ( $item_index < $new_count ) {
             splice(@{${$collection}->{'new'}}, $item_index, 1);
             return;
         }
+    }
+    # If item was original or modified, add it to deleted
+    if ( defined($item) ) {
+        if ( !defined(${$collection}->{'deleted'}) ) {
+            ${$collection}->{'deleted'} = [];
+        }
+        push(@{${$collection}->{'deleted'}}, $item);
+        return;
     }
     console_print_error("Cannot delete item with index '%d' in collection '%s'.", $item_index, $collection);
 }
