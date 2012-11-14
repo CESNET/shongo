@@ -275,7 +275,7 @@ public class Converter
                 object = targetType.newInstance();
             }
             catch (Exception exception) {
-                throw new FaultException(CommonFault.CLASS_CANNOT_BE_INSTANCED, targetType);
+                throw new FaultException(exception, CommonFault.CLASS_CANNOT_BE_INSTANCED, targetType);
             }
 
             ChangesTracking changesTrackingObject =
@@ -608,6 +608,19 @@ public class Converter
                     }
                     return newMap;
                 }
+            }
+            else if (value instanceof Collection) {
+                // Convert collection to specific type
+                Collection collectionValue = (Collection) value;
+                Collection<Object> collection = ClassHelper.createCollection(targetType, collectionValue.size());
+                for (Object item : collectionValue) {
+                    item = convert(item, Object.class, targetAllowedTypes, null, options);
+                    if (item == null) {
+                        throw new FaultException(CommonFault.COLLECTION_ITEM_NULL, property.getName());
+                    }
+                    collection.add(item);
+                }
+                return collection;
             }
             // Do nothing
             return value;

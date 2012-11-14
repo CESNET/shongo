@@ -32,7 +32,35 @@ public class ClassHelper
     /**
      * List of all API packages in classpath (initialized only once).
      */
-    static String[] packages;
+    static private String[] packages;
+
+    /**
+     * {@link Class} by API short name.
+     */
+    static private Map<String, Class> classByShortNameCache = new HashMap<String, Class>();
+
+    /**
+     * Set short name for given {@code type}.
+     *
+     * @param type
+     * @param typeShortName
+     * @throws IllegalStateException when the short name is already set
+     */
+    public static void setClassShortName(Class type, String typeShortName) throws IllegalStateException
+    {
+        if (classByShortNameCache.containsKey(typeShortName)) {
+            throw new IllegalStateException("Short name '" + typeShortName + "' is already set.");
+        }
+        classByShortNameCache.put(typeShortName, type);
+    }
+
+    /**
+     * @see #setClassShortName(Class, String)
+     */
+    public static void registerClassShortName(Class type)
+    {
+        setClassShortName(type, getClassShortName(type));
+    }
 
     /**
      * Get full class name from short class name
@@ -42,16 +70,21 @@ public class ClassHelper
      */
     public static Class getClassFromShortName(String shortClassName) throws ClassNotFoundException
     {
-        shortClassName = shortClassName.replace(".", "$");
-        for (String item : getPackages()) {
-            try {
-                Class clazz = Class.forName(item + "." + shortClassName);
-                return clazz;
+        Class type = classByShortNameCache.get(shortClassName);
+        if (type == null) {
+            shortClassName = shortClassName.replace(".", "$");
+            for (String item : getPackages()) {
+                try {
+                    Class clazz = Class.forName(item + "." + shortClassName);
+                    return clazz;
+                }
+                catch (ClassNotFoundException exception) {
+                }
             }
-            catch (ClassNotFoundException exception) {
-            }
+            type = Class.forName("cz.cesnet.shongo." + shortClassName);
+            classByShortNameCache.put(shortClassName, type);
         }
-        return Class.forName("cz.cesnet.shongo." + shortClassName);
+        return type;
     }
 
     /**

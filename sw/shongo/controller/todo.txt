@@ -1,3 +1,5 @@
+* Discuss moving actions from cz.cesnet.shongo.jade.ontology to connector-api with Ondra (somehow)
+
 FUTURE:
 -------
 * Create tests for Converter (and simplify Converter.convert() method)

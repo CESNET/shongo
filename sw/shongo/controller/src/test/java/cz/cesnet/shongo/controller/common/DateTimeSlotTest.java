@@ -84,7 +84,7 @@ public class DateTimeSlotTest
     @Test
     public void testGetEarliest() throws Exception
     {
-        DateTime referenceDateTime = new DateTime("2012-03-08T12:01");
+        DateTime referenceDateTime = DateTime.parse("2012-03-08T12:01");
         assertEquals(new Interval(DateTime.parse("2012-03-15T12:00"), Period.parse("PT2H")),
                 timeSlot.getEarliest(referenceDateTime));
     }
