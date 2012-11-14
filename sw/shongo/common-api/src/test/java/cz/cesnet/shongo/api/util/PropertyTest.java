@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertArrayEquals;
@@ -74,11 +75,12 @@ public class PropertyTest
         assertTrue(Property.hasProperty(Foo.class, "field6"));
         assertFalse(Property.hasProperty(Foo.class, "fieldNot"));
 
-        // getPropertyNames
-        String[] propertyNames = Property.getPropertyNames(Foo.class);
-        Arrays.sort(propertyNames);
+        // getClassHierarchyPropertyNames
+        Set<String> propertyNames = Property.getClassHierarchyPropertyNames(Foo.class);
+        String[] propertyNameArray = propertyNames.toArray(new String[propertyNames.size()]);
+        Arrays.sort(propertyNameArray);
         assertArrayEquals(new String[]{"field1", "field2", "field4", "field5", "field6", "field7"},
-                propertyNames);
+                propertyNameArray);
 
         // setPropertyValue
         Property.setPropertyValue(foo, "field1", "test", true);

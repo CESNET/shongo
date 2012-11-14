@@ -211,7 +211,7 @@ public class ChangesTracking implements Concept
             ChangesTracking changesTrackingObject = ((Changeable) object).getChangesTracking();
             changesTrackingObject.collectionItemIsByDefaultNew = true;
             Class type = object.getClass();
-            String[] propertyNames = Property.getPropertyNames(type);
+            Set<String> propertyNames = Property.getClassHierarchyPropertyNames(type);
             for (String propertyName : propertyNames) {
                 Property property = Property.getProperty(object.getClass(), propertyName);
                 int propertyTypeFlags = property.getTypeFlags();

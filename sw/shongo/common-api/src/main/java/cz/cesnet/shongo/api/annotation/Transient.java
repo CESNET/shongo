@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation used for properties that should not be serialized (should not be returned in
- * {@link Property#getPropertyNames(Class)}).
+ * {@link Property#getClassPropertyNames(Class)}).
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

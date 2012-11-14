@@ -7,6 +7,7 @@ import cz.cesnet.shongo.api.util.TypeFlags;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -142,7 +143,8 @@ public interface SerializableException
             Content content = new Content();
             content.setMessage(fromException.getMessage());
             try {
-                String[] propertyNames = Property.getPropertyNames(fromException.getClass(), Exception.class);
+                Set<String> propertyNames = Property.getClassHierarchyPropertyNames(fromException.getClass(),
+                        Exception.class);
                 for (String propertyName : propertyNames) {
                     if (propertyName.equals("message") || propertyName.equals("code")) {
                         continue;
@@ -164,7 +166,7 @@ public interface SerializableException
          */
         public void toException(Exception toException)
         {
-            String[] propertyNames = Property.getPropertyNames(toException.getClass(), Exception.class);
+            Set<String> propertyNames = Property.getClassHierarchyPropertyNames(toException.getClass(), Exception.class);
             try {
                 for (String propertyName : propertyNames) {
                     String propertyValue = getParameter(propertyName);

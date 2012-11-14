@@ -1,7 +1,5 @@
 FUTURE:
 -------
-* Property - make field retrieving only once for base classes too
-
 * Create tests for Converter (and simplify Converter.convert() method)
 
 * Persons, PersonSpecifications

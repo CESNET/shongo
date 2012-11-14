@@ -489,51 +489,20 @@ public class Property
     }
 
     /**
-     * Classes to skip
+     * Cache of property names in classes.
      */
-    private static final Set<Class> breakClasses = new HashSet<Class>()
-    {{
-            add(ChangesTracking.class);
-        }};
+    private static Map<Class, Set<String>> classPropertyNamesCache = new HashMap<Class, Set<String>>();
 
     /**
-     * @param type
-     * @return array of property names for given class
+     * @param type which should be searched for properties
+     * @return array of property names declared in given {@code type}
      */
-    public static String[] getPropertyNames(Class type)
+    public static Set<String> getClassPropertyNames(Class type)
     {
-        return getPropertyNames(type, breakClasses);
-
-    }
-
-    /**
-     * @param type
-     * @return array of property names for given class
-     */
-    public static String[] getPropertyNames(Class type, Class breakType)
-    {
-        Set<Class> breakTypes = new HashSet<Class>();
-        breakTypes.add(breakType);
-        return getPropertyNames(type, breakTypes);
-
-    }
-
-    /**
-     * @param type       type from which the property names should be returned
-     * @param breakTypes super types from which the properties should not be returned (and all super super types)
-     * @return array of property names for given class
-     */
-    public static String[] getPropertyNames(Class type, Set<Class> breakTypes)
-    {
-        Set<String> propertyNames = new HashSet<String>();
-
-        // Add properties by fields
-        Class currentType = type;
-        while (currentType != null) {
-            if (currentType.equals(Object.class) || breakTypes.contains(currentType)) {
-                break;
-            }
-            Field[] declaredFields = currentType.getDeclaredFields();
+        Set<String> propertyNames = classPropertyNamesCache.get(type);
+        if (propertyNames == null) {
+            propertyNames = new HashSet<String>();
+            Field[] declaredFields = type.getDeclaredFields();
             for (Field field : declaredFields) {
                 if (Modifier.isPublic(field.getModifiers()) && !Modifier.isFinal(field.getModifiers())) {
                     if (field.getAnnotation(Transient.class) != null) {
@@ -542,11 +511,12 @@ public class Property
                     propertyNames.add(field.getName());
                 }
             }
-            Method[] methods = currentType.getDeclaredMethods();
+            Method[] methods = type.getDeclaredMethods();
             for (Method method : methods) {
                 String methodName = method.getName();
                 int parameterCount = method.getParameterTypes().length;
-                if (methodName.startsWith("get") && parameterCount == 0 && Modifier.isPublic(method.getModifiers())) {
+                if ((methodName.startsWith("get") || methodName.startsWith("is")) && parameterCount == 0
+                        && Modifier.isPublic(method.getModifiers())) {
                     if (method.getAnnotation(Transient.class) != null) {
                         continue;
                     }
@@ -555,10 +525,57 @@ public class Property
                     propertyNames.add(name);
                 }
             }
+            classPropertyNamesCache.put(type, propertyNames);
+        }
+        return propertyNames;
+    }
+
+    /**
+     * Cache of property names in class hierarchy (include subclasses, etc).
+     */
+    private static Map<Class, Set<String>> classHierarchyPropertyNamesCache = new HashMap<Class, Set<String>>();
+
+    /**
+     * @param type which should be searched for properties
+     * @return array of property names declared in given {@code type} and all super types
+     */
+    public static Set<String> getClassHierarchyPropertyNames(Class type)
+    {
+        Set<String> propertyNames = classHierarchyPropertyNamesCache.get(type);
+        if (propertyNames == null) {
+            propertyNames = new HashSet<String>();
+            // For each class in hierarchy
+            Class currentType = type;
+            while (currentType != null) {
+                if (currentType.equals(Object.class)) {
+                    break;
+                }
+                propertyNames.addAll(getClassPropertyNames(currentType));
+                currentType = currentType.getSuperclass();
+            }
+            classHierarchyPropertyNamesCache.put(type, propertyNames);
+        }
+        return propertyNames;
+    }
+
+    /**
+     * @param type      which should be searched for properties
+     * @param breakType and all it's super types will not be serched for properties
+     * @return array of property names declared in given {@code type} and all super types
+     */
+    public static Set<String> getClassHierarchyPropertyNames(Class type, Class breakType)
+    {
+        Set<String> propertyNames = new HashSet<String>();
+        // For each class in hierarchy
+        Class currentType = type;
+        while (currentType != null) {
+            if (currentType.equals(Object.class) || breakType.equals(currentType)) {
+                break;
+            }
+            propertyNames.addAll(getClassPropertyNames(currentType));
             currentType = currentType.getSuperclass();
         }
-
-        return propertyNames.toArray(new String[propertyNames.size()]);
+        return propertyNames;
     }
 
     /**

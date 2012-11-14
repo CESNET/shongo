@@ -176,7 +176,7 @@ public class Converter
                          ((ChangesTracking.Changeable) object).getChangesTracking() : null);
 
         Map<String, Object> map = new HashMap<String, Object>();
-        String[] propertyNames = Property.getPropertyNames(object.getClass());
+        Set<String> propertyNames = Property.getClassHierarchyPropertyNames(object.getClass());
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(object.getClass(), propertyName);
             if (property == null) {
