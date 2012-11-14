@@ -879,15 +879,17 @@ sub modify_attributes
 sub format_value
 {
     my ($self, $value, $options) = @_;
-    if ( defined($options->{'format'}) && ref($options->{'format'}) eq 'CODE' ) {
-        # Format value as (key,value) pair
-        if (ref($value) eq 'HASH' && defined($value->{'__key'}) ) {
+    # Format value as (key,value) pair
+    if (ref($value) eq 'HASH' && defined($value->{'__key'}) ) {
+        if ( defined($options->{'format'}) && ref($options->{'format'}) eq 'CODE' ) {
             return $options->{'format'}($value->{'__key'}, $value->{'__value'});
         }
-        # Format single value
         else {
-            return $options->{'format'}($value);
+            return $value->{'__key'} . ':' . $value->{'__value'};
         }
+    }
+    elsif ( defined($options->{'format'}) && ref($options->{'format'}) eq 'CODE' ) {
+        return $options->{'format'}($value);
     }
     elsif ( defined($options->{'enum'}) && defined($value) && defined($options->{'enum'}->{$value}) ) {
         return $options->{'enum'}->{$value};
@@ -1050,8 +1052,9 @@ sub format_attributes
         my $attribute = $self->get_attribute($attribute_name);
         my $attribute_title = $self->get_attribute_title($attribute_name);
         my $attribute_value = $self->format_attribute_value($attribute_name, $single_line);
+
         if ( $attribute->{'display-empty'} == 1 || defined($attribute_value) && length($attribute_value) > 0 ) {
-            if ( !defined() ) {
+            if ( !defined($attribute_value) ) {
                 $attribute_value = '';
             }
             if ( $single_line ) {
