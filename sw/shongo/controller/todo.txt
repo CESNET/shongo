@@ -1,3 +1,5 @@
+* Secure connector deployment
+* Add wiki page about cmd-line client main commands (including commands in "control-resource")
 * Discuss moving actions from cz.cesnet.shongo.jade.ontology to connector-api with Ondra (somehow)
 
 FUTURE:

@@ -33,6 +33,25 @@ public class ConverterTest
     }
 
     /**
+     * Convert types to string.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testToString() throws Exception
+    {
+        Assert.assertEquals("1", Converter.convert((int) 1, String.class));
+        Assert.assertEquals("1", Converter.convert((long) 1, String.class));
+        Assert.assertEquals("TYPE1", Converter.convert(Entity.Type.TYPE1, String.class));
+        Assert.assertEquals("2012-01-01T00:00:00.000+01:00",
+                Converter.convert(DateTime.parse("2012-01-01T00:00+01:00"), String.class));
+        Assert.assertEquals("P1Y2M3DT4H5M6S",
+                Converter.convert(Period.parse("P1Y2M3DT4H5M6S"), String.class));
+        Assert.assertEquals("2012-01-01T00:00:00.000+01:00",
+                Converter.convert(DateTime.parse("2012-01-01T00:00+01:00"), String.class));
+    }
+
+    /**
      * Test converting entity to {@link Map}.
      *
      * @throws Exception
@@ -59,6 +78,42 @@ public class ConverterTest
     }
 
     /**
+     * Test converting {@link String} to {@link ReadablePartial}.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testAtomicReadablePartialFromString() throws Exception
+    {
+        String[] values = new String[]{"2012", "2012-12", "2012-12-01", "2012-12-01T12", "2012-12-01T12:34"};
+        for (int index = 0; index < values.length; index++) {
+            ReadablePartial readablePartial = Converter.Atomic.convertStringToReadablePartial(values[index]);
+            Assert.assertEquals(values[index], readablePartial.toString());
+        }
+
+        ReadablePartial readablePartial;
+        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012");
+        Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
+        try {
+            readablePartial.get(DateTimeFieldType.monthOfYear());
+            Assert.fail("Exception should be thrown");
+        }
+        catch (IllegalArgumentException exception) {
+        }
+        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012-01-01T12");
+        Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
+        Assert.assertEquals(01, readablePartial.get(DateTimeFieldType.monthOfYear()));
+        Assert.assertEquals(01, readablePartial.get(DateTimeFieldType.dayOfMonth()));
+        Assert.assertEquals(12, readablePartial.get(DateTimeFieldType.hourOfDay()));
+        try {
+            readablePartial.get(DateTimeFieldType.minuteOfHour());
+            Assert.fail("Exception should be thrown");
+        }
+        catch (IllegalArgumentException exception) {
+        }
+    }
+
+    /**
      * @return entity for testing
      */
     private Entity createEntity()
@@ -72,7 +127,8 @@ public class ConverterTest
         entity.setCustomType(new CustomType("customType"));
         entity.setDateTime(DateTime.parse("2012-01-01T12:00+03:00"));
         entity.setPeriod(Period.parse("P1Y2M3DT4H5M6S"));
-        entity.setInterval(new Interval("2012-01-01T00:00/2012-01-01T23:59", ISOChronology.getInstance(DateTimeZone.forID("+03:00"))));
+        entity.setInterval(new Interval("2012-01-01T00:00/2012-01-01T23:59",
+                ISOChronology.getInstance(DateTimeZone.forID("+03:00"))));
         entity.setType(Entity.Type.TYPE1);
         entity.addType(Entity.Type.TYPE1);
         entity.addType(Entity.Type.TYPE2);
@@ -183,42 +239,6 @@ public class ConverterTest
             Object expectedValue = property.getValue(expected);
             Object objectValue = property.getValue(object);
             Assert.assertEquals(expectedValue, objectValue);
-        }
-    }
-
-    /**
-     * Test converting {@link String} to {@link ReadablePartial}.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testAtomicReadablePartialFromString() throws Exception
-    {
-        String[] values = new String[]{"2012", "2012-12", "2012-12-01", "2012-12-01T12", "2012-12-01T12:34"};
-        for (int index = 0; index < values.length; index++) {
-            ReadablePartial readablePartial = Converter.Atomic.convertStringToReadablePartial(values[index]);
-            Assert.assertEquals(values[index], readablePartial.toString());
-        }
-
-        ReadablePartial readablePartial;
-        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012");
-        Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
-        try {
-            readablePartial.get(DateTimeFieldType.monthOfYear());
-            Assert.fail("Exception should be thrown");
-        }
-        catch (IllegalArgumentException exception) {
-        }
-        readablePartial = Converter.Atomic.convertStringToReadablePartial("2012-01-01T12");
-        Assert.assertEquals(2012, readablePartial.get(DateTimeFieldType.year()));
-        Assert.assertEquals(01, readablePartial.get(DateTimeFieldType.monthOfYear()));
-        Assert.assertEquals(01, readablePartial.get(DateTimeFieldType.dayOfMonth()));
-        Assert.assertEquals(12, readablePartial.get(DateTimeFieldType.hourOfDay()));
-        try {
-            readablePartial.get(DateTimeFieldType.minuteOfHour());
-            Assert.fail("Exception should be thrown");
-        }
-        catch (IllegalArgumentException exception) {
         }
     }
 

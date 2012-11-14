@@ -46,6 +46,14 @@ public class Converter
     }
 
     /**
+     * @see #convert(Object, Property)
+     */
+    public static Object convert(Object value, Class type) throws IllegalArgumentException, FaultException
+    {
+        return convert(value, type, null, null, DEFAULT_OPTIONS);
+    }
+
+    /**
      * Convert given {@link TypeFlags#BASIC} {@code value} to:
      * 1) {@link Object} if given {@code value} is {@link Map} and has defined "class"
      * or return the same value.
@@ -609,8 +617,9 @@ public class Converter
                     return newMap;
                 }
             }
+            // Process collection
             else if (value instanceof Collection) {
-                // Convert collection to specific type
+                // Convert collection items to proper type
                 Collection collectionValue = (Collection) value;
                 Collection<Object> collection = ClassHelper.createCollection(targetType, collectionValue.size());
                 for (Object item : collectionValue) {
@@ -625,7 +634,7 @@ public class Converter
             // Do nothing
             return value;
         }
-        // Convert from basic types
+        // Convert from primitive types
         else if (TypeFlags.isPrimitive(valueTypeFlags)) {
             if (targetType.equals(String.class)) {
                 return value.toString();
@@ -638,10 +647,12 @@ public class Converter
             }
         }
         // Convert from date
-        else if (value instanceof Date && DateTime.class.isAssignableFrom(targetType)) {
-            return new DateTime(value);
+        else if (value instanceof Date) {
+            if (targetType.equals(DateTime.class)) {
+                return new DateTime(value);
+            }
         }
-        // Convert atomic types
+        // Convert from string
         else if (value instanceof String) {
             // If Class is required
             if (targetType.equals(Class.class)) {
@@ -694,8 +705,18 @@ public class Converter
                 return Atomic.convertStringToInterval((String) value);
             }
         }
-        // Convert array types
+        // Convert to string
+        else if (targetType.equals(String.class)) {
+            if (TypeFlags.isAtomic(valueTypeFlags)) {
+                if (value instanceof Interval) {
+                    return Atomic.convertIntervalToString((Interval) value);
+                }
+                return value.toString();
+            }
+        }
+        // Convert from array
         else if (value instanceof Object[]) {
+            // Convert to array
             if (targetType.isArray()) {
                 // Convert array to specific type
                 Class componentType = targetType.getComponentType();
@@ -710,6 +731,7 @@ public class Converter
                 }
                 return newArray;
             }
+            // Convert to collection
             else if (Collection.class.isAssignableFrom(targetType)) {
                 // Convert collection to specific type
                 Object[] arrayValue = (Object[]) value;
@@ -724,7 +746,7 @@ public class Converter
                 return collection;
             }
         }
-        // If map is given convert to object
+        // Convert from map to object
         else if (value instanceof Map) {
             return convertMapToObject((Map) value, targetType, options);
         }
