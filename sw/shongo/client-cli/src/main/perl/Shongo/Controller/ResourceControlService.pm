@@ -25,10 +25,22 @@ sub populate()
     $shell->add_commands({
         'control-resource' => {
             desc => 'Control existing managed resource',
-            args => '[identifier]',
+            args => '[identifier] [cmd]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                control_resource($args[0]);
+
+                # Parse command to perform from arguments
+                my $command = undef;
+                for ( my $index = 1; $index < scalar(@args); $index++ ){
+                    if ( !defined($command) ) {
+                        $command = $args[$index];
+                    }
+                    else {
+                        $command .= ' ' . $args[$index];
+                    }
+                }
+
+                control_resource($args[0], $command);
             }
         }
     });
@@ -43,7 +55,7 @@ sub select_resource($)
 
 sub control_resource()
 {
-    my ($identifier) = @_;
+    my ($identifier, $command) = @_;
     $identifier = select_resource($identifier);
     if ( !defined($identifier) ) {
         return;
@@ -444,7 +456,12 @@ sub control_resource()
         });
     }
 
-    $shell->run();
+    if ( defined($command) ) {
+        $shell->command($command);
+    }
+    else {
+        $shell->run();
+    }
 }
 
 sub resource_get_supported_methods
