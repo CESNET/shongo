@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.api.util;
 
-import cz.cesnet.shongo.api.AtomicType;
+import cz.cesnet.shongo.api.xmlrpc.AtomicType;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.*;

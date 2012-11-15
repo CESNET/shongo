@@ -3,9 +3,10 @@ package cz.cesnet.shongo.jade;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.ShongoOntology;
+import cz.cesnet.shongo.jade.command.CommandBehaviour;
 import jade.content.AgentAction;
 import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -91,14 +92,20 @@ public class Agent extends jade.core.Agent
         setEnabledO2ACommunication(true, 0);
     }
 
+    /**
+     * @param ontology to be registered to agnet
+     */
+    public void addOntology(Ontology ontology)
+    {
+        // Register ontology used by Shongo
+        getContentManager().registerOntology(ontology);
+    }
+
     @Override
     protected void setup()
     {
         // Register content language
         getContentManager().registerLanguage(new SLCodec());
-
-        // Register ontology used by Shongo
-        getContentManager().registerOntology(ShongoOntology.getInstance());
 
         // Each agent is able to process commands passed via O2A channel
         addBehaviour(new CommandBehaviour());
@@ -238,15 +245,15 @@ public class Agent extends jade.core.Agent
      * @param action    agent action to be performed
      * @param sender    sender of the action request
      * @return return value of the performed command (null if the command does not return anything)
-     * @throws UnknownActionException
+     * @throws UnknownAgentActionException
      */
     public Object handleAgentAction(AgentAction action, AID sender)
-            throws UnknownActionException, CommandException, CommandUnsupportedException
+            throws UnknownAgentActionException, CommandException, CommandUnsupportedException
     {
         if (action == null) {
             throw new NullPointerException("action");
         }
 
-        throw new UnknownActionException(action);
+        throw new UnknownAgentActionException(action);
     }
 }

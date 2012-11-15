@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -9,15 +10,14 @@ import cz.cesnet.shongo.controller.resource.Mode;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
-import cz.cesnet.shongo.jade.command.ActionRequestCommand;
+import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.actions.common.GetDeviceLoadInfo;
-import cz.cesnet.shongo.jade.ontology.actions.common.GetSupportedMethods;
-import cz.cesnet.shongo.jade.ontology.actions.endpoint.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.io.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.*;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.users.*;
-import jade.content.AgentAction;
+import cz.cesnet.shongo.connector.api.ontology.actions.common.GetDeviceLoadInfo;
+import cz.cesnet.shongo.connector.api.ontology.actions.common.GetSupportedMethods;
+import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.*;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.io.*;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.*;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -346,10 +346,10 @@ public class ResourceControlServiceImpl extends Component
      * @param action                   command to be performed by the device
      * @throws FaultException
      */
-    private Object commandDevice(String deviceResourceIdentifier, AgentAction action) throws FaultException
+    private Object commandDevice(String deviceResourceIdentifier, ConnectorAgentAction action) throws FaultException
     {
         String agentName = getAgentName(deviceResourceIdentifier);
-        Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName, action));
+        Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName, action));
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
         }

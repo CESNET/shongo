@@ -7,10 +7,10 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
-import cz.cesnet.shongo.jade.command.ActionRequestCommand;
+import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -199,7 +199,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
             for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommandAndWait(new ActionRequestCommand(agentName,
+            Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName,
                     new CreateRoom(room)));
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return State.STARTING_FAILED;
@@ -225,7 +225,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
             Command command = controllerAgent
-                    .performCommandAndWait(new ActionRequestCommand(agentName, new DeleteRoom(virtualRoomId)));
+                    .performCommandAndWait(new AgentActionCommand(agentName, new DeleteRoom(virtualRoomId)));
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return State.STARTED;
             }

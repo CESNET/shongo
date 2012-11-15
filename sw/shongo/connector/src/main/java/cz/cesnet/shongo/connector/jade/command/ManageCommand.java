@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.connector.ConnectorAgent;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.jade.Agent;
+import cz.cesnet.shongo.jade.command.Command;
 
 /**
  * A command for starting managing a device by a connector agent.
@@ -12,7 +13,7 @@ import cz.cesnet.shongo.jade.Agent;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ManageCommand extends cz.cesnet.shongo.jade.command.Command
+public class ManageCommand extends Command
 {
     /**
      * Connector class to be used to manage the device.

@@ -5,10 +5,11 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
-import cz.cesnet.shongo.jade.ActionRequestResponderBehaviour;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
+import cz.cesnet.shongo.jade.UnknownAgentActionException;
+import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownActionException;
-import cz.cesnet.shongo.jade.ontology.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.slf4j.Logger;
@@ -31,7 +32,8 @@ public class ConnectorAgent extends Agent
     @Override
     protected void setup()
     {
-        addBehaviour(new ActionRequestResponderBehaviour(this));
+        addOntology(ConnectorOntology.getInstance());
+        addBehaviour(new AgentActionResponderBehaviour(this));
 
         super.setup();
 
@@ -91,7 +93,7 @@ public class ConnectorAgent extends Agent
 
     @Override
     public Object handleAgentAction(AgentAction action, AID sender)
-            throws UnknownActionException, CommandException, CommandUnsupportedException
+            throws UnknownAgentActionException, CommandException, CommandUnsupportedException
     {
         if (getArguments()[0].equals(Boolean.TRUE)) {
             // the connector is configured with <dump>true</dump>

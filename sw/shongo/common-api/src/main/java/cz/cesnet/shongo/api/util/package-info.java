@@ -1,5 +1,5 @@
 /**
- * Package contains utility classes for the common API.
+ * Package contains utility classes for the API.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

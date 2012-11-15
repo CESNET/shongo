@@ -6,7 +6,7 @@ import cz.cesnet.shongo.fault.jade.CommandTimeoutException;
 import cz.cesnet.shongo.jade.Agent;
 
 /**
- * Represents a command for a JADE agent.
+ * Represents a command which can be processed on a JADE agent.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -116,7 +116,7 @@ public abstract class Command
     /**
      * Process this command on an agent.
      *
-     * @param agent               agent processing the command
+     * @param agent agent processing the command
      */
     public abstract void process(Agent agent) throws CommandException;
 

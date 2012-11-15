@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.api.xmlrpc;
 
-import cz.cesnet.shongo.api.AtomicType;
 import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.fault.CommonFault;

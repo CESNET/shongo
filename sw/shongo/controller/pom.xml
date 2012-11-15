@@ -24,6 +24,11 @@
         </dependency>
         <dependency>
             <groupId>cz.cesnet.shongo</groupId>
+            <artifactId>connector-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>cz.cesnet.shongo</groupId>
             <artifactId>controller-api</artifactId>
             <version>1.0</version>
         </dependency>
@@ -102,19 +107,9 @@
             <artifactId>jgraph</artifactId>
             <version>5.13.0.0</version>
         </dependency>
-
     </dependencies>
 
     <build>
-        <!-- Process all files in src/test/resources and replaces all maven variables ${MAVEN_VARIABLE}.
-             A variable is used in src/test/resources/persistence.xml -->
-        <testResources>
-            <testResource>
-                <directory>src/test/resources</directory>
-                <filtering>true</filtering>
-            </testResource>
-        </testResources>
-
         <plugins>
             <!-- Generates proper manifest file with right classpath and main class -->
             <plugin>

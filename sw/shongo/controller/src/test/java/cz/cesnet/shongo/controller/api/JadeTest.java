@@ -6,12 +6,13 @@ import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.jade.ActionRequestResponderBehaviour;
+import cz.cesnet.shongo.jade.UnknownAgentActionException;
+import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownActionException;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.ModifyRoom;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.junit.Test;
@@ -104,14 +105,15 @@ public class JadeTest extends AbstractControllerTest
         @Override
         protected void setup()
         {
-            addBehaviour(new ActionRequestResponderBehaviour(this));
+            addOntology(ConnectorOntology.getInstance());
+            addBehaviour(new AgentActionResponderBehaviour(this));
 
             super.setup();
         }
 
         @Override
         public Object handleAgentAction(AgentAction action, AID sender)
-                throws UnknownActionException, CommandException, CommandUnsupportedException
+                throws UnknownAgentActionException, CommandException, CommandUnsupportedException
         {
             ModifyRoom modifyRoom = (ModifyRoom) action;
             Room room = modifyRoom.getRoom();

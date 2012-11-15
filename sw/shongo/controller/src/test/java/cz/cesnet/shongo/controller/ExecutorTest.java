@@ -4,13 +4,14 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Compartment;
 import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.jade.ActionRequestResponderBehaviour;
+import cz.cesnet.shongo.jade.UnknownAgentActionException;
+import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownActionException;
-import cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.joda.time.DateTime;
@@ -125,13 +126,13 @@ public class ExecutorTest extends AbstractControllerTest
         // Check performed actions on connector agents
         assertEquals(new ArrayList()
         {{
-                add(cz.cesnet.shongo.jade.ontology.actions.endpoint.Dial.class);
-                add(cz.cesnet.shongo.jade.ontology.actions.endpoint.HangUpAll.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.endpoint.Dial.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll.class);
             }}, terminalAgent.getPerformedActions());
         assertEquals(new ArrayList()
         {{
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedActions());
     }
 
@@ -181,8 +182,8 @@ public class ExecutorTest extends AbstractControllerTest
         // Check performed actions on connector agents
         assertEquals(new ArrayList()
         {{
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedActions());
     }
 
@@ -252,8 +253,8 @@ public class ExecutorTest extends AbstractControllerTest
         // Check performed actions on connector agents
         assertEquals(new ArrayList()
         {{
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedActions());
     }
 
@@ -312,8 +313,8 @@ public class ExecutorTest extends AbstractControllerTest
         // Check performed actions on connector agents
         assertEquals(new ArrayList()
         {{
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.jade.ontology.actions.multipoint.rooms.DeleteRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
             }}, mcuAgent.getPerformedActions());
     }
 
@@ -338,14 +339,15 @@ public class ExecutorTest extends AbstractControllerTest
         @Override
         protected void setup()
         {
-            addBehaviour(new ActionRequestResponderBehaviour(this));
+            addOntology(ConnectorOntology.getInstance());
+            addBehaviour(new AgentActionResponderBehaviour(this));
 
             super.setup();
         }
 
         @Override
         public Object handleAgentAction(AgentAction action, AID sender)
-                throws UnknownActionException, CommandException, CommandUnsupportedException
+                throws UnknownAgentActionException, CommandException, CommandUnsupportedException
         {
             performedActions.add(action.getClass());
             logger.debug("ConnectorAgent '{}' receives action '{}'.", getName(), action.getClass().getSimpleName());

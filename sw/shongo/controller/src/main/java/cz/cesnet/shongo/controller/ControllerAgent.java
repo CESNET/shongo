@@ -2,8 +2,9 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.jade.UnknownActionException;
+import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.CommandSet;
 import cz.cesnet.shongo.shell.Shell;
@@ -18,6 +19,9 @@ import org.apache.commons.cli.CommandLine;
  */
 public class ControllerAgent extends Agent
 {
+    /**
+     * @return {@link CommandSet} for {@link ControllerAgent}
+     */
     public CommandSet createCommandSet()
     {
         CommandSet commandSet = new CommandSet();
@@ -43,8 +47,15 @@ public class ControllerAgent extends Agent
     }
 
     @Override
+    protected void setup()
+    {
+        addOntology(ConnectorOntology.getInstance());
+        super.setup();
+    }
+
+    @Override
     public Object handleAgentAction(AgentAction action, AID sender)
-            throws UnknownActionException, CommandException, CommandUnsupportedException
+            throws UnknownAgentActionException, CommandException, CommandUnsupportedException
     {
         return super.handleAgentAction(action, sender);
     }
