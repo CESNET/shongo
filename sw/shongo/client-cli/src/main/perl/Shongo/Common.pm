@@ -246,15 +246,27 @@ sub set_collection_item
 # Convert collection to hash
 #
 # @param \$collection  reference to collection reference
+# @param $is_new       specifies whether collection items should be marked as new
 #
 sub convert_collection_to_hash
 {
-    my ($collection) = @_;
+    my ($collection, $is_new) = @_;
+    if ( !defined($is_new) ) {
+        $is_new = 0;
+    }
     if ( ref(${$collection}) eq 'HASH' ) {
         # Do nothing
+        if ( $is_new ) {
+            die("Collection already contains changes so the items can't be marked as new.");
+        }
     }
     elsif ( ref(${$collection}) eq 'ARRAY' ) {
-        ${$collection} = {'__array' => ${$collection}};
+        if ( $is_new ) {
+            ${$collection} = {'new' => ${$collection}};
+        }
+        else {
+            ${$collection} = {'__array' => ${$collection}};
+        }
     }
     else {
         ${$collection} = {};
@@ -394,17 +406,28 @@ sub get_map_item_value
 #
 # Convert map to hash with changes.
 #
-# @param \$map  reference to map reference
+# @param \$map    reference to map reference
+# @param $is_new  specifies whether map items should be marked as new)
 #
 sub convert_map_to_hash
 {
-    my ($map) = @_;
+    my ($map, $is_new) = @_;
+    if ( !defined($is_new) ) {
+        $is_new = 0;
+    }
     if ( ref(${$map}) eq 'HASH' ) {
         if ( defined(${$map}->{'__map'}) ) {
             # Do nothing
+            if ( $is_new ) {
+                die("Map already contains changes so the items can't be marked as new.");
+            }
         }
         else {
             ${$map} = {'__map' => ${$map}};
+            ${$map}->{'new'} = [];
+            foreach my $item_key (keys %{${$map}->{'__map'}}) {
+                push(@{${$map}->{'new'}}, $item_key);
+            }
         }
     }
     else {

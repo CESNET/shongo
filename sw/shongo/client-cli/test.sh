@@ -2,40 +2,71 @@
 
 DATE=$(date --date='tomorrow' +%Y-%m-%d)
 
-./client.sh --connect localhost --testing-access-token \
+./client-cli.sh --connect localhost --testing-access-token \
 --cmd "\
     create-resource -confirm { \
         class: 'DeviceResource', \
-        name: 'mcu', \
+        name: 'mcu-cesnet', \
         allocatable: 1, \
+        maximumFuture: 'P4M', \
         technologies: ['H323'], \
         mode: { \
-            connectorAgentName: 'mcu' \
+            connectorAgentName: 'mcu-cesnet' \
         }, \
         capabilities: [{ \
             class: 'VirtualRoomsCapability', \
-            portCount: 100 \
+            portCount: 20 \
         }, { \
             class: 'AliasProviderCapability', \
             technology: 'H323', \
             type: 'E164', \
-            patterns: ['9500872[dd]'], \
+            patterns: ['95008721[d]'], \
             restrictedToOwnerResource: 1 \
         }] \
     }" \
 --cmd "\
     create-resource -confirm { \
         class: 'DeviceResource', \
-        name: 'c90', \
+        name: 'mcu-muni', \
+        allocatable: 1, \
+        maximumFuture: 'P4M', \
+        technologies: ['H323'], \
+        mode: { \
+            connectorAgentName: 'mcu-muni' \
+        }, \
+        capabilities: [{ \
+            class: 'VirtualRoomsCapability', \
+            portCount: 10 \
+        }, { \
+            class: 'AliasProviderCapability', \
+            technology: 'H323', \
+            type: 'E164', \
+            patterns: ['95008722[d]'], \
+            restrictedToOwnerResource: 1 \
+        }] \
+    }" \
+--cmd "\
+    create-resource -confirm { \
+        class: 'DeviceResource', \
+        name: 'c90-sitola', \
         allocatable: 1, \
         technologies: ['H323'], \
         mode: { \
-            connectorAgentName: 'c90' \
+            connectorAgentName: 'c90-sitola' \
         }, \
         capabilities: [{ \
-            class: 'StandaloneTerminalCapability' \
+            class: 'StandaloneTerminalCapability', \
+            aliases: [{ \
+                technology: 'H323', \
+                type: 'E164', \
+                value: '950081038' \
+            }] \
         }] \
-    }" \
+    }"
+
+exit 0
+
+./client-cli.sh --connect localhost --testing-access-token \
 --cmd "\
     create-reservation-request -confirm { \
         class: 'ReservationRequestSet', \

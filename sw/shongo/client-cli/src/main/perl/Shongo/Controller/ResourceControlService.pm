@@ -256,6 +256,17 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'getRoomList', @supportedMethods) {
+        $shell->add_commands({
+            "list-rooms" => {
+                desc => "List virtual rooms",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_list_rooms($resourceIdentifier);
+                }
+            }
+        });
+    }
     if (grep $_ eq 'getRoom', @supportedMethods) {
         $shell->add_commands({
             "get-room" => {
@@ -301,17 +312,6 @@ sub control_resource()
                 method => sub {
                     my ($shell, $params, @args) = @_;
                     resource_delete_room($resourceIdentifier, $params->{'options'});
-                }
-            }
-        });
-    }
-    if (grep $_ eq 'getRoomList', @supportedMethods) {
-        $shell->add_commands({
-            "list-rooms" => {
-                desc => "List virtual rooms",
-                method => sub {
-                    my ($shell, $params, @args) = @_;
-                    resource_list_rooms($resourceIdentifier);
                 }
             }
         });

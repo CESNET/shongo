@@ -296,7 +296,7 @@ sub add_attribute
 }
 
 #
-# Add attribute which should not be displayed or edited by which should be loaded from hash and stored to xml.
+# Add attribute which should not be displayed or edited but which should be loaded from hash and stored to xml.
 #
 # @param $attribute_name
 #
@@ -408,7 +408,7 @@ sub create()
     $self->init();
 
     if ( defined($attributes) ) {
-        $self->from_hash($attributes);
+        $self->from_hash($attributes, 1);
     }
 
     while ( $self->modify_loop(0, $options) ) {
@@ -1249,10 +1249,12 @@ sub create_instance
 # Convert $value from xml
 #
 # @param $value
+# @param $attribute_name
+# @param $is_new          specifies whether value is set to new entity (map or collection items should be marked as new)
 #
 sub from_hash_value
 {
-    my ($self, $value, $attribute_name) = @_;
+    my ($self, $value, $attribute_name, $is_new) = @_;
 
     if ( ref($value) eq 'HASH' ) {
         my $attribute = undef;
@@ -1269,21 +1271,27 @@ sub from_hash_value
         if ( defined($class) ) {
             my $object = create_instance($class, $attribute);
             if ( defined($object) ) {
-                $object->from_hash($value);
+                $object->from_hash($value, $is_new);
                 return $object;
             }
         }
         my $hash = {};
         foreach my $item_name (keys %{$value}) {
             my $item_value = $value->{$item_name};
-            $hash->{$item_name} = $self->from_hash_value($item_value, $item_name);
+            $hash->{$item_name} = $self->from_hash_value($item_value, $item_name, $is_new);
+        }
+        if ( $attribute->{'type'} eq 'map' && $is_new ) {
+            Shongo::Common::convert_map_to_hash(\$hash, $is_new);
         }
         return $hash;
     }
     elsif ( ref($value) eq 'ARRAY' ) {
         my $array = [];
         foreach my $item ( @{$value} ) {
-            push(@{$array}, $self->from_hash_value($item, $attribute_name));
+            push(@{$array}, $self->from_hash_value($item, $attribute_name, $is_new));
+        }
+        if ( $is_new ) {
+            Shongo::Common::convert_collection_to_hash(\$array, 1);
         }
         return $array;
     }
@@ -1295,9 +1303,16 @@ sub from_hash_value
 #
 # Convert object from xml
 #
+# @param $hash    to fill from
+# @param $is_new  specifies the object is new entity (map or collection items should be marked as new)
+#
 sub from_hash()
 {
-    my ($self, $hash) = @_;
+    my ($self, $hash, $is_new) = @_;
+
+    if ( !defined($is_new) ) {
+        $is_new = 0;
+    }
 
     # Get hash from xml
     if ( ref($hash) eq "RPC::XML::struct" ) {
@@ -1329,7 +1344,7 @@ sub from_hash()
     # Convert hash to object
     foreach my $attribute_name (keys %{$hash}) {
         my $attribute_value = $hash->{$attribute_name};
-        $attribute_value = $self->from_hash_value($attribute_value, $attribute_name);
+        $attribute_value = $self->from_hash_value($attribute_value, $attribute_name, $is_new);
         if ( $self->has_attribute($attribute_name) ) {
             $self->set($attribute_name, $attribute_value);
         }
