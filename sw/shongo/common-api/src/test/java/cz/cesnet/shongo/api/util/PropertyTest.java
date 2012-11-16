@@ -70,6 +70,7 @@ public class PropertyTest
         assertTrue(Property.hasProperty(Foo.class, "field1"));
         assertTrue(Property.hasProperty(Foo.class, "field2"));
         assertFalse(Property.hasProperty(Foo.class, "field3"));
+        assertFalse(Property.hasProperty(Foo.class, "field3")); // From Property cache, also should be tested
         assertTrue(Property.hasProperty(Foo.class, "field4"));
         assertTrue(Property.hasProperty(Foo.class, "field5"));
         assertTrue(Property.hasProperty(Foo.class, "field6"));

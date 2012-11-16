@@ -350,6 +350,11 @@ public class Property
     private static Map<Class, Map<String, Property>> propertyCache = new HashMap<Class, Map<String, Property>>();
 
     /**
+     * Instance of {@link Property} which represents property which doesn't exists in {@link #propertyCache}.
+     */
+    private static final Property PROPERTY_NOT_FOUND = new Property();
+
+    /**
      * @param type
      * @param name
      * @return {@link Property} with given name from specified type if exists,
@@ -365,6 +370,10 @@ public class Property
         }
         Property property = typeCache.get(name);
         if (property != null) {
+            // Not found property represents null
+            if (property.equals(PROPERTY_NOT_FOUND)) {
+                return null;
+            }
             return property;
         }
 
@@ -429,7 +438,7 @@ public class Property
         // If getter and field are null, property was not found
         if ((property.field == null || !Modifier.isPublic(property.field.getModifiers()))
                 && (property.readMethod == null || !Modifier.isPublic(property.readMethod.getModifiers()))) {
-            // TODO: Cache also not found properties
+            typeCache.put(name, PROPERTY_NOT_FOUND);
             return null;
         }
 
