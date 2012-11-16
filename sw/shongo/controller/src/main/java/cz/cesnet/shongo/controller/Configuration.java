@@ -28,6 +28,13 @@ public class Configuration extends CompositeConfiguration
     public static final String RESERVATION_ALIAS_MAX_DURATION = "reservation.alias.max-duration";
 
     /**
+     * SMTP configuration.
+     */
+    public static final String SMTP_HOST = "smtp.host";
+    public static final String SMTP_USER = "smtp.user";
+    public static final String SMTP_PASSWORD = "smtp.password";
+
+    /**
      * Period in which the executor works.
      */
     public static final String EXECUTOR_PERIOD = "executor.period";
@@ -48,17 +55,17 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_COMPARTMENT_END = "executor.compartment.end";
 
     /**
-     * Duration which {@link cz.cesnet.shongo.controller.executor.CompartmentExecutorThread} waits for virtual rooms to be created.
+     * Duration which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} waits for virtual rooms to be created.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM = "executor.compartment.waiting-virtual-room";
 
     /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.CompartmentExecutorThread} checks whether the compartment should be started.
+     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be started.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_START = "executor.compartment.waiting-start";
 
     /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.CompartmentExecutorThread} checks whether the compartment should be stopped.
+     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be stopped.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_END = "executor.compartment.waiting-end";
 

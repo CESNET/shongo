@@ -107,6 +107,13 @@
             <artifactId>jgraph</artifactId>
             <version>5.13.0.0</version>
         </dependency>
+
+        <!-- Sending emails -->
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.5</version>
+        </dependency>
     </dependencies>
 
     <build>

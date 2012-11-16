@@ -334,6 +334,15 @@ public class Reservation extends PersistentObject
     }
 
     /**
+     * @return description of this {@link Reservation} for notifying (e.g., by email)
+     */
+    @Transient
+    public String getNotifyDescription()
+    {
+        return null;
+    }
+
+    /**
      * Enumeration defining who created the {@link Reservation}.
      */
     public static enum CreatedBy

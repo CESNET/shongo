@@ -9,9 +9,11 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -19,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,14 +63,14 @@ public class Scheduler extends Component
     {
         logger.info("Running scheduler for interval '{}'...", TemporalHelper.formatInterval(interval));
 
-        TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
-
         // Set current interval as working to the cache (it will reload allocations only when
         // the interval changes)
         cache.setWorkingInterval(interval, entityManager);
 
         ReservationManager reservationManager = new ReservationManager(entityManager);
         ExecutableManager executableManager = new ExecutableManager(entityManager);
+
+        TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
             // Delete all reservations which was marked for deletion
@@ -79,17 +82,24 @@ public class Scheduler extends Component
             List<ReservationRequest> reservationRequests =
                     compartmentRequestManager.listCompletedReservationRequests(interval);
 
-            // TODO: Process permanent first
-            // TODO: Apply some other priority to compartment requests
+            // TODO: Apply some other priority to reservation requests
+
+            List<Reservation> newReservations = new ArrayList<Reservation>();
 
             for (ReservationRequest reservationRequest : reservationRequests) {
-                allocateReservationRequest(reservationRequest, entityManager);
+                Reservation reservation = allocateReservationRequest(reservationRequest, entityManager);
+                newReservations.add(reservation);
             }
 
             // Delete all compartments which should be deleted
             executableManager.deleteAllNotReferenced();
 
             transaction.commit();
+
+            // Notify about new reservations
+            for (Reservation reservation : newReservations) {
+                //reservationManager.notifyNewReservation(reservation);
+            }
         }
         catch (Exception exception) {
             transaction.rollback();
@@ -103,7 +113,7 @@ public class Scheduler extends Component
      *
      * @param reservationRequest to be allocated
      */
-    private void allocateReservationRequest(ReservationRequest reservationRequest, EntityManager entityManager)
+    private Reservation allocateReservationRequest(ReservationRequest reservationRequest, EntityManager entityManager)
     {
         logger.info("Allocating reservation request '{}'...", reservationRequest.getId());
 
@@ -179,6 +189,8 @@ public class Scheduler extends Component
                 reservationRequest.addReport(report);
             }
         }
+
+        return reservation;
     }
 
     /**
