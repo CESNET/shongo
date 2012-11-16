@@ -8,6 +8,7 @@ import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.Compartment;
 import cz.cesnet.shongo.controller.executor.*;
+import cz.cesnet.shongo.controller.executor.VirtualRoom;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
 import cz.cesnet.shongo.jade.Agent;
@@ -124,12 +125,12 @@ public class ExecutorTest extends AbstractControllerTest
         executor.waitForThreads();
 
         // Check performed actions on connector agents
-        assertEquals(new ArrayList()
+        assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.endpoint.Dial.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll.class);
             }}, terminalAgent.getPerformedActions());
-        assertEquals(new ArrayList()
+        assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
@@ -180,7 +181,7 @@ public class ExecutorTest extends AbstractControllerTest
         executor.waitForThreads();
 
         // Check performed actions on connector agents
-        assertEquals(new ArrayList()
+        assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
@@ -251,7 +252,7 @@ public class ExecutorTest extends AbstractControllerTest
         executor.waitForThreads();
 
         // Check performed actions on connector agents
-        assertEquals(new ArrayList()
+        assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
@@ -311,7 +312,7 @@ public class ExecutorTest extends AbstractControllerTest
         executor.waitForThreads();
 
         // Check performed actions on connector agents
-        assertEquals(new ArrayList()
+        assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);

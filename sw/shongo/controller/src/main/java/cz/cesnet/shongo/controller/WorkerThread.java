@@ -104,7 +104,6 @@ public class WorkerThread extends Thread
             }
             catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                continue;
             }
         }
 

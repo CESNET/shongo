@@ -10,6 +10,8 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 /**
@@ -60,10 +62,12 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     public TypeConverter getTypeConverter(Class pClass)
     {
         if (pClass.isEnum()) {
-            return EnumTypeConverter.getInstance(pClass);
+            @SuppressWarnings("unchecked")
+            Class<? extends Enum<?>> enumClass = (Class<? extends Enum<?>>) pClass;
+            return EnumTypeConverter.getInstance(enumClass);
         }
         else if (AtomicType.class.isAssignableFrom(pClass)) {
-            return new AtomicTypeConverter(pClass);
+            return AtomicTypeConverter.getInstance(pClass);
         }
         else if (Interval.class.isAssignableFrom(pClass)) {
             return intervalConverter;
@@ -90,9 +94,9 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      */
     private static class EnumTypeConverter implements TypeConverter
     {
-        private final Class clazz;
+        private final Class<? extends Enum> clazz;
 
-        EnumTypeConverter(Class pClass)
+        private EnumTypeConverter(Class<? extends Enum> pClass)
         {
             clazz = pClass;
         }
@@ -124,10 +128,23 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             return result.toString();
         }
 
-        public static EnumTypeConverter getInstance(Class pClass)
+        /**
+         * Cache for {@link EnumTypeConverter}.
+         */
+        private static Map<Class, EnumTypeConverter> cache = new HashMap<Class, EnumTypeConverter>();
+
+        /**
+         * @param pClass for which the converter should be returned
+         * @return {@link EnumTypeConverter} for given {@code pClass}
+         */
+        public static EnumTypeConverter getInstance(Class<? extends Enum> pClass)
         {
-            // TODO: Reuse instances for same class
-            return new EnumTypeConverter(pClass);
+            EnumTypeConverter enumTypeConverter = cache.get(pClass);
+            if (enumTypeConverter == null) {
+                enumTypeConverter = new EnumTypeConverter(pClass);
+                cache.put(pClass, enumTypeConverter);
+            }
+            return enumTypeConverter;
         }
     }
 
@@ -140,7 +157,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
     {
         private final Class clazz;
 
-        AtomicTypeConverter(Class pClass)
+        private AtomicTypeConverter(Class pClass)
         {
             clazz = pClass;
         }
@@ -173,6 +190,25 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object result)
         {
             return result.toString();
+        }
+
+        /**
+         * Cache for {@link AtomicTypeConverter}.
+         */
+        private static Map<Class, AtomicTypeConverter> cache = new HashMap<Class, AtomicTypeConverter>();
+
+        /**
+         * @param pClass for which the converter should be returned
+         * @return {@link EnumTypeConverter} for given {@code pClass}
+         */
+        public static AtomicTypeConverter getInstance(Class pClass)
+        {
+            AtomicTypeConverter atomicTypeConverter = cache.get(pClass);
+            if (atomicTypeConverter == null) {
+                atomicTypeConverter = new AtomicTypeConverter(pClass);
+                cache.put(pClass, atomicTypeConverter);
+            }
+            return atomicTypeConverter;
         }
     }
 
@@ -312,7 +348,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
          *
          * @param options sets the {@link #options}
          */
-        StructTypeConverter(Class type, Options options)
+        private StructTypeConverter(Class type, Options options)
         {
             this.type = type;
             this.options = options;
@@ -349,10 +385,30 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             }
         }
 
+        /**
+         * Cache for {@link StructTypeConverter}.
+         */
+        private static Map<Options, Map<Class, StructTypeConverter>> cache =
+                new Hashtable<Options, Map<Class, StructTypeConverter>>();
+
+        /**
+         * @param pClass for which the converter should be returned
+         * @param options for converting
+         * @return {@link StructTypeConverter} for given {@code pClass} and {@code options}
+         */
         public static StructTypeConverter getInstance(Class pClass, Options options)
         {
-            // TODO: Reuse instances for same class
-            return new StructTypeConverter(pClass, options);
+            Map<Class, StructTypeConverter> cacheByOptions = cache.get(options);
+            if (cacheByOptions == null) {
+                cacheByOptions = new HashMap<Class, StructTypeConverter>();
+                cache.put(options, cacheByOptions);
+            }
+            StructTypeConverter structTypeConverter = cacheByOptions.get(pClass);
+            if (structTypeConverter == null) {
+                structTypeConverter = new StructTypeConverter(pClass, options);
+                cacheByOptions.put(pClass, structTypeConverter);
+            }
+            return structTypeConverter;
         }
     }
 

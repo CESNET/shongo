@@ -247,11 +247,13 @@ public class Connector
             public void run()
             {
                 boolean startFailed = false;
-                while (true) {
+                while (!Thread.interrupted()) {
                     try {
                         Thread.sleep(getControllerConnectionCheckPeriod().getMillis());
                     }
                     catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        continue;
                     }
                     // We want to reconnect if container is not started or when the
                     // previous start failed
@@ -273,7 +275,7 @@ public class Connector
 
         shell.run();
 
-        connectThread.stop();
+        connectThread.interrupt();
 
         stop();
     }

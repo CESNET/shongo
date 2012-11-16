@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO:
+ * Represents a client for XML-RPC server.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -33,17 +33,17 @@ public class RpcClient
     /**
      * XML-RPC client.
      */
-    XmlRpcClient client;
+    private XmlRpcClient client;
 
     /**
      * XML-RPC client factory for creating services.
      */
-    ClientFactory clientFactory;
+    private ClientFactory clientFactory;
 
     /**
      * Map of services by the class.
      */
-    Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
+    private Map<Class<? extends Service>, Service> serviceByClass = new HashMap<Class<? extends Service>, Service>();
 
     /**
      * @see {@link CommonFault}
@@ -146,7 +146,7 @@ public class RpcClient
         SerializableException.Content content = new SerializableException.Content();
         content.fromString(xmlRpcException.getMessage());
 
-        Exception exception = null;
+        Exception exception;
         Class<? extends Exception> type = fault.getClasses().get(xmlRpcException.code);
         if (type != null) {
             exception = ClassHelper.createInstanceFromClassRuntime(type);
@@ -221,9 +221,9 @@ public class RpcClient
                             t = new FaultException(xmlRpcException.code, xmlRpcException.getMessage(),
                                     xmlRpcException.getCause());
                         }
-                        Class[] exceptionTypes = pMethod.getExceptionTypes();
+                        Class<?>[] exceptionTypes = pMethod.getExceptionTypes();
                         for (int i = 0; i < exceptionTypes.length; i++) {
-                            Class c = exceptionTypes[i];
+                            Class<?> c = exceptionTypes[i];
                             if (c.isAssignableFrom(t.getClass())) {
                                 throw t;
                             }
@@ -231,8 +231,7 @@ public class RpcClient
                         throw new UndeclaredThrowableException(t);
                     }
                     catch (XmlRpcException xmlRpcException) {
-                        Exception exception = convertException(xmlRpcException);
-                        throw exception;
+                        throw convertException(xmlRpcException);
                     }
                     TypeConverter typeConverter = typeConverterFactory.getTypeConverter(pMethod.getReturnType());
                     return typeConverter.convert(result);
