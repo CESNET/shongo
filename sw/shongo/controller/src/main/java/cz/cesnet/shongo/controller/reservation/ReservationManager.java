@@ -2,12 +2,14 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
+import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.util.MailSender;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
@@ -245,53 +247,20 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
-     * @param reservationId for {@link Reservation} which is allocated {@link AbstractReservationRequest} which should
-     *                      be returned
-     * @return {@link AbstractReservationRequest} for which is allocated {@link Reservation} with
-     *         given {@code reservationId}
-     */
-    private AbstractReservationRequest getByReservation(Long reservationId)
-    {
-        AbstractReservationRequest reservationRequest = entityManager.createQuery(
-                "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest IN("
-                        + "   SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
-                        + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + "   WHERE reservationRequest.reservation.id = :id"
-                        + ") OR reservationRequest IN("
-                        + "   SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + "   WHERE reservationRequest.reservation.id = :id"
-                        + ") OR reservationRequest.id IN("
-                        + "   SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
-                        + "   LEFT JOIN reservationRequest.resourceReservations reservation"
-                        + "   WHERE reservation.id = :id"
-                        + ")", AbstractReservationRequest.class)
-                .setParameter("id", reservationId)
-                .getSingleResult();
-        return reservationRequest;
-    }
-
-
-    /**
      * @param reservation
      */
-    public void notifyNewReservation(Reservation reservation, MailSender mailSender)
+    public void notifyNewReservation(Reservation reservation, NotificationManager notificationManager, Domain domain)
     {
-        AbstractReservationRequest reservationRequest = getByReservation(reservation.getId());
-        String description = reservation.getNotifyDescription();
+        StringBuilder text = new StringBuilder();
+        text.append("New reservation by\n");
+        text.append("    "); text.append("<TODO: name> - <TODO: organization>\n");
 
-        // TODO:
+        Notification notification = new Notification();
+        notification.setName("New reservation [" + domain.formatIdentifier(reservation.getId()) + "]");
+        notification.setText(text.toString());
+        notification.addChildNotification(reservation.toNotification(domain, entityManager));
+        notificationManager.executeNotification(notification);
 
-        notifyNewReservationToResourceOwner(reservation);
-    }
-
-    public void notifyNewReservationToResourceOwner(Reservation reservation)
-    {
-
-    }
-
-    public void sendMail(String receiver, String description)
-    {
-
+        // TODO: notify resource owner about resource reservation, alias reservations, virtual room reservations, etc.
     }
 }

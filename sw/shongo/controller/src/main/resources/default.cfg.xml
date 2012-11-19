@@ -77,4 +77,9 @@
         </alias>
     </reservation>
 
+    <!-- Configuration for sending emails -->
+    <smtp>
+        <port>25</port>
+    </smtp>
+
 </configuration>

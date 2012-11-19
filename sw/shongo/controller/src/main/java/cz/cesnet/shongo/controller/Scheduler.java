@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.TransactionHelper;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
@@ -9,11 +10,9 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
@@ -30,14 +29,24 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Scheduler extends Component
+public class Scheduler extends Component implements Component.DomainAware, Component.NotificationManagerAware
 {
     private static Logger logger = LoggerFactory.getLogger(Scheduler.class);
 
     /**
-     * @see {@link Cache}
+     * @see Cache
      */
     private Cache cache;
+
+    /**
+     * @see Domain
+     */
+    private Domain domain;
+
+    /**
+     * @see NotificationManager
+     */
+    private NotificationManager notificationManager;
 
     /**
      * @param cache sets the {@link #cache}
@@ -45,6 +54,18 @@ public class Scheduler extends Component
     public void setCache(Cache cache)
     {
         this.cache = cache;
+    }
+
+    @Override
+    public void setDomain(Domain domain)
+    {
+        this.domain = domain;
+    }
+
+    @Override
+    public void setNotificationManager(NotificationManager notificationManager)
+    {
+        this.notificationManager = notificationManager;
     }
 
     @Override
@@ -97,8 +118,13 @@ public class Scheduler extends Component
             transaction.commit();
 
             // Notify about new reservations
-            for (Reservation reservation : newReservations) {
-                //reservationManager.notifyNewReservation(reservation);
+            if (notificationManager != null) {
+                if (newReservations.size() > 0) {
+                    logger.debug("Notifying about new reservations...");
+                    for (Reservation reservation : newReservations) {
+                        reservationManager.notifyNewReservation(reservation, notificationManager, domain);
+                    }
+                }
             }
         }
         catch (Exception exception) {
@@ -199,11 +225,13 @@ public class Scheduler extends Component
      * @param entityManager
      * @param interval
      */
-    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache)
-            throws FaultException
+    public static void createAndRun(Interval interval, EntityManager entityManager, Cache cache,
+            NotificationManager notificationManager, Domain domain) throws FaultException
     {
         Scheduler scheduler = new Scheduler();
         scheduler.setCache(cache);
+        scheduler.setDomain(domain);
+        scheduler.setNotificationManager(notificationManager);
         scheduler.init();
         scheduler.run(interval, entityManager);
         scheduler.destroy();

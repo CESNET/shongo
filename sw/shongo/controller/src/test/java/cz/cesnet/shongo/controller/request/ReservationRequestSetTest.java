@@ -163,7 +163,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         {
             EntityManager entityManager = getEntityManager();
 
-            Scheduler.createAndRun(interval, entityManager, cache);
+            Scheduler.createAndRun(interval, entityManager, cache, null, null);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             ReservationManager reservationManager = new ReservationManager(entityManager);
@@ -201,7 +201,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
 
-            Scheduler.createAndRun(interval, entityManager, cache);
+            Scheduler.createAndRun(interval, entityManager, cache, null, null);
 
             // Checks allocation failed
             ReservationRequest reservationRequest = reservationRequestManager
@@ -221,7 +221,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Pre-process and schedule compartment request
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, cache);
+            Scheduler.createAndRun(interval, entityManager, cache, null, null);
 
             // Checks allocated
             entityManager.refresh(reservationRequest);
@@ -248,7 +248,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Pre-process and schedule
             Preprocessor.createAndRun(interval, entityManager);
-            Scheduler.createAndRun(interval, entityManager, cache);
+            Scheduler.createAndRun(interval, entityManager, cache, null, null);
 
             entityManager.close();
         }

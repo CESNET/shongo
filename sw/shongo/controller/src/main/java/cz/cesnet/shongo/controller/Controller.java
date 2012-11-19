@@ -4,6 +4,9 @@ import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.xmlrpc.RpcServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
+import cz.cesnet.shongo.controller.notification.MailNotificationExecutor;
+import cz.cesnet.shongo.controller.notification.NotificationExecutor;
+import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.Container;
@@ -69,22 +72,27 @@ public class Controller
     /**
      * XML-RPC server.
      */
-    RpcServer rpcServer;
+    private RpcServer rpcServer;
 
     /**
      * Jade container.
      */
-    Container jadeContainer;
+    private Container jadeContainer;
 
     /**
      * List of threads which are started for the controller.
      */
-    List<Thread> threads = new ArrayList<Thread>();
+    private List<Thread> threads = new ArrayList<Thread>();
 
     /**
      * Jade agent.
      */
-    ControllerAgent jadeAgent = new ControllerAgent();
+    private ControllerAgent jadeAgent = new ControllerAgent();
+
+    /**
+     * {@link NotificationManager}.
+     */
+    private NotificationManager notificationManager = new NotificationManager();
 
     /**
      * Constructor.
@@ -296,6 +304,22 @@ public class Controller
     }
 
     /**
+     * @return {@link #notificationManager}
+     */
+    public NotificationManager getNotificationManager()
+    {
+        return notificationManager;
+    }
+
+    /**
+     * @param notificationExecutor to be added to the {@link #notificationManager}
+     */
+    public void addNotificationExecutor(NotificationExecutor notificationExecutor)
+    {
+        notificationManager.addNotificationExecutor(notificationExecutor);
+    }
+
+    /**
      * @param thread to be started and added to the {@link #threads}
      */
     private void addThread(Thread thread)
@@ -335,6 +359,9 @@ public class Controller
         authorization = new Authorization(configuration);
 
         logger.info("Controller for domain '{}' is starting...", domain.getName());
+
+        // Add common components
+        addComponent(notificationManager);
 
         // Initialize components
         for (Component component : components) {
@@ -714,6 +741,9 @@ public class Controller
         scheduler.setCache(cache);
         controller.addComponent(scheduler);
         controller.addComponent(new Executor());
+
+        // Add mail notification executor
+        controller.addNotificationExecutor(new MailNotificationExecutor());
 
         // Add XML-RPC services
         controller.addService(new CommonServiceImpl());

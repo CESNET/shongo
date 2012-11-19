@@ -157,6 +157,33 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservationId for {@link Reservation} which is allocated {@link AbstractReservationRequest} which should
+     *                      be returned
+     * @return {@link AbstractReservationRequest} for which is allocated {@link Reservation} with
+     *         given {@code reservationId}
+     */
+    public AbstractReservationRequest getByReservation(Long reservationId)
+    {
+        AbstractReservationRequest reservationRequest = entityManager.createQuery(
+                "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                        + " WHERE reservationRequest IN("
+                        + "   SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
+                        + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                        + "   WHERE reservationRequest.reservation.id = :id"
+                        + ") OR reservationRequest IN("
+                        + "   SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                        + "   WHERE reservationRequest.reservation.id = :id"
+                        + ") OR reservationRequest.id IN("
+                        + "   SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
+                        + "   LEFT JOIN reservationRequest.resourceReservations reservation"
+                        + "   WHERE reservation.id = :id"
+                        + ")", AbstractReservationRequest.class)
+                .setParameter("id", reservationId)
+                .getSingleResult();
+        return reservationRequest;
+    }
+
+    /**
      * @param reservationRequestId of the {@link ReservationRequest}
      * @return {@link ReservationRequest} with given identifier
      * @throws EntityNotFoundException when the {@link ReservationRequest} doesn't exist

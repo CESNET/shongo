@@ -6,7 +6,11 @@ import cz.cesnet.shongo.controller.Controller;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.executor.Executable;
+import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.ObjectNotification;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -334,12 +338,22 @@ public class Reservation extends PersistentObject
     }
 
     /**
-     * @return description of this {@link Reservation} for notifying (e.g., by email)
+     * @param domain        to format identifier
+     * @param entityManager to load corresponding {@link AbstractReservationRequest}
+     * @return {@link Notification} from this {@link AbstractReservationRequest}
      */
-    @Transient
-    public String getNotifyDescription()
+    public Notification toNotification(Domain domain, EntityManager entityManager)
     {
-        return null;
+        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+        AbstractReservationRequest reservationRequest = reservationRequestManager.getByReservation(getId());
+
+        ObjectNotification notification = new ObjectNotification();
+        notification.setName("Reservation");
+        notification.addProperty("Identifier", domain.formatIdentifier(getId()));
+        notification.addProperty("Start date/time", getSlot().getStart());
+        notification.addProperty("Duration", getSlot().toPeriod());
+        notification.addProperty("Based on request", reservationRequest.toNotification(domain));
+        return notification;
     }
 
     /**

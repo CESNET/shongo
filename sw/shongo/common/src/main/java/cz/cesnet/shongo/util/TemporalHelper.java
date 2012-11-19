@@ -1,10 +1,13 @@
 package cz.cesnet.shongo.util;
 
+import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.PeriodFormat;
+import org.joda.time.format.PeriodFormatter;
 
 /**
  * Helper for manipulating/formatting temporal data types.
@@ -14,7 +17,35 @@ import org.joda.time.format.DateTimeFormatter;
 public class TemporalHelper
 {
     /**
-     * @param interval
+     * {@link PeriodFormatter} for {@link Period}s.
+     */
+    private static final PeriodFormatter periodFormatter = PeriodFormat.getDefault();
+
+    /**
+     * {@link DateTimeFormatter} for {@link DateTime}s.
+     */
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm");
+
+    /**
+     * @param dateTime to be formatted
+     * @return formatted given {@code dateTime} to {@link String}
+     */
+    public static String formatDateTime(DateTime dateTime)
+    {
+        return dateTimeFormatter.print(dateTime);
+    }
+
+    /**
+     * @param period to be formatted
+     * @return formatted given {@code period} to {@link String}
+     */
+    public static String formatPeriod(Period period)
+    {
+        return periodFormatter.print(period);
+    }
+
+    /**
+     * @param interval to be formatted
      * @return formatted given {@code interval} to string
      */
     public static String formatInterval(Interval interval)

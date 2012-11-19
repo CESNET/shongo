@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.notification.NotificationManager;
+
 import javax.persistence.EntityManagerFactory;
 
 /**
@@ -90,6 +92,17 @@ public abstract class Component
          * @param authorization {@link Authorization} which can be used by implementing {@link Component}
          */
         public void setAuthorization(Authorization authorization);
+    }
+
+    /**
+     * {@link Component} which contains reference to current {@link MailSender}.
+     */
+    public static interface NotificationManagerAware
+    {
+        /**
+         * @param notificationManager sets the {@link NotificationManager} to the component
+         */
+        public void setNotificationManager(NotificationManager notificationManager);
     }
 
     /**

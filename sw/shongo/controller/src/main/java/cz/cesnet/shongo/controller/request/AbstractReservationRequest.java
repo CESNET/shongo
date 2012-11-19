@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.notification.Notification;
+import cz.cesnet.shongo.controller.notification.ObjectNotification;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -180,6 +182,21 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.AbstractReservationRequest.DESCRIPTION)) {
             setDescription(api.getDescription());
         }
+    }
+
+    /**
+     * @param domain to format identifier
+     * @return {@link Notification} from this {@link AbstractReservationRequest}
+     */
+    public Object toNotification(Domain domain)
+    {
+        ObjectNotification notification = new ObjectNotification();
+        notification.setName("Reservation request");
+        notification.addProperty("Created at", getCreated());
+        notification.addProperty("Identifier", domain.formatIdentifier(getId()));
+        notification.addProperty("Name", getName());
+        notification.addProperty("Description", getDescription());
+        return notification;
     }
 
     @Override
