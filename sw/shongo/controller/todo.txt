@@ -1,5 +1,3 @@
-* Executable configurations
-
 FUTURE:
 -------
 * Create tests for Converter (and simplify Converter.convert() method)

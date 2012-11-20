@@ -227,12 +227,14 @@
 \glsXpageXglsnumberformat{}{18}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{36}}}\relax\glsresetentrylist
-\glossaryentryfield{g:executor}{\glsnamefont{executor}}{Executor is a component of a \gls {g:controller} which executes allocated executables (e.g., \glspl {g:compartment} or \glspl {g:device-virtual-room}) from \glspl {g:reservation}. It creates all \glspl {g:device-virtual-room} on managed \glspl {g:resource-device} and establishes all \glspl {g:device-connection} between created \glspl {g:device-virtual-room} and managed \gls {g:endpoint} \glspl {g:resource-device}.}{\relax }{\glossaryentrynumbers{\relax 
+\glossaryentryfield{g:executor}{\glsnamefont{executor}}{Executor is a component of a \gls {g:controller} which executes allocated \glspl {g:executable} (e.g., \glspl {g:compartment} or \glspl {g:device-virtual-room}) from \glspl {g:reservation}. It creates all \glspl {g:device-virtual-room} on managed \glspl {g:resource-device} and establishes all \glspl {g:device-connection} between created \glspl {g:device-virtual-room} and managed \gls {g:endpoint} \glspl {g:resource-device}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{59}}}\relax\glsresetentrylist
+\glossaryentryfield{g:executable}{\glsnamefont{executable}}{Execitable is an entity which can be executed by an \gls {g:executor} (e.g., \glspl {g:compartment} or \glspl {g:device-virtual-room}).}{\relax }{\glossaryentrynumbers{\relax 
+\glsXpageXglsnumberformat{}{2}}}\relax\glsresetentrylist
 \glossaryentryfield{g:preprocessor}{\glsnamefont{preprocessor}}{Preprocessor is a component of a \gls {g:controller} which allocates permanent \glspl {g:reservation-request} and creates single \glspl {g:reservation-request} from compound requests. Single \glspl {g:reservation-request} then can be allocated by the \gls {g:scheduler}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 

@@ -126,16 +126,19 @@ controller.
 </worker>
 \end{verbatim}
 
-\item Configuration of \gls{g:executor} which periodically checks for allocated \glspl{g:compartment} and executes them. A \code{period} can be configured in which the executor performs checking and also the \code{lookup-ahead} which is used when searching for allocated \glspl{g:compartment} to be executed (the executor executes only \glspl{g:compartment} which take place in interval starting at current date/time and with length of \code{lookup-ahead}). Option \code{start} defines duration by which is modified the starting date/time of the executed \gls{g:compartment} and the \code{end} modifies the ending date/time respectively (both \codeValue{PT-30S} means that the \gls{g:compartment} will be started and ended 30 seconds beforehand). Periods \code{waiting-start} and \code{waiting-end} specify how often the \gls{g:compartment} executor checks whether the \gls{g:compartment} should actually be started or stopped.
+\item Configuration of \gls{g:executor} which periodically checks for allocated \glspl{g:executable} (e.g., \glspl{g:compartment}) and executes them. A \code{period} can be configured in which the executor performs checking and also the \code{lookup-ahead} which is used when searching for allocated \glspl{g:compartment} to be executed (the executor executes only \glspl{g:compartment} which take place in interval starting at current date/time and with length of \code{lookup-ahead}). Option \code{start} defines duration by which is modified the starting date/time of the executed \gls{g:executable} and the \code{end} modifies the ending date/time respectively (both \codeValue{PT-30S} means that the \gls{g:executable} will be started and ended 30 seconds beforehand). Periods \code{waiting-start} and \code{waiting-end} specify how often the \gls{g:executor} checks whether the \gls{g:executable} should actually be started or stopped. Option \code{waiting-virtual-room} specifies how long should the \gls{g:executor} wait after it send commands for creating all \glspl{g:device-virtual-room} in a \gls{g:compartment} before it connects all allocated endpoints to proper \glspl{g:device-virtual-room}.
 \begin{verbatim}
 <executor>
     <period>PT15S</period>
     <lookup-ahead>PT3M</lookup-ahead>
-    <compartment>
+    <executable>
         <start>PT-30S</start>
         <end>PT-30S</end>
         <waiting-start>PT10S</waiting-start>
         <waiting-end>PT10S</waiting-end>
+    </executable>
+    <compartment>
+        <waiting-virtual-room>PT10S</waiting-virtual-room>
     </compartment>
 </executor>
 \end{verbatim}

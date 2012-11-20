@@ -13,7 +13,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -47,14 +50,14 @@ public class Executor extends Component
     private Duration lookupAhead;
 
     /**
-     * @see {@link Configuration#EXECUTOR_COMPARTMENT_START}
+     * @see {@link Configuration#EXECUTOR_EXECUTABLE_START}
      */
-    private Duration compartmentStart;
+    private Duration executableStart;
 
     /**
-     * @see {@link Configuration#EXECUTOR_COMPARTMENT_END}
+     * @see {@link Configuration#EXECUTOR_EXECUTABLE_END}
      */
-    private Duration compartmentEnd;
+    private Duration executableEnd;
 
     /**
      * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM}
@@ -62,14 +65,14 @@ public class Executor extends Component
     private Duration compartmentWaitingVirtualRoom;
 
     /**
-     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_START}
+     * @see {@link Configuration#EXECUTOR_EXECUTABLE_WAITING_START}
      */
-    private Duration compartmentWaitingStart;
+    private Duration executableWaitingStart;
 
     /**
-     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_END}
+     * @see {@link Configuration#EXECUTOR_EXECUTABLE_WAITING_END}
      */
-    private Duration compartmentWaitingEnd;
+    private Duration executableWaitingEnd;
 
     /**
      * Map of executed {@link ExecutorThread}s by {@link cz.cesnet.shongo.controller.executor.Compartment} identifiers.
@@ -78,19 +81,35 @@ public class Executor extends Component
 
 
     /**
-     * @return {@link #compartmentStart}
+     * @return {@link #executableStart}
      */
-    public Duration getCompartmentStart()
+    public Duration getExecutableStart()
     {
-        return compartmentStart;
+        return executableStart;
     }
 
     /**
-     * @return {@link #compartmentEnd}
+     * @return {@link #executableEnd}
      */
-    public Duration getCompartmentEnd()
+    public Duration getExecutableEnd()
     {
-        return compartmentEnd;
+        return executableEnd;
+    }
+
+    /**
+     * @return {@link #executableWaitingStart}
+     */
+    public Duration getExecutableWaitingStart()
+    {
+        return executableWaitingStart;
+    }
+
+    /**
+     * @return {@link #executableWaitingEnd}
+     */
+    public Duration getExecutableWaitingEnd()
+    {
+        return executableWaitingEnd;
     }
 
     /**
@@ -99,22 +118,6 @@ public class Executor extends Component
     public Duration getCompartmentWaitingVirtualRoom()
     {
         return compartmentWaitingVirtualRoom;
-    }
-
-    /**
-     * @return {@link #compartmentWaitingStart}
-     */
-    public Duration getCompartmentWaitingStart()
-    {
-        return compartmentWaitingStart;
-    }
-
-    /**
-     * @return {@link #compartmentWaitingEnd}
-     */
-    public Duration getCompartmentWaitingEnd()
-    {
-        return compartmentWaitingEnd;
     }
 
     @Override
@@ -145,12 +148,12 @@ public class Executor extends Component
 
         period = configuration.getDuration(Configuration.EXECUTOR_PERIOD);
         lookupAhead = configuration.getDuration(Configuration.EXECUTOR_LOOKUP_AHEAD);
-        compartmentStart = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_START);
-        compartmentEnd = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_END);
+        executableStart = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_START);
+        executableEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_END);
+        executableWaitingStart = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_WAITING_START);
+        executableWaitingEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_WAITING_END);
         compartmentWaitingVirtualRoom = configuration.getDuration(
                 Configuration.EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM);
-        compartmentWaitingStart = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_WAITING_START);
-        compartmentWaitingEnd = configuration.getDuration(Configuration.EXECUTOR_COMPARTMENT_WAITING_END);
     }
 
     @Override

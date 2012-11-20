@@ -183,8 +183,8 @@ public class Compartment extends Executable
     private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Create virtual rooms
-        boolean virtualRoomCreated = (startChildren(VirtualRoom.class, executorThread, entityManager) > 0);
-        if (virtualRoomCreated) {
+        boolean virtualRoomStarted = (startChildren(VirtualRoom.class, executorThread, entityManager) > 0);
+        if (virtualRoomStarted) {
             executorThread.getLogger().info("Waiting for virtual rooms to be created...");
             try {
                 Thread.sleep(executorThread.getExecutor().getCompartmentWaitingVirtualRoom().getMillis());

@@ -48,27 +48,27 @@ public class Configuration extends CompositeConfiguration
     /**
      * Duration to modify compartment starting date/time.
      */
-    public static final String EXECUTOR_COMPARTMENT_START = "executor.compartment.start";
+    public static final String EXECUTOR_EXECUTABLE_START = "executor.executable.start";
 
     /**
      * Duration to modify compartment ending date/time.
      */
-    public static final String EXECUTOR_COMPARTMENT_END = "executor.compartment.end";
+    public static final String EXECUTOR_EXECUTABLE_END = "executor.executable.end";
+
+    /**
+     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be started.
+     */
+    public static final String EXECUTOR_EXECUTABLE_WAITING_START = "executor.executable.waiting-start";
+
+    /**
+     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be stopped.
+     */
+    public static final String EXECUTOR_EXECUTABLE_WAITING_END = "executor.executable.waiting-end";
 
     /**
      * Duration which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} waits for virtual rooms to be created.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM = "executor.compartment.waiting-virtual-room";
-
-    /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be started.
-     */
-    public static final String EXECUTOR_COMPARTMENT_WAITING_START = "executor.compartment.waiting-start";
-
-    /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be stopped.
-     */
-    public static final String EXECUTOR_COMPARTMENT_WAITING_END = "executor.compartment.waiting-end";
 
     /**
      * Authorization server.
