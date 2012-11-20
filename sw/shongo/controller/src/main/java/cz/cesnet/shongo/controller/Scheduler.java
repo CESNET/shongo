@@ -109,7 +109,9 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
 
             for (ReservationRequest reservationRequest : reservationRequests) {
                 Reservation reservation = allocateReservationRequest(reservationRequest, entityManager);
-                newReservations.add(reservation);
+                if (reservation != null) {
+                    newReservations.add(reservation);
+                }
             }
 
             // Delete all compartments which should be deleted
