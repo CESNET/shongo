@@ -253,7 +253,8 @@ public class ReservationManager extends AbstractManager
     {
         StringBuilder text = new StringBuilder();
         text.append("New reservation by\n");
-        text.append("    "); text.append("<TODO: name> - <TODO: organization>\n");
+        text.append("    ");
+        text.append("<TODO: name> - <TODO: organization>\n");
 
         Notification notification = new Notification();
         notification.setName("New reservation [" + domain.formatIdentifier(reservation.getId()) + "]");

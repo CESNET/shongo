@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
@@ -9,8 +11,6 @@ import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -111,7 +111,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
         }
     }
 
-        @Override
+    @Override
     @Transient
     public Set<Technology> getTechnologies()
     {

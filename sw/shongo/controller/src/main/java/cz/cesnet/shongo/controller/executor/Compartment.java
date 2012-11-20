@@ -27,7 +27,7 @@ public class Compartment extends Executable
     @Override
     public void addChildExecutable(Executable executable)
     {
-        if ( executable instanceof Endpoint) {
+        if (executable instanceof Endpoint) {
             Endpoint endpoint = (Endpoint) executable;
 
             // Update total endpoint count
@@ -43,12 +43,12 @@ public class Compartment extends Executable
     public List<Endpoint> getEndpoints()
     {
         List<Endpoint> endpoints = new ArrayList<Endpoint>();
-        for ( Executable childExecutable : getChildExecutables()) {
-            if ( !(childExecutable instanceof Endpoint)) {
+        for (Executable childExecutable : getChildExecutables()) {
+            if (!(childExecutable instanceof Endpoint)) {
                 continue;
             }
             Endpoint endpoint = (Endpoint) childExecutable;
-            if ( endpoint instanceof VirtualRoom) {
+            if (endpoint instanceof VirtualRoom) {
                 continue;
             }
             endpoints.add(endpoint);
@@ -63,8 +63,8 @@ public class Compartment extends Executable
     public List<VirtualRoom> getVirtualRooms()
     {
         List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
-        for ( Executable childExecutable : getChildExecutables()) {
-            if ( !(childExecutable instanceof VirtualRoom)) {
+        for (Executable childExecutable : getChildExecutables()) {
+            if (!(childExecutable instanceof VirtualRoom)) {
                 continue;
             }
             VirtualRoom virtualRoom = (VirtualRoom) childExecutable;
@@ -80,8 +80,8 @@ public class Compartment extends Executable
     public List<Connection> getConnections()
     {
         List<Connection> connections = new ArrayList<Connection>();
-        for ( Executable childExecutable : getChildExecutables()) {
-            if ( !(childExecutable instanceof Connection)) {
+        for (Executable childExecutable : getChildExecutables()) {
+            if (!(childExecutable instanceof Connection)) {
                 continue;
             }
             Connection connection = (Connection) childExecutable;

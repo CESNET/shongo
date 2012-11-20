@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Scheduler;

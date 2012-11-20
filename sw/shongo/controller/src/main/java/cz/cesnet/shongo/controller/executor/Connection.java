@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
 
 import javax.persistence.*;
 

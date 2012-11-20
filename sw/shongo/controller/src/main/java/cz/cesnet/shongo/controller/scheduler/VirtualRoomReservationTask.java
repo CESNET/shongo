@@ -7,7 +7,10 @@ import cz.cesnet.shongo.controller.executor.ResourceVirtualRoom;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.request.VirtualRoomSpecification;
-import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.ExistingReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -87,7 +90,7 @@ public class VirtualRoomReservationTask extends ReservationTask
         Collection<VirtualRoomReservation> virtualRoomReservations =
                 getCacheTransaction().getResourceCacheTransaction().getProvidedVirtualRoomReservations();
         if (virtualRoomReservations.size() > 0) {
-            for ( VirtualRoomReservation virtualRoomReservation : virtualRoomReservations) {
+            for (VirtualRoomReservation virtualRoomReservation : virtualRoomReservations) {
                 Long deviceResourceId = virtualRoomReservation.getDeviceResource().getId();
                 if (deviceResources.contains(deviceResourceId) && virtualRoomReservation.getPortCount() >= portCount) {
                     // Reuse provided reservation
@@ -130,7 +133,7 @@ public class VirtualRoomReservationTask extends ReservationTask
         // Get technologies for the virtual room
         Set<Technology> technologies = null;
         Set<Technology> deviceTechnologies = availableVirtualRoom.getDeviceResource().getTechnologies();
-        for ( Set<Technology> possibleTechnologies : technologySets) {
+        for (Set<Technology> possibleTechnologies : technologySets) {
             if (deviceTechnologies.containsAll(possibleTechnologies)) {
                 technologies = possibleTechnologies;
             }
@@ -150,8 +153,8 @@ public class VirtualRoomReservationTask extends ReservationTask
         // TODO: create virtual room only for specified technologies
 
         // Allocate aliases for each technology
-        if ( withAlias ) {
-            for ( Technology technology : technologies) {
+        if (withAlias) {
+            for (Technology technology : technologies) {
                 AliasSpecification aliasSpecification = new AliasSpecification(technology);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
                 virtualRoom.addAssignedAlias(aliasReservation.getAlias().clone());

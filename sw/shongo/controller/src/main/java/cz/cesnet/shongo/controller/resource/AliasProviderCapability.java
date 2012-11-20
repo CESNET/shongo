@@ -174,7 +174,7 @@ public class AliasProviderCapability extends Capability
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
         apiAliasProvider.setTechnology(getTechnology());
         apiAliasProvider.setType(getType());
-        for ( String pattern : patterns) {
+        for (String pattern : patterns) {
             apiAliasProvider.addPattern(pattern);
         }
         apiAliasProvider.setRestrictedToOwnerResource(isRestrictedToOwnerResource());

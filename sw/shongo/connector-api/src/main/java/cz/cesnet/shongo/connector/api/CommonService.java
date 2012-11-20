@@ -17,10 +17,11 @@ public interface CommonService
     /**
      * Connects to the device.
      *
-     * @param address     device address to connect to
-     * @param username    username for authentication on the device
-     * @param password    password for authentication on the device
+     * @param address  device address to connect to
+     * @param username username for authentication on the device
+     * @param password password for authentication on the device
      * @throws cz.cesnet.shongo.api.CommandException
+     *
      */
     void connect(Address address, String username, final String password) throws CommandException;
 

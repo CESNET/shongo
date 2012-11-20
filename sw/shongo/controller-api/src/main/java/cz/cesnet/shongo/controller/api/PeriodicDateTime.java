@@ -87,7 +87,8 @@ public class PeriodicDateTime
         setPeriod(Period.parse(period));
         try {
             setEnd(Converter.Atomic.convertStringToReadablePartial(end));
-        } catch (FaultException exception) {
+        }
+        catch (FaultException exception) {
             throw new RuntimeException(exception);
         }
     }

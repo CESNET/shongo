@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.executor.*;
+import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -90,7 +90,8 @@ public class ExecutorServiceImpl extends Component
             entityManager.getTransaction().commit();
         }
         catch (javax.persistence.RollbackException exception) {
-            throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class, executableId);
+            throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class,
+                    executableId);
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -118,10 +119,10 @@ public class ExecutorServiceImpl extends Component
             summary.setIdentifier(domain.formatIdentifier(executable.getId()));
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
-            if ( executable instanceof cz.cesnet.shongo.controller.executor.Compartment ) {
+            if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {
                 summary.setType(ExecutableSummary.Type.COMPARTMENT);
             }
-            else if ( executable instanceof cz.cesnet.shongo.controller.executor.VirtualRoom ) {
+            else if (executable instanceof cz.cesnet.shongo.controller.executor.VirtualRoom) {
                 summary.setType(ExecutableSummary.Type.VIRTUAL_ROOM);
             }
             summaryList.add(summary);
@@ -133,7 +134,8 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableIdentifier) throws FaultException
+    public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableIdentifier)
+            throws FaultException
     {
         authorization.validate(token);
 

@@ -4,7 +4,8 @@ import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a virtual room on a multipoint server device.

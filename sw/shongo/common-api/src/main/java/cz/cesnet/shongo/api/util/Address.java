@@ -17,11 +17,11 @@ public class Address
 
     /**
      * Parses an address (host and possibly a port) from the given input string.
-     *
+     * <p/>
      * The part of the input string after the last colon is interpreted as a port, everything else as host.
      * The port might not be present, in which case the address returned tells the default port should be used.
      *
-     * @param input    input string
+     * @param input input string
      * @return an address object containing the address from the input string
      */
     public static Address parseAddress(String input)
@@ -31,12 +31,12 @@ public class Address
 
     /**
      * Parses an address (host and possibly a port) from the given input string.
-     *
+     * <p/>
      * The part of the input string after the last colon is interpreted as a port, everything else as host.
      * The port might not be present, in which case the given default port is used.
      *
-     * @param input         input string
-     * @param defaultPort   default port to be used when the input string does not contain the port specification
+     * @param input       input string
+     * @param defaultPort default port to be used when the input string does not contain the port specification
      * @return an address object containing the address from the input string
      */
     public static Address parseAddress(String input, int defaultPort)
@@ -63,7 +63,7 @@ public class Address
      * <p/>
      * What is the default port depends on the usage of the address. This just tells that the default port should be used.
      *
-     * @param host    device host
+     * @param host device host
      */
     public Address(String host)
     {

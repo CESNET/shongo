@@ -1,12 +1,11 @@
 package cz.cesnet.shongo;
 
 import cz.cesnet.shongo.api.util.Converter;
-import org.joda.time.DateTimeZone;
-import org.joda.time.chrono.ISOChronology;
-import org.junit.Assert;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**

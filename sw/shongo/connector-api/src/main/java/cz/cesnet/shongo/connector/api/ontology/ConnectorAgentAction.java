@@ -11,9 +11,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A common ancestor for all agent actions used by Shongo.
- *
+ * <p/>
  * Offers some helper methods common to all agent actions.
- *
+ * <p/>
  * Note that all AgentAction classes must have the default constructor without any parameters for Jade to be able to
  * construct the objects.
  *
@@ -26,7 +26,7 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     /**
      * Executes the action on a given connector.
      *
-     * @param connector    a connector on which the action should be executed
+     * @param connector a connector on which the action should be executed
      * @return the result of the action, or NULL if the action does not return anything; should be a concept or a Java
      *         class encapsulating a primitive type (e.g., Integer, ...)
      * @throws CommandException
@@ -37,7 +37,7 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     /**
      * Returns the passed connector as an EndpointService. Throws an exception if the typecast fails.
      *
-     * @param connector    a connector
+     * @param connector a connector
      * @return connector typecast to an EndpointService
      * @throws CommandUnsupportedException
      */
@@ -56,7 +56,7 @@ public abstract class ConnectorAgentAction implements cz.cesnet.shongo.api.jade.
     /**
      * Returns the passed connector as a MultipointService. Throws an exception if the typecast fails.
      *
-     * @param connector    a connector
+     * @param connector a connector
      * @return connector typecast to an MultipointService
      * @throws CommandUnsupportedException
      */

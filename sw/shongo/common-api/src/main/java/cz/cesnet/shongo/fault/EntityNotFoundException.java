@@ -27,7 +27,7 @@ public class EntityNotFoundException extends FaultException
     /**
      * Constructor.
      *
-     * @param entityType sets the {@link #entityType}
+     * @param entityType       sets the {@link #entityType}
      * @param entityIdentifier sets the {@link #entityIdentifier}
      */
     public EntityNotFoundException(Class entityType, String entityIdentifier)
@@ -39,7 +39,7 @@ public class EntityNotFoundException extends FaultException
     /**
      * Constructor.
      *
-     * @param entityType sets the {@link #entityType}
+     * @param entityType       sets the {@link #entityType}
      * @param entityIdentifier sets the {@link #entityIdentifier}
      */
     public EntityNotFoundException(Class entityType, Long entityIdentifier)

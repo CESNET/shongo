@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory;
 import cz.cesnet.shongo.api.xmlrpc.TypeFactory;
-import cz.cesnet.shongo.controller.api.ControllerFault;
 import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.SerializableException;

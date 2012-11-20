@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import org.joda.time.Interval;
 
 import java.util.ArrayList;
 import java.util.List;

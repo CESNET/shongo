@@ -268,7 +268,7 @@ public abstract class Executable extends PersistentObject
         int count = 0;
         for (Executable childExecutable : childExecutables) {
             if (!childrenType.isInstance(childExecutable)) {
-                 continue;
+                continue;
             }
             if (childExecutable.getState() == State.NOT_STARTED) {
                 childExecutable.start(executorThread, entityManager);

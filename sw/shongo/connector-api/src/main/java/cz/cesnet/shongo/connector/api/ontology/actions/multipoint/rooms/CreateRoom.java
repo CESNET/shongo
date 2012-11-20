@@ -2,8 +2,8 @@ package cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms;
 
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 
 /**

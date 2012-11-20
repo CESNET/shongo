@@ -32,5 +32,6 @@ public interface MonitoringService
      * @param roomUserId identifier of the user within the room
      * @return image data; see the contentType of the returned object to get the image format
      */
-    MediaData getSentVideoSnapshot(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException;
+    MediaData getSentVideoSnapshot(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException;
 }

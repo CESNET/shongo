@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.util;
 
 import cz.cesnet.shongo.shell.Shell;
-import jline.internal.Log;
 import org.apache.log4j.Level;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;

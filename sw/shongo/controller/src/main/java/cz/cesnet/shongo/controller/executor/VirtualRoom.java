@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.api.Compartment;
-
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
 
 /**
  * Represents an {@link Endpoint} which is able to interconnect multiple other {@link Endpoint}s.

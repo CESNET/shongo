@@ -46,7 +46,7 @@ public abstract class IdentifiedObject implements StructType, Concept
      */
     public Long notNullIdAsLong()
     {
-        if ( identifier == null ) {
+        if (identifier == null) {
             throw new IllegalStateException();
         }
         return Long.valueOf(identifier);

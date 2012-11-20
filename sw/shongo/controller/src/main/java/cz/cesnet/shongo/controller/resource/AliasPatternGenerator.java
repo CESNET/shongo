@@ -26,7 +26,7 @@ public class AliasPatternGenerator extends AliasGenerator
      * Constructor.
      *
      * @param technology sets the {@link #technology}
-     * @param type sets the {@link #type}
+     * @param type       sets the {@link #type}
      */
     public AliasPatternGenerator(Technology technology, AliasType type)
     {
@@ -37,8 +37,8 @@ public class AliasPatternGenerator extends AliasGenerator
      * Constructor.
      *
      * @param technology sets the {@link #technology}
-     * @param type sets the {@link #type}
-     * @param pattern pattern for aliases.
+     * @param type       sets the {@link #type}
+     * @param pattern    pattern for aliases.
      */
     public AliasPatternGenerator(Technology technology, AliasType type, String pattern)
     {
@@ -49,13 +49,13 @@ public class AliasPatternGenerator extends AliasGenerator
      * Constructor.
      *
      * @param technology sets the {@link #technology}
-     * @param type sets the {@link #type}
-     * @param patterns patterns for aliases.
+     * @param type       sets the {@link #type}
+     * @param patterns   patterns for aliases.
      */
     public AliasPatternGenerator(Technology technology, AliasType type, Collection<String> patterns)
     {
         super(technology, type);
-        for ( String pattern : patterns ) {
+        for (String pattern : patterns) {
             addPattern(pattern);
         }
     }
@@ -96,7 +96,7 @@ public class AliasPatternGenerator extends AliasGenerator
     public Alias generate()
     {
         String value = null;
-        for ( Pattern pattern : patterns) {
+        for (Pattern pattern : patterns) {
             pattern.reset();
             do {
                 value = pattern.generate();

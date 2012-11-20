@@ -273,7 +273,8 @@ public class Container
         if (agent instanceof Class) {
             Class agentClass = (Class) agent;
             try {
-                agentController = containerController.createNewAgent(agentName, agentClass.getCanonicalName(), arguments);
+                agentController = containerController
+                        .createNewAgent(agentName, agentClass.getCanonicalName(), arguments);
             }
             catch (StaleProxyException exception) {
                 logger.error("Failed to create agent.", exception);

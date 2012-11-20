@@ -55,7 +55,7 @@ public abstract class PersistentObject extends PrintableObject
      */
     public boolean equalsId(Long id)
     {
-        if ( this.id == null && id != null) {
+        if (this.id == null && id != null) {
             return true;
         }
         return this.id.equals(id);

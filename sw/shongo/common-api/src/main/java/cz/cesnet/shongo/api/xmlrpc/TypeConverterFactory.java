@@ -392,7 +392,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                 new Hashtable<Options, Map<Class, StructTypeConverter>>();
 
         /**
-         * @param pClass for which the converter should be returned
+         * @param pClass  for which the converter should be returned
          * @param options for converting
          * @return {@link StructTypeConverter} for given {@code pClass} and {@code options}
          */

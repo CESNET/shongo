@@ -110,7 +110,8 @@ public interface SerializableException
                 while (parameterMatcher.find()) {
                     setParameter(parameterMatcher.group(1), parameterMatcher.group(2));
                 }
-            } else {
+            }
+            else {
                 setMessage(message);
             }
         }
@@ -166,11 +167,12 @@ public interface SerializableException
          */
         public void toException(Exception toException)
         {
-            Set<String> propertyNames = Property.getClassHierarchyPropertyNames(toException.getClass(), Exception.class);
+            Set<String> propertyNames = Property
+                    .getClassHierarchyPropertyNames(toException.getClass(), Exception.class);
             try {
                 for (String propertyName : propertyNames) {
                     String propertyValue = getParameter(propertyName);
-                    if ( propertyValue != null) {
+                    if (propertyValue != null) {
                         Property property = Property.getProperty(toException.getClass(), propertyName);
                         Object propertyConvertedValue = Converter.convert(propertyValue, property);
                         Property.setPropertyValue(toException, propertyName, propertyConvertedValue, true);
