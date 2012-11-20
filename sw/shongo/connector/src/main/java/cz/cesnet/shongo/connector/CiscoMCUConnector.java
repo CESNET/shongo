@@ -100,8 +100,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         conn.connect(Address.parseAddress(address), username, password);
 
         // gatekeeper status
-        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
-        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
+//        Map<String, Object> gkInfo = conn.exec(new Command("gatekeeper.query"));
+//        System.out.println("Gatekeeper status: " + gkInfo.get("gatekeeperUsage"));
 
         // test of getRoomList() command
 //        Collection<RoomInfo> roomList = conn.getRoomList();
@@ -212,10 +212,12 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        System.out.println("All done, disconnecting");
 
         // test of modifyParticipant
-        Map<String, Object> attributes = new HashMap<String, Object>();
-        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
-        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
-        conn.modifyParticipant("shongo-test", "3447", attributes);
+//        Map<String, Object> attributes = new HashMap<String, Object>();
+//        attributes.put(RoomUser.VIDEO_MUTED, Boolean.TRUE);
+//        attributes.put(RoomUser.DISPLAY_NAME, "Ondrej Bouda");
+//        conn.modifyParticipant("shongo-test", "3447", attributes);
+
+        Room room = conn.getRoom("shongo-test");
 
         conn.disconnect();
     }
@@ -479,9 +481,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         info.setIdentifier((String) conference.get("conferenceName"));
         info.setName((String) conference.get("conferenceName"));
         info.setDescription((String) conference.get("description"));
-
-        // TODO: get the conference owner
-
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
         info.setStartDateTime(new DateTime(conference.get(timeField)));
         return info;
@@ -788,13 +787,27 @@ ParamsLoop:
         Room room = new Room();
         room.setIdentifier((String) result.get("conferenceName"));
         room.setName((String) result.get("conferenceName"));
+        room.setPortCount((Integer) result.get("maximumVideoPorts"));
 
-        if (result.get("description") != null) {
-            room.setOption(Room.Option.DESCRIPTION, result.get("description"));
+        // aliases
+        if (!result.get("numericId").equals("")) {
+            Alias numAlias = new Alias(Technology.H323, AliasType.E164, (String) result.get("numericId"));
+            room.addAlias(numAlias);
         }
 
-        // TODO: get room aliases
-        // TODO: get room options
+        // options
+        room.setOption(Room.Option.DESCRIPTION, result.get("description"));
+        room.setOption(Room.Option.REGISTER_WITH_H323_GATEKEEPER, result.get("registerWithGatekeeper"));
+        room.setOption(Room.Option.REGISTER_WITH_SIP_REGISTRAR, result.get("registerWithSIPRegistrar"));
+        room.setOption(Room.Option.LISTED_PUBLICLY, !(Boolean) result.get("private"));
+        room.setOption(Room.Option.ALLOW_CONTENT, result.get("contentContribution"));
+        room.setOption(Room.Option.JOIN_AUDIO_MUTED, result.get("joinAudioMuted"));
+        room.setOption(Room.Option.JOIN_VIDEO_MUTED, result.get("joinVideoMuted"));
+        if (!result.get("pin").equals("")) {
+            room.setOption(Room.Option.PIN, result.get("pin"));
+        }
+        room.setOption(Room.Option.START_LOCKED, result.get("startLocked"));
+        room.setOption(Room.Option.CONFERENCE_ME_ENABLED, result.get("conferenceMeEnabled"));
 
         return room;
     }
@@ -890,8 +903,7 @@ ParamsLoop:
     }
 
     @Override
-    public String modifyRoom(Room room)
-            throws CommandException
+    public String modifyRoom(Room room) throws CommandException
     {
         // build the command
         Command cmd = new Command("conference.modify");
@@ -902,24 +914,30 @@ ParamsLoop:
             cmd.setParameter("newConferenceName", room.getName());
         }
         if (room.isPropertyFilled(Room.PORT_COUNT)) {
-            // TODO: set port count
-            logger.debug("Set port count {}", room.getPortCount());
+            cmd.setParameter("maximumVideoPorts", room.getPortCount());
         }
         // Create/Update aliases
         for (Alias alias : room.getAliases()) {
-            if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
-                // TODO: new alias
-                logger.debug("New alias {}", alias);
-            } else {
-                // TODO: modified alias
-                logger.debug("Modified alias {}", alias);
+            if (alias.getTechnology() == Technology.H323 && alias.getType() == AliasType.E164) {
+                if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
+                    // MCU only supports a single H323-E164 alias; if another is to be set, throw an exception
+                    Room currentRoom = getRoom(room.getIdentifier());
+                    for (Alias curAlias : currentRoom.getAliases()) {
+                        if (curAlias.getTechnology() == Technology.H323 && curAlias.getType() == AliasType.E164) {
+                            final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
+                            throw new CommandException(m);
+                        }
+                    }
+                }
+                cmd.setParameter("numericId", alias.getValue());
             }
         }
         // Delete aliases
         Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
         for (Alias alias : aliasesToDelete) {
-            // TODO: delete alias
-            logger.debug("Delete alias {}", alias);
+            if (alias.getTechnology() == Technology.H323 && alias.getType() == AliasType.E164) {
+                cmd.setParameter("numericId", "");
+            }
         }
         // Create/Update options
         for (Room.Option option : room.getOptions().keySet()) {
