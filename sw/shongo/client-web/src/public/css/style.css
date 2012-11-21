@@ -1,0 +1,62 @@
+body {
+    display: table;
+}
+h2 {
+    font-size: 1.1em;
+    margin: 0px 0px 5px 0px;
+}
+
+/** group box */
+fieldset {
+    display: block;
+}
+fieldset legend {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+/** labels in tables should be aligned to right */
+table td.label {
+    text-align: right;
+}
+
+/** table for listing items */
+table.listing {
+}
+table.listing td {
+    padding: 0px 5px;
+}
+table.listing thead {
+    font-weight: bold;
+}
+table.listing thead td {
+    background-color: #d3d3d3;
+    padding: 0px 5px;
+}
+table.listing tbody td {
+    border-bottom: 1px solid #d3d3d3;
+    vertical-align: top;
+}
+
+/** vertical line in text */
+div.vertical-line {
+    display: inline-block;
+    height: 1em;
+    margin: -3px 5px;
+    border: 1px solid #B0B0B0;
+}
+
+form.action {
+    text-align: right;
+}
+
+/** allocation state */
+.state-not-allocated {
+    color: #b8860b;
+}
+.state-allocated {
+    color: green;
+}
+.state-allocation-failed {
+    color: red;
+}

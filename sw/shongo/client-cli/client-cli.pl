@@ -4,26 +4,19 @@
 #
 package main;
 
-# Setup lib directory
-BEGIN {
-    use File::Spec::Functions qw(rel2abs);
-    use File::Basename qw(dirname);
-    my $path   = rel2abs( $0 );
-    our $directory = dirname( $path );
-}
-use lib $directory . '/src/main/perl';
-
 use strict;
 use warnings;
 
-# Common usages of Shongo modules
-use Shongo::Common;
+# Setup lib directory
+use FindBin;
+use lib "$FindBin::Bin/src/main/perl";
+use lib "$FindBin::Bin/../client-common/src/main/perl";
+
+use Getopt::Long;
 use Shongo::Console;
+use Shongo::Common;
 use Shongo::Controller;
 use Shongo::Controller::Shell;
-
-# Common usages of foreign modules
-use Getopt::Long;
 
 #
 # Print usage

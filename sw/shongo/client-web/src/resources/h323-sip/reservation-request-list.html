@@ -1,0 +1,40 @@
+<h2>List of existing reservation requests</h2>
+<table class="listing">
+    <thead>
+    <tr>
+        <td>Identifier</td>
+        <td>Name</td>
+        <td>Purpose</td>
+        <td>Starting date/time</td>
+        <td>Duration</td>
+        <td>Periodicity</td>
+        <td>State</td>
+        <td></td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><a href="">shongo:cz.cesnet:1</a></td>
+        <td>Test 1</td>
+        <td>Science</td>
+        <td>2012-01-01 12:00</td>
+        <td>2 hours</td>
+        <td>none</td>
+        <td class="state-allocated">allocated</td>
+        <td><a href="/h323-sip/delete">delete</a></td>
+    </tr>
+    <tr>
+        <td><a href="">shongo:cz.cesnet:2</a></td>
+        <td>Test 1</td>
+        <td>Science</td>
+        <td>2012-01-01 12:00</td>
+        <td>2 hours</td>
+        <td>none</td>
+        <td class="state-allocation-failed">allocation-failed</td>
+        <td><a href="/h323-sip/delete">delete</a></td>
+    </tr>
+    </tbody>
+</table>
+<form class="action" action="/h323-sip/create" method="post">
+    <input type="submit" value="Create new reservation request"/>
+</form>

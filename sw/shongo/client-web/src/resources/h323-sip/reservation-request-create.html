@@ -1,0 +1,57 @@
+<form action="" method="POST">
+    <fieldset>
+        <legend>New reservation request for H.323/SIP video conference</legend>
+        <table>
+            <tr>
+                <td class="label">Name:</td>
+                <td><input name="name" type="text"/></td>
+            </tr>
+            <tr>
+                <td class="label">Purpose:</td>
+                <td>
+                    <select name="purpose">
+                        <option>Science</option>
+                        <option>Education</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Start date/time:</td>
+                <td>
+                    <input name="start-date" type="text"/>
+                    <input name="start-time" type="text"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Duration:</td>
+                <td><input name="duration" type="text"/></td>
+            </tr>
+            <tr>
+                <td class="label">Periodicity:</td>
+                <td>
+                    <input id="periodicity-none" name="periodicity" type="radio" value="none" checked/>
+                    <label for="periodicity-none">none</label>
+                    <input id="periodicity-daily" name="periodicity" type="radio" value="daily"/>
+                    <label for="periodicity-daily">daily</label>
+                    <input id="periodicity-weekly" name="periodicity" type="radio" value="weekly"/>
+                    <label for="periodicity-weekly">weekly</label>
+                    <div class="vertical-line"></div>
+                    <label>until</label>
+                    <input name="periodicity-end" type="text"/>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Number of participants:</td>
+                <td><input name="portCount" type="text"/></td>
+            </tr>
+            <tr>
+                <td class="label">PIN:</td>
+                <td><input name="pin" type="text"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" value="Create"/><input type="button" value="Cancel"/></td>
+            </tr>
+        </table>
+    </fieldset>
+</form>

@@ -1,0 +1,15 @@
+Shongo Controller Web Client
+
+USAGE
+
+TODO:
+
+REQUIREMENTS
+
+This client requires Perl installed to run and following Perl modules:
+1) Template
+
+On Ubuntu/Debian system, Perl is installed by default and the modules
+can be installed by the following command:
+
+    sudo apt-get install libtemplate-perl
