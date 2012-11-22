@@ -5,6 +5,7 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
@@ -235,12 +236,19 @@ public class ReservationServiceImpl extends Component
         for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : list) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
             summary.setIdentifier(domain.formatIdentifier(abstractReservationRequest.getId()));
+            summary.setState(ReservationRequestSummary.State.NOT_ALLOCATED);
 
             Interval earliestSlot = null;
             if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
                 cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
                         (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
                 earliestSlot = reservationRequest.getSlot();
+                if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATED)) {
+                    summary.setState(ReservationRequestSummary.State.ALLOCATED);
+                }
+                else if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATION_FAILED)) {
+                    summary.setState(ReservationRequestSummary.State.ALLOCATION_FAILED);
+                }
             }
             else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
                 cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
@@ -250,6 +258,17 @@ public class ReservationServiceImpl extends Component
                     if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                         earliestSlot = interval;
                     }
+                }
+                for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
+                    if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATED)) {
+                        if (summary.getState().equals(ReservationRequestSummary.State.NOT_ALLOCATED)) {
+                            summary.setState(ReservationRequestSummary.State.ALLOCATED);
+                        }
+                    }
+                    else if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATION_FAILED)) {
+                        summary.setState(ReservationRequestSummary.State.ALLOCATION_FAILED);
+                    }
+
                 }
             }
             else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.PermanentReservationRequest) {
@@ -261,6 +280,10 @@ public class ReservationServiceImpl extends Component
                         earliestSlot = interval;
                     }
                 }
+                if (permanentReservationRequest.getResourceReservations().size() > 0) {
+                    summary.setState(ReservationRequestSummary.State.ALLOCATION_FAILED);
+                }
+                // TODO: Implement allocation failed state to permanent reservations
             }
             else {
                 throw new TodoImplementException(abstractReservationRequest.getClass().getCanonicalName());

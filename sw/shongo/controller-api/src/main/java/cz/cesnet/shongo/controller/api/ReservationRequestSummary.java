@@ -38,6 +38,11 @@ public class ReservationRequestSummary extends IdentifiedObject
     private String description;
 
     /**
+     * @see State
+     */
+    private State state;
+
+    /**
      * Earliest slot.
      */
     private Interval earliestSlot;
@@ -139,19 +144,56 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * Type of reservation.
+     * @return {@link #state}
+     */
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
+
+    /**
+     * Type of reservation request.
      */
     public static enum Type
     {
         /**
-         * Reservation that can be created by any user.
+         * Reservation request that can be created by any user.
          */
         NORMAL,
 
         /**
-         * Reservation that can be created only by owner of resources,
+         * Reservation request that can be created only by owner of resources,
          * and the reservation can request only owned resources.
          */
         PERMANENT
+    }
+
+    /**
+     * State of reservation request.
+     */
+    public static enum State
+    {
+        /**
+         * None reservation has been allocated for the request.
+         */
+        NOT_ALLOCATED,
+
+        /**
+         * At least one reservation has been allocated for the request.
+         */
+        ALLOCATED,
+
+        /**
+         * At least one reservation has failed to allocate for the request.
+         */
+        ALLOCATION_FAILED
     }
 }

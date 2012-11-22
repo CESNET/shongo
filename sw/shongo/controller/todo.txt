@@ -1,3 +1,7 @@
+* Synchronize ReservationRequestSummary with API (state)
+
+* Implement allocation failed state to permanent reservations
+
 FUTURE:
 -------
 * Create tests for Converter (and simplify Converter.convert() method)

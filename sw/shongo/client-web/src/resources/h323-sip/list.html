@@ -19,7 +19,7 @@
         <td>[% request.purpose %]</td>
         <td>[% request.start %]</td>
         <td>[% request.duration %]</td>
-        <td><a href="[% location %]/detail?id=[% request.identifier %]" class="state-allocated">[% request.state %]</a></td>
+        <td><a href="[% location %]/detail?id=[% request.identifier %]" class="state-[% request.stateClass %]">[% request.state %]</a></td>
         <td><a href="[% location %]/delete?id=[% request.identifier %]">delete</a></td>
     </tr>
     [% END %]

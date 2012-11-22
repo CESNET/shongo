@@ -14,6 +14,11 @@ my $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
     'EDUCATION' => 'Education'
 };
+my $ReservationRequestState = {
+    'NOT_ALLOCATED' => 'not allocated',
+    'ALLOCATED' => 'allocated',
+    'ALLOCATION_FAILED' => 'allocation failed'
+};
 
 sub new
 {
@@ -35,7 +40,11 @@ sub list_action
     my ($self) = @_;
     my $requests = $self->{'application'}->secure_request('Reservation.listReservationRequests');
     foreach my $request (@{$requests}) {
+        my $state_class = lc($request->{'state'});
+        $state_class =~ s/_/-/g;
         $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
+        $request->{'stateClass'} = $state_class;
+        $request->{'state'} = $ReservationRequestState->{$request->{'state'}};
         if ( $request->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
             $request->{'start'} = format_datetime($1);
             $request->{'duration'} = format_period($2);
