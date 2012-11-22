@@ -20,7 +20,7 @@ my $resources_directory = File::Spec::Functions::rel2abs(File::Basename::dirname
 use CGI;
 use Template;
 use Shongo::Common;
-use Shongo::Web::Application;
+use Shongo::WebClientApplication;
 use Shongo::H323SipController;
 use Shongo::AdobeConnectController;
 
@@ -35,12 +35,24 @@ my $template = Template->new({
     INCLUDE_PATH  => $resources_directory
 });
 
+# Catch errors
+use CGI::Carp qw(fatalsToBrowser);
+BEGIN {
+    sub carp_error {
+        my $error = shift;
+        my $error_application = Shongo::Web::Application->new($cgi, $template);
+        $error_application->error_action($error);
+    }
+    CGI::Carp::set_die_handler( \&carp_error );
+}
+
 # Run application
-my $application = Shongo::Web::Application->new($cgi, $template);
+my $application = Shongo::WebClientApplication->new($cgi, $template);
+$application->set_controller_url('http://127.0.0.1:8181');
 $application->add_action('index', 'index', sub { index_action(); });
-$application->add_controller('h323-sip', Shongo::H323SipController->new($application));
-$application->add_controller('adobe-connect', Shongo::AdobeConnectController->new($application));
-$application->run();
+$application->add_controller(Shongo::H323SipController->new($application));
+$application->add_controller(Shongo::AdobeConnectController->new($application));
+$application->run($ARGV[0]);
 
 # Index action
 sub index_action

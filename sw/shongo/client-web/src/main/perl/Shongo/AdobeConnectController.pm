@@ -1,5 +1,5 @@
 #
-# Alias for video conference devices
+# Controller for Adobe Connect video conferences.
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
@@ -18,7 +18,7 @@ use Shongo::Common;
 sub new
 {
     my $class = shift;
-    my $self = Shongo::Web::Controller->new(@_);
+    my $self = Shongo::Web::Controller->new('adobe-connect', @_);
     bless $self, $class;
 
     return $self;

@@ -39,18 +39,21 @@ sub add_action
 
 sub add_controller
 {
-    my ($self, $controller_name, $controller_instance) = @_;
-    $self->{controller}->{$controller_name} = $controller_instance;
+    my ($self, $controller) = @_;
+    $self->{controller}->{$controller->get_name()} = $controller;
 }
 
 sub error_action
 {
     my ($self, $error) = @_;
 
+    $error =~ s/\n/<br>/g;
+
     print $self->render_template('error.html', {
         error => $error
     });
     print "\n";
+    exit(0);
 }
 
 #
@@ -58,12 +61,14 @@ sub error_action
 #
 sub run
 {
-    my ($self) = @_;
+    my ($self, $location) = @_;
 
     # Parse $controller and $action from absolute url
     my $controller = 'index';
     my $action = 'index';
-    my $location = $self->{cgi}->url(-absolute=>1);
+    if ( !defined($location) ) {
+        $location = $self->{cgi}->url(-absolute=>1);
+    }
     if ( $location =~ /([^\/]+)(\/([^\/]+))?/ ) {
         if ( defined($1) ) {
             $controller = $1;
@@ -105,11 +110,14 @@ sub render_page
 {
     my ($self, $title, $file, $parameters) = @_;
 
+    # Render given file content
     if ( !defined($parameters) ) {
-
+        $parameters = {};
     }
+    $parameters->{'title'} = $title;
     my $content = $self->render_template($file, $parameters);
 
+    # Render layout with the rendered content
     print $self->render_template('layout.html', {
         title => $title,
         content => $content

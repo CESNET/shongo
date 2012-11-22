@@ -3,15 +3,15 @@
     <table>
         <tr>
             <td class="label">Identifier:</td>
-            <td>[identifier]</td>
+            <td>[% request.identifier %]</td>
         </tr>
         <tr>
             <td class="label">Name:</td>
-            <td>[name]</td>
+            <td>[% request.name %]</td>
         </tr>
         <tr>
             <td class="label">Purpose:</td>
-            <td>[purpose]</td>
+            <td>[% request.purpose %]</td>
         </tr>
         <tr>
             <td class="label">Start date/time:</td>
@@ -66,3 +66,6 @@
         </tbody>
     </table>
 </fieldset>
+<form class="action" action="[% location %]/list" method="post">
+    <input type="submit" value="Back"/>
+</form>

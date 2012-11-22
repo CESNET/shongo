@@ -1,6 +1,17 @@
-body {
+/**
+ * page content should occupy only the minimum size
+ * and not to stretch the whole page width
+ */
+div.content {
     display: table;
 }
+
+/** headings */
+h1 {
+    font-size: 1.2em;
+    margin: 0px 0px 5px 0px;
+}
+
 h2 {
     font-size: 1.1em;
     margin: 0px 0px 5px 0px;
@@ -10,12 +21,13 @@ h2 {
 fieldset {
     display: block;
 }
+
 fieldset legend {
     font-size: 1.1em;
     font-weight: bold;
 }
 
-/** labels in tables should be aligned to right */
+/** labels in tables should be aligned to the right */
 table td.label {
     text-align: right;
 }
@@ -23,16 +35,20 @@ table td.label {
 /** table for listing items */
 table.listing {
 }
+
 table.listing td {
     padding: 0px 5px;
 }
+
 table.listing thead {
     font-weight: bold;
 }
+
 table.listing thead td {
     background-color: #d3d3d3;
     padding: 0px 5px;
 }
+
 table.listing tbody td {
     border-bottom: 1px solid #d3d3d3;
     vertical-align: top;
@@ -46,17 +62,29 @@ div.vertical-line {
     border: 1px solid #B0B0B0;
 }
 
+/** form containing button action(s) (e.g., "Create entity") */
 form.action {
+    /** align buttons to the right */
     text-align: right;
 }
 
-/** allocation state */
+/** error container */
+div.error {
+    padding: 10px;
+    border: 1px solid black;
+    background-color: #FFCCCC;
+    font-weight: bold;
+}
+
+/** allocation state colors */
 .state-not-allocated {
     color: #b8860b;
 }
+
 .state-allocated {
     color: green;
 }
+
 .state-allocation-failed {
     color: red;
 }
