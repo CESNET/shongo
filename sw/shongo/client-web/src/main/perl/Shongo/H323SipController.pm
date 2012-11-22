@@ -10,11 +10,11 @@ use strict;
 use warnings;
 use Shongo::Common;
 
-#
-# Create a new instance of controller.
-#
-# @static
-#
+my $ReservationRequestPurpose = {
+    'SCIENCE' => 'Science',
+    'EDUCATION' => 'Education'
+};
+
 sub new
 {
     my $class = shift;
@@ -26,18 +26,8 @@ sub new
 
 sub index_action
 {
-    print "TODO: H.323";
-}
-
-my $Purpose = {
-    'SCIENCE' => 'Science',
-    'EDUCATION' => 'Education'
-};
-
-sub process_request
-{
-    my ($request) = @_;
-    $request->{'purpose'} = $Purpose->{$request->{'purpose'}};
+    my ($self) = @_;
+    $self->redirect('list');
 }
 
 sub list_action
@@ -45,9 +35,13 @@ sub list_action
     my ($self) = @_;
     my $requests = $self->{'application'}->secure_request('Reservation.listReservationRequests');
     foreach my $request (@{$requests}) {
-        process_request($request);
+        $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
+        if ( $request->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
+            $request->{'start'} = format_datetime($1);
+            $request->{'duration'} = format_period($2);
+        }
     }
-    $self->render_page('List of existing reservation requests', 'h323-sip/list.html', {
+    $self->render_page('List of existing H323/SIP reservation requests', 'h323-sip/list.html', {
         'requests' => $requests
     });
 }
@@ -63,10 +57,26 @@ sub detail_action
     my ($self) = @_;
     my $id = $self->get_param_required('id');
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
-    process_request($request);
-    $self->render_page('Detail of reservation request', 'h323-sip/detail.html', {
+    $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
+    $self->render_page('Detail of existing H323/SIP reservation request', 'h323-sip/detail.html', {
         'request' => $request
     });
+}
+
+sub delete_action
+{
+    my ($self) = @_;
+    my $id = $self->get_param_required('id');
+    my $confirmed = $self->get_param('confirmed');
+    if ( defined($confirmed) ) {
+        my $request = $self->{'application'}->secure_request('Reservation.deleteReservationRequest', $id);
+        $self->redirect('list');
+    }
+    else {
+        $self->render_page('Delete existing H323/SIP reservation request', 'h323-sip/delete.html', {
+            'id' => $id
+        });
+    }
 }
 
 1;

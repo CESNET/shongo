@@ -7,7 +7,6 @@
         <td>Purpose</td>
         <td>Starting date/time</td>
         <td>Duration</td>
-        <td>Periodicity</td>
         <td>State</td>
         <td></td>
     </tr>
@@ -18,10 +17,9 @@
         <td><a href="[% location %]/detail?id=[% request.identifier %]">[% request.identifier %]</a></td>
         <td>[% request.name %]</td>
         <td>[% request.purpose %]</td>
-        <td>2012-01-01 12:00</td>
-        <td>2 hours</td>
-        <td>none</td>
-        <td class="state-allocated">allocated</td>
+        <td>[% request.start %]</td>
+        <td>[% request.duration %]</td>
+        <td><a href="[% location %]/detail?id=[% request.identifier %]" class="state-allocated">[% request.state %]</a></td>
         <td><a href="[% location %]/delete?id=[% request.identifier %]">delete</a></td>
     </tr>
     [% END %]

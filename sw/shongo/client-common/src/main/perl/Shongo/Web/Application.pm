@@ -49,6 +49,8 @@ sub error_action
 
     $error =~ s/\n/<br>/g;
 
+    select STDOUT;
+    print $self->{'cgi'}->header(type => 'text/html');
     print $self->render_template('error.html', {
         error => $error
     });

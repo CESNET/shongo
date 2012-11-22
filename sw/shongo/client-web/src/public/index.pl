@@ -26,9 +26,6 @@ use Shongo::AdobeConnectController;
 
 # Initialize CGI
 my $cgi = CGI->new();
-print $cgi->header(
-    type => 'text/html'
-);
 
 # Initialize templates
 my $template = Template->new({
@@ -46,13 +43,32 @@ BEGIN {
     CGI::Carp::set_die_handler( \&carp_error );
 }
 
-# Run application
+# Initialize application
 my $application = Shongo::WebClientApplication->new($cgi, $template);
 $application->set_controller_url('http://127.0.0.1:8181');
 $application->add_action('index', 'index', sub { index_action(); });
 $application->add_controller(Shongo::H323SipController->new($application));
 $application->add_controller(Shongo::AdobeConnectController->new($application));
-$application->run($ARGV[0]);
+
+#print $cgi->header(type => 'text/html');
+
+# Run application and catch response
+my $response = '';
+{
+    open(CATCHED_OUTPUT, '>', \$response);
+    select CATCHED_OUTPUT;
+
+    $application->run($ARGV[0]);
+
+    select STDOUT;
+}
+
+# If response doesn't contains headers, add default headers
+if ( !($response =~ /^(Status|Content-Type|Location)/) ) {
+    print $cgi->header(type => 'text/html');
+}
+# Print response
+print($response);
 
 # Index action
 sub index_action

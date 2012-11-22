@@ -80,11 +80,9 @@ div.error {
 .state-not-allocated {
     color: #b8860b;
 }
-
 .state-allocated {
     color: green;
 }
-
 .state-allocation-failed {
     color: red;
 }

@@ -47,12 +47,20 @@ sub get_location
     return '/' . $self->get_name();
 }
 
+#
+# @param $name
+# @return value of param $name
+#
 sub get_param
 {
     my ($self, $name) = @_;
     return $self->{'application'}->{'cgi'}->param($name);
 }
 
+#
+# @param $name
+# @return value of param $name
+#
 sub get_param_required
 {
     my ($self, $name) = @_;
@@ -71,6 +79,15 @@ sub render_page
     my ($self, $title, $file, $parameters) = @_;
     $parameters->{'location'} = $self->get_location();
     $self->{'application'}->render_page($title, $file, $parameters);
+}
+
+sub redirect
+{
+    my ($self, $url) = @_;
+    if ( !($url =~ /^\//) ) {
+        $url = $self->get_location() . '/' . $url;
+    }
+    print $self->{'application'}->{'cgi'}->redirect($url);
 }
 
 1;

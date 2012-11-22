@@ -16,7 +16,7 @@ our @EXPORT = qw(
     get_enum_value
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
     get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item
-    format_datetime format_date format_datetime_partial format_interval format_report
+    format_datetime format_date format_period format_datetime_partial format_interval format_report
     var_dump
     get_home_directory get_term_width
     text_indent_lines
@@ -538,6 +538,43 @@ sub format_datetime
         return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
     }
     return $dateTime;
+}
+
+#
+# Format period
+#
+# @param $period
+#
+sub format_period
+{
+    my ($period) = @_;
+    #$period = 'P2Y1M3DT2H4M3S';
+    if ( $period =~ /P((\d+)Y)?((\d+)M)?((\d+)D)?(T((\d+)H)?((\d+)M)?((\d+)S)?)?/) {
+        my $components = ordered_hash(
+            'year' => {'value' => $2, 'separator' => ' '},
+            'month' => {'value' => $4, 'separator' => ' '},
+            'day' => {'value' => $6, 'separator' => ' '},
+            'hour' => {'value' => $9, 'separator' => ' '},
+            'minute' => {'value' => $11, 'separator' => ' '},
+            'second' => {'value' => $13, 'separator' => ' '}
+        );
+        $period = '';
+        foreach my $component (ordered_hash_keys($components)) {
+            my $value = int($components->{$component}->{'value'});
+            my $separator = $components->{$component}->{'separator'};
+            if ( defined($value) && $value > 0 ) {
+                if ( length($period) > 0 ) {
+                    $period .= $separator;
+                }
+                $period .= $value . ' ' . $component;
+                if ( $value > 1 ) {
+                    $period .= 's';
+                }
+            }
+        }
+    #    var_dump($period);
+    }
+    return $period;
 }
 
 #

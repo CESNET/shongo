@@ -1,5 +1,5 @@
 <fieldset>
-    <legend>Detail of reservation request for H.323/SIP video conference</legend>
+    <legend>[% title %]</legend>
     <table>
         <tr>
             <td class="label">Identifier:</td>
@@ -66,6 +66,8 @@
         </tbody>
     </table>
 </fieldset>
-<form class="action" action="[% location %]/list" method="post">
-    <input type="submit" value="Back"/>
+<form class="action">
+    <input type="button" value="Back" onclick="javascript: window.location = '[% location %]/list';"/>
+    <input type="button" value="Delete"
+           onclick="javascript: window.location = '[% location %]/delete?id=[% request.identifier %]';"/>
 </form>
