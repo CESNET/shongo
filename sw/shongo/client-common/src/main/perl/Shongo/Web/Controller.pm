@@ -81,6 +81,11 @@ sub render_page
     $self->{'application'}->render_page($title, $file, $parameters);
 }
 
+#
+# Redirect to given $url
+#
+# @param $url
+#
 sub redirect
 {
     my ($self, $url) = @_;
@@ -88,6 +93,17 @@ sub redirect
         $url = $self->get_location() . '/' . $url;
     }
     print $self->{'application'}->{'cgi'}->redirect($url);
+}
+
+#
+# Quit application and report error
+#
+# @param $error
+#
+sub error
+{
+    my ($self, $error) = @_;
+    $self->{'application'}->error_action($error);
 }
 
 1;

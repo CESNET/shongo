@@ -92,6 +92,7 @@ sub new()
                 if ( $reservation_request->{'state'} eq 'ALLOCATED' ) {
                     $item .= sprintf("\n  " . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
                 }
+                return $item;
             }
         },
         'display' => 'newline',

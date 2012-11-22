@@ -1280,7 +1280,7 @@ sub from_hash_value
             my $item_value = $value->{$item_name};
             $hash->{$item_name} = $self->from_hash_value($item_value, $item_name, $is_new);
         }
-        if ( $attribute->{'type'} eq 'map' && $is_new ) {
+        if ( defined($attribute) && $attribute->{'type'} eq 'map' && $is_new ) {
             Shongo::Common::convert_map_to_hash(\$hash, $is_new);
         }
         return $hash;
