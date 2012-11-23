@@ -82,6 +82,15 @@ sub render_page
 }
 
 #
+# @see Shongo::Web::Application::render_page_content
+#
+sub render_page_content
+{
+    my ($self, $title, $content) = @_;
+    $self->{'application'}->render_page_content($title, $content);
+}
+
+#
 # Redirect to given $url
 #
 # @param $url
@@ -92,7 +101,7 @@ sub redirect
     if ( !($url =~ /^\//) ) {
         $url = $self->get_location() . '/' . $url;
     }
-    print $self->{'application'}->{'cgi'}->redirect($url);
+    print $self->{'application'}->redirect($url);
 }
 
 #

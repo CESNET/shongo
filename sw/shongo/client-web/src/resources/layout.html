@@ -5,8 +5,21 @@
     <link href="/css/style.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
+<div class="user">
+    [% IF session.user %]
+        Logged in as [% session.user %] <div class="menu-separator"></div> <a href="/sign-out">Sign out</a>
+    [% ELSE %]
+        <a href="/sign-in">Sign in</a>
+    [% END %]
+</div>
+<h1>Shongo Reservation System</h1>
+<div class="menu">
+    <a href="/h323-sip">H.323/SIP video conferences</a>
+    <div class="menu-separator"></div>
+    <a href="/adobe-connect">Adobe Connect video conferences</a>
+</div>
 <div class="content">
-[% content %]
+    [% content %]
 </div>
 </body>
 </html>

@@ -18,6 +18,7 @@ use File::Basename;
 my $resources_directory = File::Spec::Functions::rel2abs(File::Basename::dirname($0)) . '/../resources';
 
 use CGI;
+use CGI::Session;
 use Template;
 use Shongo::Common;
 use Shongo::WebClientApplication;
@@ -26,6 +27,8 @@ use Shongo::AdobeConnectController;
 
 # Initialize CGI
 my $cgi = CGI->new();
+my $session = CGI::Session->new(undef, $cgi, {Directory => '/tmp'});
+$session->expire('+15m');
 
 # Initialize templates
 my $template = Template->new({
@@ -44,9 +47,11 @@ BEGIN {
 }
 
 # Initialize application
-my $application = Shongo::WebClientApplication->new($cgi, $template);
+my $application = Shongo::WebClientApplication->new($cgi, $template, $session);
 $application->set_controller_url('http://127.0.0.1:8181');
-$application->add_action('index', 'index', sub { index_action(); });
+$application->add_action('index', sub { index_action(); });
+$application->add_action('sign-in', sub { sign_in_action(); });
+$application->add_action('sign-out', sub { sign_out_action(); });
 $application->add_controller(Shongo::H323SipController->new($application));
 $application->add_controller(Shongo::AdobeConnectController->new($application));
 
@@ -65,13 +70,29 @@ my $response = '';
 
 # If response doesn't contains headers, add default headers
 if ( !($response =~ /^(Status|Content-Type|Location)/) ) {
-    print $cgi->header(type => 'text/html');
+    $application->render_headers();
 }
 # Print response
-print($response);
+if ( length($response) > 0 ) {
+    print($response);
+} else {
+    $response = $application->render_page_content();
+}
 
-# Index action
+
 sub index_action
 {
     $application->render_page('Shongo', 'index.html');
+}
+
+sub sign_in_action
+{
+    $session->param('user', 'Testing User');
+    $application->redirect();
+}
+
+sub sign_out_action
+{
+    $session->clear(['user']);
+    $application->redirect();
 }

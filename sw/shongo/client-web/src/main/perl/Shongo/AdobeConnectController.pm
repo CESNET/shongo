@@ -26,7 +26,8 @@ sub new
 
 sub index_action
 {
-    print "TODO: Adobe Connect";
+    my ($self) = @_;
+    $self->render_page_content('TODO', "TODO: Adobe Connect");
 }
 
 1;

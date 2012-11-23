@@ -560,7 +560,10 @@ sub format_period
         );
         $period = '';
         foreach my $component (ordered_hash_keys($components)) {
-            my $value = int($components->{$component}->{'value'});
+            my $value = undef;
+            if ( defined($components->{$component}->{'value'}) ) {
+                $value = int($components->{$component}->{'value'});
+            }
             my $separator = $components->{$component}->{'separator'};
             if ( defined($value) && $value > 0 ) {
                 if ( length($period) > 0 ) {

@@ -17,13 +17,14 @@ use Shongo::Common;
 sub new
 {
     my $class = shift;
-    my ($cgi, $template) = @_;
+    my ($cgi, $template, $session) = @_;
     my $self = {};
     bless $self, $class;
 
-    $self->{cgi} = $cgi;
-    $self->{template} = $template;
-    $self->{controller} = {};
+    $self->{'cgi'} = $cgi;
+    $self->{'template'} = $template;
+    $self->{'session'} = $session;
+    $self->{'controller'} = {};
 
     return $self;
 }
@@ -31,6 +32,10 @@ sub new
 sub add_action
 {
     my ($self, $controller, $action, $action_callback) = @_;
+    if ( !defined($action_callback) ) {
+        $action_callback = $action;
+        $action = 'index';
+    }
     if ( !defined($self->{controller}->{$controller}) ) {
         $self->{controller}->{$controller} = {};
     }
@@ -47,12 +52,39 @@ sub error_action
 {
     my ($self, $error) = @_;
 
+
     $error =~ s/\n/<br>/g;
 
+    use Devel::StackTrace;
+    my $stack_trace = '';
+    $stack_trace .= '<table>';
+    my $index = 0;
+    foreach my $frame (Devel::StackTrace->new()->frames) {
+        if ( !($frame->{'subroutine'} eq 'Devel::StackTrace::new') ) {
+            $index++;
+            my $filename = $frame->{'filename'};
+            $filename =~ s/^\/.+\/main\/perl\///g;
+            $filename =~ s/^\/.+\/src\/public\///g;
+            $filename =~ s/^\/.+\/perl\d\///g;
+            $filename =~ s/^\/.+\/perl\/\d+(.\d+)+\///g;
+            $filename =~ s/([^\/]+(pm|pl))/<strong>$1<\/strong>/g;
+            $stack_trace .= sprintf('<tr><td>%d. %s (%d) %s()<td></tr>',
+                $index,
+                $filename,
+                $frame->{'line'},
+                $frame->{'subroutine'}
+            );
+        }
+    }
+    $stack_trace .= '</table>';
+
     select STDOUT;
+
     print $self->{'cgi'}->header(type => 'text/html');
+    var_dump();
     print $self->render_template('error.html', {
-        error => $error
+        error => $error,
+        stackTrace => $stack_trace
     });
     print "\n";
     exit(0);
@@ -108,6 +140,14 @@ sub run
     $self->error_action("Undefined action '$action' in controller '$controller'!");
 }
 
+sub render_headers
+{
+    my ($self) = @_;
+    $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
+    my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
+    print $self->{'cgi'}->header(-type => 'text/html', -cookie => $cookie);
+}
+
 sub render_page
 {
     my ($self, $title, $file, $parameters) = @_;
@@ -118,12 +158,24 @@ sub render_page
     }
     $parameters->{'title'} = $title;
     my $content = $self->render_template($file, $parameters);
+    $self->render_page_content($title, $content);
+}
+
+sub render_page_content
+{
+    my ($self, $title, $content) = @_;
+
+    my $params = {};
+    var_dump();
+    $params->{'title'} = $title;
+    $params->{'content'} = $content;
+    $params->{'session'} = {};
+    foreach my $name ($self->{'session'}->param()) {
+        $params->{'session'}->{$name} = $self->{'session'}->param($name);
+    }
 
     # Render layout with the rendered content
-    print $self->render_template('layout.html', {
-        title => $title,
-        content => $content
-    });
+    print $self->render_template('layout.html', $params);
     print("\n");
 }
 
@@ -135,6 +187,25 @@ sub render_template
         return $result;
     }
     return undef;
+}
+
+#
+# Redirect to given $url
+#
+# @param $url
+#
+sub redirect
+{
+    my ($self, $url) = @_;
+    if ( !defined($url) && defined($self->{'session'}->param('previous_url')) ) {
+        $url = $self->{'session'}->param('previous_url');
+    }
+    if ( !($url =~ /^\//) ) {
+        $url = '/' . $url;
+    }
+    $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
+    my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
+    print $self->{'cgi'}->redirect(-uri => $url, -cookie => $cookie);
 }
 
 1;

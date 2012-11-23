@@ -1,4 +1,4 @@
-<h1>[% title %]</h1>
+<h2>[% title %]</h2>
 <table class="listing">
     <thead>
     <tr>
@@ -25,6 +25,7 @@
     [% END %]
     </tbody>
 </table>
-<form class="action" action="[% location %]/create" method="post">
-    <input type="submit" value="Create new reservation request"/>
+<form class="action">
+    <input type="button" value="Refresh" onclick="javascript: window.location = '[% location %]/list';"/>
+    <input type="button" value="Create new reservation request" onclick="javascript: window.location = '[% location %]/create';"/>
 </form>

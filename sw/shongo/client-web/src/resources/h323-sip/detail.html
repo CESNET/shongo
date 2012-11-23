@@ -23,15 +23,17 @@
         </tr>
         <tr>
             <td class="label">Periodicity:</td>
-            <td>[% request.periodicity %] [% IF request.periodicityEnd %](end: [% request.periodicityEnd %])[% END %]</td>
+            <td>
+                [% request.periodicity %] [% IF request.periodicityEnd %](end: [% request.periodicityEnd %])[% END %]
+            </td>
         </tr>
         <tr>
             <td class="label">Number of participants:</td>
-            <td>[portCount]</td>
+            <td>[% request.portCount %]</td>
         </tr>
         <tr>
             <td class="label">PIN:</td>
-            <td>[pin]</td>
+            <td>[% request.pin %]</td>
         </tr>
     </table>
     <h2>Allocation of reservations</h2>
@@ -45,24 +47,35 @@
         </tr>
         </thead>
         <tbody>
+        <script type="text/javascript">
+            window.showStateReport = function(nodeId, show) {
+                var stateReport = document.getElementById(nodeId);
+                if ( show == null ) {
+                    show = stateReport.style.display == 'none';
+                }
+                stateReport.style.display = show ? 'block' : 'none';
+            };
+        </script>
+        [% FOREACH reservation IN request.reservations %]
         <tr>
-            <td>2012-01-01 12:00</td>
-            <td>2 hours</td>
-            <td class="state-allocated">allocated</td>
-            <td>950087816</td>
+            <td>[% reservation.start %]</td>
+            <td>[% reservation.duration %]</td>
+            <td>
+                [% IF reservation.stateReport %]
+                    <a href="javascript: window.showStateReport('state-report[% loop.index %]');"
+                       onmouseover="javascript: window.showStateReport('state-report[% loop.index %]', true);"
+                       onmouseout="javascript: window.showStateReport('state-report[% loop.index %]', false);"
+                       class="state-[% reservation.stateClass %]">[% reservation.state %]</a>
+                    <div id='state-report[% loop.index %]' class="state-report">
+                        [% reservation.stateReport %]
+                    </div>
+                [% ELSE %]
+                    <span class="state-[% reservation.stateClass %]">[% reservation.state %]</span>
+                [% END %]
+            </td>
+            <td>[% reservation.aliases %]</td>
         </tr>
-        <tr>
-            <td>2012-02-01 12:00</td>
-            <td>2 hours</td>
-            <td class="state-allocation-failed">allocation failed</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>2012-03-01 12:00</td>
-            <td>2 hours</td>
-            <td class="state-not-allocated">not allocated</td>
-            <td></td>
-        </tr>
+        [% END %]
         </tbody>
     </table>
 </fieldset>
