@@ -1,18 +1,22 @@
-<form action="" method="POST">
+<form action="[% location %]/create?confirmed" method="POST">
     <fieldset>
         <legend>New reservation request for H.323/SIP video conference</legend>
         <table>
             <tr>
                 <td class="label">Name:</td>
-                <td><input name="name" type="text"/></td>
+                <td>
+                    <input name="name" type="text" value="[% name %]"/>
+                    [% IF error.name %]<div class="error">[% error.name %]</div>[% END %]
+                </td>
             </tr>
             <tr>
                 <td class="label">Purpose:</td>
                 <td>
                     <select name="purpose">
-                        <option>Science</option>
-                        <option>Education</option>
+                        <option value="SCIENCE" [% IF purpose == 'SCIENCE' %]selected[% END %]>Science</option>
+                        <option value="EDUCATION" [% IF purpose == 'EDUCATION' %]selected[% END %]>Education</option>
                     </select>
+                    [% IF error.purpose %]<div class="error">[% error.purpose %]</div>[% END %]
                 </td>
             </tr>
             <tr>
@@ -24,16 +28,19 @@
             </tr>
             <tr>
                 <td class="label">Duration:</td>
-                <td><input name="duration" type="text"/></td>
+                <td>
+                    <input name="duration" type="text"/>
+                    [% IF error.duration %]<div class="error">[% error.duration %]</div>[% END %]
+                </td>
             </tr>
             <tr>
                 <td class="label">Periodicity:</td>
                 <td>
-                    <input id="periodicity-none" name="periodicity" type="radio" value="none" checked/>
+                    <input id="periodicity-none" name="periodicity" type="radio" value="none" [% IF !periodicity || periodicity == 'none' %]checked[% END %]/>
                     <label for="periodicity-none">none</label>
-                    <input id="periodicity-daily" name="periodicity" type="radio" value="daily"/>
+                    <input id="periodicity-daily" name="periodicity" type="radio" value="daily" [% IF periodicity == 'daily' %]checked[% END %]/>
                     <label for="periodicity-daily">daily</label>
-                    <input id="periodicity-weekly" name="periodicity" type="radio" value="weekly"/>
+                    <input id="periodicity-weekly" name="periodicity" type="radio" value="weekly" [% IF periodicity == 'weekly' %]checked[% END %]/>
                     <label for="periodicity-weekly">weekly</label>
                     <div class="vertical-line"></div>
                     <label>until</label>
@@ -42,7 +49,10 @@
             </tr>
             <tr>
                 <td class="label">Number of participants:</td>
-                <td><input name="portCount" type="text"/></td>
+                <td>
+                    <input name="portCount" type="text" value="[% portCount %]"/>
+                    [% IF error.portCount %]<div class="error">[% error.portCount %]</div>[% END %]
+                </td>
             </tr>
             <tr>
                 <td class="label">PIN:</td>

@@ -60,7 +60,34 @@ sub list_action
 sub create_action
 {
     my ($self) = @_;
-    $self->render_page('New reservation request', 'h323-sip/create.html');
+    my $params = $self->get_params();
+    if ( defined($self->get_param('confirmed')) ) {
+        use Data::FormValidator;
+        my $results = Data::FormValidator->check($params, {
+            required => [
+                'name',
+                'purpose',
+                'start-date',
+                'start-time',
+                'duration',
+                'periodicity',
+                'portCount'
+            ],
+            optional => {
+                'periodicity-end',
+                'pin'
+            },
+            constraint_methods => {
+                'purpose' => qr/^SCIENCE|EDUCATION$/,
+                'periodicity' => qr/^none|daily|weekly$/,
+                'portCount' => qr/^\d+$/,
+            },
+        });
+        if ( $results->has_missing || $results->has_invalid ) {
+            $params->{'error'} = $results->msgs();
+        }
+    }
+    $self->render_page('New reservation request', 'h323-sip/create.html', $params);
 }
 
 sub detail_action
@@ -194,7 +221,7 @@ sub delete_action
     my $id = $self->get_param_required('id');
     my $confirmed = $self->get_param('confirmed');
     if ( defined($confirmed) ) {
-        my $request = $self->{'application'}->secure_request('Reservation.deleteReservationRequest', $id);
+        $self->{'application'}->secure_request('Reservation.deleteReservationRequest', $id);
         $self->redirect('list');
     }
     else {

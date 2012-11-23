@@ -48,13 +48,37 @@ sub get_location
 }
 
 #
+# @return hash of params
+#
+sub get_params
+{
+    my ($self) = @_;
+    my $hash = $self->{'application'}->{'cgi'}->Vars;
+    my $params = {};
+    foreach my $name (keys %{$hash}) {
+        $params->{$name} = $hash->{$name};
+    }
+    return $params;
+}
+
+#
 # @param $name
 # @return value of param $name
 #
 sub get_param
 {
     my ($self, $name) = @_;
-    return $self->{'application'}->{'cgi'}->param($name);
+    my $value = $self->{'application'}->{'cgi'}->param($name);
+    if ( !defined($value) ) {
+        $value = $self->{'application'}->{'cgi'}->url_param($name);
+        if ( !defined($value) ) {
+            my $keywords = $self->{'application'}->{'cgi'}->url_param('keywords');
+            if ( defined($keywords) && array_value_exists($name, $keywords) ) {
+                return 1;
+            }
+        }
+    }
+    return $value;
 }
 
 #

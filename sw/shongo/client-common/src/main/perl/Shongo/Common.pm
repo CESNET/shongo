@@ -13,6 +13,7 @@ use Exporter;
 our @ISA = qw(Exporter);
 our @EXPORT = qw(
     ordered_hash ordered_hash_keys ordered_hash_merge
+    array_value_exists
     get_enum_value
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
     get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item

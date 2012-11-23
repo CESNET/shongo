@@ -9,8 +9,9 @@ REQUIREMENTS
 This client requires Perl installed to run and following Perl modules:
 1) Template
 2) CGI::Session
+3) Data::FormValidator
 
 On Ubuntu/Debian system, Perl is installed by default and the modules
 can be installed by the following command:
 
-    sudo apt-get install libtemplate-perl libcgi-session-perl
+    sudo apt-get install libtemplate-perl libcgi-session-perl  libdata-formvalidator-perl

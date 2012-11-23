@@ -42,7 +42,6 @@ h2 {
 fieldset {
     display: block;
 }
-
 fieldset legend {
     font-size: 1.1em;
     font-weight: bold;
@@ -51,6 +50,8 @@ fieldset legend {
 /** labels in tables should be aligned to the right */
 table td.label {
     text-align: right;
+    vertical-align: top;
+    padding-top: 4px;
 }
 
 /** table for listing items */
@@ -102,6 +103,15 @@ div.error-stack-trace {
     padding: 10px;
     border: 1px solid black;
     background-color: #CCCCCC;
+}
+
+/** form errors */
+form .error {
+    display: inline-block;
+    padding: 0px;
+    background: none;
+    border: none;
+    color: red;
 }
 
 /** style for items to be implemented */

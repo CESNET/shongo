@@ -100,10 +100,12 @@ sub run
     # Parse $controller and $action from absolute url
     my $controller = 'index';
     my $action = 'index';
-    if ( !defined($location) ) {
-        $location = $self->{cgi}->url(-absolute=>1);
+    my $possible_location = $self->{cgi}->url(-absolute => 1);
+    if ( length($possible_location) != 0 ) {
+        $location = $possible_location;
     }
-    if ( $location =~ /([^\/]+)(\/([^\/]+))?/ ) {
+
+    if ( defined($location) && $location =~ /([^\/]+)(\/([^\/]+))?/ ) {
         if ( defined($1) ) {
             $controller = $1;
         }
