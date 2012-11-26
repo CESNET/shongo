@@ -62,29 +62,35 @@ sub create_action
     my ($self) = @_;
     my $params = $self->get_params();
     if ( defined($self->get_param('confirmed')) ) {
-        use Data::FormValidator;
-        my $results = Data::FormValidator->check($params, {
+        $params->{'error'} = $self->validate_form($params, {
             required => [
                 'name',
                 'purpose',
-                'start-date',
-                'start-time',
-                'duration',
+                'start',
+                'durationCount',
                 'periodicity',
-                'portCount'
+                'portCount',
             ],
-            optional => {
-                'periodicity-end',
+            optional => [
+                'periodicityEnd',
                 'pin'
-            },
+            ],
             constraint_methods => {
                 'purpose' => qr/^SCIENCE|EDUCATION$/,
+                'start' => 'datetime',
+                'durationCount' => 'number',
                 'periodicity' => qr/^none|daily|weekly$/,
-                'portCount' => qr/^\d+$/,
-            },
+                'periodicityEnd' => 'date',
+                'portCount' => 'number',
+                'pin' => 'number'
+            }
         });
-        if ( $results->has_missing || $results->has_invalid ) {
-            $params->{'error'} = $results->msgs();
+        if ( !%{$params->{'error'}} ) {
+            print("TODO: create");
+            print("<pre>");
+            var_dump($params);
+            print("</pre>");
+            return;
         }
     }
     $self->render_page('New reservation request', 'h323-sip/create.html', $params);

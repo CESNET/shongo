@@ -1,0 +1,17 @@
+@import url("smoothness/jquery-ui-1.9.2.custom.min.css");
+@import url("jquery-ui-timepicker-addon.css");
+
+.ui-widget {
+    font-family: Verdana,Arial,sans-serif;
+    font-size: 0.8em;
+}
+
+.ui-datepicker-month {
+    margin-right: 5px !important;
+}
+
+.ui-timepicker-div {
+    margin-left: 5px;
+}
+
+

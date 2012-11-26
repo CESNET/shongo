@@ -109,6 +109,8 @@ div.error-stack-trace {
 form .error {
     display: inline-block;
     padding: 0px;
+    margin-left: 3px;
+    margin-right: 8px;
     background: none;
     border: none;
     color: red;

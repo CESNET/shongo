@@ -8,6 +8,7 @@ package Shongo::Web::Controller;
 use strict;
 use warnings;
 use Shongo::Common;
+use Data::FormValidator;
 
 #
 # Create a new instance of controller.
@@ -137,6 +138,49 @@ sub error
 {
     my ($self, $error) = @_;
     $self->{'application'}->error_action($error);
+}
+
+#
+# Validate form
+#
+# @param $data     form data to be validated
+# @param $profile  profile for Data::FormValidator
+# @return hash of errors (field => error_message)
+#
+sub validate_form
+{
+    my ($self, $data, $profile) = @_;
+
+    my $validators = {
+        'number' => qr/^\d+$/,
+        'datetime' => qr/^\d\d\d\d-\d\d-\d\d(T\d\d:\d\d)?$/,
+        'date' => qr/^\d\d\d\d-\d\d-\d\d$/,
+        'time' => qr/^\d\d:\d\d$/,
+        'period' => qr/^[pP](\d+[yY])?(\d+[mM])?(\d+[wW])?(\d+[dD])?([tT](\d+[hH])?(\d+[mM])?(\d+[sS])?)?$/
+    };
+    foreach my $field (keys %{$profile->{constraint_methods}}) {
+        my $constraint = $profile->{constraint_methods}->{$field};
+        if ( defined($validators->{$constraint}) ) {
+            $profile->{constraint_methods}->{$field} = {
+                name => $constraint,
+                constraint_method => $validators->{$constraint}
+            };
+        }
+    }
+
+    $profile->{'msgs'} = {
+        format => '<div class="error">* %s</div>',
+        constraints => {
+            'number' => 'Not a valid number',
+            'date' => 'Not a valid date (e.g., 2012-02-25)',
+            'time' => 'Not a valid time (e.g., 14:01)',
+            'period' => 'Not a valid period (e.g., PT2H)'
+        },
+    };
+
+    my $results = Data::FormValidator->check($data, $profile);
+    my $errors = $results->msgs();
+    return $errors;
 }
 
 1;
