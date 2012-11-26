@@ -1,3 +1,7 @@
+* Update command for creation of testing architecture in API
+
+* Alias allocation - pass target resource in reservation task to be able to match against owner resource
+
 * Fix deleting reservation request set with compartment specification modified to virtual room specification
 
 * Single alias for SIP and H.323 (different value for each technology)

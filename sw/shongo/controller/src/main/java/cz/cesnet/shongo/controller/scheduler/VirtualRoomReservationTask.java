@@ -160,7 +160,7 @@ public class VirtualRoomReservationTask extends ReservationTask
         // Allocate aliases for each technology
         if (withAlias) {
             for (Technology technology : technologies) {
-                AliasSpecification aliasSpecification = new AliasSpecification(technology);
+                AliasSpecification aliasSpecification = new AliasSpecification(technology, deviceResource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
                 virtualRoom.addAssignedAlias(aliasReservation.getAlias().clone());
             }
