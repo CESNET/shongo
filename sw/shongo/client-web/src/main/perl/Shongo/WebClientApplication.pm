@@ -31,10 +31,10 @@ sub new
 #
 # @param controller_url
 #
-sub set_controller_url
+sub load_configuration
 {
-    my ($self, $controller_url) = @_;
-    $self->{'controller-url'} = $controller_url;
+    my ($self, $configuration) = @_;
+    $self->{'controller-url'} = $configuration->{'controller'};
 }
 
 #

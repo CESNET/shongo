@@ -15,7 +15,9 @@ use lib "$FindBin::Bin/../../../client-common/src/main/perl";
 # Get directory with resources
 use File::Spec::Functions;
 use File::Basename;
-my $resources_directory = File::Spec::Functions::rel2abs(File::Basename::dirname($0)) . '/../resources';
+my $directory = File::Spec::Functions::rel2abs(File::Basename::dirname($0));
+my $config_directory = $directory . '/../../..';
+my $resources_directory = $directory . '/../resources';
 
 use CGI;
 use CGI::Session;
@@ -24,6 +26,9 @@ use Shongo::Common;
 use Shongo::WebClientApplication;
 use Shongo::H323SipController;
 use Shongo::AdobeConnectController;
+use XML::Simple;
+use Hash::Merge::Simple;
+use Log::Log4perl;
 
 # Initialize CGI
 my $cgi = CGI->new();
@@ -46,16 +51,37 @@ BEGIN {
     CGI::Carp::set_die_handler( \&carp_error );
 }
 
+# Initialize logger
+my $logger_file = $config_directory . '/data/log/client-web.log';
+my $logger_configuration = "";
+$logger_configuration .= "log4perl.rootLogger = DEBUG,  FILE\n";
+$logger_configuration .= "log4perl.appender.FILE = Log::Log4perl::Appender::File\n";
+$logger_configuration .= "log4perl.appender.FILE.filename = $logger_file\n";
+$logger_configuration .= "log4perl.appender.FILE.layout = PatternLayout\n";
+$logger_configuration .= "log4perl.appender.FILE.layout.ConversionPattern = %p %d [%F:%L] %n %c: %m%n \n";
+Log::Log4perl::init(\$logger_configuration);
+my $logger = Log::Log4perl->get_logger('cz.cesnet.shongo.client-web');
+
+# Load configuration
+my $configuration = $session->param('configuration');
+if ( !defined($configuration) ) {
+    $logger->debug('Loading configuration...');
+    $configuration = XMLin($resources_directory . '/default.cfg.xml', KeyAttr => {}, ForceArray => []);
+    my $configuration_filename = $config_directory . '/client-web.cfg.xml';
+    if ( -e $configuration_filename ) {
+        $configuration = Hash::Merge::Simple::merge($configuration, XMLin($configuration_filename));
+    }
+    $session->param('configuration', $configuration);
+}
+
 # Initialize application
 my $application = Shongo::WebClientApplication->new($cgi, $template, $session);
-$application->set_controller_url('http://127.0.0.1:8181');
+$application->load_configuration($configuration);
 $application->add_action('index', sub { index_action(); });
 $application->add_action('sign-in', sub { sign_in_action(); });
 $application->add_action('sign-out', sub { sign_out_action(); });
 $application->add_controller(Shongo::H323SipController->new($application));
 $application->add_controller(Shongo::AdobeConnectController->new($application));
-
-#print $cgi->header(type => 'text/html');
 
 # Run application and catch response
 my $response = '';
