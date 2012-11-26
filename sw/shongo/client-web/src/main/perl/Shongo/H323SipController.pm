@@ -14,6 +14,7 @@ my $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
     'EDUCATION' => 'Education'
 };
+
 my $ReservationRequestState = {
     'NOT_ALLOCATED' => 'not allocated',
     'NOT_COMPLETE' => 'not allocated',
@@ -86,11 +87,62 @@ sub create_action
             }
         });
         if ( !%{$params->{'error'}} ) {
-            print("TODO: create");
-            print("<pre>");
-            var_dump($params);
-            print("</pre>");
-            return;
+            my $request = {};
+            # Duration
+            my $duration = undef;
+            if ( $params->{'durationType'} eq 'minute' ) {
+                $duration = 'PT' . $params->{'durationCount'} . 'M';
+            }
+            elsif ( $params->{'durationType'} eq 'hour' ) {
+                $duration = 'PT' . $params->{'durationCount'} . 'H';
+            }
+            elsif ( $params->{'durationType'} eq 'day' ) {
+                $duration = 'P' . $params->{'durationCount'} . 'D';
+            }
+            else {
+                die("Unknown duration type '$params->{'durationType'}'.");
+            }
+            # Specification
+            my $specification = {
+                'class' => 'VirtualRoomSpecification',
+                'portCount' => $params->{'portCount'},
+                'withAlias' => 1,
+                'technologies' => ['H323', 'SIP']
+            };
+            # Setup request
+            $request->{'name'} = $params->{'name'};
+            $request->{'purpose'} = $params->{'purpose'};
+            if ( $params->{'periodicity'} eq 'none') {
+                $request->{'class'} = 'ReservationRequest';
+                $request->{'slot'} = $params->{'start'} . '/' . $duration;
+                $request->{'specification'} = $specification;
+            }
+            else {
+                $request->{'class'} = 'ReservationRequestSet';
+                $request->{'specifications'} = [$specification];
+                my $start = {
+                    'class' => 'PeriodicDateTime',
+                    'start' => $params->{'start'}
+                };
+                if ( $params->{'periodicity'} eq 'daily' ) {
+                    $start->{'period'} = 'P1D';
+                }
+                elsif ( $params->{'periodicity'} eq 'weekly' ) {
+                    $start->{'period'} = 'P1W';
+                }
+                else {
+                    die("Unknown periodicity '$params->{'periodicity'}'.");
+                }
+                if ( length($params->{'periodicityEnd'}) > 0 ) {
+                    $start->{'end'} = $params->{'periodicityEnd'};
+                }
+                $request->{'slots'} = [{
+                    'start' => $start,
+                    'duration' => $duration
+                }];
+            }
+            $self->{'application'}->secure_request('Reservation.createReservationRequest', $request);
+            $self->redirect('list');
         }
     }
     $params->{'options'} = {
@@ -189,9 +241,6 @@ sub detail_action
         # State report
         if ( !($child_request->{'state'} eq 'ALLOCATION_FAILED') ) {
            $child_request->{'stateReport'} = undef;
-        }
-        if ( defined($child_request->{'stateReport'}) ) {
-            $child_request->{'stateReport'} = '<pre>' . $child_request->{'stateReport'} . '</pre>';
         }
 
         # Allocated reservation

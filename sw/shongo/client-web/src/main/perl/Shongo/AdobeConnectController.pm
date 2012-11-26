@@ -10,11 +10,6 @@ use strict;
 use warnings;
 use Shongo::Common;
 
-#
-# Create a new instance of object.
-#
-# @static
-#
 sub new
 {
     my $class = shift;

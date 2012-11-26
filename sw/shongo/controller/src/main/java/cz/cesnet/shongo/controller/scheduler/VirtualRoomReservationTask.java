@@ -56,6 +56,11 @@ public class VirtualRoomReservationTask extends ReservationTask
     public VirtualRoomReservationTask(Context context, VirtualRoomSpecification virtualRoomSpecification)
     {
         super(context);
+        Set<Technology> technologies = virtualRoomSpecification.getTechnologies();
+        if (technologies == null || technologies.size() == 0) {
+            throw new IllegalStateException(VirtualRoomSpecification.class.getSimpleName()
+                    + " should have at least one technology.");
+        }
         this.technologySets.add(virtualRoomSpecification.getTechnologies());
         this.portCount = virtualRoomSpecification.getPortCount();
         this.withAlias = virtualRoomSpecification.isWithAlias();

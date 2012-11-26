@@ -1,11 +1,16 @@
 <script type="text/javascript">
     $(function() {
-        $( "#start" ).datetimepicker({
+        $("#start").datetimepicker({
             changeMonth: true,
             changeYear: true,
             dateFormat: 'yy-mm-dd',
             timeFormat: 'HH:mm',
             separator: 'T'
+        });
+        $("#periodicity-end").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd'
         });
     });
 </script>
@@ -43,7 +48,7 @@
                         <option value="minute" [% IF durationType == 'minute' %]selected[% END %]>Minutes</option>
                         <option value="hour" [% IF durationType == 'hour' %]selected[% END %]>Hours</option>
                         <option value="day" [% IF durationType == 'day' %]selected[% END %]>Days</option>
-                    </select>
+                    </select>[% error.durationCount %]
                 </td>
             </tr>
             <tr>
@@ -57,7 +62,7 @@
                     <label for="periodicity-weekly">weekly</label>
                     <div class="vertical-line"></div>
                     <label>until</label>
-                    <input name="periodicityEnd" type="text" value="[% periodicityEnd %]"/>[% error.periodicityEnd %]
+                    <input id="periodicity-end" name="periodicityEnd" type="text" value="[% periodicityEnd %]"/>[% error.periodicityEnd %]
                 </td>
             </tr>
             <tr>

@@ -48,10 +48,14 @@ fieldset legend {
 }
 
 /** labels in tables should be aligned to the right */
-table td.label {
-    text-align: right;
+table td {
     vertical-align: top;
     padding-top: 4px;
+}
+
+/** labels in tables should be aligned to the right */
+table td.label {
+    text-align: right;
 }
 
 /** table for listing items */

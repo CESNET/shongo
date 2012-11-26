@@ -56,26 +56,26 @@
                 stateReport.style.display = show ? 'block' : 'none';
             };
         </script>
-        [% FOREACH reservation IN request.reservations %]
+        [%- FOREACH reservation IN request.reservations %]
         <tr>
             <td>[% reservation.start %]</td>
             <td>[% reservation.duration %]</td>
             <td>
-                [% IF reservation.stateReport %]
-                    <a href="javascript: window.showStateReport('state-report[% loop.index %]');"
-                       onmouseover="javascript: window.showStateReport('state-report[% loop.index %]', true);"
-                       onmouseout="javascript: window.showStateReport('state-report[% loop.index %]', false);"
-                       class="state-[% reservation.stateClass %]">[% reservation.state %]</a>
-                    <div id='state-report[% loop.index %]' class="state-report">
-                        [% reservation.stateReport %]
-                    </div>
-                [% ELSE %]
-                    <span class="state-[% reservation.stateClass %]">[% reservation.state %]</span>
-                [% END %]
+            [%- IF reservation.stateReport %]
+                <a href="javascript: window.showStateReport('state-report[% loop.index %]');"
+                   onmouseover="javascript: window.showStateReport('state-report[% loop.index %]', true);"
+                   onmouseout="javascript: window.showStateReport('state-report[% loop.index %]', false);"
+                   class="state-[% reservation.stateClass %]">[% reservation.state %]</a>
+                <div id='state-report[% loop.index %]' class="state-report">
+                    <pre>[% reservation.stateReport -%]</pre>
+                </div>
+            [%- ELSE %]
+                <span class="state-[% reservation.stateClass %]">[% reservation.state %]</span>
+            [%- END %]
             </td>
             <td>[% reservation.aliases %]</td>
         </tr>
-        [% END %]
+        [%- END %]
         </tbody>
     </table>
 </fieldset>

@@ -43,6 +43,7 @@ public class VirtualRoomSpecification extends Specification
     /**
      * @return {@link #TECHNOLOGIES}
      */
+    @Required
     public Set<Technology> getTechnologies()
     {
         return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);

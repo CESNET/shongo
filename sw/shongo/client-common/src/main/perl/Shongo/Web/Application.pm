@@ -29,6 +29,13 @@ sub new
     return $self;
 }
 
+#
+# Add new action to application (location will be /$controller/$action).
+#
+# @param $controller       forms location
+# @param $action           forms location (can be omitted and it defaults to "index")
+# @param $action_callback  will be called when user requests the location
+#
 sub add_action
 {
     my ($self, $controller, $action, $action_callback) = @_;
@@ -42,12 +49,22 @@ sub add_action
     $self->{controller}->{$controller}->{$action} = $action_callback;
 }
 
+#
+# Add controller to application which contains methods *_action which then forms actions.
+#
+# @param $controller
+#
 sub add_controller
 {
     my ($self, $controller) = @_;
     $self->{controller}->{$controller->get_name()} = $controller;
 }
 
+#
+# Action which prints information about error.
+#
+# @param $error  error message which should be displayed
+#
 sub error_action
 {
     my ($self, $error) = @_;
@@ -142,6 +159,9 @@ sub run
     $self->error_action("Undefined action '$action' in controller '$controller'!");
 }
 
+#
+# Render http headers.
+#
 sub render_headers
 {
     my ($self) = @_;
@@ -150,6 +170,13 @@ sub render_headers
     print $self->{'cgi'}->header(-type => 'text/html', -cookie => $cookie);
 }
 
+#
+# Render page by using Template.
+#
+# @param $title       title of the page
+# @param $file        html file which should be rendered by Template
+# @param $parameters  for rendering by Template
+#
 sub render_page
 {
     my ($self, $title, $file, $parameters) = @_;
@@ -163,6 +190,13 @@ sub render_page
     $self->render_page_content($title, $content, $parameters->{'options'});
 }
 
+#
+# Render page by it's content (Template is not used).
+#
+# @param $title    title of the page
+# @param $content  content of the page
+# @param $options  options for the layout
+#
 sub render_page_content
 {
     my ($self, $title, $content, $options) = @_;
@@ -182,6 +216,13 @@ sub render_page_content
     print("\n");
 }
 
+#
+# Render template by Template module.
+#
+# @param $file        which should be rendered by Template.
+# @param $parameters  which should be used for rendering by Template.
+# @return rendered string
+#
 sub render_template
 {
     my ($self, $file, $parameters) = @_;
