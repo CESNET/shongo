@@ -1006,6 +1006,11 @@ sub format_attribute_value
             $attribute_value = format_interval($attribute_value);
         }
     }
+    elsif ( $attribute->{'type'} eq 'datetime' ) {
+        if ( defined($attribute_value) ) {
+            $attribute_value = format_datetime($attribute_value);
+        }
+    }
     elsif ( $attribute->{'type'} eq 'bool' ) {
         if ( defined($attribute_value) && $attribute_value == 1 ) {
             $attribute_value = 'yes';
