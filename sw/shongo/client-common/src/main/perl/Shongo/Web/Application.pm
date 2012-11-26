@@ -160,17 +160,18 @@ sub render_page
     }
     $parameters->{'title'} = $title;
     my $content = $self->render_template($file, $parameters);
-    $self->render_page_content($title, $content);
+    $self->render_page_content($title, $content, $parameters->{'options'});
 }
 
 sub render_page_content
 {
-    my ($self, $title, $content) = @_;
+    my ($self, $title, $content, $options) = @_;
 
     my $params = {};
     var_dump();
     $params->{'title'} = $title;
     $params->{'content'} = $content;
+    $params->{'options'} = $options;
     $params->{'session'} = {};
     foreach my $name ($self->{'session'}->param()) {
         $params->{'session'}->{$name} = $self->{'session'}->param($name);

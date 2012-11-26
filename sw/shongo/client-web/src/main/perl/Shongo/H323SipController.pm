@@ -93,6 +93,9 @@ sub create_action
             return;
         }
     }
+    $params->{'options'} = {
+        'jquery' => 1
+    };
     $self->render_page('New reservation request', 'h323-sip/create.html', $params);
 }
 
