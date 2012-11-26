@@ -81,6 +81,7 @@
 </fieldset>
 <form class="action">
     <input type="button" value="Back" onclick="javascript: window.location = '[% location %]/list';"/>
+    <input type="button" value="Refresh" onclick="javascript: window.location.reload(true);"/>
     <input type="button" value="Delete"
            onclick="javascript: window.location = '[% location %]/delete?id=[% request.identifier %]';"/>
 </form>
