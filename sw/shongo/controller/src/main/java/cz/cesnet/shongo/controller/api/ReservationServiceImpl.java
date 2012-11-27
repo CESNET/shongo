@@ -82,7 +82,7 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(token);
 
-        if (reservationRequest == null ) {
+        if (reservationRequest == null) {
             throw new IllegalArgumentException("Reservation request should not be null.");
         }
         reservationRequest.setupNewEntity();

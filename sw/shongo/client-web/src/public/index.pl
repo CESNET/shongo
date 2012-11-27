@@ -12,7 +12,7 @@ use FindBin;
 use lib "$FindBin::Bin/../main/perl";
 use lib "$FindBin::Bin/../../../client-common/src/main/perl";
 
-# Get directory with resources
+# Get directories
 use File::Spec::Functions;
 use File::Basename;
 my $directory = File::Spec::Functions::rel2abs(File::Basename::dirname($0));
@@ -86,8 +86,8 @@ $application->add_controller(Shongo::AdobeConnectController->new($application));
 # Run application and catch response
 my $response = '';
 {
-    open(CATCHED_OUTPUT, '>', \$response);
-    select CATCHED_OUTPUT;
+    open(CAUGHT_OUTPUT, '>', \$response);
+    select CAUGHT_OUTPUT;
 
     $application->run($ARGV[0]);
 
@@ -104,7 +104,6 @@ if ( length($response) > 0 ) {
 } else {
     $response = $application->render_page_content();
 }
-
 
 sub index_action
 {

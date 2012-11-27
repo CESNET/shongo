@@ -187,7 +187,7 @@ public class ReservationRequestSummary extends IdentifiedObject
         NOT_ALLOCATED,
 
         /**
-         * At least one reservation has been allocated for the request.
+         * At least one reservation has been allocated for the request and none has failed.
          */
         ALLOCATED,
 

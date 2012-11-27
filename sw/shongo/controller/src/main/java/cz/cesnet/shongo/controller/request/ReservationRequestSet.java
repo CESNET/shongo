@@ -112,7 +112,7 @@ public class ReservationRequestSet extends NormalReservationRequest
     /**
      * @return {@link #specifications}
      */
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
     public List<Specification> getSpecifications()
     {
@@ -143,11 +143,11 @@ public class ReservationRequestSet extends NormalReservationRequest
     }
 
     /**
-     * @param specification to be removed from the {@link #specifications}
+     * @param specification which should be removed from the {@link #originalSpecifications}
      */
-    public void removeSpecification(Specification specification)
+    private void removeOriginalSpecification(Specification specification)
     {
-        final Iterator<Specification> iterator = originalSpecifications.keySet().iterator();
+        Iterator<Specification> iterator = originalSpecifications.keySet().iterator();
         while (iterator.hasNext()) {
             Specification clonedSpecification = iterator.next();
             Specification originalSpecification = originalSpecifications.get(clonedSpecification);
@@ -155,6 +155,19 @@ public class ReservationRequestSet extends NormalReservationRequest
                 iterator.remove();
             }
         }
+        if (specification instanceof CompositeSpecification) {
+            for ( Specification childSpecification : ((CompositeSpecification) specification).getChildSpecifications()) {
+                removeOriginalSpecification(childSpecification);
+            }
+        }
+    }
+
+    /**
+     * @param specification to be removed from the {@link #specifications}
+     */
+    public void removeSpecification(Specification specification)
+    {
+        removeOriginalSpecification(specification);
         specifications.remove(specification);
     }
 
@@ -317,7 +330,8 @@ public class ReservationRequestSet extends NormalReservationRequest
         Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
                 api.getPropertyItemsMarkedAsDeleted(reservationRequestSetApi.SPECIFICATIONS);
         for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
-            removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
+            Specification specification = getSpecificationById(specApi.notNullIdAsLong());
+            removeSpecification(specification);
         }
 
         super.fromApi(api, entityManager, domain);
