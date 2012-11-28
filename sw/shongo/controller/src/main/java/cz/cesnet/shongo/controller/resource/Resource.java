@@ -26,6 +26,11 @@ import java.util.*;
 public class Resource extends PersistentObject
 {
     /**
+     * Identifier of an user who is owner of the {@link Resource}.
+     */
+    private Long userId;
+
+    /**
      * Name of a resource that is visible to users.
      */
     private String name;
@@ -72,6 +77,23 @@ public class Resource extends PersistentObject
      */
     public Resource()
     {
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(nullable = false)
+    public Long getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Long userId)
+    {
+        this.userId = userId;
     }
 
     /**

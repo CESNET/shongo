@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -723,8 +724,12 @@ public class Controller
 
         logger.debug("Creating entity manager factory...");
         Timer timer = new Timer();
-        EntityManagerFactory entityManagerFactory = javax.persistence.Persistence
-                .createEntityManagerFactory("controller");
+        // DatabaseMigration cannot be used because HyperSQL doesn't support transactional DDL
+        // boolean development = Boolean.valueOf(System.getProperty("shongo.development"));
+        // DatabaseMigration databaseMigration = new DatabaseMigration("controller",
+        //         "cz.cesnet.shongo.controller.migration", (development ? "controller/src/main/java" : null));
+        // EntityManagerFactory entityManagerFactory = databaseMigration.migrate();
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller");
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 
         // Run controller

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.fault.SecurityException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -24,6 +25,11 @@ import java.util.Map;
 public class Authorization
 {
     private static Logger logger = LoggerFactory.getLogger(Authorization.class);
+
+    /**
+     * Root user identifier.
+     */
+    public static final Long ROOT_USER_ID = (long) 0;
 
     /**
      * URL to authorization server.
@@ -69,10 +75,6 @@ public class Authorization
             throw new cz.cesnet.shongo.fault.SecurityException(SecurityToken.class.getSimpleName()
                     + " should not be empty.");
         }
-        // Always allow testing security token
-        if (securityToken.equals(SecurityToken.TESTING)) {
-            return;
-        }
         // Always allow testing access token
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
             logger.debug("Access token '{}' is valid for testing.", securityToken.getAccessToken());
@@ -89,6 +91,19 @@ public class Authorization
             throw new SecurityException("Access token '" + securityToken.getAccessToken()
                     + "' cannot be validated. " + exception.getMessage(), exception);
         }
+    }
+
+    /**
+     * @param securityToken of an user
+     * @return identifier of an user with given {@code securityToken}
+     */
+    public Long getUserId(SecurityToken securityToken)
+    {
+        // Testing security token represents root user
+        if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
+            return ROOT_USER_ID;
+        }
+        throw new TodoImplementException("Retrieve userId from access token.");
     }
 
     /**

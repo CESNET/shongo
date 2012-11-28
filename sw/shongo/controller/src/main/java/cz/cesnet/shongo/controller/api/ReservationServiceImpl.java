@@ -94,6 +94,7 @@ public class ReservationServiceImpl extends Component
         try {
             reservationRequestImpl = cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                     reservationRequest, entityManager, domain);
+            reservationRequestImpl.setUserId(authorization.getUserId(token));
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.create(reservationRequestImpl);

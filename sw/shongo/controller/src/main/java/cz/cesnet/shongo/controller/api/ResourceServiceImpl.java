@@ -105,6 +105,7 @@ public class ResourceServiceImpl extends Component
         try {
             // Create resource from API
             resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager, domain);
+            resourceImpl.setUserId(authorization.getUserId(token));
 
             // Save it
             ResourceManager resourceManager = new ResourceManager(entityManager);

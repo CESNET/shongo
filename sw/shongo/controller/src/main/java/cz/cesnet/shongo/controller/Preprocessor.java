@@ -314,6 +314,7 @@ public class Preprocessor extends Component
                 // Create new reservation request
                 else {
                     reservationRequest = new ReservationRequest();
+                    reservationRequest.setUserId(reservationRequestSet.getUserId());
                     reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
                     reservationRequest.setSlot(slot);
                     updateReservationRequest(reservationRequest, reservationRequestSet, specification);

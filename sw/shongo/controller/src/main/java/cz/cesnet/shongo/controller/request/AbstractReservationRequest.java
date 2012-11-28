@@ -14,7 +14,7 @@ import javax.persistence.*;
 import java.util.Map;
 
 /**
- * Represents a common attributes for all types of reservation requests.
+ * Represents a base class for all reservation requests which contains common attributes.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -22,6 +22,11 @@ import java.util.Map;
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class AbstractReservationRequest extends ReportablePersistentObject
 {
+    /**
+     * Identifier of an user who is owner of the {@link AbstractReservationRequest}.
+     */
+    private Long userId;
+
     /**
      * Date/time when the reservation request was created.
      */
@@ -36,6 +41,23 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * Description of the reservation that is shown to users.
      */
     private String description;
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(nullable = false)
+    public Long getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Long userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #created}

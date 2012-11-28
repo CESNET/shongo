@@ -53,6 +53,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
 
             DeviceResource deviceResource = new DeviceResource();
+            deviceResource.setUserId(Authorization.ROOT_USER_ID);
             deviceResource.setName("MCU");
             deviceResource.setAddress(Address.LOCALHOST);
             deviceResource.addTechnology(Technology.H323);
@@ -71,6 +72,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             entityManager.getTransaction().begin();
 
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
             reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
