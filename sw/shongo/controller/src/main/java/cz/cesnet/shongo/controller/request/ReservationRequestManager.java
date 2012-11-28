@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -12,6 +13,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -226,18 +228,49 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @return list all reservation requests in the database.
+     * @param userId       requested owner
+     * @param technologies requested technologies
+     * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
-    public List<AbstractReservationRequest> list()
+    public List<AbstractReservationRequest> list(Long userId, Set<Technology> technologies)
     {
+        StringBuilder whereClause = new StringBuilder();
+        // List only reservation requests created by any user (skip requests created by the preprocessor
+        whereClause.append("(reservationRequest.class != ReservationRequest"
+                + " OR reservationRequest.createdBy = :createdBy)");
+        // List only reservation requests which are owned by the given user
+        if (userId != null) {
+            whereClause.append(" AND reservationRequest.userId = :userId");
+        }
+        // List only reservation requests which specifies given technologies in virtual room or compartment
+        if (technologies != null && technologies.size() > 0) {
+            whereClause.append(" AND ("
+                    + "  reservationRequest IN ("
+                    + "    SELECT reservationRequest"
+                    + "    FROM AbstractReservationRequest reservationRequest, VirtualRoomSpecification specification"
+                    + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "    LEFT JOIN specification.technologies technology"
+                    + "    WHERE (reservationRequest.specification = specification OR"
+                    + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + "  ) OR reservationRequest IN ("
+                    + "    SELECT reservationRequest"
+                    + "    FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
+                    + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "    LEFT JOIN specification.technologies technology"
+                    + "    WHERE (reservationRequest.specification = specification OR"
+                    + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + "  )"
+                    + ")");
+        }
+
         List<AbstractReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest NOT IN ("
-                        + "  SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + "  WHERE reservationRequest.createdBy = :createdBy"
-                        + " )",
+                .createQuery("SELECT reservationRequest"
+                        + " FROM AbstractReservationRequest reservationRequest"
+                        + " WHERE " + whereClause.toString(),
                         AbstractReservationRequest.class)
-                .setParameter("createdBy", ReservationRequest.CreatedBy.CONTROLLER)
+                .setParameter("createdBy", ReservationRequest.CreatedBy.USER)
+                .setParameter("userId", userId)
+                .setParameter("technologies", technologies)
                 .getResultList();
         return reservationRequestList;
     }

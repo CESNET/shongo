@@ -82,6 +82,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     /**
      * @return {@link #technologies}
      */
+    @Override
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)

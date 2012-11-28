@@ -41,7 +41,7 @@ sub index_action
 sub list_action
 {
     my ($self) = @_;
-    my $requests = $self->{'application'}->secure_request('Reservation.listReservationRequests');
+    my $requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', ['H323', 'SIP']);
     foreach my $request (@{$requests}) {
         my $state_class = lc($request->{'state'});
         $state_class =~ s/_/-/g;

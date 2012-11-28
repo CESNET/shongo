@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -16,6 +17,8 @@ import org.apache.commons.lang.ObjectUtils;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+import java.util.Set;
 
 /**
  * Represents a specific existing resource in the compartment.
@@ -62,6 +65,16 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     public void setResource(Resource resource)
     {
         this.resource = resource;
+    }
+
+    @Override
+    @Transient
+    public Set<Technology> getTechnologies()
+    {
+        if (resource instanceof DeviceResource) {
+            return ((DeviceResource) resource).getTechnologies();
+        }
+        return super.getTechnologies();
     }
 
     @Override

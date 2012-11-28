@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
@@ -10,13 +12,12 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.hsqldb.lib.HsqlArrayHeap;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Reservation service implementation
@@ -228,16 +229,20 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
+    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token, Map<String, Object> filter)
     {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> list = reservationRequestManager.list();
+        Long userId = Long.valueOf((String) filter.get("userId"));
+        Set<Technology> technologies = Converter.convert(filter.get("technology"), Set.class, new Class[]{Technology.class});
+        List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
+                reservationRequestManager.list(authorization.getUserId(token), null);
+
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
-        for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : list) {
+        for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
             summary.setIdentifier(domain.formatIdentifier(abstractReservationRequest.getId()));
             summary.setState(ReservationRequestSummary.State.NOT_ALLOCATED);

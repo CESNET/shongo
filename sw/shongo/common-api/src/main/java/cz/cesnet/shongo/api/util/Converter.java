@@ -48,9 +48,19 @@ public class Converter
     /**
      * @see #convert(Object, Property)
      */
-    public static Object convert(Object value, Class type) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, FaultException
     {
-        return convert(value, type, null, null, DEFAULT_OPTIONS);
+        return convert(value, targetType, null, null, DEFAULT_OPTIONS);
+    }
+
+    /**
+     * @see #convert(Object, Property)
+     */
+    public static Object convert(Object value, Class targetType, Class[] targetAllowedTypes)
+            throws IllegalArgumentException, FaultException
+    {
+        return convert(value, targetType, targetAllowedTypes, null, DEFAULT_OPTIONS);
+
     }
 
     /**

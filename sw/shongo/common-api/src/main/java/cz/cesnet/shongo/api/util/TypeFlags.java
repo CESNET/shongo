@@ -43,7 +43,7 @@ public class TypeFlags
 
     /**
      * Specifies whether type is common java type ({@link #PRIMITIVE}, {@link #ARRAY},
-     * {@link #COLLECTION}, {@link #MAP} or {@link String}).
+     * {@link List}, {@link #MAP} or {@link String}).
      */
     public static final int BASIC = 0x00000020;
 
@@ -67,20 +67,26 @@ public class TypeFlags
         typeFlags = 0;
         // Temporary variables for determining flags
         boolean isArrayOrCollectionOrMap = false;
+        boolean isArrayOrListOrMap = false;
         boolean isPrimitive = false;
 
         // Determine types containing items
         if (type.isArray()) {
             typeFlags |= ARRAY;
             isArrayOrCollectionOrMap = true;
+            isArrayOrListOrMap = true;
         }
         else if (Collection.class.isAssignableFrom(type)) {
             typeFlags |= COLLECTION;
             isArrayOrCollectionOrMap = true;
+            if (List.class.isAssignableFrom(type)) {
+                isArrayOrListOrMap = true;
+            }
         }
         else if (Map.class.isAssignableFrom(type)) {
             typeFlags |= MAP;
             isArrayOrCollectionOrMap = true;
+            isArrayOrListOrMap = true;
         }
 
         // Determine primitive basic types
@@ -104,7 +110,7 @@ public class TypeFlags
             }
         }
 
-        if (isPrimitive || isArrayOrCollectionOrMap || type.equals(String.class)) {
+        if (isPrimitive || isArrayOrListOrMap || type.equals(String.class)) {
             typeFlags |= BASIC;
         }
 

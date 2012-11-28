@@ -41,6 +41,20 @@ public class VirtualRoomSpecification extends Specification
     }
 
     /**
+     * Constructor.
+     *
+     * @param portCount sets the {@link #PORT_COUNT}
+     * @param technologies to be added to the {@link #TECHNOLOGIES}
+     */
+    public VirtualRoomSpecification(int portCount, Technology[] technologies)
+    {
+        setPortCount(portCount);
+        for (Technology technology : technologies) {
+            addTechnology(technology);
+        }
+    }
+
+    /**
      * @return {@link #TECHNOLOGIES}
      */
     @Required

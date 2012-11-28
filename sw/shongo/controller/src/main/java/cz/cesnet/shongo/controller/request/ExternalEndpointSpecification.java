@@ -74,6 +74,7 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     /**
      * @return {@link #technologies}
      */
+    @Override
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
