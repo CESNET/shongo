@@ -31,6 +31,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     protected String serverUrl;
 
     /**
+     * Root folder for meetings
+     */
+    protected String meetingsFolderID;
+
+
+    /**
      * This is the user log in name, typically the user email address.
      */
     protected String login;
@@ -163,13 +169,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("report-bulk-objects", attributes);
 
-        //TODO: array vs collection
+        List<RoomSummary> meetings = new ArrayList<RoomSummary>();
 
         for (Element room : response.getChild("report-bulk-objects").getChildren("row")) {
+            RoomSummary roomSummary = new RoomSummary();
 
+            roomSummary.setName(room.getChildText("name"));
+            roomSummary.setIdentifier(room.getAttributeValue("sco-id"));
+            roomSummary.setDescription(room.getChildText("url"));
+
+            meetings.add(roomSummary);
         }
 
-        return null;
+        return Collections.unmodifiableList(meetings);
     }
 
     @java.lang.Override
@@ -283,7 +295,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         // TODO: WTF roomSummary.setType(Technology.ADOBE_CONNECT);
         Room room = new Room();
         room.setIdentifier(roomId);
-        room.setName(response.getChild("sco").getChild("name").getText());
+        room.setName(response.getChild("sco").getChildText("name"));
 
         // TODO: roomInfo.setOwner();
         // TODO: roomInfo.setCreation();
@@ -295,14 +307,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public String createRoom(Room room) throws CommandException, CommandUnsupportedException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-/*
         HashMap<String,String> attributes = new HashMap<String, String>();
-        // TODO: ??? name, url, etc.
+        attributes.put("folder-id",
+                (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
+        attributes.put("name", room.getName());
+        attributes.put("type","meeting");
 
         Element respose = request("sco-update", attributes);
 
-        for (RoomUser roomUser : room.getUsers()) {
+        room.setIdentifier(respose.getChild("sco").getAttributeValue("sco-id"));
+        room.setOption(Room.Option.DESCRIPTION,this.serverUrl + respose.getChild("sco").getChildText("url-path"));
+
+        return null;
+/*        for (RoomUser roomUser : room.()) {
             String principalId = roomUser.getUserIdentity().getIdentifier();
             HashMap<String,String> userAttributes = new HashMap<String, String>();
             userAttributes.put("acl-id",respose.getChild("sco").getAttributeValue("sco-id"));
@@ -465,6 +482,28 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
+     * Sets and returns SCO-ID of folder for meetings.
+     *
+     * @return meeting folder SCO-ID
+     * @throws CommandException
+     */
+    protected String getMeetingsFolderID() throws CommandException
+    {
+        if (meetingsFolderID == null) {
+            Element response = request("sco-shortcuts",null);
+            for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
+                if (sco.getAttributeValue("type").equals("meetings")) {
+                    meetingsFolderID = sco.getAttributeValue("sco-id");
+
+                    break;
+                }
+            }
+        }
+
+        return meetingsFolderID;
+    }
+
+    /**
      * Performs the action to log into Adobe Connect server. Stores the breezeseession ID.
      */
     protected void login() throws CommandException
@@ -503,6 +542,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             String breezesessionNext = st.nextToken();
             int semiIndex = breezesessionNext.indexOf(';');
             this.breezesession = breezesessionNext.substring(0, semiIndex);
+
+            this.meetingsFolderID = this.getMeetingsFolderID();
         }
 
 
@@ -577,9 +618,17 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     "cip9skovi3t2", null);
             acc.login();
 
-            acc.removeRoomContentFile("42108", "vyrocni_zprava_2011_2012.pdf");
+//            acc.removeRoomContentFile("42108", "vyrocni_zprava_2011_2012.pdf");
 //            String str = acc.exportRoomSettings("42108");
 //            acc.importRoomSettings("42108",str);
+            Room r = new Room("test",0);
+            acc.createRoom(r);
+
+            System.out.println(r.getIdentifier());
+            System.out.println("mezera");
+            System.out.println(r.getOptions());
+
+            acc.deleteRoom(r.getIdentifier());
 
             acc.logout();
 
