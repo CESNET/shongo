@@ -1,7 +1,6 @@
 * Adobe connect through "control-resource" in cmd-line client (until half of december)
 
 * Web clients - H.323 and Adobe Connect
-  - listing
   - pin
   - adobe connect
   - authentication

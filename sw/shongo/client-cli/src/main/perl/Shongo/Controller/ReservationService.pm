@@ -65,7 +65,8 @@ sub populate()
         },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
-            opts => '',
+            options => 'technology=s',
+            args => '[-technology]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -197,9 +198,16 @@ sub delete_reservation_request()
 
 sub list_reservation_requests()
 {
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Reservation.listReservationRequests'
-    );
+    my ($options) = @_;
+    my $filter = {};
+    if ( defined($options->{'technology'}) ) {
+        $filter->{'technology'} = [];
+        foreach my $technology (split(/,/, $options->{'technology'})) {
+            $technology =~ s/(^ +)|( +$)//g;
+            push(@{$filter->{'technology'}}, $technology);
+        }
+    }
+    my $response = Shongo::Controller->instance()->secure_request('Reservation.listReservationRequests', $filter);
     if ( $response->is_fault() ) {
         return
     }

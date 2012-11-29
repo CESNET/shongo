@@ -4,11 +4,12 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import junitx.framework.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
+import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.fail;
@@ -248,24 +249,33 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest6.setSpecification(compartmentSpecification6);
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest6);
 
-        Assert.assertEquals(6, getReservationService().listReservationRequests(SECURITY_TOKEN).size());
+        Assert.assertEquals(6, getReservationService().listReservationRequests(SECURITY_TOKEN, null).size());
 
-        Assert.assertEquals(3, getReservationService().listReservationRequests(SECURITY_TOKEN, new HashSet<Technology>()
-        {{
-                add(Technology.SIP);
-            }}).size());
-        Assert.assertEquals(4, getReservationService().listReservationRequests(SECURITY_TOKEN, new HashSet<Technology>()
-        {{
-                add(Technology.H323);
-            }}).size());
-        Assert.assertEquals(5, getReservationService().listReservationRequests(SECURITY_TOKEN, new HashSet<Technology>()
-        {{
-                add(Technology.H323);
-                add(Technology.SIP);
-            }}).size());
-        Assert.assertEquals(1, getReservationService().listReservationRequests(SECURITY_TOKEN, new HashSet<Technology>()
-        {{
-                add(Technology.ADOBE_CONNECT);
-            }}).size());
+        Assert.assertEquals(3, getReservationService().listReservationRequests(SECURITY_TOKEN,
+                buildFilter(new Technology[]{Technology.SIP})).size());
+        Assert.assertEquals(4, getReservationService().listReservationRequests(SECURITY_TOKEN,
+                buildFilter(new Technology[]{Technology.H323})).size());
+        Assert.assertEquals(5, getReservationService().listReservationRequests(SECURITY_TOKEN,
+                buildFilter(new Technology[]{Technology.H323, Technology.SIP})).size());
+        Assert.assertEquals(1, getReservationService().listReservationRequests(SECURITY_TOKEN,
+                buildFilter(new Technology[]{Technology.ADOBE_CONNECT})).size());
+    }
+
+    /**
+     * @param technologies
+     * @return builded filter for {@link ReservationService#listReservationRequests(SecurityToken, java.util.Map)}
+     */
+    private static Map<String, Object> buildFilter(Technology[] technologies)
+    {
+        Map<String, Object> filter = new HashMap<String, Object>();
+        Set<Technology> filterTechnologies = null;
+        if ( technologies != null) {
+            filterTechnologies = new HashSet<Technology>();
+            for (Technology technology : technologies) {
+                filterTechnologies.add(technology);
+            }
+        }
+        filter.put("technology", filterTechnologies);
+        return filter;
     }
 }

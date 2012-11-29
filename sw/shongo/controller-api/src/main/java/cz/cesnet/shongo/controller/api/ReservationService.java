@@ -51,12 +51,14 @@ public interface ReservationService extends Service
      * Lists all the reservation requests.
      *
      * @param token  token of the user requesting the operation
-     * @param filter attributes for filtering
+     * @param filter attributes for filtering reservation requests (map of name => value pairs)::
+     *               -{@code userId}     restricts reservation request owner by his identifier
+     *               -{@code technology} set of technologies of virtual room or compartment
      * @return collection of reservation requests
      */
     @API
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
-            Map<String, Object> filter);
+            Map<String, Object> filter) throws FaultException;
 
     /**
      * Gets the complete Reservation object.

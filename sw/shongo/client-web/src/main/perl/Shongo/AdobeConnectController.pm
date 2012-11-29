@@ -4,7 +4,7 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::AdobeConnectController;
-use base qw(Shongo::Web::Controller);
+use base qw(Shongo::CommonController);
 
 use strict;
 use warnings;
@@ -13,13 +13,37 @@ use Shongo::Common;
 sub new
 {
     my $class = shift;
-    my $self = Shongo::Web::Controller->new('adobe-connect', @_);
+    my $self = Shongo::CommonController->new('adobe-connect', @_);
     bless $self, $class;
 
     return $self;
 }
 
 sub index_action
+{
+    my ($self) = @_;
+    $self->redirect('list');
+}
+
+sub list_action
+{
+    my ($self) = @_;
+    $self->list_reservation_requests('List of existing Adobe Connect reservation requests', ['ADOBE_CONNECT']);
+}
+
+sub create_action
+{
+    my ($self) = @_;
+    $self->render_page_content('TODO', "TODO: Adobe Connect");
+}
+
+sub detail_action
+{
+    my ($self) = @_;
+    $self->render_page_content('TODO', "TODO: Adobe Connect");
+}
+
+sub delete_action
 {
     my ($self) = @_;
     $self->render_page_content('TODO', "TODO: Adobe Connect");

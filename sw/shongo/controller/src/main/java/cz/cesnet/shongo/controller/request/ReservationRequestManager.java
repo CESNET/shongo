@@ -12,7 +12,10 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -234,25 +237,27 @@ public class ReservationRequestManager extends AbstractManager
      */
     public List<AbstractReservationRequest> list(Long userId, Set<Technology> technologies)
     {
+        Map<String, Object> parameters = new HashMap<String, Object>();
         StringBuilder whereClause = new StringBuilder();
         // List only reservation requests created by any user (skip requests created by the preprocessor
-        whereClause.append("(reservationRequest.class != ReservationRequest"
-                + " OR reservationRequest.createdBy = :createdBy)");
+        whereClause.append("(TYPE(request) != ReservationRequest"
+                + " OR request.createdBy = :createdBy)");
         // List only reservation requests which are owned by the given user
         if (userId != null) {
-            whereClause.append(" AND reservationRequest.userId = :userId");
+            whereClause.append(" AND request.userId = :userId");
+            parameters.put("userId", userId);
         }
         // List only reservation requests which specifies given technologies in virtual room or compartment
         if (technologies != null && technologies.size() > 0) {
             whereClause.append(" AND ("
-                    + "  reservationRequest IN ("
+                    + "  request IN ("
                     + "    SELECT reservationRequest"
                     + "    FROM AbstractReservationRequest reservationRequest, VirtualRoomSpecification specification"
                     + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
                     + "    LEFT JOIN specification.technologies technology"
                     + "    WHERE (reservationRequest.specification = specification OR"
                     + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
-                    + "  ) OR reservationRequest IN ("
+                    + "  ) OR request IN ("
                     + "    SELECT reservationRequest"
                     + "    FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
                     + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
@@ -261,17 +266,18 @@ public class ReservationRequestManager extends AbstractManager
                     + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
                     + "  )"
                     + ")");
+            parameters.put("technologies", technologies);
         }
 
-        List<AbstractReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest"
-                        + " FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE " + whereClause.toString(),
-                        AbstractReservationRequest.class)
-                .setParameter("createdBy", ReservationRequest.CreatedBy.USER)
-                .setParameter("userId", userId)
-                .setParameter("technologies", technologies)
-                .getResultList();
+        TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
+                + " FROM AbstractReservationRequest request"
+                + " WHERE " + whereClause.toString(),
+                AbstractReservationRequest.class);
+        query.setParameter("createdBy", ReservationRequest.CreatedBy.USER);
+        for (String parameterName : parameters.keySet()) {
+            query.setParameter(parameterName, parameters.get(parameterName));
+        }
+        List<AbstractReservationRequest> reservationRequestList = query.getResultList();
         return reservationRequestList;
     }
 

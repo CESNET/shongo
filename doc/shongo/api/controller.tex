@@ -542,8 +542,13 @@ Release the reservation with specified \ApiCode{reservationIdentifier}. The chil
 
 \begin{ApiCmdCollection}{Collection}{ReservationRequestSummary}{listReservationRequests}%
 \ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParamMap{String}{Object}{filter}%
 \end{ApiCmdCollection}
-List all the reservation requests that a user with given \ApiCode{token} is entitled to see. Only the lightweight definitions of reservation requests are returned, see \ApiRef{ReservationRequestSummary} for details.
+List all the reservation requests that a user with given \ApiCode{token} is entitled to see. Only the lightweight definitions of reservation requests are returned, see \ApiRef{ReservationRequestSummary} for details. The \ApiCode{filter} map can contain following attributes to filter results:
+\begin{compactitem}
+\item \ApiCode{userId} restricts reservation request owner by his identifier
+\item \ApiCode{technology} set of technologies of virtual room or compartment
+\end{compactitem}
 
 \begin{ApiCmd}{AbstractReservationRequest}{getReservationRequest}%
 \ApiCmdParam{SecurityToken}{token}%

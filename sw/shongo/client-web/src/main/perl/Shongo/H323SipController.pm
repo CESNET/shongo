@@ -4,29 +4,16 @@
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
 package Shongo::H323SipController;
-use base qw(Shongo::Web::Controller);
+use base qw(Shongo::CommonController);
 
 use strict;
 use warnings;
 use Shongo::Common;
 
-my $ReservationRequestPurpose = {
-    'SCIENCE' => 'Science',
-    'EDUCATION' => 'Education'
-};
-
-my $ReservationRequestState = {
-    'NOT_ALLOCATED' => 'not allocated',
-    'NOT_COMPLETE' => 'not allocated',
-    'COMPLETE' => 'not allocated',
-    'ALLOCATED' => 'allocated',
-    'ALLOCATION_FAILED' => 'allocation failed'
-};
-
 sub new
 {
     my $class = shift;
-    my $self = Shongo::Web::Controller->new('h323-sip', @_);
+    my $self = Shongo::CommonController->new('h323-sip', @_);
     bless $self, $class;
 
     return $self;
@@ -41,21 +28,7 @@ sub index_action
 sub list_action
 {
     my ($self) = @_;
-    my $requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', ['H323', 'SIP']);
-    foreach my $request (@{$requests}) {
-        my $state_class = lc($request->{'state'});
-        $state_class =~ s/_/-/g;
-        $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
-        $request->{'stateClass'} = $state_class;
-        $request->{'state'} = $ReservationRequestState->{$request->{'state'}};
-        if ( $request->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
-            $request->{'start'} = format_datetime($1);
-            $request->{'duration'} = format_period($2);
-        }
-    }
-    $self->render_page('List of existing H323/SIP reservation requests', 'h323-sip/list.html', {
-        'requests' => $requests
-    });
+    $self->list_reservation_requests('List of existing H323/SIP reservation requests', ['H323', 'SIP']);
 }
 
 sub create_action
@@ -156,7 +129,7 @@ sub detail_action
     my ($self) = @_;
     my $id = $self->get_param_required('id');
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
-    $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
+    $request->{'purpose'} = $Shongo::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
 
     my $specification = undef;
     my $child_requests = [];
@@ -263,7 +236,7 @@ sub detail_action
         my $state_class = lc($child_request->{'state'});
         $state_class =~ s/_/-/g;
         $child_request->{'stateClass'} = $state_class;
-        $child_request->{'state'} = $ReservationRequestState->{$child_request->{'state'}};
+        $child_request->{'state'} = $Shongo::CommonController::ReservationRequestState->{$child_request->{'state'}};
 
         push(@{$request->{'reservations'}}, $child_request);
     }

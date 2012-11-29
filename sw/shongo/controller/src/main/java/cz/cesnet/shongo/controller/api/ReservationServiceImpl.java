@@ -12,7 +12,6 @@ import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import org.hsqldb.lib.HsqlArrayHeap;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -229,17 +228,33 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token, Map<String, Object> filter)
+    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
+            Map<String, Object> filter) throws FaultException
     {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        Long userId = Long.valueOf((String) filter.get("userId"));
-        Set<Technology> technologies = Converter.convert(filter.get("technology"), Set.class, new Class[]{Technology.class});
+        if (filter == null) {
+            filter = new HashMap<String, Object>();
+        }
+        Long userId = null;
+        Set<Technology> technologies = null;
+        if (filter != null) {
+            if (filter.containsKey("userId")) {
+                Object value = filter.get("userId");
+                userId = (value != null ? Long.valueOf(value.toString()) : null);
+            }
+            if (filter.containsKey("technology")) {
+                @SuppressWarnings("unchecked")
+                Set<Technology> value = (Set<Technology>) Converter.convert(filter.get("technology"), Set.class,
+                        new Class[]{Technology.class});
+                technologies = value;
+            }
+        }
         List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
-                reservationRequestManager.list(authorization.getUserId(token), null);
+                reservationRequestManager.list(userId, technologies);
 
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
         for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
