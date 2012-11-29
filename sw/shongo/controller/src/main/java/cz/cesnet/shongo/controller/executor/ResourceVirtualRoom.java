@@ -6,7 +6,7 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRo
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
+import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents a {@link DeviceResource} which acts as {@link VirtualRoom} in a {@link Compartment}.
+ * Represents a {@link DeviceResource} which acts as {@link VirtualRoomEndpoint} in a {@link Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
+public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedEndpoint
 {
     /**
      * {@link DeviceResource}.
@@ -47,7 +47,7 @@ public class ResourceVirtualRoom extends VirtualRoom implements ManagedEndpoint
      *
      * @param virtualRoomReservation to initialize from
      */
-    public ResourceVirtualRoom(VirtualRoomReservation virtualRoomReservation)
+    public ResourceVirtualRoom(RoomReservation virtualRoomReservation)
     {
         this.setDeviceResource(virtualRoomReservation.getDeviceResource());
         this.setPortCount(virtualRoomReservation.getPortCount());

@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -24,27 +23,13 @@ public class NoAvailableVirtualRoomReport extends Report
     /**
      * Number of required ports.
      */
-    private Integer portCount;
+    private Integer participantCount;
 
     /**
      * Constructor.
      */
     public NoAvailableVirtualRoomReport()
     {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param technologySets
-     * @param portCount
-     */
-    public NoAvailableVirtualRoomReport(Collection<Set<Technology>> technologySets, Integer portCount)
-    {
-        for (Set<Technology> technologies : technologySets) {
-            this.technologySets.add(new TechnologySet(technologies));
-        }
-        this.portCount = portCount;
     }
 
     /**
@@ -58,13 +43,28 @@ public class NoAvailableVirtualRoomReport extends Report
     }
 
     /**
-     * @return {@link #portCount}
+     * @param technologies to be added to the {@link #technologySets}
+     */
+    public void addTechnologies(Set<Technology> technologies)
+    {
+        this.technologySets.add(new TechnologySet(technologies));
+    }
+
+    /**
+     * @return {@link #participantCount}
      */
     @Column
-    @Access(AccessType.FIELD)
-    public Integer getPortCount()
+    public Integer getParticipantCount()
     {
-        return portCount;
+        return participantCount;
+    }
+
+    /**
+     * @param participantCount sets the {@link #participantCount}
+     */
+    public void setParticipantCount(Integer participantCount)
+    {
+        this.participantCount = participantCount;
     }
 
     /**
@@ -89,9 +89,9 @@ public class NoAvailableVirtualRoomReport extends Report
     public String getText()
     {
         return String.format("No virtual room was found for the following specification:\n"
-                + "      Technology: %s\n"
-                + " Number of ports: %d",
+                + "             Technology: %s\n"
+                + " Number of participants: %d",
                 technologySetsToString(),
-                portCount);
+                participantCount);
     }
 }

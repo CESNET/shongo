@@ -4,9 +4,9 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
-import cz.cesnet.shongo.controller.reservation.VirtualRoomReservation;
+import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Test;
@@ -34,11 +34,11 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         mcu1.setName("mcu1");
         mcu1.addTechnology(Technology.H323);
         mcu1.addTechnology(Technology.ADOBE_CONNECT);
-        mcu1.addCapability(new VirtualRoomsCapability(50));
+        mcu1.addCapability(new RoomProviderCapability(50));
         mcu1.setAllocatable(true);
         cache.addResource(mcu1);
 
-        VirtualRoomReservation room1 = new VirtualRoomReservation();
+        RoomReservation room1 = new RoomReservation();
         room1.setResource(mcu1);
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
         room1.setPortCount(25);
@@ -48,17 +48,17 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         mcu2.setName("mcu1");
         mcu2.addTechnology(Technology.SIP);
         mcu2.addTechnology(Technology.ADOBE_CONNECT);
-        mcu2.addCapability(new VirtualRoomsCapability(100));
+        mcu2.addCapability(new RoomProviderCapability(100));
         mcu2.setAllocatable(true);
         cache.addResource(mcu2);
 
-        VirtualRoomReservation room2 = new VirtualRoomReservation();
+        RoomReservation room2 = new RoomReservation();
         room2.setResource(mcu2);
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
         room2.setPortCount(50);
         cache.addReservation(room2);
 
-        VirtualRoomReservation room3 = new VirtualRoomReservation();
+        RoomReservation room3 = new RoomReservation();
         room3.setResource(mcu2);
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
         room3.setPortCount(30);

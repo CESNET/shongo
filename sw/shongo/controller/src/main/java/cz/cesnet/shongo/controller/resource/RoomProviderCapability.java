@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.controller.common.Room;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Column;
@@ -7,12 +8,12 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
 /**
- * Capability tells that the device is able to host multiple virtual rooms.
+ * Capability tells that the {@link DeviceResource} can host one or more {@link Room}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class VirtualRoomsCapability extends DeviceCapability
+public class RoomProviderCapability extends DeviceCapability
 {
     /**
      * Number of available ports.
@@ -22,7 +23,7 @@ public class VirtualRoomsCapability extends DeviceCapability
     /**
      * Constructor.
      */
-    public VirtualRoomsCapability()
+    public RoomProviderCapability()
     {
     }
 
@@ -31,7 +32,7 @@ public class VirtualRoomsCapability extends DeviceCapability
      *
      * @param portCount sets the {@link #portCount}
      */
-    public VirtualRoomsCapability(Integer portCount)
+    public RoomProviderCapability(Integer portCount)
     {
         this.portCount = portCount;
     }

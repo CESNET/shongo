@@ -2,10 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;

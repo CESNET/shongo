@@ -98,7 +98,7 @@ public class CompartmentReservationTaskTest
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
-        deviceResource.addCapability(new VirtualRoomsCapability(100));
+        deviceResource.addCapability(new RoomProviderCapability(100));
         cache.addResource(deviceResource);
 
         ReservationTask.Context context;
@@ -136,7 +136,7 @@ public class CompartmentReservationTaskTest
         DeviceResource mcu = new DeviceResource();
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(100));
+        mcu.addCapability(new RoomProviderCapability(100));
         mcu.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95[ddd]"));
         cache.addResource(mcu);
 
@@ -165,7 +165,7 @@ public class CompartmentReservationTaskTest
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
-        deviceResource.addCapability(new VirtualRoomsCapability(100));
+        deviceResource.addCapability(new RoomProviderCapability(100));
         cache.addResource(deviceResource);
 
         Resource resource = new Resource();

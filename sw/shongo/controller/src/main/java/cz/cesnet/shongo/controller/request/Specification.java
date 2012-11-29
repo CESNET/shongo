@@ -100,7 +100,7 @@ public abstract class Specification extends PersistentObject
             specification = new ResourceSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomSpecification) {
-            specification = new VirtualRoomSpecification();
+            specification = new RoomSpecification();
         }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());

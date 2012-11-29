@@ -233,7 +233,7 @@ sub on_init()
                 'type' => 'bool'
             });
             $self->add_attribute('resourceIdentifier', {
-                'title' => 'Preferred Resource Identifier',
+                'title' => 'Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdentifierPattern
             });
         }

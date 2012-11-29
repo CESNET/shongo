@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.executor.VirtualRoom;
+import cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
@@ -13,9 +13,9 @@ import javax.persistence.*;
 public class AllocatingVirtualRoomReport extends Report
 {
     /**
-     * @see VirtualRoom
+     * @see cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint
      */
-    private VirtualRoom virtualRoom;
+    private VirtualRoomEndpoint virtualRoom;
 
     /**
      * Constructor.
@@ -29,7 +29,7 @@ public class AllocatingVirtualRoomReport extends Report
      *
      * @param virtualRoom
      */
-    public AllocatingVirtualRoomReport(VirtualRoom virtualRoom)
+    public AllocatingVirtualRoomReport(VirtualRoomEndpoint virtualRoom)
     {
         this.virtualRoom = virtualRoom;
     }
@@ -39,7 +39,7 @@ public class AllocatingVirtualRoomReport extends Report
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public VirtualRoom getVirtualRoom()
+    public VirtualRoomEndpoint getVirtualRoom()
     {
         return virtualRoom;
     }

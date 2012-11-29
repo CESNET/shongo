@@ -2,119 +2,59 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.common.Room;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
-import cz.cesnet.shongo.controller.scheduler.VirtualRoomReservationTask;
+import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents a specification for virtual room.
+ * Represents a {@link Specification} for {@link Room}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class VirtualRoomSpecification extends Specification implements ReservationTaskProvider
+public class RoomSpecification extends Specification implements ReservationTaskProvider
 {
     /**
-     * Set of technologies which the virtual rooms must support.
+     * {@link Room} which is specified.
      */
-    private Set<Technology> technologies = new HashSet<Technology>();
+    private Room room = new Room();
 
     /**
-     * Number of ports which must be allocated for the virtual room.
-     */
-    private int portCount;
-
-    /**
-     * Specifies whether {@link Alias} should be acquired for each {@link Technology} from {@link #technologies}.
-     */
-    private boolean withAlias;
-
-    /**
-     * Preferred {@link Resource} with {@link VirtualRoomsCapability}.
+     * {@link DeviceResource} with {@link RoomProviderCapability} in which the {@link Room} should be allocated.
      */
     private DeviceResource deviceResource;
 
     /**
+     * Specifies whether {@link Alias} should be allocated for each {@link Technology}
+     * from {@link #room#getTechnologies()}.
+     */
+    private boolean withAlias;
+
+    /**
      * Constructor.
      */
-    public VirtualRoomSpecification()
+    public RoomSpecification()
     {
     }
 
     /**
-     * @return {@link #technologies}
+     * @return {@link #room}
      */
-    @ElementCollection
-    @Enumerated(EnumType.STRING)
+    @Embedded
     @Access(AccessType.FIELD)
-    public Set<Technology> getTechnologies()
+    public Room getRoom()
     {
-        return Collections.unmodifiableSet(technologies);
-    }
-
-    /**
-     * @param technologies sets the {@link #technologies}
-     */
-    public void setTechnologies(Set<Technology> technologies)
-    {
-        this.technologies = technologies;
-    }
-
-    /**
-     * @param technology technology to be added to the set of technologies that the device support.
-     */
-    public void addTechnology(Technology technology)
-    {
-        technologies.add(technology);
-    }
-
-    /**
-     * @param technology technology to be removed from the {@link #technologies}
-     */
-    public void removeTechnology(Technology technology)
-    {
-        technologies.remove(technology);
-    }
-
-    /**
-     * @return {@link #portCount}
-     */
-    public int getPortCount()
-    {
-        return portCount;
-    }
-
-    /**
-     * @param portCount sets the {@link #portCount}
-     */
-    public void setPortCount(int portCount)
-    {
-        this.portCount = portCount;
-    }
-
-    /**
-     * @return {@link #withAlias}
-     */
-    @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isWithAlias()
-    {
-        return withAlias;
-    }
-
-    /**
-     * @param withAlias sets the {@link #withAlias}
-     */
-    public void setWithAlias(boolean withAlias)
-    {
-        this.withAlias = withAlias;
+        return room;
     }
 
     /**
@@ -134,24 +74,35 @@ public class VirtualRoomSpecification extends Specification implements Reservati
         this.deviceResource = deviceResource;
     }
 
+    /**
+     * @return {@link #withAlias}
+     */
+    @Column(nullable = false)
+    public boolean isWithAlias()
+    {
+        return withAlias;
+    }
+
+    /**
+     * @param withAlias sets the {@link #withAlias}
+     */
+    public void setWithAlias(boolean withAlias)
+    {
+        this.withAlias = withAlias;
+    }
+
     @Override
     public boolean synchronizeFrom(Specification specification)
     {
-        VirtualRoomSpecification virtualRoomSpecification = (VirtualRoomSpecification) specification;
+        RoomSpecification roomSpecification = (RoomSpecification) specification;
 
         boolean modified = super.synchronizeFrom(specification);
-        modified |= !ObjectUtils.equals(getPortCount(), virtualRoomSpecification.getPortCount());
-        modified |= !ObjectUtils.equals(isWithAlias(), virtualRoomSpecification.isWithAlias());
-        modified |= !ObjectUtils.equals(getDeviceResource(), virtualRoomSpecification.getDeviceResource());
+        modified |= room.synchronizeFrom(roomSpecification.getRoom());
+        modified |= !ObjectUtils.equals(isWithAlias(), roomSpecification.isWithAlias());
+        modified |= !ObjectUtils.equals(getDeviceResource(), roomSpecification.getDeviceResource());
 
-        if (!technologies.equals(virtualRoomSpecification.getTechnologies())) {
-            setTechnologies(virtualRoomSpecification.getTechnologies());
-            modified = true;
-        }
-
-        setPortCount(virtualRoomSpecification.getPortCount());
-        setWithAlias(virtualRoomSpecification.isWithAlias());
-        setDeviceResource(virtualRoomSpecification.getDeviceResource());
+        setWithAlias(roomSpecification.isWithAlias());
+        setDeviceResource(roomSpecification.getDeviceResource());
 
         return modified;
     }
@@ -159,7 +110,11 @@ public class VirtualRoomSpecification extends Specification implements Reservati
     @Override
     public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        return new VirtualRoomReservationTask(context, this);
+        RoomReservationTask roomReservationTask = new RoomReservationTask(context);
+        roomReservationTask.addRoomVariant(getRoom());
+        roomReservationTask.setDeviceResource(getDeviceResource());
+        roomReservationTask.setWithAlias(isWithAlias());
+        return roomReservationTask;
     }
 
     @Override
@@ -173,10 +128,10 @@ public class VirtualRoomSpecification extends Specification implements Reservati
     {
         cz.cesnet.shongo.controller.api.VirtualRoomSpecification virtualRoomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.VirtualRoomSpecification) specificationApi;
-        for (Technology technology : technologies) {
+        for (Technology technology : room.getTechnologies()) {
             virtualRoomSpecificationApi.addTechnology(technology);
         }
-        virtualRoomSpecificationApi.setPortCount(getPortCount());
+        virtualRoomSpecificationApi.setPortCount(room.getParticipantCount());
         virtualRoomSpecificationApi.setWithAlias(isWithAlias());
         if (deviceResource != null) {
             virtualRoomSpecificationApi.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
@@ -191,7 +146,7 @@ public class VirtualRoomSpecification extends Specification implements Reservati
         cz.cesnet.shongo.controller.api.VirtualRoomSpecification virtualRoomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.VirtualRoomSpecification) specificationApi;
         if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.PORT_COUNT)) {
-            setPortCount(virtualRoomSpecificationApi.getPortCount());
+            room.setParticipantCount(virtualRoomSpecificationApi.getPortCount());
         }
         if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.WITH_ALIAS)) {
             setWithAlias(virtualRoomSpecificationApi.getWithAlias());
@@ -211,14 +166,14 @@ public class VirtualRoomSpecification extends Specification implements Reservati
         for (Technology technology : virtualRoomSpecificationApi.getTechnologies()) {
             if (specificationApi.isPropertyItemMarkedAsNew(
                     cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
-                addTechnology(technology);
+                room.addTechnology(technology);
             }
         }
         // Delete technologies
         Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
                 cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
         for (Technology technology : technologies) {
-            removeTechnology(technology);
+            room.removeTechnology(technology);
         }
 
         super.fromApi(specificationApi, entityManager, domain);

@@ -54,8 +54,8 @@ public class ConnectionByAlias extends Connection
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
-            if (getEndpointFrom() instanceof VirtualRoom) {
-                VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
+            if (getEndpointFrom() instanceof VirtualRoomEndpoint) {
+                VirtualRoomEndpoint virtualRoom = (VirtualRoomEndpoint) getEndpointFrom();
                 command = controllerAgent.performCommandAndWait(new AgentActionCommand(
                         agentName, new DialParticipant(virtualRoom.getVirtualRoomId(), getAlias().toApi())));
             }

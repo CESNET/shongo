@@ -8,7 +8,6 @@ import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.executor.ExecutorThread;
-import cz.cesnet.shongo.controller.executor.VirtualRoom;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
@@ -137,7 +136,7 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link VirtualRoom} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -188,8 +187,8 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link VirtualRoom}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both of them separately (first {@link VirtualRoom} and then
+     * Allocate {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both of them separately (first {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint} and then
      * {@link cz.cesnet.shongo.controller.executor.Compartment}).
      *
      * @throws Exception
@@ -259,8 +258,8 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link VirtualRoom}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both at once ({@link VirtualRoom} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     * Allocate {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both at once ({@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
      *
      * @throws Exception
      */

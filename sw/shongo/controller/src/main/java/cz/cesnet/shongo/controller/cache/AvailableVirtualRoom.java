@@ -1,9 +1,13 @@
 package cz.cesnet.shongo.controller.cache;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * Represents an available virtual room(s) in a {@link cz.cesnet.shongo.controller.resource.DeviceResource} with a {@link cz.cesnet.shongo.controller.resource.VirtualRoomsCapability}.
+ * Represents an available virtual room(s) in a {@link cz.cesnet.shongo.controller.resource.DeviceResource} with a {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability}.
  */
 public class AvailableVirtualRoom
 {

@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a conference (e.g., video conference, audio conference, etc.).
+ * Represents a conference (e.g., web/video/audio conference).
  * <p/>
  * In each {@link Compartment} participates multiple {@link Endpoint}s which are interconnected by {@link Connection}s.
  *
@@ -48,7 +48,7 @@ public class Compartment extends Executable
                 continue;
             }
             Endpoint endpoint = (Endpoint) childExecutable;
-            if (endpoint instanceof VirtualRoom) {
+            if (endpoint instanceof VirtualRoomEndpoint) {
                 continue;
             }
             endpoints.add(endpoint);
@@ -57,17 +57,17 @@ public class Compartment extends Executable
     }
 
     /**
-     * @return list of {@link VirtualRoom}s in the {@link Compartment}
+     * @return list of {@link VirtualRoomEndpoint}s in the {@link Compartment}
      */
     @Transient
-    public List<VirtualRoom> getVirtualRooms()
+    public List<VirtualRoomEndpoint> getVirtualRooms()
     {
-        List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
+        List<VirtualRoomEndpoint> virtualRooms = new ArrayList<VirtualRoomEndpoint>();
         for (Executable childExecutable : getChildExecutables()) {
-            if (!(childExecutable instanceof VirtualRoom)) {
+            if (!(childExecutable instanceof VirtualRoomEndpoint)) {
                 continue;
             }
-            VirtualRoom virtualRoom = (VirtualRoom) childExecutable;
+            VirtualRoomEndpoint virtualRoom = (VirtualRoomEndpoint) childExecutable;
             virtualRooms.add(virtualRoom);
         }
         return virtualRooms;
@@ -139,7 +139,7 @@ public class Compartment extends Executable
             }
             compartmentApi.addEndpoint(endpointApi);
         }
-        for (VirtualRoom virtualRoom : getVirtualRooms()) {
+        for (VirtualRoomEndpoint virtualRoom : getVirtualRooms()) {
             cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
 
                     new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
@@ -183,7 +183,7 @@ public class Compartment extends Executable
     private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Create virtual rooms
-        boolean virtualRoomStarted = (startChildren(VirtualRoom.class, executorThread, entityManager) > 0);
+        boolean virtualRoomStarted = (startChildren(VirtualRoomEndpoint.class, executorThread, entityManager) > 0);
         if (virtualRoomStarted) {
             executorThread.getLogger().info("Waiting for virtual rooms to be created...");
             try {

@@ -282,7 +282,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
 
         private Class valueClass;
 
-        private Option(Class valueClass)
+        Option(Class valueClass)
         {
             this.valueClass = valueClass;
         }

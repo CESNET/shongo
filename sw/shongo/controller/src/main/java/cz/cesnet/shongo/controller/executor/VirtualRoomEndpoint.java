@@ -10,10 +10,10 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public abstract class VirtualRoom extends Endpoint
+public abstract class VirtualRoomEndpoint extends Endpoint
 {
     /**
-     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link VirtualRoom}.
+     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link VirtualRoomEndpoint}.
      */
     private String virtualRoomId;
 
@@ -32,7 +32,7 @@ public abstract class VirtualRoom extends Endpoint
     }
 
     /**
-     * @return port count of the {@link VirtualRoom}
+     * @return port count of the {@link VirtualRoomEndpoint}
      */
     @Transient
     public abstract Integer getPortCount();

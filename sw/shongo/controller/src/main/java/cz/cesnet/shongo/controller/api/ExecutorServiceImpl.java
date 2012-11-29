@@ -4,6 +4,7 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
+import cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -122,7 +123,7 @@ public class ExecutorServiceImpl extends Component
             if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {
                 summary.setType(ExecutableSummary.Type.COMPARTMENT);
             }
-            else if (executable instanceof cz.cesnet.shongo.controller.executor.VirtualRoom) {
+            else if (executable instanceof VirtualRoomEndpoint) {
                 summary.setType(ExecutableSummary.Type.VIRTUAL_ROOM);
             }
             summaryList.add(summary);

@@ -332,7 +332,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
     /**
      * Checks whether given {@code resource} and all it's dependent resource are available.
-     * Device resources with {@link cz.cesnet.shongo.controller.resource.VirtualRoomsCapability} are always available (if theirs capacity is fully used).
+     * Device resources with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability} are always available (if theirs capacity is fully used).
      *
      * @param resource
      * @param interval
@@ -382,11 +382,19 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
             Set<Technology> technologies, Transaction transaction)
     {
-        Set<Long> deviceResources = resourceCache.getDeviceResourcesByCapabilityTechnologies(
-                VirtualRoomsCapability.class,
+        Set<Long> deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
+                RoomProviderCapability.class,
                 technologies);
-        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources,
-                (transaction != null ? transaction.getResourceCacheTransaction() : null));
+        List<AvailableVirtualRoom> availableVirtualRooms = new ArrayList<AvailableVirtualRoom>();
+        for (Long deviceResourceId : deviceResourceIds) {
+            DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
+            AvailableVirtualRoom availableVirtualRoom = resourceCache.getAvailableVirtualRoom(deviceResource,
+                    interval, (transaction != null ? transaction.getResourceCacheTransaction() : null));
+            if (availableVirtualRoom.getAvailablePortCount() >= requiredPortCount) {
+                availableVirtualRooms.add(availableVirtualRoom);
+            }
+        }
+        return availableVirtualRooms;
     }
 
     /**

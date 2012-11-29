@@ -10,7 +10,7 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -57,7 +57,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             deviceResource.setName("MCU");
             deviceResource.setAddress(Address.LOCALHOST);
             deviceResource.addTechnology(Technology.H323);
-            deviceResource.addCapability(new VirtualRoomsCapability(100));
+            deviceResource.addCapability(new RoomProviderCapability(100));
             deviceResource.setAllocatable(true);
             cache.addResource(deviceResource, entityManager);
 

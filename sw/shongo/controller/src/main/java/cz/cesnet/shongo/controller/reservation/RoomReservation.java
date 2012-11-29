@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.reservation;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.executor.VirtualRoom;
+import cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
@@ -14,7 +14,7 @@ import javax.persistence.Transient;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class VirtualRoomReservation extends EndpointReservation
+public class RoomReservation extends EndpointReservation
 {
     /**
      * Allocated port count.
@@ -40,7 +40,7 @@ public class VirtualRoomReservation extends EndpointReservation
     @Override
     public void setExecutable(Executable executable)
     {
-        if (!(executable instanceof VirtualRoom)) {
+        if (!(executable instanceof VirtualRoomEndpoint)) {
             throw new IllegalArgumentException("Only virtual room can be executed by the virtual room reservation.");
         }
         super.setExecutable(executable);
@@ -48,9 +48,9 @@ public class VirtualRoomReservation extends EndpointReservation
 
     @Transient
     @Override
-    public VirtualRoom getEndpoint()
+    public VirtualRoomEndpoint getEndpoint()
     {
-        return (VirtualRoom) getExecutable();
+        return (VirtualRoomEndpoint) getExecutable();
     }
 
     @Override

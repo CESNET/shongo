@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
@@ -295,15 +296,14 @@ public class ResourceServiceImpl extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
-        cz.cesnet.shongo.controller.resource.VirtualRoomsCapability virtualRoomsCapability =
-                resourceImpl.getCapability(cz.cesnet.shongo.controller.resource.VirtualRoomsCapability.class);
+        RoomProviderCapability virtualRoomsCapability =
+                resourceImpl.getCapability(RoomProviderCapability.class);
 
         // Setup resource allocation
         ResourceAllocation resourceAllocation = null;
         if (resourceImpl instanceof DeviceResource && virtualRoomsCapability != null) {
-            AvailableVirtualRoom availableVirtualRoom =
-                    cache.getResourceCache().getAvailableVirtualRoom(
-                            (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval);
+            AvailableVirtualRoom availableVirtualRoom = cache.getResourceCache().getAvailableVirtualRoom(
+                            (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
             VirtualRoomsResourceAllocation allocation = new VirtualRoomsResourceAllocation();
             allocation.setMaximumPortCount(availableVirtualRoom.getMaximumPortCount());
             allocation.setAvailablePortCount(availableVirtualRoom.getAvailablePortCount());
