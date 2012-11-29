@@ -260,6 +260,7 @@ public class ReservationServiceImpl extends Component
         for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
             summary.setIdentifier(domain.formatIdentifier(abstractReservationRequest.getId()));
+            summary.setUserId(abstractReservationRequest.getUserId().intValue());
             summary.setState(ReservationRequestSummary.State.NOT_ALLOCATED);
 
             Interval earliestSlot = null;

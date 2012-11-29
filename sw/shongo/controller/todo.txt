@@ -9,8 +9,6 @@
     # resource owner (+ other emails addresses setup in resource definition)
   - runtime management (room, participants)
 
-* ExternalEndpoint change Technology to Set<Technology> and Update API
-
 * Update command for creation of testing architecture in API
 
 * Alias allocation - pass target resource in reservation task to be able to match against owner resource

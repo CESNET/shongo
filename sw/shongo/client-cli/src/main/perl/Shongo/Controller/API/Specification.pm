@@ -127,9 +127,13 @@ sub on_init()
             });
         }
         case 'ExternalEndpointSpecification' {
-            $self->add_attribute('technology', {
-                'type' => 'enum',
-                'enum' => $Shongo::Controller::API::DeviceResource::Technology,
+            $self->add_attribute('technologies', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Technology',
+                    'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                },
+                'complex' => 0,
                 'required' => 1
             });
             $self->add_attribute('alias', {
@@ -153,9 +157,13 @@ sub on_init()
             });
         }
         case 'ExternalEndpointSetSpecification' {
-            $self->add_attribute('technology', {
-                'type' => 'enum',
-                'enum' => $Shongo::Controller::API::DeviceResource::Technology,
+            $self->add_attribute('technologies', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Technology',
+                    'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                },
+                'complex' => 0,
                 'required' => 1
             });
             $self->add_attribute('count', {

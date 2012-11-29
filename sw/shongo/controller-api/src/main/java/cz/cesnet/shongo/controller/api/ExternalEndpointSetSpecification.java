@@ -3,6 +3,8 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.annotation.Required;
 
+import java.util.Set;
+
 /**
  * {@link Specification} for one or multiple external endpoint.
  *
@@ -11,9 +13,9 @@ import cz.cesnet.shongo.api.annotation.Required;
 public class ExternalEndpointSetSpecification extends ParticipantSpecification
 {
     /**
-     * Technology of the resource.
+     * Set of technologies of the external endpoint.
      */
-    public static final String TECHNOLOGY = "technology";
+    public static final String TECHNOLOGIES = "technologies";
 
     /**
      * Number of same resources.
@@ -30,30 +32,60 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #TECHNOLOGY}
+     * @param technology to be added to the {@link #TECHNOLOGIES}
      * @param count      sets the {@link #COUNT}
      */
     public ExternalEndpointSetSpecification(Technology technology, int count)
     {
-        setTechnology(technology);
+        addTechnology(technology);
         setCount(count);
     }
 
     /**
-     * @return {@link #TECHNOLOGY}
+     * Constructor.
+     *
+     * @param technologies to be added to the {@link #TECHNOLOGIES}
+     * @param count        sets the {@link #COUNT}
      */
-    @Required
-    public Technology getTechnology()
+    public ExternalEndpointSetSpecification(Technology[] technologies, int count)
     {
-        return getPropertyStorage().getValue(TECHNOLOGY);
+        for (Technology technology : technologies) {
+            addTechnology(technology);
+        }
+        setCount(count);
     }
 
     /**
-     * @param technology sets the {@link #TECHNOLOGY}
+     * @return {@link #TECHNOLOGIES}
      */
-    public void setTechnology(Technology technology)
+    @Required
+    public Set<Technology> getTechnologies()
     {
-        getPropertyStorage().setValue(TECHNOLOGY, technology);
+        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+    }
+
+    /**
+     * @param technologies sets the {@link #TECHNOLOGIES}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+    }
+
+    /**
+     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     */
+    public void addTechnology(Technology technology)
+    {
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
     }
 
     /**

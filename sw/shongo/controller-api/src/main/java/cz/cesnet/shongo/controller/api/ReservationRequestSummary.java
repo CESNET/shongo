@@ -13,6 +13,11 @@ import org.joda.time.Interval;
 public class ReservationRequestSummary extends IdentifiedObject
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Date/time when the reservation request was created.
      */
     private DateTime created;
@@ -46,6 +51,22 @@ public class ReservationRequestSummary extends IdentifiedObject
      * Earliest slot.
      */
     private Interval earliestSlot;
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #created}

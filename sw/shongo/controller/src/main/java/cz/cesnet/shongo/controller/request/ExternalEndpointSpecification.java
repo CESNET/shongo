@@ -189,17 +189,16 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
-        if (technologies.size() == 1) {
-            externalEndpointSpecificationApi.setTechnology(technologies.iterator().next());
+        for (Technology technology : getTechnologies()) {
+            externalEndpointSpecificationApi.addTechnology(technology);
         }
-        else {
-            throw new TodoImplementException("Allow multiple technologies in external endpoint specification in API.");
-        }
-        if (aliases.size() == 1) {
-            externalEndpointSpecificationApi.setAlias(aliases.iterator().next().toApi());
-        }
-        else {
-            throw new TodoImplementException("Allow multiple aliases in external endpoint specification in API.");
+        if (aliases.size() > 0) {
+            if (aliases.size() == 1){
+                externalEndpointSpecificationApi.setAlias(aliases.iterator().next().toApi());
+            }
+            else {
+                throw new TodoImplementException("Allow multiple aliases in external endpoint specification in API.");
+            }
         }
         super.toApi(specificationApi, domain);
     }
@@ -211,9 +210,18 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSpecification externalEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSpecification) specificationApi;
-        if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.TECHNOLOGY)) {
-            technologies.clear();
-            addTechnology(externalEndpointSpecificationApi.getTechnology());
+        // Create technologies
+        for (Technology technology : externalEndpointSpecificationApi.getTechnologies()) {
+            if (specificationApi.isPropertyItemMarkedAsNew(
+                    cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
+                addTechnology(technology);
+            }
+        }
+        // Delete technologies
+        Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
+                cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+        for (Technology technology : technologies) {
+            removeTechnology(technology);
         }
         if (externalEndpointSpecificationApi.isPropertyFilled(externalEndpointSpecificationApi.ALIAS)) {
             aliases.clear();

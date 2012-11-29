@@ -275,8 +275,8 @@ Represents a specification for an \gls{g:device-alias}.
 \ApiClass{VirtualRoomSpecification}{Specification}
 Represents a specification for a \gls{g:device-virtual-room}.
 \begin{ApiClassAttributes}
-\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiOptional} Set of \glspl{g:technology} which the \gls{g:device-virtual-room} must support.
-\ApiClassAttribute{portCount}{int}{\ApiOptional} Number of ports which must be allocated for the \gls{g:device-virtual-room}.
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} which the \gls{g:device-virtual-room} must support.
+\ApiClassAttribute{portCount}{int}{\ApiRequired} Number of ports which must be allocated for the \gls{g:device-virtual-room}.
 \ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a preferred \gls{g:resource-device} with \ApiCode{VirtualRoomsCapability} where should be the \gls{g:device-virtual-room} created.
 \end{ApiClassAttributes}
 
@@ -291,9 +291,16 @@ Represents a specification for a group of participants which should participate 
 Represents a base class for specifications which can be added to the \ApiRef{CompartmentSpecification}.
 
 \ApiClass{ExternalEndpointSpecification}{ParticipantSpecification}
+Represents a specification for an external \gls{g:endpoint}. An external \gls{g:endpoint} doesn't have assigned a \gls{g:resource} identifier.
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} of the external \gls{g:endpoint}.
+\ApiClassAttribute{alias}{Alias}{\ApiOptional} \Gls{g:device-alias} of the external \gls{g:endpoint}.
+\end{ApiClassAttributes}
+
+\ApiClass{ExternalEndpointSetSpecification}{ParticipantSpecification}
 Represents a specification for one or multiple external \glspl{g:endpoint}. An external \gls{g:endpoint} doesn't have assigned a \gls{g:resource} identifier.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} of the external \gls{g:endpoint}(s).
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} of the external \gls{g:endpoint}.
 \ApiClassAttribute{count}{int}{\ApiOptional} Number of the external \gls{g:endpoint} (all have the same \gls{g:technology}).
 \end{ApiClassAttributes}
 
@@ -332,6 +339,7 @@ Represents a specification for a person that should participate in a \gls{g:comp
 This class represents a summary of a \gls{g:reservation-request}. The summary is lightweight and does not contain all \gls{g:reservation-request} attributes. It is suitable when listing a lot of \glspl{g:reservation-request} from the \gls{g:controller} database where the detail information about \gls{g:reservation-request} is not appropriate.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{identifier}{String}{} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{userId}{int}{} Identifier of \gls{g:reservation-request} owner.
 \ApiClassAttribute{type}{ReservationRequestSummary.Type}{} Type of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestSummary.Type}.
 \ApiClassAttribute{name}{String}{} Name of the \gls{g:reservation-request}.
 \ApiClassAttribute{purpose}{ReservationRequestPurpose}{} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.

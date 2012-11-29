@@ -13,7 +13,7 @@ use Shongo::Common;
 use Shongo::Console;
 
 # Enumeration of reservation request purpose
-our $Purpose = ordered_hash('EDUCATION' => 'Education', 'SCIENCE' => 'Science');
+our $Purpose = ordered_hash('SCIENCE' => 'Science', 'EDUCATION' => 'Education');
 
 #
 # Create a new instance of reservation request

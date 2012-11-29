@@ -53,8 +53,8 @@
 \glsXpageXglsnumberformat{}{34}\delimN 
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
-\glsXpageXglsnumberformat{}{40}\delimN 
-\glsXpageXglsnumberformat{}{41}\delimN 
+\glsXpageXglsnumberformat{}{40}\delimR 
+\glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{58}\delimR 
 \glsXpageXglsnumberformat{}{60}\delimN 
 \glsXpageXglsnumberformat{}{63}\delimN 
@@ -75,6 +75,7 @@
 \glsXpageXglsnumberformat{}{18}\delimR 
 \glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimR 
+\glsXpageXglsnumberformat{}{41}\delimN 
 \glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{45}\delimN 
 \glsXpageXglsnumberformat{}{58}\delimN 
@@ -95,8 +96,9 @@
 \glsXpageXglsnumberformat{}{34}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
-\glsXpageXglsnumberformat{}{40}\delimR 
-\glsXpageXglsnumberformat{}{43}\delimN 
+\glsXpageXglsnumberformat{}{40}\delimN 
+\glsXpageXglsnumberformat{}{41}\delimN 
+\glsXpageXglsnumberformat{}{43}\delimR 
 \glsXpageXglsnumberformat{}{45}}}\relax\glsresetentrylist
 \glossaryentryfield{g:reservation-request}{\glsnamefont{reservation request}}{A request that is made by an \gls {g:user} to book \gls {g:resource}(s) for a specific date/time slot(s). Reservation request can be \emph {incomplete} or \emph {complete}. Incomplete requests must be filled in by additional information to become complete. \Gls {g:scheduler} processes only complete reservation requests.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
@@ -125,7 +127,7 @@
 \glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{38}\delimN 
 \glsXpageXglsnumberformat{}{39}\delimN 
-\glsXpageXglsnumberformat{}{41}\delimR 
+\glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{45}\delimN 
 \glsXpageXglsnumberformat{}{60}\delimN 
@@ -166,7 +168,7 @@
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{40}\delimN 
 \glsXpageXglsnumberformat{}{41}\delimN 
-\glsXpageXglsnumberformat{}{44}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{45}}}\relax\glsresetentrylist
 \glossaryentryfield{g:compartment}{\glsnamefont{compartment}}{Represents a group of \glspl {g:endpoint} and/or persons which participates in a single video/web conference and the conference can spread out through multiple virtual rooms and even through multiple \glspl {g:technology} (when a gateway device is used).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -177,8 +179,8 @@
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{40}\delimN 
 \glsXpageXglsnumberformat{}{41}\delimN 
-\glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{44}\delimN 
+\glsXpageXglsnumberformat{}{45}\delimN 
 \glsXpageXglsnumberformat{}{60}}}\relax\glsresetentrylist
 \glossaryentryfield{g:endpoint}{\glsnamefont{endpoint}}{Represents a \gls {g:device} which can participate in a \gls {g:compartment} (e.g., a H.323 terminal or SIP client).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
@@ -192,7 +194,8 @@
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{40}\delimN 
 \glsXpageXglsnumberformat{}{41}\delimN 
-\glsXpageXglsnumberformat{}{44}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{44}\delimN 
+\glsXpageXglsnumberformat{}{45}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device-virtual-room}{\glsnamefont{virtual room}}{Represents a virtual room in a \gls {g:device} (e.g., virtual room in H.323 MCU).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
@@ -203,7 +206,7 @@
 \glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{40}\delimN 
-\glsXpageXglsnumberformat{}{42}\delimR 
+\glsXpageXglsnumberformat{}{43}\delimR 
 \glsXpageXglsnumberformat{}{45}\delimN 
 \glsXpageXglsnumberformat{}{60}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device-alias}{\glsnamefont{alias}}{Represents an identifier that can be assigned to a \gls {g:device} and which can be used to connect to the \gls {g:device} in a specific \gls {g:technology} (e.g., E.164 number in H.323 or URI in SIP).}{\relax }{\glossaryentrynumbers{\relax 
@@ -216,8 +219,9 @@
 \glsXpageXglsnumberformat{}{35}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{40}\delimN 
-\glsXpageXglsnumberformat{}{43}\delimN 
-\glsXpageXglsnumberformat{}{44}\delimN 
+\glsXpageXglsnumberformat{}{41}\delimN 
+\glsXpageXglsnumberformat{}{43}\delimR 
+\glsXpageXglsnumberformat{}{45}\delimN 
 \glsXpageXglsnumberformat{}{60}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device-connection}{\glsnamefont{video conference call}}{Represents a connection or call which is initiated by a \gls {g:device} to another \gls {g:device}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
@@ -229,8 +233,8 @@
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 
-\glsXpageXglsnumberformat{}{42}\delimN 
-\glsXpageXglsnumberformat{}{43}\delimN 
+\glsXpageXglsnumberformat{}{42}\delimR 
+\glsXpageXglsnumberformat{}{44}\delimN 
 \glsXpageXglsnumberformat{}{60}}}\relax\glsresetentrylist
 \glossaryentryfield{g:executable}{\glsnamefont{executable}}{Execitable is an entity which can be executed by an \gls {g:executor} (e.g., \glspl {g:compartment} or \glspl {g:device-virtual-room}).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 

@@ -213,6 +213,7 @@ sub list_reservation_requests()
     }
     my $table = Text::Table->new(
         \'| ', 'Identifier',
+        \' | ', 'Owner',
         \' | ', 'Created',
         \' | ', 'Type',
         \' | ', 'Name',
@@ -226,6 +227,7 @@ sub list_reservation_requests()
     foreach my $reservation_request (@{$response->value()}) {
         $table->add(
             $reservation_request->{'identifier'},
+            $reservation_request->{'userId'},
             format_date($reservation_request->{'created'}),
             $Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},

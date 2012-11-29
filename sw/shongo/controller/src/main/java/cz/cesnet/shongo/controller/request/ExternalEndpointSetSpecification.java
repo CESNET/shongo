@@ -160,12 +160,8 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) specificationApi;
         externalEndpointSetSpecificationApi.setCount(getCount());
-        if (technologies.size() == 1) {
-            externalEndpointSetSpecificationApi.setTechnology(technologies.iterator().next());
-        }
-        else {
-            throw new TodoImplementException(
-                    "Allow multiple technologies in external endpoint set specification in API.");
+        for (Technology technology : getTechnologies()) {
+            externalEndpointSetSpecificationApi.addTechnology(technology);
         }
         super.toApi(specificationApi, domain);
     }
@@ -177,9 +173,18 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification i
     {
         cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification externalEndpointSetSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExternalEndpointSetSpecification) specificationApi;
-        if (externalEndpointSetSpecificationApi.isPropertyFilled(externalEndpointSetSpecificationApi.TECHNOLOGY)) {
-            technologies.clear();
-            addTechnology(externalEndpointSetSpecificationApi.getTechnology());
+        // Create technologies
+        for (Technology technology : externalEndpointSetSpecificationApi.getTechnologies()) {
+            if (specificationApi.isPropertyItemMarkedAsNew(
+                    cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
+                addTechnology(technology);
+            }
+        }
+        // Delete technologies
+        Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
+                cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+        for (Technology technology : technologies) {
+            removeTechnology(technology);
         }
         if (externalEndpointSetSpecificationApi.isPropertyFilled(externalEndpointSetSpecificationApi.COUNT)) {
             setCount(externalEndpointSetSpecificationApi.getCount());
