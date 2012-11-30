@@ -407,32 +407,32 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     /**
      * @param deviceResource
      * @param interval
-     * @return {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom} for given {@code deviceResource} in given {@code interval}
+     * @return {@link AvailableRoom} for given {@code deviceResource} in given {@code interval}
      */
-    public AvailableVirtualRoom getAvailableVirtualRoom(DeviceResource deviceResource, Interval interval,
+    public AvailableRoom getAvailableVirtualRoom(DeviceResource deviceResource, Interval interval,
             Transaction transaction)
     {
         ObjectState<RoomReservation> virtualRoomState = getVirtualRoomState(deviceResource);
-        RoomProviderCapability virtualRoomsCapability =
+        RoomProviderCapability roomProviderCapability =
                 getResourceCapability(deviceResource.getId(), RoomProviderCapability.class);
-        if (virtualRoomsCapability == null) {
+        if (roomProviderCapability == null) {
             throw new IllegalStateException("Device resource doesn't have VirtualRooms capability.");
         }
         Set<RoomReservation> virtualRoomReservations = virtualRoomState.getReservations(interval);
-        int usedPortCount = 0;
+        int usedLicenseCount = 0;
         if (isResourceAvailable(deviceResource, interval, transaction)) {
             for (ResourceReservation resourceReservation : virtualRoomReservations) {
                 RoomReservation virtualRoomReservation = (RoomReservation) resourceReservation;
-                usedPortCount += virtualRoomReservation.getPortCount();
+                usedLicenseCount += virtualRoomReservation.getRoom().getLicenseCount();
             }
         }
         else {
-            usedPortCount = virtualRoomsCapability.getPortCount();
+            usedLicenseCount = roomProviderCapability.getLicenseCount();
         }
-        AvailableVirtualRoom availableVirtualRoom = new AvailableVirtualRoom();
+        AvailableRoom availableVirtualRoom = new AvailableRoom();
         availableVirtualRoom.setDeviceResource(deviceResource);
-        availableVirtualRoom.setMaximumPortCount(virtualRoomsCapability.getPortCount());
-        availableVirtualRoom.setAvailablePortCount(virtualRoomsCapability.getPortCount() - usedPortCount);
+        availableVirtualRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
+        availableVirtualRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
         return availableVirtualRoom;
     }
 

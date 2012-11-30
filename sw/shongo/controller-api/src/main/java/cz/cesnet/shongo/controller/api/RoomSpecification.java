@@ -11,7 +11,7 @@ import java.util.Set;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomSpecification extends Specification
+public class RoomSpecification extends Specification
 {
     /**
      * Set of technologies which the virtual rooms must support.
@@ -21,7 +21,7 @@ public class VirtualRoomSpecification extends Specification
     /**
      * Number of ports which must be allocated for the virtual room.
      */
-    public static final String PORT_COUNT = "portCount";
+    public static final String PARTICIPANT_COUNT = "participantCount";
 
     /**
      * Specifies whether {@link Alias} should be acquired for each {@link Technology} from {@link #TECHNOLOGIES}.
@@ -36,19 +36,19 @@ public class VirtualRoomSpecification extends Specification
     /**
      * Constructor.
      */
-    public VirtualRoomSpecification()
+    public RoomSpecification()
     {
     }
 
     /**
      * Constructor.
      *
-     * @param portCount sets the {@link #PORT_COUNT}
+     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
      * @param technologies to be added to the {@link #TECHNOLOGIES}
      */
-    public VirtualRoomSpecification(int portCount, Technology[] technologies)
+    public RoomSpecification(int participantCount, Technology[] technologies)
     {
-        setPortCount(portCount);
+        setParticipantCount(participantCount);
         for (Technology technology : technologies) {
             addTechnology(technology);
         }
@@ -91,17 +91,17 @@ public class VirtualRoomSpecification extends Specification
      * @return {@link #RESOURCE_IDENTIFIER}
      */
     @Required
-    public Integer getPortCount()
+    public Integer getParticipantCount()
     {
-        return getPropertyStorage().getValue(PORT_COUNT);
+        return getPropertyStorage().getValue(PARTICIPANT_COUNT);
     }
 
     /**
-     * @param portCount sets the {@link #PORT_COUNT}
+     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
      */
-    public void setPortCount(Integer portCount)
+    public void setParticipantCount(Integer participantCount)
     {
-        getPropertyStorage().setValue(PORT_COUNT, portCount);
+        getPropertyStorage().setValue(PARTICIPANT_COUNT, participantCount);
     }
 
     /**

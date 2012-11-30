@@ -124,7 +124,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(100));
+        mcu.addCapability(new RoomProviderCapability(100));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         Resource aliasProvider = new Resource();
@@ -219,16 +219,16 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
         virtualRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
         virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        RoomSpecification virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setPortCount(10);
+        virtualRoomSpecification.setParticipantCount(10);
         virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
 
         Reservation virtualRoomReservation = allocateAndCheck(virtualRoomReservationRequest);

@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -41,7 +41,7 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         RoomReservation room1 = new RoomReservation();
         room1.setResource(mcu1);
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
-        room1.setPortCount(25);
+        room1.getRoom().setParticipantCount(25);
         cache.addReservation(room1);
 
         DeviceResource mcu2 = new DeviceResource();
@@ -55,19 +55,19 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         RoomReservation room2 = new RoomReservation();
         room2.setResource(mcu2);
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
-        room2.setPortCount(50);
+        room2.getRoom().setParticipantCount(50);
         cache.addReservation(room2);
 
         RoomReservation room3 = new RoomReservation();
         room3.setResource(mcu2);
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
-        room3.setPortCount(30);
+        room3.getRoom().setParticipantCount(30);
         cache.addReservation(room3);
 
         // ---------------------------------
         // Test find available virtual rooms
         // ---------------------------------
-        List<AvailableVirtualRoom> result;
+        List<AvailableRoom> result;
 
         // Test different intervals
         result = cache.findAvailableVirtualRooms(Interval.parse("0/1"), 50, null);
@@ -98,22 +98,22 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
-        assertEquals(50, result.get(0).getAvailablePortCount());
+        assertEquals(50, result.get(0).getAvailableLicenseCount());
         assertEquals(mcu2, result.get(1).getDeviceResource());
-        assertEquals(20, result.get(1).getAvailablePortCount());
+        assertEquals(20, result.get(1).getAvailableLicenseCount());
 
         result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 20,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
-        assertEquals(50, result.get(0).getAvailablePortCount());
+        assertEquals(50, result.get(0).getAvailableLicenseCount());
         assertEquals(mcu2, result.get(1).getDeviceResource());
-        assertEquals(20, result.get(1).getAvailablePortCount());
+        assertEquals(20, result.get(1).getAvailableLicenseCount());
 
         result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 21,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
         assertEquals(1, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
-        assertEquals(50, result.get(0).getAvailablePortCount());
+        assertEquals(50, result.get(0).getAvailableLicenseCount());
     }
 }

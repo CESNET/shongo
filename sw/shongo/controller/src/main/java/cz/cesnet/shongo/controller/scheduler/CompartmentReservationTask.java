@@ -148,9 +148,9 @@ public class CompartmentReservationTask extends ReservationTask
 
     /**
      * @param reservation child {@link cz.cesnet.shongo.controller.reservation.RoomReservation} to be added to the {@link CompartmentReservationTask}
-     * @return allocated {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint}
+     * @return allocated {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}
      */
-    public VirtualRoomEndpoint addChildVirtualRoomReservation(Reservation reservation)
+    public RoomEndpoint addChildVirtualRoomReservation(Reservation reservation)
     {
         addChildReservation(reservation);
         RoomReservation virtualRoomReservation = reservation.getTargetReservation(RoomReservation.class);
@@ -164,7 +164,7 @@ public class CompartmentReservationTask extends ReservationTask
     {
         compartment.addChildExecutable(endpoint);
 
-        if (!(endpoint instanceof VirtualRoomEndpoint)) {
+        if (!(endpoint instanceof RoomEndpoint)) {
             // Setup connectivity graph
             connectivityGraph.addVertex(endpoint);
             for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
@@ -195,7 +195,7 @@ public class CompartmentReservationTask extends ReservationTask
         switch (callInitiation) {
             case VIRTUAL_ROOM:
                 // If the call should be initiated by a virtual room and it is the second endpoint, exchange them
-                if (!(endpointFrom instanceof VirtualRoomEndpoint) && endpointTo instanceof VirtualRoomEndpoint) {
+                if (!(endpointFrom instanceof RoomEndpoint) && endpointTo instanceof RoomEndpoint) {
                     Endpoint endpointTmp = endpointFrom;
                     endpointFrom = endpointTo;
                     endpointTo = endpointTmp;
@@ -203,7 +203,7 @@ public class CompartmentReservationTask extends ReservationTask
                 break;
             case TERMINAL:
                 // If the call should be initiated by a terminal and it is the second endpoint, exchange them
-                if (endpointFrom instanceof VirtualRoomEndpoint && !(endpointTo instanceof VirtualRoomEndpoint)) {
+                if (endpointFrom instanceof RoomEndpoint && !(endpointTo instanceof RoomEndpoint)) {
                     Endpoint endpointTmp = endpointFrom;
                     endpointFrom = endpointTo;
                     endpointTo = endpointTmp;
@@ -313,8 +313,8 @@ public class CompartmentReservationTask extends ReservationTask
                     ResourceEndpoint resourceEndpoint = (ResourceEndpoint) endpointTo;
                     resource = resourceEndpoint.getDeviceResource();
                 }
-                else if (endpointTo instanceof ResourceVirtualRoom) {
-                    ResourceVirtualRoom resourceVirtualRoom = (ResourceVirtualRoom) endpointTo;
+                else if (endpointTo instanceof ResourceRoomEndpoint) {
+                    ResourceRoomEndpoint resourceVirtualRoom = (ResourceRoomEndpoint) endpointTo;
                     resource = resourceVirtualRoom.getDeviceResource();
                 }
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
@@ -364,7 +364,7 @@ public class CompartmentReservationTask extends ReservationTask
             else if (callInitiation != callInitiationTo) {
                 // Rewrite call initiation only when the second endpoint isn't virtual room and it want to be called
                 // from the virtual room
-                if (!(endpointTo instanceof VirtualRoomEndpoint) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
+                if (!(endpointTo instanceof RoomEndpoint) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
                     callInitiation = callInitiationTo;
                 }
             }
@@ -458,7 +458,7 @@ public class CompartmentReservationTask extends ReservationTask
             roomReservationTask.addRoomVariant(roomVariant);
         }
         Reservation reservation = roomReservationTask.perform();
-        VirtualRoomEndpoint virtualRoom = addChildVirtualRoomReservation(reservation);
+        RoomEndpoint virtualRoom = addChildVirtualRoomReservation(reservation);
         addReport(new AllocatingVirtualRoomReport(virtualRoom));
         for (Endpoint endpoint : compartment.getEndpoints()) {
             addConnection(virtualRoom, endpoint);
@@ -525,7 +525,7 @@ public class CompartmentReservationTask extends ReservationTask
             // Check whether an existing resource is requested
             boolean resourceRequested = false;
             for (Endpoint endpoint : compartment.getEndpoints()) {
-                if (endpoint instanceof ResourceEndpoint || endpoint instanceof ResourceVirtualRoom) {
+                if (endpoint instanceof ResourceEndpoint || endpoint instanceof ResourceRoomEndpoint) {
                     resourceRequested = true;
                 }
             }

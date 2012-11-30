@@ -1,12 +1,12 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.Room;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
  * Represents a {@link cz.cesnet.shongo.controller.reservation.Reservation} for a {@link Endpoint}.
@@ -19,52 +19,54 @@ public class RoomReservation extends EndpointReservation
     /**
      * Allocated port count.
      */
-    private Integer portCount;
+    private Room room = new Room();
 
     /**
-     * @return {@link #portCount}
+     * @return {@link #room}
      */
-    public Integer getPortCount()
+    @Embedded
+    @Access(AccessType.FIELD)
+    public Room getRoom()
     {
-        return portCount;
+        return room;
     }
 
     /**
-     * @param portCount {@link #portCount}
+     * @param room sets the {@link #room}
      */
-    public void setPortCount(Integer portCount)
+    public void setRoom(Room room)
     {
-        this.portCount = portCount;
+        this.room = room;
     }
 
     @Override
     public void setExecutable(Executable executable)
     {
-        if (!(executable instanceof VirtualRoomEndpoint)) {
-            throw new IllegalArgumentException("Only virtual room can be executed by the virtual room reservation.");
+        if (!(executable instanceof RoomEndpoint)) {
+            throw new IllegalArgumentException("Only room endpoint can be executed by the room reservation.");
         }
         super.setExecutable(executable);
     }
 
     @Transient
     @Override
-    public VirtualRoomEndpoint getEndpoint()
+    public RoomEndpoint getEndpoint()
     {
-        return (VirtualRoomEndpoint) getExecutable();
+        return (RoomEndpoint) getExecutable();
     }
 
     @Override
     protected cz.cesnet.shongo.controller.api.Reservation createApi()
     {
-        return new cz.cesnet.shongo.controller.api.VirtualRoomReservation();
+        return new cz.cesnet.shongo.controller.api.RoomReservation();
     }
 
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
     {
-        cz.cesnet.shongo.controller.api.VirtualRoomReservation virtualRoomReservationApi =
-                (cz.cesnet.shongo.controller.api.VirtualRoomReservation) api;
-        virtualRoomReservationApi.setPortCount(getPortCount());
+        cz.cesnet.shongo.controller.api.RoomReservation virtualRoomReservationApi =
+                (cz.cesnet.shongo.controller.api.RoomReservation) api;
+        virtualRoomReservationApi.setLicenseCount(room.getLicenseCount());
         super.toApi(api, domain);
     }
 }

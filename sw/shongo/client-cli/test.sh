@@ -14,8 +14,8 @@ DATE=$(date --date='tomorrow' +%Y-%m-%d)
             connectorAgentName: 'mcu-cesnet' \
         }, \
         capabilities: [{ \
-            class: 'VirtualRoomsCapability', \
-            portCount: 20 \
+            class: 'RoomProviderCapability', \
+            licenseCount: 20 \
         }, { \
             class: 'AliasProviderCapability', \
             technology: 'H323', \
@@ -35,8 +35,8 @@ DATE=$(date --date='tomorrow' +%Y-%m-%d)
             connectorAgentName: 'mcu-muni' \
         }, \
         capabilities: [{ \
-            class: 'VirtualRoomsCapability', \
-            portCount: 10 \
+            class: 'RoomProviderCapability', \
+            licenseCount: 10 \
         }, { \
             class: 'AliasProviderCapability', \
             technology: 'H323', \
@@ -107,8 +107,8 @@ exit 0
         purpose: 'SCIENCE', \
         slot: '${DATE}T14:00/PT4M', \
         specification : { \
-            class: 'VirtualRoomSpecification', \
+            class: 'RoomSpecification', \
             technologies: ['H323'], \
-            portCount: 5 \
+            participantCount: 5 \
         } \
     }" \

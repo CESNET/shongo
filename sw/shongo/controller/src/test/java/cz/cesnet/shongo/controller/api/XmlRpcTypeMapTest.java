@@ -55,9 +55,9 @@ public class XmlRpcTypeMapTest
         Room room = getRoomService().getRoom(SECURITY_TOKEN, "1");
         assertEquals("1", room.getIdentifier());
         assertEquals("room", room.getName());
-        assertEquals(5, room.getPortCount());
+        assertEquals(5, room.getLicenseCount());
 
-        room.setPortCount(10);
+        room.setLicenseCount(10);
         room.setOption(Room.Option.PIN, "100");
         room.removeOption(Room.Option.DESCRIPTION);
 
@@ -89,7 +89,7 @@ public class XmlRpcTypeMapTest
             Room room = new Room();
             room.setIdentifier("1");
             room.setName("room");
-            room.setPortCount(5);
+            room.setLicenseCount(5);
             room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
             room.setOption(Room.Option.DESCRIPTION, "room description");
             return room;
@@ -99,7 +99,7 @@ public class XmlRpcTypeMapTest
         public void modifyRoom(SecurityToken token, Room room)
         {
             assertEquals("1", room.getIdentifier());
-            assertEquals(10, room.getPortCount());
+            assertEquals(10, room.getLicenseCount());
             assertEquals(new HashSet<Room.Option>()
             {{
                     add(Room.Option.PIN);

@@ -5,12 +5,8 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
-import org.joda.time.Interval;
 import org.joda.time.Period;
 import org.junit.Test;
-
-import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 
@@ -22,7 +18,7 @@ import static junit.framework.Assert.assertEquals;
 public class ReservationRequestSetTest extends AbstractControllerTest
 {
     /**
-     * Test modify {@link CompartmentSpecification} to {@link VirtualRoomSpecification} and delete the request).
+     * Test modify {@link CompartmentSpecification} to {@link cz.cesnet.shongo.controller.api.RoomSpecification} and delete the request).
      *
      * @throws Exception
      */
@@ -32,7 +28,7 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("firstMcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95[d]"));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -54,9 +50,9 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         reservationRequest =
                 (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, identifier);
         reservationRequest.removeSpecification(reservationRequest.getSpecifications().get(0));
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        RoomSpecification virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setPortCount(5);
+        virtualRoomSpecification.setParticipantCount(5);
         reservationRequest.addSpecification(virtualRoomSpecification);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 

@@ -1,6 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.report.Report;
 
 import javax.persistence.*;
@@ -13,9 +13,9 @@ import javax.persistence.*;
 public class AllocatingVirtualRoomReport extends Report
 {
     /**
-     * @see cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint
+     * @see cz.cesnet.shongo.controller.executor.RoomEndpoint
      */
-    private VirtualRoomEndpoint virtualRoom;
+    private RoomEndpoint roomEndpoint;
 
     /**
      * Constructor.
@@ -27,28 +27,28 @@ public class AllocatingVirtualRoomReport extends Report
     /**
      * Constructor.
      *
-     * @param virtualRoom
+     * @param roomEndpoint
      */
-    public AllocatingVirtualRoomReport(VirtualRoomEndpoint virtualRoom)
+    public AllocatingVirtualRoomReport(RoomEndpoint roomEndpoint)
     {
-        this.virtualRoom = virtualRoom;
+        this.roomEndpoint = roomEndpoint;
     }
 
     /**
-     * @return {@link #virtualRoom}
+     * @return {@link #roomEndpoint}
      */
     @OneToOne
     @Access(AccessType.FIELD)
-    public VirtualRoomEndpoint getVirtualRoom()
+    public RoomEndpoint getRoomEndpoint()
     {
-        return virtualRoom;
+        return roomEndpoint;
     }
 
     @Override
     @Transient
     public String getText()
     {
-        return String.format("Allocating virtual room in %s for %d ports.",
-                virtualRoom.getReportDescription(), virtualRoom.getPortCount());
+        return String.format("Allocating virtual room in %s for %d licenses.",
+                roomEndpoint.getReportDescription(), roomEndpoint.getRoom().getLicenseCount());
     }
 }

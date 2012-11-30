@@ -1,3 +1,6 @@
+* rename portCount -> participantCount|licenseCount in clients
+* rename VirtualRoom to Room
+
 * Adobe connect through "control-resource" in cmd-line client (until half of december)
 
 * Web clients - H.323 and Adobe Connect

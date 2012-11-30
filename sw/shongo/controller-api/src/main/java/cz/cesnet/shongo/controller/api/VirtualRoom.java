@@ -20,7 +20,7 @@ public class VirtualRoom extends Executable
     /**
      * Number of available ports in the {@link VirtualRoom}.
      */
-    private int portCount;
+    private int licenseCount;
 
     /**
      * List of assigned {@link cz.cesnet.shongo.api.Alias}es to the {@link VirtualRoom}.
@@ -44,19 +44,19 @@ public class VirtualRoom extends Executable
     }
 
     /**
-     * @return {@link #portCount}
+     * @return {@link #licenseCount}
      */
-    public int getPortCount()
+    public int getLicenseCount()
     {
-        return portCount;
+        return licenseCount;
     }
 
     /**
-     * @param portCount sets the {@link #portCount}
+     * @param licenseCount sets the {@link #licenseCount}
      */
-    public void setPortCount(int portCount)
+    public void setLicenseCount(int licenseCount)
     {
-        this.portCount = portCount;
+        this.licenseCount = licenseCount;
     }
 
     /**

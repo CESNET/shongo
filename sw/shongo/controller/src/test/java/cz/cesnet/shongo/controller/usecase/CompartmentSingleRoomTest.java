@@ -32,7 +32,7 @@ public class CompartmentSingleRoomTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
@@ -92,7 +92,7 @@ public class CompartmentSingleRoomTest extends AbstractControllerTest
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
         mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
@@ -121,7 +121,7 @@ public class CompartmentSingleRoomTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 

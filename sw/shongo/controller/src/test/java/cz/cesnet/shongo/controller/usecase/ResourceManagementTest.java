@@ -140,7 +140,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(100));
+        mcu.addCapability(new RoomProviderCapability(100));
         mcu.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95008721[d]", true));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 

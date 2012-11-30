@@ -13,7 +13,7 @@ import java.util.*;
  */
 @Embeddable
 @Access(AccessType.PROPERTY)
-public class Room
+public class Room implements Cloneable
 {
     /**
      * Set of technologies which the virtual room shall support.
@@ -23,7 +23,7 @@ public class Room
     /**
      * Number of participants which shall be able to join to the virtual room.
      */
-    private int participantCount;
+    private int participantCount = 0;
 
     /**
      * List of {@link RoomConfiguration}s for the {@link Room} (e.g., {@link Technology} specific).
@@ -107,7 +107,10 @@ public class Room
      */
     public void setRoomConfigurations(List<RoomConfiguration> roomConfigurations)
     {
-        this.roomConfigurations = roomConfigurations;
+        this.roomConfigurations.clear();
+        for ( RoomConfiguration roomConfiguration : roomConfigurations) {
+            this.roomConfigurations.add(roomConfiguration);
+        }
     }
 
     /**
@@ -155,5 +158,15 @@ public class Room
         modified |= !ObjectUtils.equals(getParticipantCount(), room.getParticipantCount());
         setParticipantCount(room.getParticipantCount());
         return modified;
+    }
+
+    @Override
+    public Room clone()
+    {
+        Room room = new Room();
+        room.setTechnologies(technologies);
+        room.setParticipantCount(participantCount);
+        room.setRoomConfigurations(roomConfigurations);
+        return room;
     }
 }

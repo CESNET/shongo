@@ -1,11 +1,11 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.Room;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Represents a {@link DeviceResource} which acts as {@link VirtualRoomEndpoint} in a {@link Compartment}.
+ * Represents a {@link DeviceResource} which acts as {@link RoomEndpoint} in a {@link Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedEndpoint
+public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
 {
     /**
      * {@link DeviceResource}.
@@ -31,26 +31,26 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
     private DeviceResource deviceResource;
 
     /**
-     * Port count.
+     * @see Room
      */
-    private Integer portCount;
+    private Room room = new Room();
 
     /**
      * Constructor.
      */
-    public ResourceVirtualRoom()
+    public ResourceRoomEndpoint()
     {
     }
 
     /**
      * Constructor.
      *
-     * @param virtualRoomReservation to initialize from
+     * @param roomReservation to initialize from
      */
-    public ResourceVirtualRoom(RoomReservation virtualRoomReservation)
+    public ResourceRoomEndpoint(RoomReservation roomReservation)
     {
-        this.setDeviceResource(virtualRoomReservation.getDeviceResource());
-        this.setPortCount(virtualRoomReservation.getPortCount());
+        this.setDeviceResource(roomReservation.getDeviceResource());
+        this.setRoom(roomReservation.getRoom());
     }
 
     /**
@@ -71,21 +71,22 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
     }
 
     /**
-     * @return {@link #portCount}
+     * @return {@link #room}
      */
     @Override
-    @Column
-    public Integer getPortCount()
+    @Embedded
+    @Access(AccessType.FIELD)
+    public Room getRoom()
     {
-        return portCount;
+        return room;
     }
 
     /**
-     * @param portCount sets the {@link #portCount}
+     * @param room sets the {@link #room}
      */
-    public void setPortCount(Integer portCount)
+    public void setRoom(Room room)
     {
-        this.portCount = portCount;
+        this.room = room;
     }
 
     @Override
@@ -104,7 +105,7 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
         virtualRoomApi.setIdentifier(domain.formatIdentifier(getId()));
         virtualRoomApi.setSlot(getSlot());
         virtualRoomApi.setState(getState().toApi());
-        virtualRoomApi.setPortCount(getPortCount());
+        virtualRoomApi.setLicenseCount(room.getLicenseCount());
         virtualRoomApi.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
         for (Alias alias : getAssignedAliases()) {
             virtualRoomApi.addAlias(alias.toApi());
@@ -172,7 +173,7 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Starting %s for %d ports.", getReportDescription(), getPortCount()));
+        message.append(String.format("Starting %s for %d licenses.", getReportDescription(), room.getLicenseCount()));
         if (deviceResource.hasIpAddress()) {
             message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
         }
@@ -193,8 +194,8 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
             String roomName = String.format("Shongo%d [exec:%d]", getId(), executorThread.getExecutableId());
             roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
-            Room room = new Room();
-            room.setPortCount(getPortCount());
+            cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
+            room.setLicenseCount(this.room.getLicenseCount());
             room.setName(roomName);
             for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
@@ -204,7 +205,7 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return State.STARTING_FAILED;
             }
-            setVirtualRoomId((String) command.getResult());
+            setRoomId((String) command.getResult());
         }
         return super.onStart(executorThread, entityManager);
     }
@@ -213,14 +214,14 @@ public class ResourceVirtualRoom extends VirtualRoomEndpoint implements ManagedE
     protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Stopping %s for %d ports.", getReportDescription(), getPortCount()));
+        message.append(String.format("Stopping %s for %d ports.", getReportDescription(), room.getLicenseCount()));
         executorThread.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
-            String virtualRoomId = getVirtualRoomId();
+            String virtualRoomId = getRoomId();
             if (virtualRoomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }

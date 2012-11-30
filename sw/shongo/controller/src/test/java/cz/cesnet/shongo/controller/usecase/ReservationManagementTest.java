@@ -4,7 +4,6 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import junitx.framework.Assert;
 import org.junit.Test;
@@ -204,7 +203,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest1.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest1.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest1.setSpecification(
-                new VirtualRoomSpecification(5, new Technology[]{Technology.SIP}));
+                new RoomSpecification(5, new Technology[]{Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest1);
 
         ReservationRequest reservationRequest2 = new ReservationRequest();
@@ -212,7 +211,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest2.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest2.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest2.setSpecification(
-                new VirtualRoomSpecification(5, new Technology[]{Technology.H323}));
+                new RoomSpecification(5, new Technology[]{Technology.H323}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest2);
 
         ReservationRequestSet reservationRequest3 = new ReservationRequestSet();
@@ -229,7 +228,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest4.setSlot("2012-01-01T12:00", "PT2H");
         reservationRequest4.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest4.setSpecification(
-                new VirtualRoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest4);
 
         ReservationRequestSet reservationRequest5 = new ReservationRequestSet();
@@ -237,7 +236,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest5.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest5.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest5.addSpecification(
-                new VirtualRoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
+                new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest5);
 
         ReservationRequest reservationRequest6 = new ReservationRequest();

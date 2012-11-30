@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.common.Room;
-import cz.cesnet.shongo.controller.executor.ResourceVirtualRoom;
+import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.request.RoomSpecification;
@@ -27,7 +27,7 @@ import java.util.*;
 public class RoomReservationTask extends ReservationTask
 {
     /**
-     * List of {@link Room} variants (allocated {@link RoomReservation} must match at least one of these).
+     * List of {@link Room} variants (the allocated {@link RoomReservation} must match at least one of these).
      */
     private Collection<Room> roomVariants = new ArrayList<Room>();
 
@@ -133,7 +133,7 @@ public class RoomReservationTask extends ReservationTask
                 Long deviceResourceId = virtualRoomReservation.getDeviceResource().getId();
                 if (roomVariantByDeviceResourceIds.containsKey(deviceResourceId)) {
                     Room roomVariant = roomVariantByDeviceResourceIds.get(deviceResourceId);
-                    if (virtualRoomReservation.getPortCount() >= roomVariant.getLicenseCount()) {
+                    if (virtualRoomReservation.getRoom().getLicenseCount() >= roomVariant.getLicenseCount()) {
                         // Reuse provided reservation
                         ExistingReservation existingReservation = new ExistingReservation();
                         existingReservation.setSlot(getInterval());
@@ -146,13 +146,13 @@ public class RoomReservationTask extends ReservationTask
         }
 
         // Get available virtual rooms
-        List<AvailableVirtualRoom> availableVirtualRooms = new ArrayList<AvailableVirtualRoom>();
+        List<AvailableRoom> availableVirtualRooms = new ArrayList<AvailableRoom>();
         for (Long deviceResourceId : roomVariantByDeviceResourceIds.keySet()) {
             Room roomVariant = roomVariantByDeviceResourceIds.get(deviceResourceId);
             DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
-            AvailableVirtualRoom availableVirtualRoom = resourceCache.getAvailableVirtualRoom(deviceResource,
+            AvailableRoom availableVirtualRoom = resourceCache.getAvailableVirtualRoom(deviceResource,
                     getInterval(), resourceCacheTransaction);
-            if (availableVirtualRoom.getAvailablePortCount() >= roomVariant.getLicenseCount()) {
+            if (availableVirtualRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
                 availableVirtualRooms.add(availableVirtualRoom);
             }
         }
@@ -165,24 +165,24 @@ public class RoomReservationTask extends ReservationTask
             throw noAvailableVirtualRoomReport.exception();
         }
         // Sort virtual rooms from the most filled to the least filled
-        Collections.sort(availableVirtualRooms, new Comparator<AvailableVirtualRoom>()
+        Collections.sort(availableVirtualRooms, new Comparator<AvailableRoom>()
         {
             @Override
-            public int compare(AvailableVirtualRoom first, AvailableVirtualRoom second)
+            public int compare(AvailableRoom first, AvailableRoom second)
             {
                 return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
             }
         });
         // Get the first virtual room
-        AvailableVirtualRoom availableVirtualRoom = availableVirtualRooms.get(0);
+        AvailableRoom availableVirtualRoom = availableVirtualRooms.get(0);
         Room roomVariant = roomVariantByDeviceResourceIds.get(availableVirtualRoom.getDeviceResource().getId());
 
         // Create virtual room
-        ResourceVirtualRoom virtualRoom = new ResourceVirtualRoom();
+        ResourceRoomEndpoint virtualRoom = new ResourceRoomEndpoint();
         virtualRoom.setDeviceResource(availableVirtualRoom.getDeviceResource());
-        virtualRoom.setPortCount(roomVariant.getLicenseCount());
+        virtualRoom.setRoom(roomVariant.clone());
         virtualRoom.setSlot(getInterval());
-        virtualRoom.setState(ResourceVirtualRoom.State.NOT_STARTED);
+        virtualRoom.setState(ResourceRoomEndpoint.State.NOT_STARTED);
 
         // TODO: create virtual room only for specified technologies
 
@@ -200,7 +200,7 @@ public class RoomReservationTask extends ReservationTask
         RoomReservation virtualRoomReservation = new RoomReservation();
         virtualRoomReservation.setSlot(getInterval());
         virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
-        virtualRoomReservation.setPortCount(roomVariant.getLicenseCount());
+        virtualRoomReservation.setRoom(roomVariant.clone());
         virtualRoomReservation.setExecutable(virtualRoom);
         return virtualRoomReservation;
     }

@@ -8,6 +8,7 @@ import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.executor.ExecutorThread;
+import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
@@ -98,7 +99,7 @@ public class ExecutorTest extends AbstractControllerTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -136,7 +137,7 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -152,7 +153,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -160,9 +161,9 @@ public class ExecutorTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        RoomSpecification virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setPortCount(5);
+        virtualRoomSpecification.setParticipantCount(5);
         reservationRequest.setSpecification(virtualRoomSpecification);
 
         // Allocate reservation request
@@ -172,7 +173,7 @@ public class ExecutorTest extends AbstractControllerTest
         List<ExecutorThread> executorThreads = executor.execute(dateTime);
         assertEquals("One thread should be executed.", 1, executorThreads.size());
         assertEquals("Thread should execute virtual room.",
-                cz.cesnet.shongo.controller.executor.ResourceVirtualRoom.class,
+                ResourceRoomEndpoint.class,
                 executorThreads.get(0).getExecutable(getEntityManager()).getClass());
 
         // Wait for executor threads to end
@@ -187,8 +188,8 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both of them separately (first {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint} and then
+     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both of them separately (first {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} and then
      * {@link cz.cesnet.shongo.controller.executor.Compartment}).
      *
      * @throws Exception
@@ -205,7 +206,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -214,9 +215,9 @@ public class ExecutorTest extends AbstractControllerTest
         ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
         virtualRoomReservationRequest.setSlot(dateTime, duration);
         virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        RoomSpecification virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setPortCount(10);
+        virtualRoomSpecification.setParticipantCount(10);
         virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
         String virtualRoomReservationIdentifier = allocateAndCheck(virtualRoomReservationRequest).getIdentifier();
 
@@ -224,7 +225,7 @@ public class ExecutorTest extends AbstractControllerTest
         List<ExecutorThread> executorThreads = executor.execute(dateTime);
         assertEquals("One thread should be executed.", 1, executorThreads.size());
         assertEquals("Thread should execute virtual room.",
-                cz.cesnet.shongo.controller.executor.ResourceVirtualRoom.class,
+                ResourceRoomEndpoint.class,
                 executorThreads.get(0).getExecutable(getEntityManager()).getClass());
 
         // Wait for executor threads to end
@@ -258,8 +259,8 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both at once ({@link cz.cesnet.shongo.controller.executor.VirtualRoomEndpoint} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both at once ({@link cz.cesnet.shongo.controller.executor.RoomEndpoint} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
      *
      * @throws Exception
      */
@@ -275,7 +276,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -284,9 +285,9 @@ public class ExecutorTest extends AbstractControllerTest
         ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
         virtualRoomReservationRequest.setSlot(dateTime, duration);
         virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        RoomSpecification virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setPortCount(10);
+        virtualRoomSpecification.setParticipantCount(10);
         virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
         String virtualRoomReservationIdentifier = allocateAndCheck(virtualRoomReservationRequest).getIdentifier();
 

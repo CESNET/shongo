@@ -9,7 +9,7 @@ import org.junit.Test;
 import static junit.framework.Assert.assertEquals;
 
 /**
- * Tests for allocation of {@link VirtualRoomReservation} by {@link VirtualRoomSpecification}.
+ * Tests for allocation of {@link cz.cesnet.shongo.controller.api.RoomReservation} by {@link cz.cesnet.shongo.controller.api.RoomSpecification}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -27,7 +27,7 @@ public class VirtualRoomTest extends AbstractControllerTest
         firstMcu.setName("firstMcu");
         firstMcu.addTechnology(Technology.H323);
         firstMcu.addTechnology(Technology.SIP);
-        firstMcu.addCapability(new VirtualRoomsCapability(10));
+        firstMcu.addCapability(new RoomProviderCapability(10));
         firstMcu.setAllocatable(true);
         String firstMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
 
@@ -35,48 +35,48 @@ public class VirtualRoomTest extends AbstractControllerTest
         secondMcu.setName("secondMcu");
         secondMcu.addTechnology(Technology.H323);
         secondMcu.addTechnology(Technology.SIP);
-        secondMcu.addCapability(new VirtualRoomsCapability(10));
+        secondMcu.addCapability(new RoomProviderCapability(10));
         secondMcu.setAllocatable(true);
         String secondMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
+        RoomSpecification virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
         virtualRoomSpecification.addTechnology(Technology.SIP);
-        virtualRoomSpecification.setPortCount(5);
+        virtualRoomSpecification.setParticipantCount(5);
         virtualRoomSpecification.setResourceIdentifier(secondMcuIdentifier);
         firstReservationRequest.setSpecification(virtualRoomSpecification);
 
-        VirtualRoomReservation firstReservation = (VirtualRoomReservation) allocateAndCheck(firstReservationRequest);
+        RoomReservation firstReservation = (RoomReservation) allocateAndCheck(firstReservationRequest);
         assertEquals("Virtual room should be allocated on second mcu, because it was specified as preferred",
                 secondMcuIdentifier, firstReservation.getResourceIdentifier());
 
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        virtualRoomSpecification = new VirtualRoomSpecification();
+        virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
         virtualRoomSpecification.addTechnology(Technology.SIP);
-        virtualRoomSpecification.setPortCount(3);
+        virtualRoomSpecification.setParticipantCount(3);
         virtualRoomSpecification.setResourceIdentifier(firstMcuIdentifier);
         secondReservationRequest.setSpecification(virtualRoomSpecification);
 
-        VirtualRoomReservation secondReservation = (VirtualRoomReservation) allocateAndCheck(secondReservationRequest);
+        RoomReservation secondReservation = (RoomReservation) allocateAndCheck(secondReservationRequest);
         assertEquals("Virtual room should be allocated on first mcu, because it was specified as preferred",
                 firstMcuIdentifier, secondReservation.getResourceIdentifier());
 
         ReservationRequest thirdReservationRequest = new ReservationRequest();
         thirdReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         thirdReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        virtualRoomSpecification = new VirtualRoomSpecification();
+        virtualRoomSpecification = new RoomSpecification();
         virtualRoomSpecification.addTechnology(Technology.H323);
         virtualRoomSpecification.addTechnology(Technology.SIP);
-        virtualRoomSpecification.setPortCount(5);
+        virtualRoomSpecification.setParticipantCount(5);
         thirdReservationRequest.setSpecification(virtualRoomSpecification);
 
-        VirtualRoomReservation thirdReservation = (VirtualRoomReservation) allocateAndCheck(thirdReservationRequest);
+        RoomReservation thirdReservation = (RoomReservation) allocateAndCheck(thirdReservationRequest);
         assertEquals("Virtual room should be allocated on second mcu, because it was the most filled",
                 secondMcuIdentifier, thirdReservation.getResourceIdentifier());
     }

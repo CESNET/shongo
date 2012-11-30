@@ -18,7 +18,7 @@ public class RoomProviderCapability extends DeviceCapability
     /**
      * Number of available ports.
      */
-    private Integer portCount;
+    private Integer licenseCount;
 
     /**
      * Constructor.
@@ -30,43 +30,43 @@ public class RoomProviderCapability extends DeviceCapability
     /**
      * Constructor.
      *
-     * @param portCount sets the {@link #portCount}
+     * @param licenseCount sets the {@link #licenseCount}
      */
-    public RoomProviderCapability(Integer portCount)
+    public RoomProviderCapability(Integer licenseCount)
     {
-        this.portCount = portCount;
+        this.licenseCount = licenseCount;
     }
 
     /**
-     * @return {@link #portCount}
+     * @return {@link #licenseCount}
      */
     @Column
-    public Integer getPortCount()
+    public Integer getLicenseCount()
     {
-        return portCount;
+        return licenseCount;
     }
 
     /**
-     * @param portCount sets the {@link #portCount}
+     * @param licenseCount sets the {@link #licenseCount}
      */
-    public void setPortCount(Integer portCount)
+    public void setLicenseCount(Integer licenseCount)
     {
-        this.portCount = portCount;
+        this.licenseCount = licenseCount;
     }
 
     @Override
     public cz.cesnet.shongo.controller.api.Capability createApi()
     {
-        return new cz.cesnet.shongo.controller.api.VirtualRoomsCapability();
+        return new cz.cesnet.shongo.controller.api.RoomProviderCapability();
     }
 
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
     {
-        cz.cesnet.shongo.controller.api.VirtualRoomsCapability virtualRoomsCapability =
-                (cz.cesnet.shongo.controller.api.VirtualRoomsCapability) api;
+        cz.cesnet.shongo.controller.api.RoomProviderCapability virtualRoomsCapability =
+                (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
         virtualRoomsCapability.setIdentifier(getId());
-        virtualRoomsCapability.setPortCount(getPortCount());
+        virtualRoomsCapability.setLicenseCount(getLicenseCount());
         super.toApi(api);
     }
 
@@ -74,10 +74,10 @@ public class RoomProviderCapability extends DeviceCapability
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
             throws FaultException
     {
-        cz.cesnet.shongo.controller.api.VirtualRoomsCapability apiVirtualRoomsCapability =
-                (cz.cesnet.shongo.controller.api.VirtualRoomsCapability) api;
-        if (apiVirtualRoomsCapability.isPropertyFilled(apiVirtualRoomsCapability.PORT_COUNT)) {
-            setPortCount(apiVirtualRoomsCapability.getPortCount());
+        cz.cesnet.shongo.controller.api.RoomProviderCapability apiVirtualRoomsCapability =
+                (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
+        if (apiVirtualRoomsCapability.isPropertyFilled(apiVirtualRoomsCapability.LICENSE_COUNT)) {
+            setLicenseCount(apiVirtualRoomsCapability.getLicenseCount());
         }
         super.fromApi(api, entityManager);
     }

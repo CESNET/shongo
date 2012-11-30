@@ -10,42 +10,42 @@ public class VirtualRoomsResourceAllocation extends ResourceAllocation
     /**
      * Maximum number of used ports.
      */
-    private Integer maximumPortCount;
+    private Integer maximumLicenseCount;
 
     /**
      * Number of available ports.
      */
-    private Integer availablePortCount;
+    private Integer availableLicenseCount;
 
     /**
-     * @return {@link #maximumPortCount}
+     * @return {@link #maximumLicenseCount}
      */
-    public Integer getMaximumPortCount()
+    public Integer getMaximumLicenseCount()
     {
-        return maximumPortCount;
+        return maximumLicenseCount;
     }
 
     /**
-     * @param maximumPortCount sets the {@link #maximumPortCount}
+     * @param maximumLicenseCount sets the {@link #maximumLicenseCount}
      */
-    public void setMaximumPortCount(Integer maximumPortCount)
+    public void setMaximumLicenseCount(Integer maximumLicenseCount)
     {
-        this.maximumPortCount = maximumPortCount;
+        this.maximumLicenseCount = maximumLicenseCount;
     }
 
     /**
-     * @return {@link #availablePortCount}
+     * @return {@link #availableLicenseCount}
      */
-    public Integer getAvailablePortCount()
+    public Integer getAvailableLicenseCount()
     {
-        return availablePortCount;
+        return availableLicenseCount;
     }
 
     /**
-     * @param availablePortCount sets the {@link #availablePortCount}
+     * @param availableLicenseCount sets the {@link #availableLicenseCount}
      */
-    public void setAvailablePortCount(Integer availablePortCount)
+    public void setAvailableLicenseCount(Integer availableLicenseCount)
     {
-        this.availablePortCount = availablePortCount;
+        this.availableLicenseCount = availableLicenseCount;
     }
 }

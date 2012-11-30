@@ -52,7 +52,7 @@ public class JadeTest extends AbstractControllerTest
                 Room room = new Room();
                 room.setIdentifier("1");
                 room.setName("Fixed Testing Room (TODO: Remove it)");
-                room.setPortCount(5);
+                room.setLicenseCount(5);
                 room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
                 room.setOption(Room.Option.DESCRIPTION, "room description");
                 return room;
@@ -82,7 +82,7 @@ public class JadeTest extends AbstractControllerTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);

@@ -70,7 +70,7 @@ public abstract class Capability extends PersistentObject
             throws FaultException
     {
         Capability capability;
-        if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomsCapability) {
+        if (api instanceof cz.cesnet.shongo.controller.api.RoomProviderCapability) {
             capability = new RoomProviderCapability();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.StandaloneTerminalCapability) {

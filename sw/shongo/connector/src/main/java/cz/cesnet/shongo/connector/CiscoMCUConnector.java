@@ -787,7 +787,7 @@ ParamsLoop:
         Room room = new Room();
         room.setIdentifier((String) result.get("conferenceName"));
         room.setName((String) result.get("conferenceName"));
-        room.setPortCount((Integer) result.get("maximumVideoPorts"));
+        room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
 
         // aliases
         if (!result.get("numericId").equals("")) {
@@ -847,8 +847,8 @@ ParamsLoop:
             cmd.setParameter("conferenceName", room.getName());
         }
 
-        if (room.getPortCount() >= 0) {
-            cmd.setParameter("maximumVideoPorts", room.getPortCount());
+        if (room.getLicenseCount() >= 0) {
+            cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
         }
 
         if (room.getAliases() != null) {
@@ -913,8 +913,8 @@ ParamsLoop:
         if (room.isPropertyFilled(Room.NAME)) {
             cmd.setParameter("newConferenceName", room.getName());
         }
-        if (room.isPropertyFilled(Room.PORT_COUNT)) {
-            cmd.setParameter("maximumVideoPorts", room.getPortCount());
+        if (room.isPropertyFilled(Room.LICENSE_COUNT)) {
+            cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
         }
         // Create/Update aliases
         for (Alias alias : room.getAliases()) {

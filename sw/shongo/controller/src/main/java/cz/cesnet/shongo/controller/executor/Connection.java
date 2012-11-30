@@ -97,10 +97,10 @@ public abstract class Connection extends Executable
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
-            if (getEndpointFrom() instanceof VirtualRoomEndpoint) {
-                VirtualRoomEndpoint virtualRoom = (VirtualRoomEndpoint) getEndpointFrom();
+            if (getEndpointFrom() instanceof RoomEndpoint) {
+                RoomEndpoint virtualRoom = (RoomEndpoint) getEndpointFrom();
                 command = controllerAgent.performCommand(new AgentActionCommand(agentName,
-                        new DisconnectParticipant(virtualRoom.getVirtualRoomId(), getConnectionId())));
+                        new DisconnectParticipant(virtualRoom.getRoomId(), getConnectionId())));
             }
             else {
                 // TODO: use connection id to hangup

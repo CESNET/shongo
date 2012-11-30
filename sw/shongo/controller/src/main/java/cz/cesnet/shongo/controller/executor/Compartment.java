@@ -48,7 +48,7 @@ public class Compartment extends Executable
                 continue;
             }
             Endpoint endpoint = (Endpoint) childExecutable;
-            if (endpoint instanceof VirtualRoomEndpoint) {
+            if (endpoint instanceof RoomEndpoint) {
                 continue;
             }
             endpoints.add(endpoint);
@@ -57,17 +57,17 @@ public class Compartment extends Executable
     }
 
     /**
-     * @return list of {@link VirtualRoomEndpoint}s in the {@link Compartment}
+     * @return list of {@link RoomEndpoint}s in the {@link Compartment}
      */
     @Transient
-    public List<VirtualRoomEndpoint> getVirtualRooms()
+    public List<RoomEndpoint> getVirtualRooms()
     {
-        List<VirtualRoomEndpoint> virtualRooms = new ArrayList<VirtualRoomEndpoint>();
+        List<RoomEndpoint> virtualRooms = new ArrayList<RoomEndpoint>();
         for (Executable childExecutable : getChildExecutables()) {
-            if (!(childExecutable instanceof VirtualRoomEndpoint)) {
+            if (!(childExecutable instanceof RoomEndpoint)) {
                 continue;
             }
-            VirtualRoomEndpoint virtualRoom = (VirtualRoomEndpoint) childExecutable;
+            RoomEndpoint virtualRoom = (RoomEndpoint) childExecutable;
             virtualRooms.add(virtualRoom);
         }
         return virtualRooms;
@@ -139,12 +139,11 @@ public class Compartment extends Executable
             }
             compartmentApi.addEndpoint(endpointApi);
         }
-        for (VirtualRoomEndpoint virtualRoom : getVirtualRooms()) {
+        for (RoomEndpoint virtualRoom : getVirtualRooms()) {
             cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
-
                     new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
             virtualRoomApi.setIdentifier(virtualRoom.getId().toString());
-            virtualRoomApi.setPortCount(virtualRoom.getPortCount());
+            virtualRoomApi.setLicenseCount(virtualRoom.getRoom().getLicenseCount());
             virtualRoomApi.setDescription(virtualRoom.getReportDescription());
             for (Alias alias : virtualRoom.getAssignedAliases()) {
                 virtualRoomApi.addAlias(alias.toApi());
@@ -183,7 +182,7 @@ public class Compartment extends Executable
     private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Create virtual rooms
-        boolean virtualRoomStarted = (startChildren(VirtualRoomEndpoint.class, executorThread, entityManager) > 0);
+        boolean virtualRoomStarted = (startChildren(RoomEndpoint.class, executorThread, entityManager) > 0);
         if (virtualRoomStarted) {
             executorThread.getLogger().info("Waiting for virtual rooms to be created...");
             try {

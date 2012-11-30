@@ -5,7 +5,7 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
@@ -302,11 +302,11 @@ public class ResourceServiceImpl extends Component
         // Setup resource allocation
         ResourceAllocation resourceAllocation = null;
         if (resourceImpl instanceof DeviceResource && virtualRoomsCapability != null) {
-            AvailableVirtualRoom availableVirtualRoom = cache.getResourceCache().getAvailableVirtualRoom(
+            AvailableRoom availableVirtualRoom = cache.getResourceCache().getAvailableVirtualRoom(
                             (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
             VirtualRoomsResourceAllocation allocation = new VirtualRoomsResourceAllocation();
-            allocation.setMaximumPortCount(availableVirtualRoom.getMaximumPortCount());
-            allocation.setAvailablePortCount(availableVirtualRoom.getAvailablePortCount());
+            allocation.setMaximumLicenseCount(availableVirtualRoom.getMaximumLicenseCount());
+            allocation.setAvailableLicenseCount(availableVirtualRoom.getAvailableLicenseCount());
             resourceAllocation = allocation;
         }
         else {

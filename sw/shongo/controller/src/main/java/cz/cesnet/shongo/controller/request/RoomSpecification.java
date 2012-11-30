@@ -120,18 +120,18 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     @Override
     protected cz.cesnet.shongo.controller.api.Specification createApi()
     {
-        return new cz.cesnet.shongo.controller.api.VirtualRoomSpecification();
+        return new cz.cesnet.shongo.controller.api.RoomSpecification();
     }
 
     @Override
     public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
     {
-        cz.cesnet.shongo.controller.api.VirtualRoomSpecification virtualRoomSpecificationApi =
-                (cz.cesnet.shongo.controller.api.VirtualRoomSpecification) specificationApi;
+        cz.cesnet.shongo.controller.api.RoomSpecification virtualRoomSpecificationApi =
+                (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
         for (Technology technology : room.getTechnologies()) {
             virtualRoomSpecificationApi.addTechnology(technology);
         }
-        virtualRoomSpecificationApi.setPortCount(room.getParticipantCount());
+        virtualRoomSpecificationApi.setParticipantCount(room.getParticipantCount());
         virtualRoomSpecificationApi.setWithAlias(isWithAlias());
         if (deviceResource != null) {
             virtualRoomSpecificationApi.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
@@ -143,10 +143,10 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     public void fromApi(cz.cesnet.shongo.controller.api.Specification specificationApi, EntityManager entityManager,
             Domain domain) throws FaultException
     {
-        cz.cesnet.shongo.controller.api.VirtualRoomSpecification virtualRoomSpecificationApi =
-                (cz.cesnet.shongo.controller.api.VirtualRoomSpecification) specificationApi;
-        if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.PORT_COUNT)) {
-            room.setParticipantCount(virtualRoomSpecificationApi.getPortCount());
+        cz.cesnet.shongo.controller.api.RoomSpecification virtualRoomSpecificationApi =
+                (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
+        if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.PARTICIPANT_COUNT)) {
+            room.setParticipantCount(virtualRoomSpecificationApi.getParticipantCount());
         }
         if (virtualRoomSpecificationApi.isPropertyFilled(virtualRoomSpecificationApi.WITH_ALIAS)) {
             setWithAlias(virtualRoomSpecificationApi.getWithAlias());

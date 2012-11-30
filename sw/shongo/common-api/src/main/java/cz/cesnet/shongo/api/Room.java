@@ -19,9 +19,9 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      */
     public static final String NAME = "name";
     /**
-     * Number of ports to use for the room. Type: int
+     * Number of licenses to use for the room. Type: int
      */
-    public static final String PORT_COUNT = "portCount";
+    public static final String LICENSE_COUNT = "licenseCount";
 
     /**
      * Aliases of the room. Type: List<Alias>
@@ -37,17 +37,17 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     {
     }
 
-    public Room(String name, int portCount)
+    public Room(String name, int licenseCount)
     {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (portCount < 0) {
-            throw new IllegalArgumentException("Port count must be non-negative");
+        if (licenseCount < 0) {
+            throw new IllegalArgumentException("License count must be non-negative");
         }
 
         setName(name);
-        setPortCount(portCount);
+        setLicenseCount(licenseCount);
     }
 
     /**
@@ -73,21 +73,21 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     /**
      * @return number of ports that multipoint server can utilize for this room
      */
-    public int getPortCount()
+    public int getLicenseCount()
     {
-        return getPropertyStorage().getValueAsInt(PORT_COUNT);
+        return getPropertyStorage().getValueAsInt(LICENSE_COUNT);
     }
 
     /**
-     * @param portCount number of ports that multipoint server can utilize for this room
+     * @param licenseCount number of license that multipoint server can utilize for this room
      */
-    public void setPortCount(int portCount)
+    public void setLicenseCount(int licenseCount)
     {
-        if (portCount < 0) {
-            throw new IllegalArgumentException("portCount must be non-negative");
+        if (licenseCount < 0) {
+            throw new IllegalArgumentException("License count must be non-negative");
         }
 
-        getPropertyStorage().setValue(PORT_COUNT, portCount);
+        getPropertyStorage().setValue(LICENSE_COUNT, licenseCount);
     }
 
     /**

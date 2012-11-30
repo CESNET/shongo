@@ -99,7 +99,7 @@ public abstract class Specification extends PersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
             specification = new ResourceSpecification();
         }
-        else if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomSpecification) {
+        else if (api instanceof cz.cesnet.shongo.controller.api.RoomSpecification) {
             specification = new RoomSpecification();
         }
         else {
