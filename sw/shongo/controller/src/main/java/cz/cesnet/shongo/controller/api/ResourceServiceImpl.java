@@ -296,17 +296,16 @@ public class ResourceServiceImpl extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
-        RoomProviderCapability virtualRoomsCapability =
-                resourceImpl.getCapability(RoomProviderCapability.class);
+        RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
 
         // Setup resource allocation
         ResourceAllocation resourceAllocation = null;
-        if (resourceImpl instanceof DeviceResource && virtualRoomsCapability != null) {
-            AvailableRoom availableVirtualRoom = cache.getResourceCache().getAvailableVirtualRoom(
-                            (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
-            VirtualRoomsResourceAllocation allocation = new VirtualRoomsResourceAllocation();
-            allocation.setMaximumLicenseCount(availableVirtualRoom.getMaximumLicenseCount());
-            allocation.setAvailableLicenseCount(availableVirtualRoom.getAvailableLicenseCount());
+        if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
+            AvailableRoom availableRoom = cache.getResourceCache().getAvailableRoom(
+                    (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
+            RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
+            allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
+            allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());
             resourceAllocation = allocation;
         }
         else {

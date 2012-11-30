@@ -4,7 +4,6 @@ import com.jgraph.layout.JGraphFacade;
 import com.jgraph.layout.graph.JGraphSimpleLayout;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
-import cz.cesnet.shongo.controller.common.Room;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -150,11 +149,11 @@ public class CompartmentReservationTask extends ReservationTask
      * @param reservation child {@link cz.cesnet.shongo.controller.reservation.RoomReservation} to be added to the {@link CompartmentReservationTask}
      * @return allocated {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}
      */
-    public RoomEndpoint addChildVirtualRoomReservation(Reservation reservation)
+    public RoomEndpoint addChildRoomReservation(Reservation reservation)
     {
         addChildReservation(reservation);
-        RoomReservation virtualRoomReservation = reservation.getTargetReservation(RoomReservation.class);
-        return virtualRoomReservation.getEndpoint();
+        RoomReservation roomReservation = reservation.getTargetReservation(RoomReservation.class);
+        return roomReservation.getEndpoint();
     }
 
     /**
@@ -314,8 +313,8 @@ public class CompartmentReservationTask extends ReservationTask
                     resource = resourceEndpoint.getDeviceResource();
                 }
                 else if (endpointTo instanceof ResourceRoomEndpoint) {
-                    ResourceRoomEndpoint resourceVirtualRoom = (ResourceRoomEndpoint) endpointTo;
-                    resource = resourceVirtualRoom.getDeviceResource();
+                    ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) endpointTo;
+                    resource = resourceRoomEndpoint.getDeviceResource();
                 }
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
@@ -450,18 +449,16 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void createSingleRoomReservation() throws ReportException
     {
-        RoomReservationTask roomReservationTask = new RoomReservationTask(getContext());
+        RoomReservationTask roomReservationTask = new RoomReservationTask(getContext(),
+                compartment.getTotalEndpointCount());
         for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
-            Room roomVariant = new Room();
-            roomVariant.setTechnologies(technologies);
-            roomVariant.setParticipantCount(compartment.getTotalEndpointCount());
-            roomReservationTask.addRoomVariant(roomVariant);
+            roomReservationTask.addTechnologyVariant(technologies);
         }
         Reservation reservation = roomReservationTask.perform();
-        RoomEndpoint virtualRoom = addChildVirtualRoomReservation(reservation);
-        addReport(new AllocatingVirtualRoomReport(virtualRoom));
+        RoomEndpoint roomEndpoint = addChildRoomReservation(reservation);
+        addReport(new AllocatingRoomReport(roomEndpoint));
         for (Endpoint endpoint : compartment.getEndpoints()) {
-            addConnection(virtualRoom, endpoint);
+            addConnection(roomEndpoint, endpoint);
         }
     }
 

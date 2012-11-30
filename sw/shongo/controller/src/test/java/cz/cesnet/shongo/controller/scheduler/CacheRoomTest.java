@@ -20,7 +20,7 @@ import static junitx.framework.Assert.assertEquals;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class CacheVirtualRoomTest extends AbstractDatabaseTest
+public class CacheRoomTest extends AbstractDatabaseTest
 {
     @Test
     public void test() throws Exception
@@ -41,7 +41,7 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         RoomReservation room1 = new RoomReservation();
         room1.setResource(mcu1);
         room1.setSlot(DateTime.parse("1"), DateTime.parse("100"));
-        room1.getRoom().setParticipantCount(25);
+        room1.getRoomConfiguration().setLicenseCount(25);
         cache.addReservation(room1);
 
         DeviceResource mcu2 = new DeviceResource();
@@ -55,13 +55,13 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         RoomReservation room2 = new RoomReservation();
         room2.setResource(mcu2);
         room2.setSlot(DateTime.parse("50"), DateTime.parse("150"));
-        room2.getRoom().setParticipantCount(50);
+        room2.getRoomConfiguration().setLicenseCount(50);
         cache.addReservation(room2);
 
         RoomReservation room3 = new RoomReservation();
         room3.setResource(mcu2);
         room3.setSlot(DateTime.parse("100"), DateTime.parse("200"));
-        room3.getRoom().setParticipantCount(30);
+        room3.getRoomConfiguration().setLicenseCount(30);
         cache.addReservation(room3);
 
         // ---------------------------------
@@ -70,31 +70,31 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         List<AvailableRoom> result;
 
         // Test different intervals
-        result = cache.findAvailableVirtualRooms(Interval.parse("0/1"), 50, null);
+        result = cache.findAvailableRooms(Interval.parse("0/1"), 50, null);
         assertEquals(2, result.size());
 
-        result = cache.findAvailableVirtualRooms(Interval.parse("200/250"), 50, null);
+        result = cache.findAvailableRooms(Interval.parse("200/250"), 50, null);
         assertEquals(2, result.size());
 
-        result = cache.findAvailableVirtualRooms(Interval.parse("50/100"), 50, null);
+        result = cache.findAvailableRooms(Interval.parse("50/100"), 50, null);
         assertEquals(1, result.size());
 
-        result = cache.findAvailableVirtualRooms(Interval.parse("100/150"), 50, null);
+        result = cache.findAvailableRooms(Interval.parse("100/150"), 50, null);
         assertEquals(1, result.size());
 
         // Test different technologies
-        result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 10,
+        result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
                 new Technology[]{Technology.H323, Technology.ADOBE_CONNECT}, null);
         assertEquals(1, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
 
-        result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 10,
+        result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
                 new Technology[]{Technology.SIP, Technology.ADOBE_CONNECT}, null);
         assertEquals(1, result.size());
         assertEquals(mcu2, result.get(0).getDeviceResource());
 
         // Test different number of required ports
-        result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 10,
+        result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
@@ -102,7 +102,7 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         assertEquals(mcu2, result.get(1).getDeviceResource());
         assertEquals(20, result.get(1).getAvailableLicenseCount());
 
-        result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 20,
+        result = cache.findAvailableRooms(Interval.parse("100/149"), 20,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
@@ -110,7 +110,7 @@ public class CacheVirtualRoomTest extends AbstractDatabaseTest
         assertEquals(mcu2, result.get(1).getDeviceResource());
         assertEquals(20, result.get(1).getAvailableLicenseCount());
 
-        result = cache.findAvailableVirtualRooms(Interval.parse("100/149"), 21,
+        result = cache.findAvailableRooms(Interval.parse("100/149"), 21,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
         assertEquals(1, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());

@@ -78,9 +78,9 @@ public class ConnectionByAddress extends Connection
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
             if (getEndpointFrom() instanceof RoomEndpoint) {
-                RoomEndpoint virtualRoom = (RoomEndpoint) getEndpointFrom();
+                RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
                 command = controllerAgent.performCommandAndWait(new AgentActionCommand(
-                        agentName, new DialParticipant(virtualRoom.getRoomId(), getAddress().getValue())));
+                        agentName, new DialParticipant(roomEndpoint.getRoomId(), getAddress().getValue())));
             }
             else {
                 command = controllerAgent.performCommandAndWait(new AgentActionCommand(

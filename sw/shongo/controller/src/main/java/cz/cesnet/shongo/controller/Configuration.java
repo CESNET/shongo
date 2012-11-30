@@ -68,7 +68,7 @@ public class Configuration extends CompositeConfiguration
     /**
      * Duration which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} waits for virtual rooms to be created.
      */
-    public static final String EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM = "executor.compartment.waiting-virtual-room";
+    public static final String EXECUTOR_COMPARTMENT_WAITING_ROOM = "executor.compartment.waiting-room";
 
     /**
      * Authorization server.

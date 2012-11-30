@@ -3,11 +3,11 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.common.Room;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
-import cz.cesnet.shongo.controller.request.RoomSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -15,7 +15,7 @@ import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
-import cz.cesnet.shongo.controller.scheduler.report.NoAvailableVirtualRoomReport;
+import cz.cesnet.shongo.controller.scheduler.report.NoAvailableRoomReport;
 
 import java.util.*;
 
@@ -27,9 +27,20 @@ import java.util.*;
 public class RoomReservationTask extends ReservationTask
 {
     /**
-     * List of {@link Room} variants (the allocated {@link RoomReservation} must match at least one of these).
+     * Number of participants in the virtual room.
      */
-    private Collection<Room> roomVariants = new ArrayList<Room>();
+    private final int participantCount;
+
+    /**
+     * Collection of {@link Technology} set variants where at least one must be supported by
+     * allocated {@link RoomReservation}.
+     */
+    private Collection<Set<Technology>> technologyVariants = new ArrayList<Set<Technology>>();
+
+    /**
+     * Collection of {@link RoomSetting} for allocated {@link RoomReservation}.
+     */
+    private Collection<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
 
     /**
      * Specifies whether {@link Alias} should be acquired for each {@link Technology}.
@@ -47,22 +58,34 @@ public class RoomReservationTask extends ReservationTask
      *
      * @param context sets the {@link #context}
      */
-    public RoomReservationTask(Context context)
+    public RoomReservationTask(Context context, int participantCount)
     {
         super(context);
+        this.participantCount = participantCount;
     }
 
     /**
-     * @param roomVariant to be added to the {@link #roomVariants}
+     * @param technologies to be added to the {@link #technologyVariants}
      */
-    public void addRoomVariant(Room roomVariant)
+    public void addTechnologyVariant(Set<Technology> technologies)
     {
-        Set<Technology> technologies = roomVariant.getTechnologies();
-        if (technologies == null || technologies.size() == 0) {
-            throw new IllegalStateException(RoomSpecification.class.getSimpleName()
-                    + " variant should have at least one technology.");
-        }
-        this.roomVariants.add(roomVariant);
+        technologyVariants.add(technologies);
+    }
+
+    /**
+     * @param roomSettings to be added to the {@link #roomSettings}
+     */
+    public void addRoomSettings(Collection<RoomSetting> roomSettings)
+    {
+        roomSettings.addAll(roomSettings);
+    }
+
+    /**
+     * @param roomSetting to be added to the {@link #roomSettings}
+     */
+    public void addRoomSetting(RoomSetting roomSetting)
+    {
+        roomSettings.add(roomSetting);
     }
 
     /**
@@ -87,85 +110,74 @@ public class RoomReservationTask extends ReservationTask
         ResourceCache resourceCache = getCache().getResourceCache();
         ResourceCache.Transaction resourceCacheTransaction = getCacheTransaction().getResourceCacheTransaction();
 
-        // Get participant count and check that it is same in all variants
-        Integer participantCount = null;
-        for (Room roomVariant : roomVariants) {
-            if (participantCount == null) {
-                participantCount = roomVariant.getParticipantCount();
-            }
-            else if (participantCount != roomVariant.getParticipantCount()) {
-                throw new IllegalStateException("All room variants should have the same participant count.");
-            }
+        Set<Long> specifiedDeviceResourceIds = null;
+        if (deviceResource != null) {
+            specifiedDeviceResourceIds = new HashSet<Long>();
+            specifiedDeviceResourceIds.add(deviceResource.getId());
         }
 
         // Get map of room variants by device resource ids which supports them (if one device resource supports
-        // multiple room variants the one with least requested license count is selected)
-        Map<Long, Room> roomVariantByDeviceResourceIds = new HashMap<Long, Room>();
-        for (Room roomVariant : roomVariants) {
-            Set<Long> deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
-                    RoomProviderCapability.class, roomVariant.getTechnologies());
-            // If device resource is provided, retain only the device resource in the set
-            if (deviceResource != null) {
-                Long deviceResourceId = deviceResource.getId();
-                if (deviceResourceIds.contains(deviceResourceId)) {
-                    deviceResourceIds.clear();
-                    deviceResourceIds.add(deviceResourceId);
-                }
-                else {
-                    deviceResourceIds.clear();
-                }
+        // multiple room variants the one with least requested license count is used)
+        Map<Long, RoomVariant> roomVariantByDeviceResourceId = new HashMap<Long, RoomVariant>();
+        for (Set<Technology> technologies : technologyVariants) {
+            Set<Long> deviceResourceIds = specifiedDeviceResourceIds;
+            if (deviceResourceIds == null) {
+                deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
+                        RoomProviderCapability.class, technologies);
             }
+
             for (Long deviceResourceId : deviceResourceIds) {
-                Room deviceResourceBestRoomVariant = roomVariantByDeviceResourceIds.get(deviceResourceId);
-                if (deviceResourceBestRoomVariant == null
-                        || roomVariant.getLicenseCount() < deviceResourceBestRoomVariant.getLicenseCount()) {
-                    deviceResourceBestRoomVariant = roomVariant;
+                RoomVariant newRoomVariant = new RoomVariant(deviceResourceId, participantCount, technologies);
+                RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
+                if (roomVariant == null
+                        || roomVariant.getLicenseCount() > newRoomVariant.getLicenseCount()) {
+                    roomVariant = newRoomVariant;
                 }
-                roomVariantByDeviceResourceIds.put(deviceResourceId, deviceResourceBestRoomVariant);
+                roomVariantByDeviceResourceId.put(deviceResourceId, roomVariant);
             }
         }
 
         // Reuse existing reservation
-        Collection<RoomReservation> virtualRoomReservations = resourceCacheTransaction
-                .getProvidedVirtualRoomReservations();
-        if (virtualRoomReservations.size() > 0) {
-            for (RoomReservation virtualRoomReservation : virtualRoomReservations) {
-                Long deviceResourceId = virtualRoomReservation.getDeviceResource().getId();
-                if (roomVariantByDeviceResourceIds.containsKey(deviceResourceId)) {
-                    Room roomVariant = roomVariantByDeviceResourceIds.get(deviceResourceId);
-                    if (virtualRoomReservation.getRoom().getLicenseCount() >= roomVariant.getLicenseCount()) {
+        Collection<RoomReservation> roomReservations =
+                resourceCacheTransaction.getProvidedRoomReservations();
+        if (roomReservations.size() > 0) {
+            for (RoomReservation roomReservation : roomReservations) {
+                Long deviceResourceId = roomReservation.getDeviceResource().getId();
+                if (roomVariantByDeviceResourceId.containsKey(deviceResourceId)) {
+                    RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
+                    if (roomReservation.getRoomConfiguration().getLicenseCount() >= roomVariant.getLicenseCount()) {
                         // Reuse provided reservation
                         ExistingReservation existingReservation = new ExistingReservation();
                         existingReservation.setSlot(getInterval());
-                        existingReservation.setReservation(virtualRoomReservation);
-                        getCacheTransaction().removeProvidedReservation(virtualRoomReservation);
+                        existingReservation.setReservation(roomReservation);
+                        getCacheTransaction().removeProvidedReservation(roomReservation);
                         return existingReservation;
                     }
                 }
             }
         }
 
-        // Get available virtual rooms
-        List<AvailableRoom> availableVirtualRooms = new ArrayList<AvailableRoom>();
-        for (Long deviceResourceId : roomVariantByDeviceResourceIds.keySet()) {
-            Room roomVariant = roomVariantByDeviceResourceIds.get(deviceResourceId);
+        // Get available rooms
+        List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
+        for (Long deviceResourceId : roomVariantByDeviceResourceId.keySet()) {
+            RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
             DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
-            AvailableRoom availableVirtualRoom = resourceCache.getAvailableVirtualRoom(deviceResource,
+            AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource,
                     getInterval(), resourceCacheTransaction);
-            if (availableVirtualRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
-                availableVirtualRooms.add(availableVirtualRoom);
+            if (availableRoom.getAvailableLicenseCount() >= roomVariant.getLicenseCount()) {
+                availableRooms.add(availableRoom);
             }
         }
-        if (availableVirtualRooms.size() == 0) {
-            NoAvailableVirtualRoomReport noAvailableVirtualRoomReport = new NoAvailableVirtualRoomReport();
-            for (Room roomVariant : roomVariants) {
-                noAvailableVirtualRoomReport.addTechnologies(roomVariant.getTechnologies());
+        if (availableRooms.size() == 0) {
+            NoAvailableRoomReport noAvailableRoomReport = new NoAvailableRoomReport();
+            noAvailableRoomReport.setParticipantCount(participantCount);
+            for (Set<Technology> technologies : technologyVariants) {
+                noAvailableRoomReport.addTechnologies(technologies);
             }
-            noAvailableVirtualRoomReport.setParticipantCount(participantCount);
-            throw noAvailableVirtualRoomReport.exception();
+            throw noAvailableRoomReport.exception();
         }
-        // Sort virtual rooms from the most filled to the least filled
-        Collections.sort(availableVirtualRooms, new Comparator<AvailableRoom>()
+        // Sort available rooms from the most filled to the least filled
+        Collections.sort(availableRooms, new Comparator<AvailableRoom>()
         {
             @Override
             public int compare(AvailableRoom first, AvailableRoom second)
@@ -173,35 +185,96 @@ public class RoomReservationTask extends ReservationTask
                 return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
             }
         });
-        // Get the first virtual room
-        AvailableRoom availableVirtualRoom = availableVirtualRooms.get(0);
-        Room roomVariant = roomVariantByDeviceResourceIds.get(availableVirtualRoom.getDeviceResource().getId());
+        // Get the first available room
+        AvailableRoom availableRoom = availableRooms.get(0);
+        RoomVariant roomVariant = roomVariantByDeviceResourceId.get(availableRoom.getDeviceResource().getId());
 
-        // Create virtual room
-        ResourceRoomEndpoint virtualRoom = new ResourceRoomEndpoint();
-        virtualRoom.setDeviceResource(availableVirtualRoom.getDeviceResource());
-        virtualRoom.setRoom(roomVariant.clone());
-        virtualRoom.setSlot(getInterval());
-        virtualRoom.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+        // Room configuration
+        RoomConfiguration roomConfiguration = new RoomConfiguration();
+        roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
+        roomConfiguration.setTechnologies(roomVariant.getTechnologies());
+        roomConfiguration.setRoomSettings(roomSettings);
 
-        // TODO: create virtual room only for specified technologies
+        // Create room endpoint executable
+        ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+        roomEndpoint.setDeviceResource(availableRoom.getDeviceResource());
+        roomEndpoint.setRoomConfiguration(roomConfiguration);
+        roomEndpoint.setSlot(getInterval());
+        roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
 
         // Allocate aliases for each technology
         if (withAlias) {
             for (Technology technology : roomVariant.getTechnologies()) {
                 AliasSpecification aliasSpecification = new AliasSpecification(technology,
-                        availableVirtualRoom.getDeviceResource());
+                        availableRoom.getDeviceResource());
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
-                virtualRoom.addAssignedAlias(aliasReservation.getAlias().clone());
+                roomEndpoint.addAssignedAlias(aliasReservation.getAlias().clone());
             }
         }
 
-        // Create virtual room reservation
-        RoomReservation virtualRoomReservation = new RoomReservation();
-        virtualRoomReservation.setSlot(getInterval());
-        virtualRoomReservation.setResource(availableVirtualRoom.getDeviceResource());
-        virtualRoomReservation.setRoom(roomVariant.clone());
-        virtualRoomReservation.setExecutable(virtualRoom);
-        return virtualRoomReservation;
+        // Create room reservation
+        RoomReservation roomReservation = new RoomReservation();
+        roomReservation.setSlot(getInterval());
+        roomReservation.setResource(availableRoom.getDeviceResource());
+        roomReservation.setRoomConfiguration(roomConfiguration);
+        roomReservation.setExecutable(roomEndpoint);
+        return roomReservation;
+    }
+
+    /**
+     * Represents a variant for allocating a {@link RoomReservation}.
+     */
+    public class RoomVariant
+    {
+        /**
+         * Set of {@link Technology}s which must be supported by the {@link RoomReservation}.
+         */
+        private Set<Technology> technologies;
+
+        /**
+         * Number of licenses.
+         */
+        private int licenseCount;
+
+        /**
+         * Constructor.
+         *
+         * @param deviceResourceId {@link DeviceResource} used for computing {@link #licenseCount}
+         * @param participantCount number of participants for the {@link RoomReservation}
+         * @param technologies     set of {@link Technology}s
+         */
+        public RoomVariant(Long deviceResourceId, int participantCount, Set<Technology> technologies)
+        {
+            this.technologies = technologies;
+            this.licenseCount = computeLicenseCount(deviceResourceId, participantCount, technologies);
+        }
+
+        /**
+         * @return {@link #technologies}
+         */
+        public Set<Technology> getTechnologies()
+        {
+            return technologies;
+        }
+
+        /**
+         * @return {@link #licenseCount}
+         */
+        public int getLicenseCount()
+        {
+            return licenseCount;
+        }
+
+        /**
+         * @param deviceResourceId
+         * @param participantCount
+         * @param technologies
+         * @return number of licenses for given {@code participantCount} and {@code technologies}
+         *         in {@link DeviceResource} with given {@code deviceResourceId}
+         */
+        public int computeLicenseCount(Long deviceResourceId, int participantCount, Set<Technology> technologies)
+        {
+            return participantCount;
+        }
     }
 }

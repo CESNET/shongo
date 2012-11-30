@@ -45,7 +45,7 @@ public class ExecutorTest extends AbstractControllerTest
     public ExecutorTest()
     {
         // Executor configuration
-        System.setProperty(Configuration.EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM, "PT0S");
+        System.setProperty(Configuration.EXECUTOR_COMPARTMENT_WAITING_ROOM, "PT0S");
     }
 
     @Override
@@ -142,7 +142,7 @@ public class ExecutorTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testVirtualRoom() throws Exception
+    public void testRoom() throws Exception
     {
         ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
 
@@ -161,10 +161,10 @@ public class ExecutorTest extends AbstractControllerTest
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification virtualRoomSpecification = new RoomSpecification();
-        virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setParticipantCount(5);
-        reservationRequest.setSpecification(virtualRoomSpecification);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(5);
+        reservationRequest.setSpecification(roomSpecification);
 
         // Allocate reservation request
         allocateAndCheck(reservationRequest);
@@ -195,7 +195,7 @@ public class ExecutorTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testProvidedVirtualRoomStartedSeparately() throws Exception
+    public void testProvidedRoomStartedSeparately() throws Exception
     {
         ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
 
@@ -212,14 +212,14 @@ public class ExecutorTest extends AbstractControllerTest
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create virtual room reservation
-        ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
-        virtualRoomReservationRequest.setSlot(dateTime, duration);
-        virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification virtualRoomSpecification = new RoomSpecification();
-        virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setParticipantCount(10);
-        virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
-        String virtualRoomReservationIdentifier = allocateAndCheck(virtualRoomReservationRequest).getIdentifier();
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot(dateTime, duration);
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(10);
+        roomReservationRequest.setSpecification(roomSpecification);
+        String roomReservationIdentifier = allocateAndCheck(roomReservationRequest).getIdentifier();
 
         // Execute virtual room
         List<ExecutorThread> executorThreads = executor.execute(dateTime);
@@ -238,7 +238,7 @@ public class ExecutorTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.addProvidedReservationIdentifier(virtualRoomReservationIdentifier);
+        reservationRequest.addProvidedReservationIdentifier(roomReservationIdentifier);
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
@@ -265,7 +265,7 @@ public class ExecutorTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testProvidedVirtualRoomStartedAtOnce() throws Exception
+    public void testProvidedRoomStartedAtOnce() throws Exception
     {
         ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
 
@@ -282,14 +282,14 @@ public class ExecutorTest extends AbstractControllerTest
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create virtual room reservation
-        ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
-        virtualRoomReservationRequest.setSlot(dateTime, duration);
-        virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification virtualRoomSpecification = new RoomSpecification();
-        virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setParticipantCount(10);
-        virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
-        String virtualRoomReservationIdentifier = allocateAndCheck(virtualRoomReservationRequest).getIdentifier();
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot(dateTime, duration);
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(10);
+        roomReservationRequest.setSpecification(roomSpecification);
+        String roomReservationIdentifier = allocateAndCheck(roomReservationRequest).getIdentifier();
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -298,7 +298,7 @@ public class ExecutorTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.addProvidedReservationIdentifier(virtualRoomReservationIdentifier);
+        reservationRequest.addProvidedReservationIdentifier(roomReservationIdentifier);
         allocateAndCheck(reservationRequest);
 
         // Execute compartment

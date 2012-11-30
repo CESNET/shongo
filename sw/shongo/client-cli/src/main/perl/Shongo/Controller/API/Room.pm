@@ -33,7 +33,7 @@ sub new()
     $self->set_object_name('Room');
     $self->set_object_class('Room');
     $self->add_attribute('name', {'required' => 1});
-    $self->add_attribute('portCount', {'title' => 'Port Count', 'type' => 'int', 'required' => 1});
+    $self->add_attribute('licenseCount', {'title' => 'License Count', 'type' => 'int', 'required' => 1});
     $self->add_attribute('aliases', {
         'type' => 'collection',
         'item' => {

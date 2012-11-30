@@ -78,7 +78,7 @@ public class ResourceReservationTask extends ReservationTask
                 resourceReservation = new EndpointReservation();
             }
             if (deviceResource.hasCapability(RoomProviderCapability.class)) {
-                if (getCache().getResourceCache().getVirtualRoomReservations(deviceResource, getInterval())
+                if (getCache().getResourceCache().getRoomReservations(deviceResource, getInterval())
                         .size() > 0) {
                     // Requested resource is not available in the requested slot
                     throw new ResourceNotAvailableReport(resource).exception();

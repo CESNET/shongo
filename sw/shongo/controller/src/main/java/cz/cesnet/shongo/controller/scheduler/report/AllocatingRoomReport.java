@@ -10,7 +10,7 @@ import javax.persistence.*;
  * @see {@link #getText()}
  */
 @Entity
-public class AllocatingVirtualRoomReport extends Report
+public class AllocatingRoomReport extends Report
 {
     /**
      * @see cz.cesnet.shongo.controller.executor.RoomEndpoint
@@ -20,7 +20,7 @@ public class AllocatingVirtualRoomReport extends Report
     /**
      * Constructor.
      */
-    public AllocatingVirtualRoomReport()
+    public AllocatingRoomReport()
     {
     }
 
@@ -29,7 +29,7 @@ public class AllocatingVirtualRoomReport extends Report
      *
      * @param roomEndpoint
      */
-    public AllocatingVirtualRoomReport(RoomEndpoint roomEndpoint)
+    public AllocatingRoomReport(RoomEndpoint roomEndpoint)
     {
         this.roomEndpoint = roomEndpoint;
     }
@@ -49,6 +49,6 @@ public class AllocatingVirtualRoomReport extends Report
     public String getText()
     {
         return String.format("Allocating virtual room in %s for %d licenses.",
-                roomEndpoint.getReportDescription(), roomEndpoint.getRoom().getLicenseCount());
+                roomEndpoint.getReportDescription(), roomEndpoint.getRoomConfiguration().getLicenseCount());
     }
 }

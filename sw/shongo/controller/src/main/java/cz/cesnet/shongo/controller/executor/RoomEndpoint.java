@@ -1,13 +1,13 @@
 package cz.cesnet.shongo.controller.executor;
 
-import cz.cesnet.shongo.controller.common.Room;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 
 /**
- * Represents an {@link Endpoint} which represents a {@link Room} (is able to
+ * Represents an {@link Endpoint} which represents a {@link cz.cesnet.shongo.controller.common.RoomConfiguration} (is able to
  * interconnect multiple other {@link Endpoint}s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -16,7 +16,7 @@ import javax.persistence.Transient;
 public abstract class RoomEndpoint extends Endpoint
 {
     /**
-     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link Room}.
+     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}.
      */
     private String roomId;
 
@@ -35,10 +35,10 @@ public abstract class RoomEndpoint extends Endpoint
     }
 
     /**
-     * @return {@link Room}
+     * @return {@link cz.cesnet.shongo.controller.common.RoomConfiguration}
      */
     @Transient
-    public abstract Room getRoom();
+    public abstract RoomConfiguration getRoomConfiguration();
 
     /**
      * @return {@link #roomId}

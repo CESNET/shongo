@@ -13,7 +13,7 @@ import java.util.Set;
  * @see {@link #getText()}
  */
 @Entity
-public class NoAvailableVirtualRoomReport extends Report
+public class NoAvailableRoomReport extends Report
 {
     /**
      * List of {@link TechnologySet}s.
@@ -28,7 +28,7 @@ public class NoAvailableVirtualRoomReport extends Report
     /**
      * Constructor.
      */
-    public NoAvailableVirtualRoomReport()
+    public NoAvailableRoomReport()
     {
     }
 

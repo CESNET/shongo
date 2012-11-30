@@ -5,7 +5,8 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRo
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.common.Room;
+import cz.cesnet.shongo.controller.api.DeviceRoom;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
@@ -31,9 +32,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     private DeviceResource deviceResource;
 
     /**
-     * @see Room
+     * @see RoomConfiguration
      */
-    private Room room = new Room();
+    private RoomConfiguration roomConfiguration = new RoomConfiguration();
 
     /**
      * Constructor.
@@ -50,7 +51,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public ResourceRoomEndpoint(RoomReservation roomReservation)
     {
         this.setDeviceResource(roomReservation.getDeviceResource());
-        this.setRoom(roomReservation.getRoom());
+        this.setRoomConfiguration(roomReservation.getRoomConfiguration());
     }
 
     /**
@@ -71,28 +72,27 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     /**
-     * @return {@link #room}
+     * @return {@link #roomConfiguration}
      */
     @Override
-    @Embedded
-    @Access(AccessType.FIELD)
-    public Room getRoom()
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    public RoomConfiguration getRoomConfiguration()
     {
-        return room;
+        return roomConfiguration;
     }
 
     /**
-     * @param room sets the {@link #room}
+     * @param roomConfiguration sets the {@link #roomConfiguration}
      */
-    public void setRoom(Room room)
+    public void setRoomConfiguration(RoomConfiguration roomConfiguration)
     {
-        this.room = room;
+        this.roomConfiguration = roomConfiguration;
     }
 
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.VirtualRoom();
+        return new DeviceRoom();
     }
 
     @Override
@@ -100,15 +100,14 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         super.toApi(executableApi, domain);
 
-        cz.cesnet.shongo.controller.api.VirtualRoom virtualRoomApi =
-                (cz.cesnet.shongo.controller.api.VirtualRoom) executableApi;
-        virtualRoomApi.setIdentifier(domain.formatIdentifier(getId()));
-        virtualRoomApi.setSlot(getSlot());
-        virtualRoomApi.setState(getState().toApi());
-        virtualRoomApi.setLicenseCount(room.getLicenseCount());
-        virtualRoomApi.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        DeviceRoom deviceRoomApi = (DeviceRoom) executableApi;
+        deviceRoomApi.setIdentifier(domain.formatIdentifier(getId()));
+        deviceRoomApi.setSlot(getSlot());
+        deviceRoomApi.setState(getState().toApi());
+        deviceRoomApi.setLicenseCount(roomConfiguration.getLicenseCount());
+        deviceRoomApi.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
         for (Alias alias : getAssignedAliases()) {
-            virtualRoomApi.addAlias(alias.toApi());
+            deviceRoomApi.addAlias(alias.toApi());
         }
     }
 
@@ -173,7 +172,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Starting %s for %d licenses.", getReportDescription(), room.getLicenseCount()));
+        message.append(String.format("Starting %s for %d licenses.", getReportDescription(), roomConfiguration.getLicenseCount()));
         if (deviceResource.hasIpAddress()) {
             message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
         }
@@ -195,7 +194,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
-            room.setLicenseCount(this.room.getLicenseCount());
+            room.setLicenseCount(this.roomConfiguration.getLicenseCount());
             room.setName(roomName);
             for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
@@ -214,19 +213,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Stopping %s for %d ports.", getReportDescription(), room.getLicenseCount()));
+        message.append(String.format("Stopping %s for %d ports.", getReportDescription(), roomConfiguration.getLicenseCount()));
         executorThread.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
-            String virtualRoomId = getRoomId();
-            if (virtualRoomId == null) {
+            String roomId = getRoomId();
+            if (roomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
             }
             Command command = controllerAgent
-                    .performCommandAndWait(new AgentActionCommand(agentName, new DeleteRoom(virtualRoomId)));
+                    .performCommandAndWait(new AgentActionCommand(agentName, new DeleteRoom(roomId)));
             if (command.getState() != Command.State.SUCCESSFUL) {
                 return State.STARTED;
             }

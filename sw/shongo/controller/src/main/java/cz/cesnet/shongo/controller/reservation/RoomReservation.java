@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.common.Room;
+import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.executor.Endpoint;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
@@ -17,26 +17,25 @@ import javax.persistence.*;
 public class RoomReservation extends EndpointReservation
 {
     /**
-     * Allocated port count.
+     * @see RoomConfiguration
      */
-    private Room room = new Room();
+    private RoomConfiguration roomConfiguration = new RoomConfiguration();
 
     /**
-     * @return {@link #room}
+     * @return {@link #roomConfiguration}
      */
-    @Embedded
-    @Access(AccessType.FIELD)
-    public Room getRoom()
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    public RoomConfiguration getRoomConfiguration()
     {
-        return room;
+        return roomConfiguration;
     }
 
     /**
-     * @param room sets the {@link #room}
+     * @param roomConfiguration sets the {@link #roomConfiguration}
      */
-    public void setRoom(Room room)
+    public void setRoomConfiguration(RoomConfiguration roomConfiguration)
     {
-        this.room = room;
+        this.roomConfiguration = roomConfiguration;
     }
 
     @Override
@@ -64,9 +63,9 @@ public class RoomReservation extends EndpointReservation
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
     {
-        cz.cesnet.shongo.controller.api.RoomReservation virtualRoomReservationApi =
+        cz.cesnet.shongo.controller.api.RoomReservation roomReservationApi =
                 (cz.cesnet.shongo.controller.api.RoomReservation) api;
-        virtualRoomReservationApi.setLicenseCount(room.getLicenseCount());
+        roomReservationApi.setLicenseCount(roomConfiguration.getLicenseCount());
         super.toApi(api, domain);
     }
 }

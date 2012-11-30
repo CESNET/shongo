@@ -5,7 +5,7 @@ package cz.cesnet.shongo.controller.api;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoomsResourceAllocation extends ResourceAllocation
+public class RoomProviderResourceAllocation extends ResourceAllocation
 {
     /**
      * Maximum number of used ports.

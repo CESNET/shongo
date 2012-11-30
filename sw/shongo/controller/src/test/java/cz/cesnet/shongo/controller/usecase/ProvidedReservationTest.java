@@ -212,7 +212,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testProvidedVirtualRoomReservations() throws Exception
+    public void testProvidedRoomReservations() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -223,15 +223,15 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
-        ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
-        virtualRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
-        virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification virtualRoomSpecification = new RoomSpecification();
-        virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setParticipantCount(10);
-        virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(10);
+        roomReservationRequest.setSpecification(roomSpecification);
 
-        Reservation virtualRoomReservation = allocateAndCheck(virtualRoomReservationRequest);
+        Reservation roomReservation = allocateAndCheck(roomReservationRequest);
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-01-01T14:00", "PT2H");
@@ -239,7 +239,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
-        compartmentReservationRequest.addProvidedReservationIdentifier(virtualRoomReservation.getIdentifier());
+        compartmentReservationRequest.addProvidedReservationIdentifier(roomReservation.getIdentifier());
 
         allocateAndCheck(compartmentReservationRequest);
     }

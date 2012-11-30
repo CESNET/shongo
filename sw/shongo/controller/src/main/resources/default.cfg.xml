@@ -61,7 +61,7 @@
         <!-- Configuration for compartment executable -->
         <compartment>
             <!-- Duration of waiting for virtual rooms to be created -->
-            <waiting-virtual-room>PT5S</waiting-virtual-room>
+            <waiting-room>PT5S</waiting-room>
         </compartment>
     </executor>
 

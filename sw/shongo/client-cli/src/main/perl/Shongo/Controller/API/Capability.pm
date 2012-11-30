@@ -21,7 +21,7 @@ use Shongo::Controller::API::Alias;
 our $Type = ordered_hash(
     'TerminalCapability' => 'Terminal',
     'StandaloneTerminalCapability' => 'Standalone Terminal',
-    'VirtualRoomsCapability' => 'Virtual Rooms',
+    'RoomProviderCapability' => 'Room Provider',
     'AliasProviderCapability' => 'Alias Provider'
 );
 
@@ -69,10 +69,10 @@ sub on_init()
                 }
             );
         }
-        case 'VirtualRoomsCapability' {
+        case 'RoomProviderCapability' {
             $self->add_attribute(
-                'portCount', {
-                    'title' => 'Maximum Number of Ports',
+                'licenseCount', {
+                    'title' => 'Maximum Number of Licenses',
                     'required' => 1,
                     'type' => 'int'
                 }

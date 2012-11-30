@@ -43,7 +43,7 @@ sub create_action
                 'start',
                 'durationCount',
                 'periodicity',
-                'portCount',
+                'participantCount',
             ],
             optional => [
                 'periodicityEnd',
@@ -55,7 +55,7 @@ sub create_action
                 'durationCount' => 'number',
                 'periodicity' => qr/^none|daily|weekly$/,
                 'periodicityEnd' => 'date',
-                'portCount' => 'number',
+                'participantCount' => 'number',
                 'pin' => 'number'
             }
         });
@@ -77,8 +77,8 @@ sub create_action
             }
             # Specification
             my $specification = {
-                'class' => 'VirtualRoomSpecification',
-                'portCount' => $params->{'portCount'},
+                'class' => 'RoomSpecification',
+                'participantCount' => $params->{'participantCount'},
                 'withAlias' => 1,
                 'technologies' => ['H323', 'SIP']
             };
@@ -199,13 +199,13 @@ sub detail_action
     if ( !defined($specification) ) {
         $self->error("Reservation request should have specification defined.");
     }
-    if ( !($specification->{'class'} eq 'VirtualRoomSpecification') ) {
-        $self->error("Reservation request should have virtual room specification but '$specification->{'class'}' was present.");
+    if ( !($specification->{'class'} eq 'RoomSpecification') ) {
+        $self->error("Reservation request should have room specification but '$specification->{'class'}' was present.");
     }
     if ( !$specification->{'withAlias'} ) {
         $self->error("Reservation request should request virtual room with aliases.");
     }
-    $request->{'portCount'} = $specification->{'portCount'};
+    $request->{'participantCount'} = $specification->{'participantCount'};
     $request->{'pin'} = '<span class="todo">todo: implement</span>';
 
     # Allocated reservations
@@ -220,8 +220,8 @@ sub detail_action
         if ( $child_request->{'state'} eq 'ALLOCATED' ) {
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation',
                     $child_request->{'reservationIdentifier'});
-            if ( !($reservation->{'class'} eq 'VirtualRoomReservation') ) {
-                $self->error("Allocated reservation should be for virtual room but '$reservation->{'class'}' was present.");
+            if ( !($reservation->{'class'} eq 'RoomReservation') ) {
+                $self->error("Allocated reservation should be for room but '$reservation->{'class'}' was present.");
             }
 
             my $aliases = '';

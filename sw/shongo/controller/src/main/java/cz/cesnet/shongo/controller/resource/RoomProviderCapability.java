@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.controller.common.Room;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.Column;
@@ -8,7 +7,7 @@ import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
 /**
- * Capability tells that the {@link DeviceResource} can host one or more {@link Room}s.
+ * Capability tells that the {@link DeviceResource} can host one or more {@link cz.cesnet.shongo.controller.common.RoomConfiguration}s.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -63,10 +62,10 @@ public class RoomProviderCapability extends DeviceCapability
     @Override
     protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
     {
-        cz.cesnet.shongo.controller.api.RoomProviderCapability virtualRoomsCapability =
+        cz.cesnet.shongo.controller.api.RoomProviderCapability roomProviderCapabilityApi =
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
-        virtualRoomsCapability.setIdentifier(getId());
-        virtualRoomsCapability.setLicenseCount(getLicenseCount());
+        roomProviderCapabilityApi.setIdentifier(getId());
+        roomProviderCapabilityApi.setLicenseCount(getLicenseCount());
         super.toApi(api);
     }
 
@@ -74,10 +73,10 @@ public class RoomProviderCapability extends DeviceCapability
     public void fromApi(cz.cesnet.shongo.controller.api.Capability api, EntityManager entityManager)
             throws FaultException
     {
-        cz.cesnet.shongo.controller.api.RoomProviderCapability apiVirtualRoomsCapability =
+        cz.cesnet.shongo.controller.api.RoomProviderCapability roomProviderCapabilityApi =
                 (cz.cesnet.shongo.controller.api.RoomProviderCapability) api;
-        if (apiVirtualRoomsCapability.isPropertyFilled(apiVirtualRoomsCapability.LICENSE_COUNT)) {
-            setLicenseCount(apiVirtualRoomsCapability.getLicenseCount());
+        if (roomProviderCapabilityApi.isPropertyFilled(roomProviderCapabilityApi.LICENSE_COUNT)) {
+            setLicenseCount(roomProviderCapabilityApi.getLicenseCount());
         }
         super.fromApi(api, entityManager);
     }

@@ -379,42 +379,42 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param technologies
      * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableRoom}
      */
-    public List<AvailableRoom> findAvailableVirtualRooms(Interval interval, int requiredLicenseCount,
+    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Set<Technology> technologies, Transaction transaction)
     {
         Set<Long> deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
                 RoomProviderCapability.class,
                 technologies);
-        List<AvailableRoom> availableVirtualRooms = new ArrayList<AvailableRoom>();
+        List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
         for (Long deviceResourceId : deviceResourceIds) {
             DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
-            AvailableRoom availableVirtualRoom = resourceCache.getAvailableVirtualRoom(deviceResource,
+            AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource,
                     interval, (transaction != null ? transaction.getResourceCacheTransaction() : null));
-            if (availableVirtualRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
-                availableVirtualRooms.add(availableVirtualRoom);
+            if (availableRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
+                availableRooms.add(availableRoom);
             }
         }
-        return availableVirtualRooms;
+        return availableRooms;
     }
 
     /**
-     * @see {@link #findAvailableVirtualRooms}
+     * @see {@link #findAvailableRooms}
      */
-    public List<AvailableRoom> findAvailableVirtualRooms(Interval interval, int requiredLicenseCount,
+    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Technology[] technologies, Transaction transaction)
     {
         Set<Technology> technologySet = new HashSet<Technology>();
         Collections.addAll(technologySet, technologies);
-        return findAvailableVirtualRooms(interval, requiredLicenseCount, technologySet, transaction);
+        return findAvailableRooms(interval, requiredLicenseCount, technologySet, transaction);
     }
 
     /**
-     * @see {@link #findAvailableVirtualRooms}
+     * @see {@link #findAvailableRooms}
      */
-    public List<AvailableRoom> findAvailableVirtualRooms(Interval interval, int requiredLicenseCount,
+    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Transaction transaction)
     {
-        return findAvailableVirtualRooms(interval, requiredLicenseCount, (Set<Technology>) null, transaction);
+        return findAvailableRooms(interval, requiredLicenseCount, (Set<Technology>) null, transaction);
     }
 
     /**

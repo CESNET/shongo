@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents an allocated object which can be executed.
+ * {@link Executable} for a virtual room in a {@link DeviceResource}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class VirtualRoom extends Executable
+public class DeviceRoom extends Executable
 {
     /**
      * Identifier of the {@link Resource}.
@@ -18,12 +18,12 @@ public class VirtualRoom extends Executable
     private String resourceIdentifier;
 
     /**
-     * Number of available ports in the {@link VirtualRoom}.
+     * Number of available ports in the {@link DeviceRoom}.
      */
     private int licenseCount;
 
     /**
-     * List of assigned {@link cz.cesnet.shongo.api.Alias}es to the {@link VirtualRoom}.
+     * List of assigned {@link cz.cesnet.shongo.api.Alias}es to the {@link DeviceRoom}.
      */
     private List<Alias> aliases = new ArrayList<Alias>();
 

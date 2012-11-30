@@ -254,7 +254,7 @@ public class ReservationRequestManager extends AbstractManager
                     + "    SELECT reservationRequest"
                     + "    FROM AbstractReservationRequest reservationRequest, RoomSpecification specification"
                     + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
-                    + "    LEFT JOIN specification.room.technologies technology"
+                    + "    LEFT JOIN specification.technologies technology"
                     + "    WHERE (reservationRequest.specification = specification OR"
                     + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
                     + "  ) OR request IN ("

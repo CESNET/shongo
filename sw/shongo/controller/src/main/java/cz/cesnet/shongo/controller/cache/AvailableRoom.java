@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.cache;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 
 /**
- * Represents an available {@link cz.cesnet.shongo.controller.common.Room} in
+ * Represents an available {@link cz.cesnet.shongo.controller.common.RoomConfiguration} in
  * a {@link cz.cesnet.shongo.controller.resource.DeviceResource} with a
  * {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability}.
  */
@@ -11,7 +11,7 @@ public class AvailableRoom
 {
     /**
      * {@link cz.cesnet.shongo.controller.resource.DeviceResource} in which
-     * the {@link cz.cesnet.shongo.controller.common.Room} is available.
+     * the {@link cz.cesnet.shongo.controller.common.RoomConfiguration} is available.
      */
     private DeviceResource deviceResource;
 

@@ -84,7 +84,7 @@ public class ExecutableSummary extends IdentifiedObject
         COMPARTMENT,
 
         /**
-         * Represents {@link VirtualRoom}
+         * Represents {@link DeviceRoom}
          */
         VIRTUAL_ROOM
     }

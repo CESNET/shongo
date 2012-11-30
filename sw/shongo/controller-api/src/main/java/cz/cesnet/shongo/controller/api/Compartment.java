@@ -19,9 +19,9 @@ public class Compartment extends Executable
     private List<Endpoint> endpoints = new ArrayList<Endpoint>();
 
     /**
-     * List of {@link cz.cesnet.shongo.controller.api.Compartment.VirtualRoom}s.
+     * List of {@link cz.cesnet.shongo.controller.api.Compartment.RoomEndpoint}s.
      */
-    private List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
+    private List<RoomEndpoint> roomEndpoints = new ArrayList<RoomEndpoint>();
 
     /**
      * List of {@link cz.cesnet.shongo.controller.api.Compartment.Connection}s.
@@ -53,27 +53,27 @@ public class Compartment extends Executable
     }
 
     /**
-     * @return {@link #virtualRooms}
+     * @return {@link #roomEndpoints}
      */
-    public List<VirtualRoom> getVirtualRooms()
+    public List<RoomEndpoint> getRoomEndpoints()
     {
-        return virtualRooms;
+        return roomEndpoints;
     }
 
     /**
-     * @param virtualRooms sets the {@link #virtualRooms}
+     * @param roomEndpoints sets the {@link #roomEndpoints}
      */
-    public void setVirtualRooms(List<VirtualRoom> virtualRooms)
+    public void setRoomEndpoints(List<RoomEndpoint> roomEndpoints)
     {
-        this.virtualRooms = virtualRooms;
+        this.roomEndpoints = roomEndpoints;
     }
 
     /**
-     * @param virtualRoom to be added to the {@link #virtualRooms}
+     * @param roomEndpoint to be added to the {@link #roomEndpoints}
      */
-    public void addVirtualRoom(VirtualRoom virtualRoom)
+    public void addRoomEndpoint(RoomEndpoint roomEndpoint)
     {
-        virtualRooms.add(virtualRoom);
+        roomEndpoints.add(roomEndpoint);
     }
 
     /**
@@ -180,7 +180,7 @@ public class Compartment extends Executable
     /**
      * Represents a virtual room which interconnects {@link cz.cesnet.shongo.controller.api.Compartment.Endpoint}s in the {@link cz.cesnet.shongo.controller.api.Compartment}.
      */
-    public static class VirtualRoom extends Endpoint
+    public static class RoomEndpoint extends Endpoint
     {
         /**
          * License count.

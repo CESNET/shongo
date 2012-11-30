@@ -60,17 +60,17 @@ public class Compartment extends Executable
      * @return list of {@link RoomEndpoint}s in the {@link Compartment}
      */
     @Transient
-    public List<RoomEndpoint> getVirtualRooms()
+    public List<RoomEndpoint> getRoomEndpoints()
     {
-        List<RoomEndpoint> virtualRooms = new ArrayList<RoomEndpoint>();
+        List<RoomEndpoint> roomEndpoints = new ArrayList<RoomEndpoint>();
         for (Executable childExecutable : getChildExecutables()) {
             if (!(childExecutable instanceof RoomEndpoint)) {
                 continue;
             }
-            RoomEndpoint virtualRoom = (RoomEndpoint) childExecutable;
-            virtualRooms.add(virtualRoom);
+            RoomEndpoint roomEndpoint = (RoomEndpoint) childExecutable;
+            roomEndpoints.add(roomEndpoint);
         }
-        return virtualRooms;
+        return roomEndpoints;
     }
 
     /**
@@ -139,17 +139,17 @@ public class Compartment extends Executable
             }
             compartmentApi.addEndpoint(endpointApi);
         }
-        for (RoomEndpoint virtualRoom : getVirtualRooms()) {
-            cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
-                    new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
-            virtualRoomApi.setIdentifier(virtualRoom.getId().toString());
-            virtualRoomApi.setLicenseCount(virtualRoom.getRoom().getLicenseCount());
-            virtualRoomApi.setDescription(virtualRoom.getReportDescription());
-            for (Alias alias : virtualRoom.getAssignedAliases()) {
-                virtualRoomApi.addAlias(alias.toApi());
+        for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
+            cz.cesnet.shongo.controller.api.Compartment.RoomEndpoint roomEndpointApi =
+                    new cz.cesnet.shongo.controller.api.Compartment.RoomEndpoint();
+            roomEndpointApi.setIdentifier(roomEndpoint.getId().toString());
+            roomEndpointApi.setLicenseCount(roomEndpoint.getRoomConfiguration().getLicenseCount());
+            roomEndpointApi.setDescription(roomEndpoint.getReportDescription());
+            for (Alias alias : roomEndpoint.getAssignedAliases()) {
+                roomEndpointApi.addAlias(alias.toApi());
             }
-            virtualRoomApi.setState(virtualRoom.getState().toApi());
-            compartmentApi.addVirtualRoom(virtualRoomApi);
+            roomEndpointApi.setState(roomEndpoint.getState().toApi());
+            compartmentApi.addRoomEndpoint(roomEndpointApi);
         }
         for (Connection connection : getConnections()) {
             if (connection instanceof ConnectionByAddress) {
@@ -182,11 +182,11 @@ public class Compartment extends Executable
     private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Create virtual rooms
-        boolean virtualRoomStarted = (startChildren(RoomEndpoint.class, executorThread, entityManager) > 0);
-        if (virtualRoomStarted) {
+        boolean roomStarted = (startChildren(RoomEndpoint.class, executorThread, entityManager) > 0);
+        if (roomStarted) {
             executorThread.getLogger().info("Waiting for virtual rooms to be created...");
             try {
-                Thread.sleep(executorThread.getExecutor().getCompartmentWaitingVirtualRoom().getMillis());
+                Thread.sleep(executorThread.getExecutor().getCompartmentWaitingRoom().getMillis());
             }
             catch (InterruptedException exception) {
                 exception.printStackTrace();

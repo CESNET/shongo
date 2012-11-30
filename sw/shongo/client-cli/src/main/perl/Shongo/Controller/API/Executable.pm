@@ -21,7 +21,7 @@ our $State = {
     'STARTING_FAILED' => {'title' => 'Failed', 'color' => 'red'},
     'STOPPED' => {'title' => 'Finished', 'color' => 'blue'}
 };
-our $VirtualRoomState = {
+our $RoomState = {
     'NOT_STARTED' => {'title' => 'Not-Created', 'color' => 'yellow'},
     'STARTED' => {'title' => 'Created', 'color' => 'green'},
     'STARTING_FAILED' => {'title' => 'Failed', 'color' => 'red'},
@@ -39,7 +39,7 @@ our $ConnectionState = {
 #
 our $Type = ordered_hash(
     'Compartment' => 'Compartment',
-    'VirtualRoom' => 'Virtual Room'
+    'DeviceRoom' => 'Virtual Room'
 );
 
 #
@@ -101,18 +101,18 @@ sub on_init()
                 }
             );
             $self->add_attribute(
-                'virtualRooms', {
+                'roomEndpoints', {
                     'title' => 'Rooms',
                     'type' => 'collection',
                     'item' => {
                         'format' => sub {
-                            my ($virtualRoom) = @_;
-                            my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
-                            foreach my $alias (@{$virtualRoom->{'aliases'}}) {
+                            my ($roomEndpoint) = @_;
+                            my $string = $roomEndpoint->{'description'} . " for " . $roomEndpoint->{'licenseCount'} . " licenses";
+                            foreach my $alias (@{$roomEndpoint->{'aliases'}}) {
                                 $string .= sprintf("\nwith assigned %s", $alias->to_string_short());
                                 $string =~ s/\n$//g;
                             }
-                            $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
+                            $string .= "\nstate: " . format_state($roomEndpoint->{'state'}, $RoomState);
                             return $string;
                         }
                     },
@@ -142,10 +142,10 @@ sub on_init()
                 }
             );
         }
-        case 'VirtualRoom' {
+        case 'DeviceRoom' {
             $self->add_attribute(
-                'portCount', {
-                    'title' => 'Number of Ports'
+                'licenseCount', {
+                    'title' => 'Number of Licenses'
                 }
             );
             $self->add_attribute('resourceIdentifier', {
@@ -175,9 +175,9 @@ sub get_endpoint
             return $endpoint;
         }
     }
-    foreach my $virtualRoom (@{$self->{'virtualRooms'}}) {
-        if ( $virtualRoom->{'identifier'} eq $identifier ) {
-            return $virtualRoom;
+    foreach my $room (@{$self->{'roomEndpoints'}}) {
+        if ( $room->{'identifier'} eq $identifier ) {
+            return $room;
         }
     }
     return undef;
@@ -198,55 +198,6 @@ sub format_state
         $title = colored($title, $state->{'color'});
     }
     return '[' . $title . ']';
-}
-
-# @Override
-sub get_attributes
-{
-    my ($self, $attributes) = @_;
-    $self->SUPER::get_attributes($attributes);
-
-    $attributes->{'add'}('Identifier', $self->{'identifier'});
-    $attributes->{'add'}('State', format_state($self->{'state'}, $State));
-    $attributes->{'add'}('Slot', format_interval($self->{'slot'}));
-
-    my $endpointByIdentifier = {};
-    my $endpoints = $attributes->{'add_collection'}('Endpoints');
-    foreach my $endpoint (@{$self->{'endpoints'}}) {
-        my $string = $endpoint->{'description'};
-        foreach my $alias (@{$endpoint->{'aliases'}}) {
-            $string .= sprintf("\nwith assigned %s", trim($alias->to_string()));
-            $string =~ s/\n$//g;
-        }
-        $endpoints->{'add'}($string);
-        $endpointByIdentifier->{$endpoint->{'identifier'}} = $endpoint;
-    }
-
-    my $virtualRooms = $attributes->{'add_collection'}('Virtual Rooms');
-    foreach my $virtualRoom (@{$self->{'virtualRooms'}}) {
-        my $string = $virtualRoom->{'description'} . " for " . $virtualRoom->{'portCount'} . " ports";
-        foreach my $alias (@{$virtualRoom->{'aliases'}}) {
-            $string .= sprintf("\nwith assigned %s", $alias->to_string());
-            $string =~ s/\n$//g;
-        }
-        $string .= "\nstate: " . format_state($virtualRoom->{'state'}, $VirtualRoomState);
-        $virtualRooms->{'add'}($string);
-        $endpointByIdentifier->{$virtualRoom->{'identifier'}} = $virtualRoom;
-    }
-    my $connections = $attributes->{'add_collection'}('Connections');
-    foreach my $connection (@{$self->{'connections'}}) {
-        my $endpointFrom = $endpointByIdentifier->{$connection->{'endpointFromIdentifier'}};
-        my $endpointTo = $endpointByIdentifier->{$connection->{'endpointToIdentifier'}};
-        my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
-        if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
-            $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
-                $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
-        } elsif ( $connection->{'class'} eq 'Compartment.ConnectionByAlias' ) {
-            $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string()));
-        }
-        $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
-        $connections->{'add'}($string);
-    }
 }
 
 1;

@@ -50,10 +50,10 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         reservationRequest =
                 (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, identifier);
         reservationRequest.removeSpecification(reservationRequest.getSpecifications().get(0));
-        RoomSpecification virtualRoomSpecification = new RoomSpecification();
-        virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setParticipantCount(5);
-        reservationRequest.addSpecification(virtualRoomSpecification);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(5);
+        reservationRequest.addSpecification(roomSpecification);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);

@@ -74,7 +74,7 @@ public class CompartmentReservationTaskTest
     }
 
     @Test
-    public void testNoVirtualRoom() throws Exception
+    public void testNoRoom() throws Exception
     {
         ReservationTask.Context context = new ReservationTask.Context(new Cache(), Interval.parse("2012/2013"));
         CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
@@ -89,7 +89,7 @@ public class CompartmentReservationTaskTest
     }
 
     @Test
-    public void testSingleVirtualRoom() throws Exception
+    public void testSingleRoom() throws Exception
     {
         Cache cache = Cache.createTestingCache();
 
@@ -129,7 +129,7 @@ public class CompartmentReservationTaskTest
     }
 
     @Test
-    public void testSingleVirtualRoomFromMultipleEndpoints() throws Exception
+    public void testSingleRoomFromMultipleEndpoints() throws Exception
     {
         Cache cache = Cache.createTestingCache();
 
@@ -153,7 +153,7 @@ public class CompartmentReservationTaskTest
         Reservation reservation = compartmentReservationTask.perform();
         assertEquals(3, reservation.getChildReservations().size());
         assertEquals(2, ((Compartment) reservation.getExecutable()).getEndpoints().size());
-        assertEquals(1, ((Compartment) reservation.getExecutable()).getVirtualRooms().size());
+        assertEquals(1, ((Compartment) reservation.getExecutable()).getRoomEndpoints().size());
     }
 
     @Test

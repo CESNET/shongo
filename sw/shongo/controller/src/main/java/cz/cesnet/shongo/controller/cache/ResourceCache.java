@@ -28,9 +28,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             new HashMap<Class<? extends Capability>, CapabilityState>();
 
     /**
-     * Map of states for cached objects with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability} by theirs identifiers.
+     * Map of states for cached objects with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability}
+     * by theirs identifiers.
      */
-    private Map<Long, ObjectState<RoomReservation>> virtualRoomStateById =
+    private Map<Long, ObjectState<RoomReservation>> roomProviderStateById =
             new HashMap<Long, ObjectState<RoomReservation>>();
 
     /**
@@ -87,12 +88,12 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             }
 
             // If device resource has virtual rooms capability, add it to managed capabilities
-            RoomProviderCapability virtualRoomsCapability = deviceResource.getCapability(RoomProviderCapability.class);
-            if (virtualRoomsCapability != null) {
-                addResourceCapability(virtualRoomsCapability);
+            RoomProviderCapability roomProviderCapability = deviceResource.getCapability(RoomProviderCapability.class);
+            if (roomProviderCapability != null) {
+                addResourceCapability(roomProviderCapability);
 
                 // Add virtual room state
-                virtualRoomStateById.put(deviceResource.getId(), new ObjectState<RoomReservation>());
+                roomProviderStateById.put(deviceResource.getId(), new ObjectState<RoomReservation>());
             }
         }
         super.addObject(resource, entityManager);
@@ -118,7 +119,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
                 removeResourceCapability(deviceResource, RoomProviderCapability.class);
 
                 // Remove virtual room state
-                virtualRoomStateById.remove(deviceResource.getId());
+                roomProviderStateById.remove(deviceResource.getId());
             }
         }
         super.removeObject(resource);
@@ -137,10 +138,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @return state for given {@code object}
      * @throws IllegalArgumentException when state cannot be found
      */
-    private ObjectState<RoomReservation> getVirtualRoomState(DeviceResource deviceResource)
+    private ObjectState<RoomReservation> getRoomProviderState(DeviceResource deviceResource)
     {
         Long objectId = deviceResource.getId();
-        ObjectState<RoomReservation> objectState = virtualRoomStateById.get(objectId);
+        ObjectState<RoomReservation> objectState = roomProviderStateById.get(objectId);
         if (objectState == null) {
             throw new IllegalArgumentException(
                     RoomProviderCapability.class.getSimpleName() + " '" + objectId + "' isn't in the cache!");
@@ -152,10 +153,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     protected void onAddReservation(Resource object, ResourceReservation reservation)
     {
         if (reservation instanceof RoomReservation) {
-            RoomReservation virtualRoomReservation = (RoomReservation) reservation;
-            DeviceResource deviceResource = virtualRoomReservation.getDeviceResource();
-            ObjectState<RoomReservation> objectState = getVirtualRoomState(deviceResource);
-            objectState.addReservation(virtualRoomReservation);
+            RoomReservation roomReservation = (RoomReservation) reservation;
+            DeviceResource deviceResource = roomReservation.getDeviceResource();
+            ObjectState<RoomReservation> objectState = getRoomProviderState(deviceResource);
+            objectState.addReservation(roomReservation);
         }
         else {
             super.onAddReservation(object, reservation);
@@ -166,10 +167,10 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     public void onRemove(Resource object, ResourceReservation reservation)
     {
         if (reservation instanceof RoomReservation) {
-            RoomReservation virtualRoomReservation = (RoomReservation) reservation;
-            DeviceResource deviceResource = virtualRoomReservation.getDeviceResource();
-            ObjectState<RoomReservation> objectState = getVirtualRoomState(deviceResource);
-            objectState.removeReservation(virtualRoomReservation);
+            RoomReservation roomReservation = (RoomReservation) reservation;
+            DeviceResource deviceResource = roomReservation.getDeviceResource();
+            ObjectState<RoomReservation> objectState = getRoomProviderState(deviceResource);
+            objectState.removeReservation(roomReservation);
         }
         else {
             super.onRemove(object, reservation);
@@ -396,12 +397,12 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @param interval       which should be checked
      * @return collection of {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s in given {@code interval} for given {@code deviceResource}
      */
-    public Collection<RoomReservation> getVirtualRoomReservations(DeviceResource deviceResource,
+    public Collection<RoomReservation> getRoomReservations(DeviceResource deviceResource,
             Interval interval)
     {
-        ObjectState<RoomReservation> virtualRoomState = getVirtualRoomState(deviceResource);
-        Set<RoomReservation> virtualRoomReservations = virtualRoomState.getReservations(interval);
-        return virtualRoomReservations;
+        ObjectState<RoomReservation> roomProviderState = getRoomProviderState(deviceResource);
+        Set<RoomReservation> roomReservations = roomProviderState.getReservations(interval);
+        return roomReservations;
     }
 
     /**
@@ -409,31 +410,32 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
      * @param interval
      * @return {@link AvailableRoom} for given {@code deviceResource} in given {@code interval}
      */
-    public AvailableRoom getAvailableVirtualRoom(DeviceResource deviceResource, Interval interval,
+    public AvailableRoom getAvailableRoom(DeviceResource deviceResource, Interval interval,
             Transaction transaction)
     {
-        ObjectState<RoomReservation> virtualRoomState = getVirtualRoomState(deviceResource);
+        ObjectState<RoomReservation> roomProviderState = getRoomProviderState(deviceResource);
         RoomProviderCapability roomProviderCapability =
                 getResourceCapability(deviceResource.getId(), RoomProviderCapability.class);
         if (roomProviderCapability == null) {
-            throw new IllegalStateException("Device resource doesn't have VirtualRooms capability.");
+            throw new IllegalStateException("Device resource doesn't have "
+                    + RoomProviderCapability.class.getSimpleName() + ".");
         }
-        Set<RoomReservation> virtualRoomReservations = virtualRoomState.getReservations(interval);
+        Set<RoomReservation> roomReservations = roomProviderState.getReservations(interval);
         int usedLicenseCount = 0;
         if (isResourceAvailable(deviceResource, interval, transaction)) {
-            for (ResourceReservation resourceReservation : virtualRoomReservations) {
-                RoomReservation virtualRoomReservation = (RoomReservation) resourceReservation;
-                usedLicenseCount += virtualRoomReservation.getRoom().getLicenseCount();
+            for (ResourceReservation resourceReservation : roomReservations) {
+                RoomReservation roomReservation = (RoomReservation) resourceReservation;
+                usedLicenseCount += roomReservation.getRoomConfiguration().getLicenseCount();
             }
         }
         else {
             usedLicenseCount = roomProviderCapability.getLicenseCount();
         }
-        AvailableRoom availableVirtualRoom = new AvailableRoom();
-        availableVirtualRoom.setDeviceResource(deviceResource);
-        availableVirtualRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
-        availableVirtualRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
-        return availableVirtualRoom;
+        AvailableRoom availableRoom = new AvailableRoom();
+        availableRoom.setDeviceResource(deviceResource);
+        availableRoom.setMaximumLicenseCount(roomProviderCapability.getLicenseCount());
+        availableRoom.setAvailableLicenseCount(roomProviderCapability.getLicenseCount() - usedLicenseCount);
+        return availableRoom;
     }
 
     /**
@@ -450,7 +452,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         /**
          * Provided {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s in the {@link Transaction}.
          */
-        private List<RoomReservation> providedVirtualRoomReservations = new ArrayList<RoomReservation>();
+        private List<RoomReservation> providedRoomReservations = new ArrayList<RoomReservation>();
 
         /**
          * @param resource to be added to the {@link #referencedResources}
@@ -474,8 +476,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         public void addProvidedReservation(Long objectId, ResourceReservation reservation)
         {
             if (reservation instanceof RoomReservation) {
-                RoomReservation virtualRoomReservation = (RoomReservation) reservation;
-                providedVirtualRoomReservations.add(virtualRoomReservation);
+                RoomReservation roomReservation = (RoomReservation) reservation;
+                providedRoomReservations.add(roomReservation);
             }
             else {
                 super.addProvidedReservation(objectId, reservation);
@@ -486,8 +488,8 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         public void removeProvidedReservation(Long objectId, ResourceReservation reservation)
         {
             if (reservation instanceof RoomReservation) {
-                RoomReservation virtualRoomReservation = (RoomReservation) reservation;
-                providedVirtualRoomReservations.remove(virtualRoomReservation);
+                RoomReservation roomReservation = (RoomReservation) reservation;
+                providedRoomReservations.remove(roomReservation);
             }
             else {
                 super.removeProvidedReservation(objectId, reservation);
@@ -497,9 +499,9 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         /**
          * @return collection of provided {@link cz.cesnet.shongo.controller.reservation.RoomReservation}
          */
-        public Collection<RoomReservation> getProvidedVirtualRoomReservations()
+        public Collection<RoomReservation> getProvidedRoomReservations()
         {
-            return providedVirtualRoomReservations;
+            return providedRoomReservations;
         }
     }
 }

@@ -136,7 +136,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testVirtualRoomsDevice() throws Exception
+    public void testRoomProviderDevice() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");

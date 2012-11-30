@@ -255,9 +255,9 @@ sub get_resource_allocation()
     $resource_allocation->add_attribute('identifier');
     $resource_allocation->add_attribute('name');
     $resource_allocation->add_attribute('interval', {'type' => 'interval'});
-    if ($result_hash->{'class'} eq 'VirtualRoomsResourceAllocation') {
-        $resource_allocation->add_attribute('maximumPortCount', {'title' => 'Maximum Port Count'});
-        $resource_allocation->add_attribute('availablePortCount', {'title' => 'Available Port Count'});
+    if ($result_hash->{'class'} eq 'RoomProviderResourceAllocation') {
+        $resource_allocation->add_attribute('maximumLicenseCount', {'title' => 'Maximum License Count'});
+        $resource_allocation->add_attribute('availableLicenseCount', {'title' => 'Available License Count'});
     }
     $resource_allocation->from_hash($result_hash);
     console_print_text($resource_allocation);

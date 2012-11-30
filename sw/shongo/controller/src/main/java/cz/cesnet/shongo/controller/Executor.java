@@ -60,9 +60,9 @@ public class Executor extends Component
     private Duration executableEnd;
 
     /**
-     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM}
+     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_ROOM}
      */
-    private Duration compartmentWaitingVirtualRoom;
+    private Duration compartmentWaitingRoom;
 
     /**
      * @see {@link Configuration#EXECUTOR_EXECUTABLE_WAITING_START}
@@ -113,11 +113,11 @@ public class Executor extends Component
     }
 
     /**
-     * @return {@link #compartmentWaitingVirtualRoom}
+     * @return {@link #compartmentWaitingRoom}
      */
-    public Duration getCompartmentWaitingVirtualRoom()
+    public Duration getCompartmentWaitingRoom()
     {
-        return compartmentWaitingVirtualRoom;
+        return compartmentWaitingRoom;
     }
 
     @Override
@@ -152,8 +152,8 @@ public class Executor extends Component
         executableEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_END);
         executableWaitingStart = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_WAITING_START);
         executableWaitingEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_WAITING_END);
-        compartmentWaitingVirtualRoom = configuration.getDuration(
-                Configuration.EXECUTOR_COMPARTMENT_WAITING_VIRTUAL_ROOM);
+        compartmentWaitingRoom = configuration.getDuration(
+                Configuration.EXECUTOR_COMPARTMENT_WAITING_ROOM);
     }
 
     @Override

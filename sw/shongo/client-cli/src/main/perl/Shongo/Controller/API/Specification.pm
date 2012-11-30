@@ -24,7 +24,7 @@ our $RootType = ordered_hash(
     'ResourceSpecification' => 'Resource',
     'CompartmentSpecification' => 'Compartment',
     'AliasSpecification' => 'Alias',
-    'VirtualRoomSpecification' => 'Virtual Room'
+    'RoomSpecification' => 'Virtual Room'
 );
 our $ParticipantType = ordered_hash(
     'ExternalEndpointSpecification' => 'External Endpoint',
@@ -213,7 +213,7 @@ sub on_init()
                 'string-pattern' => $Shongo::Common::IdentifierPattern
             });
         }
-        case 'VirtualRoomSpecification' {
+        case 'RoomSpecification' {
             $self->add_attribute('technologies', {
                 'type' => 'collection',
                 'item' => {
@@ -223,8 +223,8 @@ sub on_init()
                 'complex' => 0,
                 'required' => 1
             });
-            $self->add_attribute('portCount', {
-                'title' => 'Port Count',
+            $self->add_attribute('participantCount', {
+                'title' => 'Participant Count',
                 'type' => 'int',
                 'required' => 1
             });

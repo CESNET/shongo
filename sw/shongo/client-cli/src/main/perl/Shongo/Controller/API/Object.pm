@@ -23,7 +23,7 @@ our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::Controller::API::Reservation',
     '^.*Specification$' => 'Shongo::Controller::API::Specification',
     '^Compartment$' => 'Shongo::Controller::API::Executable',
-    '^VirtualRoom$' => 'Shongo::Controller::API::Executable'
+    '^DeviceRoom$' => 'Shongo::Controller::API::Executable'
 };
 
 #
