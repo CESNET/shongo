@@ -82,6 +82,13 @@ sub create_action
                 'withAlias' => 1,
                 'technologies' => ['H323', 'SIP']
             };
+            # Setup pin to specification
+            if ( length($params->{'pin'}) > 0 ) {
+                $specification->{'roomSettings'} = [{
+                    'class' => 'RoomSetting.H323',
+                    'pin' => $params->{'pin'}
+                }];
+            }
             # Setup request
             $request->{'name'} = $params->{'name'};
             $request->{'purpose'} = $params->{'purpose'};
@@ -206,7 +213,18 @@ sub detail_action
         $self->error("Reservation request should request virtual room with aliases.");
     }
     $request->{'participantCount'} = $specification->{'participantCount'};
-    $request->{'pin'} = '<span class="todo">todo: implement</span>';
+
+    if ( defined($specification->{'roomSettings'}) && @{$specification->{'roomSettings'}} > 0 ) {
+        my $roomSetting = $specification->{'roomSettings'}->[0];
+        if ( $roomSetting->{'class'} ne 'RoomSetting.H323' ) {
+            $self->error("Reservation request should contains only room setttings for 'H323' but '$roomSetting->{'class'}' was present.");
+        }
+        $request->{'pin'} = $roomSetting->{'pin'};
+    }
+    if ( !defined($request->{'pin'}) || $request->{'pin'} eq '' ) {
+        $request->{'pin'} = 'none';
+    }
+
 
     # Allocated reservations
     $request->{'reservations'} = [];
