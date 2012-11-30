@@ -1,11 +1,14 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a virtual room on a multipoint server device.
@@ -18,6 +21,12 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      * Room name. Type: String
      */
     public static final String NAME = "name";
+
+    /**
+     * Set of {@link cz.cesnet.shongo.Technology}s for the room.
+     */
+    public static final String TECHNOLOGIES = "technologies";
+
     /**
      * Number of licenses to use for the room. Type: int
      */
@@ -68,6 +77,38 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
         }
 
         getPropertyStorage().setValue(NAME, name);
+    }
+
+    /**
+     * @return {@link #TECHNOLOGIES}
+     */
+    public Set<Technology> getTechnologies()
+    {
+        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
+    }
+
+    /**
+     * @param technologies sets the {@link #TECHNOLOGIES}
+     */
+    public void setTechnologies(Set<Technology> technologies)
+    {
+        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+    }
+
+    /**
+     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     */
+    public void addTechnology(Technology technology)
+    {
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
     }
 
     /**
@@ -217,6 +258,21 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
         if (!option.getValueClass().isInstance(value)) {
             String message = "Option " + option + " requires value of class " + option.getValueClass().getName();
             throw new IllegalArgumentException(message);
+        }
+    }
+
+    /**
+     * Fill {@link #OPTIONS} from given {@code roomSetting}
+     * @param roomSetting
+     */
+    public void fillOptions(RoomSetting roomSetting)
+    {
+        // TODO: use RoomSetting in the Room instead of map of options
+        if (roomSetting instanceof RoomSetting.H323) {
+            RoomSetting.H323 roomSettingH323 = (RoomSetting.H323) roomSetting;
+            if (roomSettingH323.getPin() != null) {
+                setOption(Option.PIN, roomSettingH323.getPin());
+            }
         }
     }
 

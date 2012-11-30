@@ -77,7 +77,7 @@ public class RoomReservationTask extends ReservationTask
      */
     public void addRoomSettings(Collection<RoomSetting> roomSettings)
     {
-        roomSettings.addAll(roomSettings);
+        this.roomSettings.addAll(roomSettings);
     }
 
     /**

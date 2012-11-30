@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.DeviceRoom;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
@@ -191,11 +192,17 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
 
             String roomName = String.format("Shongo%d [exec:%d]", getId(), executorThread.getExecutableId());
+
+            // TODO: Move this stripping to H323 connector
             roomName = roomName.substring(0, Math.min(roomName.length(), 28));
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
-            room.setLicenseCount(this.roomConfiguration.getLicenseCount());
             room.setName(roomName);
+            room.setTechnologies(roomConfiguration.getTechnologies());
+            room.setLicenseCount(roomConfiguration.getLicenseCount());
+            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+                room.fillOptions(roomSetting.toApi());
+            }
             for (Alias alias : getAliases()) {
                 room.addAlias(alias.toApi());
             }

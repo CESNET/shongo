@@ -2,8 +2,10 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.api.annotation.Required;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -13,6 +15,11 @@ import java.util.Set;
  */
 public class RoomSpecification extends Specification
 {
+    /**
+     * Preferred {@link Resource} identifier with {@link AliasProviderCapability}.
+     */
+    public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
+
     /**
      * Set of technologies which the virtual rooms must support.
      */
@@ -29,9 +36,9 @@ public class RoomSpecification extends Specification
     public static final String WITH_ALIAS = "withAlias";
 
     /**
-     * Preferred {@link Resource} identifier with {@link AliasProviderCapability}.
+     * {@link cz.cesnet.shongo.api.RoomSetting}s for the virtual room.
      */
-    public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
+    public static final String ROOM_SETTINGS = "roomSettings";
 
     /**
      * Constructor.
@@ -52,6 +59,22 @@ public class RoomSpecification extends Specification
         for (Technology technology : technologies) {
             addTechnology(technology);
         }
+    }
+
+    /**
+     * @return {@link #RESOURCE_IDENTIFIER}
+     */
+    public String getResourceIdentifier()
+    {
+        return getPropertyStorage().getValue(RESOURCE_IDENTIFIER);
+    }
+
+    /**
+     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     */
+    public void setResourceIdentifier(String resourceIdentifier)
+    {
+        getPropertyStorage().setValue(RESOURCE_IDENTIFIER, resourceIdentifier);
     }
 
     /**
@@ -121,18 +144,34 @@ public class RoomSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_IDENTIFIER}
+     * @return {@link #ROOM_SETTINGS}
      */
-    public String getResourceIdentifier()
+    public List<RoomSetting> getRoomSettings()
     {
-        return getPropertyStorage().getValue(RESOURCE_IDENTIFIER);
+        return getPropertyStorage().getCollection(ROOM_SETTINGS, List.class);
     }
 
     /**
-     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     * @param roomSettings sets the {@link #ROOM_SETTINGS}
      */
-    public void setResourceIdentifier(String resourceIdentifier)
+    public void setRoomSettings(List<RoomSetting> roomSettings)
     {
-        getPropertyStorage().setValue(RESOURCE_IDENTIFIER, resourceIdentifier);
+        getPropertyStorage().setCollection(ROOM_SETTINGS, roomSettings);
+    }
+
+    /**
+     * @param roomSetting to be added to the {@link #ROOM_SETTINGS}
+     */
+    public void addRoomSetting(RoomSetting roomSetting)
+    {
+        getPropertyStorage().addCollectionItem(ROOM_SETTINGS, roomSetting, List.class);
+    }
+
+    /**
+     * @param roomSetting to be removed from the {@link #ROOM_SETTINGS}
+     */
+    public void removeRoomSetting(RoomSetting roomSetting)
+    {
+        getPropertyStorage().removeCollectionItem(ROOM_SETTINGS, roomSetting);
     }
 }

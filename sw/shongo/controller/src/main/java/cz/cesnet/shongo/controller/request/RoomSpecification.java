@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.RoomReservationTask;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.apache.commons.lang.ObjectUtils;
 
@@ -49,7 +50,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
      * List of {@link cz.cesnet.shongo.controller.common.RoomSetting}s for the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}
      * (e.g., {@link Technology} specific).
      */
-    private List<RoomSetting> roomConfigurations = new ArrayList<RoomSetting>();
+    private List<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
 
     /**
      * Constructor.
@@ -148,40 +149,56 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     }
 
     /**
-     * @return {@link #roomConfigurations}
+     * @return {@link #roomSettings}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @Access(AccessType.FIELD)
-    public List<RoomSetting> getRoomConfigurations()
+    public List<RoomSetting> getRoomSettings()
     {
-        return roomConfigurations;
+        return roomSettings;
     }
 
     /**
-     * @param roomConfigurations sets the {@link #roomConfigurations}
+     * @param id of the requested {@link RoomSetting}
+     * @return {@link RoomSetting} with given {@code id}
+     * @throws EntityNotFoundException when the {@link RoomSetting} doesn't exist
      */
-    public void setRoomConfigurations(List<RoomSetting> roomConfigurations)
+    private RoomSetting getRoomSettingById(Long id) throws EntityNotFoundException
     {
-        this.roomConfigurations.clear();
-        for ( RoomSetting roomConfiguration : roomConfigurations) {
-            this.roomConfigurations.add(roomConfiguration);
+        for (RoomSetting roomSetting : roomSettings) {
+            if (roomSetting.getId().equals(id)) {
+                return roomSetting;
+            }
+        }
+        throw new EntityNotFoundException(RoomSetting.class, id);
+    }
+
+
+    /**
+     * @param roomSettings sets the {@link #roomSettings}
+     */
+    public void setRoomSettings(List<RoomSetting> roomSettings)
+    {
+        this.roomSettings.clear();
+        for ( RoomSetting roomConfiguration : roomSettings) {
+            this.roomSettings.add(roomConfiguration);
         }
     }
 
     /**
-     * @param roomConfiguration to be added to the {@link #roomConfigurations}
+     * @param roomSetting to be added to the {@link #roomSettings}
      */
-    public void addRoomConfiguration(RoomSetting roomConfiguration)
+    public void addRoomSetting(RoomSetting roomSetting)
     {
-        roomConfigurations.add(roomConfiguration);
+        roomSettings.add(roomSetting);
     }
 
     /**
-     * @param roomConfiguration to be removed from the {@link #roomConfigurations}
+     * @param roomSetting to be removed from the {@link #roomSettings}
      */
-    public void removeRoomConfiguration(RoomSetting roomConfiguration)
+    public void removeRoomSetting(RoomSetting roomSetting)
     {
-        roomConfigurations.remove(roomConfiguration);
+        roomSettings.remove(roomSetting);
     }
 
     @Override
@@ -203,8 +220,8 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             modified = true;
         }
 
-        if (!roomConfigurations.equals(roomSpecification.getRoomConfigurations())) {
-            setRoomConfigurations(roomSpecification.getRoomConfigurations());
+        if (!roomSettings.equals(roomSpecification.getRoomSettings())) {
+            setRoomSettings(roomSpecification.getRoomSettings());
             modified = true;
         }
 
@@ -216,7 +233,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     {
         RoomReservationTask roomReservationTask = new RoomReservationTask(context, getParticipantCount());
         roomReservationTask.addTechnologyVariant(getTechnologies());
-        roomReservationTask.addRoomSettings(getRoomConfigurations());
+        roomReservationTask.addRoomSettings(getRoomSettings());
         roomReservationTask.setDeviceResource(getDeviceResource());
         roomReservationTask.setWithAlias(isWithAlias());
         return roomReservationTask;
@@ -233,13 +250,16 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     {
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
+        if (deviceResource != null) {
+            roomSpecificationApi.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
+        }
         for (Technology technology : getTechnologies()) {
             roomSpecificationApi.addTechnology(technology);
         }
         roomSpecificationApi.setParticipantCount(getParticipantCount());
         roomSpecificationApi.setWithAlias(isWithAlias());
-        if (deviceResource != null) {
-            roomSpecificationApi.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
+        for (RoomSetting roomSetting : getRoomSettings()) {
+            roomSpecificationApi.addRoomSetting(roomSetting.toApi());
         }
         super.toApi(specificationApi, domain);
     }
@@ -267,16 +287,32 @@ public class RoomSpecification extends Specification implements ReservationTaskP
             }
         }
 
+        // Create/update room settings
+        for (cz.cesnet.shongo.api.RoomSetting roomSettingApi : roomSpecificationApi.getRoomSettings()) {
+            if (specificationApi.isPropertyItemMarkedAsNew(roomSpecificationApi.ROOM_SETTINGS, roomSettingApi)) {
+                addRoomSetting(RoomSetting.createFromApi(roomSettingApi));
+            }
+            else {
+                RoomSetting roomSetting = getRoomSettingById(roomSettingApi.notNullIdAsLong());
+                roomSetting.fromApi(roomSettingApi);
+            }
+        }
+        // Delete room settings
+        Set<cz.cesnet.shongo.api.RoomSetting> roomSettingsToDelete =
+                specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.ROOM_SETTINGS);
+        for (cz.cesnet.shongo.api.RoomSetting roomSettingApi : roomSettingsToDelete) {
+            removeRoomSetting(getRoomSettingById(roomSettingApi.notNullIdAsLong()));
+        }
+
         // Create technologies
         for (Technology technology : roomSpecificationApi.getTechnologies()) {
-            if (specificationApi.isPropertyItemMarkedAsNew(
-                    cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES, technology)) {
+            if (specificationApi.isPropertyItemMarkedAsNew(roomSpecificationApi.TECHNOLOGIES, technology)) {
                 addTechnology(technology);
             }
         }
         // Delete technologies
-        Set<Technology> technologies = specificationApi.getPropertyItemsMarkedAsDeleted(
-                cz.cesnet.shongo.controller.api.DeviceResource.TECHNOLOGIES);
+        Set<Technology> technologies =
+                specificationApi.getPropertyItemsMarkedAsDeleted(roomSpecificationApi.TECHNOLOGIES);
         for (Technology technology : technologies) {
             removeTechnology(technology);
         }

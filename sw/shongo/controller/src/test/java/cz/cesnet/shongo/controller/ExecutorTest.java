@@ -4,6 +4,8 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
@@ -128,12 +130,12 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.endpoint.Dial.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll.class);
-            }}, terminalAgent.getPerformedActions());
+            }}, terminalAgent.getPerformedActionClasses());
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActions());
+            }}, mcuAgent.getPerformedActionClasses());
     }
 
     /**
@@ -184,7 +186,63 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActions());
+            }}, mcuAgent.getPerformedActionClasses());
+    }
+
+    /**
+     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} and execute it.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoomWithSetting() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.setAddress("127.0.0.1");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(5);
+        roomSpecification.addRoomSetting(new RoomSetting.H323().withPin("1234"));
+        reservationRequest.setSpecification(roomSpecification);
+
+        // Allocate reservation request
+        allocateAndCheck(reservationRequest);
+
+        // Execute virtual room
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute virtual room.",
+                ResourceRoomEndpoint.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedActionClasses());
+        cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom createRoomAction =
+                mcuAgent.getPerformedActionByClass(
+                        cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+        assertEquals("1234", createRoomAction.getRoom().getOption(Room.Option.PIN));
     }
 
     /**
@@ -255,7 +313,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActions());
+            }}, mcuAgent.getPerformedActionClasses());
     }
 
     /**
@@ -315,7 +373,7 @@ public class ExecutorTest extends AbstractControllerTest
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActions());
+            }}, mcuAgent.getPerformedActionClasses());
     }
 
     /**
@@ -326,14 +384,32 @@ public class ExecutorTest extends AbstractControllerTest
         /**
          * List of performed actions on connector.
          */
-        private List<Class<? extends AgentAction>> performedActions = new ArrayList<Class<? extends AgentAction>>();
+        private List<AgentAction> performedActions = new ArrayList<AgentAction>();
 
         /**
-         * @return {@link #performedActions}
+         * @return {@link Class}es for {@link #performedActions}
          */
-        public List<Class<? extends AgentAction>> getPerformedActions()
+        public List<Class<? extends AgentAction>> getPerformedActionClasses()
         {
-            return performedActions;
+            List<Class<? extends AgentAction>> performedActionClasses = new ArrayList<Class<? extends AgentAction>>();
+            for (AgentAction agentAction : performedActions) {
+                performedActionClasses.add(agentAction.getClass());
+            }
+            return performedActionClasses;
+        }
+
+        /**
+         * @param type
+         * @return {@link AgentAction} of given {@code type}
+         */
+        public <T> T getPerformedActionByClass(Class<T> type)
+        {
+            for (AgentAction agentAction : performedActions) {
+                if (type.isAssignableFrom(agentAction.getClass())) {
+                    return type.cast(agentAction);
+                }
+            }
+            throw new IllegalStateException("Agent action of type '" + type.getSimpleName() + "' was not found.");
         }
 
         @Override
@@ -349,7 +425,7 @@ public class ExecutorTest extends AbstractControllerTest
         public Object handleAgentAction(AgentAction action, AID sender)
                 throws UnknownAgentActionException, CommandException, CommandUnsupportedException
         {
-            performedActions.add(action.getClass());
+            performedActions.add(action);
             logger.debug("ConnectorAgent '{}' receives action '{}'.", getName(), action.getClass().getSimpleName());
             if (action instanceof CreateRoom) {
                 return "roomId";
