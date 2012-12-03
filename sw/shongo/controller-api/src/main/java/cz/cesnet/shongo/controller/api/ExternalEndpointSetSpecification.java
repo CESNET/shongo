@@ -91,6 +91,7 @@ public class ExternalEndpointSetSpecification extends ParticipantSpecification
     /**
      * @return {@link #COUNT}
      */
+    @Required
     public Integer getCount()
     {
         return getPropertyStorage().getValue(COUNT);

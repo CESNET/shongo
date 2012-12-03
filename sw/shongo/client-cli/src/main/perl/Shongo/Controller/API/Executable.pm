@@ -38,8 +38,8 @@ our $ConnectionState = {
 # Capability types
 #
 our $Type = ordered_hash(
-    'Compartment' => 'Compartment',
-    'DeviceRoom' => 'Virtual Room'
+    'Executable.Compartment' => 'Compartment',
+    'Executable.ResourceRoomEndpoint' => 'Virtual Room'
 );
 
 #
@@ -82,7 +82,7 @@ sub on_init()
         'type' => 'interval'
     });
     switch ($class) {
-        case 'Compartment' {
+        case 'Executable.Compartment' {
             $self->add_attribute(
                 'endpoints', {
                     'type' => 'collection',
@@ -107,7 +107,7 @@ sub on_init()
                     'item' => {
                         'format' => sub {
                             my ($roomEndpoint) = @_;
-                            my $string = $roomEndpoint->{'description'} . " for " . $roomEndpoint->{'licenseCount'} . " licenses";
+                            my $string = "virtual room (in " . $roomEndpoint->{'resourceIdentifier'} . ") for " . $roomEndpoint->{'licenseCount'} . " licenses";
                             foreach my $alias (@{$roomEndpoint->{'aliases'}}) {
                                 $string .= sprintf("\nwith assigned %s", $alias->to_string_short());
                                 $string =~ s/\n$//g;
@@ -127,11 +127,17 @@ sub on_init()
                             my ($connection) = @_;
                             my $endpointFrom = $self->get_endpoint($connection->{'endpointFromIdentifier'});
                             my $endpointTo = $self->get_endpoint($connection->{'endpointToIdentifier'});
+                            if ( $endpointFrom->{'class'} eq 'Executable.ResourceRoomEndpoint' ) {
+                                $endpointFrom->{'description'} = "virtual room (in " . $endpointFrom->{'resourceIdentifier'} . ")";
+                            }
+                            if ( $endpointTo->{'class'} eq 'Executable.ResourceRoomEndpoint' ) {
+                                $endpointTo->{'description'} = "virtual room (in " . $endpointTo->{'resourceIdentifier'} . ")";
+                            }
                             my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
-                            if ( $connection->{'class'} eq 'Compartment.ConnectionByAddress' ) {
+                            if ( $connection->{'class'} eq 'Executable.ConnectionByAddress' ) {
                                 $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
                                     $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
-                            } elsif ( $connection->{'class'} eq 'Compartment.ConnectionByAlias' ) {
+                            } elsif ( $connection->{'class'} eq 'Executable.ConnectionByAlias' ) {
                                 $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
                             }
                             $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
@@ -142,7 +148,7 @@ sub on_init()
                 }
             );
         }
-        case 'DeviceRoom' {
+        case 'Executable.ResourceRoomEndpoint' {
             $self->add_attribute(
                 'licenseCount', {
                     'title' => 'Number of Licenses'

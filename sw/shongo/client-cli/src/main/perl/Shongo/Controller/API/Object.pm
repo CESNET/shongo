@@ -22,8 +22,7 @@ our $COLLECTION_EMPTY = "-- None --";
 our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::Controller::API::Reservation',
     '^.*Specification$' => 'Shongo::Controller::API::Specification',
-    '^Compartment$' => 'Shongo::Controller::API::Executable',
-    '^DeviceRoom$' => 'Shongo::Controller::API::Executable'
+    '^Executable\.(Compartment|ResourceRoomEndpoint)$' => 'Shongo::Controller::API::Executable'
 };
 
 #
@@ -1270,7 +1269,7 @@ sub from_hash_value
         if ( exists $value->{'class'} ) {
            $class = $value->{'class'};
         }
-        elsif ( exists $attribute->{'item'} && exists $attribute->{'item'}->{'class'} ) {
+        elsif ( defined($attribute) && exists $attribute->{'item'} && exists $attribute->{'item'}->{'class'} ) {
             $class = $attribute->{'item'}->{'class'};
         }
         if ( defined($class) ) {

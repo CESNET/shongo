@@ -777,6 +777,7 @@ public class Controller
         controller.startAll();
         logger.info("Controller successfully started.");
         controller.run();
+        logger.info("Stopping controller...");
         controller.stop();
 
         Container.killAllJadeThreads();

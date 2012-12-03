@@ -14,4 +14,8 @@
         <port>8787</port>
     </jade>
 
+    <worker>
+        <period>PT1S</period>
+    </worker>
+
 </configuration>
