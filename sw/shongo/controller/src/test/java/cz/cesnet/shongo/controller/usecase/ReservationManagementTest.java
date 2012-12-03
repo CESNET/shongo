@@ -191,7 +191,7 @@ public class ReservationManagementTest extends AbstractControllerTest
     }
 
     /**
-     * Test listing reservation requests based on {@link Technology} of {@link cz.cesnet.shongo.controller.api.DeviceRoom} or {@link Compartment}.
+     * Test listing reservation requests based on {@link Technology} of {@link cz.cesnet.shongo.controller.api.Executable.Room} or {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
      *
      * @throws Exception
      */

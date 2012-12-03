@@ -28,6 +28,11 @@ public class Configuration extends CompositeConfiguration
     public static final String RESERVATION_ALIAS_MAX_DURATION = "reservation.alias.max-duration";
 
     /**
+     * Database configuration
+     */
+    public static final String DATABASE_FILENAME = "database.filename";
+
+    /**
      * SMTP configuration.
      */
     public static final String SMTP_HOST = "smtp.host";

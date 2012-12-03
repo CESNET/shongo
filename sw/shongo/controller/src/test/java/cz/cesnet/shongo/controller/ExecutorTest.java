@@ -9,8 +9,8 @@ import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.executor.ExecutorThread;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.ExecutorThread;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
@@ -71,7 +71,7 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link Compartment} and execute it.
+     * Allocate {@link cz.cesnet.shongo.controller.api.Executable.Compartment} and execute it.
      *
      * @throws Exception
      */

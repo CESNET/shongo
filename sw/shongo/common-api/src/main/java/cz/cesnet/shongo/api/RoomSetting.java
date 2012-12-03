@@ -20,12 +20,9 @@ public abstract class RoomSetting extends IdentifiedChangeableObject
         public static final String PIN = "pin";
 
         /**
-         * Constructor.
+         * @param pin sets the {@link #PIN}
+         * @return this {@link H323}
          */
-        public H323()
-        {
-        }
-
         public H323 withPin(String pin)
         {
             setPin(pin);

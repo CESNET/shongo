@@ -79,12 +79,12 @@ public class ExecutableSummary extends IdentifiedObject
     public static enum Type
     {
         /**
-         * Represents {@link Compartment}
+         * Represents {@link cz.cesnet.shongo.controller.api.Executable.Compartment}
          */
         COMPARTMENT,
 
         /**
-         * Represents {@link DeviceRoom}
+         * Represents {@link cz.cesnet.shongo.controller.api.Executable.Room}
          */
         VIRTUAL_ROOM
     }

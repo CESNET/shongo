@@ -110,13 +110,13 @@ public class Compartment extends Executable
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.Compartment();
+        return new cz.cesnet.shongo.controller.api.Executable.Compartment();
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Compartment toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.Executable.Compartment toApi(Domain domain)
     {
-        return (cz.cesnet.shongo.controller.api.Compartment) super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.Executable.Compartment) super.toApi(domain);
     }
 
     @Override
@@ -124,14 +124,14 @@ public class Compartment extends Executable
     {
         super.toApi(executableApi, domain);
 
-        cz.cesnet.shongo.controller.api.Compartment compartmentApi =
-                (cz.cesnet.shongo.controller.api.Compartment) executableApi;
+        cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
+                (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
         compartmentApi.setIdentifier(domain.formatIdentifier(getId()));
         compartmentApi.setSlot(getSlot());
         compartmentApi.setState(getState().toApi());
         for (Endpoint endpoint : getEndpoints()) {
-            cz.cesnet.shongo.controller.api.Compartment.Endpoint endpointApi =
-                    new cz.cesnet.shongo.controller.api.Compartment.Endpoint();
+            cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint endpointApi =
+                    new cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint();
             endpointApi.setIdentifier(endpoint.getId().toString());
             endpointApi.setDescription(endpoint.getReportDescription());
             for (Alias alias : endpoint.getAssignedAliases()) {
@@ -140,22 +140,16 @@ public class Compartment extends Executable
             compartmentApi.addEndpoint(endpointApi);
         }
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
-            cz.cesnet.shongo.controller.api.Compartment.RoomEndpoint roomEndpointApi =
-                    new cz.cesnet.shongo.controller.api.Compartment.RoomEndpoint();
-            roomEndpointApi.setIdentifier(roomEndpoint.getId().toString());
-            roomEndpointApi.setLicenseCount(roomEndpoint.getRoomConfiguration().getLicenseCount());
-            roomEndpointApi.setDescription(roomEndpoint.getReportDescription());
-            for (Alias alias : roomEndpoint.getAssignedAliases()) {
-                roomEndpointApi.addAlias(alias.toApi());
+            if (roomEndpoint instanceof ResourceRoomEndpoint) {
+                ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+                compartmentApi.addRoomEndpoint(resourceRoomEndpoint.toApi(domain));
             }
-            roomEndpointApi.setState(roomEndpoint.getState().toApi());
-            compartmentApi.addRoomEndpoint(roomEndpointApi);
         }
         for (Connection connection : getConnections()) {
             if (connection instanceof ConnectionByAddress) {
                 ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
-                cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress connectionByAddressApi =
-                        new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress();
+                cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress connectionByAddressApi =
+                        new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress();
                 connectionByAddressApi.setEndpointFromIdentifier(connection.getEndpointFrom().getId().toString());
                 connectionByAddressApi.setEndpointToIdentifier(connection.getEndpointTo().getId().toString());
                 connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
@@ -165,8 +159,8 @@ public class Compartment extends Executable
             }
             else if (connection instanceof ConnectionByAlias) {
                 ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
-                cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias connectionByAliasApi =
-                        new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias();
+                cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias connectionByAliasApi =
+                        new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias();
                 connectionByAliasApi.setEndpointFromIdentifier(connection.getEndpointFrom().getId().toString());
                 connectionByAliasApi.setEndpointToIdentifier(connection.getEndpointTo().getId().toString());
                 connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());

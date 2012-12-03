@@ -5,11 +5,14 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRo
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
-import cz.cesnet.shongo.controller.api.DeviceRoom;
+import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.ManagedMode;
+import cz.cesnet.shongo.controller.resource.TerminalCapability;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
@@ -93,7 +96,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new DeviceRoom();
+        return new Executable.ResourceRoomEndpoint();
+    }
+
+    @Override
+    public Executable.ResourceRoomEndpoint toApi(Domain domain)
+    {
+        return (Executable.ResourceRoomEndpoint) super.toApi(domain);
     }
 
     @Override
@@ -101,14 +110,20 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         super.toApi(executableApi, domain);
 
-        DeviceRoom deviceRoomApi = (DeviceRoom) executableApi;
-        deviceRoomApi.setIdentifier(domain.formatIdentifier(getId()));
-        deviceRoomApi.setSlot(getSlot());
-        deviceRoomApi.setState(getState().toApi());
-        deviceRoomApi.setLicenseCount(roomConfiguration.getLicenseCount());
-        deviceRoomApi.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        Executable.ResourceRoomEndpoint resourceRoomEndpoint = (Executable.ResourceRoomEndpoint) executableApi;
+        resourceRoomEndpoint.setIdentifier(domain.formatIdentifier(getId()));
+        resourceRoomEndpoint.setSlot(getSlot());
+        resourceRoomEndpoint.setState(getState().toApi());
+        resourceRoomEndpoint.setLicenseCount(roomConfiguration.getLicenseCount());
+        resourceRoomEndpoint.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        for (Technology technology : roomConfiguration.getTechnologies()) {
+            resourceRoomEndpoint.addTechnology(technology);
+        }
         for (Alias alias : getAssignedAliases()) {
-            deviceRoomApi.addAlias(alias.toApi());
+            resourceRoomEndpoint.addAlias(alias.toApi());
+        }
+        for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+            resourceRoomEndpoint.addRoomSetting(roomSetting.toApi());
         }
     }
 

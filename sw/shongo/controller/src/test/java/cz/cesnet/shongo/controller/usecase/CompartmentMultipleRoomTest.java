@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
 /**
- * Tests for allocation of multiple virtual rooms in a {@link Compartment}.
+ * Tests for allocation of multiple virtual rooms in a {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

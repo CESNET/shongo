@@ -12,6 +12,11 @@
         <organization>Unknown Organization</organization>
     </domain>
 
+    <!-- Database settings -->
+    <database>
+        <filename>data/controller</filename>
+    </database>
+
     <!-- Configuration of XML-RPC server -->
     <rpc>
         <host></host>

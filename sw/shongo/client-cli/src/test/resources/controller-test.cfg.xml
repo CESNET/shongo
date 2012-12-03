@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+
+    <database>
+        <filename>data-test/controller</filename>
+    </database>
+
+    <rpc>
+        <port>8686</port>
+    </rpc>
+
+    <jade>
+        <port>8787</port>
+    </jade>
+
+</configuration>
