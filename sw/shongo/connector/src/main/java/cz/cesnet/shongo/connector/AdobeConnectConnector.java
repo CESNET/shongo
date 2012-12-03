@@ -75,13 +75,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public void connect(Address address, String username, String password) throws CommandException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        this.login();
     }
 
     @java.lang.Override
     public void disconnect() throws CommandException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        this.logout();
     }
 
     @java.lang.Override
@@ -100,22 +100,45 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         return connectorInfo;
     }
 
-    @java.lang.Override
-    public List<String> getSupportedMethods()
+     /** Creates Adobe Connect user.
+     *
+     */
+    protected void createAdobeConnectUser() throws CommandException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("first-name", "");
+        attributes.put("last-name", "");
+        attributes.put("login", "");
+        attributes.put("email", "");
+        attributes.put("type", "user");
+        attributes.put("has-children", "false");
+
+        Element response = request("principal-update", attributes);
+
+        List<RoomSummary> meetings = new ArrayList<RoomSummary>();
     }
 
+    /**
+     * This method is not supported, cause the AC XML API (secret one) is not working
+     *
+     * @throws CommandUnsupportedException
+     */
     @java.lang.Override
     public void muteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO: Check function in AC setting
+        throw new CommandUnsupportedException(
+                "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
     }
 
-    @java.lang.Override
+    /**
+     * This method is not supported, cause the AC XML API (secret one) is not working
+     *
+     * @throws CommandUnsupportedException
+     */    @java.lang.Override
     public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
-        // TODO: Check function in AC setting
+        throw new CommandUnsupportedException(
+                "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
     }
 
     @java.lang.Override
@@ -176,6 +199,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             roomSummary.setName(room.getChildText("name"));
             roomSummary.setIdentifier(room.getAttributeValue("sco-id"));
+
+            //TODO: element URL
             roomSummary.setDescription(room.getChildText("url"));
 
             meetings.add(roomSummary);
@@ -312,6 +337,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
         attributes.put("name", room.getName());
         attributes.put("type","meeting");
+        attributes.put("description",room.getOption(Room.Option.DESCRIPTION).toString());
 
         Element respose = request("sco-update", attributes);
 
@@ -458,8 +484,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @param atributes the map os parameters for the action
      * @return the URL to perform the action
      */
-    protected URL breezeUrl(String action, Map<String, String> atributes) throws IOException
+    protected URL breezeUrl(String action, Map<String, String> atributes) throws IOException, CommandException
     {
+				if (action == null || action.isEmpty())
+					throw new CommandException("Action of AC call cannot be empty.");
+
         String queryString = "";
 
         if (atributes != null) {
@@ -561,7 +590,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         this.breezesession = null;
     }
 
-    protected Element request(String action, Map<String, String> atributes) throws CommandException
+    protected Element request(String action, Map<String, String> attributes) throws CommandException
     {
         try {
             if (this.breezesession == null) {
@@ -573,7 +602,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 }
             }
 
-            URL url = breezeUrl(action, atributes);
+            URL url = breezeUrl(action, attributes);
 
             URLConnection conn = url.openConnection();
             conn.setRequestProperty("Cookie", "BREEZESESSION=" + this.breezesession);
@@ -588,9 +617,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 throw new RuntimeException("Response from server " + this.serverUrl + " is unreadable.");
             }
             else if (!status.getAttributeValue("code").equals("ok")) {
-                List<Attribute> attributes = status.getAttributes();
+                List<Attribute> statusAttributes = status.getAttributes();
                 String errorMsg = "Error: ";
-                for (Attribute attribute : attributes) {
+                for (Attribute attribute : statusAttributes) {
                     errorMsg += " " + attribute.getName() + ": " + attribute.getValue();
                 }
 
@@ -621,7 +650,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 //            acc.removeRoomContentFile("42108", "vyrocni_zprava_2011_2012.pdf");
 //            String str = acc.exportRoomSettings("42108");
 //            acc.importRoomSettings("42108",str);
-            Room r = new Room("test",0);
+
+            System.out.println(acc.getSupportedMethods());
+/*            Room r = new Room("test",0);
             acc.createRoom(r);
 
             System.out.println(r.getIdentifier());
@@ -629,6 +660,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             System.out.println(r.getOptions());
 
             acc.deleteRoom(r.getIdentifier());
+
+            System.out.println(acc.getRoomList());
+*/
 
             acc.logout();
 
