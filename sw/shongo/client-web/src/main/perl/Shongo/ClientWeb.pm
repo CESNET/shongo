@@ -158,7 +158,9 @@ sub run
         # Check state
         my $session_state = $self->{'session'}->param('authorization_state');
         if ( !defined($session_state) || $state ne $session_state ) {
-            $self->error_action("Parameter 'state' has wrong value!");
+            # Clear the state because we want to show it
+            $self->{'session'}->clear(['authorization_state']);
+            $self->error_action("Parameter 'state' has wrong value ($state != $session_state)!");
         }
         # Clear state in session (no longer needed)
         $self->{'session'}->clear(['authorization_state']);

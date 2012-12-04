@@ -8,9 +8,13 @@ use strict;
 use warnings;
 
 # Setup lib directory
-use FindBin;
-use lib "$FindBin::Bin/../main/perl";
-use lib "$FindBin::Bin/../../../client-common/src/main/perl";
+use File::Basename;
+my $script_directory;
+BEGIN {
+    $script_directory = dirname( __FILE__ );
+}
+use lib "$script_directory/../main/perl";
+use lib "$script_directory/../../../client-common/src/main/perl";
 
 # Get directories
 use File::Spec::Functions;
