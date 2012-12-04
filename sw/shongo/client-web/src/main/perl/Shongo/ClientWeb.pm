@@ -138,7 +138,12 @@ sub request()
 sub secure_request()
 {
     my ($self, $method, @args) = @_;
-    my $securityToken = RPC::XML::string->new('1e3f174ceaa8e515721b989b19f71727060d0839');
+    my $user = $self->get_user();
+    if ( !defined($user) || !defined($user->{'access_token'}) ) {
+        $self->redirect('/sign-in');
+        return undef;
+    }
+    my $securityToken = RPC::XML::string->new($user->{'access_token'});
     return $self->request(
         $method,
         $securityToken,

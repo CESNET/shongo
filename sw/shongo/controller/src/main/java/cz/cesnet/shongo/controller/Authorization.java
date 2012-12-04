@@ -103,7 +103,15 @@ public class Authorization
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
             return ROOT_USER_ID;
         }
-        throw new TodoImplementException("Retrieve userId from access token.");
+
+        try {
+            return Long.valueOf((String) getUserInfo(securityToken).get("id"));
+        }
+        catch (Exception exception) {
+            throw new SecurityException("User id cannot be retrieved from the access token '"
+                    + securityToken.getAccessToken()
+                    + "'. " + exception.getMessage(), exception);
+        }
     }
 
     /**
