@@ -3,17 +3,17 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::ReservationRequestAbstract;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::ReservationRequestAbstract;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::ReservationRequest;
-use Shongo::Controller::API::ReservationRequestSet;
-use Shongo::Controller::API::PermanentReservationRequest;
+use Shongo::ClientCli::API::ReservationRequest;
+use Shongo::ClientCli::API::ReservationRequestSet;
+use Shongo::ClientCli::API::PermanentReservationRequest;
 
 #
 # Create a new instance of reservation request
@@ -24,7 +24,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     $self->set_object_class('AbstractReservationRequest');
@@ -58,13 +58,13 @@ sub on_create
         ));
     }
     if ($class eq 'ReservationRequest') {
-        return Shongo::Controller::API::ReservationRequest->new();
+        return Shongo::ClientCli::API::ReservationRequest->new();
     }
     elsif ($class eq 'ReservationRequestSet') {
-        return Shongo::Controller::API::ReservationRequestSet->new();
+        return Shongo::ClientCli::API::ReservationRequestSet->new();
     }
     elsif ($class eq 'PermanentReservationRequest') {
-        return Shongo::Controller::API::PermanentReservationRequest->new();
+        return Shongo::ClientCli::API::PermanentReservationRequest->new();
     }
     die("Unknown reservation type type '$class'.");
 }

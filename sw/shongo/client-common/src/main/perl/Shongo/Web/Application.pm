@@ -167,7 +167,7 @@ sub render_headers
     my ($self) = @_;
     $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
     my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
-    print $self->{'cgi'}->header(-type => 'text/html', -cookie => $cookie);
+    print $self->{'cgi'}->header(-type => 'text/html', -charset => 'UTF-8', -cookie => $cookie);
 }
 
 #
@@ -240,16 +240,22 @@ sub render_template
 #
 sub redirect
 {
-    my ($self, $url) = @_;
+    my ($self, $url, $query, $disable_set_as_previous) = @_;
     if ( !defined($url) && defined($self->{'session'}->param('previous_url')) ) {
         $url = $self->{'session'}->param('previous_url');
     }
-    if ( !($url =~ /^\//) ) {
+    if ( !($url =~ /^(\/|http)/) ) {
         $url = '/' . $url;
     }
-    $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
+    $url = URI->new($url);
+    if ( defined($query) ) {
+        $url->query_form($query);
+    }
+    if ( !defined($disable_set_as_previous) || !$disable_set_as_previous ) {
+        $self->{'session'}->param('previous_url', $self->{cgi}->url(-absolute => 1, -query => 1));
+    }
     my $cookie = $self->{'cgi'}->cookie(CGISESSID => $self->{'session'}->id);
-    print $self->{'cgi'}->redirect(-uri => $url, -cookie => $cookie);
+    print $self->{'cgi'}->redirect(-uri => $url->as_string(), -cookie => $cookie);
 }
 
 1;

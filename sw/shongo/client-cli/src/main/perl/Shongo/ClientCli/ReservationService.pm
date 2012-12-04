@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::ReservationService;
+package Shongo::ClientCli::ReservationService;
 
 use strict;
 use warnings;
@@ -12,9 +12,9 @@ use Text::Table;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Shell;
-use Shongo::Controller::API::ReservationRequestAbstract;
-use Shongo::Controller::API::Reservation;
-use Shongo::Controller::API::Alias;
+use Shongo::ClientCli::API::ReservationRequestAbstract;
+use Shongo::ClientCli::API::Reservation;
+use Shongo::ClientCli::API::Alias;
 
 #
 # Populate shell by options for management of reservations.
@@ -132,7 +132,7 @@ sub create_reservation_request()
     $options->{'on_confirm'} = sub {
         my ($reservation_request) = @_;
         console_print_info("Creating reservation request...");
-        my $response = Shongo::Controller->instance()->secure_request(
+        my $response = Shongo::ClientCli->instance()->secure_request(
             'Reservation.createReservationRequest',
             $reservation_request->to_xml()
         );
@@ -142,7 +142,7 @@ sub create_reservation_request()
         return undef;
     };
 
-    my $identifier = Shongo::Controller::API::ReservationRequestAbstract->create($attributes, $options);
+    my $identifier = Shongo::ClientCli::API::ReservationRequestAbstract->create($attributes, $options);
     if ( defined($identifier) ) {
         console_print_info("Reservation request '%s' successfully created.", $identifier);
     }
@@ -155,7 +155,7 @@ sub modify_reservation_request()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservationRequest',
         RPC::XML::string->new($identifier)
     );
@@ -163,7 +163,7 @@ sub modify_reservation_request()
     $options->{'on_confirm'} = sub {
         my ($reservation_request) = @_;
         console_print_info("Modifying reservation request...");
-        my $response = Shongo::Controller->instance()->secure_request(
+        my $response = Shongo::ClientCli->instance()->secure_request(
             'Reservation.modifyReservationRequest',
             $reservation_request->to_xml()
         );
@@ -174,7 +174,7 @@ sub modify_reservation_request()
     };
 
     if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_hash($result);
+        my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($result);
         if ( defined($reservation_request) ) {
             $reservation_request->modify($attributes, $options);
         }
@@ -188,7 +188,7 @@ sub delete_reservation_request()
     if ( !defined($identifier) ) {
         return;
     }
-    Shongo::Controller->instance()->secure_request(
+    Shongo::ClientCli->instance()->secure_request(
         'Reservation.deleteReservationRequest',
         RPC::XML::string->new($identifier)
     );
@@ -205,7 +205,7 @@ sub list_reservation_requests()
             push(@{$filter->{'technology'}}, $technology);
         }
     }
-    my $response = Shongo::Controller->instance()->secure_request('Reservation.listReservationRequests', $filter);
+    my $response = Shongo::ClientCli->instance()->secure_request('Reservation.listReservationRequests', $filter);
     if ( $response->is_fault() ) {
         return
     }
@@ -229,7 +229,7 @@ sub list_reservation_requests()
             format_date($reservation_request->{'created'}),
             $Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
-            #$Shongo::Controller::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
+            #$Shongo::ClientCli::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},
             format_interval($reservation_request->{'earliestSlot'})
         );
     }
@@ -243,12 +243,12 @@ sub get_reservation_request()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservationRequest',
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation_request = Shongo::Controller::API::ReservationRequestAbstract->from_hash($result);
+        my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($result);
         if ( defined($reservation_request) ) {
             console_print_text($reservation_request->to_string());
         }
@@ -262,7 +262,7 @@ sub get_reservation_for_request()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.listReservations',
         RPC::XML::string->new($identifier)
     );
@@ -276,7 +276,7 @@ sub get_reservation_for_request()
     print("\n");
     my $index = 0;
     foreach my $reservationXml (@{$reservations}) {
-        my $reservation = Shongo::Controller::API::Reservation->from_hash($reservationXml);
+        my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
         $reservation->fetch_child_reservations(1);
         $index++;
         printf(" %d) %s\n", $index, text_indent_lines($reservation->to_string(), 4, 0));
@@ -298,12 +298,12 @@ sub get_reservation()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservation',
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $reservation = Shongo::Controller::API::Reservation->from_hash($result);
+        my $reservation = Shongo::ClientCli::API::Reservation->from_hash($result);
         $reservation->fetch_child_reservations(1);
         if ( defined($reservation) ) {
             console_print_text($reservation->to_string());

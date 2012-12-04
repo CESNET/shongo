@@ -3,16 +3,16 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::PermanentReservationRequest;
-use base qw(Shongo::Controller::API::ReservationRequestAbstract);
+package Shongo::ClientCli::API::PermanentReservationRequest;
+use base qw(Shongo::ClientCli::API::ReservationRequestAbstract);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Specification;
-use Shongo::Controller::API::ReservationRequest;
+use Shongo::ClientCli::API::Specification;
+use Shongo::ClientCli::API::ReservationRequest;
 
 #
 # Create a new instance of reservation request set
@@ -23,7 +23,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ReservationRequestAbstract->new(@_);
+    my $self = Shongo::ClientCli::API::ReservationRequestAbstract->new(@_);
     bless $self, $class;
 
     $self->set_object_class('PermanentReservationRequest');
@@ -40,18 +40,18 @@ sub new()
             'add' => {
                 'Add new requested slot by absolute date/time' => sub {
                     my $slot = {};
-                    Shongo::Controller::API::ReservationRequestSet::modify_slot($slot);
+                    Shongo::ClientCli::API::ReservationRequestSet::modify_slot($slot);
                     return $slot;
                 },
                 'Add new requested slot by periodic date/time' => sub {
                     my $slot = {'start' => {'class' => 'PeriodicDateTime'}};
-                    Shongo::Controller::API::ReservationRequestSet::modify_slot($slot);
+                    Shongo::ClientCli::API::ReservationRequestSet::modify_slot($slot);
                     return $slot;
                 }
             },
             'modify' => sub {
                 my ($slot) = @_;
-                Shongo::Controller::API::ReservationRequestSet::modify_slot($slot);
+                Shongo::ClientCli::API::ReservationRequestSet::modify_slot($slot);
                 return $slot;
             },
             'format' => sub {

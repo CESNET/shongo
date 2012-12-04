@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Room;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Room;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
@@ -27,7 +27,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     $self->set_object_name('Room');
@@ -38,7 +38,7 @@ sub new()
         'type' => 'collection',
         'item' => {
             'title' => 'Alias',
-            'class' => 'Shongo::Controller::API::Alias',
+            'class' => 'Shongo::ClientCli::API::Alias',
             'short' => 1
         }
     });
@@ -63,13 +63,13 @@ sub new()
                     return;
                 }
                 my $option = $Option->{$item_key};
-                my $item_value = Shongo::Controller::API::Object->modify_attribute_value($option->{'title'}, undef, $option, 0);
+                my $item_value = Shongo::ClientCli::API::Object->modify_attribute_value($option->{'title'}, undef, $option, 0);
                 return ($item_key, $item_value);
             },
             'modify' => sub {
                 my ($item_key, $item_value) = @_;
                 my $option = $Option->{$item_key};
-                $item_value = Shongo::Controller::API::Object->modify_attribute_value($option->{'title'}, $item_value, $option, 1);
+                $item_value = Shongo::ClientCli::API::Object->modify_attribute_value($option->{'title'}, $item_value, $option, 1);
                 return $item_value;
             }
         },

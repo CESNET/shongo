@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Executable;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Executable;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
@@ -12,7 +12,7 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::DeviceResource;
+use Shongo::ClientCli::API::DeviceResource;
 
 # States
 our $State = {
@@ -51,7 +51,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     return $self;
@@ -136,7 +136,7 @@ sub on_init()
                             my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
                             if ( $connection->{'class'} eq 'Executable.ConnectionByAddress' ) {
                                 $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
-                                    $Shongo::Controller::API::DeviceResource::Technology->{$connection->{'technology'}});
+                                    $Shongo::ClientCli::API::DeviceResource::Technology->{$connection->{'technology'}});
                             } elsif ( $connection->{'class'} eq 'Executable.ConnectionByAlias' ) {
                                 $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
                             }

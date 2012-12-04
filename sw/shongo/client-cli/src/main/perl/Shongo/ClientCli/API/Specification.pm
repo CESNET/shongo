@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Specification;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Specification;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
@@ -12,10 +12,10 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Alias;
-use Shongo::Controller::API::DeviceResource;
-use Shongo::Controller::API::Person;
-use Shongo::Controller::API::ParticipantSpecification;
+use Shongo::ClientCli::API::Alias;
+use Shongo::ClientCli::API::DeviceResource;
+use Shongo::ClientCli::API::Person;
+use Shongo::ClientCli::API::ParticipantSpecification;
 
 #
 # Specification types
@@ -47,7 +47,7 @@ our $CallInitiation = ordered_hash(
 #
 # Alias type for specification
 #
-our $AliasType = ordered_hash(NULL() => 'Any', $Shongo::Controller::API::Alias::Type);
+our $AliasType = ordered_hash(NULL() => 'Any', $Shongo::ClientCli::API::Alias::Type);
 
 #
 # Create a new instance of specification
@@ -58,7 +58,7 @@ sub new()
 {
     my $class = shift;
     my ($type) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     return $self;
@@ -107,13 +107,13 @@ sub on_init()
             $self->add_attribute('callInitiation', {
                 'title' => 'Call Initiation',
                 'type' => 'enum',
-                'enum' => $Shongo::Controller::API::Specification::CallInitiation
+                'enum' => $Shongo::ClientCli::API::Specification::CallInitiation
             }, NULL());
             $self->add_attribute('specifications', {
                 'type' => 'collection',
                 'item' => {
                     'title' => 'specification',
-                    'class' => 'Shongo::Controller::API::ParticipantSpecification',
+                    'class' => 'Shongo::ClientCli::API::ParticipantSpecification',
                 },
                 'complex' => 0,
                 'display' => 'newline'
@@ -131,7 +131,7 @@ sub on_init()
                 'type' => 'collection',
                 'item' => {
                     'title' => 'Technology',
-                    'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                    'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
                 },
                 'complex' => 0,
                 'required' => 1
@@ -145,7 +145,7 @@ sub on_init()
                     $hasAlias = console_edit_bool("Has alias", 1, $hasAlias);
                     if ( $hasAlias ) {
                         if ( !defined($self->{'alias'}) ) {
-                            $self->{'alias'} = Shongo::Controller::API::Alias->create();
+                            $self->{'alias'} = Shongo::ClientCli::API::Alias->create();
                         } else {
                             $self->{'alias'}->modify();
                         }
@@ -161,7 +161,7 @@ sub on_init()
                 'type' => 'collection',
                 'item' => {
                     'title' => 'Technology',
-                    'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                    'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
                 },
                 'complex' => 0,
                 'required' => 1
@@ -181,7 +181,7 @@ sub on_init()
         case 'LookupEndpointSpecification' {
             $self->add_attribute('technology', {
                 'type' => 'enum',
-                'enum' => $Shongo::Controller::API::DeviceResource::Technology,
+                'enum' => $Shongo::ClientCli::API::DeviceResource::Technology,
                 'required' => 1
             });
         }
@@ -190,7 +190,7 @@ sub on_init()
                 'modify' => sub() {
                     my ($person) = @_;
                     if ( !defined($person) ) {
-                        $person = Shongo::Controller::API::Person->new();
+                        $person = Shongo::ClientCli::API::Person->new();
                     }
                     $person->modify();
                     return $person;
@@ -201,7 +201,7 @@ sub on_init()
         case 'AliasSpecification' {
             $self->add_attribute('technology', {
                 'type' => 'enum',
-                'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
             });
             $self->add_attribute('aliasType', {
                 'title' => 'Alias Type',
@@ -218,7 +218,7 @@ sub on_init()
                 'type' => 'collection',
                 'item' => {
                     'title' => 'Technology',
-                    'enum' => $Shongo::Controller::API::DeviceResource::Technology
+                    'enum' => $Shongo::ClientCli::API::DeviceResource::Technology
                 },
                 'complex' => 0,
                 'required' => 1

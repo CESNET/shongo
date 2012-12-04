@@ -3,16 +3,16 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::ReservationRequestSet;
-use base qw(Shongo::Controller::API::ReservationRequestAbstract);
+package Shongo::ClientCli::API::ReservationRequestSet;
+use base qw(Shongo::ClientCli::API::ReservationRequestAbstract);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Specification;
-use Shongo::Controller::API::ReservationRequest;
+use Shongo::ClientCli::API::Specification;
+use Shongo::ClientCli::API::ReservationRequest;
 
 #
 # Create a new instance of reservation request set
@@ -23,7 +23,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ReservationRequestNormal->new(@_);
+    my $self = Shongo::ClientCli::API::ReservationRequestNormal->new(@_);
     bless $self, $class;
 
     $self->set_object_class('ReservationRequestSet');
@@ -73,7 +73,7 @@ sub new()
         'type' => 'collection',
         'item' => {
             'title' => 'specification',
-            'class' => 'Shongo::Controller::API::Specification'
+            'class' => 'Shongo::ClientCli::API::Specification'
         },
         'display' => 'newline'
     });
@@ -83,14 +83,14 @@ sub new()
         'item' => {
             'format' => sub() {
                 my ($reservation_request) = @_;
-                my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::Controller::API::Object::COLOR) . ": %s",
+                my $item = sprintf("%s (%s) %s\n" . colored("specification", $Shongo::ClientCli::API::Object::COLOR) . ": %s",
                     format_interval($reservation_request->{'slot'}),
                     $reservation_request->{'identifier'},
                     $reservation_request->get_state(),
-                    $Shongo::Controller::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
+                    $Shongo::ClientCli::API::Specification::Type->{$reservation_request->{'specification'}->{'class'}}
                 );
                 if ( $reservation_request->{'state'} eq 'ALLOCATED' ) {
-                    $item .= sprintf("\n  " . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
+                    $item .= sprintf("\n  " . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s", $reservation_request->{'reservationIdentifier'});
                 }
                 return $item;
             }

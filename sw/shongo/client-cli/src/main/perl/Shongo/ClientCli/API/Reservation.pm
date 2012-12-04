@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Reservation;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Reservation;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
@@ -32,7 +32,7 @@ sub new()
 {
     my $class = shift;
     my ($type) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     $self->set_object_name('Reservation');
@@ -122,7 +122,7 @@ sub fetch_child_reservations
     if ( defined($self->{'childReservationIdentifiers'}) && @{$self->{'childReservationIdentifiers'}} > 0) {
         my $child_reservations = [];
         foreach my $reservation (@{$self->{'childReservationIdentifiers'}}) {
-            my $result = Shongo::Controller->instance()->secure_request(
+            my $result = Shongo::ClientCli->instance()->secure_request(
                 'Reservation.getReservation',
                 RPC::XML::string->new($reservation)
             );
@@ -130,7 +130,7 @@ sub fetch_child_reservations
                 return;
             }
             my $reservationXml = $result->value();
-            my $reservation = Shongo::Controller::API::Reservation->from_hash($reservationXml);
+            my $reservation = Shongo::ClientCli::API::Reservation->from_hash($reservationXml);
             if ( $recursive ) {
                 $reservation->fetch_child_reservations($recursive);
             }

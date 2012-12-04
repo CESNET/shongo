@@ -3,15 +3,15 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::ReservationRequest;
-use base qw(Shongo::Controller::API::ReservationRequestNormal);
+package Shongo::ClientCli::API::ReservationRequest;
+use base qw(Shongo::ClientCli::API::ReservationRequestNormal);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Specification;
+use Shongo::ClientCli::API::Specification;
 
 # Enumeration of state
 our $State = ordered_hash(
@@ -30,7 +30,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ReservationRequestNormal->new(@_);
+    my $self = Shongo::ClientCli::API::ReservationRequestNormal->new(@_);
     bless $self, $class;
 
     $self->set_object_class('ReservationRequest');
@@ -50,9 +50,9 @@ sub new()
             if ( defined($specification) ) {
                 $class = $specification->{'class'};
             }
-            $class = Shongo::Controller::API::Specification::select_type($class);
+            $class = Shongo::ClientCli::API::Specification::select_type($class);
             if ( !defined($specification) || !($class eq $specification->get_object_class()) ) {
-                $specification = Shongo::Controller::API::Specification->create({'class' => $class});
+                $specification = Shongo::ClientCli::API::Specification->create({'class' => $class});
             } else {
                 $specification->modify();
             }
@@ -66,7 +66,7 @@ sub new()
             my $state = $self->get_state();
             if ( defined($state) ) {
                 if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATED' ) {
-                    $state .= sprintf(" (" . colored("reservation", $Shongo::Controller::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
+                    $state .= sprintf(" (" . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
                 }
                 my $color = 'blue';
                 if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATION_FAILED' ) {

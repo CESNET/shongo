@@ -3,15 +3,15 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Resource;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Resource;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Capability;
+use Shongo::ClientCli::API::Capability;
 
 #
 # Create a new instance of resource
@@ -22,7 +22,7 @@ sub new()
 {
     my $class = shift;
     my ($attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     $self->set_object_class('Resource');
@@ -71,7 +71,7 @@ sub new()
             'type' => 'collection',
             'item' => {
                 'title' => 'Capability',
-                'class' => 'Shongo::Controller::API::Capability'
+                'class' => 'Shongo::ClientCli::API::Capability'
             },
             'display-empty' => 1
         }
@@ -92,9 +92,9 @@ sub on_create
         ));
     }
     if ($class eq 'Resource') {
-        return Shongo::Controller::API::Resource->new();
+        return Shongo::ClientCli::API::Resource->new();
     } elsif ($class eq 'DeviceResource') {
-        return Shongo::Controller::API::DeviceResource->new();
+        return Shongo::ClientCli::API::DeviceResource->new();
     }
     die("Unknown resource type '$class'.");
 }

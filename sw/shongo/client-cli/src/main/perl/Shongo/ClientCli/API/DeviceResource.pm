@@ -3,15 +3,15 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::DeviceResource;
-use base qw(Shongo::Controller::API::Resource);
+package Shongo::ClientCli::API::DeviceResource;
+use base qw(Shongo::ClientCli::API::Resource);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Capability;
+use Shongo::ClientCli::API::Capability;
 
 # Enumeration of technologies
 our $Technology = ordered_hash('H323' => 'H.323', 'SIP' => 'SIP', 'ADOBE_CONNECT' => 'Adobe Connect');
@@ -25,7 +25,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Resource->new(@_);
+    my $self = Shongo::ClientCli::API::Resource->new(@_);
     bless $self, $class;
 
     $self->set_object_class('DeviceResource');

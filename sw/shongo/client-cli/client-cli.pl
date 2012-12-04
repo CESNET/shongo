@@ -15,8 +15,8 @@ use lib "$FindBin::Bin/../client-common/src/main/perl";
 use Getopt::Long;
 use Shongo::Console;
 use Shongo::Common;
-use Shongo::Controller;
-use Shongo::Controller::Shell;
+use Shongo::ClientCli;
+use Shongo::ClientCli::Shell;
 
 #
 # Print usage
@@ -66,7 +66,7 @@ if ( $help == 1) {
     exit(0);
 }
 
-my $controller = Shongo::Controller->instance();
+my $controller = Shongo::ClientCli->instance();
 $controller->set_scripting($scripting);
 
 # Set testing access token
@@ -93,7 +93,7 @@ my $history_file = get_home_directory() . '/.shongo_client';
 history_load($history_file);
 
 # Create shell
-my $shell = Shongo::Controller::Shell->new();
+my $shell = Shongo::ClientCli::Shell->new();
 
 # Run single commands
 if ( defined($cmd) ) {

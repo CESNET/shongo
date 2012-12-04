@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Capability;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Capability;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
@@ -12,8 +12,8 @@ use warnings;
 use Switch;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::DeviceResource;
-use Shongo::Controller::API::Alias;
+use Shongo::ClientCli::API::DeviceResource;
+use Shongo::ClientCli::API::Alias;
 
 #
 # Capability types
@@ -34,7 +34,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     $self->set_object_name('Capability');
@@ -63,7 +63,7 @@ sub on_init()
                     'type' => 'collection',
                     'item' => {
                         'title' => 'Alias',
-                        'class' => 'Shongo::Controller::API::Alias',
+                        'class' => 'Shongo::ClientCli::API::Alias',
                         'short' => 1
                     }
                 }
@@ -83,14 +83,14 @@ sub on_init()
                 'technology', {
                     'required' => 1,
                     'type' => 'enum',
-                    'enum' =>  $Shongo::Controller::API::DeviceResource::Technology
+                    'enum' =>  $Shongo::ClientCli::API::DeviceResource::Technology
                 }
             );
             $self->add_attribute(
                 'type', {
                     'required' => 1,
                     'type' => 'enum',
-                    'enum' =>  $Shongo::Controller::API::Alias::Type
+                    'enum' =>  $Shongo::ClientCli::API::Alias::Type
                 }
             );
             $self->add_attribute(

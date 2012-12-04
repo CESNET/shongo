@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::ReservationRequestNormal;
-use base qw(Shongo::Controller::API::ReservationRequestAbstract);
+package Shongo::ClientCli::API::ReservationRequestNormal;
+use base qw(Shongo::ClientCli::API::ReservationRequestAbstract);
 
 use strict;
 use warnings;
@@ -24,7 +24,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::ReservationRequestAbstract->new(@_);
+    my $self = Shongo::ClientCli::API::ReservationRequestAbstract->new(@_);
     bless $self, $class;
 
     $self->add_attribute('purpose', {

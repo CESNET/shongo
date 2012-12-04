@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::ResourceService;
+package Shongo::ClientCli::ResourceService;
 
 use strict;
 use warnings;
@@ -11,9 +11,9 @@ use warnings;
 use Shongo::Common;
 use Shongo::Console;
 use Shongo::Shell;
-use Shongo::Controller::API::Resource;
-use Shongo::Controller::API::DeviceResource;
-use Shongo::Controller::API::Alias;
+use Shongo::ClientCli::API::Resource;
+use Shongo::ClientCli::API::DeviceResource;
+use Shongo::ClientCli::API::Alias;
 
 #
 # Populate shell by options for management of resources.
@@ -116,7 +116,7 @@ sub create_resource()
     $options->{'on_confirm'} = sub {
         my ($resource) = @_;
         console_print_info("Creating resource...");
-        my $response = Shongo::Controller->instance()->secure_request(
+        my $response = Shongo::ClientCli->instance()->secure_request(
             'Resource.createResource',
             $resource->to_xml()
         );
@@ -126,7 +126,7 @@ sub create_resource()
         return undef;
     };
 
-    my $identifier = Shongo::Controller::API::Resource->create($attributes, $options);
+    my $identifier = Shongo::ClientCli::API::Resource->create($attributes, $options);
     if ( defined($identifier) ) {
         console_print_info("Resource '%s' successfully created.", $identifier);
     }
@@ -139,7 +139,7 @@ sub modify_resource()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
         RPC::XML::string->new($identifier)
     );
@@ -147,7 +147,7 @@ sub modify_resource()
     $options->{'on_confirm'} = sub {
         my ($resource) = @_;
         console_print_info("Modifying resource...");
-        my $response = Shongo::Controller->instance()->secure_request(
+        my $response = Shongo::ClientCli->instance()->secure_request(
             'Resource.modifyResource',
             $resource->to_xml()
         );
@@ -158,7 +158,7 @@ sub modify_resource()
     };
 
     if ( !$result->is_fault ) {
-        my $resource = Shongo::Controller::API::Resource->from_hash($result);
+        my $resource = Shongo::ClientCli::API::Resource->from_hash($result);
         if ( defined($resource) ) {
             $resource->modify($attributes, $options);
         }
@@ -172,7 +172,7 @@ sub delete_resource()
     if ( !defined($identifier) ) {
         return;
     }
-    Shongo::Controller->instance()->secure_request(
+    Shongo::ClientCli->instance()->secure_request(
         'Resource.deleteResource',
         RPC::XML::string->new($identifier)
     );
@@ -180,7 +180,7 @@ sub delete_resource()
 
 sub list_resources()
 {
-    my $response = Shongo::Controller->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Resource.listResources'
     );
     if ( $response->is_fault() ) {
@@ -194,7 +194,7 @@ sub list_resources()
                 if ( length($technologies) ) {
                     $technologies .= ', ';
                 }
-                $technologies .= $Shongo::Controller::API::DeviceResource::Technology->{$technology};
+                $technologies .= $Shongo::ClientCli::API::DeviceResource::Technology->{$technology};
             }
         }
         $table->add(
@@ -214,12 +214,12 @@ sub get_resource()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $resource = Shongo::Controller::API::Resource->from_hash($result);
+        my $resource = Shongo::ClientCli::API::Resource->from_hash($result);
         if ( defined($resource) ) {
             console_print_text($resource->to_string());
         }
@@ -238,7 +238,7 @@ sub get_resource_allocation()
     } else {
         $interval = RPC::XML::struct->new();
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResourceAllocation',
         RPC::XML::string->new($identifier),
         $interval
@@ -248,7 +248,7 @@ sub get_resource_allocation()
     }
 
     my $result_hash = $result->value();
-    my $resource_allocation = Shongo::Controller::API::Object::->new();
+    my $resource_allocation = Shongo::ClientCli::API::Object::->new();
     $resource_allocation->set_object_name('Resource Allocation');
     $resource_allocation->add_attribute('identifier');
     $resource_allocation->add_attribute('name');
@@ -262,7 +262,7 @@ sub get_resource_allocation()
 
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Slot', \' | ', 'Resource', \' | ', 'Type', \' |');
     foreach my $reservationXml (@{$resource_allocation->{'reservations'}}) {
-        my $reservation = Shongo::Controller::API::Reservation->new($reservationXml->{'class'});
+        my $reservation = Shongo::ClientCli::API::Reservation->new($reservationXml->{'class'});
         $reservation->from_hash($reservationXml);
         $table->add(
             $reservation->{'identifier'},
@@ -271,7 +271,7 @@ sub get_resource_allocation()
             $reservation->to_string_short()
         );
     }
-    printf(" %s\n", colored(uc("Reservations:"), $Shongo::Controller::API::Object::COLOR_HEADER));
+    printf(" %s\n", colored(uc("Reservations:"), $Shongo::ClientCli::API::Object::COLOR_HEADER));
     console_print_table($table, 1);
 }
 

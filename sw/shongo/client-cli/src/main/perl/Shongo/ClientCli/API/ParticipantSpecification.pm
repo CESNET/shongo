@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::ParticipantSpecification;
-use base qw(Shongo::Controller::API::Specification);
+package Shongo::ClientCli::API::ParticipantSpecification;
+use base qw(Shongo::ClientCli::API::Specification);
 
 use strict;
 use warnings;
@@ -22,7 +22,7 @@ sub new()
 {
     my $class = shift;
     my ($type) = @_;
-    my $self = Shongo::Controller::API::Specification->new(@_);
+    my $self = Shongo::ClientCli::API::Specification->new(@_);
     bless $self, $class;
 
     return $self;
@@ -34,7 +34,7 @@ sub new()
 sub select_type($)
 {
     my ($type) = @_;
-    return console_edit_enum('Select type of specification', $Shongo::Controller::API::Specification::ParticipantType, $type);
+    return console_edit_enum('Select type of specification', $Shongo::ClientCli::API::Specification::ParticipantType, $type);
 }
 
 1;

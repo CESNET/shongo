@@ -3,15 +3,15 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Alias;
-use base qw(Shongo::Controller::API::Object);
+package Shongo::ClientCli::API::Alias;
+use base qw(Shongo::ClientCli::API::Object);
 
 use strict;
 use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::DeviceResource;
+use Shongo::ClientCli::API::DeviceResource;
 
 # Enumeration of alias types
 our $Type = ordered_hash(
@@ -36,7 +36,7 @@ sub new()
 {
     my $class = shift;
     my (%attributes) = @_;
-    my $self = Shongo::Controller::API::Object->new(@_);
+    my $self = Shongo::ClientCli::API::Object->new(@_);
     bless $self, $class;
 
     $self->set_object_class('Alias');
@@ -45,7 +45,7 @@ sub new()
         'technology', {
             'required' => 1,
             'type' => 'enum',
-            'enum' =>  $Shongo::Controller::API::DeviceResource::Technology
+            'enum' =>  $Shongo::ClientCli::API::DeviceResource::Technology
         }
     );
     $self->add_attribute(

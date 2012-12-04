@@ -59,8 +59,13 @@ sub console_print_debug
 {
     my ($message, @parameters) = @_;
     $message =~ s/\s*$//;
-    if ( !Shongo::Controller::is_scripting() ) {
-        print sprintf($message, @parameters), "\n";
+    if ( !Shongo::ClientCli::is_scripting() ) {
+        if ( scalar(@parameters) > 0 ) {
+            print sprintf($message, @parameters), "\n";
+        }
+        else {
+            print $message, "\n";
+        }
     }
 }
 
@@ -74,7 +79,7 @@ sub console_print_info
 {
     my ($message, @parameters) = @_;
     $message =~ s/\s*$//;
-    if ( Shongo::Controller::is_scripting() ) {
+    if ( Shongo::ClientCli::is_scripting() ) {
         foreach my $parameter (@parameters) {
             print $parameter . "\n";
         }

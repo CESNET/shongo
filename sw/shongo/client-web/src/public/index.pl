@@ -23,7 +23,7 @@ use CGI;
 use CGI::Session;
 use Template;
 use Shongo::Common;
-use Shongo::WebClientApplication;
+use Shongo::ClientWeb;
 use Shongo::H323SipController;
 use Shongo::AdobeConnectController;
 use XML::Simple;
@@ -37,7 +37,8 @@ $session->expire('+15m');
 
 # Initialize templates
 my $template = Template->new({
-    INCLUDE_PATH  => $resources_directory
+    INCLUDE_PATH  => $resources_directory,
+    ENCODING => 'utf8'
 });
 
 # Catch errors
@@ -75,13 +76,8 @@ if ( !defined($configuration) ) {
 }
 
 # Initialize application
-my $application = Shongo::WebClientApplication->new($cgi, $template, $session);
+my $application = Shongo::ClientWeb->new($cgi, $template, $session);
 $application->load_configuration($configuration);
-$application->add_action('index', sub { index_action(); });
-$application->add_action('sign-in', sub { sign_in_action(); });
-$application->add_action('sign-out', sub { sign_out_action(); });
-$application->add_controller(Shongo::H323SipController->new($application));
-$application->add_controller(Shongo::AdobeConnectController->new($application));
 
 # Run application and catch response
 my $response = '';
@@ -103,21 +99,4 @@ if ( length($response) > 0 ) {
     print($response);
 } else {
     $response = $application->render_page_content();
-}
-
-sub index_action
-{
-    $application->render_page('Shongo', 'index.html');
-}
-
-sub sign_in_action
-{
-    $session->param('user', 'Testing User');
-    $application->redirect();
-}
-
-sub sign_out_action
-{
-    $session->clear(['user']);
-    $application->redirect();
 }

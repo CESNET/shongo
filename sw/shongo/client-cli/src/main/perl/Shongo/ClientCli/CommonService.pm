@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::CommonService;
+package Shongo::ClientCli::CommonService;
 
 use strict;
 use warnings;
@@ -45,7 +45,7 @@ sub populate()
 
 sub list_domains()
 {
-    my $response = Shongo::Controller->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Common.listDomains'
     );
     if ( $response->is_fault() ) {
@@ -64,7 +64,7 @@ sub list_domains()
 
 sub list_connectors()
 {
-    my $response = Shongo::Controller->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Common.listConnectors'
     );
     if ( $response->is_fault() ) {

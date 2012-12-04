@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::Shell;
+package Shongo::ClientCli::Shell;
 use base qw(Shongo::Shell);
 
 use strict;
@@ -11,12 +11,12 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller;
-use Shongo::Controller::CommonService;
-use Shongo::Controller::ResourceService;
-use Shongo::Controller::ResourceControlService;
-use Shongo::Controller::ReservationService;
-use Shongo::Controller::ExecutableService;
+use Shongo::ClientCli;
+use Shongo::ClientCli::CommonService;
+use Shongo::ClientCli::ResourceService;
+use Shongo::ClientCli::ResourceControlService;
+use Shongo::ClientCli::ReservationService;
+use Shongo::ClientCli::ExecutableService;
 use Shongo::Test;
 
 #
@@ -41,12 +41,12 @@ sub new
     });
 
     # Populate commands
-    Shongo::Controller->populate($self);
-    Shongo::Controller::CommonService->populate($self);
-    Shongo::Controller::ResourceService->populate($self);
-    Shongo::Controller::ResourceControlService->populate($self);
-    Shongo::Controller::ReservationService->populate($self);
-    Shongo::Controller::ExecutableService->populate($self);
+    Shongo::ClientCli->populate($self);
+    Shongo::ClientCli::CommonService->populate($self);
+    Shongo::ClientCli::ResourceService->populate($self);
+    Shongo::ClientCli::ResourceControlService->populate($self);
+    Shongo::ClientCli::ReservationService->populate($self);
+    Shongo::ClientCli::ExecutableService->populate($self);
 
     return(bless($self, $class));;
 }

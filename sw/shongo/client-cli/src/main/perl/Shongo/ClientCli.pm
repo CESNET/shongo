@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller;
+package Shongo::ClientCli;
 
 use strict;
 use warnings;
@@ -13,11 +13,11 @@ use RPC::XML::Client;
 use XML::Twig;
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Authorization;
-use Shongo::Controller::API::Object;
+use Shongo::ClientCli::CliAuthorization;
+use Shongo::ClientCli::API::Object;
 
 #
-# Single instance of Controller class.
+# Single instance of ClientCli class.
 #
 my $singleInstance;
 
@@ -31,6 +31,7 @@ sub instance
         my $self = {};
         $singleInstance = bless $self, $class;
         $singleInstance->{'scripting'} = 0;
+        $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
     }
     return $singleInstance;
 }
@@ -74,7 +75,7 @@ sub populate()
             proc => sub {
                 my $url = $_[0];
                 if (defined($url) == 0) {
-                    my $controller = Shongo::Controller->instance();
+                    my $controller = Shongo::ClientCli->instance();
                     if ( defined($controller->{"_url"}) ) {
                         $url = $controller->{"_url"};
                     } else {
@@ -82,25 +83,25 @@ sub populate()
                         return;
                     }
                 }
-                Shongo::Controller->instance()->connect($url);
+                Shongo::ClientCli->instance()->connect($url);
             },
         },
         "disconnect" => {
             desc => "Disconnect from a controller.",
             proc => sub {
-                Shongo::Controller->instance()->disconnect();
+                Shongo::ClientCli->instance()->disconnect();
             }
         },
         "status" => {
             desc => "Show status and information about connected controller.",
             proc => sub {
-                Shongo::Controller->instance()->status();
+                Shongo::ClientCli->instance()->status();
             }
         },
         "authenticate" => {
             desc => "Perform user authentication",
             method => sub {
-                my $controller = Shongo::Controller->instance();
+                my $controller = Shongo::ClientCli->instance();
                 if ( defined($controller->authenticate()) ) {
                     $controller->user_info($controller->{'access_token'});
                 }
@@ -109,7 +110,7 @@ sub populate()
         "user-info" => {
             desc => "Show authenticated user information",
             method => sub {
-                my $controller = Shongo::Controller->instance();
+                my $controller = Shongo::ClientCli->instance();
                 $controller->user_info();
             }
         },
@@ -122,7 +123,7 @@ sub populate()
 sub authenticate()
 {
     my ($self) = @_;
-    $self->{'access_token'} = Shongo::Authorization::authorize();
+    $self->{'access_token'} = $self->{'authorization'}->authentication_authorize();
     return $self->{'access_token'};
 }
 
@@ -132,18 +133,18 @@ sub authenticate()
 sub user_info()
 {
     my ($self) = @_;
-    my $user_info = Shongo::Authorization::user_info($self->{'access_token'});
+    console_print_debug("Retrieving user information for access token '%s'...", $self->{'access_token'});
+    my $user_info = $self->{'authorization'}->user_info($self->{'access_token'});
     if (!defined($user_info)) {
         return;
     }
 
-    my $object = Shongo::Controller::API::Object->new();
-
+    my $object = Shongo::ClientCli::API::Object->new();
     $object->set_object_name('Authenticated User Information');
     $object->add_attribute('Access Token', {}, $self->{'access_token'});
-    $object->add_attribute('Identity', {}, $user_info->{'id'});
+    $object->add_attribute('Id', {}, $user_info->{'id'});
+    $object->add_attribute('Identity', {}, $user_info->{'original_id'});
     $object->add_attribute('Name', {}, $user_info->{'name'});
-    $object->add_attribute('Nickname', {}, $user_info->{'nickname'});
     $object->add_attribute('Email', {}, $user_info->{'email'});
     console_print_text($object);
 }

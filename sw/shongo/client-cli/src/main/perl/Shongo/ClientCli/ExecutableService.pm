@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::ExecutableService;
+package Shongo::ClientCli::ExecutableService;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use Text::Table;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Executable;
+use Shongo::ClientCli::API::Executable;
 
 #
 # Populate shell by options for management of reservations.
@@ -69,7 +69,7 @@ sub delete_executable()
     if ( !defined($identifier) ) {
         return;
     }
-    Shongo::Controller->instance()->secure_request(
+    Shongo::ClientCli->instance()->secure_request(
         'Executable.deleteExecutable',
         RPC::XML::string->new($identifier)
     );
@@ -77,7 +77,7 @@ sub delete_executable()
 
 sub list_executables()
 {
-    my $response = Shongo::Controller->instance()->secure_request(
+    my $response = Shongo::ClientCli->instance()->secure_request(
         'Executable.listExecutables'
     );
     if ( $response->is_fault() ) {
@@ -102,7 +102,7 @@ sub list_executables()
             $executable->{'identifier'},
             $type,
             format_interval($executable->{'slot'}),
-            Shongo::Controller::API::Executable::format_state($executable->{'state'}, $Shongo::Controller::API::Executable::State)
+            Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)
         );
     }
     console_print_table($table);
@@ -115,12 +115,12 @@ sub get_executable()
     if ( !defined($identifier) ) {
         return;
     }
-    my $result = Shongo::Controller->instance()->secure_request(
+    my $result = Shongo::ClientCli->instance()->secure_request(
         'Executable.getExecutable',
         RPC::XML::string->new($identifier)
     );
     if ( !$result->is_fault ) {
-        my $executable = Shongo::Controller::API::Executable->from_hash($result);
+        my $executable = Shongo::ClientCli::API::Executable->from_hash($result);
         if ( defined($executable) ) {
             console_print_text($executable->to_string());
         }

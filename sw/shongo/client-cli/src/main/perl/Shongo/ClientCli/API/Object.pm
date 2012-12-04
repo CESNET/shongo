@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::Controller::API::Object;
+package Shongo::ClientCli::API::Object;
 
 use strict;
 use warnings;
@@ -11,7 +11,7 @@ use warnings::register;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller;
+use Shongo::ClientCli;
 
 our $COLOR_HEADER = "bold blue";
 our $COLOR = "bold white";
@@ -21,9 +21,9 @@ our $COLLECTION_EMPTY = "-- None --";
 # Mapping of API classes ('hash_class' => 'perl_class').
 #
 our $ClassMapping = {
-    '^.*Reservation$' => 'Shongo::Controller::API::Reservation',
-    '^.*Specification$' => 'Shongo::Controller::API::Specification',
-    '^Executable\.(Compartment|ResourceRoomEndpoint)$' => 'Shongo::Controller::API::Executable'
+    '^.*Reservation$' => 'Shongo::ClientCli::API::Reservation',
+    '^.*Specification$' => 'Shongo::ClientCli::API::Specification',
+    '^Executable\.(Compartment|ResourceRoomEndpoint)$' => 'Shongo::ClientCli::API::Executable'
 };
 
 #
@@ -411,7 +411,7 @@ sub create()
         $self->from_hash($attributes, 1);
     }
 
-    my $auto_confirm = Shongo::Controller->is_scripting();
+    my $auto_confirm = Shongo::ClientCli->is_scripting();
     while ( $auto_confirm || $self->modify_loop(0, $options) ) {
         if ( defined($options->{'on_confirm'}) ) {
             my $result = $options->{'on_confirm'}($self);
@@ -522,11 +522,6 @@ sub modify_loop()
             }
         }
     }
-    # Automatic confirmation
-    if ( Shongo::Controller->is_scripting() ) {
-        return 1;
-    }
-
 
     my $message = 'modification of ' . lc($self->get_object_name());
     if ( $is_editing == 0 ) {
@@ -797,7 +792,7 @@ sub modify_attribute_value
     }
     elsif ( $attribute->{'type'} eq 'class' ) {
         if ( !defined($attribute_value) ) {
-            $attribute_value = Shongo::Controller::API::Specification->create();
+            $attribute_value = Shongo::ClientCli::API::Specification->create();
         } else {
             $attribute_value->modify();
         }
@@ -1240,7 +1235,7 @@ sub create_instance
     my ($class, $attribute) = @_;
     my $perl_class = get_perl_class($class);
     if ( !defined($perl_class) ) {
-        $perl_class = 'Shongo::Controller::API::' . $class;
+        $perl_class = 'Shongo::ClientCli::API::' . $class;
     }
     my $instance = eval($perl_class . '->new()');
     if ( !defined($instance) && defined($attribute) && ($attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map')
@@ -1372,7 +1367,7 @@ sub from_hash()
 
 sub test
 {
-    my $object = Shongo::Controller::API::Object->new();
+    my $object = Shongo::ClientCli::API::Object->new();
 
     # Init class
     $object->set_object_class('TestClass');
@@ -1393,7 +1388,7 @@ sub test
         'items', {
             'type' => 'collection',
             'item' => {
-                'class' => 'Shongo::Controller::API::Alias',
+                'class' => 'Shongo::ClientCli::API::Alias',
                 'short' => 1
             },
             'required' => 1
