@@ -80,7 +80,7 @@ sub create_action
                 'class' => 'RoomSpecification',
                 'participantCount' => $params->{'participantCount'},
                 'withAlias' => 1,
-                'technologies' => ['H323', 'SIP']
+                'technologies' => ['H323']
             };
             # Setup pin to specification
             if ( length($params->{'pin'}) > 0 ) {
