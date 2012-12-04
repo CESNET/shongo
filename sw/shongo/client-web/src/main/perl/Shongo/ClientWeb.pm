@@ -12,6 +12,8 @@ use RPC::XML;
 use RPC::XML::Client;
 use Shongo::Common;
 use Shongo::ClientWeb::WebAuthorization;
+use Shongo::ClientWeb::H323SipController;
+use Shongo::ClientWeb::AdobeConnectController;
 
 #
 # Single instance of ClientWeb class.
@@ -34,12 +36,16 @@ sub new
     }
     $singleInstance = $self;
 
-    $self->{'authorization'} = Shongo::ClientWeb::WebAuthorization->new();
+    # We must reuse existing authorization state (because the case when the user click on "Sign in" then he go back
+    # and again click on "Sing in" and then login, the authorization server returns the first "state" so it must be same)
+    my $state = $self->{'session'}->param('authorization_state');
+    $self->{'authorization'} = Shongo::ClientWeb::WebAuthorization->new($state);
+
     $self->add_action('index', sub { $self->index_action(); });
     $self->add_action('sign-in', sub { $self->sign_in_action(); });
     $self->add_action('sign-out', sub { $self->sign_out_action(); });
-    $self->add_controller(Shongo::H323SipController->new($self));
-    $self->add_controller(Shongo::AdobeConnectController->new($self));
+    $self->add_controller(Shongo::ClientWeb::H323SipController->new($self));
+    $self->add_controller(Shongo::ClientWeb::AdobeConnectController->new($self));
 
     return $self;
 }
@@ -65,6 +71,15 @@ sub load_configuration
 {
     my ($self, $configuration) = @_;
     $self->{'controller-url'} = $configuration->{'controller'};
+    if ( defined($configuration->{'authorization'}) ) {
+        my $authorization = $configuration->{'authorization'};
+        if ( defined($authorization->{'client-id'}) ) {
+            $self->{'authorization'}->set_client_id($authorization->{'client-id'});
+        }
+        if ( defined($authorization->{'redirect-uri'}) ) {
+            $self->{'authorization'}->set_redirect_uri($authorization->{'redirect-uri'});
+        }
+    }
 }
 
 #
@@ -136,21 +151,30 @@ sub run
 {
     my ($self, $location) = @_;
 
+    # If 'code' and 'state' parameters are present, retrieve access token
     my $code = $self->{'cgi'}->param('code');
     my $state = $self->{'cgi'}->param('state');
     if ( defined($code) && defined($state) ) {
-        my $session_state = $self->{'session'}->param('authorization.state');
+        # Check state
+        my $session_state = $self->{'session'}->param('authorization_state');
         if ( !defined($session_state) || $state ne $session_state ) {
             $self->error_action("Parameter 'state' has wrong value!");
         }
-        $self->{'session'}->clear(['authorization.state']);
+        # Clear state in session (no longer needed)
+        $self->{'session'}->clear(['authorization_state']);
+
+        # Get access token
         my $access_token = $self->{'authorization'}->authentication_token($code);
+
+        # Set user to session
         my $user_info = $self->{'authorization'}->user_info($access_token);
         $self->{'session'}->param('user', {
             'access_token' => $access_token,
             'id' => $user_info->{'id'},
             'name' => $user_info->{'name'}
         });
+
+        # Redirect to previous page
         $self->redirect();
         return;
     }
@@ -168,12 +192,21 @@ sub index_action
 }
 
 #
+# @return current signed user
+#
+sub get_user
+{
+    my ($self) = @_;
+    return $self->{'session'}->param('user');
+}
+
+#
 # Sign-in action handler
 #
 sub sign_in_action
 {
     my ($self) = @_;
-    $self->{'session'}->param('authorization.state', $self->{'authorization'}->get_state());
+    $self->{'session'}->param('authorization_state', $self->{'authorization'}->get_state());
     $self->{'authorization'}->authentication_authorize();
 }
 
@@ -184,7 +217,7 @@ sub sign_out_action
 {
     my ($self) = @_;
     $self->{'session'}->clear(['user']);
-    $self->redirect();
+    $self->redirect('/');
 }
 
 1;

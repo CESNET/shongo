@@ -97,6 +97,18 @@ sub get_param_required
 }
 
 #
+# Pre dispatch $action.
+#
+# @param $action
+# @return 1 if $action should be dispatch, 0 if application should exit
+#
+sub pre_dispatch
+{
+    my ($self, $action) = @_;
+    return 1;
+}
+
+#
 # @see Shongo::Web::Application::render_page
 #
 sub render_page

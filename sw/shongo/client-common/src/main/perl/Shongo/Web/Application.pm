@@ -108,6 +108,47 @@ sub error_action
 }
 
 #
+# Dispatch $action in $controller.
+#
+# @param $controller
+# @param $action
+#
+sub dispatch
+{
+    my ($self, $controller, $action) = @_;
+
+    # Get controller
+    my $controller_instance = $self->{controller}->{$controller};
+    if ( !defined($controller_instance) ) {
+        $self->error_action("Undefined controller '$controller'!");
+        return;
+    }
+
+    # Invoke action by callback
+    if ( ref($controller_instance) eq 'HASH' ) {
+        if ( defined($controller_instance->{$action}) ) {
+            $controller_instance->{$action}();
+            return;
+        }
+    }
+    # Invoke action by in controller instance
+    else {
+        if ( !$controller_instance->pre_dispatch($action) ) {
+            return;
+        }
+        my $method_name = $action;
+        $method_name =~ s/-/_/;
+        $method_name .= '_action';
+        if ( $controller_instance->can($method_name) ) {
+            $controller_instance->$method_name();
+            return;
+        }
+    }
+
+    $self->error_action("Undefined action '$action' in controller '$controller'!");
+}
+
+#
 # Run web client
 #
 sub run
@@ -131,32 +172,7 @@ sub run
         }
     }
 
-    # Get controller
-    my $controller_instance = $self->{controller}->{$controller};
-    if ( !defined($controller_instance) ) {
-        $self->error_action("Undefined controller '$controller'!");
-        return;
-    }
-
-    # Invoke action by callback
-    if ( ref($controller_instance) eq 'HASH' ) {
-        if ( defined($controller_instance->{$action}) ) {
-            $controller_instance->{$action}();
-            return;
-        }
-    }
-    # Invoke action by in controller instance
-    else {
-        my $method_name = $action;
-        $method_name =~ s/-/_/;
-        $method_name .= '_action';
-        if ( $controller_instance->can($method_name) ) {
-            $controller_instance->$method_name();
-            return;
-        }
-    }
-
-    $self->error_action("Undefined action '$action' in controller '$controller'!");
+    $self->dispatch($controller, $action);
 }
 
 #

@@ -62,12 +62,30 @@ sub get_client_id()
 }
 
 #
+# @param $client_id
+#
+sub set_client_id()
+{
+    my ($self, $client_id) = @_;
+    $self->{'client_id'} = $client_id;
+}
+
+#
 # @return redirect_uri
 #
 sub get_redirect_uri()
 {
     my ($self) = @_;
     return $self->{'redirect_uri'};
+}
+
+#
+# @param $redirect_uri
+#
+sub set_redirect_uri()
+{
+    my ($self, $redirect_uri) = @_;
+    $self->{'redirect_uri'} = $redirect_uri;
 }
 
 #
@@ -168,7 +186,7 @@ sub authentication_token
     my $response = $user_agent->simple_request($request);
     my $response_data = decode_json($response->content);
     if (!$response->is_success) {
-        error("$response_data->{'error'}. $response_data->{'error_description'}\n"
+        $self->error("$response_data->{'error'}. $response_data->{'error_description'}\n"
             . "Retrieving access token failed!");
         return;
     }

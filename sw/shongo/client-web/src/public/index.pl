@@ -24,8 +24,6 @@ use CGI::Session;
 use Template;
 use Shongo::Common;
 use Shongo::ClientWeb;
-use Shongo::H323SipController;
-use Shongo::AdobeConnectController;
 use XML::Simple;
 use Hash::Merge::Simple;
 use Log::Log4perl;

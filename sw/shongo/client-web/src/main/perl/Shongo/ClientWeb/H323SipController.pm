@@ -3,8 +3,8 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::H323SipController;
-use base qw(Shongo::CommonController);
+package Shongo::ClientWeb::H323SipController;
+use base qw(Shongo::ClientWeb::CommonController);
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ use Shongo::Common;
 sub new
 {
     my $class = shift;
-    my $self = Shongo::CommonController->new('h323-sip', @_);
+    my $self = Shongo::ClientWeb::CommonController->new('h323-sip', @_);
     bless $self, $class;
 
     return $self;

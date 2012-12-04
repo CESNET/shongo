@@ -3,7 +3,7 @@
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::CommonController;
+package Shongo::ClientWeb::CommonController;
 use base qw(Shongo::Web::Controller);
 
 use strict;
@@ -30,6 +30,18 @@ sub new
     bless $self, $class;
 
     return $self;
+}
+
+# @Override
+sub pre_dispatch
+{
+    my ($self, $action) = @_;
+    my $application = Shongo::ClientWeb->instance();
+    if ( !defined($application->get_user()) ) {
+        $application->redirect('/sign-in');
+        return 0;
+    }
+    return $self->SUPER::pre_dispatch($action);
 }
 
 sub index_action

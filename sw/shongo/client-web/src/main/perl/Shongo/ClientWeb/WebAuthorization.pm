@@ -25,10 +25,11 @@ use Shongo::Common;
 sub new()
 {
     my $class = shift;
-    my (%attributes) = @_;
+    my ($state) = @_;
     my $self = Shongo::Authorization->new(
         'cz.cesnet.shongo.client-web-local',
-        'http://127.0.0.1:8182/'
+        'http://127.0.0.1:8182/',
+        $state
     );
     bless $self, $class;
 
