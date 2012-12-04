@@ -136,7 +136,7 @@ sub detail_action
     my ($self) = @_;
     my $id = $self->get_param_required('id');
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
-    $request->{'purpose'} = $Shongo::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
+    $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
 
     my $specification = undef;
     my $child_requests = [];
@@ -254,7 +254,7 @@ sub detail_action
         my $state_class = lc($child_request->{'state'});
         $state_class =~ s/_/-/g;
         $child_request->{'stateClass'} = $state_class;
-        $child_request->{'state'} = $Shongo::CommonController::ReservationRequestState->{$child_request->{'state'}};
+        $child_request->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$child_request->{'state'}};
 
         push(@{$request->{'reservations'}}, $child_request);
     }
