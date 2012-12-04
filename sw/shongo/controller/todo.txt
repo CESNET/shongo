@@ -1,7 +1,3 @@
-* Update cmd-line according to previous refactorings
-
-* Allow cmd-line client for better scripting (for testing purposes), e.g., return only identifier without texts, auto confirm, etc.
-
 * Update API
 
 * Adobe connect through "control-resource" in cmd-line client (until half of december)

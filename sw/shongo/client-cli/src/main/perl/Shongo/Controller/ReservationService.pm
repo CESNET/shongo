@@ -27,8 +27,7 @@ sub populate()
     $shell->add_commands({
         'create-reservation-request' => {
             desc => 'Create a new reservation request',
-            options => 'confirm',
-            args => '[-confirm] [<json_attributes>]',
+            args => '[<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);
@@ -39,8 +38,7 @@ sub populate()
         },
         'modify-reservation-request' => {
             desc => 'Modify an existing reservation request',
-            options => 'confirm',
-            args => '[identifier] [-confirm] [<json_attributes>]',
+            args => '[identifier] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);

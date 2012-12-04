@@ -70,21 +70,6 @@ sub on_create
 }
 
 # @Override
-sub on_create_confirm
-{
-    my ($self) = @_;
-    console_print_info("Creating reservation request...");
-    my $response = Shongo::Controller->instance()->secure_request(
-        'Reservation.createReservationRequest',
-        $self->to_xml()
-    );
-    if ( !$response->is_fault() ) {
-        return $response->value();
-    }
-    return undef;
-}
-
-# @Override
 sub on_modify_confirm
 {
     my ($self) = @_;

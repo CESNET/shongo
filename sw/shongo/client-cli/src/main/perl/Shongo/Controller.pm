@@ -26,14 +26,37 @@ my $singleInstance;
 #
 sub instance
 {
-    unless (defined $singleInstance) {
+    unless (defined($singleInstance)) {
         my $class = shift;
         my $self = {};
         $singleInstance = bless $self, $class;
+        $singleInstance->{'scripting'} = 0;
     }
     return $singleInstance;
 }
 
+#
+# Enable/disable scripting mode.
+#
+# @param $scripting  enable/disable scripting mode (0|1).
+#
+sub set_scripting()
+{
+    my ($self, $scripting) = @_;
+    $self->{'scripting'} = $scripting;
+}
+
+#
+# @return true if the scripting mode is enabled
+#
+sub is_scripting()
+{
+    my ($self, $scripting) = @_;
+    if ( !ref($self) ) {
+        $self = instance();
+    }
+    return $self->{'scripting'};
+}
 
 #
 # Populate shell by options for controller.
@@ -146,6 +169,7 @@ sub connect()
     $self->{"_url"} = $url;
 
     console_print_debug("Connecting to controller at '$url'...");
+
     my $client = RPC::XML::Client->new($url);
     my $response = $client->send_request("Common.getController");
     if ( ref($response) ) {

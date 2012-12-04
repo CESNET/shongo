@@ -39,6 +39,7 @@ sub usage {
       "    -help                  Show this usage information\n" .
       "    -connect=URL           Connect to a controller\n" .
       "    -testing-access-token  Use testing access token for authentication\n" .
+      "    -scripting             Switch to scripting mode\n" .
       "    -cmd=COMMAND           Perform given command in controller\n" .
       "    -file=FILE             Perform commands from file in controller\n"
    );
@@ -50,11 +51,13 @@ my $connect;
 my $cmd;
 my $file;
 my $testing_access_token = 0;
+my $scripting = 0;
 my $help = 0;
 Getopt::Long::GetOptions(
     'help' => \$help,
     'connect:s' => \$connect,
     'testing-access-token' => \$testing_access_token,
+    'scripting' => \$scripting,
     'cmd=s@' => \$cmd,
     'file=s' => \$file
 ) or usage('Invalid commmand line options.');
@@ -63,11 +66,8 @@ if ( $help == 1) {
     exit(0);
 }
 
-#use Shongo::Controller::API::Object;
-#Shongo::Controller::API::Object->test();
-#die();
-
 my $controller = Shongo::Controller->instance();
+$controller->set_scripting($scripting);
 
 # Set testing access token
 if ($testing_access_token) {
@@ -80,7 +80,9 @@ if ( defined($connect) ) {
         $connect = 'http://127.0.0.1:8181';
     }
     if ( $controller->connect($connect)) {
-        $controller->status();
+        if ( !$controller->is_scripting() ) {
+            $controller->status();
+        }
     } else {
         exit(-1);
     }
@@ -93,7 +95,7 @@ history_load($history_file);
 # Create shell
 my $shell = Shongo::Controller::Shell->new();
 
-# Run single command
+# Run single commands
 if ( defined($cmd) ) {
     foreach my $item (@{$cmd}) {
         $shell->command($item);
@@ -111,7 +113,9 @@ elsif ( defined($file) ) {
 }
 # Run shell
 else {
+    $controller->set_scripting(0);
     $shell->run();
+    $controller->set_scripting($scripting);
 }
 
 # save history

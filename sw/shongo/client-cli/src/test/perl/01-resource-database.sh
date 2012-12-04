@@ -1,8 +1,8 @@
 #!/usr/bin/sh
 
-./client-cli.sh --connect 127.0.0.1:8686 --testing-access-token \
+./client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "\
-    create-resource -confirm { \
+    create-resource { \
         class: 'DeviceResource', \
         name: 'mcu-cesnet', \
         allocatable: 1, \
@@ -23,7 +23,7 @@
         }] \
     }" \
 --cmd "\
-    create-resource -confirm { \
+    create-resource { \
         class: 'DeviceResource', \
         name: 'mcu-muni', \
         allocatable: 1, \
@@ -44,7 +44,7 @@
         }] \
     }" \
 --cmd "\
-    create-resource -confirm { \
+    create-resource { \
         class: 'DeviceResource', \
         name: 'c90-sitola', \
         allocatable: 1, \
@@ -61,6 +61,8 @@
             }] \
         }] \
     }" \
+
+./client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "list-resources" \
 --cmd "get-resource 1" \
 --cmd "get-resource 2" \

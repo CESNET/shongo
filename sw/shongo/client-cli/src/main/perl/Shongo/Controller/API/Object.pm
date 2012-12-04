@@ -11,6 +11,7 @@ use warnings::register;
 
 use Shongo::Common;
 use Shongo::Console;
+use Shongo::Controller;
 
 our $COLOR_HEADER = "bold blue";
 our $COLOR = "bold white";
@@ -410,7 +411,8 @@ sub create()
         $self->from_hash($attributes, 1);
     }
 
-    while ( $self->modify_loop(0, $options) ) {
+    my $auto_confirm = Shongo::Controller->is_scripting();
+    while ( $auto_confirm || $self->modify_loop(0, $options) ) {
         if ( defined($options->{'on_confirm'}) ) {
             my $result = $options->{'on_confirm'}($self);
             if ( defined($result) ) {
@@ -419,6 +421,10 @@ sub create()
         }
         else {
             return $self;
+        }
+        # Something failed and auto confirm mean that we should exit
+        if ( $auto_confirm ) {
+            return undef;
         }
     }
     return undef;
@@ -516,9 +522,8 @@ sub modify_loop()
             }
         }
     }
-    if ( $options->{'confirm'} ) {
-        # Automatically confirmed is only for the first time
-        $options->{'confirm'} = 0;
+    # Automatic confirmation
+    if ( Shongo::Controller->is_scripting() ) {
         return 1;
     }
 

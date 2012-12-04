@@ -26,8 +26,7 @@ sub populate()
     $shell->add_commands({
         'create-resource' => {
             desc => 'Create a new resource',
-            options => 'confirm',
-            args => '[-confirm] [<json_attributes>]',
+            args => '[<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);
@@ -38,8 +37,7 @@ sub populate()
         },
         'modify-resource' => {
             desc => 'Modify an existing resource',
-            options => 'confirm',
-            args => '[identifier] [-confirm] [<json_attributes>]',
+            args => '[identifier] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);

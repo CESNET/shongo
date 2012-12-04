@@ -113,7 +113,7 @@ sub command
     my $string = $command;
     $string =~ s/(^\s*)|\s*$//g;
     $string =~ s/$JSON_PATTERN/.../g;
-    print("Performing command '", $string, "'.\n");
+    console_print_debug("Performing command '" . $string . "'.\n");
 
     # store history
     $self->{term}->addhistory($command);
