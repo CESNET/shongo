@@ -9,6 +9,7 @@ import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
@@ -230,24 +231,7 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        if (filter == null) {
-            filter = new HashMap<String, Object>();
-        }
-        Long userId = authorization.getUserId(token);
-        Set<Technology> technologies = null;
-        if (filter != null) {
-            if (filter.containsKey("userId")) {
-                Object value = filter.get("userId");
-                // All users
-                if (value.equals("*")) {
-                    userId = null;
-                }
-                // One selected user
-                else {
-                    userId = (value != null ? Long.valueOf(value.toString()) : null);
-                }
-            }
-        }
+        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
         List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
 
         List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();

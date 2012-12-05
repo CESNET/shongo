@@ -10,6 +10,7 @@ import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
@@ -236,23 +237,9 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        if (filter == null) {
-            filter = new HashMap<String, Object>();
-        }
-        Long userId = authorization.getUserId(token);
+        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
         Set<Technology> technologies = null;
         if (filter != null) {
-            if (filter.containsKey("userId")) {
-                Object value = filter.get("userId");
-                // All users
-                if (value.equals("*")) {
-                    userId = null;
-                }
-                // One selected user
-                else {
-                    userId = (value != null ? Long.valueOf(value.toString()) : null);
-                }
-            }
             if (filter.containsKey("technology")) {
                 @SuppressWarnings("unchecked")
                 Set<Technology> value = (Set<Technology>) Converter.convert(filter.get("technology"), Set.class,

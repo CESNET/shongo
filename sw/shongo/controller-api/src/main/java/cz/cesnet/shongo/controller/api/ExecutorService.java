@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Interface to the service handling operations on {@link Executable}s.
@@ -25,11 +26,13 @@ public interface ExecutorService extends Service
     /**
      * Lists all the {@link Executable}s.
      *
-     * @param token token of the user requesting the operation
+     * @param token  token of the user requesting the operation
+     * @param filter attributes for filtering {@link Executable}s (map of name => value pairs)::
+     *               -{@code userId}     restricts {@link Executable} owner by his identifier
      * @return collection of {@link ExecutableSummary}s
      */
     @API
-    public Collection<ExecutableSummary> listExecutables(SecurityToken token);
+    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter);
 
     /**
      * Gets the complete compartment object.

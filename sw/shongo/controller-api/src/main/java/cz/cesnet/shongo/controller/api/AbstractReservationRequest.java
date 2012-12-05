@@ -11,6 +11,11 @@ import org.joda.time.DateTime;
 public abstract class AbstractReservationRequest extends IdentifiedChangeableObject
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Date/time when the reservation request was created.
      */
     private DateTime created;
@@ -30,6 +35,22 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
      */
     public AbstractReservationRequest()
     {
+    }
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
     }
 
     /**

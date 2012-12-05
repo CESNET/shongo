@@ -15,6 +15,11 @@ import java.util.List;
 public class Reservation extends IdentifiedObject implements StructType
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Slot fot which the {@link Reservation} is allocated.
      */
     private Interval slot;
@@ -33,6 +38,22 @@ public class Reservation extends IdentifiedObject implements StructType
      * @see {@link Executable}
      */
     private Executable executable;
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #slot}

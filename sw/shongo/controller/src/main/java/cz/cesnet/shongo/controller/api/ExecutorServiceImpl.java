@@ -5,14 +5,13 @@ import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Reservation service implementation
@@ -106,18 +105,21 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public Collection<ExecutableSummary> listExecutables(SecurityToken token)
+    public Collection<ExecutableSummary> listExecutables(SecurityToken token, Map<String, Object> filter)
     {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list();
+        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(userId);
+
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
             ExecutableSummary summary = new ExecutableSummary();
             summary.setIdentifier(domain.formatIdentifier(executable.getId()));
+            summary.setUserId(executable.getUserId().intValue());
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
             if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {

@@ -180,8 +180,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
             throws FaultException
     {
-        api.setIdentifier(getId());
         api.setIdentifier(domain.formatIdentifier(getId()));
+        api.setUserId(getUserId().intValue());
         api.setCreated(getCreated());
         api.setName(getName());
         api.setDescription(getDescription());

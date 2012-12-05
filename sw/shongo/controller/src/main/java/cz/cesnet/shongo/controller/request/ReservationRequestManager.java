@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -237,46 +238,34 @@ public class ReservationRequestManager extends AbstractManager
      */
     public List<AbstractReservationRequest> list(Long userId, Set<Technology> technologies)
     {
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        StringBuilder whereClause = new StringBuilder();
-        // List only reservation requests created by any user (skip requests created by the preprocessor
-        whereClause.append("(TYPE(request) != ReservationRequest"
-                + " OR request.createdBy = :createdBy)");
-        // List only reservation requests which are owned by the given user
-        if (userId != null) {
-            whereClause.append(" AND request.userId = :userId");
-            parameters.put("userId", userId);
-        }
-        // List only reservation requests which specifies given technologies in virtual room or compartment
+        DatabaseFilter filter = new DatabaseFilter("request");
+        filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
+        filter.addFilterParameter("createdBy", ReservationRequest.CreatedBy.USER);
+        filter.addUserId(userId);
         if (technologies != null && technologies.size() > 0) {
-            whereClause.append(" AND ("
-                    + "  request IN ("
-                    + "    SELECT reservationRequest"
-                    + "    FROM AbstractReservationRequest reservationRequest, RoomSpecification specification"
-                    + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
-                    + "    LEFT JOIN specification.technologies technology"
-                    + "    WHERE (reservationRequest.specification = specification OR"
-                    + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
-                    + "  ) OR request IN ("
-                    + "    SELECT reservationRequest"
-                    + "    FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
-                    + "    LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
-                    + "    LEFT JOIN specification.technologies technology"
-                    + "    WHERE (reservationRequest.specification = specification OR"
-                    + "           reservationRequestSpecification = specification) AND technology IN(:technologies)"
-                    + "  )"
+            // List only reservation requests which specifies given technologies in virtual room or compartment
+            filter.addFilter("request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest, RoomSpecification specification"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  LEFT JOIN specification.technologies technology"
+                    + "  WHERE (reservationRequest.specification = specification OR"
+                    + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + ") OR request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  LEFT JOIN specification.technologies technology"
+                    + "  WHERE (reservationRequest.specification = specification OR"
+                    + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
                     + ")");
-            parameters.put("technologies", technologies);
+            filter.addFilterParameter("technologies", technologies);
         }
-
         TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
                 + " FROM AbstractReservationRequest request"
-                + " WHERE " + whereClause.toString(),
+                + " WHERE " + filter.toQueryWhere(),
                 AbstractReservationRequest.class);
-        query.setParameter("createdBy", ReservationRequest.CreatedBy.USER);
-        for (String parameterName : parameters.keySet()) {
-            query.setParameter(parameterName, parameters.get(parameterName));
-        }
+        filter.fillQueryParameters(query);
         List<AbstractReservationRequest> reservationRequestList = query.getResultList();
         return reservationRequestList;
     }

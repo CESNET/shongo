@@ -96,6 +96,7 @@ public class CompartmentReservationTask extends ReservationTask
     private void initCompartment()
     {
         // Initialize compartment
+        compartment.setUserId(getContext().getUserId());
         compartment.setSlot(getInterval());
     }
 
@@ -161,6 +162,7 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
+        endpoint.setUserId(getContext().getUserId());
         compartment.addChildExecutable(endpoint);
 
         if (!(endpoint instanceof RoomEndpoint)) {
@@ -338,6 +340,7 @@ public class CompartmentReservationTask extends ReservationTask
             throw new CannotCreateConnectionFromToReport(endpointFrom, endpointTo).exception();
         }
 
+        connection.setUserId(getContext().getUserId());
         connection.setEndpointFrom(endpointFrom);
         connection.setEndpointTo(endpointTo);
         compartment.addChildExecutable(connection);

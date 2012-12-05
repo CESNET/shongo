@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
@@ -71,19 +72,12 @@ public class ResourceManager extends AbstractManager
      */
     public List<Resource> list(Long userId)
     {
-        Map<String, Object> parameters = new HashMap<String, Object>();
-        StringBuilder whereClause = new StringBuilder("1=1");
-        // List only resources which are owned by the given user
-        if (userId != null) {
-            whereClause.append(" AND resource.userId = :userId");
-            parameters.put("userId", userId);
-        }
+        DatabaseFilter filter = new DatabaseFilter("resource");
+        filter.addUserId(userId);
         TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
-                + " WHERE " + whereClause.toString(),
+                + " WHERE " + filter.toQueryWhere(),
                 Resource.class);
-        for (String parameterName : parameters.keySet()) {
-            query.setParameter(parameterName, parameters.get(parameterName));
-        }
+        filter.fillQueryParameters(query);
         List<Resource> resourceList = query.getResultList();
         return resourceList;
     }

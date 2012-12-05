@@ -163,7 +163,8 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         Interval slot = reservationRequest.getSlot();
 
         // Create new scheduler task
-        ReservationTask.Context context = new ReservationTask.Context(cache, slot);
+        Long userId = reservationRequest.getUserId();
+        ReservationTask.Context context = new ReservationTask.Context(userId, cache, slot);
         ReservationTask reservationTask = null;
 
         try {

@@ -197,6 +197,7 @@ public class RoomReservationTask extends ReservationTask
 
         // Create room endpoint executable
         ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+        roomEndpoint.setUserId(getContext().getUserId());
         roomEndpoint.setDeviceResource(availableRoom.getDeviceResource());
         roomEndpoint.setRoomConfiguration(roomConfiguration);
         roomEndpoint.setSlot(getInterval());

@@ -45,6 +45,7 @@ public class ReservationManagerTest extends AbstractDatabaseTest
         reservationRequestManager.create(reservationRequest3);
 
         Reservation reservation1 = new ResourceReservation();
+        reservation1.setUserId(Authorization.ROOT_USER_ID);
         reservationManager.create(reservation1);
 
         // Select reservations which aren't referenced by any reservation requests (should be 1)
