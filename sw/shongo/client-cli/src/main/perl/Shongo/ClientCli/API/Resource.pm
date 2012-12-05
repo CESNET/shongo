@@ -28,54 +28,52 @@ sub new()
     $self->set_object_class('Resource');
     $self->set_object_name('Resource');
     $self->add_attribute('identifier', {
-            'editable' => 0
-        }
-    );
+        'editable' => 0
+    });
+    $self->add_attribute('userId', {
+        'title' => 'Owner',
+        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_); },
+        'editable' => 0
+    });
     $self->add_attribute('name', {
-            'required' => 1
-        }
-    );
+        'required' => 1
+    });
     $self->add_attribute('description');
     $self->add_attribute('parentIdentifier', {
-            'title' => 'Parent',
-            'string-pattern' => $Shongo::Common::IdentifierPattern
-        }
-    );
+        'title' => 'Parent',
+        'string-pattern' => $Shongo::Common::IdentifierPattern
+    });
     $self->add_attribute('allocatable', {
-            'type' => 'bool',
-            'required' => 1
-        }
-    );
+        'type' => 'bool',
+        'required' => 1
+    });
     $self->add_attribute('maximumFuture', {
-            'title' => 'Maximum Future',
-            'type' => 'period'
-        }
-    );
+        'title' => 'Maximum Future',
+        'type' => 'period'
+    });
     $self->add_attribute('childResourceIdentifiers', {
-            'title' => 'Children',
-            'format' => sub {
-                my ($attribute_value) = @_;
-                my $string = '';
-                foreach my $identifier (@{$attribute_value}) {
-                    if ( length($string) > 0 ) {
-                        $string .= ', ';
-                    }
-                    $string .= $identifier;
+        'title' => 'Children',
+        'format' => sub {
+            my ($attribute_value) = @_;
+            my $string = '';
+            foreach my $identifier (@{$attribute_value}) {
+                if ( length($string) > 0 ) {
+                    $string .= ', ';
                 }
-                return $string;
-            },
-            'read-only' => 1
-        }
-    );
+                $string .= $identifier;
+            }
+            return $string;
+        },
+        'read-only' => 1
+    });
     $self->add_attribute('capabilities', {
-            'type' => 'collection',
-            'item' => {
-                'title' => 'Capability',
-                'class' => 'Shongo::ClientCli::API::Capability'
-            },
-            'display-empty' => 1
-        }
-    );
+        'type' => 'collection',
+        'item' => {
+            'title' => 'Capability',
+            'class' => 'Shongo::ClientCli::API::Capability'
+        },
+        'display-empty' => 1
+    });
     return $self;
 }
 

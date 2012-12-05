@@ -208,7 +208,8 @@ sub list_reservation_requests()
     if ( defined($options->{'owner'}) ) {
         $filter->{'userId'} = $options->{'owner'};
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Reservation.listReservationRequests', $filter);
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_request('Reservation.listReservationRequests', $filter);
     if ( $response->is_fault() ) {
         return
     }
@@ -228,7 +229,7 @@ sub list_reservation_requests()
     foreach my $reservation_request (@{$response->value()}) {
         $table->add(
             $reservation_request->{'identifier'},
-            $reservation_request->{'userId'},
+            $application->format_user($reservation_request->{'userId'}),
             format_date($reservation_request->{'created'}),
             $Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},

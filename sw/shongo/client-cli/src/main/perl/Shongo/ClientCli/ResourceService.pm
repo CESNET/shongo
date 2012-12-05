@@ -187,7 +187,8 @@ sub list_resources()
     if ( defined($options->{'owner'}) ) {
         $filter->{'userId'} = $options->{'owner'};
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Resource.listResources', $filter);
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_request('Resource.listResources', $filter);
     if ( $response->is_fault() ) {
         return
     }
@@ -211,7 +212,7 @@ sub list_resources()
         }
         $table->add(
             $resource->{'identifier'},
-            $resource->{'userId'},
+            $application->format_user($resource->{'userId'}),
             $resource->{'name'},
             $technologies,
             $resource->{'parentIdentifier'},

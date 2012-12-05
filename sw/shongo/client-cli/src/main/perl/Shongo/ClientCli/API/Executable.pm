@@ -72,6 +72,11 @@ sub on_init()
     }
 
     $self->add_attribute('identifier');
+    $self->add_attribute('userId', {
+        'title' => 'Owner',
+        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_); },
+        'editable' => 0
+    });
     $self->add_attribute('state', {
         'format' => sub {
             my ($attribute_value) = @_;

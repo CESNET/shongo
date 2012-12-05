@@ -18,6 +18,11 @@ import java.util.List;
 public class Resource extends IdentifiedChangeableObject
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Parent resource identifier for the resource.
      */
     public static final String PARENT_RESOURCE_IDENTIFIER = "parentResourceIdentifier";
@@ -51,6 +56,22 @@ public class Resource extends IdentifiedChangeableObject
      * Child resources identifiers.
      */
     private List<String> childResourceIdentifiers = new ArrayList<String>();
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #PARENT_RESOURCE_IDENTIFIER}

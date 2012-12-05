@@ -32,6 +32,11 @@ sub new()
     $self->add_attribute('identifier', {
         'editable' => 0
     });
+    $self->add_attribute('userId', {
+        'title' => 'Owner',
+        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_); },
+        'editable' => 0
+    });
     $self->add_attribute('created', {
         'type' => 'datetime',
         'editable' => 0

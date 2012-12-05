@@ -83,7 +83,8 @@ sub list_executables()
     if ( defined($options->{'owner'}) ) {
         $filter->{'userId'} = $options->{'owner'};
     }
-    my $response = Shongo::ClientCli->instance()->secure_request('Executable.listExecutables', $filter);
+    my $application = Shongo::ClientCli->instance();
+    my $response = $application->secure_request('Executable.listExecutables', $filter);
     if ( $response->is_fault() ) {
         return
     }
@@ -105,7 +106,7 @@ sub list_executables()
         }
         $table->add(
             $executable->{'identifier'},
-            $executable->{'userId'},
+            $application->format_user($executable->{'userId'}),
             $type,
             format_interval($executable->{'slot'}),
             Shongo::ClientCli::API::Executable::format_state($executable->{'state'}, $Shongo::ClientCli::API::Executable::State)
