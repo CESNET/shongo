@@ -62,9 +62,11 @@ sub populate()
         },
         'list-resources' => {
             desc => 'List all existing resources',
+            options => 'owner=s',
+            args => '[-owner=*|<user-id>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                list_resources();
+                list_resources($params->{'options'});
             },
         },
         'get-resource' => {
@@ -180,13 +182,23 @@ sub delete_resource()
 
 sub list_resources()
 {
-    my $response = Shongo::ClientCli->instance()->secure_request(
-        'Resource.listResources'
-    );
+    my ($options) = @_;
+    my $filter = {};
+    if ( defined($options->{'owner'}) ) {
+        $filter->{'userId'} = $options->{'owner'};
+    }
+    my $response = Shongo::ClientCli->instance()->secure_request('Resource.listResources', $filter);
     if ( $response->is_fault() ) {
         return
     }
-    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Technologies', \' | ', 'Parent Resource', \' |');
+    my $table = Text::Table->new(
+        \'| ', 'Identifier',
+        \' | ', 'Owner',
+        \' | ', 'Name',
+        \' | ', 'Technologies',
+        \' | ', 'Parent Resource',
+        \' |'
+    );
     foreach my $resource (@{$response->value()}) {
         my $technologies = '';
         if (defined($resource->{'technologies'})) {
@@ -199,6 +211,7 @@ sub list_resources()
         }
         $table->add(
             $resource->{'identifier'},
+            $resource->{'userId'},
             $resource->{'name'},
             $technologies,
             $resource->{'parentIdentifier'},

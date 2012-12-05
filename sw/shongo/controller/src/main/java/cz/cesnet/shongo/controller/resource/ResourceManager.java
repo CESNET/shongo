@@ -9,7 +9,10 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manager for {@link Resource}.
@@ -66,11 +69,22 @@ public class ResourceManager extends AbstractManager
     /**
      * @return list of all resources in the database
      */
-    public List<Resource> list()
+    public List<Resource> list(Long userId)
     {
-        List<Resource> resourceList = entityManager
-                .createQuery("SELECT resource FROM Resource resource", Resource.class)
-                .getResultList();
+        Map<String, Object> parameters = new HashMap<String, Object>();
+        StringBuilder whereClause = new StringBuilder("1=1");
+        // List only resources which are owned by the given user
+        if (userId != null) {
+            whereClause.append(" AND resource.userId = :userId");
+            parameters.put("userId", userId);
+        }
+        TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
+                + " WHERE " + whereClause.toString(),
+                Resource.class);
+        for (String parameterName : parameters.keySet()) {
+            query.setParameter(parameterName, parameters.get(parameterName));
+        }
+        List<Resource> resourceList = query.getResultList();
         return resourceList;
     }
 

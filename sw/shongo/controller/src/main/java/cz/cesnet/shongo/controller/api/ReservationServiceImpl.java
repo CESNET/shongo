@@ -239,12 +239,19 @@ public class ReservationServiceImpl extends Component
         if (filter == null) {
             filter = new HashMap<String, Object>();
         }
-        Long userId = null;
+        Long userId = authorization.getUserId(token);
         Set<Technology> technologies = null;
         if (filter != null) {
             if (filter.containsKey("userId")) {
                 Object value = filter.get("userId");
-                userId = (value != null ? Long.valueOf(value.toString()) : null);
+                // All users
+                if (value.equals("*")) {
+                    userId = null;
+                }
+                // One selected user
+                else {
+                    userId = (value != null ? Long.valueOf(value.toString()) : null);
+                }
             }
             if (filter.containsKey("technology")) {
                 @SuppressWarnings("unchecked")

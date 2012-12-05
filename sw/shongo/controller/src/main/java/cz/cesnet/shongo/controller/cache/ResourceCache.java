@@ -65,7 +65,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         logger.debug("Loading resources...");
 
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        List<Resource> resourceList = resourceManager.list();
+        List<Resource> resourceList = resourceManager.list(null);
         for (Resource resource : resourceList) {
             addObject(resource, entityManager);
         }

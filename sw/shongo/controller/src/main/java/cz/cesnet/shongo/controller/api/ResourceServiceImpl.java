@@ -17,9 +17,7 @@ import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Resource service implementation.
@@ -225,18 +223,38 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public Collection<ResourceSummary> listResources(SecurityToken token)
+    public Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
     {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list();
+        if (filter == null) {
+            filter = new HashMap<String, Object>();
+        }
+        Long userId = authorization.getUserId(token);
+        Set<Technology> technologies = null;
+        if (filter != null) {
+            if (filter.containsKey("userId")) {
+                Object value = filter.get("userId");
+                // All users
+                if (value.equals("*")) {
+                    userId = null;
+                }
+                // One selected user
+                else {
+                    userId = (value != null ? Long.valueOf(value.toString()) : null);
+                }
+            }
+        }
+        List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
+
         List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
         for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
             ResourceSummary summary = new ResourceSummary();
             summary.setIdentifier(domain.formatIdentifier(resource.getId()));
+            summary.setUserId(resource.getUserId().intValue());
             summary.setName(resource.getName());
             if (resource instanceof DeviceResource) {
                 StringBuilder stringBuilder = new StringBuilder();

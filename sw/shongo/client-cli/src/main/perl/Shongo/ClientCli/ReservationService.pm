@@ -63,8 +63,8 @@ sub populate()
         },
         'list-reservation-requests' => {
             desc => 'List summary of all existing reservation requests',
-            options => 'technology=s',
-            args => '[-technology]',
+            options => 'owner=s technology=s',
+            args => '[-owner=*|<user-id>] [-technology]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 list_reservation_requests($params->{'options'});
@@ -204,6 +204,9 @@ sub list_reservation_requests()
             $technology =~ s/(^ +)|( +$)//g;
             push(@{$filter->{'technology'}}, $technology);
         }
+    }
+    if ( defined($options->{'owner'}) ) {
+        $filter->{'userId'} = $options->{'owner'};
     }
     my $response = Shongo::ClientCli->instance()->secure_request('Reservation.listReservationRequests', $filter);
     if ( $response->is_fault() ) {
