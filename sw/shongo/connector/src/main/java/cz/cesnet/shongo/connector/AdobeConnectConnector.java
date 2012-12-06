@@ -6,9 +6,13 @@ import cz.cesnet.shongo.connector.api.*;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.JDOMParseException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.URL;
@@ -25,10 +29,7 @@ import java.util.*;
  */
 public class AdobeConnectConnector extends AbstractConnector implements MultipointService
 {
-    /**
-     * The URL of the server.
-     */
-    protected String serverUrl;
+    private static Logger logger = LoggerFactory.getLogger(AdobeConnectConnector.class);
 
     /**
      * Root folder for meetings
@@ -39,12 +40,12 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     /**
      * This is the user log in name, typically the user email address.
      */
-    protected String login;
+    private String login;
 
     /**
      * The password of the user.
      */
-    protected String password;
+    private String password;
 
     /**
      * The Java session ID that is generated upon successful login.  All calls
@@ -52,7 +53,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected String breezesession;
 
-    /**
+    /*
      * @param serverUrl     the base URL of the Breeze server, including the
      *                      trailing slash http://www.breeze.example/ is a typical
      *                      example.  Most Breeze installations will not need any
@@ -63,41 +64,32 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * @param password      The password of the user who's logging in.
      * @param breezesession The Java session ID created by the Breeze server upon
      *                      successful login.
-     */
-    public AdobeConnectConnector(String serverUrl, String login, String password, String breezesession)
+     *
+    public AdobeConnectConnector()
     {
         this.serverUrl = serverUrl;
         this.login = login;
         this.password = password;
         this.breezesession = breezesession;
-    }
+    }*/
 
     @java.lang.Override
     public void connect(Address address, String username, String password) throws CommandException
     {
+        this.info.setDeviceAddress(address);
+        this.login = username;
+        this.password = password;
+
         this.login();
+
+        this.info.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
     }
 
     @java.lang.Override
     public void disconnect() throws CommandException
     {
+        this.info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
         this.logout();
-    }
-
-    @java.lang.Override
-    public ConnectorInfo getConnectorInfo()
-    {
-        ConnectorInfo connectorInfo = new ConnectorInfo("Adobe Connect");
-
-        DeviceInfo deviceInfo = new DeviceInfo();
-
-        connectorInfo.setConnectionState(ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
-        connectorInfo.setDeviceInfo(deviceInfo);
-        connectorInfo.setName("Adobe Connect Connector");
-
-        // TODO: Finish after DeviceState specified
-
-        return connectorInfo;
     }
 
      /** Creates Adobe Connect user.
@@ -195,13 +187,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         List<RoomSummary> meetings = new ArrayList<RoomSummary>();
 
         for (Element room : response.getChild("report-bulk-objects").getChildren("row")) {
+            if (room.getChildText("name").matches("(?i).*Template"))
+                continue;
+
             RoomSummary roomSummary = new RoomSummary();
 
-            roomSummary.setName(room.getChildText("name"));
             roomSummary.setIdentifier(room.getAttributeValue("sco-id"));
+            roomSummary.setName(room.getChildText("name"));
+            roomSummary.setDescription(room.getChildText("description"));
 
             //TODO: element URL
-            roomSummary.setDescription(room.getChildText("url"));
 
             meetings.add(roomSummary);
         }
@@ -317,11 +312,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("sco-info", attributes);
 
-        // TODO: WTF roomSummary.setType(Technology.ADOBE_CONNECT);
         Room room = new Room();
         room.setIdentifier(roomId);
         room.setName(response.getChild("sco").getChildText("name"));
 
+        room.setOption(Room.Option.DESCRIPTION,response.getChild("sco").getChildText("description"));
+
+        // TODO: URL, technology
         // TODO: roomInfo.setOwner();
         // TODO: roomInfo.setCreation();
         // TODO: roomInfo.setReservation();
@@ -337,12 +334,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
         attributes.put("name", room.getName());
         attributes.put("type","meeting");
+        // TODO: ALIAS attributes.put("url-path",room.getAliases().get())
         attributes.put("description",room.getOption(Room.Option.DESCRIPTION).toString());
 
         Element respose = request("sco-update", attributes);
 
         room.setIdentifier(respose.getChild("sco").getAttributeValue("sco-id"));
-        room.setOption(Room.Option.DESCRIPTION,this.serverUrl + respose.getChild("sco").getChildText("url-path"));
+//        room.setOption(Room.Option.DESCRIPTION,this.serverUrl + respose.getChild("sco").getChildText("url-path"));
 
         return null;
 /*        for (RoomUser roomUser : room.()) {
@@ -497,7 +495,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
         }
 
-        return new URL(serverUrl + "/api/xml?" + "action=" + action
+        return new URL("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + "/api/xml?" + "action=" + action
                 + queryString);
     }
 
@@ -550,6 +548,17 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             URL loginUrl = breezeUrl("login", loginAtributes);
             conn = loginUrl.openConnection();
             conn.connect();
+
+            InputStream resultStream = conn.getInputStream();
+            Document doc = new SAXBuilder().build(resultStream);
+
+            if (this.isError(doc)) {
+                logger.info(String.format("Login to server %s failed", info.getDeviceAddress()));
+
+                throw new RuntimeException("Login to server " + info.getDeviceAddress() + " failed");
+            } else {
+                logger.info(String.format("Login on server %s succeeded", info.getDeviceAddress()));
+            }
         }
         catch (Exception exception) {
             throw new CommandException(exception.getMessage(), exception);
@@ -572,12 +581,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             int semiIndex = breezesessionNext.indexOf(';');
             this.breezesession = breezesessionNext.substring(0, semiIndex);
 
+
             this.meetingsFolderID = this.getMeetingsFolderID();
         }
 
 
         if (breezesession == null) {
-            throw new RuntimeException("Could not log in to Adobe Connect server: " + serverUrl);
+            throw new RuntimeException("Could not log in to Adobe Connect server: " + info.getDeviceAddress());
         }
     }
 
@@ -612,13 +622,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             Document doc = new SAXBuilder().build(resultStream);
 
-            Element status = doc.getRootElement().getChild("status");
-            if (status == null) {
-                throw new RuntimeException("Response from server " + this.serverUrl + " is unreadable.");
-            }
-            else if (!status.getAttributeValue("code").equals("ok")) {
+            if (this.isError(doc)) {
+                Element status = doc.getRootElement().getChild("status");
+
                 List<Attribute> statusAttributes = status.getAttributes();
-                String errorMsg = "Error: ";
+                String errorMsg = new String();
                 for (Attribute attribute : statusAttributes) {
                     errorMsg += " " + attribute.getName() + ": " + attribute.getValue();
                 }
@@ -630,28 +638,50 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     }
                 }
 
+                logger.info(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(),errorMsg));
+
                 throw new RuntimeException(errorMsg);
+            } else {
+                logger.info(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
             }
             return doc.getRootElement();
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Command issuing error", e);
+        }
+        catch (JDOMParseException e) {
+            throw new RuntimeException("Command result parsing error", e);
+        }
+        catch (JDOMException e) {
+            throw new RuntimeException("Error initializing parser", e);
         }
         catch (Exception exception) {
             throw new CommandException(exception.getMessage(), exception);
         }
     }
 
+    private boolean isError(Document result) {
+        Element status = result.getRootElement().getChild("status");
+
+        return !status.getAttributeValue("code").equals("ok");
+    }
 
     public static void main(String[] args) throws Exception
     {
         try {
-            AdobeConnectConnector acc = new AdobeConnectConnector("https://actest-w3.cesnet.cz", "admin",
-                    "cip9skovi3t2", null);
-            acc.login();
+            AdobeConnectConnector acc = new AdobeConnectConnector();
+            Address address = new Address("actest-w3.cesnet.cz",443);
 
-//            acc.removeRoomContentFile("42108", "vyrocni_zprava_2011_2012.pdf");
+            acc.connect(address,"admin","cip9skovi3t2");
+
+            System.out.println(acc.getConnectorInfo());
 //            String str = acc.exportRoomSettings("42108");
 //            acc.importRoomSettings("42108",str);
 
-            System.out.println(acc.getSupportedMethods());
+//            System.out.println(acc.getSupportedMethods());
+
+            System.out.println(acc.getRoomList());
+
 /*            Room r = new Room("test",0);
             acc.createRoom(r);
 
@@ -664,7 +694,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             System.out.println(acc.getRoomList());
 */
 
-            acc.logout();
+            acc.disconnect();
 
         }
         catch (ExceptionInInitializerError ex) {
