@@ -50,6 +50,29 @@
 --cmd "\
     create-resource { \
         class: 'DeviceResource', \
+        name: 'connect-cesnet', \
+        allocatable: 1, \
+        address: 'https://connect.cesnet.cz', \
+        technologies: ['ADOBE_CONNECT'], \
+        mode: { \
+            connectorAgentName: 'connect-cesnet' \
+        }, \
+        capabilities: [{ \
+            class: 'RoomProviderCapability', \
+            licenseCount: 10 \
+        }, { \
+            class: 'AliasProviderCapability', \
+            aliases: [ \
+                { type: 'ADOBE_CONNECT_NAME', value: '{value}' }, \
+                { type: 'ADOBE_CONNECT_URI', value: '{resource.address}/{value}' }, \
+            ], \
+            patterns: ['[s]'], \
+            restrictedToOwnerResource: 1 \
+        }] \
+    }" \
+--cmd "\
+    create-resource { \
+        class: 'DeviceResource', \
         name: 'c90-sitola', \
         allocatable: 1, \
         technologies: ['H323'], \
@@ -70,6 +93,6 @@
 --cmd "get-resource 1" \
 --cmd "get-resource 2" \
 --cmd "get-resource 3" \
+--cmd "get-resource 4" \
 --cmd "get-resource-allocation 1" \
---cmd "get-resource-allocation 2" \
---cmd "get-resource-allocation 3" \
+--cmd "get-resource-allocation 4" \

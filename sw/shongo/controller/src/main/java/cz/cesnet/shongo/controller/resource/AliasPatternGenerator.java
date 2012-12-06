@@ -1,8 +1,9 @@
 package cz.cesnet.shongo.controller.resource;
 
-import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
+import org.apache.commons.lang.RandomStringUtils;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.*;
 
 /**
@@ -98,9 +99,19 @@ public class AliasPatternGenerator extends AliasGenerator
     public static class Pattern extends ArrayList<PatternComponent>
     {
         /**
+         * Length of automatic generated strings by "[s]" pattern.
+         */
+        public static final int STRING_PATTERN_LENGTH = 8;
+
+        /**
          * Regex for {@link NumberPatternComponent}.
          */
         private static final java.util.regex.Pattern NUMBER_PATTERN = java.util.regex.Pattern.compile("d+");
+
+        /**
+         * Regex for {@link StringPatternComponent}
+         */
+        private static final java.util.regex.Pattern STRING_PATTERN = java.util.regex.Pattern.compile("s");
 
         /**
          * Single value pattern.
@@ -123,11 +134,14 @@ public class AliasPatternGenerator extends AliasGenerator
             int end = -1;
             while ((start = pattern.indexOf('[')) != -1 && (end = pattern.indexOf(']')) != -1) {
                 if (start > 0) {
-                    add(new StringPatternComponent(pattern.substring(0, start)));
+                    add(new ConstantPatternComponent(pattern.substring(0, start)));
                 }
                 String component = pattern.substring(start + 1, end);
                 if (NUMBER_PATTERN.matcher(component).matches()) {
                     add(new NumberPatternComponent(component.length()));
+                }
+                else if (STRING_PATTERN.matcher(component).matches()) {
+                    add(new StringPatternComponent());
                 }
                 else {
                     throw new IllegalArgumentException("Component '[" + component + "]' is in wrong format.");
@@ -135,9 +149,9 @@ public class AliasPatternGenerator extends AliasGenerator
                 pattern = pattern.substring(end + 1);
             }
             if (pattern.length() > 0) {
-                add(new StringPatternComponent(pattern));
+                add(new ConstantPatternComponent(pattern));
             }
-            singleValuePattern = size() == 1 && get(0) instanceof StringPatternComponent;
+            singleValuePattern = size() == 1 && get(0) instanceof ConstantPatternComponent;
         }
 
         /**
@@ -201,7 +215,7 @@ public class AliasPatternGenerator extends AliasGenerator
     /**
      * {@link PatternComponent} which returns always same string.
      */
-    private static class StringPatternComponent implements PatternComponent
+    private static class ConstantPatternComponent implements PatternComponent
     {
         /**
          * Same string which is returned
@@ -213,7 +227,7 @@ public class AliasPatternGenerator extends AliasGenerator
          *
          * @param component sets the {@link #component}
          */
-        public StringPatternComponent(String component)
+        public ConstantPatternComponent(String component)
         {
             this.component = component;
         }
@@ -306,6 +320,49 @@ public class AliasPatternGenerator extends AliasGenerator
         public boolean available()
         {
             return currentValue <= maxValue;
+        }
+    }
+
+    /**
+     * {@link PatternComponent} which returns increasing numbers of given length.
+     */
+    private static class StringPatternComponent implements GeneratedPatternComponent
+    {
+        /**
+         * Current number.
+         */
+        private String currentValue;
+
+        /**
+         * Constructor.
+         */
+        public StringPatternComponent()
+        {
+            reset();
+        }
+
+        @Override
+        public void nextComponent()
+        {
+
+            currentValue = RandomStringUtils.randomAlphanumeric(Pattern.STRING_PATTERN_LENGTH).toLowerCase();
+        }
+
+        @Override
+        public String getComponent()
+        {
+            return currentValue;
+        }
+
+        @Override
+        public void reset()
+        {
+        }
+
+        @Override
+        public boolean available()
+        {
+            return true;
         }
     }
 }

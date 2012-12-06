@@ -208,17 +208,21 @@ public class RoomReservationTask extends ReservationTask
         // Allocate aliases for each technology
         if (withAlias) {
             DeviceResource deviceResource = roomEndpoint.getDeviceResource();
-            Set<Technology> technologies = new HashSet<Technology>();
-            technologies.addAll(roomConfiguration.getTechnologies());
-            while ( technologies.size() > 0 ) {
-                Technology technology = technologies.iterator().next();
+            Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
+            Set<Technology> missingAliasTechnologies = new HashSet<Technology>();
+            missingAliasTechnologies.addAll(roomTechnologies);
+            while ( missingAliasTechnologies.size() > 0 ) {
+                // Allocate missing alias
+                Technology technology = missingAliasTechnologies.iterator().next();
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, deviceResource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
+                // Assign allocated aliases to the room
                 for (Alias alias : aliasReservation.getAliases()) {
+                    // Assign only aliases which can be assigned to the room (according to technology)
                     Technology aliasTechnology = alias.getTechnology();
-                    if (technologies.contains(aliasTechnology)) {
+                    if (roomTechnologies.contains(aliasTechnology)) {
                         roomEndpoint.addAssignedAlias(alias);
-                        technologies.remove(aliasTechnology);
+                        missingAliasTechnologies.remove(aliasTechnology);
                     }
                 }
             }

@@ -68,4 +68,11 @@ public class AliasPatternGeneratorTest
         }
         assertEquals(null, generator.generateValue());
     }
+
+    @Test
+    public void testStringPattern() throws Exception
+    {
+        AliasPatternGenerator generator = new AliasPatternGenerator("[s]");
+        assertEquals(AliasPatternGenerator.Pattern.STRING_PATTERN_LENGTH, generator.generateValue().length());
+    }
 }
