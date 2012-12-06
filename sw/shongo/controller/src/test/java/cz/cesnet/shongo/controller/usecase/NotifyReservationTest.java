@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.usecase;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
@@ -46,9 +47,9 @@ public class NotifyReservationTest extends AbstractControllerTest
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
-        mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 

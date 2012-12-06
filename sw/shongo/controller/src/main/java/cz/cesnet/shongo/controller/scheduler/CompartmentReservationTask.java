@@ -300,7 +300,8 @@ public class CompartmentReservationTask extends ReservationTask
             connection = connectionByAlias;
         }
         // Create connection by address
-        else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null) {
+        else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null
+                && !(endpointTo instanceof RoomEndpoint)) {
             ConnectionByAddress connectionByAddress = new ConnectionByAddress();
             connectionByAddress.setAddress(endpointTo.getAddress());
             connectionByAddress.setTechnology(technology);

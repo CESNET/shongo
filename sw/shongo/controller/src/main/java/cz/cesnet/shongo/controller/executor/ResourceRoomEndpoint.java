@@ -131,7 +131,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public Set<Technology> getTechnologies()
     {
-        return getDeviceResource().getTechnologies();
+        return roomConfiguration.getTechnologies();
     }
 
     @Override
