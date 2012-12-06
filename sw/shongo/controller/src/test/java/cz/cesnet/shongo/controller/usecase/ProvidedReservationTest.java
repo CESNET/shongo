@@ -96,13 +96,13 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95000000[d]"));
+        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95000000[d]"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.H323, AliasType.E164));
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
         Reservation aliasReservation = allocateAndCheck(aliasReservationRequest);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -130,16 +130,16 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "950000001"));
+        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.H323, AliasType.E164));
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
         String aliasReservationRequestIdentifier = allocate(aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestIdentifier);
-        assertEquals(aliasReservation.getAlias().getValue(), "950000001");
+        assertEquals(aliasReservation.getAliasValue(), "950000001");
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-06-22T14:00", "PT2H");

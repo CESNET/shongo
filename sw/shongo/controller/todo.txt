@@ -1,3 +1,11 @@
+* Shongo cesnet report
+
+* Delete running conference
+
+* Always allocate alias for room (do not allow connection by IP address)
+
+* Styling CSS http://twitter.github.com/bootstrap/
+
 * Web clients - H.323 and Adobe Connect
   - adobe connect
   - send info mails about new/deleted reservation requests to:
@@ -23,6 +31,8 @@
 * Adobe connect
   - test connector, create/delete room
   - create/delete room by alias reservation
+
+* Run cmd-line client test in maven testing
 
 * Rename resourceIdentifier -> resourceId
 

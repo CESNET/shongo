@@ -83,7 +83,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
             Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
             compartmentSpecification.addChildSpecification(new PersonSpecification(person1,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080085"))));
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080085"))));
             compartmentSpecification.addChildSpecification(new PersonSpecification(person2));
             reservationRequestSet.addSpecification(compartmentSpecification);
 
@@ -150,7 +150,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Second person accepts
             reservationRequestManager.selectEndpointForPersonSpecification(reservationRequestId, personId2,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080086")));
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080086")));
             reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
             assertEquals("One complete reservation request should be present", 1,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());

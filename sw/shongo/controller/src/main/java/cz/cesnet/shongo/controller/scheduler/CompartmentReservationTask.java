@@ -321,12 +321,25 @@ public class CompartmentReservationTask extends ReservationTask
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
 
-                // Assign alias to endpoint
-                endpointTo.addAssignedAlias(aliasReservation.getAlias().clone());
+                // Assign all usable aliases to endpoint, and find the one which will be used for the connection
+                alias = null;
+                Set<Technology> endpointToTechnologies = endpointTo.getTechnologies();
+                for (Alias possibleAlias : aliasReservation.getAliases()) {
+                    if (endpointToTechnologies.contains(possibleAlias.getTechnology())) {
+                        endpointTo.addAssignedAlias(possibleAlias);
+                        if (possibleAlias.getTechnology().equals(technology)) {
+                            alias = possibleAlias;
+                        }
+                    }
+                }
+                if (alias == null) {
+                    throw new IllegalStateException(
+                            "Alias reservation doesn't contain alias for requested technology (should never happen).");
+                }
 
                 // Create connection by the created alias
                 ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-                connectionByAlias.setAlias(aliasReservation.getAlias().clone());
+                connectionByAlias.setAlias(alias.clone());
                 connection = connectionByAlias;
             }
             catch (ReportException exception) {

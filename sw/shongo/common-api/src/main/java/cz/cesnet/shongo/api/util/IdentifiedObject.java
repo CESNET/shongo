@@ -37,7 +37,7 @@ public abstract class IdentifiedObject implements StructType, Concept
      */
     public void setIdentifier(Long identifier)
     {
-        this.identifier = identifier.toString();
+        this.identifier = (identifier != null ? identifier.toString() : null);
     }
 
     /**

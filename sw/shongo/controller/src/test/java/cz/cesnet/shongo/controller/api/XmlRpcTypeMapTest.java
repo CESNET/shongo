@@ -90,7 +90,7 @@ public class XmlRpcTypeMapTest
             room.setIdentifier("1");
             room.setName("room");
             room.setLicenseCount(5);
-            room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
+            room.addAlias(new Alias(AliasType.H323_E164, "9501"));
             room.setOption(Room.Option.DESCRIPTION, "room description");
             return room;
         }

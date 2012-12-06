@@ -4,10 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import java.util.Map;
 
 /**
@@ -18,11 +15,6 @@ import java.util.Map;
 @Entity
 public class Alias extends PersistentObject implements Cloneable
 {
-    /**
-     * Technology of alias.
-     */
-    private Technology technology;
-
     /**
      * Type of alias.
      */
@@ -43,20 +35,6 @@ public class Alias extends PersistentObject implements Cloneable
     /**
      * Constructor.
      *
-     * @param technology
-     * @param type
-     * @param value
-     */
-    public Alias(Technology technology, AliasType type, String value)
-    {
-        this.technology = technology;
-        this.type = type;
-        this.value = value;
-    }
-
-    /**
-     * Constructor.
-     *
      * @param type
      * @param value
      */
@@ -64,24 +42,6 @@ public class Alias extends PersistentObject implements Cloneable
     {
         this.type = type;
         this.value = value;
-    }
-
-    /**
-     * @return {@link #technology}
-     */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public Technology getTechnology()
-    {
-        return technology;
-    }
-
-    /**
-     * @param technology sets the {@link #technology}
-     */
-    public void setTechnology(Technology technology)
-    {
-        this.technology = technology;
     }
 
     /**
@@ -119,11 +79,19 @@ public class Alias extends PersistentObject implements Cloneable
         this.value = value;
     }
 
+    /**
+     * @return {@link #type#getTechnology()}
+     */
+    @Transient
+    public Technology getTechnology()
+    {
+        return type.getTechnology();
+    }
+
     @Override
     public Alias clone()
     {
         Alias alias = new Alias();
-        alias.setTechnology(technology);
         alias.setType(type);
         alias.setValue(value);
         return alias;
@@ -136,7 +104,6 @@ public class Alias extends PersistentObject implements Cloneable
     {
         cz.cesnet.shongo.api.Alias api = new cz.cesnet.shongo.api.Alias();
         api.setIdentifier(getId());
-        api.setTechnology(getTechnology());
         api.setType(getType());
         api.setValue(getValue());
         return api;
@@ -149,9 +116,6 @@ public class Alias extends PersistentObject implements Cloneable
      */
     public void fromApi(cz.cesnet.shongo.api.Alias api)
     {
-        if (api.getTechnology() != null) {
-            setTechnology(api.getTechnology());
-        }
         if (api.getType() != null) {
             setType(api.getType());
         }
@@ -164,7 +128,6 @@ public class Alias extends PersistentObject implements Cloneable
     protected void fillDescriptionMap(Map<String, Object> map)
     {
         super.fillDescriptionMap(map);
-        map.put("technology", technology.getName());
         map.put("type", type.toString());
         map.put("value", value);
     }

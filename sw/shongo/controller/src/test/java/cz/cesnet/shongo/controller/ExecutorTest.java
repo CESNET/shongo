@@ -87,7 +87,7 @@ public class ExecutorTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "9500872[dd]"));
+        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "9500872[dd]"));
         String aliasProviderIdentifier = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         DeviceResource terminal = new DeviceResource();

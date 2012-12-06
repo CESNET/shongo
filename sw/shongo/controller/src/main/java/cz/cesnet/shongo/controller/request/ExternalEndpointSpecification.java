@@ -59,9 +59,6 @@ public class ExternalEndpointSpecification extends EndpointSpecification impleme
         if (technology == null) {
             throw new IllegalArgumentException("Technology cannot be null!");
         }
-        if (alias.getTechnology() == null) {
-            alias.setTechnology(technology);
-        }
         else if (!technology.equals(alias.getTechnology())) {
             throw new IllegalArgumentException("Cannot use alias for technology '" + alias.getTechnology().getName()
                     + "' for an external endpoint with technology '" + technology.getName() + "!");

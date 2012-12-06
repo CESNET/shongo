@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -455,10 +456,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Technology technology,
             AliasType aliasType, Interval interval, Transaction transaction)
     {
-        if (technology != null && !aliasProviderCapability.getTechnology().equals(technology)) {
+        if (technology != null && !aliasProviderCapability.providesAliasTechnology(technology)) {
             return null;
         }
-        if (aliasType != null && !aliasProviderCapability.getType().equals(aliasType)) {
+        if (aliasType != null && !aliasProviderCapability.providesAliasType(aliasType)) {
             return null;
         }
         return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
@@ -585,15 +586,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         public Set<ResourceReservation> getProvidedResourceReservations(Resource resource)
         {
             return resourceCacheTransaction.getProvidedReservations(resource.getId());
-        }
-
-        /**
-         * @param alias for which should be {@link AliasReservation} returned
-         * @return provided {@link AliasReservation} for given {@code alias}
-         */
-        public AliasReservation getProvidedAliasReservation(Alias alias)
-        {
-            return aliasCacheTransaction.getProvidedReservationByAlias(alias);
         }
 
         /**

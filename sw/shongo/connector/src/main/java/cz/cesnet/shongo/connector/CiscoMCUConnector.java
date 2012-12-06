@@ -791,7 +791,7 @@ ParamsLoop:
 
         // aliases
         if (!result.get("numericId").equals("")) {
-            Alias numAlias = new Alias(Technology.H323, AliasType.E164, (String) result.get("numericId"));
+            Alias numAlias = new Alias(AliasType.H323_E164, (String) result.get("numericId"));
             room.addAlias(numAlias);
         }
 
@@ -854,7 +854,7 @@ ParamsLoop:
         if (room.getAliases() != null) {
             cmd.setParameter("numericId", "");
             for (Alias alias : room.getAliases()) {
-                if (alias.getTechnology() == Technology.H323 && alias.getType() == AliasType.E164) {
+                if (alias.getType() == AliasType.H323_E164) {
                     if (!cmd.getParameterValue("numericId").equals("")) {
                         // multiple number aliases
                         final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
@@ -918,12 +918,12 @@ ParamsLoop:
         }
         // Create/Update aliases
         for (Alias alias : room.getAliases()) {
-            if (alias.getTechnology() == Technology.H323 && alias.getType() == AliasType.E164) {
+            if (alias.getType() == AliasType.H323_E164) {
                 if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
                     // MCU only supports a single H323-E164 alias; if another is to be set, throw an exception
                     Room currentRoom = getRoom(room.getIdentifier());
                     for (Alias curAlias : currentRoom.getAliases()) {
-                        if (curAlias.getTechnology() == Technology.H323 && curAlias.getType() == AliasType.E164) {
+                        if (curAlias.getType() == AliasType.H323_E164) {
                             final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
                             throw new CommandException(m);
                         }
@@ -935,7 +935,7 @@ ParamsLoop:
         // Delete aliases
         Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
         for (Alias alias : aliasesToDelete) {
-            if (alias.getTechnology() == Technology.H323 && alias.getType() == AliasType.E164) {
+            if (alias.getType() == AliasType.H323_E164) {
                 cmd.setParameter("numericId", "");
             }
         }
@@ -944,7 +944,8 @@ ParamsLoop:
             if (room.isPropertyItemMarkedAsNew(Room.OPTIONS, option)) {
                 // TODO: new option
                 logger.debug("New option {} = {}", option, room.getOption(option));
-            } else {
+            }
+            else {
                 // TODO: modified option
                 logger.debug("Modified option {} = {}", option, room.getOption(option));
             }

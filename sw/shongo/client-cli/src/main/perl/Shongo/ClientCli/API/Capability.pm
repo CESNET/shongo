@@ -72,7 +72,7 @@ sub on_init()
         case 'RoomProviderCapability' {
             $self->add_attribute(
                 'licenseCount', {
-                    'title' => 'Maximum Number of Licenses',
+                    'title' => 'Number of Licenses',
                     'required' => 1,
                     'type' => 'int'
                 }

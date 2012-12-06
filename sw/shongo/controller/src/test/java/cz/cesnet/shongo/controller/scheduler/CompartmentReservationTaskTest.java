@@ -137,7 +137,7 @@ public class CompartmentReservationTaskTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(100));
-        mcu.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95[ddd]"));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95[ddd]"));
         cache.addResource(mcu);
 
         DeviceResource terminal = new DeviceResource();
@@ -170,8 +170,8 @@ public class CompartmentReservationTaskTest
 
         Resource resource = new Resource();
         resource.setAllocatable(true);
-        resource.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "950[ddd]"));
-        resource.addCapability(new AliasProviderCapability(Technology.SIP, AliasType.URI, "001@cesnet.cz"));
+        resource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950[ddd]"));
+        resource.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "001@cesnet.cz"));
         cache.addResource(resource);
 
         ReservationTask.Context context;

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.annotation.Required;
 
 import java.util.List;
@@ -14,14 +15,9 @@ import java.util.List;
 public class AliasProviderCapability extends Capability
 {
     /**
-     * Technology of aliases.
-     */
-    public static final String TECHNOLOGY = "technology";
-
-    /**
      * Type of aliases.
      */
-    public static final String TYPE = "type";
+    public static final String ALIASES = "aliases";
 
     /**
      * Pattern for aliases.
@@ -48,66 +44,61 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #TECHNOLOGY}
-     * @param type       sets the {@link #TYPE}
+     * @param type       to be added as {@link Alias} to {@link #ALIASES}
      * @param pattern    to be added to the {@link #PATTERNS}
      */
-    public AliasProviderCapability(Technology technology, AliasType type, String pattern)
+    public AliasProviderCapability(AliasType type, String pattern)
     {
-        setTechnology(technology);
-        setType(type);
+        addAlias(new Alias(type, "{value}"));
         addPattern(pattern);
     }
 
     /**
      * Constructor.
      *
-     * @param technology                sets the {@link #TECHNOLOGY}
-     * @param type                      sets the {@link #TYPE}
+     * @param type       to be added as {@link Alias} to {@link #ALIASES}
      * @param pattern                   to be added to the {@link #PATTERNS}
      * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
      */
-    public AliasProviderCapability(Technology technology, AliasType type, String pattern,
+    public AliasProviderCapability(AliasType type, String pattern,
             boolean restrictedToOwnerResource)
     {
-        setTechnology(technology);
-        setType(type);
+        addAlias(new Alias(type, "{value}"));
         addPattern(pattern);
         setRestrictedToOwnerResource(restrictedToOwnerResource);
     }
 
     /**
-     * @return {@link #TECHNOLOGY}
+     * @return {@link #ALIASES}
      */
     @Required
-    public Technology getTechnology()
+    public List<Alias> getAliases()
     {
-        return getPropertyStorage().getValue(TECHNOLOGY);
+        return getPropertyStorage().getCollection(ALIASES, List.class);
     }
 
     /**
-     * @param technology sets the {@link #TECHNOLOGY}
+     * @param aliases sets the {@link #ALIASES}
      */
-    public void setTechnology(Technology technology)
+    public void setAliases(List<Alias> aliases)
     {
-        getPropertyStorage().setValue(TECHNOLOGY, technology);
+        getPropertyStorage().setValue(ALIASES, aliases);
     }
 
     /**
-     * @return {@link #TYPE}
+     * @param alias to be added to the {@link #ALIASES}
      */
-    @Required
-    public AliasType getType()
+    public void addAlias(Alias alias)
     {
-        return getPropertyStorage().getValue(TYPE);
+        getPropertyStorage().addCollectionItem(ALIASES, alias, List.class);
     }
 
     /**
-     * @param type sets the {@link #TYPE}
+     * @param alias to be removed from the {@link #ALIASES}
      */
-    public void setType(AliasType type)
+    public void removeAlias(Alias alias)
     {
-        getPropertyStorage().setValue(TYPE, type);
+        getPropertyStorage().removeCollectionItem(ALIASES, alias);
     }
 
     /**

@@ -12,11 +12,6 @@ import jade.content.Concept;
 public class Alias extends IdentifiedObject implements StructType, Concept
 {
     /**
-     * Technology of alias.
-     */
-    private Technology technology;
-
-    /**
      * Type of alias.
      */
     private AliasType type;
@@ -36,31 +31,13 @@ public class Alias extends IdentifiedObject implements StructType, Concept
     /**
      * Constructor.
      *
-     * @param technology
      * @param type
      * @param value
      */
-    public Alias(Technology technology, AliasType type, String value)
+    public Alias(AliasType type, String value)
     {
-        this.technology = technology;
         this.type = type;
         this.value = value;
-    }
-
-    /**
-     * @return {@link #technology}
-     */
-    public Technology getTechnology()
-    {
-        return technology;
-    }
-
-    /**
-     * @param technology sets the {@link #technology}
-     */
-    public void setTechnology(Technology technology)
-    {
-        this.technology = technology;
     }
 
     /**

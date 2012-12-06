@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.cache;
 
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
@@ -10,30 +11,19 @@ import cz.cesnet.shongo.controller.resource.Resource;
 public class AvailableAlias
 {
     /**
-     * Available {@link Alias}
-     */
-    private Alias alias;
-
-    /**
-     * {@link AliasProviderCapability} in which the {@link #alias} is available.
+     * {@link AliasProviderCapability} in which the {@link #aliasValue} is available.
      */
     private AliasProviderCapability aliasProviderCapability;
 
     /**
-     * @return {@link #alias}
+     * Available {@link Alias} value.
      */
-    public Alias getAlias()
-    {
-        return alias;
-    }
+    private String aliasValue;
 
     /**
-     * @param alias sets the {@link #alias}
+     *  Provided {@link AliasReservation} by which the {@link AvailableAlias} is already allocated.
      */
-    public void setAlias(Alias alias)
-    {
-        this.alias = alias;
-    }
+    private AliasReservation aliasReservation;
 
     /**
      * @return {@link #aliasProviderCapability}
@@ -49,5 +39,37 @@ public class AvailableAlias
     public void setAliasProviderCapability(AliasProviderCapability aliasProviderCapability)
     {
         this.aliasProviderCapability = aliasProviderCapability;
+    }
+
+    /**
+     * @return {@link #aliasValue}
+     */
+    public String getAliasValue()
+    {
+        return aliasValue;
+    }
+
+    /**
+     * @param aliasValue sets the {@link #aliasValue}
+     */
+    public void setAliasValue(String aliasValue)
+    {
+        this.aliasValue = aliasValue;
+    }
+
+    /**
+     * @return {@link #aliasReservation}
+     */
+    public AliasReservation getAliasReservation()
+    {
+        return aliasReservation;
+    }
+
+    /**
+     * @param aliasReservation {@link #aliasReservation}
+     */
+    public void setAliasReservation(AliasReservation aliasReservation)
+    {
+        this.aliasReservation = aliasReservation;
     }
 }
