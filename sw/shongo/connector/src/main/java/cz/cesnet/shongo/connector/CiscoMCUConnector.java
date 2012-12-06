@@ -38,13 +38,14 @@ import java.util.regex.Pattern;
  * - Cisco TelePresence MCU MSE 8420
  * - Cisco TelePresence MCU MSE 8510
  * <p/>
- * FIXME: string parameters to device commands have to be at most 31 characters long
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 public class CiscoMCUConnector extends AbstractConnector implements MultipointService
 {
     private static Logger logger = LoggerFactory.getLogger(CiscoMCUConnector.class);
+
+    private static final int STRING_MAX_LENGTH = 31;
 
     /**
      * A safety limit for number of enumerate pages.
@@ -487,6 +488,27 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     }
 
 
+    /**
+     * For string parameters, MCU accepts only strings of limited length.
+     * <p/>
+     * There are just a few exceptions to the limit. For the rest, this method ensures truncation with logging strings
+     * that are longer.
+     * <p/>
+     * Constant <code>STRING_MAX_LENGTH</code> is used as the limit.
+     *
+     * @param str string to be (potentially) truncated
+     * @return <code>str</code> truncated to the maximum length supported by the device
+     */
+    private static String truncateString(String str)
+    {
+        if (str.length() > STRING_MAX_LENGTH) {
+            logger.warn(
+                    "Too long string: '" + str + "', the device only supports " + STRING_MAX_LENGTH + "-character strings");
+            str = str.substring(0, STRING_MAX_LENGTH);
+        }
+        return str;
+    }
+
     //<editor-fold desc="RESULTS CACHING">
 
     /**
@@ -577,6 +599,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         return false; // not reported as dead
     }
 
+
     /**
      * Tells whether an item from a result of an enumeration command changed since last time the command was issued.
      *
@@ -601,7 +624,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         return true; // not reported as not changed
     }
 
-
     /**
      * Cache storing results from a single command.
      * <p/>
@@ -620,6 +642,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     {
         private class Item
         {
+
             private final Map<String, Object> contents;
 
             public Item(Map<String, Object> contents)
@@ -670,9 +693,11 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                 }
                 return contents.hashCode();
             }
+
         }
 
         private int revision;
+
         private List<Item> results;
 
         public int getRevision()
@@ -700,6 +725,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                 this.results.add(new Item(res));
             }
         }
+
     }
 
     /**
@@ -755,8 +781,8 @@ ParamsLoop:
         return sb.toString();
     }
 
-    //</editor-fold>
 
+    //</editor-fold>
 
     //<editor-fold desc="ROOM SERVICE">
 
@@ -781,7 +807,7 @@ ParamsLoop:
     public Room getRoom(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.status");
-        cmd.setParameter("conferenceName", roomId);
+        cmd.setParameter("conferenceName", truncateString(roomId));
         Map<String, Object> result = exec(cmd);
 
         Room room = new Room();
@@ -844,7 +870,7 @@ ParamsLoop:
     private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
     {
         if (room.getName() != null) {
-            cmd.setParameter("conferenceName", room.getName());
+            cmd.setParameter("conferenceName", truncateString(room.getName()));
         }
 
         if (room.getPortCount() >= 0) {
@@ -870,7 +896,7 @@ ParamsLoop:
                         }
                         number = number.substring(gatekeeperRegistrationPrefix.length());
                     }
-                    cmd.setParameter("numericId", number);
+                    cmd.setParameter("numericId", truncateString(number));
                 }
                 else {
                     throw new CommandException("Unrecognized alias: " + alias);
@@ -898,7 +924,11 @@ ParamsLoop:
     private static void setCommandRoomOption(Command cmd, Room room, String cmdParam, Room.Option roomOption)
     {
         if (room.hasOption(roomOption)) {
-            cmd.setParameter(cmdParam, room.getOption(roomOption));
+            Object value = room.getOption(roomOption);
+            if (value instanceof String) {
+                value = truncateString((String) value);
+            }
+            cmd.setParameter(cmdParam, value);
         }
     }
 
@@ -909,9 +939,9 @@ ParamsLoop:
         Command cmd = new Command("conference.modify");
         setConferenceParametersByRoom(cmd, room);
         // treat the name and new name of the conference
-        cmd.setParameter("conferenceName", room.getIdentifier());
+        cmd.setParameter("conferenceName", truncateString(room.getIdentifier()));
         if (room.isPropertyFilled(Room.NAME)) {
-            cmd.setParameter("newConferenceName", room.getName());
+            cmd.setParameter("newConferenceName", truncateString(room.getName()));
         }
         if (room.isPropertyFilled(Room.PORT_COUNT)) {
             cmd.setParameter("maximumVideoPorts", room.getPortCount());
@@ -929,7 +959,7 @@ ParamsLoop:
                         }
                     }
                 }
-                cmd.setParameter("numericId", alias.getValue());
+                cmd.setParameter("numericId", truncateString(alias.getValue()));
             }
         }
         // Delete aliases
@@ -944,13 +974,14 @@ ParamsLoop:
             if (room.isPropertyItemMarkedAsNew(Room.OPTIONS, option)) {
                 // TODO: new option
                 logger.debug("New option {} = {}", option, room.getOption(option));
-            } else {
+            }
+            else {
                 // TODO: modified option
                 logger.debug("Modified option {} = {}", option, room.getOption(option));
             }
 
             if (option == Room.Option.DESCRIPTION) {
-                cmd.setParameter("description", room.getOption(Room.Option.DESCRIPTION));
+                cmd.setParameter("description", truncateString((String) room.getOption(Room.Option.DESCRIPTION)));
             }
         }
         // Delete aliases
@@ -978,7 +1009,7 @@ ParamsLoop:
     public void deleteRoom(String roomId) throws CommandException
     {
         Command cmd = new Command("conference.destroy");
-        cmd.setParameter("conferenceName", roomId);
+        cmd.setParameter("conferenceName", truncateString(roomId));
         exec(cmd);
     }
 
@@ -1055,9 +1086,9 @@ ParamsLoop:
 //        String roomUserId = generateRoomUserId(roomId); // FIXME: treat potential race conditions; and it is slow...
 
         Command cmd = new Command("participant.add");
-        cmd.setParameter("conferenceName", roomId);
-//        cmd.setParameter("participantName", roomUserId);
-        cmd.setParameter("address", address);
+        cmd.setParameter("conferenceName", truncateString(roomId));
+//        cmd.setParameter("participantName", truncateString(roomUserId));
+        cmd.setParameter("address", truncateString(address));
         cmd.setParameter("participantType", "ad_hoc");
         cmd.setParameter("addResponse", Boolean.TRUE);
 
@@ -1184,7 +1215,7 @@ ParamsLoop:
             Object attValue = attribute.getValue();
 
             if (attName.equals(RoomUser.DISPLAY_NAME)) {
-                cmd.setParameter("displayNameOverrideValue", attValue);
+                cmd.setParameter("displayNameOverrideValue", truncateString((String) attValue));
                 cmd.setParameter("displayNameOverrideStatus", Boolean.TRUE); // for the value to take effect
             }
             else if (attName.equals(RoomUser.AUDIO_MUTED)) {
@@ -1225,8 +1256,8 @@ ParamsLoop:
 
     private void identifyParticipant(Command cmd, String roomId, String roomUserId)
     {
-        cmd.setParameter("conferenceName", roomId);
-        cmd.setParameter("participantName", roomUserId);
+        cmd.setParameter("conferenceName", truncateString(roomId));
+        cmd.setParameter("participantName", truncateString(roomUserId));
         // NOTE: it is necessary to identify a participant also by type; ad_hoc participants receive auto-generated
         //       numbers, so we distinguish the type by the fact whether the name is a number or not
         cmd.setParameter("participantType", (StringUtils.isNumeric(roomUserId) ? "ad_hoc" : "by_address"));
