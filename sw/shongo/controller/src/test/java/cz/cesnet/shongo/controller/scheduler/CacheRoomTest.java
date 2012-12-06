@@ -12,6 +12,8 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static junitx.framework.Assert.assertEquals;
@@ -47,7 +49,7 @@ public class CacheRoomTest extends AbstractDatabaseTest
         cache.addReservation(room1);
 
         DeviceResource mcu2 = new DeviceResource();
-        mcu2.setName("mcu1");
+        mcu2.setName("mcu2");
         mcu2.addTechnology(Technology.SIP);
         mcu2.addTechnology(Technology.ADOBE_CONNECT);
         mcu2.addCapability(new RoomProviderCapability(100));
@@ -100,6 +102,7 @@ public class CacheRoomTest extends AbstractDatabaseTest
         // Test different number of required ports
         result = cache.findAvailableRooms(Interval.parse("100/149"), 10,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
+        sortResult(result);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
         assertEquals(50, result.get(0).getAvailableLicenseCount());
@@ -108,6 +111,7 @@ public class CacheRoomTest extends AbstractDatabaseTest
 
         result = cache.findAvailableRooms(Interval.parse("100/149"), 20,
                 new Technology[]{Technology.ADOBE_CONNECT}, null);
+        sortResult(result);
         assertEquals(2, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
         assertEquals(50, result.get(0).getAvailableLicenseCount());
@@ -119,5 +123,17 @@ public class CacheRoomTest extends AbstractDatabaseTest
         assertEquals(1, result.size());
         assertEquals(mcu1, result.get(0).getDeviceResource());
         assertEquals(50, result.get(0).getAvailableLicenseCount());
+    }
+
+    private void sortResult(List<AvailableRoom> result)
+    {
+        Collections.sort(result, new Comparator<AvailableRoom>()
+        {
+            @Override
+            public int compare(AvailableRoom o1, AvailableRoom o2)
+            {
+                return o1.getDeviceResource().getId().compareTo(o2.getDeviceResource().getId());
+            }
+        });
     }
 }

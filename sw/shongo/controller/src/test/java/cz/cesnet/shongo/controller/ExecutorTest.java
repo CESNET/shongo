@@ -266,9 +266,9 @@ public class ExecutorTest extends AbstractControllerTest
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
-        mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -336,9 +336,9 @@ public class ExecutorTest extends AbstractControllerTest
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
-        mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -396,6 +396,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);

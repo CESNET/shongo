@@ -7,8 +7,8 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
@@ -55,9 +55,9 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             DeviceResource deviceResource = new DeviceResource();
             deviceResource.setUserId(Authorization.ROOT_USER_ID);
             deviceResource.setName("MCU");
-            deviceResource.setAddress(Address.LOCALHOST);
             deviceResource.addTechnology(Technology.H323);
             deviceResource.addCapability(new RoomProviderCapability(100));
+            deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
             deviceResource.setAllocatable(true);
             cache.addResource(deviceResource, entityManager);
 

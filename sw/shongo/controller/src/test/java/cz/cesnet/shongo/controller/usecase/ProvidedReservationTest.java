@@ -216,10 +216,9 @@ public class ProvidedReservationTest extends AbstractControllerTest
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
-        mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 

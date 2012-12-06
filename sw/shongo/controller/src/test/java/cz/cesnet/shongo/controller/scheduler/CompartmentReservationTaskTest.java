@@ -99,6 +99,8 @@ public class CompartmentReservationTaskTest
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
         deviceResource.addCapability(new RoomProviderCapability(100));
+        deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
+        deviceResource.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "950000001@cesnet.cz", true));
         cache.addResource(deviceResource);
 
         ReservationTask.Context context;
@@ -113,7 +115,7 @@ public class CompartmentReservationTaskTest
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         reservation = compartmentReservationTask.perform();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getChildReservations().size());
+        assertEquals(4, reservation.getChildReservations().size());
         assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
         context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
@@ -124,7 +126,7 @@ public class CompartmentReservationTaskTest
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.SIP}));
         reservation = compartmentReservationTask.perform();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getChildReservations().size());
+        assertEquals(5, reservation.getChildReservations().size());
         assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
     }
 
