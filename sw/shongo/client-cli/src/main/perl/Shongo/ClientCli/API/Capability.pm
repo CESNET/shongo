@@ -80,17 +80,13 @@ sub on_init()
         }
         case 'AliasProviderCapability' {
             $self->add_attribute(
-                'technology', {
-                    'required' => 1,
-                    'type' => 'enum',
-                    'enum' =>  $Shongo::ClientCli::API::DeviceResource::Technology
-                }
-            );
-            $self->add_attribute(
-                'type', {
-                    'required' => 1,
-                    'type' => 'enum',
-                    'enum' =>  $Shongo::ClientCli::API::Alias::Type
+                'aliases', {
+                    'type' => 'collection',
+                    'item' => {
+                        'title' => 'Alias',
+                        'class' => 'Shongo::ClientCli::API::Alias',
+                        'short' => 1
+                    }
                 }
             );
             $self->add_attribute(

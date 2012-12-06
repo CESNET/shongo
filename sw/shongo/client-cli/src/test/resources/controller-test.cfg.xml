@@ -2,6 +2,11 @@
 
 <configuration>
 
+    <domain>
+        <name>test</name>
+        <organization>Test Organization</organization>
+    </domain>
+
     <database>
         <filename>data-test/controller</filename>
     </database>

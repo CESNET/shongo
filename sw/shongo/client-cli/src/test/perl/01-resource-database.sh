@@ -16,8 +16,10 @@
             licenseCount: 20 \
         }, { \
             class: 'AliasProviderCapability', \
-            technology: 'H323', \
-            type: 'E164', \
+            aliases: [ \
+                { type: 'H323_E164', value: '{value}' }, \
+                { type: 'SIP_URI', value: '{value}@cesnet.cz' } \
+            ], \
             patterns: ['95008721[d]'], \
             restrictedToOwnerResource: 1 \
         }] \
@@ -37,8 +39,10 @@
             licenseCount: 10 \
         }, { \
             class: 'AliasProviderCapability', \
-            technology: 'H323', \
-            type: 'E164', \
+            aliases: [ \
+                { type: 'H323_E164', value: '{value}' }, \
+                { type: 'SIP_URI', value: '{value}@cesnet.cz' } \
+            ], \
             patterns: ['95008722[d]'], \
             restrictedToOwnerResource: 1 \
         }] \
@@ -55,8 +59,7 @@
         capabilities: [{ \
             class: 'StandaloneTerminalCapability', \
             aliases: [{ \
-                technology: 'H323', \
-                type: 'E164', \
+                type: 'H323_E164', \
                 value: '950081038' \
             }] \
         }] \

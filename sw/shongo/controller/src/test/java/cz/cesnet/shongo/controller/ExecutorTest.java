@@ -47,7 +47,11 @@ public class ExecutorTest extends AbstractControllerTest
     public ExecutorTest()
     {
         // Executor configuration
+        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
+        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
         System.setProperty(Configuration.EXECUTOR_COMPARTMENT_WAITING_ROOM, "PT0S");
+        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_WAITING_START, "PT1S");
+        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_WAITING_END, "PT1S");
     }
 
     @Override
@@ -364,6 +368,62 @@ public class ExecutorTest extends AbstractControllerTest
         assertEquals("One thread should be executed.", 1, executorThreads.size());
         assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
                 executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedActionClasses());
+    }
+
+    /**
+     * Test delete {@link ReservationRequest} with started {@link ResourceRoomEndpoint}.
+     * @throws Exception
+     */
+    @Test
+    public void testDeleteStarted() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.now();
+        Period duration = Period.parse("PT2H");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        // Create virtual room reservation
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot(dateTime, duration);
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(10);
+        roomSpecification.addRoomSetting(new RoomSetting.H323().withPin("1234"));
+        roomReservationRequest.setSpecification(roomSpecification);
+        String identifier = allocateAndCheck(roomReservationRequest).getIdentifier();
+
+        // Execute compartment
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute room.",
+                cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        Thread.sleep(1000);
+
+        // Delete reservation request and the reservation
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);
+        // Run scheduler to modify room ending date/time
+        runScheduler();
 
         // Wait for executor threads to end
         executor.waitForThreads();

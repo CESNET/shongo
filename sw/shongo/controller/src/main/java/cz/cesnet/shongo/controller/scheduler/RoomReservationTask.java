@@ -193,7 +193,9 @@ public class RoomReservationTask extends ReservationTask
         RoomConfiguration roomConfiguration = new RoomConfiguration();
         roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
         roomConfiguration.setTechnologies(roomVariant.getTechnologies());
-        roomConfiguration.setRoomSettings(roomSettings);
+        for (RoomSetting roomSetting : roomSettings) {
+            roomConfiguration.addRoomSetting(roomSetting.clone());
+        }
 
         // Create room endpoint executable
         ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
@@ -213,8 +215,11 @@ public class RoomReservationTask extends ReservationTask
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, deviceResource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
                 for (Alias alias : aliasReservation.getAliases()) {
-                    roomEndpoint.addAssignedAlias(alias);
-                    technologies.remove(alias.getTechnology());
+                    Technology aliasTechnology = alias.getTechnology();
+                    if (technologies.contains(aliasTechnology)) {
+                        roomEndpoint.addAssignedAlias(alias);
+                        technologies.remove(aliasTechnology);
+                    }
                 }
             }
         }

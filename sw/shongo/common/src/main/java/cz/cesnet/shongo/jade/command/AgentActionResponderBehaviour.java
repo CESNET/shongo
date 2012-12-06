@@ -89,8 +89,8 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 fillMessage(reply, ACLMessage.INFORM, response);
             }
             catch (CommandException e) {
-                logger.info("Failure executing a command requested by " + request.getSender().getName(), e);
-                String message = e.getMessage();
+                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
+                    String message = e.getMessage();
                 if (e.getCause() != null) {
                     message += " (" + e.getCause().getMessage() + ")";
                 }
@@ -98,7 +98,7 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (ClassCastException e) {
-                logger.info("Failure executing a command requested by " + request.getSender().getName(), e);
+                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
                 String message = e.getMessage();
                 if (e.getCause() != null) {
                     message += " (" + e.getCause().getMessage() + ")";
@@ -107,27 +107,27 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (CommandUnsupportedException e) {
-                logger.info("Unsupported command requested by " + request.getSender().getName(), e);
+                logger.error("Unsupported command requested by " + request.getSender().getName(), e);
                 ContentElement response = new Result(act, new CommandNotSupported(e.getMessage()));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
             catch (UnknownAgentActionException e) {
-                logger.info("Unknown action requested by " + request.getSender().getName(), e);
+                logger.error("Unknown action requested by " + request.getSender().getName(), e);
                 reply.setPerformative(ACLMessage.REFUSE);
             }
         }
         catch (Codec.CodecException e) {
-            logger.info(String.format("Received a request which the agent did not understand (wrong codec):%s",
+            logger.error(String.format("Received a request which the agent did not understand (wrong codec):%s",
                     request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
         catch (OntologyException e) {
-            logger.info(String.format("Received a request which the agent did not understand (wrong ontology): %s",
+            logger.error(String.format("Received a request which the agent did not understand (wrong ontology): %s",
                     request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }
         catch (ClassCastException e) {
-            logger.info(String.format("Received a request which the agent did not understand (wrong content type): %s",
+            logger.error(String.format("Received a request which the agent did not understand (wrong content type): %s",
                     request), e);
             reply.setPerformative(ACLMessage.NOT_UNDERSTOOD);
         }

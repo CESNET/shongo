@@ -33,6 +33,14 @@ public class H323RoomSetting extends RoomSetting
     }
 
     @Override
+    public RoomSetting clone()
+    {
+        H323RoomSetting roomSetting = new H323RoomSetting();
+        roomSetting.setPin(getPin());
+        return roomSetting;
+    }
+
+    @Override
     protected cz.cesnet.shongo.api.RoomSetting createApi()
     {
         return new cz.cesnet.shongo.api.RoomSetting.H323();

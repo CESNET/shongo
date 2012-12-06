@@ -873,7 +873,7 @@ ParamsLoop:
                     cmd.setParameter("numericId", number);
                 }
                 else {
-                    throw new CommandException("Unrecognized alias: " + alias);
+                    throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
             }
         }

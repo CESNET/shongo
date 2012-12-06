@@ -66,4 +66,9 @@ public abstract class RoomSetting extends PersistentObject
     public void fromApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
     {
     }
+
+    /**
+     * @return cloned instance
+     */
+    public abstract RoomSetting clone();
 }

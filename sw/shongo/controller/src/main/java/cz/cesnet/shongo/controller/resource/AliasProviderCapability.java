@@ -134,7 +134,7 @@ public class AliasProviderCapability extends Capability
     /**
      * @return {@link #patterns}
      */
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
     @Access(AccessType.FIELD)
     public List<String> getPatterns()
     {

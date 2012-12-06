@@ -71,4 +71,10 @@ public class Alias extends IdentifiedObject implements StructType, Concept
     {
         this.value = value;
     }
+
+    @Override
+    public String toString()
+    {
+        return String.format("alias (%s, %s)", type.toString(), value);
+    }
 }
