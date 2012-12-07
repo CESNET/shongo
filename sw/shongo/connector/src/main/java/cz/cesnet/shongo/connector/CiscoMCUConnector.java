@@ -5,6 +5,7 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.util.HostTrustManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -274,15 +275,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             client.setConfig(config);
 
             // FIXME: remove, the production code should not trust any certificate
-            try {
-                setTrustAllCertificates();
-            }
-            catch (NoSuchAlgorithmException e) {
-                logger.error("Error setting trust to all certificates", e);
-            }
-            catch (KeyManagementException e) {
-                logger.error("Error setting trust to all certificates", e);
-            }
+            HostTrustManager.addTrustedHost(getDeviceURL().getHost());
 
             initSession();
             initDeviceInfo();
@@ -323,52 +316,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         di.setSerialNumber((String) device.get("serial"));
 
         info.setDeviceInfo(di);
-    }
-
-    /**
-     * Configures the client to trust any certificate, without the need to have it in the keystore.
-     * <p/>
-     * Just a quick and dirty solution for certificate issues. The production solution should not use this method!
-     * <p/>
-     * Taken from http://ws.apache.org/xmlrpc/ssl.html
-     */
-    private void setTrustAllCertificates() throws NoSuchAlgorithmException, KeyManagementException
-    {
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager()
-                {
-                    public X509Certificate[] getAcceptedIssuers()
-                    {
-                        return null;
-                    }
-
-                    public void checkClientTrusted(X509Certificate[] certs, String authType)
-                    {
-                        // Trust always
-                    }
-
-                    public void checkServerTrusted(X509Certificate[] certs, String authType)
-                    {
-                        // Trust always
-                    }
-                }
-        };
-
-        // Install the all-trusting trust manager
-        SSLContext sc = SSLContext.getInstance("SSL");
-        // Create empty HostnameVerifier
-        HostnameVerifier hv = new HostnameVerifier()
-        {
-            public boolean verify(String arg0, SSLSession arg1)
-            {
-                return true;
-            }
-        };
-
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier(hv);
     }
 
     @Override
