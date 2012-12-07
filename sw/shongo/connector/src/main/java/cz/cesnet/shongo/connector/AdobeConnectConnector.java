@@ -325,7 +325,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
 
         List<Alias> aliasList = new ArrayList<Alias>();
-        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + "/" + response.getChild("sco").getChildText("url-path");
+        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response.getChild("sco").getChildText("url-path");
         aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
         room.setAliases(aliasList);
 
@@ -702,7 +702,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             System.out.println(acc.getRoomList());
 
-
+            System.out.println(acc.getRoom("43201").getAliases());
 
 /*            Room r = new Room("test",0);
             acc.createRoom(r);
