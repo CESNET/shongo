@@ -1,0 +1,54 @@
+<h2>Allocation of reservations</h2>
+<table class="listing">
+    <thead>
+    <tr>
+        <td>Starting date/time</td>
+        <td>Duration</td>
+        <td>State</td>
+        <td>[% alias %]</td>
+    </tr>
+    </thead>
+    <tbody>
+    <script type="text/javascript">
+        window.showNode = function(nodeId, show) {
+            var stateReport = document.getElementById(nodeId);
+            if ( show == null ) {
+                show = stateReport.style.display == 'none';
+            }
+            stateReport.style.display = show ? 'block' : 'none';
+        };
+    </script>
+    [%- FOREACH reservation IN request.reservations %]
+    <tr>
+        <td>[% reservation.start %]</td>
+        <td>[% reservation.duration %]</td>
+        <td>
+            [%- IF reservation.stateReport %]
+            <a href="javascript: window.showNode('state-report[% loop.index %]');"
+               onmouseover="javascript: window.showNode('state-report[% loop.index %]', true);"
+               onmouseout="javascript: window.showNode('state-report[% loop.index %]', false);"
+               class="state-[% reservation.stateClass %]">[% reservation.state %]</a>
+            <div id='state-report[% loop.index %]' class="state-report">
+                <pre>[% reservation.stateReport -%]</pre>
+            </div>
+            [%- ELSE %]
+            <span class="state-[% reservation.stateClass %]">[% reservation.state %]</span>
+            [%- END %]
+        </td>
+        <td>
+            [%- IF reservation.aliasesDescription %]
+            <span
+                    onmouseover="javascript: window.showNode('aliases-description[% loop.index %]', true);"
+                    onmouseout="javascript: window.showNode('aliases-description[% loop.index %]', false);"
+                    >[% reservation.aliases %]</span>
+            <div id='aliases-description[% loop.index %]' class="aliases-description">
+                [% reservation.aliasesDescription -%]
+            </div>
+            [%- ELSE %]
+            <span>[% reservation.aliases %]</span>
+            [%- END %]
+        </td>
+    </tr>
+    [%- END %]
+    </tbody>
+</table>

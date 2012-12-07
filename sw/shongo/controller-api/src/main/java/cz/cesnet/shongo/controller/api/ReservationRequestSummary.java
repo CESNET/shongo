@@ -208,13 +208,23 @@ public class ReservationRequestSummary extends IdentifiedObject
         NOT_ALLOCATED,
 
         /**
-         * At least one reservation has been allocated for the request and none has failed.
+         * The earliest reservation has been allocated for the request and none has failed.
          */
         ALLOCATED,
 
         /**
-         * At least one reservation has failed to allocate for the request.
+         * The earliest reservation has failed to allocate for the request.
          */
-        ALLOCATION_FAILED
+        ALLOCATION_FAILED,
+
+        /**
+         * The earliest reservation has been started.
+         */
+        STARTED,
+
+        /**
+         * The earliest reservation has been finished.
+         */
+        FINISHED
     }
 }

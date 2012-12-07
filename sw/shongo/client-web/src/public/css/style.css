@@ -149,3 +149,13 @@ div.state-report pre {
     padding: 0px;
     margin: 0px;
 }
+
+/** description of aliases */
+div.aliases-description {
+    position: absolute;
+    margin-top: 5px;
+    display: none;
+    border: 1px solid black;
+    background-color: #FFFFFF;
+    padding: 5px;
+}

@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
@@ -83,6 +84,13 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
         }
         aliases.addAll(super.getAssignedAliases());
         return aliases;
+    }
+
+    @Override
+    public void addAssignedAlias(Alias assignedAlias) throws ReportException
+    {
+        deviceResource.evaluateAlias(assignedAlias);
+        super.addAssignedAlias(assignedAlias);
     }
 
     @Override

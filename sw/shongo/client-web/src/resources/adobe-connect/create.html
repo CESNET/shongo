@@ -1,0 +1,78 @@
+<script type="text/javascript">
+    $(function() {
+        $("#start").datetimepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd',
+            timeFormat: 'HH:mm',
+            separator: 'T'
+        });
+        $("#periodicity-end").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd'
+        });
+    });
+</script>
+<form action="[% location %]/create?confirmed" method="POST">
+    <fieldset>
+        <legend>New reservation request for Adobe Connect conference</legend>
+        <table>
+            <tr>
+                <td class="label">Name:</td>
+                <td>
+                    <input name="name" type="text" value="[% name %]"/>[% error.name %]
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Purpose:</td>
+                <td>
+                    <select name="purpose">
+                        <option value="SCIENCE" [% IF purpose == 'SCIENCE' %]selected[% END %]>Science</option>
+                        <option value="EDUCATION" [% IF purpose == 'EDUCATION' %]selected[% END %]>Education</option>
+                    </select>
+                    [% error.purpose %]
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Start date/time:</td>
+                <td>
+                    <input id="start" name="start" type="text" value="[% start %]"/>[% error.start %]
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Duration:</td>
+                <td>
+                    <input name="durationCount" type="text" value="[% durationCount %]" size="7"/>
+                    <select name="durationType">
+                        <option value="minute" [% IF durationType == 'minute' %]selected[% END %]>Minutes</option>
+                        <option value="hour" [% IF durationType == 'hour' %]selected[% END %]>Hours</option>
+                        <option value="day" [% IF durationType == 'day' %]selected[% END %]>Days</option>
+                    </select>[% error.durationCount %]
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Periodicity:</td>
+                <td>
+                    <input id="periodicity-none" name="periodicity" type="radio" value="none" [% IF !periodicity || periodicity == 'none' %]checked[% END %]/>
+                    <label for="periodicity-none">none</label>
+                    <input id="periodicity-daily" name="periodicity" type="radio" value="daily" [% IF periodicity == 'daily' %]checked[% END %]/>
+                    <label for="periodicity-daily">daily</label>
+                    <input id="periodicity-weekly" name="periodicity" type="radio" value="weekly" [% IF periodicity == 'weekly' %]checked[% END %]/>
+                    <label for="periodicity-weekly">weekly</label>
+                    <div class="vertical-line"></div>
+                    <label>until</label>
+                    <input id="periodicity-end" name="periodicityEnd" type="text" value="[% periodicityEnd %]"/>[% error.periodicityEnd %]
+                </td>
+            </tr>
+            <tr>
+                <td class="label">Number of participants:</td>
+                <td><input name="participantCount" type="text" value="[% participantCount %]" size="7"/>[% error.participantCount %]</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td><input type="submit" value="Create"/><input type="button" value="Cancel" onclick="javascript: window.location = '[% location %]/list';"/></td>
+            </tr>
+        </table>
+    </fieldset>
+</form>

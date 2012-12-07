@@ -2,13 +2,9 @@
     <legend>[% title %]</legend>
     <table>
         [% INCLUDE common/detail_properties.html %]
-        <tr>
-            <td class="label">PIN:</td>
-            <td>[% request.pin %]</td>
-        </tr>
     </table>
     [% INCLUDE common/detail_reservations.html
-    alias = 'H.323 Number/SIP'
+       alias = 'URL'
      %]
 </fieldset>
 <form class="action">

@@ -274,6 +274,10 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
                 setOption(Option.PIN, roomSettingH323.getPin());
             }
         }
+        else if (roomSetting instanceof RoomSetting.AdobeConnect) {
+            RoomSetting.AdobeConnect roomSettingAdobeConnect = (RoomSetting.AdobeConnect) roomSetting;
+            setOption(Option.PARTICIPANTS, roomSettingAdobeConnect.getParticipants());
+        }
     }
 
     /**
@@ -334,7 +338,12 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
         /**
          * A boolean option whether the ConferenceMe should be enabled for the room. Defaults to false.
          */
-        CONFERENCE_ME_ENABLED(Boolean.class);
+        CONFERENCE_ME_ENABLED(Boolean.class),
+
+        /**
+         * List of EPPNs of allowed participants for the room.
+         */
+        PARTICIPANTS(List.class);
 
         private Class valueClass;
 

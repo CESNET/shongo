@@ -338,4 +338,34 @@ public class DeviceResource extends Resource
         }
         super.fromApi(api, entityManager, domain);
     }
+
+    /**
+     * Evaluate alias value (and modify it if it contains e.g., "{resource.address}").
+     *
+     * @param assignedAlias to be evaluated
+     */
+    public void evaluateAlias(Alias assignedAlias)
+    {
+        String value = assignedAlias.getValue();
+        int start = -1;
+        int end = -1;
+        while ((start = value.indexOf('{')) != -1 && (end = value.indexOf('}')) != -1) {
+            String component = value.substring(start + 1, end);
+            if (component.equals("resource.address")) {
+                component = getAddress().getValue();
+            }
+            else {
+                throw new IllegalStateException(String.format("Variable '%s' cannot be evaluated.", component));
+            }
+            if (component == null) {
+                component = "";
+            }
+            StringBuilder builder = new StringBuilder();
+            builder.append(value.substring(0, start));
+            builder.append(component);
+            builder.append(value.substring(end + 1));
+            value = builder.toString();
+        }
+        assignedAlias.setValue(value);
+    }
 }

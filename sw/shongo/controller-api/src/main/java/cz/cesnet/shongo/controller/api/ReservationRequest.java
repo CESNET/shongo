@@ -152,6 +152,8 @@ public class ReservationRequest extends NormalReservationRequest
         NOT_COMPLETE,
         COMPLETE,
         ALLOCATED,
-        ALLOCATION_FAILED
+        ALLOCATION_FAILED,
+        STARTED,
+        FINISHED
     }
 }

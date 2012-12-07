@@ -36,6 +36,9 @@ public abstract class RoomSetting extends PersistentObject
         if (api instanceof cz.cesnet.shongo.api.RoomSetting.H323) {
             roomSetting = new H323RoomSetting();
         }
+        else if (api instanceof cz.cesnet.shongo.api.RoomSetting.AdobeConnect) {
+            roomSetting = new AdobeConnectRoomSetting();
+        }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
         }

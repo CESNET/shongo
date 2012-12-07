@@ -1,0 +1,30 @@
+<tr>
+    <td class="label">Identifier:</td>
+    <td>[% request.identifier %]</td>
+</tr>
+<tr>
+    <td class="label">Name:</td>
+    <td>[% request.name %]</td>
+</tr>
+<tr>
+    <td class="label">Purpose:</td>
+    <td>[% request.purpose %]</td>
+</tr>
+<tr>
+    <td class="label">Start date/time:</td>
+    <td>[% request.start %]</td>
+</tr>
+<tr>
+    <td class="label">Duration:</td>
+    <td>[% request.duration %]</td>
+</tr>
+<tr>
+    <td class="label">Periodicity:</td>
+    <td>
+        [% request.periodicity %] [% IF request.periodicityEnd %](end: [% request.periodicityEnd %])[% END %]
+    </td>
+</tr>
+<tr>
+    <td class="label">Number of participants:</td>
+    <td>[% request.participantCount %]</td>
+</tr>

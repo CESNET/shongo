@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>[% title %]</title>
+    <title>Shongo[% IF title %] - [% title %][% END %]</title>
     <link href="/css/style.css" rel="stylesheet" type="text/css"/>
 [% IF options.jquery -%]
     <link rel="stylesheet" href="/css/jquery/jquery.css"/>
@@ -21,9 +21,9 @@
 </div>
 <h1>Shongo Reservation System</h1>
 <div class="menu">
-    <a href="/h323-sip">H.323/SIP video conferences</a>
+    <a href="/h323-sip">H.323/SIP conferences</a>
     <div class="menu-separator"></div>
-    <a href="/adobe-connect">Adobe Connect video conferences</a>
+    <a href="/adobe-connect">Adobe Connect conferences</a>
 </div>
 <div class="content">
     [%- content %]

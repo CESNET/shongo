@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -152,6 +153,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         }
         aliases.addAll(super.getAssignedAliases());
         return aliases;
+    }
+
+    @Override
+    public void addAssignedAlias(Alias assignedAlias) throws ReportException
+    {
+        deviceResource.evaluateAlias(assignedAlias);
+        super.addAssignedAlias(assignedAlias);
     }
 
     @Override
