@@ -84,7 +84,19 @@
             <groupId>junit-addons</groupId>
             <artifactId>junit-addons</artifactId>
             <version>1.4</version>
+            <exclusions>
+                <!-- Remove XML library which is not needed -->
+                <exclusion>
+                    <groupId>xerces</groupId>
+                    <artifactId>xmlParserAPIs</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>xerces</groupId>
+                    <artifactId>xercesImpl</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
+
     </dependencies>
 
     <build>

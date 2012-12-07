@@ -1,8 +1,10 @@
 package cz.cesnet.shongo.connector;
 
+import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.util.HostTrustManager;
 import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -669,8 +671,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public static void main(String[] args) throws Exception
     {
         try {
+            String server = "actest-w3.cesnet.cz";
+
+            new SAXParserFactoryImpl();
+
+            HostTrustManager.initSsl(server);
             AdobeConnectConnector acc = new AdobeConnectConnector();
-            Address address = new Address("actest-w3.cesnet.cz",443);
+            Address address = new Address(server, 443);
 
             acc.connect(address,"admin","cip9skovi3t2");
 
@@ -681,6 +688,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 //            System.out.println(acc.getSupportedMethods());
 
             System.out.println(acc.getRoomList());
+
+
 
 /*            Room r = new Room("test",0);
             acc.createRoom(r);
@@ -697,8 +706,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             acc.disconnect();
 
         }
-        catch (ExceptionInInitializerError ex) {
-            System.out.println("Ex: " + ex.getException());
+        catch (ExceptionInInitializerError exception) {
+            logger.error("Cannot initialize adobe connect", exception);
         }
     }
 
