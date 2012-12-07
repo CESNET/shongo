@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
@@ -274,6 +274,19 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
                 setOption(Option.PIN, roomSettingH323.getPin());
             }
         }
+    }
+
+    /**
+     * @return
+     */
+    public Alias getAliase(AliasType aliasType)
+    {
+        for (Alias alias : this.getAliases()) {
+            if (alias.getType() == aliasType)
+                return alias;
+        }
+
+        return null;
     }
 
     /**

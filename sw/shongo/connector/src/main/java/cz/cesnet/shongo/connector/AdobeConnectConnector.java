@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
@@ -336,7 +337,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
         attributes.put("name", room.getName());
         attributes.put("type","meeting");
-        // TODO: ALIAS attributes.put("url-path",room.getAliases().get())
+        if (room.getAliase(AliasType.ADOBE_CONNECT_NAME) != null)
+            attributes.put("url-path",room.getAliase(AliasType.ADOBE_CONNECT_NAME).getValue());
         if (room.getOption(Room.Option.DESCRIPTION) != null)
             attributes.put("description",room.getOption(Room.Option.DESCRIPTION).toString());
 
