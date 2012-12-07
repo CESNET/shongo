@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
@@ -320,6 +321,15 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         room.setOption(Room.Option.DESCRIPTION,response.getChild("sco").getChildText("description"));
 
+
+
+
+        List<Alias> aliasList = new ArrayList<Alias>();
+        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response.getChild("sco").getChildText("url-path");
+        aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
+        room.setAliases(aliasList);
+
+
         // TODO: URL, technology
         // TODO: roomInfo.setOwner();
         // TODO: roomInfo.setCreation();
@@ -336,15 +346,17 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
         attributes.put("name", room.getName());
         attributes.put("type","meeting");
-        // TODO: ALIAS attributes.put("url-path",room.getAliases().get())
-        attributes.put("description",room.getOption(Room.Option.DESCRIPTION).toString());
+        if (room.getAliase(AliasType.ADOBE_CONNECT_NAME) != null)
+            attributes.put("url-path",room.getAliase(AliasType.ADOBE_CONNECT_NAME).getValue());
+        if (room.getOption(Room.Option.DESCRIPTION) != null)
+            attributes.put("description",room.getOption(Room.Option.DESCRIPTION).toString());
 
         Element respose = request("sco-update", attributes);
 
-        room.setIdentifier(respose.getChild("sco").getAttributeValue("sco-id"));
+//        room.setIdentifier(respose.getChild("sco").getAttributeValue("sco-id"));
 //        room.setOption(Room.Option.DESCRIPTION,this.serverUrl + respose.getChild("sco").getChildText("url-path"));
 
-        return null;
+        return respose.getChild("sco").getAttributeValue("sco-id");
 /*        for (RoomUser roomUser : room.()) {
             String principalId = roomUser.getUserIdentity().getIdentifier();
             HashMap<String,String> userAttributes = new HashMap<String, String>();
@@ -690,7 +702,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             System.out.println(acc.getRoomList());
 
-
+            System.out.println(acc.getRoom("43201").getAliases());
 
 /*            Room r = new Room("test",0);
             acc.createRoom(r);
