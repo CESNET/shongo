@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.*;
 
 
@@ -200,8 +201,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         List<RoomSummary> meetings = new ArrayList<RoomSummary>();
 
         for (Element room : response.getChild("report-bulk-objects").getChildren("row")) {
-            if (room.getChildText("name").matches("(?i).*Template"))
+            if (room.getChildText("name").matches("(?i).*Template")) {
                 continue;
+            }
 
             RoomSummary roomSummary = new RoomSummary();
 
@@ -352,15 +354,19 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public String createRoom(Room room) throws CommandException
     {
+        try {
         HashMap<String,String> attributes = new HashMap<String, String>();
         attributes.put("folder-id",
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
-        attributes.put("name", room.getName());
+        attributes.put("name", URLEncoder.encode(room.getName(),"UTF8"));
         attributes.put("type","meeting");
-        if (room.getAliase(AliasType.ADOBE_CONNECT_NAME) != null)
-            attributes.put("url-path",room.getAliase(AliasType.ADOBE_CONNECT_NAME).getValue());
-        if (room.getOption(Room.Option.DESCRIPTION) != null)
-            attributes.put("description",room.getOption(Room.Option.DESCRIPTION).toString());
+        if (room.getAliase(AliasType.ADOBE_CONNECT_NAME) != null) {
+            attributes.put("url-path", room.getAliase(AliasType.ADOBE_CONNECT_NAME).getValue());
+        }
+        if (room.getOption(Room.Option.DESCRIPTION) != null) {
+            attributes.put("description", URLEncoder.encode(room.getOption(Room.Option.DESCRIPTION).toString(),"UTF8"));
+        }
+
 
         Element respose = request("sco-update", attributes);
         String scoId = respose.getChild("sco").getAttributeValue("sco-id");
@@ -383,6 +389,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 //        importRoomSettings(respose.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
 
         return scoId;
+
+        } catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while URL encoding.",ex);
+        }
     }
 
     @java.lang.Override
@@ -512,8 +522,9 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      */
     protected URL breezeUrl(String action, Map<String, String> atributes) throws IOException, CommandException
     {
-				if (action == null || action.isEmpty())
-					throw new CommandException("Action of AC call cannot be empty.");
+        if (action == null || action.isEmpty()) {
+            throw new CommandException("Action of AC call cannot be empty.");
+        }
 
         String queryString = "";
 
@@ -713,7 +724,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 //            acc.importRoomSettings("42108",str);
 
 //            System.out.println(acc.getSupportedMethods());
-
 
 
 //            acc.deleteRoom(scoId);
