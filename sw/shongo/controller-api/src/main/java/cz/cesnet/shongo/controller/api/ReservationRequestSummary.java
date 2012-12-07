@@ -223,6 +223,11 @@ public class ReservationRequestSummary extends IdentifiedObject
         STARTED,
 
         /**
+         * The earliest reservation failed to start.
+         */
+        STARTING_FAILED,
+
+        /**
          * The earliest reservation has been finished.
          */
         FINISHED

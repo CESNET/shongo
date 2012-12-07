@@ -20,6 +20,9 @@ our $ReservationRequestState = {
     'NOT_COMPLETE' => 'not allocated',
     'COMPLETE' => 'not allocated',
     'ALLOCATED' => 'allocated',
+    'STARTED' => 'started',
+    'STARTING_FAILED' => 'starting failed',
+    'FINISHED' => 'finished',
     'ALLOCATION_FAILED' => 'allocation failed'
 };
 
@@ -258,7 +261,7 @@ sub get_reservation_request
         }
 
         # Allocated reservation
-        if ( $child_request->{'state'} eq 'ALLOCATED' ) {
+        if ( defined($child_request->{'reservationIdentifier'}) ) {
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation',
                     $child_request->{'reservationIdentifier'});
             if ( !($reservation->{'class'} eq 'RoomReservation') ) {

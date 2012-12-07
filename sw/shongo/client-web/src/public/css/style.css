@@ -130,11 +130,14 @@ form .error {
 .state-not-allocated, .state-not-complete, .state-complete {
     color: #b8860b;
 }
-.state-allocated {
+.state-allocated, .state-started {
     color: green;
 }
-.state-allocation-failed {
+.state-allocation-failed, .state-starting-failed {
     color: red;
+}
+.state-finished {
+    color: blue;
 }
 /** state report */
 div.state-report {

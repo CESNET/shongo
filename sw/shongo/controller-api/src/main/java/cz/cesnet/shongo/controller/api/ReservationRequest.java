@@ -154,6 +154,7 @@ public class ReservationRequest extends NormalReservationRequest
         ALLOCATED,
         ALLOCATION_FAILED,
         STARTED,
+        STARTING_FAILED,
         FINISHED
     }
 }
