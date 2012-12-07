@@ -541,6 +541,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             logout();
         }
 
+        HostTrustManager.initSsl(info.getDeviceAddress().getHost());
+
         HashMap<String, String> loginAtributes = new HashMap<String, String>();
         loginAtributes.put("login", login);
         loginAtributes.put("password", password);
@@ -675,7 +677,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             new SAXParserFactoryImpl();
 
-            HostTrustManager.initSsl(server);
             AdobeConnectConnector acc = new AdobeConnectConnector();
             Address address = new Address(server, 443);
 
