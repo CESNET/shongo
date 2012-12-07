@@ -24,7 +24,8 @@ public interface RoomContentService
      * @param name   name of file to add
      * @param data   data to add
      */
-    void addRoomContent(String roomId, String name, MediaData data) throws CommandException, CommandUnsupportedException;
+    void addRoomContent(String roomId, String name, MediaData data)
+            throws CommandException, CommandUnsupportedException;
 
     /**
      * Removes a file of a given name from the room content.

@@ -78,7 +78,7 @@ public class SpecificationNotReadyReport extends Report
             }
             return stringBuilder.toString();
         }
-        return String.format("Specification '%s' with id '%d' no ready!",
+        return String.format("Specification '%s' with id '%d' not ready!",
                 specification.getClass().getSimpleName(), specification.getId());
     }
 

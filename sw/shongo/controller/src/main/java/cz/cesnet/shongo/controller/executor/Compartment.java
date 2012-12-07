@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a conference (e.g., video conference, audio conference, etc.).
+ * Represents a conference (e.g., web/video/audio conference).
  * <p/>
  * In each {@link Compartment} participates multiple {@link Endpoint}s which are interconnected by {@link Connection}s.
  *
@@ -27,7 +27,7 @@ public class Compartment extends Executable
     @Override
     public void addChildExecutable(Executable executable)
     {
-        if ( executable instanceof Endpoint) {
+        if (executable instanceof Endpoint) {
             Endpoint endpoint = (Endpoint) executable;
 
             // Update total endpoint count
@@ -43,12 +43,12 @@ public class Compartment extends Executable
     public List<Endpoint> getEndpoints()
     {
         List<Endpoint> endpoints = new ArrayList<Endpoint>();
-        for ( Executable childExecutable : getChildExecutables()) {
-            if ( !(childExecutable instanceof Endpoint)) {
+        for (Executable childExecutable : getChildExecutables()) {
+            if (!(childExecutable instanceof Endpoint)) {
                 continue;
             }
             Endpoint endpoint = (Endpoint) childExecutable;
-            if ( endpoint instanceof VirtualRoom) {
+            if (endpoint instanceof RoomEndpoint) {
                 continue;
             }
             endpoints.add(endpoint);
@@ -57,20 +57,20 @@ public class Compartment extends Executable
     }
 
     /**
-     * @return list of {@link VirtualRoom}s in the {@link Compartment}
+     * @return list of {@link RoomEndpoint}s in the {@link Compartment}
      */
     @Transient
-    public List<VirtualRoom> getVirtualRooms()
+    public List<RoomEndpoint> getRoomEndpoints()
     {
-        List<VirtualRoom> virtualRooms = new ArrayList<VirtualRoom>();
-        for ( Executable childExecutable : getChildExecutables()) {
-            if ( !(childExecutable instanceof VirtualRoom)) {
+        List<RoomEndpoint> roomEndpoints = new ArrayList<RoomEndpoint>();
+        for (Executable childExecutable : getChildExecutables()) {
+            if (!(childExecutable instanceof RoomEndpoint)) {
                 continue;
             }
-            VirtualRoom virtualRoom = (VirtualRoom) childExecutable;
-            virtualRooms.add(virtualRoom);
+            RoomEndpoint roomEndpoint = (RoomEndpoint) childExecutable;
+            roomEndpoints.add(roomEndpoint);
         }
-        return virtualRooms;
+        return roomEndpoints;
     }
 
     /**
@@ -80,8 +80,8 @@ public class Compartment extends Executable
     public List<Connection> getConnections()
     {
         List<Connection> connections = new ArrayList<Connection>();
-        for ( Executable childExecutable : getChildExecutables()) {
-            if ( !(childExecutable instanceof Connection)) {
+        for (Executable childExecutable : getChildExecutables()) {
+            if (!(childExecutable instanceof Connection)) {
                 continue;
             }
             Connection connection = (Connection) childExecutable;
@@ -110,13 +110,13 @@ public class Compartment extends Executable
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.Compartment();
+        return new cz.cesnet.shongo.controller.api.Executable.Compartment();
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Compartment toApi(Domain domain)
+    public cz.cesnet.shongo.controller.api.Executable.Compartment toApi(Domain domain)
     {
-        return (cz.cesnet.shongo.controller.api.Compartment) super.toApi(domain);
+        return (cz.cesnet.shongo.controller.api.Executable.Compartment) super.toApi(domain);
     }
 
     @Override
@@ -124,41 +124,36 @@ public class Compartment extends Executable
     {
         super.toApi(executableApi, domain);
 
-        cz.cesnet.shongo.controller.api.Compartment compartmentApi =
-                (cz.cesnet.shongo.controller.api.Compartment) executableApi;
+        cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
+                (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
         compartmentApi.setIdentifier(domain.formatIdentifier(getId()));
         compartmentApi.setSlot(getSlot());
         compartmentApi.setState(getState().toApi());
         for (Endpoint endpoint : getEndpoints()) {
-            cz.cesnet.shongo.controller.api.Compartment.Endpoint endpointApi =
-                    new cz.cesnet.shongo.controller.api.Compartment.Endpoint();
-            endpointApi.setIdentifier(endpoint.getId().toString());
+            cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint endpointApi =
+                    new cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint();
+            endpointApi.setIdentifier(domain.formatIdentifier(endpoint.getId()));
             endpointApi.setDescription(endpoint.getReportDescription());
             for (Alias alias : endpoint.getAssignedAliases()) {
                 endpointApi.addAlias(alias.toApi());
             }
             compartmentApi.addEndpoint(endpointApi);
         }
-        for (VirtualRoom virtualRoom : getVirtualRooms()) {
-            cz.cesnet.shongo.controller.api.Compartment.VirtualRoom virtualRoomApi =
-
-                    new cz.cesnet.shongo.controller.api.Compartment.VirtualRoom();
-            virtualRoomApi.setIdentifier(virtualRoom.getId().toString());
-            virtualRoomApi.setPortCount(virtualRoom.getPortCount());
-            virtualRoomApi.setDescription(virtualRoom.getReportDescription());
-            for (Alias alias : virtualRoom.getAssignedAliases()) {
-                virtualRoomApi.addAlias(alias.toApi());
+        for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
+            if (roomEndpoint instanceof ResourceRoomEndpoint) {
+                ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
+                compartmentApi.addRoomEndpoint(resourceRoomEndpoint.toApi(domain));
             }
-            virtualRoomApi.setState(virtualRoom.getState().toApi());
-            compartmentApi.addVirtualRoom(virtualRoomApi);
         }
         for (Connection connection : getConnections()) {
             if (connection instanceof ConnectionByAddress) {
                 ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
-                cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress connectionByAddressApi =
-                        new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAddress();
-                connectionByAddressApi.setEndpointFromIdentifier(connection.getEndpointFrom().getId().toString());
-                connectionByAddressApi.setEndpointToIdentifier(connection.getEndpointTo().getId().toString());
+                cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress connectionByAddressApi =
+                        new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress();
+                connectionByAddressApi.setEndpointFromIdentifier(
+                        domain.formatIdentifier(connection.getEndpointFrom().getId()));
+                connectionByAddressApi.setEndpointToIdentifier(
+                        domain.formatIdentifier(connection.getEndpointTo().getId()));
                 connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
                 connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
                 connectionByAddressApi.setState(connectionByAddress.getState().toApi());
@@ -166,10 +161,12 @@ public class Compartment extends Executable
             }
             else if (connection instanceof ConnectionByAlias) {
                 ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
-                cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias connectionByAliasApi =
-                        new cz.cesnet.shongo.controller.api.Compartment.ConnectionByAlias();
-                connectionByAliasApi.setEndpointFromIdentifier(connection.getEndpointFrom().getId().toString());
-                connectionByAliasApi.setEndpointToIdentifier(connection.getEndpointTo().getId().toString());
+                cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias connectionByAliasApi =
+                        new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias();
+                connectionByAliasApi.setEndpointFromIdentifier(
+                        domain.formatIdentifier(connection.getEndpointFrom().getId()));
+                connectionByAliasApi.setEndpointToIdentifier(
+                        domain.formatIdentifier(connection.getEndpointTo().getId()));
                 connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
                 connectionByAliasApi.setState(connectionByAlias.getState().toApi());
                 compartmentApi.addConnection(connectionByAliasApi);
@@ -183,11 +180,11 @@ public class Compartment extends Executable
     private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
     {
         // Create virtual rooms
-        boolean virtualRoomCreated = (startChildren(VirtualRoom.class, executorThread, entityManager) > 0);
-        if (virtualRoomCreated) {
+        boolean roomStarted = (startChildren(RoomEndpoint.class, executorThread, entityManager) > 0);
+        if (roomStarted) {
             executorThread.getLogger().info("Waiting for virtual rooms to be created...");
             try {
-                Thread.sleep(executorThread.getExecutor().getCompartmentWaitingVirtualRoom().getMillis());
+                Thread.sleep(executorThread.getExecutor().getCompartmentWaitingRoom().getMillis());
             }
             catch (InterruptedException exception) {
                 exception.printStackTrace();

@@ -192,24 +192,20 @@ public class AliasSpecification extends Specification implements ReservationTask
                 }
 
                 // Reuse existing reservation
-                Alias alias = availableAlias.getAlias();
-                if (alias.isPersisted()) {
-                    AliasReservation providedAliasReservation = cacheTransaction.getProvidedAliasReservation(alias);
-                    if (providedAliasReservation != null) {
-                        ExistingReservation existingReservation = new ExistingReservation();
-                        existingReservation.setSlot(getInterval());
-                        existingReservation.setReservation(providedAliasReservation);
-                        cacheTransaction.removeProvidedReservation(providedAliasReservation);
-                        return existingReservation;
-                    }
-
+                AliasReservation providedAliasReservation = availableAlias.getAliasReservation();
+                if (providedAliasReservation != null) {
+                    ExistingReservation existingReservation = new ExistingReservation();
+                    existingReservation.setSlot(getInterval());
+                    existingReservation.setReservation(providedAliasReservation);
+                    cacheTransaction.removeProvidedReservation(providedAliasReservation);
+                    return existingReservation;
                 }
 
                 // Create new reservation
                 AliasReservation aliasReservation = new AliasReservation();
                 aliasReservation.setSlot(getInterval());
                 aliasReservation.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
-                aliasReservation.setAlias(alias);
+                aliasReservation.setAliasValue(availableAlias.getAliasValue());
                 return aliasReservation;
             }
         };

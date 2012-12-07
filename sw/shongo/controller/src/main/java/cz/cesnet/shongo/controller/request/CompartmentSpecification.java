@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.request;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.CallInitiation;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
@@ -8,6 +9,7 @@ import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
 
 import javax.persistence.*;
@@ -33,6 +35,11 @@ public class CompartmentSpecification extends Specification
      * that {@link Scheduler} can decide it).
      */
     private CallInitiation callInitiation;
+
+    /**
+     * Set of technologies which are used inside the {@link CompartmentSpecification}.
+     */
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * Constructor.
@@ -178,6 +185,28 @@ public class CompartmentSpecification extends Specification
         this.callInitiation = callInitiation;
     }
 
+    /**
+     * @return {@link #technologies}
+     */
+    @ElementCollection
+    @Enumerated(EnumType.STRING)
+    @Access(AccessType.FIELD)
+    public Set<Technology> getTechnologies()
+    {
+        return Collections.unmodifiableSet(technologies);
+    }
+
+    /**
+     * Update {@link #technologies} by current {@link #specifications}.
+     */
+    public void updateTechnologies()
+    {
+        technologies.clear();
+        for (ParticipantSpecification specification : specifications) {
+            technologies.addAll(specification.getTechnologies());
+        }
+    }
+
     @Override
     @Transient
     public State getCurrentState()
@@ -261,6 +290,9 @@ public class CompartmentSpecification extends Specification
         for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
             removeSpecification(getSpecificationById(specApi.notNullIdAsLong()));
         }
+
+        // Update current technologies
+        updateTechnologies();
 
         super.fromApi(specificationApi, entityManager, domain);
     }

@@ -121,11 +121,16 @@
 {
   name=executor,
   description={Executor is a component of a \gls{g:controller} which executes
-    allocated executables (e.g., \glspl{g:compartment} or \glspl{g:device-virtual-room})
+    allocated \glspl{g:executable} (e.g., \glspl{g:compartment} or \glspl{g:device-virtual-room})
     from \glspl{g:reservation}. It creates all \glspl{g:device-virtual-room} on managed 
     \glspl{g:resource-device} and establishes all \glspl{g:device-connection} between created 
     \glspl{g:device-virtual-room} and managed \gls{g:endpoint} 
     \glspl{g:resource-device}.}
+}
+\newglossaryentry{g:executable}
+{
+  name=executable,
+  description={Execitable is an entity which can be executed by an \gls{g:executor} (e.g., \glspl{g:compartment} or \glspl{g:device-virtual-room}).}
 }
 \newglossaryentry{g:preprocessor}
 {

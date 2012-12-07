@@ -329,7 +329,7 @@ public class Connector
         Option optionConfig = OptionBuilder.withLongOpt("config")
                 .withArgName("FILENAME")
                 .hasArg()
-                .withDescription("Connector configuration")
+                .withDescription("Connector XML configuration file")
                 .create("g");
         Options options = new Options();
         options.addOption(optionHost);

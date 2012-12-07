@@ -131,13 +131,13 @@ public class ExecutorThread extends Thread
             Executable executable = getExecutable(entityManager);
             entityManager.close();
             DateTime start = executable.getSlot().getStart();
-            start = start.plus(executor.getCompartmentStart());
+            start = start.plus(executor.getExecutableStart());
             if (!DateTime.now().isBefore(start)) {
                 break;
             }
             try {
                 logger.debug("Waiting for {} to start...", executable.getName());
-                Thread.sleep(executor.getCompartmentWaitingStart().getMillis());
+                Thread.sleep(executor.getExecutableWaitingStart().getMillis());
             }
             catch (InterruptedException exception) {
             }
@@ -166,13 +166,13 @@ public class ExecutorThread extends Thread
             Executable executable = getExecutable(entityManager);
             entityManager.close();
             DateTime end = executable.getSlot().getEnd();
-            end = end.plus(executor.getCompartmentEnd());
+            end = end.plus(executor.getExecutableEnd());
             if (!DateTime.now().isBefore(end)) {
                 break;
             }
             try {
                 logger.debug("Waiting for {} to end...", executable.getName());
-                Thread.sleep(executor.getCompartmentWaitingEnd().getMillis());
+                Thread.sleep(executor.getExecutableWaitingEnd().getMillis());
             }
             catch (InterruptedException exception) {
             }

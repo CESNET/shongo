@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Preprocessor;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
@@ -38,6 +39,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
 
         // Create reservation request
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-06-01T15"), "PT1H");
         reservationRequestSet.addSlot(new PeriodicDateTimeSpecification(
@@ -111,6 +113,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-01-02"), "PT1H");
@@ -161,6 +164,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         // Create reservation request set
         // -------------------------------
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-01-01"), "PT1H");
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();

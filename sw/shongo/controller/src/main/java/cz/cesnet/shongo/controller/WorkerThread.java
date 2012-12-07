@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller;
 
-import org.joda.time.DateMidnight;
-import org.joda.time.Duration;
-import org.joda.time.Interval;
-import org.joda.time.Period;
+import org.joda.time.*;
+import org.joda.time.base.BaseDateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,7 +113,8 @@ public class WorkerThread extends Thread
      */
     private void work()
     {
-        Interval interval = new Interval(DateMidnight.now(), DateMidnight.now().plus(intervalLength));
+        ReadableDateTime dateTimeNow = DateMidnight.now();
+        Interval interval = new Interval(dateTimeNow, DateMidnight.now().plus(intervalLength));
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
 

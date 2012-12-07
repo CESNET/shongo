@@ -1,0 +1,31 @@
+<h2>[% title %]</h2>
+<table class="listing">
+    <thead>
+    <tr>
+        <td>Identifier</td>
+        <td>Name</td>
+        <td>Purpose</td>
+        <td>Starting date/time</td>
+        <td>Duration</td>
+        <td>State</td>
+        <td></td>
+    </tr>
+    </thead>
+    <tbody>
+    [%- FOREACH request IN requests %]
+    <tr>
+        <td><a href="[% location %]/detail?id=[% request.identifier %]">[% request.identifier %]</a></td>
+        <td>[% request.name %]</td>
+        <td>[% request.purpose %]</td>
+        <td>[% request.start %]</td>
+        <td>[% request.duration %]</td>
+        <td><a href="[% location %]/detail?id=[% request.identifier %]" class="state-[% request.stateClass %]">[% request.state %]</a></td>
+        <td><a href="[% location %]/delete?id=[% request.identifier %]">delete</a></td>
+    </tr>
+    [%- END %]
+    </tbody>
+</table>
+<form class="action">
+    <input type="button" value="Refresh" onclick="javascript: window.location = '[% location %]/list';"/>
+    <input type="button" value="Create new reservation request" onclick="javascript: window.location = '[% location %]/create';"/>
+</form>

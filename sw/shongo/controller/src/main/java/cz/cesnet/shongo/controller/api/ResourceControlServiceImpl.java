@@ -2,6 +2,12 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
+import cz.cesnet.shongo.connector.api.ontology.actions.common.GetDeviceLoadInfo;
+import cz.cesnet.shongo.connector.api.ontology.actions.common.GetSupportedMethods;
+import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.*;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.io.*;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.*;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.*;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -12,12 +18,6 @@ import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.connector.api.ontology.actions.common.GetDeviceLoadInfo;
-import cz.cesnet.shongo.connector.api.ontology.actions.common.GetSupportedMethods;
-import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.*;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.io.*;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.*;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.*;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -235,7 +235,8 @@ public class ResourceControlServiceImpl extends Component
     public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
     {
         authorization.validate(token);
-        Collection<RoomSummary> rooms = (Collection<RoomSummary>) commandDevice(deviceResourceIdentifier, new ListRooms());
+        Collection<RoomSummary> rooms = (Collection<RoomSummary>) commandDevice(deviceResourceIdentifier,
+                new ListRooms());
         return rooms;
     }
 

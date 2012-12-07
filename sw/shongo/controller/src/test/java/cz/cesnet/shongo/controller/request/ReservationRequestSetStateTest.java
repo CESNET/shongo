@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.AbstractDatabaseTest;
+import cz.cesnet.shongo.controller.Authorization;
 import junit.framework.Assert;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -26,6 +27,7 @@ public class ReservationRequestSetStateTest extends AbstractDatabaseTest
 
         // Create reservation request set and manager that will manage it's states
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+        reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
         entityManager.persist(reservationRequestSet);
         PreprocessorStateManager stateManager = new PreprocessorStateManager(entityManager,
                 reservationRequestSet);

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!-- Default Configuration of Domain Controller -->
+<configuration>
+
+    <!-- Controller url -->
+    <controller>http://127.0.0.1:8181</controller>
+
+</configuration>

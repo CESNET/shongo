@@ -2,17 +2,14 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.CommandException;
-import cz.cesnet.shongo.api.CommandUnsupportedException;
-import cz.cesnet.shongo.api.Room;
+import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
-import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.junit.Test;
@@ -55,8 +52,8 @@ public class JadeTest extends AbstractControllerTest
                 Room room = new Room();
                 room.setIdentifier("1");
                 room.setName("Fixed Testing Room (TODO: Remove it)");
-                room.setPortCount(5);
-                room.addAlias(new Alias(Technology.H323, AliasType.E164, "9501"));
+                room.setLicenseCount(5);
+                room.addAlias(new Alias(AliasType.H323_E164, "9501"));
                 room.setOption(Room.Option.DESCRIPTION, "room description");
                 return room;
             }
@@ -85,7 +82,7 @@ public class JadeTest extends AbstractControllerTest
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);

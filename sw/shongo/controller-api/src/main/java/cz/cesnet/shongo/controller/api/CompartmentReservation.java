@@ -8,14 +8,14 @@ package cz.cesnet.shongo.controller.api;
 public class CompartmentReservation extends Reservation
 {
     /**
-     * @see {@link Compartment}
+     * @see {@link cz.cesnet.shongo.controller.api.Executable.Compartment}
      */
-    private Compartment compartment;
+    private Executable.Compartment compartment;
 
     /**
      * @return {@link #compartment}
      */
-    public Compartment getCompartment()
+    public Executable.Compartment getCompartment()
     {
         return compartment;
     }
@@ -23,7 +23,7 @@ public class CompartmentReservation extends Reservation
     /**
      * @param compartment sets the {@link #compartment}
      */
-    public void setCompartment(Compartment compartment)
+    public void setCompartment(Executable.Compartment compartment)
     {
         this.compartment = compartment;
     }

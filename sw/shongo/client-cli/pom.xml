@@ -13,7 +13,7 @@
 
     <artifactId>client-cli</artifactId>
     <name>Shongo Controller Command-Line Client</name>
-    <description>Command-line client for Shongo controller platform.</description>
+    <description>Command-line client for Shongo controller.</description>
     <packaging>pom</packaging>
 
 </project>

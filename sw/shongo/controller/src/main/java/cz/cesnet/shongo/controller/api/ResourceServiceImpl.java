@@ -5,9 +5,11 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
@@ -16,9 +18,7 @@ import org.joda.time.Period;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Resource service implementation.
@@ -105,6 +105,7 @@ public class ResourceServiceImpl extends Component
         try {
             // Create resource from API
             resourceImpl = cz.cesnet.shongo.controller.resource.Resource.createFromApi(resource, entityManager, domain);
+            resourceImpl.setUserId(authorization.getUserId(token));
 
             // Save it
             ResourceManager resourceManager = new ResourceManager(entityManager);
@@ -223,18 +224,21 @@ public class ResourceServiceImpl extends Component
     }
 
     @Override
-    public Collection<ResourceSummary> listResources(SecurityToken token)
+    public Collection<ResourceSummary> listResources(SecurityToken token, Map<String, Object> filter)
     {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list();
+        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
+
         List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
         for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
             ResourceSummary summary = new ResourceSummary();
             summary.setIdentifier(domain.formatIdentifier(resource.getId()));
+            summary.setUserId(resource.getUserId().intValue());
             summary.setName(resource.getName());
             if (resource instanceof DeviceResource) {
                 StringBuilder stringBuilder = new StringBuilder();
@@ -294,18 +298,16 @@ public class ResourceServiceImpl extends Component
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
         cz.cesnet.shongo.controller.resource.Resource resourceImpl = resourceManager.get(resourceId);
-        cz.cesnet.shongo.controller.resource.VirtualRoomsCapability virtualRoomsCapability =
-                resourceImpl.getCapability(cz.cesnet.shongo.controller.resource.VirtualRoomsCapability.class);
+        RoomProviderCapability roomProviderCapability = resourceImpl.getCapability(RoomProviderCapability.class);
 
         // Setup resource allocation
         ResourceAllocation resourceAllocation = null;
-        if (resourceImpl instanceof DeviceResource && virtualRoomsCapability != null) {
-            AvailableVirtualRoom availableVirtualRoom =
-                    cache.getResourceCache().getAvailableVirtualRoom(
-                            (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval);
-            VirtualRoomsResourceAllocation allocation = new VirtualRoomsResourceAllocation();
-            allocation.setMaximumPortCount(availableVirtualRoom.getMaximumPortCount());
-            allocation.setAvailablePortCount(availableVirtualRoom.getAvailablePortCount());
+        if (resourceImpl instanceof DeviceResource && roomProviderCapability != null) {
+            AvailableRoom availableRoom = cache.getResourceCache().getAvailableRoom(
+                    (cz.cesnet.shongo.controller.resource.DeviceResource) resourceImpl, interval, null);
+            RoomProviderResourceAllocation allocation = new RoomProviderResourceAllocation();
+            allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
+            allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());
             resourceAllocation = allocation;
         }
         else {

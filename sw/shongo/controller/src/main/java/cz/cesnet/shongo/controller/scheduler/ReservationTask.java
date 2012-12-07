@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.scheduler;
 
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.report.Report;
@@ -8,6 +9,7 @@ import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.joda.time.Interval;
+import sun.security.util.AuthResources;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -182,6 +184,7 @@ public abstract class ReservationTask
     public final Reservation perform() throws ReportException
     {
         Reservation reservation = createReservation();
+        reservation.setUserId(context.getUserId());
         for (Reservation childReservation : getChildReservations()) {
             reservation.addChildReservation(childReservation);
         }
@@ -216,6 +219,11 @@ public abstract class ReservationTask
     public static class Context
     {
         /**
+         * {@link Reservation} owner user id.
+         */
+        private Long userId;
+
+        /**
          * @see Cache
          */
         private Cache cache;
@@ -236,10 +244,30 @@ public abstract class ReservationTask
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
          */
-        public Context(Cache cache, Interval interval)
+        public Context(Long userId, Cache cache, Interval interval)
         {
+            this.userId = userId;
             this.cache = cache;
             this.cacheTransaction = new Cache.Transaction(interval);
+        }
+
+        /**
+         * Constructor.
+         *
+         * @param cache    sets the {@link #cache}
+         * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
+         */
+        public Context(Cache cache, Interval interval)
+        {
+            this(Authorization.ROOT_USER_ID, cache, interval);
+        }
+
+        /**
+         * @return {@link #userId}
+         */
+        public Long getUserId()
+        {
+            return userId;
         }
 
         /**

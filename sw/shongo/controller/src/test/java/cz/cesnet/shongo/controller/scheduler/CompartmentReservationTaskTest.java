@@ -74,7 +74,7 @@ public class CompartmentReservationTaskTest
     }
 
     @Test
-    public void testNoVirtualRoom() throws Exception
+    public void testNoRoom() throws Exception
     {
         ReservationTask.Context context = new ReservationTask.Context(new Cache(), Interval.parse("2012/2013"));
         CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
@@ -89,7 +89,7 @@ public class CompartmentReservationTaskTest
     }
 
     @Test
-    public void testSingleVirtualRoom() throws Exception
+    public void testSingleRoom() throws Exception
     {
         Cache cache = Cache.createTestingCache();
 
@@ -98,7 +98,9 @@ public class CompartmentReservationTaskTest
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
-        deviceResource.addCapability(new VirtualRoomsCapability(100));
+        deviceResource.addCapability(new RoomProviderCapability(100));
+        deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
+        deviceResource.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "950000001@cesnet.cz", true));
         cache.addResource(deviceResource);
 
         ReservationTask.Context context;
@@ -113,7 +115,7 @@ public class CompartmentReservationTaskTest
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         reservation = compartmentReservationTask.perform();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getChildReservations().size());
+        assertEquals(4, reservation.getChildReservations().size());
         assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
 
         context = new ReservationTask.Context(cache, Interval.parse("2012/2013"));
@@ -124,20 +126,20 @@ public class CompartmentReservationTaskTest
                 new SimpleEndpointSpecification(true, new Technology[]{Technology.SIP}));
         reservation = compartmentReservationTask.perform();
         assertNotNull(reservation);
-        assertEquals(3, reservation.getChildReservations().size());
+        assertEquals(5, reservation.getChildReservations().size());
         assertEquals(2, ((Compartment) reservation.getExecutable()).getConnections().size());
     }
 
     @Test
-    public void testSingleVirtualRoomFromMultipleEndpoints() throws Exception
+    public void testSingleRoomFromMultipleEndpoints() throws Exception
     {
         Cache cache = Cache.createTestingCache();
 
         DeviceResource mcu = new DeviceResource();
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(100));
-        mcu.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95[ddd]"));
+        mcu.addCapability(new RoomProviderCapability(100));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95[ddd]"));
         cache.addResource(mcu);
 
         DeviceResource terminal = new DeviceResource();
@@ -153,7 +155,7 @@ public class CompartmentReservationTaskTest
         Reservation reservation = compartmentReservationTask.perform();
         assertEquals(3, reservation.getChildReservations().size());
         assertEquals(2, ((Compartment) reservation.getExecutable()).getEndpoints().size());
-        assertEquals(1, ((Compartment) reservation.getExecutable()).getVirtualRooms().size());
+        assertEquals(1, ((Compartment) reservation.getExecutable()).getRoomEndpoints().size());
     }
 
     @Test
@@ -165,13 +167,13 @@ public class CompartmentReservationTaskTest
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
-        deviceResource.addCapability(new VirtualRoomsCapability(100));
+        deviceResource.addCapability(new RoomProviderCapability(100));
         cache.addResource(deviceResource);
 
         Resource resource = new Resource();
         resource.setAllocatable(true);
-        resource.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "950[ddd]"));
-        resource.addCapability(new AliasProviderCapability(Technology.SIP, AliasType.URI, "001@cesnet.cz"));
+        resource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950[ddd]"));
+        resource.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "001@cesnet.cz"));
         cache.addResource(resource);
 
         ReservationTask.Context context;

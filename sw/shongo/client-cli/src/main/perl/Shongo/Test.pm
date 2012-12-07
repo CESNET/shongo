@@ -10,21 +10,21 @@ use warnings;
 
 use Shongo::Common;
 use Shongo::Console;
-use Shongo::Controller::API::Object;
+use Shongo::ClientCli::API::Object;
 
 #
 # Test modifying object
 #
 sub test
 {
-    my $object = Shongo::Controller::API::Object->new();
+    my $object = Shongo::ClientCli::API::Object->new();
     $object->set_object_name('Object');
     $object->add_attribute('name', {'required' => 1});
     $object->add_attribute('aliases', {
         'type' => 'collection',
         'item' => {
             'title' => 'Alias',
-            'class' => 'Shongo::Controller::API::Alias',
+            'class' => 'Shongo::ClientCli::API::Alias',
             'short' => 1
         },
         'complex' => 0

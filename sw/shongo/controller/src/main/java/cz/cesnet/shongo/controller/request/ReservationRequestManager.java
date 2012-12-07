@@ -1,9 +1,11 @@
 package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
@@ -11,7 +13,11 @@ import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Manager for {@link AbstractReservationRequest}.
@@ -172,7 +178,9 @@ public class ReservationRequestManager extends AbstractManager
                         + "   WHERE reservationRequest.reservation.id = :id"
                         + ") OR reservationRequest IN("
                         + "   SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + "   WHERE reservationRequest.reservation.id = :id"
+                        + "   WHERE reservationRequest.reservation.id = :id AND reservationRequest NOT IN("
+                        + "       SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
+                        + "       LEFT JOIN reservationRequestSet.reservationRequests reservationRequest)"
                         + ") OR reservationRequest.id IN("
                         + "   SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
                         + "   LEFT JOIN reservationRequest.resourceReservations reservation"
@@ -224,19 +232,41 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @return list all reservation requests in the database.
+     * @param userId       requested owner
+     * @param technologies requested technologies
+     * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
-    public List<AbstractReservationRequest> list()
+    public List<AbstractReservationRequest> list(Long userId, Set<Technology> technologies)
     {
-        List<AbstractReservationRequest> reservationRequestList = entityManager
-                .createQuery("SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest NOT IN ("
-                        + "  SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + "  WHERE reservationRequest.createdBy = :createdBy"
-                        + " )",
-                        AbstractReservationRequest.class)
-                .setParameter("createdBy", ReservationRequest.CreatedBy.CONTROLLER)
-                .getResultList();
+        DatabaseFilter filter = new DatabaseFilter("request");
+        filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
+        filter.addFilterParameter("createdBy", ReservationRequest.CreatedBy.USER);
+        filter.addUserId(userId);
+        if (technologies != null && technologies.size() > 0) {
+            // List only reservation requests which specifies given technologies in virtual room or compartment
+            filter.addFilter("request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest, RoomSpecification specification"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  LEFT JOIN specification.technologies technology"
+                    + "  WHERE (reservationRequest.specification = specification OR"
+                    + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + ") OR request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  LEFT JOIN specification.technologies technology"
+                    + "  WHERE (reservationRequest.specification = specification OR"
+                    + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + ")");
+            filter.addFilterParameter("technologies", technologies);
+        }
+        TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
+                + " FROM AbstractReservationRequest request"
+                + " WHERE " + filter.toQueryWhere(),
+                AbstractReservationRequest.class);
+        filter.fillQueryParameters(query);
+        List<AbstractReservationRequest> reservationRequestList = query.getResultList();
         return reservationRequestList;
     }
 

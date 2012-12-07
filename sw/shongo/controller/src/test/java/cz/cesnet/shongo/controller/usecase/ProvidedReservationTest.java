@@ -96,13 +96,13 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "95000000[d]"));
+        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95000000[d]"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.H323, AliasType.E164));
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
         Reservation aliasReservation = allocateAndCheck(aliasReservationRequest);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -124,22 +124,22 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new VirtualRoomsCapability(100));
+        mcu.addCapability(new RoomProviderCapability(100));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(Technology.H323, AliasType.E164, "950000001"));
+        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.H323, AliasType.E164));
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
         String aliasReservationRequestIdentifier = allocate(aliasReservationRequest);
         AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestIdentifier);
-        assertEquals(aliasReservation.getAlias().getValue(), "950000001");
+        assertEquals(aliasReservation.getAliasValue(), "950000001");
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -212,26 +212,25 @@ public class ProvidedReservationTest extends AbstractControllerTest
     }
 
     @Test
-    public void testProvidedVirtualRoomReservations() throws Exception
+    public void testProvidedRoomReservations() throws Exception
     {
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
-        mcu.setAddress("127.0.0.1");
         mcu.addTechnology(Technology.H323);
-        mcu.addTechnology(Technology.SIP);
-        mcu.addCapability(new VirtualRoomsCapability(10));
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
-        ReservationRequest virtualRoomReservationRequest = new ReservationRequest();
-        virtualRoomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
-        virtualRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        VirtualRoomSpecification virtualRoomSpecification = new VirtualRoomSpecification();
-        virtualRoomSpecification.addTechnology(Technology.H323);
-        virtualRoomSpecification.setPortCount(10);
-        virtualRoomReservationRequest.setSpecification(virtualRoomSpecification);
+        ReservationRequest roomReservationRequest = new ReservationRequest();
+        roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
+        roomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(10);
+        roomReservationRequest.setSpecification(roomSpecification);
 
-        Reservation virtualRoomReservation = allocateAndCheck(virtualRoomReservationRequest);
+        Reservation roomReservation = allocateAndCheck(roomReservationRequest);
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
         compartmentReservationRequest.setSlot("2012-01-01T14:00", "PT2H");
@@ -239,7 +238,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
-        compartmentReservationRequest.addProvidedReservationIdentifier(virtualRoomReservation.getIdentifier());
+        compartmentReservationRequest.addProvidedReservationIdentifier(roomReservation.getIdentifier());
 
         allocateAndCheck(compartmentReservationRequest);
     }

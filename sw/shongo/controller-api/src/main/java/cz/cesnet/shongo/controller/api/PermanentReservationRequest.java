@@ -5,7 +5,6 @@ import cz.cesnet.shongo.api.annotation.Required;
 import org.joda.time.Period;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**

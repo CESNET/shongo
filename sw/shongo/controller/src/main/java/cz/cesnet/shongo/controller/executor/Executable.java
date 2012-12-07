@@ -22,6 +22,11 @@ import java.util.List;
 public abstract class Executable extends PersistentObject
 {
     /**
+     * Identifier of an user who is owner of the {@link Executable}.
+     */
+    private Long userId;
+
+    /**
      * Interval start date/time.
      */
     private DateTime slotStart;
@@ -40,6 +45,23 @@ public abstract class Executable extends PersistentObject
      * List of child {@link Executable}s.
      */
     private List<Executable> childExecutables = new ArrayList<Executable>();
+
+    /**
+     * @return {@link #userId}
+     */
+    @Column(nullable = false)
+    public Long getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Long userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #slotStart}
@@ -192,6 +214,7 @@ public abstract class Executable extends PersistentObject
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
     {
         executableApi.setIdentifier(domain.formatIdentifier(getId()));
+        executableApi.setUserId(getUserId().intValue());
     }
 
     /**
@@ -268,7 +291,7 @@ public abstract class Executable extends PersistentObject
         int count = 0;
         for (Executable childExecutable : childExecutables) {
             if (!childrenType.isInstance(childExecutable)) {
-                 continue;
+                continue;
             }
             if (childExecutable.getState() == State.NOT_STARTED) {
                 childExecutable.start(executorThread, entityManager);

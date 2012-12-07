@@ -13,7 +13,7 @@ public class CommandUnsupportedException extends Exception
     }
 
     /**
-     * @param message    name of the command
+     * @param message name of the command
      */
     public CommandUnsupportedException(String message)
     {
@@ -21,8 +21,8 @@ public class CommandUnsupportedException extends Exception
     }
 
     /**
-     * @param message    name of the command
-     * @param cause      cause of the failure
+     * @param message name of the command
+     * @param cause   cause of the failure
      */
     public CommandUnsupportedException(String message, Throwable cause)
     {

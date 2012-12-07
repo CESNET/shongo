@@ -1,0 +1,32 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>[% title %]</title>
+    <link href="/css/style.css" rel="stylesheet" type="text/css"/>
+[% IF options.jquery -%]
+    <link rel="stylesheet" href="/css/jquery/jquery.css"/>
+    <script src="/js/jquery/jquery.min.js"></script>
+    <script src="/js/jquery/jquery-ui.min.js"></script>
+    <script src="/js/jquery/jquery-ui-timepicker.js"></script>
+[%- END -%]
+</head>
+<body>
+<div class="user">
+[%- IF session.user %]
+    Logged in as [% session.user.name %] <div class="menu-separator"></div> <a href="/sign-out">Sign out</a>
+[%- ELSE %]
+    <a href="/sign-in">Sign in</a>
+[%- END %]
+</div>
+<h1>Shongo Reservation System</h1>
+<div class="menu">
+    <a href="/h323-sip">H.323/SIP video conferences</a>
+    <div class="menu-separator"></div>
+    <a href="/adobe-connect">Adobe Connect video conferences</a>
+</div>
+<div class="content">
+    [%- content %]
+</div>
+</body>
+</html>

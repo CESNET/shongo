@@ -13,6 +13,11 @@ import org.joda.time.Interval;
 public class ReservationRequestSummary extends IdentifiedObject
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Date/time when the reservation request was created.
      */
     private DateTime created;
@@ -38,9 +43,30 @@ public class ReservationRequestSummary extends IdentifiedObject
     private String description;
 
     /**
+     * @see State
+     */
+    private State state;
+
+    /**
      * Earliest slot.
      */
     private Interval earliestSlot;
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #created}
@@ -139,19 +165,56 @@ public class ReservationRequestSummary extends IdentifiedObject
     }
 
     /**
-     * Type of reservation.
+     * @return {@link #state}
+     */
+    public State getState()
+    {
+        return state;
+    }
+
+    /**
+     * @param state sets the {@link #state}
+     */
+    public void setState(State state)
+    {
+        this.state = state;
+    }
+
+    /**
+     * Type of reservation request.
      */
     public static enum Type
     {
         /**
-         * Reservation that can be created by any user.
+         * Reservation request that can be created by any user.
          */
         NORMAL,
 
         /**
-         * Reservation that can be created only by owner of resources,
+         * Reservation request that can be created only by owner of resources,
          * and the reservation can request only owned resources.
          */
         PERMANENT
+    }
+
+    /**
+     * State of reservation request.
+     */
+    public static enum State
+    {
+        /**
+         * None reservation has been allocated for the request.
+         */
+        NOT_ALLOCATED,
+
+        /**
+         * At least one reservation has been allocated for the request and none has failed.
+         */
+        ALLOCATED,
+
+        /**
+         * At least one reservation has failed to allocate for the request.
+         */
+        ALLOCATION_FAILED
     }
 }

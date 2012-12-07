@@ -1,21 +1,23 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Component;
 import cz.cesnet.shongo.controller.Configuration;
 import cz.cesnet.shongo.controller.fault.ReservationRequestNotModifiableException;
 import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Reservation service implementation
@@ -81,6 +83,9 @@ public class ReservationServiceImpl extends Component
     {
         authorization.validate(token);
 
+        if (reservationRequest == null) {
+            throw new IllegalArgumentException("Reservation request should not be null.");
+        }
         reservationRequest.setupNewEntity();
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
@@ -90,6 +95,7 @@ public class ReservationServiceImpl extends Component
         try {
             reservationRequestImpl = cz.cesnet.shongo.controller.request.AbstractReservationRequest.createFromApi(
                     reservationRequest, entityManager, domain);
+            reservationRequestImpl.setUserId(authorization.getUserId(token));
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.create(reservationRequestImpl);
@@ -223,24 +229,45 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token)
+    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
+            Map<String, Object> filter) throws FaultException
     {
         authorization.validate(token);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> list = reservationRequestManager.list();
+        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        Set<Technology> technologies = null;
+        if (filter != null) {
+            if (filter.containsKey("technology")) {
+                @SuppressWarnings("unchecked")
+                Set<Technology> value = (Set<Technology>) Converter.convert(filter.get("technology"), Set.class,
+                        new Class[]{Technology.class});
+                technologies = value;
+            }
+        }
+        List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
+                reservationRequestManager.list(userId, technologies);
+
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
-        for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : list) {
+        for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
             summary.setIdentifier(domain.formatIdentifier(abstractReservationRequest.getId()));
+            summary.setUserId(abstractReservationRequest.getUserId().intValue());
+            summary.setState(ReservationRequestSummary.State.NOT_ALLOCATED);
 
             Interval earliestSlot = null;
             if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {
                 cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
                         (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
                 earliestSlot = reservationRequest.getSlot();
+                if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATED)) {
+                    summary.setState(ReservationRequestSummary.State.ALLOCATED);
+                }
+                else if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATION_FAILED)) {
+                    summary.setState(ReservationRequestSummary.State.ALLOCATION_FAILED);
+                }
             }
             else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
                 cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
@@ -250,6 +277,17 @@ public class ReservationServiceImpl extends Component
                     if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                         earliestSlot = interval;
                     }
+                }
+                for (ReservationRequest reservationRequest : reservationRequestSet.getReservationRequests()) {
+                    if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATED)) {
+                        if (summary.getState().equals(ReservationRequestSummary.State.NOT_ALLOCATED)) {
+                            summary.setState(ReservationRequestSummary.State.ALLOCATED);
+                        }
+                    }
+                    else if (reservationRequest.getState().equals(ReservationRequest.State.ALLOCATION_FAILED)) {
+                        summary.setState(ReservationRequestSummary.State.ALLOCATION_FAILED);
+                    }
+
                 }
             }
             else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.PermanentReservationRequest) {
@@ -261,6 +299,10 @@ public class ReservationServiceImpl extends Component
                         earliestSlot = interval;
                     }
                 }
+                if (permanentReservationRequest.getResourceReservations().size() > 0) {
+                    summary.setState(ReservationRequestSummary.State.ALLOCATION_FAILED);
+                }
+                // TODO: Implement allocation failed state to permanent reservations
             }
             else {
                 throw new TodoImplementException(abstractReservationRequest.getClass().getCanonicalName());

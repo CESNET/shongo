@@ -37,7 +37,7 @@ public abstract class IdentifiedObject implements StructType, Concept
      */
     public void setIdentifier(Long identifier)
     {
-        this.identifier = identifier.toString();
+        this.identifier = (identifier != null ? identifier.toString() : null);
     }
 
     /**
@@ -46,7 +46,7 @@ public abstract class IdentifiedObject implements StructType, Concept
      */
     public Long notNullIdAsLong()
     {
-        if ( identifier == null ) {
+        if (identifier == null) {
             throw new IllegalStateException();
         }
         return Long.valueOf(identifier);

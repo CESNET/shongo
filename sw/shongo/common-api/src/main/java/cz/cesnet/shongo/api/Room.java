@@ -1,10 +1,14 @@
 package cz.cesnet.shongo.api;
 
+import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 import jade.content.Concept;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a virtual room on a multipoint server device.
@@ -17,10 +21,16 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
      * Room name. Type: String
      */
     public static final String NAME = "name";
+
     /**
-     * Number of ports to use for the room. Type: int
+     * Set of {@link cz.cesnet.shongo.Technology}s for the room.
      */
-    public static final String PORT_COUNT = "portCount";
+    public static final String TECHNOLOGIES = "technologies";
+
+    /**
+     * Number of licenses to use for the room. Type: int
+     */
+    public static final String LICENSE_COUNT = "licenseCount";
 
     /**
      * Aliases of the room. Type: List<Alias>
@@ -36,17 +46,17 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     {
     }
 
-    public Room(String name, int portCount)
+    public Room(String name, int licenseCount)
     {
         if (name == null) {
             throw new NullPointerException("name");
         }
-        if (portCount < 0) {
-            throw new IllegalArgumentException("Port count must be non-negative");
+        if (licenseCount < 0) {
+            throw new IllegalArgumentException("License count must be non-negative");
         }
 
         setName(name);
-        setPortCount(portCount);
+        setLicenseCount(licenseCount);
     }
 
     /**
@@ -70,23 +80,55 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     }
 
     /**
-     * @return number of ports that multipoint server can utilize for this room
+     * @return {@link #TECHNOLOGIES}
      */
-    public int getPortCount()
+    public Set<Technology> getTechnologies()
     {
-        return getPropertyStorage().getValueAsInt(PORT_COUNT);
+        return getPropertyStorage().getCollection(TECHNOLOGIES, Set.class);
     }
 
     /**
-     * @param portCount number of ports that multipoint server can utilize for this room
+     * @param technologies sets the {@link #TECHNOLOGIES}
      */
-    public void setPortCount(int portCount)
+    public void setTechnologies(Set<Technology> technologies)
     {
-        if (portCount < 0) {
-            throw new IllegalArgumentException("portCount must be non-negative");
+        getPropertyStorage().setCollection(TECHNOLOGIES, technologies);
+    }
+
+    /**
+     * @param technology technology to be added to the {@link #TECHNOLOGIES}
+     */
+    public void addTechnology(Technology technology)
+    {
+        getPropertyStorage().addCollectionItem(TECHNOLOGIES, technology, Set.class);
+    }
+
+    /**
+     * @param technology technology to be removed from the {@link #TECHNOLOGIES}
+     */
+    public void removeTechnology(Technology technology)
+    {
+        getPropertyStorage().removeCollectionItem(TECHNOLOGIES, technology);
+    }
+
+    /**
+     * @return number of ports that multipoint server can utilize for this room
+     */
+    public int getLicenseCount()
+    {
+        return getPropertyStorage().getValueAsInt(LICENSE_COUNT);
+    }
+
+    /**
+     * @param licenseCount number of license that multipoint server can utilize for this room
+     */
+    public void setLicenseCount(int licenseCount)
+    {
+        if (licenseCount < 0) {
+            throw new IllegalArgumentException("License count must be non-negative");
         }
 
-        getPropertyStorage().setValue(PORT_COUNT, portCount);
+        getPropertyStorage().setValue(LICENSE_COUNT, licenseCount);
     }
 
     /**
@@ -220,6 +262,34 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     }
 
     /**
+     * Fill {@link #OPTIONS} from given {@code roomSetting}
+     * @param roomSetting
+     */
+    public void fillOptions(RoomSetting roomSetting)
+    {
+        // TODO: use RoomSetting in the Room instead of map of options
+        if (roomSetting instanceof RoomSetting.H323) {
+            RoomSetting.H323 roomSettingH323 = (RoomSetting.H323) roomSetting;
+            if (roomSettingH323.getPin() != null) {
+                setOption(Option.PIN, roomSettingH323.getPin());
+            }
+        }
+    }
+
+    /**
+     * @return
+     */
+    public Alias getAliase(AliasType aliasType)
+    {
+        for (Alias alias : this.getAliases()) {
+            if (alias.getType() == aliasType)
+                return alias;
+        }
+
+        return null;
+    }
+
+    /**
      * Room options.
      */
     public static enum Option
@@ -281,7 +351,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
 
         private Class valueClass;
 
-        private Option(Class valueClass)
+        Option(Class valueClass)
         {
             this.valueClass = valueClass;
         }

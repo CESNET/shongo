@@ -38,17 +38,29 @@ public class RoomUser implements StructType, Concept
      * NOTE: Keep in sync with actual attributes of the class.
      */
 
-    /** Display name. Type: String */
+    /**
+     * Display name. Type: String
+     */
     public static final String DISPLAY_NAME = "displayName";
-    /** Is the user audio-muted? Type: boolean */
+    /**
+     * Is the user audio-muted? Type: boolean
+     */
     public static final String AUDIO_MUTED = "audioMuted";
-    /** Is the user video-muted? Type: boolean */
+    /**
+     * Is the user video-muted? Type: boolean
+     */
     public static final String VIDEO_MUTED = "videoMuted";
-    /** Microphone level. Type: int */
+    /**
+     * Microphone level. Type: int
+     */
     public static final String MICROPHONE_LEVEL = "microphoneLevel";
-    /** Playback level. Type: int */
+    /**
+     * Playback level. Type: int
+     */
     public static final String PLAYBACK_LEVEL = "playbackLevel";
-    /** Layout of the virtual room. Type: RoomLayout */
+    /**
+     * Layout of the virtual room. Type: RoomLayout
+     */
     public static final String LAYOUT = "layout";
 
 

@@ -49,7 +49,7 @@ public class Agent extends jade.core.Agent
     /**
      * Perform command on local agent
      *
-     * @param command    command to be performed
+     * @param command command to be performed
      */
     public Command performCommand(Command command)
     {
@@ -58,7 +58,8 @@ public class Agent extends jade.core.Agent
             return command;
         }
         try {
-            this.putO2AObject(command, AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
+            this.putO2AObject(command,
+                    AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
         }
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);
@@ -69,7 +70,7 @@ public class Agent extends jade.core.Agent
     /**
      * Perform command on local agent and wait for it to be processed
      *
-     * @param command    command to be performed
+     * @param command command to be performed
      * @return command (potentially modified)
      */
     public Command performCommandAndWait(Command command)
@@ -239,11 +240,11 @@ public class Agent extends jade.core.Agent
 
     /**
      * Handles an agent action request.
-     *
+     * <p/>
      * Should be overridden by descendants to actually handle some action.
      *
-     * @param action    agent action to be performed
-     * @param sender    sender of the action request
+     * @param action agent action to be performed
+     * @param sender sender of the action request
      * @return return value of the performed command (null if the command does not return anything)
      * @throws UnknownAgentActionException
      */

@@ -48,9 +48,19 @@ public class Converter
     /**
      * @see #convert(Object, Property)
      */
-    public static Object convert(Object value, Class type) throws IllegalArgumentException, FaultException
+    public static Object convert(Object value, Class targetType) throws IllegalArgumentException, FaultException
     {
-        return convert(value, type, null, null, DEFAULT_OPTIONS);
+        return convert(value, targetType, null, null, DEFAULT_OPTIONS);
+    }
+
+    /**
+     * @see #convert(Object, Property)
+     */
+    public static Object convert(Object value, Class targetType, Class[] targetAllowedTypes)
+            throws IllegalArgumentException, FaultException
+    {
+        return convert(value, targetType, targetAllowedTypes, null, DEFAULT_OPTIONS);
+
     }
 
     /**
@@ -865,8 +875,18 @@ public class Converter
         }
 
         /**
-         * @param value
-         * @return parsed interval from string
+         * Method for converting {@link String} to {@link Interval}.
+         * <p/>
+         * The class {@link Interval} itself is not able to preserve chronology (e.g., "+01:00") when parsing
+         * {@link Interval} by {@link Interval#parse(String)} (the format is "{@code <from>/<to>}").
+         * And thus to preserve the chronology we must implement the parsing by hand, and this implementation use
+         * the format "{@code <start>/<duration>}" where the {@code <start>} is parsed by
+         * {@link #convertStringToDateTime(String)} and the {@code <duration>} is parsed by
+         * {@link #convertStringToPeriod(String)} and from the {@link DateTime} and {@link Period} is constructed
+         * the resulting {@link Interval}.
+         *
+         * @param value string value to be converted to the {@link Interval}
+         * @return parsed {@link Interval} from given {@code value}
          * @throws cz.cesnet.shongo.fault.FaultException
          *          when parsing fails
          */
@@ -881,8 +901,11 @@ public class Converter
         }
 
         /**
-         * @param interval
-         * @return converted interval to string
+         * Method for converting {@link Interval} to {@link String}.
+         *
+         * @param interval to be converted to {@link String}
+         * @return converted {@link Interval} to {@link String}
+         * @see #convertStringToInterval(String)
          */
         public static String convertIntervalToString(Interval interval)
         {

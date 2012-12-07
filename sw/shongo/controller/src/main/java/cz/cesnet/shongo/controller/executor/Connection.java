@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
-import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
 
 import javax.persistence.*;
 
@@ -97,10 +97,10 @@ public abstract class Connection extends Executable
             String agentName = managedEndpointFrom.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
             Command command = null;
-            if (getEndpointFrom() instanceof VirtualRoom) {
-                VirtualRoom virtualRoom = (VirtualRoom) getEndpointFrom();
+            if (getEndpointFrom() instanceof RoomEndpoint) {
+                RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
                 command = controllerAgent.performCommand(new AgentActionCommand(agentName,
-                        new DisconnectParticipant(virtualRoom.getVirtualRoomId(), getConnectionId())));
+                        new DisconnectParticipant(roomEndpoint.getRoomId(), getConnectionId())));
             }
             else {
                 // TODO: use connection id to hangup

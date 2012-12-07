@@ -49,6 +49,7 @@ public class LookupEndpointSpecification extends EndpointSpecification implement
     /**
      * @return {@link #technologies}
      */
+    @Override
     @ElementCollection
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)

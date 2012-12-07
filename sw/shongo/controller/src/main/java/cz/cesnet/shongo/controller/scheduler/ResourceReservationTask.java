@@ -8,7 +8,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAllocatableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.ResourceRequestedMultipleTimesReport;
@@ -77,8 +77,8 @@ public class ResourceReservationTask extends ReservationTask
             if (deviceResource.isTerminal()) {
                 resourceReservation = new EndpointReservation();
             }
-            if (deviceResource.hasCapability(VirtualRoomsCapability.class)) {
-                if (getCache().getResourceCache().getVirtualRoomReservations(deviceResource, getInterval())
+            if (deviceResource.hasCapability(RoomProviderCapability.class)) {
+                if (getCache().getResourceCache().getRoomReservations(deviceResource, getInterval())
                         .size() > 0) {
                     // Requested resource is not available in the requested slot
                     throw new ResourceNotAvailableReport(resource).exception();

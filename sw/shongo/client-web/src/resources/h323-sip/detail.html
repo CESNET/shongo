@@ -1,0 +1,87 @@
+<fieldset>
+    <legend>[% title %]</legend>
+    <table>
+        <tr>
+            <td class="label">Identifier:</td>
+            <td>[% request.identifier %]</td>
+        </tr>
+        <tr>
+            <td class="label">Name:</td>
+            <td>[% request.name %]</td>
+        </tr>
+        <tr>
+            <td class="label">Purpose:</td>
+            <td>[% request.purpose %]</td>
+        </tr>
+        <tr>
+            <td class="label">Start date/time:</td>
+            <td>[% request.start %]</td>
+        </tr>
+        <tr>
+            <td class="label">Duration:</td>
+            <td>[% request.duration %]</td>
+        </tr>
+        <tr>
+            <td class="label">Periodicity:</td>
+            <td>
+                [% request.periodicity %] [% IF request.periodicityEnd %](end: [% request.periodicityEnd %])[% END %]
+            </td>
+        </tr>
+        <tr>
+            <td class="label">Number of participants:</td>
+            <td>[% request.participantCount %]</td>
+        </tr>
+        <tr>
+            <td class="label">PIN:</td>
+            <td>[% request.pin %]</td>
+        </tr>
+    </table>
+    <h2>Allocation of reservations</h2>
+    <table class="listing">
+        <thead>
+        <tr>
+            <td>Starting date/time</td>
+            <td>Duration</td>
+            <td>State</td>
+            <td>H.323 Number</td>
+        </tr>
+        </thead>
+        <tbody>
+        <script type="text/javascript">
+            window.showStateReport = function(nodeId, show) {
+                var stateReport = document.getElementById(nodeId);
+                if ( show == null ) {
+                    show = stateReport.style.display == 'none';
+                }
+                stateReport.style.display = show ? 'block' : 'none';
+            };
+        </script>
+        [%- FOREACH reservation IN request.reservations %]
+        <tr>
+            <td>[% reservation.start %]</td>
+            <td>[% reservation.duration %]</td>
+            <td>
+            [%- IF reservation.stateReport %]
+                <a href="javascript: window.showStateReport('state-report[% loop.index %]');"
+                   onmouseover="javascript: window.showStateReport('state-report[% loop.index %]', true);"
+                   onmouseout="javascript: window.showStateReport('state-report[% loop.index %]', false);"
+                   class="state-[% reservation.stateClass %]">[% reservation.state %]</a>
+                <div id='state-report[% loop.index %]' class="state-report">
+                    <pre>[% reservation.stateReport -%]</pre>
+                </div>
+            [%- ELSE %]
+                <span class="state-[% reservation.stateClass %]">[% reservation.state %]</span>
+            [%- END %]
+            </td>
+            <td>[% reservation.aliases %]</td>
+        </tr>
+        [%- END %]
+        </tbody>
+    </table>
+</fieldset>
+<form class="action">
+    <input type="button" value="Back" onclick="javascript: window.location = '[% location %]/list';"/>
+    <input type="button" value="Refresh" onclick="javascript: window.location.reload(true);"/>
+    <input type="button" value="Delete"
+           onclick="javascript: window.location = '[% location %]/delete?id=[% request.identifier %]';"/>
+</form>

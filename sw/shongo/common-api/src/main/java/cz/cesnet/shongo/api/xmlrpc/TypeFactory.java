@@ -151,7 +151,7 @@ public class TypeFactory extends TypeFactoryImpl
             return getNullSerializer(pConfig);
         }
         // Basic values are serialized by default
-        else if ( TypeFlags.isBasic(typeFlags)) {
+        else if (TypeFlags.isBasic(typeFlags)) {
             return super.getSerializer(pConfig, pObject);
         }
         // Other values must be converted to basic and serialized by default

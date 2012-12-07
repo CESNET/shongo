@@ -5,10 +5,14 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Period;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a {@link Reservation} for a {@link Alias}.
@@ -24,9 +28,9 @@ public class AliasReservation extends Reservation
     private AliasProviderCapability aliasProviderCapability;
 
     /**
-     * Alias that is allocated.
+     * Alias value that is allocated.
      */
-    private Alias alias;
+    private String aliasValue;
 
     /**
      * Constructor.
@@ -38,7 +42,7 @@ public class AliasReservation extends Reservation
     /**
      * @return {@link #aliasProviderCapability}
      */
-    @ManyToOne
+    @ManyToOne(optional = false)
     @Access(AccessType.FIELD)
     public AliasProviderCapability getAliasProviderCapability()
     {
@@ -54,21 +58,36 @@ public class AliasReservation extends Reservation
     }
 
     /**
-     * @return {@link #alias}
+     * @return {@link #aliasValue}
      */
-    @OneToOne(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
-    public Alias getAlias()
+    @Column(nullable = false)
+    public String getAliasValue()
     {
-        return alias;
+        return aliasValue;
     }
 
     /**
-     * @param alias sets the {@link #alias}
+     * @param aliasValue sets the {@link #aliasValue}
      */
-    public void setAlias(Alias alias)
+    public void setAliasValue(String aliasValue)
     {
-        this.alias = alias;
+        this.aliasValue = aliasValue;
+    }
+
+    /**
+     * @return collection of {@link Alias}es which are allocated by the {@link #aliasValue}
+     */
+    @Transient
+    public Collection<Alias> getAliases()
+    {
+        List<Alias> aliases = new ArrayList<Alias>();
+        for ( Alias aliasTemplate : aliasProviderCapability.getAliases() ) {
+            Alias alias = new Alias();
+            alias.setType(aliasTemplate.getType());
+            alias.setValue(aliasTemplate.getValue().replace("{value}", aliasValue));
+            aliases.add(alias);
+        }
+        return aliases;
     }
 
     @Override
@@ -101,7 +120,10 @@ public class AliasReservation extends Reservation
         aliasReservationApi.setResourceIdentifier(
                 domain.formatIdentifier(aliasProviderCapability.getResource().getId()));
         aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
-        aliasReservationApi.setAlias(getAlias().toApi());
+        aliasReservationApi.setAliasValue(getAliasValue());
+        for (Alias alias : getAliases()) {
+            aliasReservationApi.addAlias(alias.toApi());
+        }
         super.toApi(api, domain);
     }
 }

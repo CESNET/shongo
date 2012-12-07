@@ -2,7 +2,10 @@ package cz.cesnet.shongo.connector.api.ontology;
 
 import cz.cesnet.shongo.api.util.ChangesTracking;
 import cz.cesnet.shongo.api.util.ClassHelper;
-import jade.content.onto.*;
+import jade.content.onto.BeanOntology;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.SerializableOntology;
 import jade.content.schema.ObjectSchema;
 import jade.domain.FIPAAgentManagement.ExceptionOntology;
 import org.joda.time.DateTime;

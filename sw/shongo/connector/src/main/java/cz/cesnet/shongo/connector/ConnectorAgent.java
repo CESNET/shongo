@@ -61,8 +61,8 @@ public class ConnectorAgent extends Agent
             throws ConnectorInitException, CommandException
     {
         try {
-            Constructor co = Class.forName(connectorClass).getConstructor(null);
-            connector = (CommonService) co.newInstance(null);
+            Constructor co = Class.forName(connectorClass).getConstructor();
+            connector = (CommonService) co.newInstance();
             if (connector == null) {
                 throw new ConnectorInitException("Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
             }

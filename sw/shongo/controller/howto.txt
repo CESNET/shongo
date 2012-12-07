@@ -1,0 +1,4 @@
+Add new not null column and set default values only for all existing records
+----------------------------------------------------------------------------
+ALTER TABLE PUBLIC.RESOURCE ADD COLUMN USER_ID BIGINT DEFAULT 0 NOT NULL
+ALTER TABLE PUBLIC.RESOURCE ALTER COLUMN USER_ID SET DEFAULT NULL

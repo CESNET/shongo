@@ -275,8 +275,8 @@ Represents a specification for an \gls{g:device-alias}.
 \ApiClass{VirtualRoomSpecification}{Specification}
 Represents a specification for a \gls{g:device-virtual-room}.
 \begin{ApiClassAttributes}
-\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiOptional} Set of \glspl{g:technology} which the \gls{g:device-virtual-room} must support.
-\ApiClassAttribute{portCount}{int}{\ApiOptional} Number of ports which must be allocated for the \gls{g:device-virtual-room}.
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} which the \gls{g:device-virtual-room} must support.
+\ApiClassAttribute{portCount}{int}{\ApiRequired} Number of ports which must be allocated for the \gls{g:device-virtual-room}.
 \ApiClassAttribute{resourceIdentifier}{String}{\ApiOptional} Identifier of a preferred \gls{g:resource-device} with \ApiCode{VirtualRoomsCapability} where should be the \gls{g:device-virtual-room} created.
 \end{ApiClassAttributes}
 
@@ -291,9 +291,16 @@ Represents a specification for a group of participants which should participate 
 Represents a base class for specifications which can be added to the \ApiRef{CompartmentSpecification}.
 
 \ApiClass{ExternalEndpointSpecification}{ParticipantSpecification}
+Represents a specification for an external \gls{g:endpoint}. An external \gls{g:endpoint} doesn't have assigned a \gls{g:resource} identifier.
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} of the external \gls{g:endpoint}.
+\ApiClassAttribute{alias}{Alias}{\ApiOptional} \Gls{g:device-alias} of the external \gls{g:endpoint}.
+\end{ApiClassAttributes}
+
+\ApiClass{ExternalEndpointSetSpecification}{ParticipantSpecification}
 Represents a specification for one or multiple external \glspl{g:endpoint}. An external \gls{g:endpoint} doesn't have assigned a \gls{g:resource} identifier.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} of the external \gls{g:endpoint}(s).
+\ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} of the external \gls{g:endpoint}.
 \ApiClassAttribute{count}{int}{\ApiOptional} Number of the external \gls{g:endpoint} (all have the same \gls{g:technology}).
 \end{ApiClassAttributes}
 
@@ -321,15 +328,24 @@ Represents a specification for a person that should participate in a \gls{g:comp
 \ApiEnumValue{PERNAMENT}{} Permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
 \end{ApiEnumValues}
 
+\ApiEnum{ReservationRequestSummary.State}
+\begin{ApiEnumValues}
+\ApiEnumValue{NOT_ALLOCATED}{} None \gls{g:reservation} has been allocated for the \gls{g:reservation-request}.
+\ApiEnumValue{ALLOCATED}{} At least one \gls{g:reservation} has been allocated for the \gls{g:reservation-request} and none has failed.
+\ApiEnumValue{ALLOCATION_FAILED}{} At least one \gls{g:reservation} has failed to allocate for the \gls{g:reservation-request}.
+\end{ApiEnumValues}
+
 \ApiClass{ReservationRequestSummary}{}
 This class represents a summary of a \gls{g:reservation-request}. The summary is lightweight and does not contain all \gls{g:reservation-request} attributes. It is suitable when listing a lot of \glspl{g:reservation-request} from the \gls{g:controller} database where the detail information about \gls{g:reservation-request} is not appropriate.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{identifier}{String}{} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{userId}{int}{} Identifier of \gls{g:reservation-request} owner.
 \ApiClassAttribute{type}{ReservationRequestSummary.Type}{} Type of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestSummary.Type}.
 \ApiClassAttribute{name}{String}{} Name of the \gls{g:reservation-request}.
 \ApiClassAttribute{purpose}{ReservationRequestPurpose}{} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.
 \ApiClassAttribute{description}{String}{} Description of \gls{g:reservation-request}.
 \ApiClassAttribute{earliestSlot}{Interval}{} Specifies the first future date/time slot for which the \gls{g:reservation} is requested.
+\ApiClassAttribute{state}{ReservationRequestSummary.State}{} Specifies the current state of the \gls{g:reservation-request}. 
 \end{ApiClassAttributes}
 
 \ApiClass{Reservation}{}
@@ -534,8 +550,13 @@ Release the reservation with specified \ApiCode{reservationIdentifier}. The chil
 
 \begin{ApiCmdCollection}{Collection}{ReservationRequestSummary}{listReservationRequests}%
 \ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParamMap{String}{Object}{filter}%
 \end{ApiCmdCollection}
-List all the reservation requests that a user with given \ApiCode{token} is entitled to see. Only the lightweight definitions of reservation requests are returned, see \ApiRef{ReservationRequestSummary} for details.
+List all the reservation requests that a user with given \ApiCode{token} is entitled to see. Only the lightweight definitions of reservation requests are returned, see \ApiRef{ReservationRequestSummary} for details. The \ApiCode{filter} map can contain following attributes to filter results:
+\begin{compactitem}
+\item \ApiCode{userId} restricts reservation request owner by his identifier
+\item \ApiCode{technology} set of technologies of virtual room or compartment
+\end{compactitem}
 
 \begin{ApiCmd}{AbstractReservationRequest}{getReservationRequest}%
 \ApiCmdParam{SecurityToken}{token}%

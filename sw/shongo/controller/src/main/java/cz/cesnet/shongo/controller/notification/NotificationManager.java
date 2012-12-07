@@ -32,7 +32,7 @@ public class NotificationManager extends Component
         super.init(configuration);
 
         // Initialize all executors
-        for ( NotificationExecutor notificationExecutor : notificationExecutors) {
+        for (NotificationExecutor notificationExecutor : notificationExecutors) {
             notificationExecutor.init(configuration);
         }
     }
@@ -43,7 +43,7 @@ public class NotificationManager extends Component
     public void executeNotification(Notification notification)
     {
         // Execute notification in all executors
-        for ( NotificationExecutor notificationExecutor : notificationExecutors) {
+        for (NotificationExecutor notificationExecutor : notificationExecutors) {
             notificationExecutor.executeNotification(notification);
         }
     }

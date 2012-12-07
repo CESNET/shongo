@@ -12,6 +12,11 @@
         <organization>Unknown Organization</organization>
     </domain>
 
+    <!-- Database settings -->
+    <database>
+        <filename>data/controller</filename>
+    </database>
+
     <!-- Configuration of XML-RPC server -->
     <rpc>
         <host></host>
@@ -47,18 +52,21 @@
         <period>PT15S</period>
         <!-- Configuration of lookup ahead for compartments to be executed -->
         <lookup-ahead>PT3M</lookup-ahead>
-        <!-- Configuration for compartment executor -->
-        <compartment>
+        <!-- Configuration for each executable -->
+        <executable>
             <!-- Period modifying compartment starting date/time -->
             <start>PT-30S</start>
             <!-- Period modifying compartment ending date/time -->
             <end>PT-30S</end>
-            <!-- Duration of waiting for virtual rooms to be created -->
-            <waiting-virtual-room>PT5S</waiting-virtual-room>
             <!-- Period for checking starting date/time -->
             <waiting-start>PT10S</waiting-start>
             <!-- Period for checking ending date/time -->
             <waiting-end>PT30S</waiting-end>
+        </executable>
+        <!-- Configuration for compartment executable -->
+        <compartment>
+            <!-- Duration of waiting for virtual rooms to be created -->
+            <waiting-room>PT5S</waiting-room>
         </compartment>
     </executor>
 

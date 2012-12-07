@@ -6,7 +6,6 @@ import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.RoomSummary;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -39,10 +38,10 @@ public interface RoomService
 
     /**
      * Modifies a virtual room.
-     *
+     * <p/>
      * The attributes may name any of Room attributes (see constants in the Room class).
      *
-     * @param room     room to be modified
+     * @param room room to be modified
      * @return new room identifier (shall be the same for most connectors, but may change due to changes in some
      *         attributes)
      */

@@ -2,13 +2,12 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Capability tells that the resource acts as alias provider which can allocate aliases for itself and/or
@@ -20,14 +19,19 @@ import java.util.Set;
 public class AliasProviderCapability extends Capability
 {
     /**
-     * Technology of aliases.
-     */
-    private Technology technology;
-
-    /**
      * Type of aliases.
      */
-    private AliasType type;
+    private List<Alias> aliases = new ArrayList<Alias>();
+
+    /**
+     * Cache for provided {@link Technology}s.
+     */
+    private Set<Technology> cachedProvidedTechnologies;
+
+    /**
+     * Cache for provided {@link AliasType}s.
+     */
+    private Set<AliasType> cachedProvidedAliasTypes;
 
     /**
      * List of pattern for aliases.
@@ -54,74 +58,83 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #technology}
-     * @param type       sets the {@link #type}
-     * @param pattern    to be added to the {@link #patterns}
+     * @param type    to be added as {@link Alias} to {@link #aliases}
+     * @param pattern to be added to the {@link #patterns}
      */
-    public AliasProviderCapability(Technology technology, AliasType type, String pattern)
+    public AliasProviderCapability(AliasType type, String pattern)
     {
-        this.technology = technology;
-        this.type = type;
-        this.addPattern(pattern);
+        addAlias(new Alias(type, "{value}"));
+        addPattern(pattern);
     }
 
     /**
      * Constructor.
      *
-     * @param technology                sets the {@link #technology}
-     * @param type                      sets the {@link #type}
+     * @param type                      to be added as {@link Alias} to {@link #aliases}
      * @param pattern                   to be added to the {@link #patterns}
      * @param restrictedToOwnerResource sets the {@link #restrictedToOwnerResource}
      */
-    public AliasProviderCapability(Technology technology, AliasType type, String pattern,
+    public AliasProviderCapability(AliasType type, String pattern,
             boolean restrictedToOwnerResource)
     {
-        this.technology = technology;
-        this.type = type;
-        this.restrictedToOwnerResource = restrictedToOwnerResource;
+        addAlias(new Alias(type, "{value}"));
         this.addPattern(pattern);
+        this.restrictedToOwnerResource = restrictedToOwnerResource;
     }
 
     /**
-     * @return {@link #technology}
+     * @return {@link #aliases}
      */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public Technology getTechnology()
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
+    public List<Alias> getAliases()
     {
-        return technology;
+        return Collections.unmodifiableList(aliases);
     }
 
     /**
-     * @param technology sets the {@link #technology}
+     * @param id
+     * @return alias with given {@code id}
+     * @throws EntityNotFoundException when alias doesn't exist
      */
-    public void setTechnology(Technology technology)
+    public Alias getAliasById(Long id) throws EntityNotFoundException
     {
-        this.technology = technology;
+        for (Alias alias : aliases) {
+            if (alias.getId().equals(id)) {
+                return alias;
+            }
+        }
+        throw new EntityNotFoundException(Alias.class, id);
     }
 
     /**
-     * @return {@link #type}
+     * @param alias to be added to the {@link #aliases}
      */
-    @Column
-    @Enumerated(EnumType.STRING)
-    public AliasType getType()
+    public void addAlias(Alias alias)
     {
-        return type;
+        this.aliases.add(alias);
+
+        // Reset caches
+        this.cachedProvidedAliasTypes = null;
+        this.cachedProvidedTechnologies = null;
     }
 
     /**
-     * @param type sets the {@link #type}
+     * @param alias to be removed from the {@link #aliases}
      */
-    public void setType(AliasType type)
+    public void removeAlias(Alias alias)
     {
-        this.type = type;
+        this.aliases.remove(alias);
+
+        // Reset caches
+        this.cachedProvidedAliasTypes = null;
+        this.cachedProvidedTechnologies = null;
     }
 
     /**
      * @return {@link #patterns}
      */
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection
     @Access(AccessType.FIELD)
     public List<String> getPatterns()
     {
@@ -161,6 +174,39 @@ public class AliasProviderCapability extends Capability
         this.restrictedToOwnerResource = restrictedToOwnerResource;
     }
 
+    /**
+     * @param technology to be checked
+     * @return true if the {@link AliasProviderCapability} is able to provide an {@link Alias}
+     *         for given {@code technology}, false otherwise
+     */
+    public boolean providesAliasTechnology(Technology technology)
+    {
+        if (cachedProvidedTechnologies == null) {
+            cachedProvidedTechnologies = new HashSet<Technology>();
+            for (Alias alias : aliases) {
+                cachedProvidedTechnologies.add(alias.getTechnology());
+            }
+        }
+        return cachedProvidedTechnologies.contains(technology);
+    }
+
+    /**
+     *
+     * @param aliasType to be checked
+     * @return true if the {@link AliasProviderCapability} is able to provide an {@link Alias}
+     *         of given {@code aliasType}, false otherwise
+     */
+    public boolean providesAliasType(AliasType aliasType)
+    {
+        if (cachedProvidedAliasTypes == null) {
+            cachedProvidedAliasTypes = new HashSet<AliasType>();
+            for (Alias alias : aliases) {
+                cachedProvidedAliasTypes.add(alias.getType());
+            }
+        }
+        return cachedProvidedAliasTypes.contains(aliasType);
+    }
+
     @Override
     protected cz.cesnet.shongo.controller.api.Capability createApi()
     {
@@ -172,9 +218,10 @@ public class AliasProviderCapability extends Capability
     {
         cz.cesnet.shongo.controller.api.AliasProviderCapability apiAliasProvider =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
-        apiAliasProvider.setTechnology(getTechnology());
-        apiAliasProvider.setType(getType());
-        for ( String pattern : patterns) {
+        for (Alias alias : aliases) {
+            apiAliasProvider.addAlias(alias.toApi());
+        }
+        for (String pattern : patterns) {
             apiAliasProvider.addPattern(pattern);
         }
         apiAliasProvider.setRestrictedToOwnerResource(isRestrictedToOwnerResource());
@@ -187,14 +234,27 @@ public class AliasProviderCapability extends Capability
     {
         cz.cesnet.shongo.controller.api.AliasProviderCapability apiAliasProvider =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.TECHNOLOGY)) {
-            setTechnology(apiAliasProvider.getTechnology());
-        }
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.TYPE)) {
-            setType(apiAliasProvider.getType());
-        }
         if (apiAliasProvider.isPropertyFilled(apiAliasProvider.RESTRICTED_TO_OWNER_RESOURCE)) {
             setRestrictedToOwnerResource(apiAliasProvider.getRestrictedToOwnerResource());
+        }
+
+        // Create/modify aliases
+        for (cz.cesnet.shongo.api.Alias apiAlias : apiAliasProvider.getAliases()) {
+            if (api.isPropertyItemMarkedAsNew(apiAliasProvider.ALIASES, apiAlias)) {
+                Alias alias = new Alias();
+                alias.fromApi(apiAlias);
+                addAlias(alias);
+            }
+            else {
+                Alias alias = getAliasById(apiAlias.notNullIdAsLong());
+                alias.fromApi(apiAlias);
+            }
+        }
+        // Delete aliases
+        Set<cz.cesnet.shongo.api.Alias> apiDeletedAliases =
+                api.getPropertyItemsMarkedAsDeleted(apiAliasProvider.ALIASES);
+        for (cz.cesnet.shongo.api.Alias apiAlias : apiDeletedAliases) {
+            removeAlias(getAliasById(apiAlias.notNullIdAsLong()));
         }
 
         // Create patterns
@@ -217,6 +277,6 @@ public class AliasProviderCapability extends Capability
     @Transient
     public AliasGenerator getAliasGenerator()
     {
-        return new AliasPatternGenerator(technology, type, getPatterns());
+        return new AliasPatternGenerator(getPatterns());
     }
 }

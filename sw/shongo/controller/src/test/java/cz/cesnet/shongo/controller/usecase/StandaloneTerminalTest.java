@@ -7,7 +7,7 @@ import cz.cesnet.shongo.controller.api.*;
 import org.junit.Test;
 
 /**
- * Tests for allocation of {@link Compartment} without virtual room.
+ * Tests for allocation of {@link cz.cesnet.shongo.controller.api.Executable.Compartment} without virtual room.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */

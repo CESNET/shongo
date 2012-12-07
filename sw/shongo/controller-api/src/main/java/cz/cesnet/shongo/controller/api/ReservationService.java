@@ -5,6 +5,7 @@ import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.fault.FaultException;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Interface to the service handling operations on reservations.
@@ -49,11 +50,15 @@ public interface ReservationService extends Service
     /**
      * Lists all the reservation requests.
      *
-     * @param token token of the user requesting the operation
+     * @param token  token of the user requesting the operation
+     * @param filter attributes for filtering reservation requests (map of name => value pairs)::
+     *               -{@code userId}     restricts reservation request owner by his identifier
+     *               -{@code technology} set of technologies of virtual room or compartment
      * @return collection of reservation requests
      */
     @API
-    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token);
+    public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
+            Map<String, Object> filter) throws FaultException;
 
     /**
      * Gets the complete Reservation object.

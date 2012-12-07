@@ -11,25 +11,10 @@ import cz.cesnet.shongo.Technology;
 public abstract class AliasGenerator
 {
     /**
-     * Technology of aliases.
+     * Constructor.
      */
-    protected Technology technology;
-
-    /**
-     * Type of aliases.
-     */
-    protected AliasType type;
-
-    /**
-     * Contructor.
-     *
-     * @param technology sets the {@link #technology}
-     * @param type       sets the {@link #type}
-     */
-    public AliasGenerator(Technology technology, AliasType type)
+    public AliasGenerator()
     {
-        this.technology = technology;
-        this.type = type;
     }
 
     /**
@@ -37,10 +22,10 @@ public abstract class AliasGenerator
      *
      * @param alias which is already used
      */
-    public abstract void addAlias(Alias alias);
+    public abstract void addAliasValue(String alias);
 
     /**
      * @return new generated {@link Alias}
      */
-    public abstract Alias generate();
+    public abstract String generateValue();
 }

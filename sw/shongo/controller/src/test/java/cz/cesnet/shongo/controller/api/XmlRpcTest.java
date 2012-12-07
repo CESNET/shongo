@@ -74,7 +74,10 @@ public class XmlRpcTest extends AbstractControllerTest
                                 add(new HashMap<String, Object>()
                                 {{
                                         put("class", "ExternalEndpointSetSpecification");
-                                        put("technology", "H323");
+                                        put("technologies", new ArrayList<Object>()
+                                        {{
+                                                add("H323");
+                                            }});
                                         put("count", 2);
                                     }});
                                 add(new HashMap<String, Object>()

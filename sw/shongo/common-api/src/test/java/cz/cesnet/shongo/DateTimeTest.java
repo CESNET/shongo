@@ -1,10 +1,11 @@
 package cz.cesnet.shongo;
 
-import org.joda.time.chrono.ISOChronology;
-import org.junit.Assert;
+import cz.cesnet.shongo.api.util.Converter;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -15,16 +16,25 @@ import org.junit.Test;
 public class DateTimeTest
 {
     @Test
-    public void test()
+    public void testChronologyParsing() throws Exception
     {
-        // TODO: test chronology parsing
-        /*DateTime dateTime1 = DateTime.parse("2012-01-01T12:00+01:00");
-        DateTime dateTime2 = DateTime.parse("2012-01-01T12:00+01:00");
-        Assert.assertEquals(dateTime1, dateTime2);
+        DateTimeZone oldDefaultZone = DateTimeZone.getDefault();
+        DateTimeZone newDefaultZone = DateTimeZone.forID("+11:00");
+        DateTimeZone.setDefault(newDefaultZone);
 
-        // Interval isn't able to parse chronology
-        Interval interval1 = Interval.parse("2012-01-01T00:00/2012-01-01T23:59");
-        Interval interval2 = Interval.parse("2012-01-01T00:00/2012-01-01T23:59");
-        Assert.assertEquals(interval1, interval2);*/
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00+04:00");
+        Assert.assertEquals("+04:00", dateTime.getChronology().getZone().getID());
+
+        // Interval.parse isn't able to parse chronology
+        Interval intervalByDefault = Interval.parse("2012-01-01T00:00+05:00/2012-02-02T00:00+06:00");
+        Assert.assertEquals("+11:00", intervalByDefault.getStart().getChronology().getZone().getID());
+        Assert.assertEquals("+11:00", intervalByDefault.getEnd().getChronology().getZone().getID());
+
+        // Converter is able to parse chronology
+        Interval intervalByConverter = Converter.Atomic.convertStringToInterval("2012-01-01T00:00+05:00/P1M1D");
+        Assert.assertEquals("+05:00", intervalByConverter.getStart().getChronology().getZone().getID());
+        Assert.assertEquals("+05:00", intervalByConverter.getEnd().getChronology().getZone().getID());
+
+        DateTimeZone.setDefault(oldDefaultZone);
     }
 }

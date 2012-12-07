@@ -10,6 +10,11 @@ import cz.cesnet.shongo.api.util.IdentifiedObject;
 public class ResourceSummary extends IdentifiedObject
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Name of the resource.
      */
     private String name;
@@ -23,6 +28,22 @@ public class ResourceSummary extends IdentifiedObject
      * Parent resource identifier.
      */
     private String parentIdentifier;
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #name}

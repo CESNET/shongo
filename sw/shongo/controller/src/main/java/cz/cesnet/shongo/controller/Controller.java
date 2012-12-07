@@ -24,11 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a domain controller.
@@ -664,12 +662,18 @@ public class Controller
                 .hasArg()
                 .withDescription("Set the platform-id for the JADE main controller")
                 .create("p");
+        Option optionConfig = OptionBuilder.withLongOpt("config")
+                .withArgName("FILENAME")
+                .hasArg()
+                .withDescription("Controller XML configuration file")
+                .create("g");
         Options options = new Options();
         options.addOption(optionHost);
         options.addOption(optionRpcPort);
         options.addOption(optionJadePort);
         options.addOption(optionJadePlatform);
         options.addOption(optionHelp);
+        options.addOption(optionConfig);
 
         // Parse command line
         CommandLine commandLine = null;
@@ -721,14 +725,29 @@ public class Controller
             System.setProperty(Configuration.JADE_PLATFORM_ID, commandLine.getOptionValue(optionJadePlatform.getOpt()));
         }
 
+        // Get configuration file name
+        String configurationFileName = "controller.cfg.xml";
+        if (commandLine.hasOption(optionConfig.getOpt())) {
+            configurationFileName = commandLine.getOptionValue(optionConfig.getOpt());
+        }
+        // Create controller
+        Controller controller = new Controller(configurationFileName);
+
         logger.debug("Creating entity manager factory...");
         Timer timer = new Timer();
-        EntityManagerFactory entityManagerFactory = javax.persistence.Persistence
-                .createEntityManagerFactory("controller");
+        // DatabaseMigration cannot be used because HyperSQL doesn't support transactional DDL
+        // boolean development = Boolean.valueOf(System.getProperty("shongo.development"));
+        // DatabaseMigration databaseMigration = new DatabaseMigration("controller",
+        //         "cz.cesnet.shongo.controller.migration", (development ? "controller/src/main/java" : null));
+        // EntityManagerFactory entityManagerFactory = databaseMigration.migrate();
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("hibernate.connection.url",
+                String.format("jdbc:hsqldb:file:%s; shutdown=true; hsqldb.write_delay=false;",
+                        controller.getConfiguration().getString(Configuration.DATABASE_FILENAME)));
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("controller", properties);
         logger.debug("Entity manager factory created in {} ms.", timer.stop());
 
         // Run controller
-        Controller controller = new Controller("controller.cfg.xml");
         controller.setEntityManagerFactory(entityManagerFactory);
 
         // Add components
@@ -756,7 +775,9 @@ public class Controller
 
         // Start, run and stop the controller
         controller.startAll();
+        logger.info("Controller successfully started.");
         controller.run();
+        logger.info("Stopping controller...");
         controller.stop();
 
         Container.killAllJadeThreads();

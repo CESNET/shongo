@@ -10,11 +10,6 @@ import cz.cesnet.shongo.api.xmlrpc.AtomicType;
 public class SecurityToken implements AtomicType
 {
     /**
-     * Security token which can be used for testing purposes (e.g., unit-tests) and it is never verified.
-     */
-    public static SecurityToken TESTING = new SecurityToken();
-
-    /**
      * Access token of the user which is accessing Shongo {@link Controller}.
      */
     private String accessToken;

@@ -11,6 +11,11 @@ import org.joda.time.Interval;
 public class ExecutableSummary extends IdentifiedObject
 {
     /**
+     * Identifier of the owner user.
+     */
+    private Integer userId;
+
+    /**
      * Type of {@link Executable}.
      */
     private Type type;
@@ -24,6 +29,22 @@ public class ExecutableSummary extends IdentifiedObject
      * Current state of the {@link ExecutableSummary}.
      */
     private Executable.State state;
+
+    /**
+     * @return {@link #userId}
+     */
+    public Integer getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(Integer userId)
+    {
+        this.userId = userId;
+    }
 
     /**
      * @return {@link #type}
@@ -79,12 +100,12 @@ public class ExecutableSummary extends IdentifiedObject
     public static enum Type
     {
         /**
-         * Represents {@link Compartment}
+         * Represents {@link cz.cesnet.shongo.controller.api.Executable.Compartment}
          */
         COMPARTMENT,
 
         /**
-         * Represents {@link VirtualRoom}
+         * Represents {@link cz.cesnet.shongo.controller.api.Executable.Room}
          */
         VIRTUAL_ROOM
     }

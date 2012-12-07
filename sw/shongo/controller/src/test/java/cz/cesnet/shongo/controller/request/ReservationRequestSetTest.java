@@ -7,10 +7,10 @@ import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.resource.Address;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
-import cz.cesnet.shongo.controller.resource.VirtualRoomsCapability;
+import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import org.joda.time.Interval;
 import org.junit.Test;
 
@@ -53,10 +53,11 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             EntityManager entityManager = getEntityManager();
 
             DeviceResource deviceResource = new DeviceResource();
+            deviceResource.setUserId(Authorization.ROOT_USER_ID);
             deviceResource.setName("MCU");
-            deviceResource.setAddress(Address.LOCALHOST);
             deviceResource.addTechnology(Technology.H323);
-            deviceResource.addCapability(new VirtualRoomsCapability(100));
+            deviceResource.addCapability(new RoomProviderCapability(100));
+            deviceResource.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
             deviceResource.setAllocatable(true);
             cache.addResource(deviceResource, entityManager);
 
@@ -71,6 +72,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             entityManager.getTransaction().begin();
 
             ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
+            reservationRequestSet.setUserId(Authorization.ROOT_USER_ID);
             reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
             reservationRequestSet.addSlot(new AbsoluteDateTimeSpecification("2012-06-22T14:00"), "PT2H");
             CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
@@ -81,7 +83,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
             Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
             compartmentSpecification.addChildSpecification(new PersonSpecification(person1,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080085"))));
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080085"))));
             compartmentSpecification.addChildSpecification(new PersonSpecification(person2));
             reservationRequestSet.addSpecification(compartmentSpecification);
 
@@ -148,7 +150,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
 
             // Second person accepts
             reservationRequestManager.selectEndpointForPersonSpecification(reservationRequestId, personId2,
-                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.E164, "950080086")));
+                    new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080086")));
             reservationRequestManager.acceptPersonRequest(reservationRequestId, personId2);
             assertEquals("One complete reservation request should be present", 1,
                     reservationRequestManager.listCompletedReservationRequests(interval).size());

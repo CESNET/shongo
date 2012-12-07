@@ -4,11 +4,13 @@ import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 /**
@@ -101,17 +103,21 @@ public class ExecutableManager extends AbstractManager
     /**
      * @return list of all allocated {@link Executable}s
      */
-    public List<Executable> list()
+    public List<Executable> list(Long userId)
     {
-        List<Executable> executables = entityManager
-                .createQuery("SELECT executable FROM Executable executable WHERE executable.state != :notAllocated"
-                        + " AND executable NOT IN("
-                        + "    SELECT childExecutable FROM Executable executable "
-                        + "   INNER JOIN executable.childExecutables childExecutable"
-                        + " )",
-                        Executable.class)
-                .setParameter("notAllocated", Executable.State.NOT_ALLOCATED)
-                .getResultList();
+        DatabaseFilter filter = new DatabaseFilter("executable");
+        filter.addUserId(userId);
+        TypedQuery<Executable> query = entityManager.createQuery("SELECT executable FROM Executable executable"
+                + " WHERE executable.state != :notAllocated"
+                + " AND executable NOT IN("
+                + "    SELECT childExecutable FROM Executable executable "
+                + "   INNER JOIN executable.childExecutables childExecutable"
+                + " )"
+                + " AND " + filter.toQueryWhere(),
+                Executable.class);
+        query.setParameter("notAllocated", Executable.State.NOT_ALLOCATED);
+        filter.fillQueryParameters(query);
+        List<Executable> executables = query.getResultList();
         return executables;
     }
 

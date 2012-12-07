@@ -10,9 +10,9 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
 
 /**
  * TypeConverterFactory that allows {@link AtomicType}, {@link StructType} and enums as method parameters
@@ -58,33 +58,55 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         mapTypeConverter = new MapTypeConverter(options);
     }
 
-    @Override
-    public TypeConverter getTypeConverter(Class pClass)
+    /**
+     * @param type
+     * @param genericType
+     * @return {@link TypeConverter} for given {@code type} and {@code genericType}
+     */
+    public TypeConverter getTypeConverter(Class type, Type genericType)
     {
-        if (pClass.isEnum()) {
+        if (type.isEnum()) {
             @SuppressWarnings("unchecked")
-            Class<? extends Enum<?>> enumClass = (Class<? extends Enum<?>>) pClass;
+            Class<? extends Enum<?>> enumClass = (Class<? extends Enum<?>>) type;
             return EnumTypeConverter.getInstance(enumClass);
         }
-        else if (AtomicType.class.isAssignableFrom(pClass)) {
-            return AtomicTypeConverter.getInstance(pClass);
+        else if (AtomicType.class.isAssignableFrom(type)) {
+            return AtomicTypeConverter.getInstance(type);
         }
-        else if (Interval.class.isAssignableFrom(pClass)) {
+        else if (Interval.class.isAssignableFrom(type)) {
             return intervalConverter;
         }
-        else if (DateTime.class.isAssignableFrom(pClass)) {
+        else if (DateTime.class.isAssignableFrom(type)) {
             return dateTimeConverter;
         }
-        else if (Period.class.isAssignableFrom(pClass)) {
+        else if (Period.class.isAssignableFrom(type)) {
             return periodConverter;
         }
-        else if (StructType.class.isAssignableFrom(pClass)) {
-            return StructTypeConverter.getInstance(pClass, options);
+        else if (StructType.class.isAssignableFrom(type)) {
+            return StructTypeConverter.getInstance(type, options);
         }
-        else if (Map.class.isAssignableFrom(pClass)) {
+        else if (Map.class.isAssignableFrom(type)) {
             return mapTypeConverter;
         }
-        return super.getTypeConverter(pClass);
+        else if (Collection.class.isAssignableFrom(type)) {
+            Class componentType = Object.class;
+            if (genericType instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericType;
+                Type[] arguments = parameterizedType.getActualTypeArguments();
+                if (arguments.length == 1 && arguments[0] instanceof Class) {
+                    componentType = (Class) arguments[0];
+                }
+
+            }
+            return new CollectionTypeConverter(type, componentType);
+        }
+        return super.getTypeConverter(type);
+    }
+
+    @Override
+    public TypeConverter getTypeConverter(Class type)
+    {
+        return getTypeConverter(type, null);
     }
 
     /**
@@ -94,17 +116,17 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
      */
     private static class EnumTypeConverter implements TypeConverter
     {
-        private final Class<? extends Enum> clazz;
+        private final Class<? extends Enum> enumType;
 
-        private EnumTypeConverter(Class<? extends Enum> pClass)
+        private EnumTypeConverter(Class<? extends Enum> enumType)
         {
-            clazz = pClass;
+            this.enumType = enumType;
         }
 
         @Override
         public boolean isConvertable(Object pObject)
         {
-            return (pObject instanceof String) || clazz.isAssignableFrom(pObject.getClass());
+            return (pObject instanceof String) || enumType.isAssignableFrom(pObject.getClass());
         }
 
         @Override
@@ -113,7 +135,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
             if (pObject instanceof String) {
                 String value = (String) pObject;
                 try {
-                    return Converter.Atomic.convertStringToEnum(value, clazz);
+                    return Converter.Atomic.convertStringToEnum(value, enumType);
                 }
                 catch (FaultException exception) {
                     throw new RuntimeException(exception);
@@ -392,7 +414,7 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
                 new Hashtable<Options, Map<Class, StructTypeConverter>>();
 
         /**
-         * @param pClass for which the converter should be returned
+         * @param pClass  for which the converter should be returned
          * @param options for converting
          * @return {@link StructTypeConverter} for given {@code pClass} and {@code options}
          */
@@ -459,6 +481,50 @@ public class TypeConverterFactory extends TypeConverterFactoryImpl
         public Object backConvert(Object pObject)
         {
             return pObject;
+        }
+    }
+
+    /**
+     * Converter for {@link Collection} types.
+     *
+     * @author Martin Srom <martin.srom@cesnet.cz>
+     */
+    private static class CollectionTypeConverter implements TypeConverter
+    {
+        private final Class<? extends Collection> collectionType;
+        private final Class componentType;
+
+        private CollectionTypeConverter(Class<? extends Collection> collectionType, Class componentType)
+        {
+            this.collectionType = collectionType;
+            this.componentType = componentType;
+        }
+
+        @Override
+        public boolean isConvertable(Object object)
+        {
+            return object == null || object instanceof Object[]
+                    || collectionType.isAssignableFrom(object.getClass());
+        }
+
+        @Override
+        public Object convert(Object object)
+        {
+            if (object != null) {
+                try {
+                    return Converter.convert(object, collectionType, new Class[]{componentType});
+                }
+                catch (FaultException exception) {
+                    throw new RuntimeException(exception);
+                }
+            }
+            return object;
+        }
+
+        @Override
+        public Object backConvert(Object result)
+        {
+            return ((Collection) result).toArray();
         }
     }
 }

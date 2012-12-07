@@ -72,7 +72,7 @@ public abstract class Specification extends PersistentObject
      * @return new instance of {@link Specification} for given {@code api}
      */
     public static Specification createFromApi(cz.cesnet.shongo.controller.api.Specification api,
-            EntityManager entityManager, Domain domain)
+            EntityManager entityManager, Domain domain) throws FaultException
     {
         Specification specification = null;
         if (api instanceof cz.cesnet.shongo.controller.api.CompartmentSpecification) {
@@ -99,18 +99,13 @@ public abstract class Specification extends PersistentObject
         else if (api instanceof cz.cesnet.shongo.controller.api.ResourceSpecification) {
             specification = new ResourceSpecification();
         }
-        else if (api instanceof cz.cesnet.shongo.controller.api.VirtualRoomSpecification) {
-            specification = new VirtualRoomSpecification();
+        else if (api instanceof cz.cesnet.shongo.controller.api.RoomSpecification) {
+            specification = new RoomSpecification();
         }
         else {
             throw new TodoImplementException(api.getClass().getCanonicalName());
         }
-        try {
-            specification.fromApi(api, entityManager, domain);
-        }
-        catch (FaultException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
+        specification.fromApi(api, entityManager, domain);
         return specification;
     }
 

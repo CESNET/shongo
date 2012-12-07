@@ -5,7 +5,7 @@ import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.AliasCache;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
-import cz.cesnet.shongo.controller.cache.AvailableVirtualRoom;
+import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -332,7 +333,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
     /**
      * Checks whether given {@code resource} and all it's dependent resource are available.
-     * Device resources with {@link cz.cesnet.shongo.controller.resource.VirtualRoomsCapability} are always available (if theirs capacity is fully used).
+     * Device resources with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability} are always available (if theirs capacity is fully used).
      *
      * @param resource
      * @param interval
@@ -371,42 +372,50 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * Find {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom}s in given {@code interval} which have at least {@code requiredPortCount}
-     * available ports and which supports given {@code technologies}.
+     * Find {@link cz.cesnet.shongo.controller.cache.AvailableRoom}s in given {@code interval} which have
+     * at least {@code requiredLicenseCount} available licenses and which supports given {@code technologies}.
      *
      * @param interval
-     * @param requiredPortCount
+     * @param requiredLicenseCount
      * @param technologies
-     * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableVirtualRoom}
+     * @return list of {@link cz.cesnet.shongo.controller.cache.AvailableRoom}
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
+    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Set<Technology> technologies, Transaction transaction)
     {
-        Set<Long> deviceResources = resourceCache.getDeviceResourcesByCapabilityTechnologies(
-                VirtualRoomsCapability.class,
+        Set<Long> deviceResourceIds = resourceCache.getDeviceResourcesByCapabilityTechnologies(
+                RoomProviderCapability.class,
                 technologies);
-        return resourceCache.findAvailableVirtualRoomsInDeviceResources(interval, requiredPortCount, deviceResources,
-                (transaction != null ? transaction.getResourceCacheTransaction() : null));
+        List<AvailableRoom> availableRooms = new ArrayList<AvailableRoom>();
+        for (Long deviceResourceId : deviceResourceIds) {
+            DeviceResource deviceResource = (DeviceResource) resourceCache.getObject(deviceResourceId);
+            AvailableRoom availableRoom = resourceCache.getAvailableRoom(deviceResource,
+                    interval, (transaction != null ? transaction.getResourceCacheTransaction() : null));
+            if (availableRoom.getAvailableLicenseCount() >= requiredLicenseCount) {
+                availableRooms.add(availableRoom);
+            }
+        }
+        return availableRooms;
     }
 
     /**
-     * @see {@link #findAvailableVirtualRooms}
+     * @see {@link #findAvailableRooms}
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
+    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Technology[] technologies, Transaction transaction)
     {
         Set<Technology> technologySet = new HashSet<Technology>();
         Collections.addAll(technologySet, technologies);
-        return findAvailableVirtualRooms(interval, requiredPortCount, technologySet, transaction);
+        return findAvailableRooms(interval, requiredLicenseCount, technologySet, transaction);
     }
 
     /**
-     * @see {@link #findAvailableVirtualRooms}
+     * @see {@link #findAvailableRooms}
      */
-    public List<AvailableVirtualRoom> findAvailableVirtualRooms(Interval interval, int requiredPortCount,
+    public List<AvailableRoom> findAvailableRooms(Interval interval, int requiredLicenseCount,
             Transaction transaction)
     {
-        return findAvailableVirtualRooms(interval, requiredPortCount, (Set<Technology>) null, transaction);
+        return findAvailableRooms(interval, requiredLicenseCount, (Set<Technology>) null, transaction);
     }
 
     /**
@@ -447,10 +456,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Technology technology,
             AliasType aliasType, Interval interval, Transaction transaction)
     {
-        if (technology != null && !aliasProviderCapability.getTechnology().equals(technology)) {
+        if (technology != null && !aliasProviderCapability.providesAliasTechnology(technology)) {
             return null;
         }
-        if (aliasType != null && !aliasProviderCapability.getType().equals(aliasType)) {
+        if (aliasType != null && !aliasProviderCapability.providesAliasType(aliasType)) {
             return null;
         }
         return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
@@ -577,15 +586,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         public Set<ResourceReservation> getProvidedResourceReservations(Resource resource)
         {
             return resourceCacheTransaction.getProvidedReservations(resource.getId());
-        }
-
-        /**
-         * @param alias for which should be {@link AliasReservation} returned
-         * @return provided {@link AliasReservation} for given {@code alias}
-         */
-        public AliasReservation getProvidedAliasReservation(Alias alias)
-        {
-            return aliasCacheTransaction.getProvidedReservationByAlias(alias);
         }
 
         /**

@@ -8,7 +8,9 @@ import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.*;
-import cz.cesnet.shongo.controller.reservation.*;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
@@ -94,6 +96,7 @@ public class CompartmentReservationTask extends ReservationTask
     private void initCompartment()
     {
         // Initialize compartment
+        compartment.setUserId(getContext().getUserId());
         compartment.setSlot(getInterval());
     }
 
@@ -144,14 +147,14 @@ public class CompartmentReservationTask extends ReservationTask
     }
 
     /**
-     * @param reservation child {@link VirtualRoomReservation} to be added to the {@link CompartmentReservationTask}
-     * @return allocated {@link VirtualRoom}
+     * @param reservation child {@link cz.cesnet.shongo.controller.reservation.RoomReservation} to be added to the {@link CompartmentReservationTask}
+     * @return allocated {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}
      */
-    public VirtualRoom addChildVirtualRoomReservation(Reservation reservation)
+    public RoomEndpoint addChildRoomReservation(Reservation reservation)
     {
         addChildReservation(reservation);
-        VirtualRoomReservation virtualRoomReservation = reservation.getTargetReservation(VirtualRoomReservation.class);
-        return virtualRoomReservation.getEndpoint();
+        RoomReservation roomReservation = reservation.getTargetReservation(RoomReservation.class);
+        return roomReservation.getEndpoint();
     }
 
     /**
@@ -159,9 +162,10 @@ public class CompartmentReservationTask extends ReservationTask
      */
     private void addEndpoint(Endpoint endpoint)
     {
+        endpoint.setUserId(getContext().getUserId());
         compartment.addChildExecutable(endpoint);
 
-        if (!(endpoint instanceof VirtualRoom)) {
+        if (!(endpoint instanceof RoomEndpoint)) {
             // Setup connectivity graph
             connectivityGraph.addVertex(endpoint);
             for (Endpoint existingEndpoint : connectivityGraph.vertexSet()) {
@@ -192,7 +196,7 @@ public class CompartmentReservationTask extends ReservationTask
         switch (callInitiation) {
             case VIRTUAL_ROOM:
                 // If the call should be initiated by a virtual room and it is the second endpoint, exchange them
-                if (!(endpointFrom instanceof VirtualRoom) && endpointTo instanceof VirtualRoom) {
+                if (!(endpointFrom instanceof RoomEndpoint) && endpointTo instanceof RoomEndpoint) {
                     Endpoint endpointTmp = endpointFrom;
                     endpointFrom = endpointTo;
                     endpointTo = endpointTmp;
@@ -200,7 +204,7 @@ public class CompartmentReservationTask extends ReservationTask
                 break;
             case TERMINAL:
                 // If the call should be initiated by a terminal and it is the second endpoint, exchange them
-                if (endpointFrom instanceof VirtualRoom && !(endpointTo instanceof VirtualRoom)) {
+                if (endpointFrom instanceof RoomEndpoint && !(endpointTo instanceof RoomEndpoint)) {
                     Endpoint endpointTmp = endpointFrom;
                     endpointFrom = endpointTo;
                     endpointTo = endpointTmp;
@@ -296,7 +300,8 @@ public class CompartmentReservationTask extends ReservationTask
             connection = connectionByAlias;
         }
         // Create connection by address
-        else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null) {
+        else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null
+                && !(endpointTo instanceof RoomEndpoint)) {
             ConnectionByAddress connectionByAddress = new ConnectionByAddress();
             connectionByAddress.setAddress(endpointTo.getAddress());
             connectionByAddress.setTechnology(technology);
@@ -310,19 +315,32 @@ public class CompartmentReservationTask extends ReservationTask
                     ResourceEndpoint resourceEndpoint = (ResourceEndpoint) endpointTo;
                     resource = resourceEndpoint.getDeviceResource();
                 }
-                else if (endpointTo instanceof ResourceVirtualRoom) {
-                    ResourceVirtualRoom resourceVirtualRoom = (ResourceVirtualRoom) endpointTo;
-                    resource = resourceVirtualRoom.getDeviceResource();
+                else if (endpointTo instanceof ResourceRoomEndpoint) {
+                    ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) endpointTo;
+                    resource = resourceRoomEndpoint.getDeviceResource();
                 }
                 AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
                 AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
 
-                // Assign alias to endpoint
-                endpointTo.addAssignedAlias(aliasReservation.getAlias().clone());
+                // Assign all usable aliases to endpoint, and find the one which will be used for the connection
+                alias = null;
+                Set<Technology> endpointToTechnologies = endpointTo.getTechnologies();
+                for (Alias possibleAlias : aliasReservation.getAliases()) {
+                    if (endpointToTechnologies.contains(possibleAlias.getTechnology())) {
+                        endpointTo.addAssignedAlias(possibleAlias);
+                        if (possibleAlias.getTechnology().equals(technology)) {
+                            alias = possibleAlias;
+                        }
+                    }
+                }
+                if (alias == null) {
+                    throw new IllegalStateException(
+                            "Alias reservation doesn't contain alias for requested technology (should never happen).");
+                }
 
                 // Create connection by the created alias
                 ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-                connectionByAlias.setAlias(aliasReservation.getAlias().clone());
+                connectionByAlias.setAlias(alias.clone());
                 connection = connectionByAlias;
             }
             catch (ReportException exception) {
@@ -336,6 +354,7 @@ public class CompartmentReservationTask extends ReservationTask
             throw new CannotCreateConnectionFromToReport(endpointFrom, endpointTo).exception();
         }
 
+        connection.setUserId(getContext().getUserId());
         connection.setEndpointFrom(endpointFrom);
         connection.setEndpointTo(endpointTo);
         compartment.addChildExecutable(connection);
@@ -361,7 +380,7 @@ public class CompartmentReservationTask extends ReservationTask
             else if (callInitiation != callInitiationTo) {
                 // Rewrite call initiation only when the second endpoint isn't virtual room and it want to be called
                 // from the virtual room
-                if (!(endpointTo instanceof VirtualRoom) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
+                if (!(endpointTo instanceof RoomEndpoint) && callInitiationTo == CallInitiation.VIRTUAL_ROOM) {
                     callInitiation = callInitiationTo;
                 }
             }
@@ -378,7 +397,7 @@ public class CompartmentReservationTask extends ReservationTask
      *
      * @return true if succeeds, otherwise false
      */
-    private boolean createNoVirtualRoomReservation() throws ReportException
+    private boolean createNoRoomReservation() throws ReportException
     {
         List<Endpoint> endpoints = compartment.getEndpoints();
         // Maximal two endpoints may be connected without virtual room
@@ -431,7 +450,7 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * @return collection of technology sets which interconnects all endpoints
      */
-    private Collection<Set<Technology>> getSingleVirtualRoomPlanTechnologySets()
+    private Collection<Set<Technology>> getSingleRoomTechnologySets()
     {
         List<Set<Technology>> technologiesList = new ArrayList<Set<Technology>>();
         for (Endpoint endpoint : compartment.getEndpoints()) {
@@ -443,17 +462,20 @@ public class CompartmentReservationTask extends ReservationTask
     /**
      * Find plan for connecting endpoints by a single virtual room
      *
-     * @throws ReportException when the {@link VirtualRoomReservation} cannot be created
+     * @throws ReportException when the {@link cz.cesnet.shongo.controller.reservation.RoomReservation} cannot be created
      */
-    private void createSingleVirtualRoomReservation() throws ReportException
+    private void createSingleRoomReservation() throws ReportException
     {
-        VirtualRoomReservationTask virtualRoomReservationTask = new VirtualRoomReservationTask(getContext(),
-                getSingleVirtualRoomPlanTechnologySets(), compartment.getTotalEndpointCount());
-        Reservation reservation = virtualRoomReservationTask.perform();
-        VirtualRoom virtualRoom = addChildVirtualRoomReservation(reservation);
-        addReport(new AllocatingVirtualRoomReport(virtualRoom));
+        RoomReservationTask roomReservationTask = new RoomReservationTask(getContext(),
+                compartment.getTotalEndpointCount());
+        for (Set<Technology> technologies : getSingleRoomTechnologySets()) {
+            roomReservationTask.addTechnologyVariant(technologies);
+        }
+        Reservation reservation = roomReservationTask.perform();
+        RoomEndpoint roomEndpoint = addChildRoomReservation(reservation);
+        addReport(new AllocatingRoomReport(roomEndpoint));
         for (Endpoint endpoint : compartment.getEndpoints()) {
-            addConnection(virtualRoom, endpoint);
+            addConnection(roomEndpoint, endpoint);
         }
     }
 
@@ -517,7 +539,7 @@ public class CompartmentReservationTask extends ReservationTask
             // Check whether an existing resource is requested
             boolean resourceRequested = false;
             for (Endpoint endpoint : compartment.getEndpoints()) {
-                if (endpoint instanceof ResourceEndpoint || endpoint instanceof ResourceVirtualRoom) {
+                if (endpoint instanceof ResourceEndpoint || endpoint instanceof ResourceRoomEndpoint) {
                     resourceRequested = true;
                 }
             }
@@ -528,9 +550,9 @@ public class CompartmentReservationTask extends ReservationTask
 
         beginReport(new AllocatingCompartmentReport(compartment));
 
-        if (!createNoVirtualRoomReservation()) {
+        if (!createNoRoomReservation()) {
             try {
-                createSingleVirtualRoomReservation();
+                createSingleRoomReservation();
             }
             catch (ReportException exception) {
                 // TODO: Resolve multiple virtual rooms and/or gateways for connecting endpoints

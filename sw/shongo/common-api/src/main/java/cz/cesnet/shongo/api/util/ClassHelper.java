@@ -156,6 +156,7 @@ public class ClassHelper
      * @param size size of {@link Collection}
      * @return new instance of {@link Collection} of given size
      * @throws cz.cesnet.shongo.fault.FaultException
+     *
      */
     public static Collection<Object> createCollection(Class type, int size) throws FaultException
     {

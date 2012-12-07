@@ -3,13 +3,17 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Manager for {@link Resource}.
@@ -66,11 +70,15 @@ public class ResourceManager extends AbstractManager
     /**
      * @return list of all resources in the database
      */
-    public List<Resource> list()
+    public List<Resource> list(Long userId)
     {
-        List<Resource> resourceList = entityManager
-                .createQuery("SELECT resource FROM Resource resource", Resource.class)
-                .getResultList();
+        DatabaseFilter filter = new DatabaseFilter("resource");
+        filter.addUserId(userId);
+        TypedQuery<Resource> query = entityManager.createQuery("SELECT resource FROM Resource resource"
+                + " WHERE " + filter.toQueryWhere(),
+                Resource.class);
+        filter.fillQueryParameters(query);
+        List<Resource> resourceList = query.getResultList();
         return resourceList;
     }
 

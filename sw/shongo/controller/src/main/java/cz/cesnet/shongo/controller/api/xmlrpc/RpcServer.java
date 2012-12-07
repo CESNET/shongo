@@ -1,13 +1,14 @@
 package cz.cesnet.shongo.controller.api.xmlrpc;
 
 import cz.cesnet.shongo.api.util.Options;
-import cz.cesnet.shongo.api.xmlrpc.Service;
+import cz.cesnet.shongo.api.xmlrpc.*;
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.SerializableException;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
 import org.apache.xmlrpc.common.*;
+import org.apache.xmlrpc.common.TypeConverterFactory;
 import org.apache.xmlrpc.metadata.Util;
 import org.apache.xmlrpc.server.*;
 import org.apache.xmlrpc.webserver.Connection;
@@ -23,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.SocketException;
@@ -286,8 +288,19 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                     method = pMethod;
                     Class[] paramClasses = method.getParameterTypes();
                     typeConverters = new TypeConverter[paramClasses.length];
-                    for (int i = 0; i < paramClasses.length; i++) {
-                        typeConverters[i] = pTypeConverterFactory.getTypeConverter(paramClasses[i]);
+                    if ( pTypeConverterFactory instanceof cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) {
+                        cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory typeConverterFactory =
+                                (cz.cesnet.shongo.api.xmlrpc.TypeConverterFactory) pTypeConverterFactory;
+                        Type[] genericParamTypes = method.getGenericParameterTypes();
+                        for (int i = 0; i < paramClasses.length; i++) {
+                            typeConverters[i] = typeConverterFactory.getTypeConverter(paramClasses[i],
+                                    genericParamTypes[i]);
+                        }
+                    }
+                    else {
+                        for (int i = 0; i < paramClasses.length; i++) {
+                            typeConverters[i] = pTypeConverterFactory.getTypeConverter(paramClasses[i]);
+                        }
                     }
                 }
             }

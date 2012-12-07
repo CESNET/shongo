@@ -23,6 +23,11 @@ public class AliasSpecification extends Specification
     public static final String ALIAS_TYPE = "aliasType";
 
     /**
+     * Alias value.
+     */
+    public static final String VALUE = "value";
+
+    /**
      * {@link Resource} with {@link AliasProviderCapability}.
      */
     public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
@@ -47,19 +52,16 @@ public class AliasSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param technology sets the {@link #TECHNOLOGY}
      * @param aliasType  sets the {@link #ALIAS_TYPE}
      */
-    public AliasSpecification(Technology technology, AliasType aliasType)
+    public AliasSpecification(AliasType aliasType)
     {
-        setTechnology(technology);
         setAliasType(aliasType);
     }
 
     /**
      * @return {@link #TECHNOLOGY}
      */
-    @Required
     public Technology getTechnology()
     {
         return getPropertyStorage().getValue(TECHNOLOGY);

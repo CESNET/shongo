@@ -1,0 +1,25 @@
+Shongo Controller Web Client
+
+USAGE
+
+TODO:
+
+REQUIREMENTS
+
+This client requires Perl installed to run and following Perl modules:
+1) Template
+2) CGI::Session
+3) Data::FormValidator
+4) XML::Simple
+5) Hash::Merge::Simple
+6) Log::Log4perl
+7) File::HomeDir
+8) JSON
+9) Devel::StackTrace
+
+On Ubuntu/Debian system, Perl is installed by default and the modules
+can be installed by the following command:
+
+    sudo apt-get install libtemplate-perl libcgi-session-perl  libdata-formvalidator-perl \
+            libxml-simple-perl libhash-merge-simple-perl liblog-log4perl-perl \
+            libfile-homedir-perl libjson-perl libdevel-stacktrace-perl
