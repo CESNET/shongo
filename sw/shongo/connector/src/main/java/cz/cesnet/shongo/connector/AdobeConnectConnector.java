@@ -179,7 +179,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public Collection<RoomSummary> getRoomList() throws CommandException, CommandUnsupportedException
+    public Collection<RoomSummary> getRoomList() throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("filter-type", "meeting");
@@ -258,7 +258,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void deleteRecording(int recordingId) throws CommandException, CommandUnsupportedException
+    public void deleteRecording(int recordingId) throws CommandException
     {
         deleteSCO(Integer.toString(recordingId));
         //To change body of implemented methods use File | Settings | File Templates.
@@ -286,7 +286,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void removeRoomContentFile(String roomId, String name) throws CommandException, CommandUnsupportedException
+    public void removeRoomContentFile(String roomId, String name) throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("sco-id", roomId);
@@ -307,7 +307,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public Room getRoom(String roomId) throws CommandException, CommandUnsupportedException
+    public Room getRoom(String roomId) throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("sco-id", roomId);
@@ -329,7 +329,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public String createRoom(Room room) throws CommandException, CommandUnsupportedException
+    public String createRoom(Room room) throws CommandException
     {
         HashMap<String,String> attributes = new HashMap<String, String>();
         attributes.put("folder-id",
@@ -367,13 +367,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void deleteRoom(String roomId) throws CommandException, CommandUnsupportedException
+    public void deleteRoom(String roomId) throws CommandException
     {
         deleteSCO(roomId);
     }
 
     @java.lang.Override
-    public String exportRoomSettings(String roomId) throws CommandException, CommandUnsupportedException
+    public String exportRoomSettings(String roomId) throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("sco-id", roomId);
@@ -388,7 +388,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void importRoomSettings(String roomId, String settings) throws CommandException, CommandUnsupportedException
+    public void importRoomSettings(String roomId, String settings) throws CommandException
     {
         SAXBuilder saxBuilder = new SAXBuilder();
         Document document = null;
