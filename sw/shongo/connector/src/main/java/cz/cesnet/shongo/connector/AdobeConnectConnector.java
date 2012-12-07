@@ -321,6 +321,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         room.setOption(Room.Option.DESCRIPTION,response.getChild("sco").getChildText("description"));
 
+        room.setAliases(new ArrayList<Alias>()
+        {{
+                String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + "/" + response.getChild("sco").getChildText("url-path");
+                add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
+            }});
+
+
         // TODO: URL, technology
         // TODO: roomInfo.setOwner();
         // TODO: roomInfo.setCreation();
