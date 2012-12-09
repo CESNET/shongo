@@ -1,15 +1,10 @@
 package cz.cesnet.shongo.connector;
 
-import com.jcraft.jsch.ChannelShell;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.DeviceLoadInfo;
 import cz.cesnet.shongo.api.util.Address;
-import cz.cesnet.shongo.connector.api.ConnectorInfo;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
 import cz.cesnet.shongo.connector.api.DeviceInfo;
 import cz.cesnet.shongo.connector.api.EndpointService;
@@ -26,7 +21,10 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,11 +35,16 @@ import java.util.Map;
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class CodecC90Connector extends AbstractConnector implements EndpointService
+public class CodecC90Connector extends AbstractSSHConnector implements EndpointService
 {
     private static Logger logger = LoggerFactory.getLogger(CodecC90Connector.class);
 
     public static final int MICROPHONES_COUNT = 8;
+
+    public CodecC90Connector()
+    {
+        super("^(OK|ERROR|</XmlDoc>)$");
+    }
 
     /**
      * An example of interaction with the device.
@@ -119,80 +122,8 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
         conn.disconnect();
     }
 
-    /**
-     * The default port number to connect to.
-     */
-    public static final int DEFAULT_PORT = 22;
-
-    /**
-     * Shell channel open to the device.
-     */
-    private ChannelShell channel;
-
-    /**
-     * A writer for commands to be passed though the SSH channel to the device. Should be flushed explicitly.
-     */
-    private OutputStreamWriter commandStreamWriter;
-
-    /**
-     * A stream for reading results of commands.
-     * Should be handled carefully (especially, it should not be buffered), because reading may cause a deadlock when
-     * trying to read more than expected.
-     */
-    private InputStream commandResultStream;
-
-    private static DocumentBuilder resultBuilder = null;
-
-    /**
-     * Connects the connector to the managed device.
-     *
-     * @param address  device address to connect to
-     * @param username username to use for authentication on the device
-     * @param password password to use for authentication on the device
-     */
-    public void connect(Address address, String username, final String password)
-            throws CommandException
-    {
-        if (address.getPort() == Address.DEFAULT_PORT) {
-            address.setPort(DEFAULT_PORT);
-        }
-
-        try {
-            JSch jsch = new JSch();
-            Session session = jsch.getSession(username, address.getHost(), address.getPort());
-            session.setPassword(password);
-            // disable key checking - otherwise, the host key must be present in ~/.ssh/known_hosts
-            session.setConfig("StrictHostKeyChecking", "no");
-            session.connect();
-            channel = (ChannelShell) session.openChannel("shell");
-            commandStreamWriter = new OutputStreamWriter(channel.getOutputStream());
-            commandResultStream = channel.getInputStream();
-            channel.connect(); // runs a separate thread for handling the streams
-
-            info.setConnectionState(ConnectorInfo.ConnectionState.CONNECTED);
-            info.setDeviceAddress(address);
-
-            initSession();
-            initDeviceInfo();
-        }
-        catch (JSchException e) {
-            throw new CommandException("Error in communication with the device", e);
-        }
-        catch (IOException e) {
-            throw new CommandException("Error connecting to the device", e);
-        }
-        catch (SAXException e) {
-            throw new CommandException("Command gave unexpected output", e);
-        }
-        catch (XPathExpressionException e) {
-            throw new CommandException("Error querying command output XML tree", e);
-        }
-        catch (ParserConfigurationException e) {
-            throw new CommandException("Error initializing result parser", e);
-        }
-    }
-
-    private void initSession() throws IOException
+    @Override
+    protected void initSession() throws IOException
     {
         // read the welcome message
         readOutput();
@@ -204,55 +135,40 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
         sendCommand(new Command("xpreferences outputmode xml"));
     }
 
-    private void initDeviceInfo()
-            throws IOException, SAXException, XPathExpressionException, ParserConfigurationException
+    protected DeviceInfo getDeviceInfo() throws IOException, CommandException
     {
-        Document result = exec(new Command("xstatus SystemUnit"));
-        DeviceInfo di = new DeviceInfo();
+        try {
+            Document result = exec(new Command("xstatus SystemUnit"));
+            DeviceInfo di = new DeviceInfo();
 
-        di.setName(getResultString(result, "/XmlDoc/Status/SystemUnit/ProductId"));
-        di.setDescription(getResultString(result, "/XmlDoc/Status/SystemUnit/ContactInfo"));
+            di.setName(getResultString(result, "/XmlDoc/Status/SystemUnit/ProductId"));
+            di.setDescription(getResultString(result, "/XmlDoc/Status/SystemUnit/ContactInfo"));
 
-        String version = getResultString(result, "/XmlDoc/Status/SystemUnit/Software/Version")
-                + " (released "
-                + getResultString(result, "/XmlDoc/Status/SystemUnit/Software/ReleaseDate")
-                + ")";
-        di.setSoftwareVersion(version);
+            String version = getResultString(result, "/XmlDoc/Status/SystemUnit/Software/Version")
+                    + " (released "
+                    + getResultString(result, "/XmlDoc/Status/SystemUnit/Software/ReleaseDate")
+                    + ")";
+            di.setSoftwareVersion(version);
 
-        String sn = "Module: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/Module/SerialNumber")
-                + ", MainBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/MainBoard/SerialNumber")
-                + ", VideoBoard: " + getResultString(result,
-                "/XmlDoc/Status/SystemUnit/Hardware/VideoBoard/SerialNumber")
-                + ", AudioBoard: " + getResultString(result,
-                "/XmlDoc/Status/SystemUnit/Hardware/AudioBoard/SerialNumber");
-        di.setSerialNumber(sn);
+            String sn = "Module: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/Module/SerialNumber")
+                    + ", MainBoard: " + getResultString(result, "/XmlDoc/Status/SystemUnit/Hardware/MainBoard/SerialNumber")
+                    + ", VideoBoard: " + getResultString(result,
+                    "/XmlDoc/Status/SystemUnit/Hardware/VideoBoard/SerialNumber")
+                    + ", AudioBoard: " + getResultString(result,
+                    "/XmlDoc/Status/SystemUnit/Hardware/AudioBoard/SerialNumber");
+            di.setSerialNumber(sn);
 
-        info.setDeviceInfo(di);
-    }
-
-    /**
-     * Disconnects the connector from the managed device.
-     */
-    public void disconnect() throws CommandException
-    {
-        Session session = null;
-        if (channel != null) {
-            try {
-                session = channel.getSession();
-            }
-            catch (JSchException e) {
-                throw new CommandException("Error disconnecting from the device", e);
-            }
-            channel.disconnect();
+            return di;
         }
-
-        if (session != null) {
-            session.disconnect();
+        catch (SAXException e) {
+            throw new CommandException("Command gave unexpected output", e);
         }
-        commandStreamWriter = null; // just for sure the streams will not be used
-        commandResultStream = null;
-
-        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+        catch (ParserConfigurationException e) {
+            throw new CommandException("Error initializing result parser", e);
+        }
+        catch (XPathExpressionException e) {
+            throw new CommandException("Error querying command output XML tree", e);
+        }
     }
 
     /**
@@ -270,9 +186,9 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
         try {
             Document result = exec(command);
             if (isError(result)) {
-                logger.info(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(),
-                        getErrorMessage(result)));
-                throw new CommandException(getErrorMessage(result));
+                String errMsg = getErrorMessage(result);
+                logger.info(String.format("Command %s failed on %s: %s", command, info.getDeviceAddress(), errMsg));
+                throw new CommandException(errMsg);
             }
             else {
                 logger.info(String.format("Command %s succeeded on %s", command, info.getDeviceAddress()));
@@ -280,19 +196,25 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
             }
         }
         catch (IOException e) {
-            throw new RuntimeException("Command issuing error", e);
+            logger.error("Error issuing a command", e);
+            throw new CommandException("Command issuing error", e);
         }
         catch (SAXException e) {
-            throw new RuntimeException("Command result parsing error", e);
+            logger.error("Error issuing a command", e);
+            throw new CommandException("Command result parsing error", e);
         }
         catch (XPathExpressionException e) {
-            throw new RuntimeException("Command result handling error", e);
+            logger.error("Error issuing a command", e);
+            throw new CommandException("Command result handling error", e);
         }
         catch (ParserConfigurationException e) {
-            throw new RuntimeException("Error initializing result parser", e);
+            logger.error("Error issuing a command", e);
+            throw new CommandException("Error initializing result parser", e);
         }
     }
 
+
+    private static DocumentBuilder resultBuilder = null;
 
     /**
      * Sends a command to the device. Blocks until response to the command is complete.
@@ -316,62 +238,6 @@ public class CodecC90Connector extends AbstractConnector implements EndpointServ
 
         return resultBuilder.parse(is);
     }
-
-    private void sendCommand(Command command) throws IOException
-    {
-        if (info.getConnectionState() == ConnectorInfo.ConnectionState.DISCONNECTED) {
-            throw new IllegalStateException("The connector is disconnected");
-        }
-
-        commandStreamWriter.write(command.toString() + '\n');
-        commandStreamWriter.flush();
-    }
-
-    /**
-     * Reads the output of the least recent unhandled command. Blocks until the output is complete.
-     *
-     * @return output of the least recent unhandled command
-     * @throws IOException when the reading fails or end of the reading stream is met (which is not expected)
-     */
-    private String readOutput() throws IOException
-    {
-        if (commandResultStream == null) {
-            throw new IllegalStateException("The connector is disconnected");
-        }
-
-        /**
-         * Strings marking end of a command output.
-         * Each must begin and end with "\r\n".
-         */
-        String[] endMarkers = new String[]{
-                "\r\nOK\r\n",
-                "\r\nERROR\r\n",
-                "\r\n</XmlDoc>\r\n",
-        };
-
-        StringBuilder sb = new StringBuilder();
-        int lastEndCheck = 0;
-        int c;
-reading:
-        while ((c = commandResultStream.read()) != -1) {
-            sb.append((char) c);
-            if ((char) c == '\n') {
-                // check for an output end marker
-                for (String em : endMarkers) {
-                    if (sb.indexOf(em, lastEndCheck) != -1) {
-                        break reading;
-                    }
-                }
-                // the next end marker check is needed only after this point
-                lastEndCheck = sb.length() - 2; // one for the '\r' character, one for the end offset
-            }
-        }
-        if (c == -1) {
-            throw new IOException("Unexpected end of stream (was the connection closed?)");
-        }
-        return sb.toString();
-    }
-
 
     private static XPathFactory xPathFactory = XPathFactory.newInstance();
     private static Map<String, XPathExpression> xPathExpressionCache = new HashMap<String, XPathExpression>();
@@ -440,6 +306,8 @@ reading:
 
         return "Uncategorized error";
     }
+
+    // COMMON SERVICE
 
     @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandException

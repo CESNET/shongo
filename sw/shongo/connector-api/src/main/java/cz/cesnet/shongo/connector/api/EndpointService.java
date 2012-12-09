@@ -50,7 +50,8 @@ public interface EndpointService extends CommonService
     void standBy() throws CommandException, CommandUnsupportedException;
 
     /**
-     * Resets the device.
+     * Reboots the device.
+     * TODO: rename to reboot (as "reset" means resetting the device configuration on some devices)
      */
     void resetDevice() throws CommandException, CommandUnsupportedException;
 

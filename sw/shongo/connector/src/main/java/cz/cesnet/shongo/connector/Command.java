@@ -1,8 +1,6 @@
 package cz.cesnet.shongo.connector;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Command for a device.
@@ -12,16 +10,38 @@ import java.util.Map;
 public class Command
 {
     private String command;
+
+    /**
+     * List of arguments to the command.
+     * Arguments get no name, just their value and order is important.
+     */
+    private List<Object> arguments = new LinkedList<Object>();
+
+    /**
+     * Map of parameters to the command.
+     * Parameters have a name and a value. The order of parameters is irrelevant.
+     */
     private Map<String, Object> parameters = new HashMap<String, Object>();
 
     public Command(String command)
     {
+        if (command == null) {
+            throw new NullPointerException("command");
+        }
+
         this.command = command;
     }
 
-    public void setParameter(String name, Object value)
+    public Command addArgument(Object arg)
+    {
+        arguments.add(arg);
+        return this;
+    }
+
+    public Command setParameter(String name, Object value)
     {
         parameters.put(name, value);
+        return this;
     }
 
     public Object getParameterValue(String name)
@@ -34,6 +54,11 @@ public class Command
         return command;
     }
 
+    public List<Object> getArguments()
+    {
+        return Collections.unmodifiableList(arguments);
+    }
+
     public Map<String, Object> getParameters()
     {
         return Collections.unmodifiableMap(parameters);
@@ -42,17 +67,20 @@ public class Command
     @Override
     public String toString()
     {
-        if (parameters.isEmpty()) {
-            return command; // just a tiny optimization
+        StringBuilder sb = new StringBuilder(command);
+
+        for (Object arg : arguments) {
+            sb.append(" ");
+            sb.append(arg);
         }
 
-        StringBuilder sb = new StringBuilder(command);
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
-            sb.append(' ');
+            sb.append(" ");
             sb.append(entry.getKey());
             sb.append(": ");
             sb.append(entry.getValue());
         }
+
         return sb.toString();
     }
 
@@ -68,21 +96,24 @@ public class Command
 
         Command command1 = (Command) o;
 
-        if (command != null ? !command.equals(command1.command) : command1.command != null) {
+        if (!command.equals(command1.command)) {
             return false;
         }
-        if (parameters != null ? !parameters.equals(command1.parameters) : command1.parameters != null) {
+        if (!arguments.equals(command1.arguments)) {
             return false;
         }
-
+        if (!parameters.equals(command1.parameters)) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public int hashCode()
     {
-        int result = command != null ? command.hashCode() : 0;
-        result = 31 * result + (parameters != null ? parameters.hashCode() : 0);
+        int result = command.hashCode();
+        result = 31 * result + arguments.hashCode();
+        result = 31 * result + parameters.hashCode();
         return result;
     }
 
