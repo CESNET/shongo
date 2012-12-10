@@ -1,15 +1,12 @@
-<fieldset>
-    <legend>[% title %]</legend>
-    <table>
-        [% INCLUDE common/detail_properties.html %]
-    </table>
-    [% INCLUDE common/detail_reservations.html
-       alias = 'URL'
-     %]
-</fieldset>
-<form class="action">
-    <input type="button" value="Back" onclick="javascript: window.location = '[% location %]/list';"/>
-    <input type="button" value="Refresh" onclick="javascript: window.location.reload(true);"/>
-    <input type="button" value="Delete"
-           onclick="javascript: window.location = '[% location %]/delete?id=[% request.identifier %]';"/>
-</form>
+<h1>[% title %]</h1>
+<dl class="dl-horizontal">
+    [% INCLUDE common/detail_properties.html %]
+</dl>
+[% INCLUDE common/detail_reservations.html
+   alias = 'URL'
+%]
+<div class="pull-right">
+    <a class="btn btn-primary" href="[% location %]/list">Back</a>
+    <a class="btn" href="">Refresh</a>
+    <a class="btn" href="[% location %]/delete?id=[% request.identifier %]">Delete</a>
+</div>

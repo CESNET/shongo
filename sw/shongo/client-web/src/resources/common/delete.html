@@ -1,9 +1,6 @@
-<fieldset>
-    <legend>[% title %]</legend>
-    <p>Do you really want to delete reservation request '[% id %]'?</p>
-    <form class="action">
-        <input type="button" value="Yes"
-               onclick="javascript: window.location = '[% location %]/delete?id=[% id %]&confirmed';"/>
-        <input type="button" value="No" onclick="javascript: window.location = '[% location %]/list';"/>
-    </form>
-</fieldset>
+<h1>[% title %]</h1>
+<p>Do you really want to delete reservation request <strong>[% id %]</strong>?</p>
+<div>
+    <a class="btn btn-primary" href="[% location %]/delete?id=[% id %]&confirmed">Yes</a>
+    <a class="btn" href="[% location %]/list">No</a>
+</div>

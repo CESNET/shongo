@@ -285,12 +285,12 @@ sub get_reservation_request
                 }
                 if ( $alias->{'type'} eq 'H323_E164' ) {
                     $aliases .= $alias->{'value'};
-                    $aliases_description .= '<tr><td class="label">H.323 GDS number:</td><td>(00420)' . $alias->{'value'} . '</td>';
-                    $aliases_description .= '<tr><td class="label">PSTN/phone:</td><td>+420' . $alias->{'value'} . '</td>';
+                    $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
+                    $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
                 }
                 elsif ( $alias->{'type'} eq 'SIP_URI' ) {
                     $aliases .= 'sip:' . $alias->{'value'};
-                    $aliases_description .= '<tr><td class="label">SIP:</td><td>sip:' . $alias->{'value'} . '</td>';
+                    $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
                 }
                 elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
                     my $url = $alias->{'value'};
@@ -298,7 +298,7 @@ sub get_reservation_request
                         $aliases .= "<a href=\"$url\">$url</a>";
                     }
                     else {
-                        $aliases .= "$url";
+                        $aliases .= "$url <span class='muted'>(not available now)</span>";
                     }
                 }
                 elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
@@ -312,7 +312,7 @@ sub get_reservation_request
                 $aliases_description = undef;
             }
             else {
-                $aliases_description = '<table>' . $aliases_description . '</table>';
+                $aliases_description = '<div class="popup"><dl class="dl-horizontal">' . $aliases_description . '</dl></div>';
             }
             $child_request->{'aliases'} = $aliases;
             $child_request->{'aliasesDescription'} = $aliases_description;
