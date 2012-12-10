@@ -76,10 +76,10 @@ sub list_reservation_requests
         'technology' => $technologies
     });
     foreach my $request (@{$requests}) {
-        my $state_class = lc($request->{'state'});
-        $state_class =~ s/_/-/g;
+        my $state_code = lc($request->{'state'});
+        $state_code =~ s/_/-/g;
         $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
-        $request->{'stateClass'} = $state_class;
+        $request->{'stateCode'} = $state_code;
         $request->{'state'} = $ReservationRequestState->{$request->{'state'}};
         if ( $request->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
             $request->{'start'} = format_datetime($1);
@@ -167,7 +167,10 @@ sub parse_reservation_request
     return $request;
 }
 
-
+#
+# @param $id
+# @return detail of reservation request with given $id
+#
 sub get_reservation_request
 {
     my ($self, $id) = @_;
@@ -206,7 +209,7 @@ sub get_reservation_request
                 $request->{'periodicity'} = 'weekly';
             }
             else {
-                $self->error("Unknown reservation request periodicity '$slot->{'start'}->{'period'}'.");
+                #$self->error("Unknown reservation request periodicity '$slot->{'start'}->{'period'}'.");
             }
             if ( defined($request->{'periodicity'}) ) {
                 $request->{'periodicityEnd'} = format_datetime_partial($slot->{'start'}->{'end'});
@@ -260,6 +263,12 @@ sub get_reservation_request
            $child_request->{'stateReport'} = undef;
         }
 
+        # State
+        my $state_code = lc($child_request->{'state'});
+        $state_code =~ s/_/-/g;
+        $child_request->{'stateCode'} = $state_code;
+        $child_request->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$child_request->{'state'}};
+
         # Allocated reservation
         if ( defined($child_request->{'reservationIdentifier'}) ) {
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation',
@@ -285,7 +294,12 @@ sub get_reservation_request
                 }
                 elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
                     my $url = $alias->{'value'};
-                    $aliases .= "<a href=\"$url\">$url</a>";
+                    if ( $state_code eq 'started' ) {
+                        $aliases .= "<a href=\"$url\">$url</a>";
+                    }
+                    else {
+                        $aliases .= "$url";
+                    }
                 }
                 elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
                     # skip
@@ -304,17 +318,9 @@ sub get_reservation_request
             $child_request->{'aliasesDescription'} = $aliases_description;
         }
 
-        # State
-        my $state_class = lc($child_request->{'state'});
-        $state_class =~ s/_/-/g;
-        $child_request->{'stateClass'} = $state_class;
-        $child_request->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$child_request->{'state'}};
-
         push(@{$request->{'reservations'}}, $child_request);
     }
     return $request;
 }
-
-
 
 1;

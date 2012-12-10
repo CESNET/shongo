@@ -1,3 +1,5 @@
+* Test periodic summary states
+
 * Shongo cesnet report
 
 * Styling CSS http://twitter.github.com/bootstrap/

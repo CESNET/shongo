@@ -106,6 +106,15 @@ public class AgentActionResponderBehaviour extends SimpleAchieveREResponder
                 ContentElement response = new Result(act, new CommandError(message));
                 fillMessage(reply, ACLMessage.FAILURE, response);
             }
+            catch (RuntimeException e) {
+                logger.error("Failure executing a command requested by " + request.getSender().getName(), e);
+                String message = e.getMessage();
+                if (e.getCause() != null) {
+                    message += " (" + e.getCause().getMessage() + ")";
+                }
+                ContentElement response = new Result(act, new CommandError(message));
+                fillMessage(reply, ACLMessage.FAILURE, response);
+            }
             catch (CommandUnsupportedException e) {
                 logger.error("Unsupported command requested by " + request.getSender().getName(), e);
                 ContentElement response = new Result(act, new CommandNotSupported(e.getMessage()));

@@ -181,7 +181,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
     {
         this.roomSettings.clear();
         for ( RoomSetting roomConfiguration : roomSettings) {
-            this.roomSettings.add(roomConfiguration);
+            this.roomSettings.add(roomConfiguration.clone());
         }
     }
 

@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -291,14 +292,17 @@ public class ReservationServiceImpl extends Component
                 cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
                         (cz.cesnet.shongo.controller.request.ReservationRequestSet) abstractReservationRequest;
                 for (DateTimeSlotSpecification slot : reservationRequestSet.getSlots()) {
-                    Interval interval = slot.getEarliest(null);
+                    Interval interval = slot.getEarliest(DateTime.now());
                     if (earliestSlot == null || interval.getStart().isBefore(earliestSlot.getStart())) {
                         earliestSlot = interval;
                     }
                 }
-                summary.setState(ReservationRequestSummary.State.NOT_ALLOCATED);
-                for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : reservationRequestSet
-                        .getReservationRequests()) {
+                List<cz.cesnet.shongo.controller.request.ReservationRequest> requests =
+                        reservationRequestSet.getReservationRequests();
+                if (earliestSlot == null && requests.size() > 0) {
+                    earliestSlot = requests.get(requests.size() - 1).getSlot();
+                }
+                for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : requests) {
                     if (reservationRequest.getSlot().equals(earliestSlot)) {
                         summary.setState(getSummaryState(reservationRequest.getStateAsApi()));
                     }

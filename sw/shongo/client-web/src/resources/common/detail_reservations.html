@@ -27,12 +27,12 @@
             <a href="javascript: window.showNode('state-report[% loop.index %]');"
                onmouseover="javascript: window.showNode('state-report[% loop.index %]', true);"
                onmouseout="javascript: window.showNode('state-report[% loop.index %]', false);"
-               class="state-[% reservation.stateClass %]">[% reservation.state %]</a>
+               class="state-[% reservation.stateCode %]">[% reservation.state %]</a>
             <div id='state-report[% loop.index %]' class="state-report">
                 <pre>[% reservation.stateReport -%]</pre>
             </div>
             [%- ELSE %]
-            <span class="state-[% reservation.stateClass %]">[% reservation.state %]</span>
+            <span class="state-[% reservation.stateCode %]">[% reservation.state %]</span>
             [%- END %]
         </td>
         <td>

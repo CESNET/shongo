@@ -261,7 +261,7 @@ public class DateTimeSlotSpecification extends PersistentObject
     @Transient
     public Interval getEarliest(DateTime referenceDateTime)
     {
-        DateTime dateTime = this.start.getEarliest(referenceDateTime);
+        DateTime dateTime = this.start.getEarliest(referenceDateTime.minus(getDuration()));
         if (dateTime == null) {
             return null;
         }

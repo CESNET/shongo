@@ -9,7 +9,9 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * SSL {@link TrustManager} for trusting hosts.
@@ -22,38 +24,42 @@ public class HostTrustManager implements X509TrustManager
     private static final String CLASSIC_JAVA_CA_CERT_FILE_NAME = "jssecacerts";
     private static final int DEFAULT_HTTPS_PORT = 443;
 
-    private static List<String> hostsToTrust = new ArrayList<String>();
+    private static Set<String> hostsToTrust = new HashSet<String>();
     private char[] defaultCAKeystorePassphrase = "changeit".toCharArray();
     private KeyStore certificateTrustStore;
     private X509TrustManager defaultTrustManager;
 
     public static void initSsl()
     {
-        try {
-            SSLContext context = SSLContext.getInstance("TLS");
-            context.init(null, new TrustManager[]{new HostTrustManager()}, new SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
-            HostnameVerifier hv = new HostnameVerifier()
-            {
-                public boolean verify(String arg0, SSLSession arg1)
+        synchronized (hostsToTrust) {
+            try {
+                SSLContext context = SSLContext.getInstance("TLS");
+                context.init(null, new TrustManager[]{new HostTrustManager()}, new SecureRandom());
+                HttpsURLConnection.setDefaultSSLSocketFactory(context.getSocketFactory());
+                HostnameVerifier hv = new HostnameVerifier()
                 {
-                    // Host names should be equal
-                    return arg1.getPeerHost().equals(arg0);
-                    // We don't want to always return true
-                    // return true;
-                }
-            };
-            HttpsURLConnection.setDefaultHostnameVerifier(hv);
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
+                    public boolean verify(String arg0, SSLSession arg1)
+                    {
+                        // Host names should be equal
+                        return arg1.getPeerHost().equals(arg0);
+                        // We don't want to always return true
+                        // return true;
+                    }
+                };
+                HttpsURLConnection.setDefaultHostnameVerifier(hv);
+            }
+            catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     public static void addTrustedHost(String host)
     {
-        hostsToTrust.add(host);
-        HostTrustManager.initSsl();
+        synchronized (hostsToTrust) {
+            hostsToTrust.add(host);
+            HostTrustManager.initSsl();
+        }
     }
 
     public HostTrustManager()
