@@ -146,6 +146,9 @@ public class Authorization
             }
             throw new Exception(error);
         }
+        if (content != null && content.containsKey("given_name") && content.containsKey("family_name")) {
+            content.put("name", (String) content.get("given_name") + " " + content.get("family_name"));
+        }
         return content;
     }
 }
