@@ -228,31 +228,6 @@ public class ReservationServiceImpl extends Component
         }
     }
 
-    /**
-     * @param state to be converted
-     * @return {@link ReservationRequest.State} converted to {@link ReservationRequestSummary.State}
-     */
-    public ReservationRequestSummary.State getSummaryState(ReservationRequest.State state)
-    {
-        switch (state) {
-            case NOT_COMPLETE:
-            case COMPLETE:
-                return ReservationRequestSummary.State.NOT_ALLOCATED;
-            case ALLOCATED:
-                return ReservationRequestSummary.State.ALLOCATED;
-            case STARTED:
-                return ReservationRequestSummary.State.STARTED;
-            case STARTING_FAILED:
-                return ReservationRequestSummary.State.STARTING_FAILED;
-            case FINISHED:
-                return ReservationRequestSummary.State.FINISHED;
-            case ALLOCATION_FAILED:
-                return ReservationRequestSummary.State.ALLOCATION_FAILED;
-            default:
-                throw new IllegalStateException(state.toString());
-        }
-    }
-
     @Override
     public Collection<ReservationRequestSummary> listReservationRequests(SecurityToken token,
             Map<String, Object> filter) throws FaultException
@@ -286,7 +261,7 @@ public class ReservationServiceImpl extends Component
                 cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest =
                         (cz.cesnet.shongo.controller.request.ReservationRequest) abstractReservationRequest;
                 earliestSlot = reservationRequest.getSlot();
-                summary.setState(getSummaryState(reservationRequest.getStateAsApi()));
+                summary.setState(reservationRequest.getStateAsApi());
             }
             else if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequestSet) {
                 cz.cesnet.shongo.controller.request.ReservationRequestSet reservationRequestSet =
@@ -304,7 +279,7 @@ public class ReservationServiceImpl extends Component
                 }
                 for (cz.cesnet.shongo.controller.request.ReservationRequest reservationRequest : requests) {
                     if (reservationRequest.getSlot().equals(earliestSlot)) {
-                        summary.setState(getSummaryState(reservationRequest.getStateAsApi()));
+                        summary.setState(reservationRequest.getStateAsApi());
                     }
                 }
             }
@@ -319,10 +294,10 @@ public class ReservationServiceImpl extends Component
                 }
 
                 if (permanentReservationRequest.getResourceReservations().size() > 0) {
-                    summary.setState(ReservationRequestSummary.State.ALLOCATED);
+                    summary.setState(ReservationRequestState.ALLOCATED);
                 }
                 else {
-                    summary.setState(ReservationRequestSummary.State.NOT_ALLOCATED);
+                    summary.setState(ReservationRequestState.NOT_ALLOCATED);
                 }
                 // TODO: Implement allocation failed state to permanent reservations
             }

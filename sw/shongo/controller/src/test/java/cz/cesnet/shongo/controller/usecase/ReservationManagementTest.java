@@ -44,7 +44,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
                 id);
         assertEquals("request", reservationRequest.getName());
-        assertEquals(ReservationRequest.State.COMPLETE, reservationRequest.getState());
+        assertEquals(ReservationRequestState.NOT_ALLOCATED, reservationRequest.getState());
 
         // Modify reservation request by retrieved instance of reservation request
         reservationRequest.setName("requestModified");
@@ -190,7 +190,7 @@ public class ReservationManagementTest extends AbstractControllerTest
 
     /**
      * Test listing reservation requests based on {@link Technology} of
-     * {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoomEndpoint} or
+     * {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom} or
      * {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
      *
      * @throws Exception

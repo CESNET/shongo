@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.request.report.SpecificationNotReadyReport;
@@ -240,30 +241,30 @@ public class ReservationRequest extends NormalReservationRequest
      * @return {@link #state} converted to API
      */
     @Transient
-    public cz.cesnet.shongo.controller.api.ReservationRequest.State getStateAsApi()
+    public cz.cesnet.shongo.controller.api.ReservationRequestState getStateAsApi()
     {
         switch (getState()) {
             case NOT_COMPLETE:
-                return cz.cesnet.shongo.controller.api.ReservationRequest.State.NOT_COMPLETE;
+                return cz.cesnet.shongo.controller.api.ReservationRequestState.NOT_COMPLETE;
             case COMPLETE:
-                return cz.cesnet.shongo.controller.api.ReservationRequest.State.COMPLETE;
+                return ReservationRequestState.NOT_ALLOCATED;
             case ALLOCATED:
                 Executable executable = getReservation().getExecutable();
                 if ( executable != null) {
                     switch (executable.getState()) {
                         case STARTED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequest.State.STARTED;
+                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTED;
                         case STARTING_FAILED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequest.State.STARTING_FAILED;
+                            return cz.cesnet.shongo.controller.api.ReservationRequestState.STARTING_FAILED;
                         case STOPPED:
-                            return cz.cesnet.shongo.controller.api.ReservationRequest.State.FINISHED;
+                            return cz.cesnet.shongo.controller.api.ReservationRequestState.FINISHED;
                         default:
-                            return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATED;
+                            return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATED;
                     }
                 }
-                return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATED;
+                return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATED;
             case ALLOCATION_FAILED:
-                return cz.cesnet.shongo.controller.api.ReservationRequest.State.ALLOCATION_FAILED;
+                return cz.cesnet.shongo.controller.api.ReservationRequestState.ALLOCATION_FAILED;
             default:
                 throw new TodoImplementException();
         }

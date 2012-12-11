@@ -120,9 +120,9 @@ public class Executable extends IdentifiedObject
         private List<Endpoint> endpoints = new ArrayList<Endpoint>();
 
         /**
-         * List of {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoomEndpoint}s.
+         * List of {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}s.
          */
-        private List<ResourceRoomEndpoint> roomEndpoints = new ArrayList<ResourceRoomEndpoint>();
+        private List<ResourceRoom> rooms = new ArrayList<ResourceRoom>();
 
         /**
          * List of {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}s.
@@ -154,27 +154,27 @@ public class Executable extends IdentifiedObject
         }
 
         /**
-         * @return {@link #roomEndpoints}
+         * @return {@link #rooms}
          */
-        public List<ResourceRoomEndpoint> getRoomEndpoints()
+        public List<ResourceRoom> getRooms()
         {
-            return roomEndpoints;
+            return rooms;
         }
 
         /**
-         * @param roomEndpoints sets the {@link #roomEndpoints}
+         * @param rooms sets the {@link #rooms}
          */
-        public void setRoomEndpoints(List<ResourceRoomEndpoint> roomEndpoints)
+        public void setRooms(List<ResourceRoom> rooms)
         {
-            this.roomEndpoints = roomEndpoints;
+            this.rooms = rooms;
         }
 
         /**
-         * @param roomEndpoint to be added to the {@link #roomEndpoints}
+         * @param room to be added to the {@link #rooms}
          */
-        public void addRoomEndpoint(ResourceRoomEndpoint roomEndpoint)
+        public void addRoom(ResourceRoom room)
         {
-            roomEndpoints.add(roomEndpoint);
+            rooms.add(room);
         }
 
         /**
@@ -285,7 +285,7 @@ public class Executable extends IdentifiedObject
      * {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}s in
      * the {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
      */
-    public static class ResourceRoomEndpoint extends Executable
+    public static class ResourceRoom extends Executable
     {
         /**
          * Id of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
@@ -313,7 +313,7 @@ public class Executable extends IdentifiedObject
         private List<Alias> aliases = new ArrayList<Alias>();
 
         /**
-         * List of {@link cz.cesnet.shongo.api.RoomSetting}s for the {@link ResourceRoomEndpoint}.
+         * List of {@link cz.cesnet.shongo.api.RoomSetting}s for the {@link cz.cesnet.shongo.controller.api.Executable.ResourceRoom}.
          */
         private List<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
 

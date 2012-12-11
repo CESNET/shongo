@@ -39,7 +39,7 @@ our $ConnectionState = {
 #
 our $Type = ordered_hash(
     'Executable.Compartment' => 'Compartment',
-    'Executable.ResourceRoomEndpoint' => 'Virtual Room'
+    'Executable.ResourceRoom' => 'Virtual Room'
 );
 
 #
@@ -106,7 +106,7 @@ sub on_init()
                 }
             );
             $self->add_attribute(
-                'roomEndpoints', {
+                'rooms', {
                     'title' => 'Rooms',
                     'type' => 'collection',
                     'item' => {
@@ -132,10 +132,10 @@ sub on_init()
                             my ($connection) = @_;
                             my $endpointFrom = $self->get_endpoint($connection->{'endpointFromId'});
                             my $endpointTo = $self->get_endpoint($connection->{'endpointToId'});
-                            if ( $endpointFrom->{'class'} eq 'Executable.ResourceRoomEndpoint' ) {
+                            if ( $endpointFrom->{'class'} eq 'Executable.ResourceRoom' ) {
                                 $endpointFrom->{'description'} = "virtual room (in " . $endpointFrom->{'resourceId'} . ")";
                             }
-                            if ( $endpointTo->{'class'} eq 'Executable.ResourceRoomEndpoint' ) {
+                            if ( $endpointTo->{'class'} eq 'Executable.ResourceRoom' ) {
                                 $endpointTo->{'description'} = "virtual room (in " . $endpointTo->{'resourceId'} . ")";
                             }
                             my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
@@ -153,7 +153,7 @@ sub on_init()
                 }
             );
         }
-        case 'Executable.ResourceRoomEndpoint' {
+        case 'Executable.ResourceRoom' {
             $self->add_attribute(
                 'licenseCount', {
                     'title' => 'Number of Licenses'
@@ -186,7 +186,7 @@ sub get_endpoint
             return $endpoint;
         }
     }
-    foreach my $room (@{$self->{'roomEndpoints'}}) {
+    foreach my $room (@{$self->{'rooms'}}) {
         if ( $room->{'id'} eq $id) {
             return $room;
         }

@@ -43,9 +43,9 @@ public class ReservationRequestSummary extends IdentifiedObject
     private String description;
 
     /**
-     * @see State
+     * @see ReservationRequestState
      */
-    private State state;
+    private ReservationRequestState state;
 
     /**
      * Earliest slot.
@@ -167,7 +167,7 @@ public class ReservationRequestSummary extends IdentifiedObject
     /**
      * @return {@link #state}
      */
-    public State getState()
+    public ReservationRequestState getState()
     {
         return state;
     }
@@ -175,7 +175,7 @@ public class ReservationRequestSummary extends IdentifiedObject
     /**
      * @param state sets the {@link #state}
      */
-    public void setState(State state)
+    public void setState(ReservationRequestState state)
     {
         this.state = state;
     }
@@ -197,39 +197,4 @@ public class ReservationRequestSummary extends IdentifiedObject
         PERMANENT
     }
 
-    /**
-     * State of reservation request.
-     */
-    public static enum State
-    {
-        /**
-         * None reservation has been allocated for the request.
-         */
-        NOT_ALLOCATED,
-
-        /**
-         * The earliest reservation has been allocated for the request and none has failed.
-         */
-        ALLOCATED,
-
-        /**
-         * The earliest reservation has failed to allocate for the request.
-         */
-        ALLOCATION_FAILED,
-
-        /**
-         * The earliest reservation has been started.
-         */
-        STARTED,
-
-        /**
-         * The earliest reservation failed to start.
-         */
-        STARTING_FAILED,
-
-        /**
-         * The earliest reservation has been finished.
-         */
-        FINISHED
-    }
 }

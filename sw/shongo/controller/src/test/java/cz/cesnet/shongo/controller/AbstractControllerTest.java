@@ -185,12 +185,12 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             else {
                 reservationRequest = (ReservationRequest) abstractReservationRequest;
             }
-            if (reservationRequest.getState() != ReservationRequest.State.ALLOCATED) {
+            if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
                 System.err.println(reservationRequest.getStateReport());
                 Thread.sleep(100);
             }
             assertEquals("Reservation request should be in ALLOCATED state.",
-                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
+                    ReservationRequestState.ALLOCATED, reservationRequest.getState());
             reservationId = reservationRequest.getReservationId();
         }
         else if (abstractReservationRequest instanceof PermanentReservationRequest) {
@@ -229,7 +229,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
                 reservationRequest = (ReservationRequest) abstractReservationRequest;
             }
             assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
-                    ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
+                    ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
             String reservationId = reservationRequest.getReservationId();
             assertNull("No reservation should be allocated for the reservation request.", reservationId);
         }

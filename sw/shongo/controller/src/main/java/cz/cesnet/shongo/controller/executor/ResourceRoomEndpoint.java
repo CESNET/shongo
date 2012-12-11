@@ -97,13 +97,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new Executable.ResourceRoomEndpoint();
+        return new Executable.ResourceRoom();
     }
 
     @Override
-    public Executable.ResourceRoomEndpoint toApi(Domain domain)
+    public Executable.ResourceRoom toApi(Domain domain)
     {
-        return (Executable.ResourceRoomEndpoint) super.toApi(domain);
+        return (Executable.ResourceRoom) super.toApi(domain);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         super.toApi(executableApi, domain);
 
-        Executable.ResourceRoomEndpoint resourceRoomEndpoint = (Executable.ResourceRoomEndpoint) executableApi;
+        Executable.ResourceRoom resourceRoomEndpoint = (Executable.ResourceRoom) executableApi;
         resourceRoomEndpoint.setId(domain.formatId(getId()));
         resourceRoomEndpoint.setSlot(getSlot());
         resourceRoomEndpoint.setState(getState().toApi());

@@ -142,7 +142,7 @@ public class Compartment extends Executable
         for (RoomEndpoint roomEndpoint : getRoomEndpoints()) {
             if (roomEndpoint instanceof ResourceRoomEndpoint) {
                 ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) roomEndpoint;
-                compartmentApi.addRoomEndpoint(resourceRoomEndpoint.toApi(domain));
+                compartmentApi.addRoom(resourceRoomEndpoint.toApi(domain));
             }
         }
         for (Connection connection : getConnections()) {
