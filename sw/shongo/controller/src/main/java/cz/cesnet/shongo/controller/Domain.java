@@ -82,9 +82,9 @@ public class Domain
 
     /**
      * @param id
-     * @return formatted identifier from given database id
+     * @return formatted shongo-id from given database id
      */
-    public String formatIdentifier(Long id)
+    public String formatId(Long id)
     {
         if (id == null) {
             throw new IllegalArgumentException("Cannot format identifier because id is null!");
@@ -93,20 +93,20 @@ public class Domain
     }
 
     /**
-     * @param identifier
-     * @return parse id from identifier
+     * @param id
+     * @return parse database id from shongo-id
      */
-    public Long parseIdentifier(String identifier)
+    public Long parseId(String id)
     {
-        if (Pattern.matches("\\d+", identifier)) {
-            return Long.parseLong(identifier);
+        if (Pattern.matches("\\d+", id)) {
+            return Long.parseLong(id);
         }
         String prefix = String.format("shongo:%s:", getName());
-        if (!identifier.startsWith(prefix)) {
+        if (!id.startsWith(prefix)) {
             throw new IllegalArgumentException(String.format("The identifier '%s' doesn't belong to domain '%s'!",
-                    identifier, getName()));
+                    id, getName()));
         }
-        return Long.parseLong(identifier.substring(prefix.length(), identifier.length()));
+        return Long.parseLong(id.substring(prefix.length(), id.length()));
     }
 
     /**

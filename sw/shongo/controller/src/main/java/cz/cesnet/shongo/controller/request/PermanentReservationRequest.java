@@ -207,7 +207,7 @@ public class PermanentReservationRequest extends AbstractReservationRequest
         for (DateTimeSlotSpecification slot : getSlots()) {
             permanentReservationRequestApi.addSlot(slot.toApi());
         }
-        permanentReservationRequestApi.setResourceIdentifier(domain.formatIdentifier(getResource().getId()));
+        permanentReservationRequestApi.setResourceId(domain.formatId(getResource().getId()));
         permanentReservationRequestApi.setReport(getReportText());
         for (ResourceReservation resourceReservation : getResourceReservations()) {
             permanentReservationRequestApi.addResourceReservation(resourceReservation.toApi(domain));
@@ -241,12 +241,12 @@ public class PermanentReservationRequest extends AbstractReservationRequest
         }
 
         // Set resource
-        if (permanentReservationRequestApi.isPropertyFilled(permanentReservationRequestApi.RESOURCE_IDENTIFIER)) {
-            if (permanentReservationRequestApi.getResourceIdentifier() == null) {
+        if (permanentReservationRequestApi.isPropertyFilled(permanentReservationRequestApi.RESOURCE_ID)) {
+            if (permanentReservationRequestApi.getResourceId() == null) {
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseIdentifier(permanentReservationRequestApi.getResourceIdentifier());
+                Long resourceId = domain.parseId(permanentReservationRequestApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }

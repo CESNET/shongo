@@ -10,9 +10,9 @@ import cz.cesnet.shongo.api.annotation.Required;
 public class ResourceSpecification extends Specification
 {
     /**
-     * The resource identifier.
+     * The resource shongo-id.
      */
-    public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
+    public static final String RESOURCE_ID = "resourceId";
 
     /**
      * Constructor.
@@ -24,27 +24,27 @@ public class ResourceSpecification extends Specification
     /**
      * Constructor.
      *
-     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     * @param resourceId sets the {@link #RESOURCE_ID}
      */
-    public ResourceSpecification(String resourceIdentifier)
+    public ResourceSpecification(String resourceId)
     {
-        setResourceIdentifier(resourceIdentifier);
+        setResourceId(resourceId);
     }
 
     /**
-     * @return {@link #RESOURCE_IDENTIFIER}
+     * @return {@link #RESOURCE_ID}
      */
     @Required
-    public String getResourceIdentifier()
+    public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_IDENTIFIER);
+        return getPropertyStorage().getValue(RESOURCE_ID);
     }
 
     /**
-     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     * @param resourceId sets the {@link #RESOURCE_ID}
      */
-    public void setResourceIdentifier(String resourceIdentifier)
+    public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_IDENTIFIER, resourceIdentifier);
+        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
     }
 }

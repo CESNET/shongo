@@ -120,7 +120,7 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     {
         cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
-        existingEndpointSpecificationApi.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
+        existingEndpointSpecificationApi.setResourceId(domain.formatId(resource.getId()));
         super.toApi(specificationApi, domain);
     }
 
@@ -130,12 +130,12 @@ public class ExistingEndpointSpecification extends EndpointSpecification impleme
     {
         cz.cesnet.shongo.controller.api.ExistingEndpointSpecification existingEndpointSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) specificationApi;
-        if (existingEndpointSpecificationApi.isPropertyFilled(existingEndpointSpecificationApi.RESOURCE_IDENTIFIER)) {
-            if (existingEndpointSpecificationApi.getResourceIdentifier() == null) {
+        if (existingEndpointSpecificationApi.isPropertyFilled(existingEndpointSpecificationApi.RESOURCE_ID)) {
+            if (existingEndpointSpecificationApi.getResourceId() == null) {
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseIdentifier(existingEndpointSpecificationApi.getResourceIdentifier());
+                Long resourceId = domain.parseId(existingEndpointSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }

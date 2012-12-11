@@ -58,9 +58,9 @@ public class DatabaseFilter
     }
 
     /**
-     * Add user identifier filter (entity referenced by {@link #alias} must contain "userId" property).
+     * Add user-id filter (entity referenced by {@link #alias} must contain "userId" property).
      *
-     * @param userId identifier of the user
+     * @param userId user-id of the user
      */
     public void addUserId(Long userId)
     {
@@ -95,9 +95,9 @@ public class DatabaseFilter
     }
 
     /**
-     * @param filter        from which the user identifier should be parsed
-     * @param defaultUserId value which will be returned when the user identifier isn't present in the {@code filter}
-     * @return user identifier from given {@code filter}
+     * @param filter        from which the user-id should be parsed
+     * @param defaultUserId value which will be returned when the user-id isn't present in the {@code filter}
+     * @return user-id from given {@code filter}
      */
     public static Long getUserIdFromFilter(Map<String, Object> filter, Long defaultUserId)
     {

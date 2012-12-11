@@ -206,7 +206,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             RoomSummary roomSummary = new RoomSummary();
 
-            roomSummary.setIdentifier(room.getAttributeValue("sco-id"));
+            roomSummary.setId(room.getAttributeValue("sco-id"));
             roomSummary.setName(room.getChildText("name"));
             roomSummary.setDescription(room.getChildText("description"));
 
@@ -327,7 +327,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         Element response = request("sco-info", attributes);
 
         Room room = new Room();
-        room.setIdentifier(roomId);
+        room.setId(roomId);
         room.setName(response.getChild("sco").getChildText("name"));
 
         room.setOption(Room.Option.DESCRIPTION,response.getChild("sco").getChildText("description"));
@@ -370,13 +370,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         Element respose = request("sco-update", attributes);
         String scoId = respose.getChild("sco").getAttributeValue("sco-id");
 
-//        room.setIdentifier(respose.getChild("sco").getAttributeValue("sco-id"));
+//        room.setId(respose.getChild("sco").getAttributeValue("sco-id"));
 //        room.setOption(Room.Option.DESCRIPTION,this.serverUrl + respose.getChild("sco").getChildText("url-path"));
 
         for (String eppn : (List<String>) room.getOption(Room.Option.PARTICIPANTS)) {
             String principalId = this.createAdobeConnectUser(eppn);
 
-//            String principalId = roomUser.getUserIdentity().getIdentifier();
+//            String principalId = roomUser.getUserIdentity().getId();
             HashMap<String,String> userAttributes = new HashMap<String, String>();
             userAttributes.put("acl-id", scoId);
             userAttributes.put("principal-id",principalId);

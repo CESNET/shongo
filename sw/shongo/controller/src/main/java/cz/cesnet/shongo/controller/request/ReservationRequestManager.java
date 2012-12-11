@@ -144,7 +144,7 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequestId of the {@link AbstractReservationRequest}
-     * @return {@link AbstractReservationRequest} with given identifier
+     * @return {@link AbstractReservationRequest} with given id
      * @throws EntityNotFoundException when the {@link AbstractReservationRequest} doesn't exist
      */
     public AbstractReservationRequest get(Long reservationRequestId) throws EntityNotFoundException
@@ -193,7 +193,7 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
-     * @return {@link ReservationRequest} with given identifier
+     * @return {@link ReservationRequest} with given id
      * @throws EntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequest(Long reservationRequestId) throws EntityNotFoundException
@@ -213,7 +213,7 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequestSetId of the {@link ReservationRequestSet}
-     * @return {@link ReservationRequestSet} with given identifier
+     * @return {@link ReservationRequestSet} with given id
      * @throws EntityNotFoundException when the {@link ReservationRequestSet} doesn't exist
      */
     public ReservationRequestSet getReservationRequestSet(Long reservationRequestSetId) throws EntityNotFoundException
@@ -306,7 +306,7 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequestId of the {@link ReservationRequest}
-     * @return {@link ReservationRequest} with given identifier
+     * @return {@link ReservationRequest} with given id
      * @throws IllegalArgumentException when the {@link ReservationRequest} doesn't exist
      */
     public ReservationRequest getReservationRequestNotNull(Long reservationRequestId) throws IllegalArgumentException
@@ -405,9 +405,9 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param specification {@link Specification} which is searched
-     * @param personId      identifier for {@link Person} for which the search is performed
+     * @param personId      id for {@link Person} for which the search is performed
      * @return {@link PersonSpecification} from given {@link Specification} that references {@link Person}
-     *         with given identifier if exists, null otherwise
+     *         with given id if exists, null otherwise
      */
     private PersonSpecification getPersonSpecification(Specification specification, Long personId)
             throws IllegalArgumentException
@@ -432,9 +432,9 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequest {@link ReservationRequest} which is searched
-     * @param personId           identifier for {@link Person} for which the search is performed
+     * @param personId           id for {@link Person} for which the search is performed
      * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link Person}
-     *         with given identifier
+     *         with given id
      * @throws IllegalArgumentException when {@link PersonSpecification} isn't found
      */
     private PersonSpecification getPersonSpecification(ReservationRequest reservationRequest, Long personId)
@@ -453,8 +453,8 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * Accept the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
      *
-     * @param reservationRequestId identifier for {@link ReservationRequest}
-     * @param personId             identifier for {@link Person}
+     * @param reservationRequestId id for {@link ReservationRequest}
+     * @param personId             id for {@link Person}
      * @throws IllegalStateException when {@link Person} hasn't selected resource by he will connect to
      *                               the video conference yet
      */
@@ -476,8 +476,8 @@ public class ReservationRequestManager extends AbstractManager
     /**
      * Reject the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
      *
-     * @param reservationRequestId identifier for {@link ReservationRequest}
-     * @param personId             identifier for {@link Person}
+     * @param reservationRequestId id for {@link ReservationRequest}
+     * @param personId             id for {@link Person}
      */
     public void rejectPersonRequest(Long reservationRequestId, Long personId)
     {

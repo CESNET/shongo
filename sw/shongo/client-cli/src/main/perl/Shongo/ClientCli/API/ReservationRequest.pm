@@ -66,7 +66,7 @@ sub new()
             my $state = $self->get_state();
             if ( defined($state) ) {
                 if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATED' ) {
-                    $state .= sprintf(" (" . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s)", $self->{'reservationIdentifier'});
+                    $state .= sprintf(" (" . colored("reservation", $Shongo::ClientCli::API::Object::COLOR) . ": %s)", $self->{'reservationId'});
                 }
                 my $color = 'blue';
                 if ( defined($self->get('state')) && $self->get('state') eq 'ALLOCATION_FAILED' ) {
@@ -81,7 +81,7 @@ sub new()
         },
         'read-only' => 1
     });
-    $self->add_attribute_preserve('reservationIdentifier');
+    $self->add_attribute_preserve('reservationId');
     $self->add_attribute_preserve('stateReport');
 
     return $self;

@@ -13,7 +13,7 @@ import org.joda.time.Interval;
 public class ReservationRequestSummary extends IdentifiedObject
 {
     /**
-     * Identifier of the owner user.
+     * User-id of the owner user.
      */
     private Integer userId;
 

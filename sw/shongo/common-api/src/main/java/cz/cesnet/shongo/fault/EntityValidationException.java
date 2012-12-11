@@ -11,11 +11,11 @@ public class EntityValidationException extends FaultException
      * Constructor.
      *
      * @param entityType
-     * @param entityIdentifier
+     * @param entityId
      */
-    public EntityValidationException(Class entityType, Long entityIdentifier, String format, Object... objects)
+    public EntityValidationException(Class entityType, Long entityId, String format, Object... objects)
     {
         super(CommonFault.ENTITY_VALIDATION, "%s (entity '%s' with identifier '%d')",
-                String.format(format, objects), entityType, entityIdentifier);
+                String.format(format, objects), entityType, entityId);
     }
 }

@@ -58,7 +58,7 @@ public abstract class RoomSetting extends PersistentObject
      */
     public void toApi(cz.cesnet.shongo.api.RoomSetting roomSettingApi)
     {
-        roomSettingApi.setIdentifier(getId());
+        roomSettingApi.setId(getId());
     }
 
     /**

@@ -313,7 +313,7 @@ public class ReservationRequest extends NormalReservationRequest
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText());
         if (getReservation() != null) {
-            reservationRequestApi.setReservationIdentifier(domain.formatIdentifier(getReservation().getId()));
+            reservationRequestApi.setReservationId(domain.formatId(getReservation().getId()));
         }
         super.toApi(api, domain);
     }
@@ -333,7 +333,7 @@ public class ReservationRequest extends NormalReservationRequest
             if (specificationApi == null) {
                 setSpecification(null);
             }
-            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getIdentifier())) {
+            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
                 getSpecification().fromApi(specificationApi, entityManager, domain);
             }
             else {

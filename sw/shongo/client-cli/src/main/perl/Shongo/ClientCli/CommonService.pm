@@ -74,7 +74,7 @@ sub list_connectors()
     foreach my $connector (@{$response->value()}) {
         $table->add(
             $connector->{'name'},
-            $connector->{'resourceIdentifier'},
+            $connector->{'resourceId'},
             $Status->{$connector->{'status'}}
         );
     }

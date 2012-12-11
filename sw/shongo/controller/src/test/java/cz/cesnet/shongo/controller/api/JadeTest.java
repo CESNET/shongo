@@ -45,12 +45,12 @@ public class JadeTest extends AbstractControllerTest
         getController().addService(new ResourceControlServiceImpl()
         {
             @Override
-            public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId)
+            public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
                     throws FaultException
             {
                 assertEquals("1", roomId);
                 Room room = new Room();
-                room.setIdentifier("1");
+                room.setId("1");
                 room.setName("Fixed Testing Room (TODO: Remove it)");
                 room.setLicenseCount(5);
                 room.addAlias(new Alias(AliasType.H323_E164, "9501"));
@@ -85,13 +85,13 @@ public class JadeTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
-        Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuIdentifier, "1");
+        Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuId, "1");
         room.setName("room");
         room.setOption(Room.Option.PIN, "1234");
         room.removeOption(Room.Option.DESCRIPTION);
-        getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuIdentifier, room);
+        getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, room);
     }
 
     /**
@@ -114,7 +114,7 @@ public class JadeTest extends AbstractControllerTest
         {
             ModifyRoom modifyRoom = (ModifyRoom) action;
             Room room = modifyRoom.getRoom();
-            assertEquals("1", room.getIdentifier());
+            assertEquals("1", room.getId());
             assertEquals("room", room.getName());
             assertEquals(new HashSet<Room.Option>()
             {{

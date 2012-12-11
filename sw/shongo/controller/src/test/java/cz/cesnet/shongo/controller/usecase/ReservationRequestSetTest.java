@@ -31,7 +31,7 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95[d]"));
         mcu.setAllocatable(true);
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequestSet reservationRequest = new ReservationRequestSet();
         reservationRequest.setName("test");
@@ -42,13 +42,13 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         reservationRequest.addSpecification(compartmentSpecification);
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessor();
         runScheduler();
-        checkAllocated(identifier);
+        checkAllocated(id);
 
         reservationRequest =
-                (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, identifier);
+                (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
         reservationRequest.removeSpecification(reservationRequest.getSpecifications().get(0));
         RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
@@ -56,6 +56,6 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         reservationRequest.addSpecification(roomSpecification);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
     }
 }

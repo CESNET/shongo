@@ -19,7 +19,7 @@ import java.util.Set;
 public class Executable extends IdentifiedObject
 {
     /**
-     * Identifier of the owner user.
+     * User-id of the owner user.
      */
     private Integer userId;
 
@@ -209,9 +209,9 @@ public class Executable extends IdentifiedObject
     public static class Endpoint extends Executable
     {
         /**
-         * Identifier of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
+         * Id of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
          */
-        private String identifier;
+        private String id;
 
         /**
          * Description of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
@@ -224,19 +224,19 @@ public class Executable extends IdentifiedObject
         private List<Alias> aliases = new ArrayList<Alias>();
 
         /**
-         * @return {@link #identifier}
+         * @return {@link #id}
          */
-        public String getIdentifier()
+        public String getId()
         {
-            return identifier;
+            return id;
         }
 
         /**
-         * @param identifier sets the {@link #identifier}
+         * @param id sets the {@link #id}
          */
-        public void setIdentifier(String identifier)
+        public void setId(String id)
         {
-            this.identifier = identifier;
+            this.id = id;
         }
 
         /**
@@ -288,14 +288,14 @@ public class Executable extends IdentifiedObject
     public static class ResourceRoomEndpoint extends Executable
     {
         /**
-         * Identifier of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
+         * Id of the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}.
          */
-        private String identifier;
+        private String id;
 
         /**
-         * Identifier of the {@link cz.cesnet.shongo.controller.api.Resource}.
+         * Id of the {@link cz.cesnet.shongo.controller.api.Resource}.
          */
-        private String resourceIdentifier;
+        private String resourceId;
 
         /**
          * Set of technologies which the virtual room shall support.
@@ -318,35 +318,35 @@ public class Executable extends IdentifiedObject
         private List<RoomSetting> roomSettings = new ArrayList<RoomSetting>();
 
         /**
-         * @return {@link #identifier}
+         * @return {@link #id}
          */
-        public String getIdentifier()
+        public String getId()
         {
-            return identifier;
+            return id;
         }
 
         /**
-         * @param identifier sets the {@link #identifier}
+         * @param id sets the {@link #id}
          */
-        public void setIdentifier(String identifier)
+        public void setId(String id)
         {
-            this.identifier = identifier;
+            this.id = id;
         }
 
         /**
-         * @return {@link #resourceIdentifier}
+         * @return {@link #resourceId}
          */
-        public String getResourceIdentifier()
+        public String getResourceId()
         {
-            return resourceIdentifier;
+            return resourceId;
         }
 
         /**
-         * @param resourceIdentifier sets the {@link #resourceIdentifier}
+         * @param resourceId sets the {@link #resourceId}
          */
-        public void setResourceIdentifier(String resourceIdentifier)
+        public void setResourceId(String resourceId)
         {
-            this.resourceIdentifier = resourceIdentifier;
+            this.resourceId = resourceId;
         }
 
         /**
@@ -444,45 +444,45 @@ public class Executable extends IdentifiedObject
     public static abstract class Connection extends Executable
     {
         /**
-         * Identifier of endpoint which initiates the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}.
+         * Id of endpoint which initiates the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}.
          */
-        private String endpointFromIdentifier;
+        private String endpointFromId;
 
         /**
-         * Target endpoint for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}.
+         * Id of target endpoint for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}.
          */
-        private String endpointToIdentifier;
+        private String endpointToId;
 
         /**
-         * @return {@link #endpointFromIdentifier}
+         * @return {@link #endpointFromId}
          */
-        public String getEndpointFromIdentifier()
+        public String getEndpointFromId()
         {
-            return endpointFromIdentifier;
+            return endpointFromId;
         }
 
         /**
-         * @param endpointFromIdentifier sets the {@link #endpointFromIdentifier}
+         * @param endpointFromId sets the {@link #endpointFromId}
          */
-        public void setEndpointFromIdentifier(String endpointFromIdentifier)
+        public void setEndpointFromId(String endpointFromId)
         {
-            this.endpointFromIdentifier = endpointFromIdentifier;
+            this.endpointFromId = endpointFromId;
         }
 
         /**
-         * @return {@link #endpointToIdentifier}
+         * @return {@link #endpointToId}
          */
-        public String getEndpointToIdentifier()
+        public String getEndpointToId()
         {
-            return endpointToIdentifier;
+            return endpointToId;
         }
 
         /**
-         * @param endpointToIdentifier sets the {@link #endpointToIdentifier}
+         * @param endpointToId sets the {@link #endpointToId}
          */
-        public void setEndpointToIdentifier(String endpointToIdentifier)
+        public void setEndpointToId(String endpointToId)
         {
-            this.endpointToIdentifier = endpointToIdentifier;
+            this.endpointToId = endpointToId;
         }
     }
 

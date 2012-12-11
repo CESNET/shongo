@@ -30,7 +30,7 @@ public class RoomTest extends AbstractControllerTest
         firstMcu.addTechnology(Technology.SIP);
         firstMcu.addCapability(new RoomProviderCapability(10));
         firstMcu.setAllocatable(true);
-        String firstMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
+        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
 
         DeviceResource secondMcu = new DeviceResource();
         secondMcu.setName("secondMcu");
@@ -38,7 +38,7 @@ public class RoomTest extends AbstractControllerTest
         secondMcu.addTechnology(Technology.SIP);
         secondMcu.addCapability(new RoomProviderCapability(10));
         secondMcu.setAllocatable(true);
-        String secondMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
+        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -47,12 +47,12 @@ public class RoomTest extends AbstractControllerTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.addTechnology(Technology.SIP);
         roomSpecification.setParticipantCount(5);
-        roomSpecification.setResourceIdentifier(secondMcuIdentifier);
+        roomSpecification.setResourceId(secondMcuId);
         firstReservationRequest.setSpecification(roomSpecification);
 
         RoomReservation firstReservation = (RoomReservation) allocateAndCheck(firstReservationRequest);
         assertEquals("Virtual room should be allocated on second mcu, because it was specified as preferred",
-                secondMcuIdentifier, firstReservation.getResourceIdentifier());
+                secondMcuId, firstReservation.getResourceId());
 
         ReservationRequest secondReservationRequest = new ReservationRequest();
         secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -61,12 +61,12 @@ public class RoomTest extends AbstractControllerTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.addTechnology(Technology.SIP);
         roomSpecification.setParticipantCount(3);
-        roomSpecification.setResourceIdentifier(firstMcuIdentifier);
+        roomSpecification.setResourceId(firstMcuId);
         secondReservationRequest.setSpecification(roomSpecification);
 
         RoomReservation secondReservation = (RoomReservation) allocateAndCheck(secondReservationRequest);
         assertEquals("Virtual room should be allocated on first mcu, because it was specified as preferred",
-                firstMcuIdentifier, secondReservation.getResourceIdentifier());
+                firstMcuId, secondReservation.getResourceId());
 
         ReservationRequest thirdReservationRequest = new ReservationRequest();
         thirdReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -79,6 +79,6 @@ public class RoomTest extends AbstractControllerTest
 
         RoomReservation thirdReservation = (RoomReservation) allocateAndCheck(thirdReservationRequest);
         assertEquals("Virtual room should be allocated on second mcu, because it was the most filled",
-                secondMcuIdentifier, thirdReservation.getResourceIdentifier());
+                secondMcuId, thirdReservation.getResourceId());
     }
 }

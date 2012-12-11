@@ -11,7 +11,7 @@ import org.joda.time.DateTime;
 public abstract class AbstractReservationRequest extends IdentifiedChangeableObject
 {
     /**
-     * Identifier of the owner user.
+     * User-id of the owner user.
      */
     private Integer userId;
 

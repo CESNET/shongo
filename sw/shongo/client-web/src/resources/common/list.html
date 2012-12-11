@@ -14,13 +14,13 @@
     <tbody>
     [%- FOREACH request IN requests %]
     <tr>
-        <td><a href="[% location %]/detail?id=[% request.identifier %]">[% request.identifier %]</a></td>
+        <td><a href="[% location %]/detail?id=[% request.id %]">[% request.id %]</a></td>
         <td>[% request.name %]</td>
         <td>[% request.purpose %]</td>
         <td>[% request.start %]</td>
         <td>[% request.duration %]</td>
-        <td><a href="[% location %]/detail?id=[% request.identifier %]" class="state-[% request.stateCode %]">[% request.state %]</a></td>
-        <td><a href="[% location %]/delete?id=[% request.identifier %]">delete</a></td>
+        <td><a href="[% location %]/detail?id=[% request.id %]" class="state-[% request.stateCode %]">[% request.state %]</a></td>
+        <td><a href="[% location %]/delete?id=[% request.id %]">delete</a></td>
     </tr>
     [%- END %]
     </tbody>

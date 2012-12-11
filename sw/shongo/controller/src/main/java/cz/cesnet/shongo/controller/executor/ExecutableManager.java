@@ -54,7 +54,7 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * @param executableId of the {@link Executable}
-     * @return {@link Executable} with given identifier
+     * @return {@link Executable} with given id
      * @throws cz.cesnet.shongo.fault.EntityNotFoundException
      *          when the {@link Executable} doesn't exist
      */

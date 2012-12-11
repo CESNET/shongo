@@ -10,7 +10,7 @@ import cz.cesnet.shongo.api.util.IdentifiedObject;
 public class ResourceSummary extends IdentifiedObject
 {
     /**
-     * Identifier of the owner user.
+     * User-id of the owner user.
      */
     private Integer userId;
 
@@ -25,9 +25,9 @@ public class ResourceSummary extends IdentifiedObject
     private String technologies;
 
     /**
-     * Parent resource identifier.
+     * Parent resource shongo-id.
      */
-    private String parentIdentifier;
+    private String parentResourceId;
 
     /**
      * @return {@link #userId}
@@ -78,18 +78,18 @@ public class ResourceSummary extends IdentifiedObject
     }
 
     /**
-     * @return {@link #parentIdentifier}
+     * @return {@link #parentResourceId}
      */
-    public String getParentIdentifier()
+    public String getParentResourceId()
     {
-        return parentIdentifier;
+        return parentResourceId;
     }
 
     /**
-     * @param parentIdentifier sets the {@link #parentIdentifier}
+     * @param parentResourceId sets the {@link #parentResourceId}
      */
-    public void setParentIdentifier(String parentIdentifier)
+    public void setParentResourceId(String parentResourceId)
     {
-        this.parentIdentifier = parentIdentifier;
+        this.parentResourceId = parentResourceId;
     }
 }

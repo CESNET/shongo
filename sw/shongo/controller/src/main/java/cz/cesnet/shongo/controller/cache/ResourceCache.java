@@ -29,7 +29,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
 
     /**
      * Map of states for cached objects with {@link cz.cesnet.shongo.controller.resource.RoomProviderCapability}
-     * by theirs identifiers.
+     * by theirs ids.
      */
     private Map<Long, ObjectState<RoomReservation>> roomProviderStateById =
             new HashMap<Long, ObjectState<RoomReservation>>();
@@ -238,7 +238,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
 
     /**
      * @param capabilityType
-     * @return set of resource identifiers which has capability of given {@code capabilityType}
+     * @return set of resource ids which has capability of given {@code capabilityType}
      */
     private Set<Long> getResourcesByCapability(Class<? extends Capability> capabilityType)
     {
@@ -252,7 +252,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     /**
      * @param capabilityType
      * @param technologies
-     * @return set of device resource identifiers which has capability of given {@code capabilityType}
+     * @return set of device resource ids which has capability of given {@code capabilityType}
      *         supporting given {@code technologies}
      */
     public Set<Long> getDeviceResourcesByCapabilityTechnologies(Class<? extends DeviceCapability> capabilityType,
@@ -288,7 +288,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     /**
      * @param capabilityType
      * @param technologySets
-     * @return set of device resource identifiers which has capability of given {@code capabilityType}
+     * @return set of device resource ids which has capability of given {@code capabilityType}
      *         supporting at least one set of given {@code technologySets}
      */
     public Set<Long> getDeviceResourcesByCapabilityTechnologies(

@@ -22,7 +22,7 @@ import java.util.List;
 public abstract class Executable extends PersistentObject
 {
     /**
-     * Identifier of an user who is owner of the {@link Executable}.
+     * User-id of an user who is owner of the {@link Executable}.
      */
     private Long userId;
 
@@ -213,7 +213,7 @@ public abstract class Executable extends PersistentObject
      */
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
     {
-        executableApi.setIdentifier(domain.formatIdentifier(getId()));
+        executableApi.setId(domain.formatId(getId()));
         executableApi.setUserId(getUserId().intValue());
     }
 

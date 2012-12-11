@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.api;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
-import cz.cesnet.shongo.api.annotation.Required;
 
 /**
  * Represents a {@link Specification} for an {@link Alias}.
@@ -30,7 +29,7 @@ public class AliasSpecification extends Specification
     /**
      * {@link Resource} with {@link AliasProviderCapability}.
      */
-    public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
+    public static final String RESOURCE_ID = "resourceId";
 
     /**
      * Constructor.
@@ -92,18 +91,18 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_IDENTIFIER}
+     * @return {@link #RESOURCE_ID}
      */
-    public String getResourceIdentifier()
+    public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_IDENTIFIER);
+        return getPropertyStorage().getValue(RESOURCE_ID);
     }
 
     /**
-     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     * @param resourceId sets the {@link #RESOURCE_ID}
      */
-    public void setResourceIdentifier(String resourceIdentifier)
+    public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_IDENTIFIER, resourceIdentifier);
+        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
     }
 }

@@ -28,7 +28,7 @@ public abstract class Connection extends Executable
     private Endpoint endpointTo;
 
     /**
-     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link Connection}.
+     * {@link cz.cesnet.shongo.Technology} specific id of the {@link Connection}.
      */
     private String connectionId;
 

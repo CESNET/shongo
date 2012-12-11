@@ -126,13 +126,13 @@ public class Compartment extends Executable
 
         cz.cesnet.shongo.controller.api.Executable.Compartment compartmentApi =
                 (cz.cesnet.shongo.controller.api.Executable.Compartment) executableApi;
-        compartmentApi.setIdentifier(domain.formatIdentifier(getId()));
+        compartmentApi.setId(domain.formatId(getId()));
         compartmentApi.setSlot(getSlot());
         compartmentApi.setState(getState().toApi());
         for (Endpoint endpoint : getEndpoints()) {
             cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint endpointApi =
                     new cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint();
-            endpointApi.setIdentifier(domain.formatIdentifier(endpoint.getId()));
+            endpointApi.setId(domain.formatId(endpoint.getId()));
             endpointApi.setDescription(endpoint.getReportDescription());
             for (Alias alias : endpoint.getAssignedAliases()) {
                 endpointApi.addAlias(alias.toApi());
@@ -150,10 +150,10 @@ public class Compartment extends Executable
                 ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
                 cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress connectionByAddressApi =
                         new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress();
-                connectionByAddressApi.setEndpointFromIdentifier(
-                        domain.formatIdentifier(connection.getEndpointFrom().getId()));
-                connectionByAddressApi.setEndpointToIdentifier(
-                        domain.formatIdentifier(connection.getEndpointTo().getId()));
+                connectionByAddressApi.setEndpointFromId(
+                        domain.formatId(connection.getEndpointFrom().getId()));
+                connectionByAddressApi.setEndpointToId(
+                        domain.formatId(connection.getEndpointTo().getId()));
                 connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
                 connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
                 connectionByAddressApi.setState(connectionByAddress.getState().toApi());
@@ -163,10 +163,10 @@ public class Compartment extends Executable
                 ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
                 cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias connectionByAliasApi =
                         new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias();
-                connectionByAliasApi.setEndpointFromIdentifier(
-                        domain.formatIdentifier(connection.getEndpointFrom().getId()));
-                connectionByAliasApi.setEndpointToIdentifier(
-                        domain.formatIdentifier(connection.getEndpointTo().getId()));
+                connectionByAliasApi.setEndpointFromId(
+                        domain.formatId(connection.getEndpointFrom().getId()));
+                connectionByAliasApi.setEndpointToId(
+                        domain.formatId(connection.getEndpointTo().getId()));
                 connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
                 connectionByAliasApi.setState(connectionByAlias.getState().toApi());
                 compartmentApi.addConnection(connectionByAliasApi);

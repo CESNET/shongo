@@ -100,7 +100,7 @@ public class ResourceSpecification extends Specification implements ReservationT
     {
         cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ResourceSpecification) specificationApi;
-        resourceSpecificationApi.setResourceIdentifier(domain.formatIdentifier(resource.getId()));
+        resourceSpecificationApi.setResourceId(domain.formatId(resource.getId()));
         super.toApi(specificationApi, domain);
     }
 
@@ -110,12 +110,12 @@ public class ResourceSpecification extends Specification implements ReservationT
     {
         cz.cesnet.shongo.controller.api.ResourceSpecification resourceSpecificationApi =
                 (cz.cesnet.shongo.controller.api.ResourceSpecification) specificationApi;
-        if (resourceSpecificationApi.isPropertyFilled(resourceSpecificationApi.RESOURCE_IDENTIFIER)) {
-            if (resourceSpecificationApi.getResourceIdentifier() == null) {
+        if (resourceSpecificationApi.isPropertyFilled(resourceSpecificationApi.RESOURCE_ID)) {
+            if (resourceSpecificationApi.getResourceId() == null) {
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseIdentifier(resourceSpecificationApi.getResourceIdentifier());
+                Long resourceId = domain.parseId(resourceSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }

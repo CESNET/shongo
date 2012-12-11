@@ -26,26 +26,26 @@ public class ProvidedReservationTest extends AbstractControllerTest
         terminal.setAllocatable(true);
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
-        String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
+        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
         Reservation terminalReservation = allocateAndCheck(terminalReservationRequest);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
-        reservationRequest.addProvidedReservationIdentifier(terminalReservation.getIdentifier());
+        reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        reservationRequest.addProvidedReservationId(terminalReservation.getId());
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
-        Reservation reservation = checkAllocated(identifier);
+        Reservation reservation = checkAllocated(id);
         assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
-        assertEquals(terminalReservation.getIdentifier(), existingReservation.getReservation().getIdentifier());
+        assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
     }
 
     @Test
@@ -54,40 +54,40 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource lectureRoom = new Resource();
         lectureRoom.setName("lectureRoom");
         lectureRoom.setAllocatable(true);
-        String lectureRoomIdentifier = getResourceService().createResource(SECURITY_TOKEN, lectureRoom);
+        String lectureRoomId = getResourceService().createResource(SECURITY_TOKEN, lectureRoom);
 
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
-        terminal.setParentIdentifier(lectureRoomIdentifier);
+        terminal.setParentResourceId(lectureRoomId);
         terminal.setAllocatable(true);
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
-        String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         ReservationRequest lectureRoomReservationRequest = new ReservationRequest();
         lectureRoomReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         lectureRoomReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        lectureRoomReservationRequest.setSpecification(new ResourceSpecification(lectureRoomIdentifier));
+        lectureRoomReservationRequest.setSpecification(new ResourceSpecification(lectureRoomId));
         Reservation lectureRoomReservation = allocateAndCheck(lectureRoomReservationRequest);
 
         ReservationRequest request = new ReservationRequest();
         request.setSlot("2012-06-22T14:00", "PT2H");
-        request.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
+        request.setSpecification(new ExistingEndpointSpecification(terminalId));
         request.setPurpose(ReservationRequestPurpose.SCIENCE);
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, request);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, request);
         runScheduler();
-        checkAllocationFailed(identifier);
+        checkAllocationFailed(id);
 
-        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, identifier);
-        request.addProvidedReservationIdentifier(lectureRoomReservation.getIdentifier());
+        request = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
+        request.addProvidedReservationId(lectureRoomReservation.getId());
 
         Reservation reservation = allocateAndCheck(request);
-        assertEquals(1, reservation.getChildReservationIdentifiers().size());
+        assertEquals(1, reservation.getChildReservationIds().size());
         Reservation childReservation = getReservationService().getReservation(SECURITY_TOKEN,
-                reservation.getChildReservationIdentifiers().get(0));
+                reservation.getChildReservationIds().get(0));
         assertEquals(ExistingReservation.class, childReservation.getClass());
         ExistingReservation childExistingReservation = (ExistingReservation) childReservation;
-        assertEquals(lectureRoomReservation.getIdentifier(), childExistingReservation.getReservation().getIdentifier());
+        assertEquals(lectureRoomReservation.getId(), childExistingReservation.getReservation().getId());
     }
 
     @Test
@@ -109,12 +109,12 @@ public class ProvidedReservationTest extends AbstractControllerTest
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new AliasSpecification(Technology.H323));
-        reservationRequest.addProvidedReservationIdentifier(aliasReservation.getIdentifier());
+        reservationRequest.addProvidedReservationId(aliasReservation.getId());
 
         Reservation reservation = allocateAndCheck(reservationRequest);
         assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
-        assertEquals(aliasReservation.getIdentifier(), existingReservation.getReservation().getIdentifier());
+        assertEquals(aliasReservation.getId(), existingReservation.getReservation().getId());
     }
 
     @Test
@@ -137,8 +137,8 @@ public class ProvidedReservationTest extends AbstractControllerTest
         aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
-        String aliasReservationRequestIdentifier = allocate(aliasReservationRequest);
-        AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestIdentifier);
+        String aliasReservationRequestId = allocate(aliasReservationRequest);
+        AliasReservation aliasReservation = (AliasReservation) checkAllocated(aliasReservationRequestId);
         assertEquals(aliasReservation.getAliasValue(), "950000001");
 
         ReservationRequest compartmentReservationRequest = new ReservationRequest();
@@ -147,11 +147,11 @@ public class ProvidedReservationTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
-        compartmentReservationRequest.addProvidedReservationIdentifier(aliasReservation.getIdentifier());
+        compartmentReservationRequest.addProvidedReservationId(aliasReservation.getId());
 
         allocateAndCheck(compartmentReservationRequest);
         try {
-            getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestIdentifier);
+            getReservationService().deleteReservationRequest(SECURITY_TOKEN, aliasReservationRequestId);
             fail("Exception that reservation request is still referenced should be thrown");
         }
         catch (EntityToDeleteIsReferencedException exception) {
@@ -166,19 +166,19 @@ public class ProvidedReservationTest extends AbstractControllerTest
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
-        String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-06-22T00:00", "PT15H");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
+        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
         Reservation terminalReservation = allocateAndCheck(terminalReservationRequest);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
-        reservationRequest.addProvidedReservationIdentifier(terminalReservation.getIdentifier());
+        reservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
+        reservationRequest.addProvidedReservationId(terminalReservation.getId());
 
         allocateAndCheckFailed(reservationRequest);
     }
@@ -191,24 +191,24 @@ public class ProvidedReservationTest extends AbstractControllerTest
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
-        String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         ReservationRequest terminalReservationRequest = new ReservationRequest();
         terminalReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
         terminalReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalIdentifier));
+        terminalReservationRequest.setSpecification(new ExistingEndpointSpecification(terminalId));
         Reservation terminalReservation = allocateAndCheck(terminalReservationRequest);
 
         ReservationRequestSet reservationRequestSet = new ReservationRequestSet();
         reservationRequestSet.addSlot(new DateTimeSlot("2012-06-22T14:00", "PT2H"));
         reservationRequestSet.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequestSet.addSpecification(new ExistingEndpointSpecification(terminalIdentifier));
-        reservationRequestSet.addProvidedReservationIdentifier(terminalReservation.getIdentifier());
+        reservationRequestSet.addSpecification(new ExistingEndpointSpecification(terminalId));
+        reservationRequestSet.addProvidedReservationId(terminalReservation.getId());
 
         Reservation reservation = allocateAndCheck(reservationRequestSet);
         assertEquals(ExistingReservation.class, reservation.getClass());
         ExistingReservation existingReservation = (ExistingReservation) reservation;
-        assertEquals(terminalReservation.getIdentifier(), existingReservation.getReservation().getIdentifier());
+        assertEquals(terminalReservation.getId(), existingReservation.getReservation().getId());
     }
 
     @Test
@@ -220,7 +220,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest roomReservationRequest = new ReservationRequest();
         roomReservationRequest.setSlot("2012-01-01T00:00", "P1D");
@@ -238,7 +238,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
         compartmentReservationRequest.setSpecification(compartmentSpecification);
-        compartmentReservationRequest.addProvidedReservationIdentifier(roomReservation.getIdentifier());
+        compartmentReservationRequest.addProvidedReservationId(roomReservation.getId());
 
         allocateAndCheck(compartmentReservationRequest);
     }

@@ -14,41 +14,41 @@ public abstract class IdentifiedObject implements StructType, Concept
     /**
      * Identifier.
      */
-    private String identifier;
+    private String id;
 
     /**
-     * @return {@link #identifier
+     * @return {@link #id
      */
-    public String getIdentifier()
+    public String getId()
     {
-        return identifier;
+        return id;
     }
 
     /**
-     * @param identifier sets the {@link #identifier}
+     * @param id sets the {@link #id}
      */
-    public void setIdentifier(String identifier)
+    public void setId(String id)
     {
-        this.identifier = identifier;
+        this.id = id;
     }
 
     /**
-     * @param identifier sets the {@link #identifier}
+     * @param id sets the {@link #id}
      */
-    public void setIdentifier(Long identifier)
+    public void setId(Long id)
     {
-        this.identifier = (identifier != null ? identifier.toString() : null);
+        this.id = (id != null ? id.toString() : null);
     }
 
     /**
-     * @return {@link #identifier} as {@link Long}
+     * @return {@link #id} as {@link Long}
      * @throws IllegalStateException
      */
     public Long notNullIdAsLong()
     {
-        if (identifier == null) {
+        if (id == null) {
             throw new IllegalStateException();
         }
-        return Long.valueOf(identifier);
+        return Long.valueOf(id);
     }
 }

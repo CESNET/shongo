@@ -251,7 +251,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         cz.cesnet.shongo.controller.api.RoomSpecification roomSpecificationApi =
                 (cz.cesnet.shongo.controller.api.RoomSpecification) specificationApi;
         if (deviceResource != null) {
-            roomSpecificationApi.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
+            roomSpecificationApi.setResourceId(domain.formatId(deviceResource.getId()));
         }
         for (Technology technology : getTechnologies()) {
             roomSpecificationApi.addTechnology(technology);
@@ -276,12 +276,12 @@ public class RoomSpecification extends Specification implements ReservationTaskP
         if (roomSpecificationApi.isPropertyFilled(roomSpecificationApi.WITH_ALIAS)) {
             setWithAlias(roomSpecificationApi.getWithAlias());
         }
-        if (roomSpecificationApi.isPropertyFilled(roomSpecificationApi.RESOURCE_IDENTIFIER)) {
-            if (roomSpecificationApi.getResourceIdentifier() == null) {
+        if (roomSpecificationApi.isPropertyFilled(roomSpecificationApi.RESOURCE_ID)) {
+            if (roomSpecificationApi.getResourceId() == null) {
                 setDeviceResource(null);
             }
             else {
-                Long resourceId = domain.parseIdentifier(roomSpecificationApi.getResourceIdentifier());
+                Long resourceId = domain.parseId(roomSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setDeviceResource(resourceManager.getDevice(resourceId));
             }

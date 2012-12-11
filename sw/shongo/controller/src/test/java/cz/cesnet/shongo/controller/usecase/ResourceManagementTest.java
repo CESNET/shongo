@@ -28,15 +28,15 @@ public class ResourceManagementTest extends AbstractControllerTest
     public void testResource() throws Exception
     {
         Resource resource;
-        String resourceIdentifier;
+        String resourceId;
 
         // Create resource
         resource = new Resource();
         resource.setName("resource");
-        resourceIdentifier = getResourceService().createResource(SECURITY_TOKEN, resource);
+        resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
         // Check created resource
-        resource = getResourceService().getResource(SECURITY_TOKEN, resourceIdentifier);
+        resource = getResourceService().getResource(SECURITY_TOKEN, resourceId);
         assertEquals("resource", resource.getName());
         assertEquals(Boolean.FALSE, resource.getAllocatable());
 
@@ -46,26 +46,26 @@ public class ResourceManagementTest extends AbstractControllerTest
 
         // Modify resource by new instance of Resource
         resource = new Resource();
-        resource.setIdentifier(resourceIdentifier);
+        resource.setId(resourceId);
         resource.setAllocatable(true);
         getResourceService().modifyResource(SECURITY_TOKEN, resource);
 
         // Check modified resource
-        resource = getResourceService().getResource(SECURITY_TOKEN, resourceIdentifier);
+        resource = getResourceService().getResource(SECURITY_TOKEN, resourceId);
         assertEquals("resourceModified", resource.getName());
         assertEquals(Boolean.TRUE, resource.getAllocatable());
 
         // Delete resource
-        getResourceService().deleteResource(SECURITY_TOKEN, resourceIdentifier);
+        getResourceService().deleteResource(SECURITY_TOKEN, resourceId);
 
         // Check deleted resource
         try {
-            getResourceService().getResource(SECURITY_TOKEN, resourceIdentifier);
+            getResourceService().getResource(SECURITY_TOKEN, resourceId);
             fail("Resource should not exist.");
         }
         catch (EntityNotFoundException exception) {
             assertEquals(Resource.class, exception.getEntityType());
-            assertEquals(Domain.getLocalIdentifier(resourceIdentifier), exception.getEntityIdentifier());
+            assertEquals(Domain.getLocalId(resourceId), exception.getEntityId());
         }
     }
 
@@ -78,16 +78,16 @@ public class ResourceManagementTest extends AbstractControllerTest
     public void testDeviceResource() throws Exception
     {
         DeviceResource deviceResource;
-        String deviceResourceIdentifier;
+        String deviceResourceId;
 
         // Create device resource
         deviceResource = new DeviceResource();
         deviceResource.setName("deviceResource");
         deviceResource.addTechnology(Technology.H323);
-        deviceResourceIdentifier = getResourceService().createResource(SECURITY_TOKEN, deviceResource);
+        deviceResourceId = getResourceService().createResource(SECURITY_TOKEN, deviceResource);
 
         // Check created device resource
-        deviceResource = (DeviceResource) getResourceService().getResource(SECURITY_TOKEN, deviceResourceIdentifier);
+        deviceResource = (DeviceResource) getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
         assertEquals(new HashSet<Technology>()
         {{
                 add(Technology.H323);
@@ -98,7 +98,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         getResourceService().modifyResource(SECURITY_TOKEN, deviceResource);
 
         // Check modified device resource
-        deviceResource = (DeviceResource) getResourceService().getResource(SECURITY_TOKEN, deviceResourceIdentifier);
+        deviceResource = (DeviceResource) getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
         assertEquals(new HashSet<Technology>()
         {{
                 add(Technology.H323);
@@ -106,16 +106,16 @@ public class ResourceManagementTest extends AbstractControllerTest
             }}, deviceResource.getTechnologies());
 
         // Delete resource
-        getResourceService().deleteResource(SECURITY_TOKEN, deviceResourceIdentifier);
+        getResourceService().deleteResource(SECURITY_TOKEN, deviceResourceId);
 
         // Check deleted resource
         try {
-            getResourceService().getResource(SECURITY_TOKEN, deviceResourceIdentifier);
+            getResourceService().getResource(SECURITY_TOKEN, deviceResourceId);
             fail("Device resource should not exist.");
         }
         catch (EntityNotFoundException exception) {
             assertEquals(Resource.class, exception.getEntityType());
-            assertEquals(Domain.getLocalIdentifier(deviceResourceIdentifier), exception.getEntityIdentifier());
+            assertEquals(Domain.getLocalId(deviceResourceId), exception.getEntityId());
         }
     }
 

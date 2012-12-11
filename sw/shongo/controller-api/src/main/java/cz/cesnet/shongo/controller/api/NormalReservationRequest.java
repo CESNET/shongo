@@ -23,9 +23,10 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     public static final String INTER_DOMAIN = "interDomain";
 
     /**
-     * Collection of identifiers for {@link cz.cesnet.shongo.controller.api.Reservation}s which are provided to the {@link cz.cesnet.shongo.controller.api.NormalReservationRequest}.
+     * Collection of shongo-ids for {@link cz.cesnet.shongo.controller.api.Reservation}s which are provided
+     * to the {@link cz.cesnet.shongo.controller.api.NormalReservationRequest}.
      */
-    public static final String PROVIDED_RESERVATION_IDENTIFIERS = "providedReservationIdentifiers";
+    public static final String PROVIDED_RESERVATION_IDS = "providedReservationIds";
 
     /**
      * Constructor.
@@ -68,35 +69,35 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     }
 
     /**
-     * @return {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     * @return {@link #PROVIDED_RESERVATION_IDS}
      */
-    public List<String> getProvidedReservationIdentifiers()
+    public List<String> getProvidedReservationIds()
     {
-        return getPropertyStorage().getCollection(PROVIDED_RESERVATION_IDENTIFIERS, List.class);
+        return getPropertyStorage().getCollection(PROVIDED_RESERVATION_IDS, List.class);
     }
 
     /**
-     * @param providedReservationIdentifiers sets the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     * @param providedReservationIds sets the {@link #PROVIDED_RESERVATION_IDS}
      */
-    public void setProvidedReservationIdentifiers(List<String> providedReservationIdentifiers)
+    public void setProvidedReservationIds(List<String> providedReservationIds)
     {
-        getPropertyStorage().setCollection(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifiers);
+        getPropertyStorage().setCollection(PROVIDED_RESERVATION_IDS, providedReservationIds);
     }
 
     /**
-     * @param providedReservationIdentifier to be added to the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     * @param providedReservationId to be added to the {@link #PROVIDED_RESERVATION_IDS}
      */
-    public void addProvidedReservationIdentifier(String providedReservationIdentifier)
+    public void addProvidedReservationId(String providedReservationId)
     {
-        getPropertyStorage().addCollectionItem(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier,
+        getPropertyStorage().addCollectionItem(PROVIDED_RESERVATION_IDS, providedReservationId,
                 List.class);
     }
 
     /**
-     * @param providedReservationIdentifier to be removed from the {@link #PROVIDED_RESERVATION_IDENTIFIERS}
+     * @param providedReservationId to be removed from the {@link #PROVIDED_RESERVATION_IDS}
      */
-    public void removeProvidedReservationIdentifier(String providedReservationIdentifier)
+    public void removeProvidedReservationId(String providedReservationId)
     {
-        getPropertyStorage().removeCollectionItem(PROVIDED_RESERVATION_IDENTIFIERS, providedReservationIdentifier);
+        getPropertyStorage().removeCollectionItem(PROVIDED_RESERVATION_IDS, providedReservationId);
     }
 }

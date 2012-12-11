@@ -16,9 +16,9 @@ import java.util.Set;
 public class RoomSpecification extends Specification
 {
     /**
-     * Preferred {@link Resource} identifier with {@link AliasProviderCapability}.
+     * Preferred {@link Resource} shongo-id with {@link AliasProviderCapability}.
      */
-    public static final String RESOURCE_IDENTIFIER = "resourceIdentifier";
+    public static final String RESOURCE_ID = "resourceId";
 
     /**
      * Set of technologies which the virtual rooms must support.
@@ -62,19 +62,19 @@ public class RoomSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_IDENTIFIER}
+     * @return {@link #RESOURCE_ID}
      */
-    public String getResourceIdentifier()
+    public String getResourceId()
     {
-        return getPropertyStorage().getValue(RESOURCE_IDENTIFIER);
+        return getPropertyStorage().getValue(RESOURCE_ID);
     }
 
     /**
-     * @param resourceIdentifier sets the {@link #RESOURCE_IDENTIFIER}
+     * @param resourceId sets the {@link #RESOURCE_ID}
      */
-    public void setResourceIdentifier(String resourceIdentifier)
+    public void setResourceId(String resourceId)
     {
-        getPropertyStorage().setValue(RESOURCE_IDENTIFIER, resourceIdentifier);
+        getPropertyStorage().setValue(RESOURCE_ID, resourceId);
     }
 
     /**
@@ -111,7 +111,7 @@ public class RoomSpecification extends Specification
     }
 
     /**
-     * @return {@link #RESOURCE_IDENTIFIER}
+     * @return {@link #RESOURCE_ID}
      */
     @Required
     public Integer getParticipantCount()

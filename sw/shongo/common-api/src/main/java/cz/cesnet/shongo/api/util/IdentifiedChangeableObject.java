@@ -18,9 +18,9 @@ import java.util.Set;
 public abstract class IdentifiedChangeableObject implements ChangesTracking.Changeable, StructType, Concept
 {
     /**
-     * Identifier.
+     * Id.
      */
-    private String identifier;
+    private String id;
 
     /**
      * Storage for properties.
@@ -62,41 +62,41 @@ public abstract class IdentifiedChangeableObject implements ChangesTracking.Chan
     }
 
     /**
-     * @return {@link #identifier
+     * @return {@link #id
      */
-    public String getIdentifier()
+    public String getId()
     {
-        return identifier;
+        return id;
     }
 
     /**
-     * @param identifier sets the {@link #identifier}
+     * @param id sets the {@link #id}
      */
-    public void setIdentifier(String identifier)
+    public void setId(String id)
     {
-        this.identifier = identifier;
+        this.id = id;
     }
 
     /**
-     * @param identifier sets the {@link #identifier}
+     * @param id sets the {@link #id}
      */
     @SuppressSlot
-    public void setIdentifier(Long identifier)
+    public void setId(Long id)
     {
-        this.identifier = identifier.toString();
+        this.id = id.toString();
     }
 
     /**
-     * @return {@link #identifier} as {@link Long}
+     * @return {@link #id} as {@link Long}
      * @throws IllegalStateException
      */
     public Long notNullIdAsLong()
     {
-        if (identifier == null) {
+        if (id == null) {
             throw new IllegalStateException("Attribute 'id' in entity '" + getClass().getSimpleName()
                     + "' must not be null.");
         }
-        return Long.valueOf(identifier);
+        return Long.valueOf(id);
     }
 
     /**

@@ -33,9 +33,9 @@ public class ReservationRequest extends NormalReservationRequest
     private String stateReport;
 
     /**
-     * Allocated {@link Reservation} identifier.
+     * Allocated {@link Reservation} shongo-id.
      */
-    private String reservationIdentifier;
+    private String reservationId;
 
     /**
      * Constructor.
@@ -129,19 +129,19 @@ public class ReservationRequest extends NormalReservationRequest
     }
 
     /**
-     * @return {@link #reservationIdentifier}
+     * @return {@link #reservationId}
      */
-    public String getReservationIdentifier()
+    public String getReservationId()
     {
-        return reservationIdentifier;
+        return reservationId;
     }
 
     /**
-     * @param reservationIdentifier sets the {@link #reservationIdentifier}
+     * @param reservationId sets the {@link #reservationId}
      */
-    public void setReservationIdentifier(String reservationIdentifier)
+    public void setReservationId(String reservationId)
     {
-        this.reservationIdentifier = reservationIdentifier;
+        this.reservationId = reservationId;
     }
 
     /**

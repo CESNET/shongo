@@ -94,262 +94,262 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceIdentifier)
+    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceId)
             throws FaultException
     {
         authorization.validate(token);
-        return (List<String>) commandDevice(deviceResourceIdentifier, new GetSupportedMethods());
+        return (List<String>) commandDevice(deviceResourceId, new GetSupportedMethods());
     }
 
     @Override
-    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        return (DeviceLoadInfo) commandDevice(deviceResourceIdentifier, new GetDeviceLoadInfo());
+        return (DeviceLoadInfo) commandDevice(deviceResourceId, new GetDeviceLoadInfo());
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException
+    public String dial(SecurityToken token, String deviceResourceId, String address) throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new Dial(address));
+        return (String) commandDevice(deviceResourceId, new Dial(address));
     }
 
     @Override
-    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException
+    public String dial(SecurityToken token, String deviceResourceId, Alias alias) throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new Dial(alias));
+        return (String) commandDevice(deviceResourceId, new Dial(alias));
     }
 
     @Override
-    public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void standBy(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new StandBy());
+        commandDevice(deviceResourceId, new StandBy());
     }
 
     @Override
-    public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException
+    public void hangUp(SecurityToken token, String deviceResourceId, String callId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new HangUp(callId));
+        commandDevice(deviceResourceId, new HangUp(callId));
     }
 
     @Override
-    public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void hangUpAll(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new HangUpAll());
+        commandDevice(deviceResourceId, new HangUpAll());
     }
 
     @Override
-    public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void resetDevice(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new ResetDevice());
+        commandDevice(deviceResourceId, new ResetDevice());
     }
 
     @Override
-    public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void mute(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new Mute());
+        commandDevice(deviceResourceId, new Mute());
     }
 
     @Override
-    public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void unmute(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new Unmute());
+        commandDevice(deviceResourceId, new Unmute());
     }
 
     @Override
-    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level)
+    public void setMicrophoneLevel(SecurityToken token, String deviceResourceId, int level)
             throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new SetMicrophoneLevel(level));
+        commandDevice(deviceResourceId, new SetMicrophoneLevel(level));
     }
 
     @Override
-    public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level) throws FaultException
+    public void setPlaybackLevel(SecurityToken token, String deviceResourceId, int level) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new SetPlaybackLevel(level));
+        commandDevice(deviceResourceId, new SetPlaybackLevel(level));
     }
 
     @Override
-    public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void enableVideo(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new EnableVideo());
+        commandDevice(deviceResourceId, new EnableVideo());
     }
 
     @Override
-    public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void disableVideo(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new DisableVideo());
+        commandDevice(deviceResourceId, new DisableVideo());
     }
 
     @Override
-    public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void startPresentation(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new StartPresentation());
+        commandDevice(deviceResourceId, new StartPresentation());
     }
 
     @Override
-    public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public void stopPresentation(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new StopPresentation());
+        commandDevice(deviceResourceId, new StopPresentation());
     }
 
     @Override
-    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
+    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, String address)
             throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, address));
+        return (String) commandDevice(deviceResourceId, new DialParticipant(roomId, address));
     }
 
     @Override
-    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
+    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
             throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new DialParticipant(roomId, alias));
+        return (String) commandDevice(deviceResourceId, new DialParticipant(roomId, alias));
     }
 
     @Override
-    public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void disconnectParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new DisconnectParticipant(roomId, roomUserId));
+        commandDevice(deviceResourceId, new DisconnectParticipant(roomId, roomUserId));
     }
 
     @Override
-    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier) throws FaultException
+    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        Collection<RoomSummary> rooms = (Collection<RoomSummary>) commandDevice(deviceResourceIdentifier,
+        Collection<RoomSummary> rooms = (Collection<RoomSummary>) commandDevice(deviceResourceId,
                 new ListRooms());
         return rooms;
     }
 
     @Override
-    public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
+    public Room getRoom(SecurityToken token, String deviceResourceId, String roomId) throws FaultException
     {
         authorization.validate(token);
-        return (Room) commandDevice(deviceResourceIdentifier, new GetRoom(roomId));
+        return (Room) commandDevice(deviceResourceId, new GetRoom(roomId));
     }
 
     @Override
-    public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
+    public String createRoom(SecurityToken token, String deviceResourceId, Room room) throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new CreateRoom(room));
+        return (String) commandDevice(deviceResourceId, new CreateRoom(room));
     }
 
     @Override
-    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException
+    public String modifyRoom(SecurityToken token, String deviceResourceId, Room room) throws FaultException
     {
         authorization.validate(token);
-        return (String) commandDevice(deviceResourceIdentifier, new ModifyRoom(room));
+        return (String) commandDevice(deviceResourceId, new ModifyRoom(room));
     }
 
     @Override
-    public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException
+    public void deleteRoom(SecurityToken token, String deviceResourceId, String roomId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new DeleteRoom(roomId));
+        commandDevice(deviceResourceId, new DeleteRoom(roomId));
     }
 
     @Override
-    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
+    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceId, String roomId)
             throws FaultException
     {
         authorization.validate(token);
-        return (List<RoomUser>) commandDevice(deviceResourceIdentifier, new ListParticipants(roomId));
+        return (List<RoomUser>) commandDevice(deviceResourceId, new ListParticipants(roomId));
     }
 
     @Override
-    public RoomUser getParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public RoomUser getParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException
     {
         authorization.validate(token);
-        return (RoomUser) commandDevice(deviceResourceIdentifier, new GetParticipant(roomId, roomUserId));
+        return (RoomUser) commandDevice(deviceResourceId, new GetParticipant(roomId, roomUserId));
     }
 
     @Override
-    public void modifyParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void modifyParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId, Map<String, Object> attributes) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new ModifyParticipant(roomId, roomUserId, attributes));
+        commandDevice(deviceResourceId, new ModifyParticipant(roomId, roomUserId, attributes));
     }
 
     @Override
-    public void muteParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId)
+    public void muteParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId)
             throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new MuteParticipant(roomId, roomUserId));
+        commandDevice(deviceResourceId, new MuteParticipant(roomId, roomUserId));
     }
 
     @Override
-    public void unmuteParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void unmuteParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new UnmuteParticipant(roomId, roomUserId));
+        commandDevice(deviceResourceId, new UnmuteParticipant(roomId, roomUserId));
     }
 
     @Override
-    public void enableParticipantVideo(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void enableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new EnableParticipantVideo(roomId, roomUserId));
+        commandDevice(deviceResourceId, new EnableParticipantVideo(roomId, roomUserId));
     }
 
     @Override
-    public void disableParticipantVideo(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void disableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new DisableParticipantVideo(roomId, roomUserId));
+        commandDevice(deviceResourceId, new DisableParticipantVideo(roomId, roomUserId));
     }
 
     @Override
-    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId, int level) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new SetParticipantMicrophoneLevel(roomId, roomUserId, level));
+        commandDevice(deviceResourceId, new SetParticipantMicrophoneLevel(roomId, roomUserId, level));
     }
 
     @Override
-    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId, int level) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceIdentifier, new SetParticipantPlaybackLevel(roomId, roomUserId, level));
+        commandDevice(deviceResourceId, new SetParticipantPlaybackLevel(roomId, roomUserId, level));
     }
 
     /**
      * Asks the local controller agent to send a command to be performed by a device.
      *
-     * @param deviceResourceIdentifier identifier of device to perform a command
+     * @param deviceResourceId shongo-id of device to perform a command
      * @param action                   command to be performed by the device
      * @throws FaultException
      */
-    private Object commandDevice(String deviceResourceIdentifier, ConnectorAgentAction action) throws FaultException
+    private Object commandDevice(String deviceResourceId, ConnectorAgentAction action) throws FaultException
     {
-        String agentName = getAgentName(deviceResourceIdentifier);
+        String agentName = getAgentName(deviceResourceId);
         Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName, action));
         if (command.getState() == Command.State.SUCCESSFUL) {
             return command.getResult();
@@ -364,22 +364,22 @@ public class ResourceControlServiceImpl extends Component
     /**
      * Gets name of agent managing a given device.
      *
-     * @param deviceResourceIdentifier identifier of device agent of which to get
-     * @return agent name of managed resource with given {@code deviceResourceIdentifier}
+     * @param deviceResourceId shongo-id of device agent of which to get
+     * @return agent name of managed resource with given {@code deviceResourceId}
      * @throws FaultException when resource doesn't exist or when is not managed
      */
-    private String getAgentName(String deviceResourceIdentifier) throws FaultException
+    private String getAgentName(String deviceResourceId) throws FaultException
     {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-        Long deviceResourceId = domain.parseIdentifier(deviceResourceIdentifier);
+        Long id = domain.parseId(deviceResourceId);
         ResourceManager resourceManager = new ResourceManager(entityManager);
-        DeviceResource deviceResource = resourceManager.getDevice(deviceResourceId);
+        DeviceResource deviceResource = resourceManager.getDevice(id);
         entityManager.close();
         Mode mode = deviceResource.getMode();
         if (mode instanceof ManagedMode) {
             ManagedMode managedMode = (ManagedMode) mode;
             return managedMode.getConnectorAgentName();
         }
-        throw new FaultException("Resource '%s' is not managed!", deviceResourceIdentifier);
+        throw new FaultException("Resource '%s' is not managed!", id);
     }
 }

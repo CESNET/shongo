@@ -22,12 +22,12 @@ public class CapabilityState
     Class<? extends Capability> capabilityType;
 
     /**
-     * Map of instances of {@link #capabilityType} by the resource identifiers which have them.
+     * Map of instances of {@link #capabilityType} by the resource ids which have them.
      */
     private Map<Long, Capability> capabilityByResourceId = new HashMap<Long, Capability>();
 
     /**
-     * Map of {@link cz.cesnet.shongo.controller.resource.DeviceResource} identifiers by theirs technology.
+     * Map of {@link cz.cesnet.shongo.controller.resource.DeviceResource} ids by theirs technology.
      */
     private Map<Technology, Set<Long>> deviceResourcesByTechnology = new HashMap<Technology, Set<Long>>();
 
@@ -51,7 +51,7 @@ public class CapabilityState
     }
 
     /**
-     * @return set of resource identifiers which have capability of {@link #capabilityType}
+     * @return set of resource ids which have capability of {@link #capabilityType}
      */
     public Set<Long> getResourceIds()
     {
@@ -60,7 +60,7 @@ public class CapabilityState
 
     /**
      * @param technology
-     * @return set of resource identifiers which have capability of {@link #capabilityType} and given {@code technology}
+     * @return set of resource ids which have capability of {@link #capabilityType} and given {@code technology}
      */
     public Set<Long> getResourceIds(Technology technology)
     {

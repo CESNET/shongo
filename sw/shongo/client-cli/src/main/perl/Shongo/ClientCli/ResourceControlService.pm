@@ -25,7 +25,7 @@ sub populate()
     $shell->add_commands({
         'control-resource' => {
             desc => 'Control existing managed resource',
-            args => '[identifier] [cmd]',
+            args => '[id] [cmd]',
             method => sub {
                 my ($shell, $params, @args) = @_;
 
@@ -48,29 +48,29 @@ sub populate()
 
 sub select_resource($)
 {
-    my ($identifier) = @_;
-    $identifier = console_read_value('Identifier of the resource', 0, $Shongo::Common::IdentifierPattern, $identifier);
-    return $identifier;
+    my ($id) = @_;
+    $id = console_read_value('Identifier of the resource', 0, $Shongo::Common::IdPattern, $id);
+    return $id;
 }
 
 sub control_resource()
 {
-    my ($identifier, $command) = @_;
-    $identifier = select_resource($identifier);
-    if ( !defined($identifier) ) {
+    my ($id, $command) = @_;
+    $id = select_resource($id);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
     if ( $result->is_fault ) {
         return;
     }
     my $resource = Shongo::ClientCli::API::Resource->from_hash($result);
-    my $resourceIdentifier = $resource->get('identifier');
+    my $resourceId = $resource->get('id');
     if ( !(ref($resource->{'mode'}) eq 'HASH') ) {
-        console_print_error("Resource '%s' is not managed!", $resourceIdentifier);
+        console_print_error("Resource '%s' is not managed!", $resourceId);
         return;
     }
 
@@ -88,7 +88,7 @@ sub control_resource()
         }
     });
 
-    my $supportedMethods = resource_get_supported_methods($resourceIdentifier);
+    my $supportedMethods = resource_get_supported_methods($resourceId);
     if ( !defined($supportedMethods) ) {
         return;
     }
@@ -101,7 +101,7 @@ sub control_resource()
                 minargs => 1, args => "[number/address]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_dial($resourceIdentifier, $args[0]);
+                    resource_dial($resourceId, $args[0]);
                 }
             }
         });
@@ -112,7 +112,7 @@ sub control_resource()
                 desc => "Switch to the standby mode",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_standby($resourceIdentifier);
+                    resource_standby($resourceId);
                 }
             }
         });
@@ -125,7 +125,7 @@ sub control_resource()
                 args => "[callId]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_hang_up($resourceIdentifier, $args[0]);
+                    resource_hang_up($resourceId, $args[0]);
                 }
             }
         });
@@ -136,7 +136,7 @@ sub control_resource()
                 desc => "Hang up all calls",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_hang_up_all($resourceIdentifier);
+                    resource_hang_up_all($resourceId);
                 }
             }
         });
@@ -147,7 +147,7 @@ sub control_resource()
                 desc => "Resets the device",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_reset_device($resourceIdentifier);
+                    resource_reset_device($resourceId);
                 }
             }
         });
@@ -158,7 +158,7 @@ sub control_resource()
                 desc => "Mute the device",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_mute($resourceIdentifier);
+                    resource_mute($resourceId);
                 }
             }
         });
@@ -169,7 +169,7 @@ sub control_resource()
                 desc => "Unmute the device",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_unmute($resourceIdentifier);
+                    resource_unmute($resourceId);
                 }
             }
         });
@@ -181,7 +181,7 @@ sub control_resource()
                 minargs => 1, args => "[number]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_set_microphone_level($resourceIdentifier, $args[0]);
+                    resource_set_microphone_level($resourceId, $args[0]);
                 }
             }
         });
@@ -193,7 +193,7 @@ sub control_resource()
                 minargs => 1, args => "[number]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_set_playback_level($resourceIdentifier, $args[0]);
+                    resource_set_playback_level($resourceId, $args[0]);
                 }
             }
         });
@@ -204,7 +204,7 @@ sub control_resource()
                 desc => "Enables video from the endpoint",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_enable_video($resourceIdentifier);
+                    resource_enable_video($resourceId);
                 }
             }
         });
@@ -215,7 +215,7 @@ sub control_resource()
                 desc => "Disables video from the endpoint",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_disable_video($resourceIdentifier);
+                    resource_disable_video($resourceId);
                 }
             }
         });
@@ -226,7 +226,7 @@ sub control_resource()
                 desc => "Starts the presentation mode from the endpoint",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_start_presentation($resourceIdentifier);
+                    resource_start_presentation($resourceId);
                 }
             }
         });
@@ -237,7 +237,7 @@ sub control_resource()
                 desc => "Stops the presentation mode from the endpoint",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_stop_presentation($resourceIdentifier);
+                    resource_stop_presentation($resourceId);
                 }
             }
         });
@@ -250,7 +250,7 @@ sub control_resource()
                 args => '[-roomId] [-target]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_dial_participant($resourceIdentifier, $params->{'options'});
+                    resource_dial_participant($resourceId, $params->{'options'});
                 }
             }
         });
@@ -263,7 +263,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_disconnect_participant($resourceIdentifier, $params->{'options'});
+                    resource_disconnect_participant($resourceId, $params->{'options'});
                 }
             }
         });
@@ -274,7 +274,7 @@ sub control_resource()
                 desc => "List virtual rooms",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_list_rooms($resourceIdentifier);
+                    resource_list_rooms($resourceId);
                 }
             }
         });
@@ -287,7 +287,7 @@ sub control_resource()
                 args => '[<ROOM-ID>] [-roomId <ROOM-ID>]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_get_room($resourceIdentifier, $args[0], $params->{'options'});
+                    resource_get_room($resourceId, $args[0], $params->{'options'});
                 }
             }
         });
@@ -298,7 +298,7 @@ sub control_resource()
                 desc => "Create virtual room",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_create_room($resourceIdentifier);
+                    resource_create_room($resourceId);
                 }
             }
         });
@@ -310,7 +310,7 @@ sub control_resource()
                 args => '[<ROOM-ID>] [-roomId <ROOM-ID>]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_modify_room($resourceIdentifier, $args[0], $params->{'options'});
+                    resource_modify_room($resourceId, $args[0], $params->{'options'});
                 }
             }
         });
@@ -323,7 +323,7 @@ sub control_resource()
                 args => '[-roomId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_delete_room($resourceIdentifier, $params->{'options'});
+                    resource_delete_room($resourceId, $params->{'options'});
                 }
             }
         });
@@ -335,7 +335,7 @@ sub control_resource()
                 minargs => 1, args => "[roomId]",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_list_participants($resourceIdentifier, $args[0]);
+                    resource_list_participants($resourceId, $args[0]);
                 }
             }
         });
@@ -348,7 +348,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_get_participant($resourceIdentifier, $params->{'options'});
+                    resource_get_participant($resourceId, $params->{'options'});
                 }
             }
         });
@@ -361,7 +361,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_modify_participant($resourceIdentifier, $params->{'options'});
+                    resource_modify_participant($resourceId, $params->{'options'});
                 }
             }
         });
@@ -374,7 +374,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_mute_participant($resourceIdentifier, $params->{'options'});
+                    resource_mute_participant($resourceId, $params->{'options'});
                 }
             }
         });
@@ -387,7 +387,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_unmute_participant($resourceIdentifier, $params->{'options'});
+                    resource_unmute_participant($resourceId, $params->{'options'});
                 }
             }
         });
@@ -400,7 +400,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_enable_participant_video($resourceIdentifier, $params->{'options'});
+                    resource_enable_participant_video($resourceId, $params->{'options'});
                 }
             }
         });
@@ -413,7 +413,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_disable_participant_video($resourceIdentifier, $params->{'options'});
+                    resource_disable_participant_video($resourceId, $params->{'options'});
                 }
             }
         });
@@ -426,7 +426,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_set_participant_microphone_level($resourceIdentifier, $params->{'options'});
+                    resource_set_participant_microphone_level($resourceId, $params->{'options'});
                 }
             }
         });
@@ -439,7 +439,7 @@ sub control_resource()
                 args => '[-roomId] [-participantId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_set_participant_playback_level($resourceIdentifier, $params->{'options'});
+                    resource_set_participant_playback_level($resourceId, $params->{'options'});
                 }
             }
         });
@@ -450,7 +450,7 @@ sub control_resource()
                 desc => "Get info about current load of the controlled device",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_get_device_load_info($resourceIdentifier);
+                    resource_get_device_load_info($resourceId);
                 }
             }
         });
@@ -466,11 +466,11 @@ sub control_resource()
 
 sub resource_get_supported_methods
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $response = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.getSupportedMethods',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $response->is_fault() ) {
         return;
@@ -480,11 +480,11 @@ sub resource_get_supported_methods
 
 sub resource_dial
 {
-    my ($resourceIdentifier, $target) = @_;
+    my ($resourceId, $target) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.dial',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($target)
     );
     my $callId = $result->value();
@@ -496,11 +496,11 @@ sub resource_dial
 
 sub resource_standby
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.standBy',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -509,11 +509,11 @@ sub resource_standby
 
 sub resource_hang_up
 {
-    my ($resourceIdentifier, $callId) = @_;
+    my ($resourceId, $callId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.hangUp',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($callId)
     );
     if ($result->is_fault) {
@@ -523,11 +523,11 @@ sub resource_hang_up
 
 sub resource_hang_up_all
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.hangUpAll',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -536,11 +536,11 @@ sub resource_hang_up_all
 
 sub resource_reset_device
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.resetDevice',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault) {
         return;
@@ -549,11 +549,11 @@ sub resource_reset_device
 
 sub resource_mute
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.mute',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -562,11 +562,11 @@ sub resource_mute
 
 sub resource_unmute
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.unmute',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -575,11 +575,11 @@ sub resource_unmute
 
 sub resource_set_microphone_level
 {
-    my ($resourceIdentifier, $level) = @_;
+    my ($resourceId, $level) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.setMicrophoneLevel',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::int->new($level)
     );
     if ( $result->is_fault ) {
@@ -589,11 +589,11 @@ sub resource_set_microphone_level
 
 sub resource_set_playback_level
 {
-    my ($resourceIdentifier, $level) = @_;
+    my ($resourceId, $level) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.setPlaybackLevel',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::int->new($level)
     );
     if ( $result->is_fault ) {
@@ -603,11 +603,11 @@ sub resource_set_playback_level
 
 sub resource_enable_video
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.enableVideo',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -616,11 +616,11 @@ sub resource_enable_video
 
 sub resource_disable_video
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.disableVideo',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -629,11 +629,11 @@ sub resource_disable_video
 
 sub resource_start_presentation
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.startPresentation',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -642,11 +642,11 @@ sub resource_start_presentation
 
 sub resource_stop_presentation
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.stopPresentation',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;
@@ -655,7 +655,7 @@ sub resource_stop_presentation
 
 sub resource_dial_participant
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $target = $attributes->{'target'};
@@ -677,7 +677,7 @@ sub resource_dial_participant
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.dialParticipant',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         $target
     );
@@ -693,14 +693,14 @@ sub resource_dial_participant
 
 sub resource_disconnect_participant
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.disconnectParticipant',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
@@ -708,26 +708,26 @@ sub resource_disconnect_participant
 
 sub select_room
 {
-    my ($identifier, $attributes) = @_;
+    my ($id, $attributes) = @_;
     if ( defined($attributes) && defined($attributes->{'roomId'}) ) {
-        $identifier = $attributes->{'roomId'};
+        $id = $attributes->{'roomId'};
     }
-    $identifier = console_read_value('Identifier of the room', 0, undef, $identifier);
-    return $identifier;
+    $id = console_read_value('Identifier of the room', 0, undef, $id);
+    return $id;
 }
 
 sub resource_get_room
 {
-    my ($resourceIdentifier, $roomIdentifier, $attributes) = @_;
-    $roomIdentifier = select_room($roomIdentifier, $attributes);
-    if ( !defined($resourceIdentifier) || !defined($roomIdentifier) ) {
+    my ($resourceId, $roomId, $attributes) = @_;
+    $roomId = select_room($roomId, $attributes);
+    if ( !defined($resourceId) || !defined($roomId) ) {
         return;
     }
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.getRoom',
-        RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($roomIdentifier)
+        RPC::XML::string->new($resourceId),
+        RPC::XML::string->new($roomId)
     );
     if ( $result->is_fault ) {
         return;
@@ -743,41 +743,41 @@ sub resource_get_room
 
 sub resource_create_room
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     Shongo::ClientCli::API::Room->create(undef, {
         'on_confirm' => sub {
             my ($room) = @_;
             my $result = Shongo::ClientCli->instance()->secure_request(
                 'ResourceControl.createRoom',
-                RPC::XML::string->new($resourceIdentifier),
+                RPC::XML::string->new($resourceId),
                 $room->to_xml()
             );
             if ( $result->is_fault ) {
                 return;
             }
-            my $roomIdentifier = $result->value();
-            if ( !defined($roomIdentifier) ) {
-                $roomIdentifier = '-- None --';
+            my $roomId = $result->value();
+            if ( !defined($roomId) ) {
+                $roomId = '-- None --';
             }
-            printf("Room ID: %s\n", $roomIdentifier);
-            return $roomIdentifier;
+            printf("Room ID: %s\n", $roomId);
+            return $roomId;
         }
     });
 }
 
 sub resource_modify_room
 {
-    my ($resourceIdentifier, $roomIdentifier, $attributes) = @_;
-    $roomIdentifier = select_room($roomIdentifier, $attributes);
-    if ( !defined($resourceIdentifier) || !defined($roomIdentifier) ) {
+    my ($resourceId, $roomId, $attributes) = @_;
+    $roomId = select_room($roomId, $attributes);
+    if ( !defined($resourceId) || !defined($roomId) ) {
         return;
     }
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.getRoom',
-        RPC::XML::string->new($resourceIdentifier),
-        RPC::XML::string->new($roomIdentifier)
+        RPC::XML::string->new($resourceId),
+        RPC::XML::string->new($roomId)
     );
 
     my $options = {};
@@ -785,15 +785,15 @@ sub resource_modify_room
         my ($room) = @_;
         my $response = Shongo::ClientCli->instance()->secure_request(
             'ResourceControl.modifyRoom',
-            RPC::XML::string->new($resourceIdentifier),
+            RPC::XML::string->new($resourceId),
             $room->to_xml()
         );
         if ( !$response->is_fault() ) {
             my $newRoomId = $response->value();
-            if ( $newRoomId ne $roomIdentifier ) {
+            if ( $newRoomId ne $roomId ) {
                 printf("New room ID: %s\n", $newRoomId);
             }
-            return $room->{'identifier'};
+            return $room->{'id'};
         }
         return undef;
     };
@@ -808,24 +808,24 @@ sub resource_modify_room
 
 sub resource_delete_room
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.deleteRoom',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId)
     );
 }
 
 sub resource_list_rooms
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $response = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.listRooms',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $response->is_fault() ) {
         return;
@@ -833,7 +833,7 @@ sub resource_list_rooms
     my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Name', \' | ', 'Start date/time', \' |');
     foreach my $room (@{$response->value()}) {
         $table->add(
-            $room->{'identifier'},
+            $room->{'id'},
             $room->{'name'},
             format_datetime($room->{'startDateTime'})
         );
@@ -843,11 +843,11 @@ sub resource_list_rooms
 
 sub resource_list_participants
 {
-    my ($resourceIdentifier, $roomId) = @_;
+    my ($resourceId, $roomId) = @_;
 
     my $response = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.listParticipants',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId)
     );
     if ( $response->is_fault() ) {
@@ -867,14 +867,14 @@ sub resource_list_participants
 
 sub resource_get_participant
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.getParticipant',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
@@ -901,7 +901,7 @@ sub resource_get_participant
 
 sub resource_modify_participant
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
@@ -934,7 +934,7 @@ sub resource_modify_participant
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.modifyParticipant',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),
         RPC::XML::struct->new(%attributes)
@@ -943,14 +943,14 @@ sub resource_modify_participant
 
 sub resource_mute_participant
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.muteParticipant',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
@@ -958,14 +958,14 @@ sub resource_mute_participant
 
 sub resource_unmute_participant
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.unmuteParticipant',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
@@ -973,14 +973,14 @@ sub resource_unmute_participant
 
 sub resource_enable_participant_video
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.enableParticipantVideo',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
@@ -988,14 +988,14 @@ sub resource_enable_participant_video
 
 sub resource_disable_participant_video
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.disableParticipantVideo',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId)
     );
@@ -1003,7 +1003,7 @@ sub resource_disable_participant_video
 
 sub resource_set_participant_microphone_level
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
@@ -1011,7 +1011,7 @@ sub resource_set_participant_microphone_level
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.setParticipantMicrophoneLevel',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),
         RPC::XML::int->new($level)
@@ -1020,7 +1020,7 @@ sub resource_set_participant_microphone_level
 
 sub resource_set_participant_playback_level
 {
-    my ($resourceIdentifier, $attributes) = @_;
+    my ($resourceId, $attributes) = @_;
 
     my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
     my $participantId = console_read_value('Participant ID', 1, undef, $attributes->{'participantId'});
@@ -1028,7 +1028,7 @@ sub resource_set_participant_playback_level
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.setParticipantPlaybackLevel',
-        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::string->new($resourceId),
         RPC::XML::string->new($roomId),
         RPC::XML::string->new($participantId),
         RPC::XML::int->new($level)
@@ -1037,11 +1037,11 @@ sub resource_set_participant_playback_level
 
 sub resource_get_device_load_info
 {
-    my ($resourceIdentifier) = @_;
+    my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.getDeviceLoadInfo',
-        RPC::XML::string->new($resourceIdentifier)
+        RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault ) {
         return;

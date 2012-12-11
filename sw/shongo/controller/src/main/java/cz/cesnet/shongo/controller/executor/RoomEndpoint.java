@@ -16,7 +16,7 @@ import javax.persistence.Transient;
 public abstract class RoomEndpoint extends Endpoint
 {
     /**
-     * {@link cz.cesnet.shongo.Technology} specific identifier of the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}.
+     * {@link cz.cesnet.shongo.Technology} specific id of the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}.
      */
     private String roomId;
 

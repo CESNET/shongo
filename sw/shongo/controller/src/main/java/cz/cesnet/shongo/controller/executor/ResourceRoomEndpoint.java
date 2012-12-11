@@ -112,11 +112,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         super.toApi(executableApi, domain);
 
         Executable.ResourceRoomEndpoint resourceRoomEndpoint = (Executable.ResourceRoomEndpoint) executableApi;
-        resourceRoomEndpoint.setIdentifier(domain.formatIdentifier(getId()));
+        resourceRoomEndpoint.setId(domain.formatId(getId()));
         resourceRoomEndpoint.setSlot(getSlot());
         resourceRoomEndpoint.setState(getState().toApi());
         resourceRoomEndpoint.setLicenseCount(roomConfiguration.getLicenseCount());
-        resourceRoomEndpoint.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        resourceRoomEndpoint.setResourceId(domain.formatId(getDeviceResource().getId()));
         for (Technology technology : roomConfiguration.getTechnologies()) {
             resourceRoomEndpoint.addTechnology(technology);
         }

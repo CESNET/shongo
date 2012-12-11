@@ -92,7 +92,7 @@ public class ExecutorTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "9500872[dd]"));
-        String aliasProviderIdentifier = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+        String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         DeviceResource terminal = new DeviceResource();
         terminal.setName("terminal");
@@ -100,7 +100,7 @@ public class ExecutorTest extends AbstractControllerTest
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
         terminal.setMode(new ManagedMode(terminalAgent.getName()));
-        String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -108,14 +108,14 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalIdentifier));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalId));
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
         reservationRequest.setSpecification(compartmentSpecification);
         allocateAndCheck(reservationRequest);
@@ -162,7 +162,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
@@ -213,7 +213,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
@@ -271,7 +271,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create virtual room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -281,7 +281,7 @@ public class ExecutorTest extends AbstractControllerTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
-        String roomReservationIdentifier = allocateAndCheck(roomReservationRequest).getIdentifier();
+        String roomReservationId = allocateAndCheck(roomReservationRequest).getId();
 
         // Execute virtual room
         List<ExecutorThread> executorThreads = executor.execute(dateTime);
@@ -300,7 +300,7 @@ public class ExecutorTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.addProvidedReservationIdentifier(roomReservationIdentifier);
+        reservationRequest.addProvidedReservationId(roomReservationId);
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
@@ -341,7 +341,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create virtual room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -351,7 +351,7 @@ public class ExecutorTest extends AbstractControllerTest
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(10);
         roomReservationRequest.setSpecification(roomSpecification);
-        String roomReservationIdentifier = allocateAndCheck(roomReservationRequest).getIdentifier();
+        String roomReservationId = allocateAndCheck(roomReservationRequest).getId();
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -360,7 +360,7 @@ public class ExecutorTest extends AbstractControllerTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
-        reservationRequest.addProvidedReservationIdentifier(roomReservationIdentifier);
+        reservationRequest.addProvidedReservationId(roomReservationId);
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
@@ -399,7 +399,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create virtual room reservation
         ReservationRequest roomReservationRequest = new ReservationRequest();
@@ -410,7 +410,7 @@ public class ExecutorTest extends AbstractControllerTest
         roomSpecification.setParticipantCount(10);
         roomSpecification.addRoomSetting(new RoomSetting.H323().withPin("1234"));
         roomReservationRequest.setSpecification(roomSpecification);
-        String identifier = allocateAndCheck(roomReservationRequest).getIdentifier();
+        String roomReservationRequestId = allocateAndCheck(roomReservationRequest).getId();
 
         // Execute compartment
         List<ExecutorThread> executorThreads = executor.execute(dateTime);
@@ -422,7 +422,7 @@ public class ExecutorTest extends AbstractControllerTest
         Thread.sleep(1000);
 
         // Delete reservation request and the reservation
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, roomReservationRequestId);
         // Run scheduler to modify room ending date/time
         runScheduler();
 

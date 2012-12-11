@@ -43,7 +43,7 @@ public class NotifyReservationTest extends AbstractControllerTest
         terminal.addTechnology(Technology.H323);
         terminal.addCapability(new TerminalCapability());
         terminal.setAllocatable(true);
-        String terminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, terminal);
+        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
 
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
@@ -51,14 +51,14 @@ public class NotifyReservationTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setName("Testing");
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalIdentifier));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalId));
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
         reservationRequest.setSpecification(compartmentSpecification);
 

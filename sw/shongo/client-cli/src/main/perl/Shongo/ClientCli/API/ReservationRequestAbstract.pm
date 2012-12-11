@@ -29,7 +29,8 @@ sub new()
 
     $self->set_object_class('AbstractReservationRequest');
     $self->set_object_name('Reservation Request');
-    $self->add_attribute('identifier', {
+    $self->add_attribute('id', {
+        'title' => 'Identifier',
         'editable' => 0
     });
     $self->add_attribute('userId', {

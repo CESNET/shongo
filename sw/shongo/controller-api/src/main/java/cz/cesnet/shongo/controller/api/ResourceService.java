@@ -24,7 +24,7 @@ public interface ResourceService extends Service
      * @param token    token of the user requesting the operation
      * @param resource resource; should contains all attributes marked as {@link Required}
      *                 in {@link ReservationRequest}
-     * @return the created resource identifier
+     * @return the created resource shongo-id
      */
     @API
     public String createResource(SecurityToken token, Resource resource) throws FaultException;
@@ -47,18 +47,18 @@ public interface ResourceService extends Service
      * The operation is permitted only when the user with the given token is the resource owner and the resource
      * is not user in any future reservation.
      *
-     * @param token              token of the user requesting the operation
-     * @param resourceIdentifier Shongo identifier of the resource to delete
+     * @param token      token of the user requesting the operation
+     * @param resourceId shongo-id of the resource to delete
      */
     @API
-    public void deleteResource(SecurityToken token, String resourceIdentifier) throws FaultException;
+    public void deleteResource(SecurityToken token, String resourceId) throws FaultException;
 
     /**
      * Lists all Shongo-managed resources matching the filter.
      *
-     * @param token token of the user requesting the operation
+     * @param token  token of the user requesting the operation
      * @param filter attributes for filtering resources (map of name => value pairs)::
-     *               -{@code userId}     restricts resource owner by his identifier
+     *               -{@code userId}  restricts resource owner by his user-id
      * @return array of resource summaries
      */
     @API
@@ -67,22 +67,22 @@ public interface ResourceService extends Service
     /**
      * Gets the complete resource object.
      *
-     * @param token              token of the user requesting the operation
-     * @param resourceIdentifier Shongo identifier of the resource to get
+     * @param token      token of the user requesting the operation
+     * @param resourceId shongo-id of the resource to get
      * @return
      */
     @API
-    public Resource getResource(SecurityToken token, String resourceIdentifier) throws EntityNotFoundException;
+    public Resource getResource(SecurityToken token, String resourceId) throws EntityNotFoundException;
 
     /**
      * Gets the information about resource allocations.
      *
-     * @param token              token of the user requesting the operation
-     * @param resourceIdentifier identifier of the resource to get
+     * @param token      token of the user requesting the operation
+     * @param resourceId shongo-id of the resource to get
      * @param interval
-     * @return allocation information of resource with given {@code resourceIdentifier} for given {@code interval}
+     * @return allocation information of resource with given {@code resourceId} for given {@code interval}
      */
     @API
-    public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceIdentifier, Interval interval)
+    public ResourceAllocation getResourceAllocation(SecurityToken token, String resourceId, Interval interval)
             throws EntityNotFoundException;
 }

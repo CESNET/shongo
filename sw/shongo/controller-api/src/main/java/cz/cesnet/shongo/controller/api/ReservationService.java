@@ -21,7 +21,7 @@ public interface ReservationService extends Service
      *
      * @param token              token of the user requesting the operation
      * @param reservationRequest reservation request; should contains all attributes marked as {@link Required}
-     * @return the created reservation request identifier
+     * @return the created reservation request shongo-id
      */
     @API
     public String createReservationRequest(SecurityToken token, AbstractReservationRequest reservationRequest)
@@ -40,11 +40,11 @@ public interface ReservationService extends Service
     /**
      * Deletes a given reservation.
      *
-     * @param token                        token of the user requesting the operation
-     * @param reservationRequestIdentifier Shongo identifier of the reservation to modify
+     * @param token                token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the reservation to modify
      */
     @API
-    public void deleteReservationRequest(SecurityToken token, String reservationRequestIdentifier)
+    public void deleteReservationRequest(SecurityToken token, String reservationRequestId)
             throws FaultException;
 
     /**
@@ -52,7 +52,7 @@ public interface ReservationService extends Service
      *
      * @param token  token of the user requesting the operation
      * @param filter attributes for filtering reservation requests (map of name => value pairs)::
-     *               -{@code userId}     restricts reservation request owner by his identifier
+     *               -{@code userId}     restricts reservation request owner by his user-id
      *               -{@code technology} set of technologies of virtual room or compartment
      * @return collection of reservation requests
      */
@@ -63,31 +63,31 @@ public interface ReservationService extends Service
     /**
      * Gets the complete Reservation object.
      *
-     * @param token                        token of the user requesting the operation
-     * @param reservationRequestIdentifier identifier of the reservation request to get
+     * @param token                token of the user requesting the operation
+     * @param reservationRequestId shongo-id of the reservation request to get
      */
     @API
-    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestIdentifier)
+    public AbstractReservationRequest getReservationRequest(SecurityToken token, String reservationRequestId)
             throws FaultException;
 
     /**
      * @param token
-     * @param reservationIdentifier
-     * @return reservation with given identifier
+     * @param reservationId
+     * @return reservation with given shongo-id
      * @throws FaultException
      */
     @API
-    public Reservation getReservation(SecurityToken token, String reservationIdentifier) throws FaultException;
+    public Reservation getReservation(SecurityToken token, String reservationId) throws FaultException;
 
     /**
      * @param token
-     * @param reservationRequestIdentifier
+     * @param reservationRequestId
      * @return collection of already allocated {@link Reservation}s for given reservation request
      * @throws FaultException
      */
     @API
-    public Collection<Reservation> listReservations(SecurityToken token,
-            String reservationRequestIdentifier) throws FaultException;
+    public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestId)
+            throws FaultException;
 
     /**
      * @param token

@@ -16,7 +16,7 @@ import java.util.Map;
 public abstract class AbstractCache<T extends PersistentObject>
 {
     /**
-     * Map of cached objects by theirs identifiers.
+     * Map of cached objects by theirs ids.
      */
     private Map<Long, T> objectById = new HashMap<Long, T>();
 
@@ -28,7 +28,7 @@ public abstract class AbstractCache<T extends PersistentObject>
     public abstract void loadObjects(EntityManager entityManager);
 
     /**
-     * @param objectId identifier of a cached object
+     * @param objectId id of a cached object
      * @return cached object with given {@code objectId}
      */
     public T getObject(Long objectId)

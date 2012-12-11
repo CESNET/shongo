@@ -23,7 +23,7 @@ import java.util.Map;
 public abstract class AbstractReservationRequest extends ReportablePersistentObject
 {
     /**
-     * Identifier of an user who is owner of the {@link AbstractReservationRequest}.
+     * User-id of an user who is owner of the {@link AbstractReservationRequest}.
      */
     private Long userId;
 
@@ -180,7 +180,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
             throws FaultException
     {
-        api.setIdentifier(domain.formatIdentifier(getId()));
+        api.setId(domain.formatId(getId()));
         api.setUserId(getUserId().intValue());
         api.setCreated(getCreated());
         api.setName(getName());
@@ -207,15 +207,15 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * @param domain to format identifier
+     * @param domain to format shongo-id
      * @return {@link Notification} from this {@link AbstractReservationRequest}
      */
-    public Object toNotification(Domain domain)
+    public ObjectNotification toNotification(Domain domain)
     {
         ObjectNotification notification = new ObjectNotification();
         notification.setName("Reservation request");
         notification.addProperty("Created at", getCreated());
-        notification.addProperty("Identifier", domain.formatIdentifier(getId()));
+        notification.addProperty("Identifier", domain.formatId(getId()));
         notification.addProperty("Name", getName());
         notification.addProperty("Description", getDescription());
         return notification;

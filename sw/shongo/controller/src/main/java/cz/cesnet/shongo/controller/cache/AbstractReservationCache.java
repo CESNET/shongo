@@ -32,7 +32,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
     private DateTime referenceDateTime;
 
     /**
-     * Map of cached object states by theirs identifiers.
+     * Map of cached object states by theirs ids.
      */
     private Map<Long, ObjectState<R>> objectStateById = new HashMap<Long, ObjectState<R>>();
 
@@ -225,7 +225,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
     public static class ObjectState<R extends Reservation>
     {
         /**
-         * Identifier of the cached object.
+         * Id of the cached object.
          */
         private Long objectId;
 
@@ -235,7 +235,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         private RangeSet<R, DateTime> reservations = new RangeSet<R, DateTime>();
 
         /**
-         * Map of reservations by the identifier.
+         * Map of reservations by the id.
          */
         private Map<Long, R> reservationsById = new HashMap<Long, R>();
 

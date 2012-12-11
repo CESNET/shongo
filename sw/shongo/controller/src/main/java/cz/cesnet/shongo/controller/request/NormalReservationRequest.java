@@ -103,12 +103,12 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     }
 
     /**
-     * @param providedReservationIdentifier for {@link cz.cesnet.shongo.controller.reservation.Reservation} to be removed from {@link #providedReservations}
+     * @param providedReservationId for {@link cz.cesnet.shongo.controller.reservation.Reservation} to be removed from {@link #providedReservations}
      */
-    public void removeProvidedReservation(Long providedReservationIdentifier)
+    public void removeProvidedReservation(Long providedReservationId)
     {
         for (int index = 0; index < providedReservations.size(); index++) {
-            if (providedReservations.get(index).getId().equals(providedReservationIdentifier)) {
+            if (providedReservations.get(index).getId().equals(providedReservationId)) {
                 providedReservations.remove(index);
                 break;
             }
@@ -151,7 +151,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         normalReservationRequestApi.setInterDomain(isInterDomain());
         for (Reservation providedReservation : getProvidedReservations()) {
             normalReservationRequestApi
-                    .addProvidedReservationIdentifier(domain.formatIdentifier(providedReservation.getId()));
+                    .addProvidedReservationId(domain.formatId(providedReservation.getId()));
         }
     }
 
@@ -180,20 +180,20 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
 
         // Create/modify provided reservations
         ReservationManager reservationManager = new ReservationManager(entityManager);
-        for (String providedReservationIdentifier : normalReservationRequestApi.getProvidedReservationIdentifiers()) {
-            if (api.isPropertyItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDENTIFIERS,
-                    providedReservationIdentifier)) {
-                Long providedReservationId = domain.parseIdentifier(providedReservationIdentifier);
-                Reservation providedReservation = reservationManager.get(providedReservationId);
+        for (String providedReservationId : normalReservationRequestApi.getProvidedReservationIds()) {
+            if (api.isPropertyItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDS,
+                    providedReservationId)) {
+                Long id = domain.parseId(providedReservationId);
+                Reservation providedReservation = reservationManager.get(id);
                 addProvidedReservation(providedReservation);
             }
         }
         // Delete provided reservations
-        Set<String> apiDeletedProvidedReservationIdentifiers =
-                api.getPropertyItemsMarkedAsDeleted(normalReservationRequestApi.PROVIDED_RESERVATION_IDENTIFIERS);
-        for (String providedReservationIdentifier : apiDeletedProvidedReservationIdentifiers) {
-            Long providedReservationId = domain.parseIdentifier(providedReservationIdentifier);
-            removeProvidedReservation(providedReservationId);
+        Set<String> apiDeletedProvidedReservationIds =
+                api.getPropertyItemsMarkedAsDeleted(normalReservationRequestApi.PROVIDED_RESERVATION_IDS);
+        for (String providedReservationId : apiDeletedProvidedReservationIds) {
+            Long id = domain.parseId(providedReservationId);
+            removeProvidedReservation(id);
         }
     }
 

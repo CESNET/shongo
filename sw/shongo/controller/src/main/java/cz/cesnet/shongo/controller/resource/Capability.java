@@ -99,7 +99,7 @@ public abstract class Capability extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Capability api)
     {
-        api.setIdentifier(getId());
+        api.setId(getId());
     }
 
     /**

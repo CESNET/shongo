@@ -28,9 +28,9 @@ sub new()
 
     $self->set_object_class('PermanentReservationRequest');
     $self->set_object_name('Permanent Reservation Request');
-    $self->add_attribute('resourceIdentifier', {
+    $self->add_attribute('resourceId', {
         'title' => 'Resource',
-        'string-pattern' => $Shongo::Common::IdentifierPattern,
+        'string-pattern' => $Shongo::Common::IdPattern,
         'required' => 1
     });
     $self->add_attribute('slots', {

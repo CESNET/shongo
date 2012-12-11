@@ -27,7 +27,7 @@ public class Authorization
     private static Logger logger = LoggerFactory.getLogger(Authorization.class);
 
     /**
-     * Root user identifier.
+     * Root user-id.
      */
     public static final Long ROOT_USER_ID = (long) 0;
 
@@ -95,7 +95,7 @@ public class Authorization
 
     /**
      * @param securityToken of an user
-     * @return identifier of an user with given {@code securityToken}
+     * @return user-id of an user with given {@code securityToken}
      */
     public Long getUserId(SecurityToken securityToken)
     {

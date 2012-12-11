@@ -29,7 +29,7 @@ import java.util.List;
 public class Reservation extends PersistentObject
 {
     /**
-     * Identifier of an user who is owner of the {@link Reservation}.
+     * User-id of an user who is owner of the {@link Reservation}.
      */
     private Long userId;
 
@@ -346,22 +346,22 @@ public class Reservation extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
     {
-        api.setIdentifier(domain.formatIdentifier(getId()));
+        api.setId(domain.formatId(getId()));
         api.setUserId(getUserId().intValue());
         api.setSlot(getSlot());
         if (getExecutable() != null) {
             api.setExecutable(getExecutable().toApi(domain));
         }
         if (getParentReservation() != null) {
-            api.setParentReservationIdentifier(domain.formatIdentifier(getParentReservation().getId()));
+            api.setParentReservationId(domain.formatId(getParentReservation().getId()));
         }
         for (Reservation childReservation : getChildReservations()) {
-            api.addChildReservationIdentifier(domain.formatIdentifier(childReservation.getId()));
+            api.addChildReservationId(domain.formatId(childReservation.getId()));
         }
     }
 
     /**
-     * @param domain        to format identifier
+     * @param domain        to format shongo-id
      * @param entityManager to load corresponding {@link AbstractReservationRequest}
      * @return {@link Notification} from this {@link AbstractReservationRequest}
      */
@@ -372,7 +372,7 @@ public class Reservation extends PersistentObject
 
         ObjectNotification notification = new ObjectNotification();
         notification.setName("Reservation");
-        notification.addProperty("Identifier", domain.formatIdentifier(getId()));
+        notification.addProperty("Identifier", domain.formatId(getId()));
         notification.addProperty("Start date/time", getSlot().getStart());
         notification.addProperty("Duration", getSlot().toPeriod());
         notification.addProperty("Based on request", reservationRequest.toNotification(domain));

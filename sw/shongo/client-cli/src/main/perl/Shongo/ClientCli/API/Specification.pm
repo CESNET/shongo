@@ -120,9 +120,9 @@ sub on_init()
             });
         }
         case 'ResourceSpecification' {
-            $self->add_attribute('resourceIdentifier', {
+            $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
-                'string-pattern' => $Shongo::Common::IdentifierPattern,
+                'string-pattern' => $Shongo::Common::IdPattern,
                 'required' => 1
             });
         }
@@ -172,9 +172,9 @@ sub on_init()
             });
         }
         case 'ExistingEndpointSpecification' {
-            $self->add_attribute('resourceIdentifier', {
+            $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
-                'string-pattern' => $Shongo::Common::IdentifierPattern,
+                'string-pattern' => $Shongo::Common::IdPattern,
                 'required' => 1
             });
         }
@@ -208,9 +208,9 @@ sub on_init()
                 'type' => 'enum',
                 'enum' => $AliasType
             });
-            $self->add_attribute('resourceIdentifier', {
+            $self->add_attribute('resourceId', {
                 'title' => 'Preferred Resource Identifier',
-                'string-pattern' => $Shongo::Common::IdentifierPattern
+                'string-pattern' => $Shongo::Common::IdPattern
             });
         }
         case 'RoomSpecification' {
@@ -232,9 +232,9 @@ sub on_init()
                 'title' => 'With Alias(es)',
                 'type' => 'bool'
             });
-            $self->add_attribute('resourceIdentifier', {
+            $self->add_attribute('resourceId', {
                 'title' => 'Resource Identifier',
-                'string-pattern' => $Shongo::Common::IdentifierPattern
+                'string-pattern' => $Shongo::Common::IdPattern
             });
         }
     }

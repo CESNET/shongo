@@ -34,12 +34,12 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
         // Interval for which a preprocessor and a scheduler runs and
         // in which the reservation request compartment takes place
         Interval interval = Interval.parse("2012-06-01/2012-06-30T23:59:59");
-        // Identifiers for persons which are requested to participate in the compartment
+        // Ids for persons which are requested to participate in the compartment
         Long personId1 = null;
         Long personId2 = null;
-        // Identifier for reservation request set which is created
+        // Id for reservation request set which is created
         Long reservationRequestSetId = null;
-        // Identifier for reservation request which is created from the reservation request set
+        // Id for reservation request which is created from the reservation request set
         Long reservationRequestId = null;
 
         // ------------

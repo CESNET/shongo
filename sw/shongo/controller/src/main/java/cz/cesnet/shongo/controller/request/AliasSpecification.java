@@ -225,7 +225,7 @@ public class AliasSpecification extends Specification implements ReservationTask
         aliasSpecificationApi.setTechnology(getTechnology());
         aliasSpecificationApi.setAliasType(getAliasType());
         if (getResource() != null) {
-            aliasSpecificationApi.setResourceIdentifier(domain.formatIdentifier(getResource().getId()));
+            aliasSpecificationApi.setResourceId(domain.formatId(getResource().getId()));
         }
         super.toApi(specificationApi, domain);
     }
@@ -243,12 +243,12 @@ public class AliasSpecification extends Specification implements ReservationTask
         if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.ALIAS_TYPE)) {
             setAliasType(aliasSpecificationApi.getAliasType());
         }
-        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.RESOURCE_IDENTIFIER)) {
-            if (aliasSpecificationApi.getResourceIdentifier() == null) {
+        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.RESOURCE_ID)) {
+            if (aliasSpecificationApi.getResourceId() == null) {
                 setResource(null);
             }
             else {
-                Long resourceId = domain.parseIdentifier(aliasSpecificationApi.getResourceIdentifier());
+                Long resourceId = domain.parseId(aliasSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
                 setResource(resourceManager.get(resourceId));
             }

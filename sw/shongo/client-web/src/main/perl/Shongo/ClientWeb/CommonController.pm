@@ -270,9 +270,9 @@ sub get_reservation_request
         $child_request->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$child_request->{'state'}};
 
         # Allocated reservation
-        if ( defined($child_request->{'reservationIdentifier'}) ) {
+        if ( defined($child_request->{'reservationId'}) ) {
             my $reservation = $self->{'application'}->secure_request('Reservation.getReservation',
-                    $child_request->{'reservationIdentifier'});
+                    $child_request->{'reservationId'});
             if ( !($reservation->{'class'} eq 'RoomReservation') ) {
                 $self->error("Allocated reservation should be for room but '$reservation->{'class'}' was present.");
             }

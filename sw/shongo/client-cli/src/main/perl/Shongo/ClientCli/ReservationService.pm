@@ -38,7 +38,7 @@ sub populate()
         },
         'modify-reservation-request' => {
             desc => 'Modify an existing reservation request',
-            args => '[identifier] [<json_attributes>]',
+            args => '[id] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);
@@ -49,12 +49,12 @@ sub populate()
         },
         'delete-reservation-request' => {
             desc => 'Delete an existing reservation request',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        delete_reservation_request($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        delete_reservation_request($id);
                     }
                 } else {
                     delete_reservation_request();
@@ -72,12 +72,12 @@ sub populate()
         },
         'get-reservation-request' => {
             desc => 'Get existing reservation request',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_reservation_request($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_reservation_request($id);
                     }
                 } else {
                     get_reservation_request();
@@ -86,12 +86,12 @@ sub populate()
         },
         'get-reservation-for-request' => {
             desc => 'Get allocated reservations for existing reservation request',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_reservation_for_request($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_reservation_for_request($id);
                     }
                 } else {
                     get_reservation_for_request();
@@ -100,12 +100,12 @@ sub populate()
         },
         'get-reservation' => {
             desc => 'Get existing reservation',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_reservation($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_reservation($id);
                     }
                 } else {
                     get_reservation();
@@ -117,12 +117,12 @@ sub populate()
 
 sub select_reservation_request
 {
-    my ($identifier, $attributes) = @_;
-    if ( defined($attributes) && defined($attributes->{'identifier'}) ) {
-        $identifier = $attributes->{'identifier'};
+    my ($id, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'id'}) ) {
+        $id = $attributes->{'id'};
     }
-    $identifier = console_read_value('Identifier of the reservation request', 0, $Shongo::Common::IdentifierPattern, $identifier);
-    return $identifier;
+    $id = console_read_value('Identifier of the reservation request', 0, $Shongo::Common::IdPattern, $id);
+    return $id;
 }
 
 sub create_reservation_request()
@@ -142,22 +142,22 @@ sub create_reservation_request()
         return undef;
     };
 
-    my $identifier = Shongo::ClientCli::API::ReservationRequestAbstract->create($attributes, $options);
-    if ( defined($identifier) ) {
-        console_print_info("Reservation request '%s' successfully created.", $identifier);
+    my $id = Shongo::ClientCli::API::ReservationRequestAbstract->create($attributes, $options);
+    if ( defined($id) ) {
+        console_print_info("Reservation request '%s' successfully created.", $id);
     }
 }
 
 sub modify_reservation_request()
 {
-    my ($identifier, $attributes, $options) = @_;
-    $identifier = select_reservation_request($identifier, $attributes);
-    if ( !defined($identifier) ) {
+    my ($id, $attributes, $options) = @_;
+    $id = select_reservation_request($id, $attributes);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservationRequest',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
 
     $options->{'on_confirm'} = sub {
@@ -168,7 +168,7 @@ sub modify_reservation_request()
             $reservation_request->to_xml()
         );
         if ( !$response->is_fault() ) {
-            return $reservation_request->{'identifier'};
+            return $reservation_request->{'id'};
         }
         return undef;
     };
@@ -183,14 +183,14 @@ sub modify_reservation_request()
 
 sub delete_reservation_request()
 {
-    my ($identifier) = @_;
-    $identifier = select_reservation_request($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_reservation_request($id);
+    if ( !defined($id) ) {
         return;
     }
     Shongo::ClientCli->instance()->secure_request(
         'Reservation.deleteReservationRequest',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
 }
 
@@ -228,7 +228,7 @@ sub list_reservation_requests()
     };
     foreach my $reservation_request (@{$response->value()}) {
         $table->add(
-            $reservation_request->{'identifier'},
+            $reservation_request->{'id'},
             $application->format_user($reservation_request->{'userId'}),
             format_date($reservation_request->{'created'}),
             $Type->{$reservation_request->{'type'}},
@@ -242,14 +242,14 @@ sub list_reservation_requests()
 
 sub get_reservation_request()
 {
-    my ($identifier) = @_;
-    $identifier = select_reservation_request($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_reservation_request($id);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservationRequest',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
     if ( !$result->is_fault ) {
         my $reservation_request = Shongo::ClientCli::API::ReservationRequestAbstract->from_hash($result);
@@ -261,14 +261,14 @@ sub get_reservation_request()
 
 sub get_reservation_for_request()
 {
-    my ($identifier) = @_;
-    $identifier = select_reservation_request($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_reservation_request($id);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.listReservations',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
     if ( $result->is_fault ) {
         return;
@@ -289,22 +289,22 @@ sub get_reservation_for_request()
 
 sub select_reservation($)
 {
-    my ($identifier) = @_;
-    $identifier = console_read_value('Identifier of the reservation', 0, $Shongo::Common::IdentifierPattern, $identifier);
-    return $identifier;
+    my ($id) = @_;
+    $id = console_read_value('Identifier of the reservation', 0, $Shongo::Common::IdPattern, $id);
+    return $id;
 }
 
 
 sub get_reservation()
 {
-    my ($identifier) = @_;
-    $identifier = select_reservation($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_reservation($id);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.getReservation',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
     if ( !$result->is_fault ) {
         my $reservation = Shongo::ClientCli::API::Reservation->from_hash($result);
