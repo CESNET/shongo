@@ -14,7 +14,7 @@ shongo> create-resource
 \end{verbatim}
 New \gls{g:resource} can be automatically created by typing:
 \begin{verbatim}
-shongo> create-resource -confirm { \
+shongo> create-resource { \
     class: 'DeviceResource', \
     name: 'mcu', \
     allocatable: 1, \
@@ -23,13 +23,12 @@ shongo> create-resource -confirm { \
         connectorAgentName: 'mcu' \
     }, \
     capabilities: [{ \
-        class: 'VirtualRoomsCapability', \
-        portCount: 100 \
+        class: 'RoomProviderCapability', \
+        licenseCount: 100 \
     }, { \
         class: 'AliasProviderCapability', \
-        technology: 'H323', \
-        type: 'E164', \
         patterns: ['9500872[dd]'], \
+        aliases: [{type: 'H323_E164', value: '{value}'}], \
         restrictedToOwnerResource: 1 \
     }] \
 }
@@ -55,7 +54,7 @@ New \gls{g:reservation-request} can be automatically created by typing:
 shongo> create-reservation-request -confirm { \
     class: 'PermanentReservationRequest', \
     name: 'Example', \
-    resourceIdentifier: 'shongo:cz.cesnet:1', \
+    resourceId: 'shongo:cz.cesnet:1', \
     slots: [{ \
         start: '2012-01-01T12:00', \
         duration: 'PT4M' \

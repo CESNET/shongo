@@ -21,7 +21,7 @@ sub new
 {
     my $class = shift;
     my $name = shift;
-    my $self = Term::ShellUI->new(@_, commands => {}, name => $name);
+    my $self = Term::ShellUI->new(@_, commands => {}, name => $name, backslash_continues_command => 1);
 
     $self->{term}->ornaments(0);
 
