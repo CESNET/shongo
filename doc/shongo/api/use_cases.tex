@@ -134,8 +134,8 @@ Shibboleth identity for Adobe Connect) so that Shongo can verify if they are
 connected to the virtual room or not during the conference.
 
 Anonymous unmanaged resources may also be available (completely generic H.323
-enpoint without a number or H.323 ID, or guest user in Adobe Connect) , but
-some functionality may not be available -- when maximum room capacity is
+enpoint without a number or H.323 ID, or guest user in Adobe Connect), but
+some functionality may not be available---when maximum room capacity is
 achieved (or exceeded), anonymous users not be allowed in (or even be
 disconnected in LIFO mode until maximum amount of participants is obeyed).
 
@@ -144,11 +144,10 @@ specifies a class/type of a resource (e.g., H.323 endpoint) and it is up to the
 scheduling to find suitable one (combination of availability and access-level
 for given user),
 
-\item a \emph{implicit specification (ISpec)} -- the user does not specify such
-a resource, but the resource is needed to implement user's request (e.g., if
-user specifies Connect and H.323 endpoints, a gateway/connector is needed to
-implement the translation; if user specifies multiple H.323 endpoints beyond
-MCU-capability of each of them, some MCU is needs to be included).
+\item a \emph{implicit specification (ISpec)} -- the user does not specify 
+the resource, but the resource is needed to implement user's request; e.g., if
+user specifies Adobe Connect endpoints and H.323 endpoints to participate in a conference together, a gateway/connector is needed to
+implement the translation; if user specifies multiple H.323 endpoints, an MCU needs to be included).
 
 \end{compactitem}
 
