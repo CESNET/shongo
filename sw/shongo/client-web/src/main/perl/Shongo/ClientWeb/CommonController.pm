@@ -285,11 +285,17 @@ sub get_reservation_request
                 }
                 if ( $alias->{'type'} eq 'H323_E164' ) {
                     $aliases .= $alias->{'value'};
+                    if ( $state_code ne 'started' ) {
+                        $aliases .= " <span class='muted'>(not available now)</span>";
+                    }
                     $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
                     $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
                 }
                 elsif ( $alias->{'type'} eq 'SIP_URI' ) {
                     $aliases .= 'sip:' . $alias->{'value'};
+                    if ( $state_code ne 'started' ) {
+                        $aliases .= " <span class='muted'>(not available now)</span>";
+                    }
                     $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
                 }
                 elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
