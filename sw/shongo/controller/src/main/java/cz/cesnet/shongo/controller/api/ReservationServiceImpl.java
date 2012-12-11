@@ -237,7 +237,7 @@ public class ReservationServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
-        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
         Set<Technology> technologies = null;
         if (filter != null) {
             if (filter.containsKey("technology")) {
@@ -254,7 +254,7 @@ public class ReservationServiceImpl extends Component
         for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
             ReservationRequestSummary summary = new ReservationRequestSummary();
             summary.setId(domain.formatId(abstractReservationRequest.getId()));
-            summary.setUserId(abstractReservationRequest.getUserId().intValue());
+            summary.setUserId(abstractReservationRequest.getUserId());
 
             Interval earliestSlot = null;
             if (abstractReservationRequest instanceof cz.cesnet.shongo.controller.request.ReservationRequest) {

@@ -70,7 +70,7 @@ public class ResourceManager extends AbstractManager
     /**
      * @return list of all resources in the database
      */
-    public List<Resource> list(Long userId)
+    public List<Resource> list(String userId)
     {
         DatabaseFilter filter = new DatabaseFilter("resource");
         filter.addUserId(userId);

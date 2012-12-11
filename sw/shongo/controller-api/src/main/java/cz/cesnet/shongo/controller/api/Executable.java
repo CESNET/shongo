@@ -21,7 +21,7 @@ public class Executable extends IdentifiedObject
     /**
      * User-id of the owner user.
      */
-    private Integer userId;
+    private String userId;
 
     /**
      * Slot of the {@link cz.cesnet.shongo.controller.api.Executable}.
@@ -36,7 +36,7 @@ public class Executable extends IdentifiedObject
     /**
      * @return {@link #userId}
      */
-    public Integer getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -44,7 +44,7 @@ public class Executable extends IdentifiedObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }

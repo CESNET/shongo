@@ -25,7 +25,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * User-id of an user who is owner of the {@link AbstractReservationRequest}.
      */
-    private Long userId;
+    private String userId;
 
     /**
      * Date/time when the reservation request was created.
@@ -46,7 +46,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @return {@link #userId}
      */
     @Column(nullable = false)
-    public Long getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -54,7 +54,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Long userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -181,7 +181,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
             throws FaultException
     {
         api.setId(domain.formatId(getId()));
-        api.setUserId(getUserId().intValue());
+        api.setUserId(getUserId());
         api.setCreated(getCreated());
         api.setName(getName());
         api.setDescription(getDescription());

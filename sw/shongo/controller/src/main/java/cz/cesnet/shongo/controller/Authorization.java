@@ -29,7 +29,7 @@ public class Authorization
     /**
      * Root user-id.
      */
-    public static final Long ROOT_USER_ID = (long) 0;
+    public static final String ROOT_USER_ID = "0";
 
     /**
      * URL to authorization server.
@@ -97,7 +97,7 @@ public class Authorization
      * @param securityToken of an user
      * @return user-id of an user with given {@code securityToken}
      */
-    public Long getUserId(SecurityToken securityToken)
+    public String getUserId(SecurityToken securityToken)
     {
         // Testing security token represents root user
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
@@ -105,7 +105,7 @@ public class Authorization
         }
 
         try {
-            return Long.valueOf((String) getUserInfo(securityToken).get("id"));
+            return (String) getUserInfo(securityToken).get("id");
         }
         catch (Exception exception) {
             throw new SecurityException("User id cannot be retrieved from the access token '"

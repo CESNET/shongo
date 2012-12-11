@@ -31,7 +31,7 @@ public class Reservation extends PersistentObject
     /**
      * User-id of an user who is owner of the {@link Reservation}.
      */
-    private Long userId;
+    private String userId;
 
     /**
      * @see {@link CreatedBy}.
@@ -67,7 +67,7 @@ public class Reservation extends PersistentObject
      * @return {@link #userId}
      */
     @Column(nullable = false)
-    public Long getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -75,7 +75,7 @@ public class Reservation extends PersistentObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Long userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -347,7 +347,7 @@ public class Reservation extends PersistentObject
     protected void toApi(cz.cesnet.shongo.controller.api.Reservation api, Domain domain)
     {
         api.setId(domain.formatId(getId()));
-        api.setUserId(getUserId().intValue());
+        api.setUserId(getUserId());
         api.setSlot(getSlot());
         if (getExecutable() != null) {
             api.setExecutable(getExecutable().toApi(domain));

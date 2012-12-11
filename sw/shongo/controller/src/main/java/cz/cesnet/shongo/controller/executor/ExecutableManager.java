@@ -103,7 +103,7 @@ public class ExecutableManager extends AbstractManager
     /**
      * @return list of all allocated {@link Executable}s
      */
-    public List<Executable> list(Long userId)
+    public List<Executable> list(String userId)
     {
         DatabaseFilter filter = new DatabaseFilter("executable");
         filter.addUserId(userId);

@@ -13,7 +13,7 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     /**
      * User-id of the owner user.
      */
-    private Integer userId;
+    private String userId;
 
     /**
      * Date/time when the reservation request was created.
@@ -40,7 +40,7 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     /**
      * @return {@link #userId}
      */
-    public Integer getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -48,7 +48,7 @@ public abstract class AbstractReservationRequest extends IdentifiedChangeableObj
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }

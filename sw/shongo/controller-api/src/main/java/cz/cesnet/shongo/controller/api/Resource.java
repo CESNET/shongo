@@ -20,7 +20,7 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * User-id of the owner user.
      */
-    private Integer userId;
+    private String userId;
 
     /**
      * Parent resource shongo-id for the resource.
@@ -60,7 +60,7 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @return {@link #userId}
      */
-    public Integer getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -68,7 +68,7 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }

@@ -24,7 +24,7 @@ public abstract class Executable extends PersistentObject
     /**
      * User-id of an user who is owner of the {@link Executable}.
      */
-    private Long userId;
+    private String userId;
 
     /**
      * Interval start date/time.
@@ -50,7 +50,7 @@ public abstract class Executable extends PersistentObject
      * @return {@link #userId}
      */
     @Column(nullable = false)
-    public Long getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -58,7 +58,7 @@ public abstract class Executable extends PersistentObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Long userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -214,7 +214,7 @@ public abstract class Executable extends PersistentObject
     public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
     {
         executableApi.setId(domain.formatId(getId()));
-        executableApi.setUserId(getUserId().intValue());
+        executableApi.setUserId(getUserId());
     }
 
     /**

@@ -221,7 +221,7 @@ public abstract class ReservationTask
         /**
          * {@link Reservation} owner user id.
          */
-        private Long userId;
+        private String userId;
 
         /**
          * @see Cache
@@ -244,7 +244,7 @@ public abstract class ReservationTask
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
          */
-        public Context(Long userId, Cache cache, Interval interval)
+        public Context(String userId, Cache cache, Interval interval)
         {
             this.userId = userId;
             this.cache = cache;
@@ -265,7 +265,7 @@ public abstract class ReservationTask
         /**
          * @return {@link #userId}
          */
-        public Long getUserId()
+        public String getUserId()
         {
             return userId;
         }

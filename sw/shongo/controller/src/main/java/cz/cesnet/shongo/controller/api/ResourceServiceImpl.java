@@ -231,14 +231,14 @@ public class ResourceServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ResourceManager resourceManager = new ResourceManager(entityManager);
 
-        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
         List<cz.cesnet.shongo.controller.resource.Resource> list = resourceManager.list(userId);
 
         List<ResourceSummary> summaryList = new ArrayList<ResourceSummary>();
         for (cz.cesnet.shongo.controller.resource.Resource resource : list) {
             ResourceSummary summary = new ResourceSummary();
             summary.setId(domain.formatId(resource.getId()));
-            summary.setUserId(resource.getUserId().intValue());
+            summary.setUserId(resource.getUserId());
             summary.setName(resource.getName());
             if (resource instanceof DeviceResource) {
                 StringBuilder stringBuilder = new StringBuilder();

@@ -28,7 +28,7 @@ public class Resource extends PersistentObject
     /**
      * User-id of an user who is owner of the {@link Resource}.
      */
-    private Long userId;
+    private String userId;
 
     /**
      * Name of a resource that is visible to users.
@@ -83,7 +83,7 @@ public class Resource extends PersistentObject
      * @return {@link #userId}
      */
     @Column(nullable = false)
-    public Long getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -91,7 +91,7 @@ public class Resource extends PersistentObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Long userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -397,7 +397,7 @@ public class Resource extends PersistentObject
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager, Domain domain)
     {
         resource.setId(domain.formatId(getId()));
-        resource.setUserId(getUserId().intValue());
+        resource.setUserId(getUserId());
         resource.setName(getName());
         resource.setAllocatable(isAllocatable());
         resource.setDescription(getDescription());
