@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.connector;
 
-import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
@@ -581,8 +580,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         HostTrustManager.addTrustedHost(info.getDeviceAddress().getHost());
 
         HashMap<String, String> loginAtributes = new HashMap<String, String>();
-        loginAtributes.put("login", login);
-        loginAtributes.put("password", password);
+        loginAtributes.put("login", this.login);
+        loginAtributes.put("password", this.password);
 
         URLConnection conn;
         try {
@@ -598,7 +597,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
                 throw new RuntimeException("Login to server " + info.getDeviceAddress() + " failed");
             } else {
-                logger.info(String.format("Login on server %s succeeded", info.getDeviceAddress()));
+                logger.info(String.format("Login to server %s succeeded", info.getDeviceAddress()));
             }
         }
         catch (Exception exception) {
@@ -641,6 +640,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         this.breezesession = null;
     }
 
+    /**
+     * Execute command on Adobe Connect server and returns XML response. Throws CommandException when some error on Adobe Connect server occured or some parser error occured.
+     *
+     * @param action name of Adobe Connect action
+     * @param attributes atrtributes of action
+     * @return XML action response
+     * @throws CommandException
+     */
     protected Element request(String action, Map<String, String> attributes) throws CommandException
     {
         try {
@@ -650,6 +657,10 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 }
                 else {
                     login();
+                }
+            } else {
+                if (!action.equals("common-info")) {
+                    this.reconnect();
                 }
             }
 
@@ -701,6 +712,21 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
+    /**
+     *  If login, password and address is present check if connector is still connected. If necessary reconnects.
+     */
+    private void reconnect() throws CommandException
+    {
+        if (this.getConnectorInfo().getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED) {
+            Element response = this.request("common-info",null);
+
+            if (response.getChild("common").getChild("user") == null)
+                logger.info(String.format("Reconnecting to server %s", info.getDeviceAddress()));
+                this.breezesession = null;
+                this.login();
+        }
+    }
+
     private boolean isError(Document result) {
         Element status = result.getRootElement().getChild("status");
 
@@ -712,32 +738,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         try {
             String server = "actest-w3.cesnet.cz";
 
-            new SAXParserFactoryImpl();
-
             AdobeConnectConnector acc = new AdobeConnectConnector();
             Address address = new Address(server, 443);
 
             acc.connect(address,"admin","cip9skovi3t2");
 
-            System.out.println(acc.getConnectorInfo());
-//            String str = acc.exportRoomSettings("42108");
-//            acc.importRoomSettings("42108",str);
+            Thread.sleep(300100);
 
-//            System.out.println(acc.getSupportedMethods());
+            Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
+            room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_NAME,"a6qv")); }});
+            room.setOption(Room.Option.PARTICIPANTS,new ArrayList<String>() {{ add("pavelka@cesnet.cz"); }});
+
+            String scoId = acc.createRoom(room);
+
+            System.out.println(scoId);
+            acc.deleteRoom(scoId);
 
 
-//            acc.deleteRoom(scoId);
-/*            Room r = new Room("test",0);
-            acc.createRoom(r);
-
-            System.out.println(r.getIdentifier());
-            System.out.println("mezera");
-            System.out.println(r.getOptions());
-
-            acc.deleteRoom(r.getIdentifier());
-
-            System.out.println(acc.getRoomList());
-*/
 
             acc.disconnect();
 
