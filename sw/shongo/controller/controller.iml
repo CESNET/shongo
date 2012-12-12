@@ -61,6 +61,7 @@
     <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.7" level="project" />
     <orderEntry type="module" module-name="connector-api" />
     <orderEntry type="module" module-name="controller-api" />
+    <orderEntry type="library" name="Maven: sun.jdk:tools:1.6.0" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-core:3.1.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-asm:3.1.1.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.hibernate:hibernate-entitymanager:4.1.1.Final" level="project" />

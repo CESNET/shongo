@@ -69,7 +69,7 @@ public interface ResourceService extends Service
      *
      * @param token      token of the user requesting the operation
      * @param resourceId shongo-id of the resource to get
-     * @return
+     * @return the complete resource object
      */
     @API
     public Resource getResource(SecurityToken token, String resourceId) throws EntityNotFoundException;
