@@ -68,7 +68,7 @@ public class ResourceReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.ResourceReservation resourceReservationApi =
                 (cz.cesnet.shongo.controller.api.ResourceReservation) api;
-        resourceReservationApi.setResourceIdentifier(domain.formatIdentifier(getResource().getId()));
+        resourceReservationApi.setResourceId(domain.formatId(getResource().getId()));
         resourceReservationApi.setResourceName(getResource().getName());
         super.toApi(api, domain);
     }

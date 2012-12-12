@@ -75,7 +75,7 @@ public class Executor extends Component
     private Duration executableWaitingEnd;
 
     /**
-     * Map of executed {@link ExecutorThread}s by {@link cz.cesnet.shongo.controller.executor.Compartment} identifiers.
+     * Map of executed {@link ExecutorThread}s by {@link cz.cesnet.shongo.controller.executor.Compartment} shongo-ids.
      */
     private Map<Long, ExecutorThread> executorThreadById = new HashMap<Long, ExecutorThread>();
 

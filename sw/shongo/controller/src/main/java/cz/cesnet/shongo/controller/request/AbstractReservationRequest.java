@@ -23,9 +23,9 @@ import java.util.Map;
 public abstract class AbstractReservationRequest extends ReportablePersistentObject
 {
     /**
-     * Identifier of an user who is owner of the {@link AbstractReservationRequest}.
+     * User-id of an user who is owner of the {@link AbstractReservationRequest}.
      */
-    private Long userId;
+    private String userId;
 
     /**
      * Date/time when the reservation request was created.
@@ -46,7 +46,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * @return {@link #userId}
      */
     @Column(nullable = false)
-    public Long getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -54,7 +54,7 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Long userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -180,8 +180,8 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     protected void toApi(cz.cesnet.shongo.controller.api.AbstractReservationRequest api, Domain domain)
             throws FaultException
     {
-        api.setIdentifier(domain.formatIdentifier(getId()));
-        api.setUserId(getUserId().intValue());
+        api.setId(domain.formatId(getId()));
+        api.setUserId(getUserId());
         api.setCreated(getCreated());
         api.setName(getName());
         api.setDescription(getDescription());
@@ -207,15 +207,15 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     }
 
     /**
-     * @param domain to format identifier
+     * @param domain to format shongo-id
      * @return {@link Notification} from this {@link AbstractReservationRequest}
      */
-    public Object toNotification(Domain domain)
+    public ObjectNotification toNotification(Domain domain)
     {
         ObjectNotification notification = new ObjectNotification();
         notification.setName("Reservation request");
         notification.addProperty("Created at", getCreated());
-        notification.addProperty("Identifier", domain.formatIdentifier(getId()));
+        notification.addProperty("Identifier", domain.formatId(getId()));
         notification.addProperty("Name", getName());
         notification.addProperty("Description", getDescription());
         return notification;

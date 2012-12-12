@@ -176,7 +176,7 @@ public class Person extends PersistentObject implements Cloneable
     public cz.cesnet.shongo.controller.api.Person toApi()
     {
         cz.cesnet.shongo.controller.api.Person person = new cz.cesnet.shongo.controller.api.Person();
-        person.setIdentifier(getId());
+        person.setId(getId());
         person.setName(getName());
         person.setEmail(getEmail());
         return person;

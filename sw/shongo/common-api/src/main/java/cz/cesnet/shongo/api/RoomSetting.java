@@ -2,6 +2,8 @@ package cz.cesnet.shongo.api;
 
 import cz.cesnet.shongo.api.util.IdentifiedChangeableObject;
 
+import java.util.List;
+
 /**
  * Represents a setting for a virtual room.
  *
@@ -43,6 +45,41 @@ public abstract class RoomSetting extends IdentifiedChangeableObject
         public void setPin(String pin)
         {
             getPropertyStorage().setValue(PIN, pin);
+        }
+    }
+
+    /**
+     * Represents a {@link RoomSetting} for a {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
+     */
+    public static class AdobeConnect extends RoomSetting
+    {
+        /**
+         * List of participants which are allowed to enter the room.
+         */
+        public static final String PARTICIPANTS = "participants";
+
+        /**
+         * @return {@link #PARTICIPANTS}
+         */
+        public List<String> getParticipants()
+        {
+            return getPropertyStorage().getCollection(PARTICIPANTS, List.class);
+        }
+
+        /**
+         * @param participant to be added to the {@link #PARTICIPANTS}
+         */
+        public void addParticipant(String participant)
+        {
+            getPropertyStorage().addCollectionItem(PARTICIPANTS, participant, List.class);
+        }
+
+        /**
+         * @param participants sets the {@link #PARTICIPANTS}
+         */
+        public void setParticipants(List<String> participants)
+        {
+            getPropertyStorage().setCollection(PARTICIPANTS, participants);
         }
     }
 }

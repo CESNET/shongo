@@ -1,7 +1,7 @@
 package cz.cesnet.shongo.fault;
 
 /**
- * Exception to be thrown when an entity with an identifier hasn't been found.
+ * Exception to be thrown when an entity with an id hasn't been found.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -13,9 +13,9 @@ public class EntityNotFoundException extends FaultException
     private Class entityType;
 
     /**
-     * Unique identifier of the entity.
+     * Id of the entity.
      */
-    private String entityIdentifier;
+    private String entityId;
 
     /**
      * Constructor.
@@ -28,23 +28,23 @@ public class EntityNotFoundException extends FaultException
      * Constructor.
      *
      * @param entityType       sets the {@link #entityType}
-     * @param entityIdentifier sets the {@link #entityIdentifier}
+     * @param entityId sets the {@link #entityId}
      */
-    public EntityNotFoundException(Class entityType, String entityIdentifier)
+    public EntityNotFoundException(Class entityType, String entityId)
     {
         this.entityType = entityType;
-        this.entityIdentifier = entityIdentifier;
+        this.entityId = entityId;
     }
 
     /**
      * Constructor.
      *
      * @param entityType       sets the {@link #entityType}
-     * @param entityIdentifier sets the {@link #entityIdentifier}
+     * @param entityId sets the {@link #entityId}
      */
-    public EntityNotFoundException(Class entityType, Long entityIdentifier)
+    public EntityNotFoundException(Class entityType, Long entityId)
     {
-        this(entityType, entityIdentifier.toString());
+        this(entityType, entityId.toString());
     }
 
     /**
@@ -56,11 +56,11 @@ public class EntityNotFoundException extends FaultException
     }
 
     /**
-     * @return {@link #entityIdentifier}
+     * @return {@link #entityId}
      */
-    public String getEntityIdentifier()
+    public String getEntityId()
     {
-        return entityIdentifier;
+        return entityId;
     }
 
     @Override
@@ -73,6 +73,6 @@ public class EntityNotFoundException extends FaultException
     public String getMessage()
     {
         return CommonFault.formatMessage("Entity '%s' with identifier '%s' doesn't exist.",
-                entityType, entityIdentifier);
+                entityType, entityId);
     }
 }

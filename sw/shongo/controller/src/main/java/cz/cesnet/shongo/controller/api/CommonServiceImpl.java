@@ -125,7 +125,7 @@ public class CommonServiceImpl extends Component
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
-                connector.setResourceIdentifier(domain.formatIdentifier(deviceResource.getId()));
+                connector.setResourceId(domain.formatId(deviceResource.getId()));
                 deviceResourceMap.remove(agentName);
             }
 
@@ -135,7 +135,7 @@ public class CommonServiceImpl extends Component
         for (Map.Entry<String, DeviceResource> entry : deviceResourceMap.entrySet()) {
             Connector connector = new Connector();
             connector.setName(entry.getKey());
-            connector.setResourceIdentifier(domain.formatIdentifier(entry.getValue().getId()));
+            connector.setResourceId(domain.formatId(entry.getValue().getId()));
             connector.setStatus(Connector.Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }

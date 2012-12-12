@@ -8,7 +8,7 @@ package cz.cesnet.shongo.controller.api;
 public class ExistingReservation extends Reservation
 {
     /**
-     * Identifier of the {@link Reservation}.
+     * {@link Reservation}.
      */
     private Reservation reservation;
 

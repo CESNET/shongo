@@ -31,29 +31,29 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         Resource resource = new Resource();
         resource.setName("resource");
         resource.setAllocatable(true);
-        String resourceIdentifier = getResourceService().createResource(SECURITY_TOKEN, resource);
+        String resourceId = getResourceService().createResource(SECURITY_TOKEN, resource);
 
         PermanentReservationRequest reservationRequest = new PermanentReservationRequest();
         reservationRequest.addSlot(new DateTimeSlot(
                 new PeriodicDateTime("2012-01-01T00:00", "PT2H", "2012-01-01"), Period.parse("PT1H")));
-        reservationRequest.setResourceIdentifier(resourceIdentifier);
+        reservationRequest.setResourceId(resourceId);
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         runPreprocessor(Interval.parse("2012-01-01T00:00/2012-01-01T08:00"));
-        assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, id).size());
 
         runPreprocessor(Interval.parse("2012-01-01T08:00/2012-01-01T16:00"));
-        assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, id).size());
 
         runPreprocessor(Interval.parse("2012-01-01T16:00/2012-01-01T23:59"));
-        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, id).size());
 
         runPreprocessor();
-        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, id).size());
 
         List<Reservation> reservations = new ArrayList<Reservation>(
-                getReservationService().listReservations(SECURITY_TOKEN, identifier));
+                getReservationService().listReservations(SECURITY_TOKEN, id));
         Collections.sort(reservations, new Comparator<Reservation>()
         {
             @Override
@@ -64,7 +64,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         });
         for (int index = 0; index < 12; index++) {
             ResourceReservation resourceReservation = (ResourceReservation) reservations.get(index);
-            assertEquals(resourceIdentifier, resourceReservation.getResourceIdentifier());
+            assertEquals(resourceId, resourceReservation.getResourceId());
             String slot = String.format("2012-01-01T%02d:00/2012-01-01T%02d:00", index * 2, index * 2 + 1);
             assertEquals(Interval.parse(slot).toString(), resourceReservation.getSlot().toString());
         }
@@ -81,50 +81,50 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         Resource firstResource = new Resource();
         firstResource.setName("firstResource");
         firstResource.setAllocatable(true);
-        String firstResourceIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstResource);
+        String firstResourceId = getResourceService().createResource(SECURITY_TOKEN, firstResource);
 
         Resource secondResource = new Resource();
         secondResource.setName("secondResource");
         secondResource.setAllocatable(true);
-        String secondResourceIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondResource);
+        String secondResourceId = getResourceService().createResource(SECURITY_TOKEN, secondResource);
 
         PermanentReservationRequest reservationRequest = new PermanentReservationRequest();
         reservationRequest.addSlot("2012-01-01T12:00", "PT1H");
         reservationRequest.addSlot("2012-01-02T12:00", "PT1H");
-        reservationRequest.setResourceIdentifier(firstResourceIdentifier);
+        reservationRequest.setResourceId(firstResourceId);
 
         // Create permanent reservation request
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         // Check created reservations
         runPreprocessor();
-        assertEquals(2, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        assertEquals(2, getReservationService().listReservations(SECURITY_TOKEN, id).size());
 
         // Remove slot from the request
         reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, identifier);
+                SECURITY_TOKEN, id);
         reservationRequest.removeSlot(reservationRequest.getSlots().get(1));
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         // Check deleted reservation
         runPreprocessor();
-        assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, identifier).size());
+        assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, id).size());
 
         // Change resource in the request
         reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(
-                SECURITY_TOKEN, identifier);
-        reservationRequest.setResourceIdentifier(secondResourceIdentifier);
+                SECURITY_TOKEN, id);
+        reservationRequest.setResourceId(secondResourceId);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         // Check modified reservation
         runPreprocessor();
-        Collection<Reservation> reservations = getReservationService().listReservations(SECURITY_TOKEN, identifier);
+        Collection<Reservation> reservations = getReservationService().listReservations(SECURITY_TOKEN, id);
         assertEquals(1, reservations.size());
         ResourceReservation resourceReservation = (ResourceReservation) reservations.iterator().next();
-        assertEquals(secondResourceIdentifier, resourceReservation.getResourceIdentifier());
+        assertEquals(secondResourceId, resourceReservation.getResourceId());
 
         // Delete the request
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
 
         // Check deleted reservation
         runScheduler();
@@ -145,7 +145,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.setAllocatable(true);
-        String mcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest firstReservationRequest = new ReservationRequest();
         firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -154,21 +154,21 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         firstReservationRequest.setSpecification(compartmentSpecification);
 
-        String firstReservationRequestIdentifier = allocate(firstReservationRequest);
-        checkAllocated(firstReservationRequestIdentifier);
+        String firstReservationRequestId = allocate(firstReservationRequest);
+        checkAllocated(firstReservationRequestId);
 
         PermanentReservationRequest secondReservationRequest = new PermanentReservationRequest();
         secondReservationRequest.addSlot("2012-06-22T14:00", "PT2H");
-        secondReservationRequest.setResourceIdentifier(mcuIdentifier);
+        secondReservationRequest.setResourceId(mcuId);
 
-        String secondReservationRequestIdentifier = allocate(secondReservationRequest);
+        String secondReservationRequestId = allocate(secondReservationRequest);
         runPreprocessor();
-        checkAllocationFailed(secondReservationRequestIdentifier);
+        checkAllocationFailed(secondReservationRequestId);
 
-        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestIdentifier);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, firstReservationRequestId);
         runScheduler();
 
-        reallocate(secondReservationRequestIdentifier);
-        checkAllocated(secondReservationRequestIdentifier);
+        reallocate(secondReservationRequestId);
+        checkAllocated(secondReservationRequestId);
     }
 }

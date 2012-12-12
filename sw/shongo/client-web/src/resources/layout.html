@@ -2,31 +2,79 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>[% title %]</title>
-    <link href="/css/style.css" rel="stylesheet" type="text/css"/>
+    <title>Shongo[% IF title %] - [% title %][% END %]</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/css/application.css" rel="stylesheet" type="text/css"/>
+    <script src="/js/jquery/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
 [% IF options.jquery -%]
     <link rel="stylesheet" href="/css/jquery/jquery.css"/>
-    <script src="/js/jquery/jquery.min.js"></script>
     <script src="/js/jquery/jquery-ui.min.js"></script>
     <script src="/js/jquery/jquery-ui-timepicker.js"></script>
 [%- END -%]
+    <style type="text/css">
+        html, body, .container, .content {
+            height: 100%;
+        }
+        .container, .content {
+            position: relative;
+        }
+        .proper-content {
+            padding-top: 45px; /* >= navbar height */
+            padding-bottom: 10px;
+        }
+        .wrapper {
+            min-height: 100%;
+            height: auto !important;
+            height: 100%;
+            margin: 0 auto -103px; /* same as the footer */
+        }
+        .push {
+            height: 103px; /* same as the footer */
+        }
+        .footer {
+            background-color: #f5f5f5;
+            position: relative;
+            height: 103px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-<div class="user">
-[%- IF session.user %]
-    Logged in as [% session.user.name %] <div class="menu-separator"></div> <a href="/sign-out">Sign out</a>
-[%- ELSE %]
-    <a href="/sign-in">Sign in</a>
-[%- END %]
+<div class="navbar  navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="navbar-text pull-right">
+            [%- IF session.user %]
+            Logged in as [% session.user.name %] <a href="/sign-out">Sign out</a>
+            [%- ELSE %]
+            <a href="/sign-in">Sign in</a>
+            [%- END %]
+        </div>
+        <div class="container">
+            <a class="brand" href="/">Shongo Reservation System</a>
+            <div class="nav-collapse collapse">
+                <ul class="nav">
+                    <li [% IF location == '' %]class="active"[% END %]><a href="/">Home</a></li>
+                    <li [% IF location == '/h323-sip' %]class="active"[% END %]><a href="/h323-sip">H.323/SIP conferences</a></li>
+                    <li [% IF location == '/adobe-connect' %]class="active"[% END %]><a href="/adobe-connect">Adobe Connect conferences</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </div>
 </div>
-<h1>Shongo Reservation System</h1>
-<div class="menu">
-    <a href="/h323-sip">H.323/SIP video conferences</a>
-    <div class="menu-separator"></div>
-    <a href="/adobe-connect">Adobe Connect video conferences</a>
-</div>
+
 <div class="content">
-    [%- content %]
+    <div class="wrapper">
+        <div class="proper-content">
+            <div class="container">
+                [%- content %]
+            </div>
+        </div>
+        <div class="push"></div>
+    </div>
+    <div class="footer" >
+        <p class="muted">&copy; 2012&nbsp;&nbsp;&nbsp;<a title="CESNET" href="http://www.cesnet.cz/"><img src="/img/cesnet.gif" alt="CESNET, z.s.p.o."/></a></p>
+    </div>
 </div>
 </body>
 </html>

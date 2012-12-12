@@ -103,7 +103,7 @@ public class Alias extends PersistentObject implements Cloneable
     public cz.cesnet.shongo.api.Alias toApi()
     {
         cz.cesnet.shongo.api.Alias api = new cz.cesnet.shongo.api.Alias();
-        api.setIdentifier(getId());
+        api.setId(getId());
         api.setType(getType());
         api.setValue(getValue());
         return api;

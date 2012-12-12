@@ -24,7 +24,7 @@ sub populate()
     $shell->add_commands({
         'delete-executable' => {
             desc => 'Delete an existing executable',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 delete_executable($args[0]);
@@ -41,12 +41,12 @@ sub populate()
         },
         'get-executable' => {
             desc => 'Get existing executable',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_executable($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_executable($id);
                     }
                 } else {
                     get_executable();
@@ -58,21 +58,21 @@ sub populate()
 
 sub select_executable($)
 {
-    my ($identifier) = @_;
-    $identifier = console_read_value('Identifier of the executable', 0, $Shongo::Common::IdentifierPattern, $identifier);
-    return $identifier;
+    my ($id) = @_;
+    $id = console_read_value('Identifier of the executable', 0, $Shongo::Common::IdPattern, $id);
+    return $id;
 }
 
 sub delete_executable()
 {
-    my ($identifier) = @_;
-    $identifier = select_executable($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_executable($id);
+    if ( !defined($id) ) {
         return;
     }
     Shongo::ClientCli->instance()->secure_request(
         'Executable.deleteExecutable',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
 }
 
@@ -105,7 +105,7 @@ sub list_executables()
             $type = 'Virtual Room';
         }
         $table->add(
-            $executable->{'identifier'},
+            $executable->{'id'},
             $application->format_user($executable->{'userId'}),
             $type,
             format_interval($executable->{'slot'}),
@@ -117,14 +117,14 @@ sub list_executables()
 
 sub get_executable()
 {
-    my ($identifier) = @_;
-    $identifier = select_executable($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_executable($id);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Executable.getExecutable',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
     if ( !$result->is_fault ) {
         my $executable = Shongo::ClientCli::API::Executable->from_hash($result);

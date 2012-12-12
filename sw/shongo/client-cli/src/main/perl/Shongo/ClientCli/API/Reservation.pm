@@ -37,7 +37,7 @@ sub new()
 
     $self->set_object_name('Reservation');
     $self->set_object_class('Reservation');
-    $self->add_attribute('identifier');
+    $self->add_attribute('id', {'title' => 'Identifier'});
     $self->add_attribute('slot', {
         'type' => 'interval'
     });
@@ -47,7 +47,7 @@ sub new()
         'display' => 'newline',
         'order' => 2
     });
-    $self->add_attribute('childReservationIdentifiers', {
+    $self->add_attribute('childReservationId', {
         'type' => 'collection',
         'title' => 'Child Reservation Identifiers',
         'order' => 2
@@ -77,19 +77,19 @@ sub on_init
     switch ($class) {
         case 'ResourceReservation' {
             $self->add_attribute_preserve('resourceName');
-            $self->add_attribute_preserve('resourceIdentifier');
+            $self->add_attribute_preserve('resourceId');
             $self->add_attribute('resource', {
                 'format' => sub () {
-                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceIdentifier'});
+                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});
                 }
             });
         }
         case 'RoomReservation' {
             $self->add_attribute_preserve('resourceName');
-            $self->add_attribute_preserve('resourceIdentifier');
+            $self->add_attribute_preserve('resourceId');
             $self->add_attribute('resource', {
                 'format' => sub () {
-                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceIdentifier'});
+                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});
                 }
             });
             $self->add_attribute('licenseCount', {
@@ -98,10 +98,10 @@ sub on_init
         }
         case 'AliasReservation' {
             $self->add_attribute_preserve('resourceName');
-            $self->add_attribute_preserve('resourceIdentifier');
+            $self->add_attribute_preserve('resourceId');
             $self->add_attribute('resource', {
                 'format' => sub () {
-                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceIdentifier'});
+                    sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});
                 }
             });
             $self->add_attribute('alias');
@@ -119,9 +119,9 @@ sub fetch_child_reservations
 {
     my ($self, $recursive) = @_;
 
-    if ( defined($self->{'childReservationIdentifiers'}) && @{$self->{'childReservationIdentifiers'}} > 0) {
+    if ( defined($self->{'childReservationIds'}) && @{$self->{'childReservationIds'}} > 0) {
         my $child_reservations = [];
-        foreach my $reservation (@{$self->{'childReservationIdentifiers'}}) {
+        foreach my $reservation (@{$self->{'childReservationIds'}}) {
             my $result = Shongo::ClientCli->instance()->secure_request(
                 'Reservation.getReservation',
                 RPC::XML::string->new($reservation)
@@ -137,7 +137,7 @@ sub fetch_child_reservations
             push(@{$child_reservations}, $reservation);
         }
         $self->set('childReservations', $child_reservations);
-        $self->set('childReservationIdentifiers', undef);
+        $self->set('childReservationIds', undef);
     }
 }
 
@@ -150,7 +150,7 @@ sub to_string_short
     my $name = $self->get_object_name();
     $name =~ s/ Reservation//g;
 
-    my $ignore = {'identifier' => 1, 'slot' => 1, 'resource' => 1};
+    my $ignore = {'id' => 1, 'slot' => 1, 'resource' => 1};
     my $string = '';
     foreach my $attribute_name (@{$self->{'__attributes_order'}}) {
         my $attribute_value = $self->get($attribute_name);

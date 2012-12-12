@@ -1,36 +1,36 @@
+* Update API
+* Update command for creation of testing architecture in API
+
 * Shongo cesnet report
 
-* Styling CSS http://twitter.github.com/bootstrap/
-
-* Web clients - H.323 and Adobe Connect
-  - adobe connect
-  - send info mails about new/deleted reservation requests to:
+* send info mails about new/deleted reservation requests to:
     # reservation request owner
     # resource owner (+ other emails addresses setup in resource definition)
-  - runtime management (room, participants)
+
+* Room name from request name (create room code which the H.323 can use to create id)
+
+14.12.2012
+----------------------------------------------------------------------------
+
+* Specify room name in adobe connect reservation request
 
 * Cmd-line client
   - show user names in list of reservations
   - show owner names in list of resources
   - show owner names in list of executables
 
-* Update API
-
 * Adobe connect through "control-resource" in cmd-line client (until half of december)
-
-* Update command for creation of testing architecture in API
 
 * Alias allocation - pass target resource in reservation task to be able to match against owner resource
 
-* Single alias for SIP and H.323 (different value for each technology)
+* Web clients - H.323 and Adobe Connect
+  - runtime management (room, participants)
 
 * Adobe connect
   - test connector, create/delete room
   - create/delete room by alias reservation
 
 * Run cmd-line client test in maven testing
-
-* Rename resourceIdentifier -> resourceId
 
 * Soft delete of reservation requests
 

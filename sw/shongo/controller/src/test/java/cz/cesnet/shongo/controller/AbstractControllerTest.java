@@ -166,15 +166,15 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Check if {@link ReservationRequest} was successfully allocated.
      *
-     * @param reservationRequestIdentifier for {@link ReservationRequest} to be checked
+     * @param reservationRequestId for {@link ReservationRequest} to be checked
      * @return {@link Reservation}
      * @throws Exception
      */
-    protected Reservation checkAllocated(String reservationRequestIdentifier) throws Exception
+    protected Reservation checkAllocated(String reservationRequestId) throws Exception
     {
         AbstractReservationRequest abstractReservationRequest =
-                getReservationService().getReservationRequest(SECURITY_TOKEN, reservationRequestIdentifier);
-        String reservationIdentifier = null;
+                getReservationService().getReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        String reservationId = null;
         if (abstractReservationRequest instanceof NormalReservationRequest) {
             ReservationRequest reservationRequest;
             if (abstractReservationRequest instanceof ReservationRequestSet) {
@@ -185,13 +185,13 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             else {
                 reservationRequest = (ReservationRequest) abstractReservationRequest;
             }
-            if (reservationRequest.getState() != ReservationRequest.State.ALLOCATED) {
+            if (reservationRequest.getState() != ReservationRequestState.ALLOCATED) {
                 System.err.println(reservationRequest.getStateReport());
                 Thread.sleep(100);
             }
             assertEquals("Reservation request should be in ALLOCATED state.",
-                    ReservationRequest.State.ALLOCATED, reservationRequest.getState());
-            reservationIdentifier = reservationRequest.getReservationIdentifier();
+                    ReservationRequestState.ALLOCATED, reservationRequest.getState());
+            reservationId = reservationRequest.getReservationId();
         }
         else if (abstractReservationRequest instanceof PermanentReservationRequest) {
             PermanentReservationRequest permanentReservationRequest =
@@ -199,10 +199,10 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
             List<ResourceReservation> resourceReservations = permanentReservationRequest.getResourceReservations();
             assertTrue("Permanent reservation request should have at least one resource reservation.",
                     resourceReservations.size() > 0);
-            reservationIdentifier = resourceReservations.get(0).getIdentifier();
+            reservationId = resourceReservations.get(0).getId();
         }
-        assertNotNull(reservationIdentifier);
-        Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN, reservationIdentifier);
+        assertNotNull(reservationId);
+        Reservation reservation = getReservationService().getReservation(SECURITY_TOKEN, reservationId);
         assertNotNull("Reservation should be allocated for the reservation request.", reservation);
         return reservation;
     }
@@ -210,14 +210,14 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
     /**
      * Check if {@link ReservationRequest}'s allocation failed.
      *
-     * @param reservationRequestIdentifier for {@link ReservationRequest} to be checked
+     * @param reservationRequestId for {@link ReservationRequest} to be checked
      * @return {@link Reservation}
      * @throws Exception
      */
-    protected void checkAllocationFailed(String reservationRequestIdentifier) throws Exception
+    protected void checkAllocationFailed(String reservationRequestId) throws Exception
     {
         AbstractReservationRequest abstractReservationRequest = getReservationService().getReservationRequest(
-                SECURITY_TOKEN, reservationRequestIdentifier);
+                SECURITY_TOKEN, reservationRequestId);
         if (abstractReservationRequest instanceof NormalReservationRequest) {
             ReservationRequest reservationRequest;
             if (abstractReservationRequest instanceof ReservationRequestSet) {
@@ -229,9 +229,9 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
                 reservationRequest = (ReservationRequest) abstractReservationRequest;
             }
             assertEquals("Reservation request should be in ALLOCATION_FAILED state.",
-                    ReservationRequest.State.ALLOCATION_FAILED, reservationRequest.getState());
-            String reservationIdentifier = reservationRequest.getReservationIdentifier();
-            assertNull("No reservation should be allocated for the reservation request.", reservationIdentifier);
+                    ReservationRequestState.ALLOCATION_FAILED, reservationRequest.getState());
+            String reservationId = reservationRequest.getReservationId();
+            assertNull("No reservation should be allocated for the reservation request.", reservationId);
         }
         else if (abstractReservationRequest instanceof PermanentReservationRequest) {
             PermanentReservationRequest permanentReservationRequest =
@@ -247,36 +247,36 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      * Allocate given {@code reservationRequest}.
      *
      * @param reservationRequest to be allocated
-     * @return identifier of created or modified {@link ReservationRequest}
+     * @return shongo-id of created or modified {@link ReservationRequest}
      * @throws Exception
      */
     protected String allocate(AbstractReservationRequest reservationRequest) throws Exception
     {
-        String identifier;
-        if (reservationRequest.getIdentifier() == null) {
-            identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String reservationRequestId;
+        if (reservationRequest.getId() == null) {
+            reservationRequestId = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         }
         else {
-            identifier = reservationRequest.getIdentifier();
+            reservationRequestId = reservationRequest.getId();
             getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         }
         if (reservationRequest instanceof ReservationRequestSet || reservationRequest instanceof PermanentReservationRequest) {
             runPreprocessor();
         }
         runScheduler();
-        return identifier;
+        return reservationRequestId;
     }
 
     /**
-     * Reallocate given {@link AbstractReservationRequest} with given {@code reservationRequestIdentifier}.
+     * Reallocate given {@link AbstractReservationRequest} with given {@code reservationRequestId}.
      *
-     * @param reservationRequestIdentifier to be allocated
+     * @param reservationRequestId to be allocated
      * @throws Exception
      */
-    public void reallocate(String reservationRequestIdentifier) throws Exception
+    public void reallocate(String reservationRequestId) throws Exception
     {
         AbstractReservationRequest reservationRequest = getReservationService().getReservationRequest(SECURITY_TOKEN,
-                reservationRequestIdentifier);
+                reservationRequestId);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
         if (reservationRequest instanceof ReservationRequestSet || reservationRequest instanceof PermanentReservationRequest) {
             runPreprocessor();
@@ -293,8 +293,8 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected Reservation allocateAndCheck(AbstractReservationRequest reservationRequest) throws Exception
     {
-        String identifier = allocate(reservationRequest);
-        return checkAllocated(identifier);
+        String reservationRequestId = allocate(reservationRequest);
+        return checkAllocated(reservationRequestId);
     }
 
     /**
@@ -306,7 +306,7 @@ public abstract class AbstractControllerTest extends AbstractDatabaseTest
      */
     protected void allocateAndCheckFailed(AbstractReservationRequest reservationRequest) throws Exception
     {
-        String identifier = allocate(reservationRequest);
-        checkAllocationFailed(identifier);
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocationFailed(reservationRequestId);
     }
 }

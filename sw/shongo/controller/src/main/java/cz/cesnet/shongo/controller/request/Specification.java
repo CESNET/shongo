@@ -122,7 +122,7 @@ public abstract class Specification extends PersistentObject
      */
     public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
     {
-        specificationApi.setIdentifier(getId());
+        specificationApi.setId(getId());
     }
 
     /**

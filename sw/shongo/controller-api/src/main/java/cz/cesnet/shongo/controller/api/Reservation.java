@@ -15,9 +15,9 @@ import java.util.List;
 public class Reservation extends IdentifiedObject implements StructType
 {
     /**
-     * Identifier of the owner user.
+     * User-id of the owner user.
      */
-    private Integer userId;
+    private String userId;
 
     /**
      * Slot fot which the {@link Reservation} is allocated.
@@ -25,14 +25,14 @@ public class Reservation extends IdentifiedObject implements StructType
     private Interval slot;
 
     /**
-     * Parent {@link Reservation} identifier.
+     * Parent {@link Reservation} shongo-id.
      */
-    private String parentReservationIdentifier;
+    private String parentReservationId;
 
     /**
-     * Child {@link Reservation} identifiers.
+     * Child {@link Reservation} shongo-ids.
      */
-    private List<String> childReservationIdentifiers = new ArrayList<String>();
+    private List<String> childReservationIds = new ArrayList<String>();
 
     /**
      * @see {@link Executable}
@@ -42,7 +42,7 @@ public class Reservation extends IdentifiedObject implements StructType
     /**
      * @return {@link #userId}
      */
-    public Integer getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -50,7 +50,7 @@ public class Reservation extends IdentifiedObject implements StructType
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -72,43 +72,43 @@ public class Reservation extends IdentifiedObject implements StructType
     }
 
     /**
-     * @return {@link #parentReservationIdentifier}
+     * @return {@link #parentReservationId}
      */
-    public String getParentReservationIdentifier()
+    public String getParentReservationId()
     {
-        return parentReservationIdentifier;
+        return parentReservationId;
     }
 
     /**
-     * @param parentReservationIdentifier sets the {@link #parentReservationIdentifier}
+     * @param parentReservationId sets the {@link #parentReservationId}
      */
-    public void setParentReservationIdentifier(String parentReservationIdentifier)
+    public void setParentReservationId(String parentReservationId)
     {
-        this.parentReservationIdentifier = parentReservationIdentifier;
+        this.parentReservationId = parentReservationId;
     }
 
     /**
-     * @return {@link #childReservationIdentifiers}
+     * @return {@link #childReservationIds}
      */
-    public List<String> getChildReservationIdentifiers()
+    public List<String> getChildReservationIds()
     {
-        return childReservationIdentifiers;
+        return childReservationIds;
     }
 
     /**
-     * @param childReservationIdentifiers sets the {@link #childReservationIdentifiers}
+     * @param childReservationIds sets the {@link #childReservationIds}
      */
-    public void setChildReservationIdentifiers(List<String> childReservationIdentifiers)
+    public void setChildReservationIds(List<String> childReservationIds)
     {
-        this.childReservationIdentifiers = childReservationIdentifiers;
+        this.childReservationIds = childReservationIds;
     }
 
     /**
-     * @param childReservationIdentifier to be added to the {@link #childReservationIdentifiers}
+     * @param childReservationId to be added to the {@link #childReservationIds}
      */
-    public void addChildReservationIdentifier(String childReservationIdentifier)
+    public void addChildReservationId(String childReservationId)
     {
-        childReservationIdentifiers.add(childReservationIdentifier);
+        childReservationIds.add(childReservationId);
     }
 
     /**

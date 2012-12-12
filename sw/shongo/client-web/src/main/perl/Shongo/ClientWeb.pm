@@ -178,6 +178,7 @@ sub run
         $self->{'session'}->param('user', {
             'access_token' => $access_token,
             'id' => $user_info->{'id'},
+            'original_id' => $user_info->{'original_id'},
             'name' => $user_info->{'name'}
         });
 
@@ -195,7 +196,7 @@ sub run
 sub index_action
 {
     my ($self) = @_;
-    $self->render_page('Shongo', 'index.html');
+    $self->render_page(undef, 'index.html');
 }
 
 #

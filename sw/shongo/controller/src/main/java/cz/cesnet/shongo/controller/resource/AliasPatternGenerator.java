@@ -344,8 +344,8 @@ public class AliasPatternGenerator extends AliasGenerator
         @Override
         public void nextComponent()
         {
-
-            currentValue = RandomStringUtils.randomAlphanumeric(Pattern.STRING_PATTERN_LENGTH).toLowerCase();
+            currentValue = RandomStringUtils.randomAlphabetic(1).toLowerCase();
+            currentValue += RandomStringUtils.randomAlphanumeric(Pattern.STRING_PATTERN_LENGTH -1).toLowerCase();
         }
 
         @Override

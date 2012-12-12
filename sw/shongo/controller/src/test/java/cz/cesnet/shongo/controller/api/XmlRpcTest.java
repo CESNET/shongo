@@ -36,9 +36,8 @@ public class XmlRpcTest extends AbstractControllerTest
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
         compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN,
-                reservationRequestSet);
-        assertEquals("shongo:cz.cesnet:1", identifier);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
+        assertEquals("shongo:cz.cesnet:1", id);
     }
 
     @Test
@@ -98,14 +97,14 @@ public class XmlRpcTest extends AbstractControllerTest
         params.add(SECURITY_TOKEN.getAccessToken());
         params.add(attributes);
 
-        String identifier = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
-        assertEquals("shongo:cz.cesnet:1", identifier);
+        String id = (String) getControllerClient().execute("Reservation.createReservationRequest", params);
+        assertEquals("shongo:cz.cesnet:1", id);
     }
 
     @Test
     public void testModifyAndDeleteReservationRequest() throws Exception
     {
-        String identifier = null;
+        String id = null;
 
         // ---------------------------
         // Create reservation request
@@ -120,11 +119,11 @@ public class XmlRpcTest extends AbstractControllerTest
                     reservationRequestSet.addSpecification(new CompartmentSpecification());
             compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
 
-            identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
-            assertNotNull(identifier);
+            id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
+            assertNotNull(id);
 
             reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
-                    SECURITY_TOKEN, identifier);
+                    SECURITY_TOKEN, id);
             assertNotNull(reservationRequestSet);
             assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequestSet.getPurpose());
             assertEquals(2, reservationRequestSet.getSlots().size());
@@ -137,7 +136,7 @@ public class XmlRpcTest extends AbstractControllerTest
         {
             ReservationRequestSet reservationRequestSet =
                     (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                            identifier);
+                            id);
             reservationRequestSet.setPurpose(null);
             reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
             CompartmentSpecification compartmentSpecification =
@@ -147,7 +146,7 @@ public class XmlRpcTest extends AbstractControllerTest
             getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestSet);
 
             reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
-                    SECURITY_TOKEN, identifier);
+                    SECURITY_TOKEN, id);
             assertNotNull(reservationRequestSet);
             assertEquals(null, reservationRequestSet.getPurpose());
             assertEquals(1, reservationRequestSet.getSlots().size());
@@ -160,14 +159,14 @@ public class XmlRpcTest extends AbstractControllerTest
         {
             ReservationRequestSet reservationRequestSet =
                     (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN,
-                            identifier);
+                            id);
             assertNotNull(reservationRequestSet);
 
-            getReservationService().deleteReservationRequest(SECURITY_TOKEN, identifier);
+            getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
 
             try {
                 reservationRequestSet = (ReservationRequestSet) getReservationService().getReservationRequest(
-                        SECURITY_TOKEN, identifier);
+                        SECURITY_TOKEN, id);
                 fail("Exception that record doesn't exists should be thrown.");
             }
             catch (EntityNotFoundException exception) {
@@ -184,7 +183,7 @@ public class XmlRpcTest extends AbstractControllerTest
             fail(EntityNotFoundException.class.getSimpleName() + " should be thrown.");
         }
         catch (EntityNotFoundException exception) {
-            assertEquals("1", exception.getEntityIdentifier());
+            assertEquals("1", exception.getEntityId());
             assertEquals(Resource.class, exception.getEntityType());
         }
     }

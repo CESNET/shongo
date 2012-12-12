@@ -30,7 +30,7 @@ public class ExecutorThread extends Thread
     private ControllerAgent controllerAgent;
 
     /**
-     * Identifier of {@link Executable} to be executed.
+     * Id of {@link Executable} to be executed.
      */
     private Long executableId;
 

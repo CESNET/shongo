@@ -27,7 +27,8 @@ sub new()
 
     $self->set_object_class('Resource');
     $self->set_object_name('Resource');
-    $self->add_attribute('identifier', {
+    $self->add_attribute('id', {
+        'title' => 'Identifier',
         'editable' => 0
     });
     $self->add_attribute('userId', {
@@ -39,9 +40,9 @@ sub new()
         'required' => 1
     });
     $self->add_attribute('description');
-    $self->add_attribute('parentIdentifier', {
+    $self->add_attribute('parentResourceId', {
         'title' => 'Parent',
-        'string-pattern' => $Shongo::Common::IdentifierPattern
+        'string-pattern' => $Shongo::Common::IdPattern
     });
     $self->add_attribute('allocatable', {
         'type' => 'bool',
@@ -51,16 +52,16 @@ sub new()
         'title' => 'Maximum Future',
         'type' => 'period'
     });
-    $self->add_attribute('childResourceIdentifiers', {
+    $self->add_attribute('childResourceIds', {
         'title' => 'Children',
         'format' => sub {
             my ($attribute_value) = @_;
             my $string = '';
-            foreach my $identifier (@{$attribute_value}) {
+            foreach my $id (@{$attribute_value}) {
                 if ( length($string) > 0 ) {
                     $string .= ', ';
                 }
-                $string .= $identifier;
+                $string .= $id;
             }
             return $string;
         },

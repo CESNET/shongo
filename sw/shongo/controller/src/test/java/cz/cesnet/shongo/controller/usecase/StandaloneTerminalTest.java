@@ -27,26 +27,26 @@ public class StandaloneTerminalTest extends AbstractControllerTest
         firstTerminal.addTechnology(Technology.H323);
         firstTerminal.addCapability(new StandaloneTerminalCapability());
         firstTerminal.setAllocatable(true);
-        String firstTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
 
         DeviceResource secondTerminal = new DeviceResource();
         secondTerminal.setName("secondTerminal");
         secondTerminal.addTechnology(Technology.H323);
         secondTerminal.addCapability(new StandaloneTerminalCapability());
         secondTerminal.setAllocatable(true);
-        String secondTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalIdentifier));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalIdentifier));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
-        checkAllocated(identifier);
+        checkAllocated(id);
     }
 
     /**
@@ -64,7 +64,7 @@ public class StandaloneTerminalTest extends AbstractControllerTest
         firstTerminal.addTechnology(Technology.SIP);
         firstTerminal.addCapability(new StandaloneTerminalCapability());
         firstTerminal.setAllocatable(true);
-        String firstTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
+        String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
 
         DeviceResource secondTerminal = new DeviceResource();
         secondTerminal.setName("secondTerminal");
@@ -72,18 +72,18 @@ public class StandaloneTerminalTest extends AbstractControllerTest
         secondTerminal.addTechnology(Technology.ADOBE_CONNECT);
         secondTerminal.addCapability(new StandaloneTerminalCapability());
         secondTerminal.setAllocatable(true);
-        String secondTerminalIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
+        String secondTerminalId = getResourceService().createResource(SECURITY_TOKEN, secondTerminal);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalIdentifier));
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalIdentifier));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(firstTerminalId));
+        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(secondTerminalId));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
-        checkAllocated(identifier);
+        checkAllocated(id);
     }
 }

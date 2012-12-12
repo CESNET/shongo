@@ -71,11 +71,11 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public void deleteExecutable(SecurityToken token, String executableIdentifier) throws FaultException
+    public void deleteExecutable(SecurityToken token, String executableId) throws FaultException
     {
         authorization.validate(token);
 
-        Long executableId = domain.parseIdentifier(executableIdentifier);
+        Long id = domain.parseId(executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
@@ -83,7 +83,7 @@ public class ExecutorServiceImpl extends Component
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-            cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(executableId);
+            cz.cesnet.shongo.controller.executor.Executable executable = executableManager.get(id);
 
             executableManager.delete(executable);
 
@@ -91,7 +91,7 @@ public class ExecutorServiceImpl extends Component
         }
         catch (javax.persistence.RollbackException exception) {
             throw new EntityToDeleteIsReferencedException(cz.cesnet.shongo.controller.api.Executable.class,
-                    executableId);
+                    id);
         }
         catch (FaultException exception) {
             if (entityManager.getTransaction().isActive()) {
@@ -112,14 +112,14 @@ public class ExecutorServiceImpl extends Component
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
 
-        Long userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
         List<cz.cesnet.shongo.controller.executor.Executable> list = executableManager.list(userId);
 
         List<ExecutableSummary> summaryList = new ArrayList<ExecutableSummary>();
         for (cz.cesnet.shongo.controller.executor.Executable executable : list) {
             ExecutableSummary summary = new ExecutableSummary();
-            summary.setIdentifier(domain.formatIdentifier(executable.getId()));
-            summary.setUserId(executable.getUserId().intValue());
+            summary.setId(domain.formatId(executable.getId()));
+            summary.setUserId(executable.getUserId());
             summary.setSlot(executable.getSlot());
             summary.setState(executable.getState().toApi());
             if (executable instanceof cz.cesnet.shongo.controller.executor.Compartment) {
@@ -137,12 +137,12 @@ public class ExecutorServiceImpl extends Component
     }
 
     @Override
-    public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableIdentifier)
+    public cz.cesnet.shongo.controller.api.Executable getExecutable(SecurityToken token, String executableId)
             throws FaultException
     {
         authorization.validate(token);
 
-        Long id = domain.parseIdentifier(executableIdentifier);
+        Long id = domain.parseId(executableId);
 
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);

@@ -25,133 +25,133 @@ public interface ResourceControlService extends Service
      * FIXME: fix the aforementioned shortcoming - return directly the names from this interface
      *
      * @param token
-     * @param deviceResourceIdentifier
+     * @param deviceResourceId
      * @return
      * @throws FaultException
      */
     @API
-    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceIdentifier)
+    public Collection<String> getSupportedMethods(SecurityToken token, String deviceResourceId)
             throws FaultException;
 
     @API
-    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public DeviceLoadInfo getDeviceLoadInfo(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public String dial(SecurityToken token, String deviceResourceIdentifier, String address) throws FaultException;
+    public String dial(SecurityToken token, String deviceResourceId, String address) throws FaultException;
 
     @API
-    public String dial(SecurityToken token, String deviceResourceIdentifier, Alias alias) throws FaultException;
+    public String dial(SecurityToken token, String deviceResourceId, Alias alias) throws FaultException;
 
     @API
-    public void standBy(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void standBy(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void hangUp(SecurityToken token, String deviceResourceIdentifier, String callId) throws FaultException;
+    public void hangUp(SecurityToken token, String deviceResourceId, String callId) throws FaultException;
 
     @API
-    public void hangUpAll(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void hangUpAll(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void resetDevice(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void resetDevice(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void mute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void mute(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void unmute(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void unmute(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void setMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, int level)
+    public void setMicrophoneLevel(SecurityToken token, String deviceResourceId, int level)
             throws FaultException;
 
     @API
-    public void setPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, int level)
+    public void setPlaybackLevel(SecurityToken token, String deviceResourceId, int level)
             throws FaultException;
 
     @API
-    public void enableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void enableVideo(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void disableVideo(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void disableVideo(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void startPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void startPresentation(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void stopPresentation(SecurityToken token, String deviceResourceIdentifier) throws FaultException;
+    public void stopPresentation(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String address)
+    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, String address)
             throws FaultException;
 
     @API
-    public String dialParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, Alias alias)
+    public String dialParticipant(SecurityToken token, String deviceResourceId, String roomId, Alias alias)
             throws FaultException;
 
     @API
-    public void disconnectParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void disconnectParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException;
 
     @API
-    public Room getRoom(SecurityToken token, String deviceResourceIdentifier, String roomId)
+    public Room getRoom(SecurityToken token, String deviceResourceId, String roomId)
             throws FaultException;
 
     @API
-    public String createRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
+    public String createRoom(SecurityToken token, String deviceResourceId, Room room) throws FaultException;
 
     /**
      * Modifies a room.
      *
      * @param token                    security token
-     * @param deviceResourceIdentifier identifier of the device to perform the action
+     * @param deviceResourceId shongo-id of the device to perform the action
      * @param room                     see {@link Room}
-     * @return new room identifier (it may have changed due to some attribute change)
+     * @return new room id (it may have changed due to some attribute change)
      * @throws FaultException
      */
     @API
-    public String modifyRoom(SecurityToken token, String deviceResourceIdentifier, Room room) throws FaultException;
+    public String modifyRoom(SecurityToken token, String deviceResourceId, Room room) throws FaultException;
 
     @API
-    public void deleteRoom(SecurityToken token, String deviceResourceIdentifier, String roomId) throws FaultException;
+    public void deleteRoom(SecurityToken token, String deviceResourceId, String roomId) throws FaultException;
 
     @API
-    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceIdentifier)
+    public Collection<RoomSummary> listRooms(SecurityToken token, String deviceResourceId)
             throws FaultException;
 
     @API
-    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceIdentifier, String roomId)
+    public Collection<RoomUser> listParticipants(SecurityToken token, String deviceResourceId, String roomId)
             throws FaultException;
 
     @API
-    public RoomUser getParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public RoomUser getParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException;
 
     @API
-    public void modifyParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void modifyParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId, Map<String, Object> attributes) throws FaultException;
 
     @API
-    public void muteParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId, String roomUserId)
+    public void muteParticipant(SecurityToken token, String deviceResourceId, String roomId, String roomUserId)
             throws FaultException;
 
     @API
-    public void unmuteParticipant(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void unmuteParticipant(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException;
 
     @API
-    public void enableParticipantVideo(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void enableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException;
 
     @API
-    public void disableParticipantVideo(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void disableParticipantVideo(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId) throws FaultException;
 
     @API
-    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void setParticipantMicrophoneLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId, int level) throws FaultException;
 
     @API
-    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
+    public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceId, String roomId,
             String roomUserId, int level) throws FaultException;
 
     @API

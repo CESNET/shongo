@@ -16,11 +16,11 @@ public interface ExecutorService extends Service
     /**
      * Deletes a given compartment.
      *
-     * @param token                token of the user requesting the operation
-     * @param executableIdentifier Shongo identifier of the {@link Executable} to delete
+     * @param token        token of the user requesting the operation
+     * @param executableId shongo-id of the {@link Executable} to delete
      */
     @API
-    public void deleteExecutable(SecurityToken token, String executableIdentifier)
+    public void deleteExecutable(SecurityToken token, String executableId)
             throws FaultException;
 
     /**
@@ -28,7 +28,7 @@ public interface ExecutorService extends Service
      *
      * @param token  token of the user requesting the operation
      * @param filter attributes for filtering {@link Executable}s (map of name => value pairs)::
-     *               -{@code userId}     restricts {@link Executable} owner by his identifier
+     *               -{@code userId}  restricts {@link Executable} owner by his user-id
      * @return collection of {@link ExecutableSummary}s
      */
     @API
@@ -37,10 +37,10 @@ public interface ExecutorService extends Service
     /**
      * Gets the complete compartment object.
      *
-     * @param token                token of the user requesting the operation
-     * @param executableIdentifier identifier of the {@link Executable} to get
+     * @param token        token of the user requesting the operation
+     * @param executableId shongo-id of the {@link Executable} to get
      */
     @API
-    public Executable getExecutable(SecurityToken token, String executableIdentifier)
+    public Executable getExecutable(SecurityToken token, String executableId)
             throws FaultException;
 }

@@ -54,7 +54,7 @@ public class ExecutableManager extends AbstractManager
 
     /**
      * @param executableId of the {@link Executable}
-     * @return {@link Executable} with given identifier
+     * @return {@link Executable} with given id
      * @throws cz.cesnet.shongo.fault.EntityNotFoundException
      *          when the {@link Executable} doesn't exist
      */
@@ -103,7 +103,7 @@ public class ExecutableManager extends AbstractManager
     /**
      * @return list of all allocated {@link Executable}s
      */
-    public List<Executable> list(Long userId)
+    public List<Executable> list(String userId)
     {
         DatabaseFilter filter = new DatabaseFilter("executable");
         filter.addUserId(userId);

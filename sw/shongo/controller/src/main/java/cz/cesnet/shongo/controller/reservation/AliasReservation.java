@@ -5,7 +5,6 @@ import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Period;
 
@@ -117,8 +116,8 @@ public class AliasReservation extends Reservation
     {
         cz.cesnet.shongo.controller.api.AliasReservation aliasReservationApi =
                 (cz.cesnet.shongo.controller.api.AliasReservation) api;
-        aliasReservationApi.setResourceIdentifier(
-                domain.formatIdentifier(aliasProviderCapability.getResource().getId()));
+        aliasReservationApi.setResourceId(
+                domain.formatId(aliasProviderCapability.getResource().getId()));
         aliasReservationApi.setResourceName(aliasProviderCapability.getResource().getName());
         aliasReservationApi.setAliasValue(getAliasValue());
         for (Alias alias : getAliases()) {

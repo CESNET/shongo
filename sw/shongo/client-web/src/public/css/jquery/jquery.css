@@ -6,6 +6,14 @@
     font-size: 0.8em;
 }
 
+.ui-datepicker {
+    line-height: 16px !important;
+}
+.ui-datepicker select {
+    padding: 0px !important;
+    height: 20px !important;
+}
+
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
     width: 45% !important;
 }

@@ -206,6 +206,7 @@ public class ReservationRequestSet extends NormalReservationRequest
      */
     @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
+    @OrderBy("slotStart")
     public List<ReservationRequest> getReservationRequests()
     {
         return Collections.unmodifiableList(reservationRequests);

@@ -26,9 +26,9 @@ import java.util.*;
 public class Resource extends PersistentObject
 {
     /**
-     * Identifier of an user who is owner of the {@link Resource}.
+     * User-id of an user who is owner of the {@link Resource}.
      */
-    private Long userId;
+    private String userId;
 
     /**
      * Name of a resource that is visible to users.
@@ -83,7 +83,7 @@ public class Resource extends PersistentObject
      * @return {@link #userId}
      */
     @Column(nullable = false)
-    public Long getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -91,7 +91,7 @@ public class Resource extends PersistentObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Long userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
@@ -396,8 +396,8 @@ public class Resource extends PersistentObject
      */
     protected void toApi(cz.cesnet.shongo.controller.api.Resource resource, EntityManager entityManager, Domain domain)
     {
-        resource.setIdentifier(domain.formatIdentifier(getId()));
-        resource.setUserId(getUserId().intValue());
+        resource.setId(domain.formatId(getId()));
+        resource.setUserId(getUserId());
         resource.setName(getName());
         resource.setAllocatable(isAllocatable());
         resource.setDescription(getDescription());
@@ -417,7 +417,7 @@ public class Resource extends PersistentObject
 
         Resource parentResource = getParentResource();
         if (parentResource != null) {
-            resource.setParentIdentifier(domain.formatIdentifier(parentResource.getId()));
+            resource.setParentResourceId(domain.formatId(parentResource.getId()));
         }
 
         for (Capability capability : getCapabilities()) {
@@ -425,7 +425,7 @@ public class Resource extends PersistentObject
         }
 
         for (Resource childResource : getChildResources()) {
-            resource.addChildResourceIdentifier(domain.formatIdentifier(childResource.getId()));
+            resource.addChildResourceId(domain.formatId(childResource.getId()));
         }
     }
 
@@ -469,10 +469,10 @@ public class Resource extends PersistentObject
         if (api.isPropertyFilled(api.ALLOCATABLE)) {
             setAllocatable(api.getAllocatable());
         }
-        if (api.isPropertyFilled(api.PARENT_RESOURCE_IDENTIFIER)) {
+        if (api.isPropertyFilled(api.PARENT_RESOURCE_ID)) {
             Long newParentResourceId = null;
-            if (api.getParentIdentifier() != null) {
-                newParentResourceId = domain.parseIdentifier(api.getParentIdentifier());
+            if (api.getParentResourceId() != null) {
+                newParentResourceId = domain.parseId(api.getParentResourceId());
             }
             Long oldParentResourceId = parentResource != null ? parentResource.getId() : null;
             if ((newParentResourceId == null && oldParentResourceId != null)

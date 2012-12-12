@@ -81,7 +81,7 @@ public class ReservationManager extends AbstractManager
 
     /**
      * @param reservationId of the {@link Reservation}
-     * @return {@link Reservation} with given identifier
+     * @return {@link Reservation} with given id
      * @throws EntityNotFoundException when the {@link Reservation} doesn't exist
      */
     public Reservation get(Long reservationId) throws EntityNotFoundException
@@ -257,7 +257,7 @@ public class ReservationManager extends AbstractManager
         text.append("<TODO: name> - <TODO: organization>\n");
 
         Notification notification = new Notification();
-        notification.setName("New reservation [" + domain.formatIdentifier(reservation.getId()) + "]");
+        notification.setName("New reservation [" + domain.formatId(reservation.getId()) + "]");
         notification.setText(text.toString());
         notification.addChildNotification(reservation.toNotification(domain, entityManager));
         notificationManager.executeNotification(notification);

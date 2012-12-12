@@ -18,14 +18,14 @@ import java.util.List;
 public class Resource extends IdentifiedChangeableObject
 {
     /**
-     * Identifier of the owner user.
+     * User-id of the owner user.
      */
-    private Integer userId;
+    private String userId;
 
     /**
-     * Parent resource identifier for the resource.
+     * Parent resource shongo-id for the resource.
      */
-    public static final String PARENT_RESOURCE_IDENTIFIER = "parentResourceIdentifier";
+    public static final String PARENT_RESOURCE_ID = "parentResourceId";
 
     /**
      * Name of the resource.
@@ -53,14 +53,14 @@ public class Resource extends IdentifiedChangeableObject
     public static final String MAXIMUM_FUTURE = "maximumFuture";
 
     /**
-     * Child resources identifiers.
+     * Child resources shongo-ids.
      */
-    private List<String> childResourceIdentifiers = new ArrayList<String>();
+    private List<String> childResourceIds = new ArrayList<String>();
 
     /**
      * @return {@link #userId}
      */
-    public Integer getUserId()
+    public String getUserId()
     {
         return userId;
     }
@@ -68,25 +68,25 @@ public class Resource extends IdentifiedChangeableObject
     /**
      * @param userId sets the {@link #userId}
      */
-    public void setUserId(Integer userId)
+    public void setUserId(String userId)
     {
         this.userId = userId;
     }
 
     /**
-     * @return {@link #PARENT_RESOURCE_IDENTIFIER}
+     * @return {@link #PARENT_RESOURCE_ID}
      */
-    public String getParentIdentifier()
+    public String getParentResourceId()
     {
-        return getPropertyStorage().getValue(PARENT_RESOURCE_IDENTIFIER);
+        return getPropertyStorage().getValue(PARENT_RESOURCE_ID);
     }
 
     /**
-     * @param parentIdentifier sets the {@link #PARENT_RESOURCE_IDENTIFIER}
+     * @param parentResourceId sets the {@link #PARENT_RESOURCE_ID}
      */
-    public void setParentIdentifier(String parentIdentifier)
+    public void setParentResourceId(String parentResourceId)
     {
-        getPropertyStorage().setValue(PARENT_RESOURCE_IDENTIFIER, parentIdentifier);
+        getPropertyStorage().setValue(PARENT_RESOURCE_ID, parentResourceId);
     }
 
     /**
@@ -189,19 +189,19 @@ public class Resource extends IdentifiedChangeableObject
     }
 
     /**
-     * @return {@link #childResourceIdentifiers}
+     * @return {@link #childResourceIds}
      */
     @ReadOnly
-    public List<String> getChildResourceIdentifiers()
+    public List<String> getChildResourceIds()
     {
-        return childResourceIdentifiers;
+        return childResourceIds;
     }
 
     /**
-     * @param childResourceIdentifier identifier to be added to the {@link #childResourceIdentifiers}
+     * @param childResourceId shonog-id to be added to the {@link #childResourceIds}
      */
-    public void addChildResourceIdentifier(String childResourceIdentifier)
+    public void addChildResourceId(String childResourceId)
     {
-        childResourceIdentifiers.add(childResourceIdentifier);
+        childResourceIds.add(childResourceId);
     }
 }

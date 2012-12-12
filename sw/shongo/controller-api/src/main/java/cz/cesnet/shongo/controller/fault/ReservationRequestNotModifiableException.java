@@ -11,9 +11,9 @@ import cz.cesnet.shongo.fault.FaultException;
 public class ReservationRequestNotModifiableException extends FaultException
 {
     /**
-     * Identifier of {@link cz.cesnet.shongo.controller.api.ReservationRequest}.
+     * Shongo-id of {@link cz.cesnet.shongo.controller.api.ReservationRequest}.
      */
-    private String reservationRequestIdentifier;
+    private String reservationRequestId;
 
     /**
      * Constructor.
@@ -25,19 +25,19 @@ public class ReservationRequestNotModifiableException extends FaultException
     /**
      * Constructor.
      *
-     * @param reservationRequestIdentifier
+     * @param reservationRequestId
      */
-    public ReservationRequestNotModifiableException(String reservationRequestIdentifier)
+    public ReservationRequestNotModifiableException(String reservationRequestId)
     {
-        this.reservationRequestIdentifier = reservationRequestIdentifier;
+        this.reservationRequestId = reservationRequestId;
     }
 
     /**
-     * @return {@link #reservationRequestIdentifier}
+     * @return {@link #reservationRequestId}
      */
-    public String getReservationRequestIdentifier()
+    public String getReservationRequestId()
     {
-        return reservationRequestIdentifier;
+        return reservationRequestId;
     }
 
     @Override
@@ -50,6 +50,6 @@ public class ReservationRequestNotModifiableException extends FaultException
     public String getMessage()
     {
         return ControllerFault.formatMessage("Reservation request '%s' cannot be modified or deleted.",
-                reservationRequestIdentifier);
+                reservationRequestId);
     }
 }

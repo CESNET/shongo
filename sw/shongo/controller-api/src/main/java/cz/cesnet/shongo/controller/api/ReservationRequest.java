@@ -23,9 +23,9 @@ public class ReservationRequest extends NormalReservationRequest
     public static final String SPECIFICATION = "specification";
 
     /**
-     * State of processed slot.
+     * State of the request.
      */
-    private State state;
+    private ReservationRequestState state;
 
     /**
      * Description of state.
@@ -33,9 +33,9 @@ public class ReservationRequest extends NormalReservationRequest
     private String stateReport;
 
     /**
-     * Allocated {@link Reservation} identifier.
+     * Allocated {@link Reservation} shongo-id.
      */
-    private String reservationIdentifier;
+    private String reservationId;
 
     /**
      * Constructor.
@@ -99,7 +99,7 @@ public class ReservationRequest extends NormalReservationRequest
     /**
      * @return {@link #state}
      */
-    public State getState()
+    public ReservationRequestState getState()
     {
         return state;
     }
@@ -107,7 +107,7 @@ public class ReservationRequest extends NormalReservationRequest
     /**
      * @param state sets the {@link #state}
      */
-    public void setState(State state)
+    public void setState(ReservationRequestState state)
     {
         this.state = state;
     }
@@ -129,29 +129,18 @@ public class ReservationRequest extends NormalReservationRequest
     }
 
     /**
-     * @return {@link #reservationIdentifier}
+     * @return {@link #reservationId}
      */
-    public String getReservationIdentifier()
+    public String getReservationId()
     {
-        return reservationIdentifier;
+        return reservationId;
     }
 
     /**
-     * @param reservationIdentifier sets the {@link #reservationIdentifier}
+     * @param reservationId sets the {@link #reservationId}
      */
-    public void setReservationIdentifier(String reservationIdentifier)
+    public void setReservationId(String reservationId)
     {
-        this.reservationIdentifier = reservationIdentifier;
-    }
-
-    /**
-     * State of the {@link ReservationRequest}.
-     */
-    public static enum State
-    {
-        NOT_COMPLETE,
-        COMPLETE,
-        ALLOCATED,
-        ALLOCATION_FAILED
+        this.reservationId = reservationId;
     }
 }

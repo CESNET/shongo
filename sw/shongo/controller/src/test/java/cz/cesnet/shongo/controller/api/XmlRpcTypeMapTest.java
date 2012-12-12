@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.api.xmlrpc.Service;
@@ -53,7 +52,7 @@ public class XmlRpcTypeMapTest
     public void test() throws Exception
     {
         Room room = getRoomService().getRoom(SECURITY_TOKEN, "1");
-        assertEquals("1", room.getIdentifier());
+        assertEquals("1", room.getId());
         assertEquals("room", room.getName());
         assertEquals(5, room.getLicenseCount());
 
@@ -67,7 +66,7 @@ public class XmlRpcTypeMapTest
     public interface RoomService extends Service
     {
         @API
-        public Room getRoom(SecurityToken token, String roomIdentifier);
+        public Room getRoom(SecurityToken token, String roomId);
 
         @API
         public void modifyRoom(SecurityToken token, Room room);
@@ -82,12 +81,12 @@ public class XmlRpcTypeMapTest
         }
 
         @Override
-        public Room getRoom(SecurityToken token, String roomIdentifier)
+        public Room getRoom(SecurityToken token, String roomId)
         {
-            assertEquals("1", roomIdentifier);
+            assertEquals("1", roomId);
 
             Room room = new Room();
-            room.setIdentifier("1");
+            room.setId("1");
             room.setName("room");
             room.setLicenseCount(5);
             room.addAlias(new Alias(AliasType.H323_E164, "9501"));
@@ -98,7 +97,7 @@ public class XmlRpcTypeMapTest
         @Override
         public void modifyRoom(SecurityToken token, Room room)
         {
-            assertEquals("1", room.getIdentifier());
+            assertEquals("1", room.getId());
             assertEquals(10, room.getLicenseCount());
             assertEquals(new HashSet<Room.Option>()
             {{

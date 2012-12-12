@@ -29,9 +29,9 @@ public class Connector
     private String name;
 
     /**
-     * Identifier of a resource which is managed by the connector.
+     * Id of a resource which is managed by the connector.
      */
-    private String resourceIdentifier;
+    private String resourceId;
 
     /**
      * Status of the connector.
@@ -55,19 +55,19 @@ public class Connector
     }
 
     /**
-     * @return {@link #resourceIdentifier}
+     * @return {@link #resourceId}
      */
-    public String getResourceIdentifier()
+    public String getResourceId()
     {
-        return resourceIdentifier;
+        return resourceId;
     }
 
     /**
-     * @param resourceIdentifier sets the {@link #resourceIdentifier}
+     * @param resourceId sets the {@link #resourceId}
      */
-    void setResourceIdentifier(String resourceIdentifier)
+    void setResourceId(String resourceId)
     {
-        this.resourceIdentifier = resourceIdentifier;
+        this.resourceId = resourceId;
     }
 
     /**

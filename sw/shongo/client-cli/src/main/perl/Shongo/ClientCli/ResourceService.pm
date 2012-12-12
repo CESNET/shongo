@@ -37,7 +37,7 @@ sub populate()
         },
         'modify-resource' => {
             desc => 'Modify an existing resource',
-            args => '[identifier] [<json_attributes>]',
+            args => '[id] [<json_attributes>]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 my $attributes = Shongo::Shell::parse_attributes($params);
@@ -48,12 +48,12 @@ sub populate()
         },
         'delete-resource' => {
             desc => 'Delete an existing resource',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        delete_resource($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        delete_resource($id);
                     }
                 } else {
                     delete_resource();
@@ -71,12 +71,12 @@ sub populate()
         },
         'get-resource' => {
             desc => 'Get existing resource',
-            args => '[identifier]',
+            args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_resource($identifier);
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_resource($id);
                     }
                 } else {
                     get_resource();
@@ -86,12 +86,12 @@ sub populate()
         'get-resource-allocation' => {
             desc => 'Get information about resource allocations',
             options => 'interval=s',
-            args => '[-interval] [identifier]',
+            args => '[-interval] [id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
                 if (defined($args[0])) {
-                    foreach my $identifier (split(/,/, $args[0])) {
-                        get_resource_allocation($identifier, $params->{'options'}->{'interval'});
+                    foreach my $id (split(/,/, $args[0])) {
+                        get_resource_allocation($id, $params->{'options'}->{'interval'});
                     }
                 } else {
                     get_resource_allocation(undef, $params->{'options'}->{'interval'});
@@ -103,12 +103,12 @@ sub populate()
 
 sub select_resource
 {
-    my ($identifier, $attributes) = @_;
-    if ( defined($attributes) && defined($attributes->{'identifier'}) ) {
-        $identifier = $attributes->{'identifier'};
+    my ($id, $attributes) = @_;
+    if ( defined($attributes) && defined($attributes->{'id'}) ) {
+        $id = $attributes->{'id'};
     }
-    $identifier = console_read_value('Identifier of the resource', 0, $Shongo::Common::IdentifierPattern, $identifier);
-    return $identifier;
+    $id = console_read_value('Identifier of the resource', 0, $Shongo::Common::IdPattern, $id);
+    return $id;
 }
 
 sub create_resource()
@@ -128,22 +128,22 @@ sub create_resource()
         return undef;
     };
 
-    my $identifier = Shongo::ClientCli::API::Resource->create($attributes, $options);
-    if ( defined($identifier) ) {
-        console_print_info("Resource '%s' successfully created.", $identifier);
+    my $id = Shongo::ClientCli::API::Resource->create($attributes, $options);
+    if ( defined($id) ) {
+        console_print_info("Resource '%s' successfully created.", $id);
     }
 }
 
 sub modify_resource()
 {
-    my ($identifier, $attributes, $options) = @_;
-    $identifier = select_resource($identifier, $attributes);
-    if ( !defined($identifier) ) {
+    my ($id, $attributes, $options) = @_;
+    $id = select_resource($id, $attributes);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
 
     $options->{'on_confirm'} = sub {
@@ -154,7 +154,7 @@ sub modify_resource()
             $resource->to_xml()
         );
         if ( !$response->is_fault() ) {
-            return $resource->{'identifier'};
+            return $resource->{'id'};
         }
         return undef;
     };
@@ -169,14 +169,14 @@ sub modify_resource()
 
 sub delete_resource()
 {
-    my ($identifier) = @_;
-    $identifier = select_resource($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_resource($id);
+    if ( !defined($id) ) {
         return;
     }
     Shongo::ClientCli->instance()->secure_request(
         'Resource.deleteResource',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
 }
 
@@ -211,11 +211,11 @@ sub list_resources()
             }
         }
         $table->add(
-            $resource->{'identifier'},
+            $resource->{'id'},
             $application->format_user($resource->{'userId'}),
             $resource->{'name'},
             $technologies,
-            $resource->{'parentIdentifier'},
+            $resource->{'parentResourceId'},
         );
     }
     console_print_table($table);
@@ -223,14 +223,14 @@ sub list_resources()
 
 sub get_resource()
 {
-    my ($identifier) = @_;
-    $identifier = select_resource($identifier);
-    if ( !defined($identifier) ) {
+    my ($id) = @_;
+    $id = select_resource($id);
+    if ( !defined($id) ) {
         return;
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResource',
-        RPC::XML::string->new($identifier)
+        RPC::XML::string->new($id)
     );
     if ( !$result->is_fault ) {
         my $resource = Shongo::ClientCli::API::Resource->from_hash($result);
@@ -242,9 +242,9 @@ sub get_resource()
 
 sub get_resource_allocation()
 {
-    my ($identifier, $interval) = @_;
-    $identifier = select_resource($identifier);
-    if ( !defined($identifier) ) {
+    my ($id, $interval) = @_;
+    $id = select_resource($id);
+    if ( !defined($id) ) {
         return;
     }
     if (defined($interval)) {
@@ -254,7 +254,7 @@ sub get_resource_allocation()
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Resource.getResourceAllocation',
-        RPC::XML::string->new($identifier),
+        RPC::XML::string->new($id),
         $interval
     );
     if ( $result->is_fault ) {
@@ -264,7 +264,7 @@ sub get_resource_allocation()
     my $result_hash = $result->value();
     my $resource_allocation = Shongo::ClientCli::API::Object::->new();
     $resource_allocation->set_object_name('Resource Allocation');
-    $resource_allocation->add_attribute('identifier');
+    $resource_allocation->add_attribute('id', {'title' => 'Identifier'});
     $resource_allocation->add_attribute('name');
     $resource_allocation->add_attribute('interval', {'type' => 'interval'});
     if ($result_hash->{'class'} eq 'RoomProviderResourceAllocation') {
@@ -279,9 +279,9 @@ sub get_resource_allocation()
         my $reservation = Shongo::ClientCli::API::Reservation->new($reservationXml->{'class'});
         $reservation->from_hash($reservationXml);
         $table->add(
-            $reservation->{'identifier'},
+            $reservation->{'id'},
             format_interval($reservation->{'slot'}),
-            sprintf("%s (%s)", $reservation->{'resourceName'}, $reservation->{'resourceIdentifier'}),
+            sprintf("%s (%s)", $reservation->{'resourceName'}, $reservation->{'resourceId'}),
             $reservation->to_string_short()
         );
     }

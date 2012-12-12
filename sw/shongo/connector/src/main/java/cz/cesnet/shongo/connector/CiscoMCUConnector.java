@@ -1,10 +1,10 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
+import cz.cesnet.shongo.util.HostTrustManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -13,15 +13,11 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -274,15 +270,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             client.setConfig(config);
 
             // FIXME: remove, the production code should not trust any certificate
-            try {
-                setTrustAllCertificates();
-            }
-            catch (NoSuchAlgorithmException e) {
-                logger.error("Error setting trust to all certificates", e);
-            }
-            catch (KeyManagementException e) {
-                logger.error("Error setting trust to all certificates", e);
-            }
+            HostTrustManager.addTrustedHost(getDeviceURL().getHost());
 
             initSession();
             initDeviceInfo();
@@ -323,52 +311,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         di.setSerialNumber((String) device.get("serial"));
 
         info.setDeviceInfo(di);
-    }
-
-    /**
-     * Configures the client to trust any certificate, without the need to have it in the keystore.
-     * <p/>
-     * Just a quick and dirty solution for certificate issues. The production solution should not use this method!
-     * <p/>
-     * Taken from http://ws.apache.org/xmlrpc/ssl.html
-     */
-    private void setTrustAllCertificates() throws NoSuchAlgorithmException, KeyManagementException
-    {
-        // Create a trust manager that does not validate certificate chains
-        TrustManager[] trustAllCerts = new TrustManager[]{
-                new X509TrustManager()
-                {
-                    public X509Certificate[] getAcceptedIssuers()
-                    {
-                        return null;
-                    }
-
-                    public void checkClientTrusted(X509Certificate[] certs, String authType)
-                    {
-                        // Trust always
-                    }
-
-                    public void checkServerTrusted(X509Certificate[] certs, String authType)
-                    {
-                        // Trust always
-                    }
-                }
-        };
-
-        // Install the all-trusting trust manager
-        SSLContext sc = SSLContext.getInstance("SSL");
-        // Create empty HostnameVerifier
-        HostnameVerifier hv = new HostnameVerifier()
-        {
-            public boolean verify(String arg0, SSLSession arg1)
-            {
-                return true;
-            }
-        };
-
-        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        HttpsURLConnection.setDefaultHostnameVerifier(hv);
     }
 
     @Override
@@ -479,7 +421,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     private static RoomSummary extractRoomSummary(Map<String, Object> conference)
     {
         RoomSummary info = new RoomSummary();
-        info.setIdentifier((String) conference.get("conferenceName"));
+        info.setId((String) conference.get("conferenceName"));
         info.setName((String) conference.get("conferenceName"));
         info.setDescription((String) conference.get("description"));
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
@@ -811,7 +753,7 @@ ParamsLoop:
         Map<String, Object> result = exec(cmd);
 
         Room room = new Room();
-        room.setIdentifier((String) result.get("conferenceName"));
+        room.setId((String) result.get("conferenceName"));
         room.setName((String) result.get("conferenceName"));
         room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
 
@@ -939,7 +881,7 @@ ParamsLoop:
         Command cmd = new Command("conference.modify");
         setConferenceParametersByRoom(cmd, room);
         // treat the name and new name of the conference
-        cmd.setParameter("conferenceName", truncateString(room.getIdentifier()));
+        cmd.setParameter("conferenceName", truncateString(room.getId()));
         if (room.isPropertyFilled(Room.NAME)) {
             cmd.setParameter("newConferenceName", truncateString(room.getName()));
         }
@@ -951,7 +893,7 @@ ParamsLoop:
             if (alias.getType() == AliasType.H323_E164) {
                 if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
                     // MCU only supports a single H323-E164 alias; if another is to be set, throw an exception
-                    Room currentRoom = getRoom(room.getIdentifier());
+                    Room currentRoom = getRoom(room.getId());
                     for (Alias curAlias : currentRoom.getAliases()) {
                         if (curAlias.getType() == AliasType.H323_E164) {
                             final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
@@ -1001,7 +943,7 @@ ParamsLoop:
             return room.getName();
         }
         else {
-            return room.getIdentifier();
+            return room.getId();
         }
     }
 

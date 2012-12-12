@@ -23,7 +23,7 @@ our $COLLECTION_EMPTY = "-- None --";
 our $ClassMapping = {
     '^.*Reservation$' => 'Shongo::ClientCli::API::Reservation',
     '^.*Specification$' => 'Shongo::ClientCli::API::Specification',
-    '^Executable\.(Compartment|ResourceRoomEndpoint)$' => 'Shongo::ClientCli::API::Executable'
+    '^Executable\.(Compartment|ResourceRoom)$' => 'Shongo::ClientCli::API::Executable'
 };
 
 #
@@ -43,7 +43,7 @@ sub new
     $self->{'__attributes_order'} = [];
     $self->{'__attributes_preserve'} = {};
 
-    $self->add_attribute_preserve('identifier');
+    $self->add_attribute_preserve('id');
 
     return $self;
 }
@@ -1373,7 +1373,7 @@ sub test
     $object->set_object_class('TestClass');
     $object->set_object_name('Test');
     $object->add_attribute(
-        'identifier', {
+        'id', {
             'required' => 1,
             'type' => 'int'
         }
@@ -1397,7 +1397,7 @@ sub test
 
     # Init instance
     $object->create({
-        'identifier' => '1',
+        'id' => '1',
         'name' => 'Test 1',
         #'items' => ['Item 1', 'Item 2', 'Item 3']
     }, {'child' => 1});

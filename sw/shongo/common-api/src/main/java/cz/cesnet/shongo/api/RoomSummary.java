@@ -81,6 +81,6 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     public String toString()
     {
         return String.format("Room %s (name: %s, description: %s, startDateTime: %s)",
-                getIdentifier(), getName(), getDescription(), getStartDateTime());
+                getId(), getName(), getDescription(), getStartDateTime());
     }
 }

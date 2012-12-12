@@ -118,7 +118,7 @@ sub populate()
 }
 
 #
-# @param $user_id identifier of the user
+# @param $user_id user-id of the user
 # @return user info formatted to string for user with given $user_id
 #
 sub format_user

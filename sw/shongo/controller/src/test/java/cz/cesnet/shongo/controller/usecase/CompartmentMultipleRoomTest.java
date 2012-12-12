@@ -31,13 +31,13 @@ public class CompartmentMultipleRoomTest extends AbstractControllerTest
         firstMcu.setName("firstMcu");
         firstMcu.addTechnology(Technology.H323);
         firstMcu.addCapability(new RoomProviderCapability(6));
-        String firstMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
+        String firstMcuId = getResourceService().createResource(SECURITY_TOKEN, firstMcu);
 
         DeviceResource secondMcu = new DeviceResource();
         secondMcu.setName("secondMcu");
         secondMcu.addTechnology(Technology.H323);
         secondMcu.addCapability(new RoomProviderCapability(6));
-        String secondMcuIdentifier = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
+        String secondMcuId = getResourceService().createResource(SECURITY_TOKEN, secondMcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
@@ -46,8 +46,8 @@ public class CompartmentMultipleRoomTest extends AbstractControllerTest
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 10));
         reservationRequest.setSpecification(compartmentSpecification);
 
-        String identifier = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runScheduler();
-        checkAllocated(identifier);
+        checkAllocated(id);
     }
 }

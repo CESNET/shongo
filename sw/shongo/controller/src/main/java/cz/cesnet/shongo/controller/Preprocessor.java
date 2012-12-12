@@ -87,7 +87,7 @@ public class Preprocessor extends Component
     }
 
     /**
-     * Run preprocessor only for single {@link ReservationRequestSet} with given identifier for a given interval.
+     * Run preprocessor only for single {@link ReservationRequestSet} with given shongo-id for a given interval.
      *
      * @param reservationRequestSetId
      * @param interval
@@ -101,7 +101,7 @@ public class Preprocessor extends Component
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
-            // Get reservation request set by identifier
+            // Get reservation request set by shongo-id
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             AbstractReservationRequest reservationRequest =
                     reservationRequestManager.getReservationRequest(reservationRequestSetId);
@@ -208,7 +208,7 @@ public class Preprocessor extends Component
                 permanentReservationRequest.removeResourceReservation(resourceReservation);
                 reservationManager.delete(resourceReservation, cache);
             }
-            Long userId = permanentReservationRequest.getUserId();
+            String userId = permanentReservationRequest.getUserId();
             ReservationTask.Context context = new ReservationTask.Context(userId, cache, slot);
             ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, resource);
 

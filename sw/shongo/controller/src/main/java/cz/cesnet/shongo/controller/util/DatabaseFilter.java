@@ -58,11 +58,11 @@ public class DatabaseFilter
     }
 
     /**
-     * Add user identifier filter (entity referenced by {@link #alias} must contain "userId" property).
+     * Add user-id filter (entity referenced by {@link #alias} must contain "userId" property).
      *
-     * @param userId identifier of the user
+     * @param userId user-id of the user
      */
-    public void addUserId(Long userId)
+    public void addUserId(String userId)
     {
         if (userId != null) {
             addFilter(alias + ".userId = :userId");
@@ -95,13 +95,13 @@ public class DatabaseFilter
     }
 
     /**
-     * @param filter        from which the user identifier should be parsed
-     * @param defaultUserId value which will be returned when the user identifier isn't present in the {@code filter}
-     * @return user identifier from given {@code filter}
+     * @param filter        from which the user-id should be parsed
+     * @param defaultUserId value which will be returned when the user-id isn't present in the {@code filter}
+     * @return user-id from given {@code filter}
      */
-    public static Long getUserIdFromFilter(Map<String, Object> filter, Long defaultUserId)
+    public static String getUserIdFromFilter(Map<String, Object> filter, String defaultUserId)
     {
-        Long userId = defaultUserId;
+        String userId = defaultUserId;
         if (filter != null) {
             if (filter.containsKey("userId")) {
                 Object value = filter.get("userId");
@@ -111,7 +111,7 @@ public class DatabaseFilter
                 }
                 // One selected user
                 else {
-                    userId = (value != null ? Long.valueOf(value.toString()) : null);
+                    userId = (value != null ? value.toString() : null);
                 }
             }
         }

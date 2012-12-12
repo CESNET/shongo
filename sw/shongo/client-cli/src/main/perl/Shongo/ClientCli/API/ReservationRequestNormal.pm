@@ -32,17 +32,17 @@ sub new()
         'enum' => $Purpose,
         'required' => 1
     });
-    $self->add_attribute('providedReservationIdentifiers', {
+    $self->add_attribute('providedReservationIds', {
         'title' => 'Provided reservations',
         'type' => 'collection',
         'item' => {
             'title' => 'provided reservation',
             'add' => sub {
-                return console_edit_value("Reservation identifier", 1, $Shongo::Common::IdentifierPattern);
+                return console_edit_value("Reservation identifier", 1, $Shongo::Common::IdPattern);
             },
             'format' => sub {
-                my ($providedReservationIdentifier) = @_;
-                return sprintf("identifier: %s", $providedReservationIdentifier);
+                my ($providedReservationId) = @_;
+                return sprintf("identifier: %s", $providedReservationId);
             }
         },
         'complex' => 0

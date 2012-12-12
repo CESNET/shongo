@@ -15,7 +15,7 @@ public class EntityToDeleteIsReferencedException extends FaultException
     /**
      * Unique identifier of the entity.
      */
-    private Long entityIdentifier;
+    private Long entityId;
 
     /**
      * Constructor.
@@ -28,12 +28,12 @@ public class EntityToDeleteIsReferencedException extends FaultException
      * Constructor.
      *
      * @param entityType
-     * @param entityIdentifier
+     * @param entityId
      */
-    public EntityToDeleteIsReferencedException(Class entityType, Long entityIdentifier)
+    public EntityToDeleteIsReferencedException(Class entityType, Long entityId)
     {
         this.entityType = entityType;
-        this.entityIdentifier = entityIdentifier;
+        this.entityId = entityId;
     }
 
     /**
@@ -45,11 +45,11 @@ public class EntityToDeleteIsReferencedException extends FaultException
     }
 
     /**
-     * @return {@link #entityIdentifier}
+     * @return {@link #entityId}
      */
-    public Long getEntityIdentifier()
+    public Long getEntityId()
     {
-        return entityIdentifier;
+        return entityId;
     }
 
     @Override
@@ -62,6 +62,6 @@ public class EntityToDeleteIsReferencedException extends FaultException
     public String getMessage()
     {
         return CommonFault.formatMessage("Entity '%s' with identifier '%d' cannot be deleted (it is still referenced).",
-                entityType, entityIdentifier);
+                entityType, entityId);
     }
 }

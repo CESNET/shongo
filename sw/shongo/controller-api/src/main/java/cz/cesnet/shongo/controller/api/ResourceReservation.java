@@ -8,9 +8,9 @@ package cz.cesnet.shongo.controller.api;
 public class ResourceReservation extends Reservation
 {
     /**
-     * Unique resourceIdentifier of the resource.
+     * Shongo-id of the resource.
      */
-    private String resourceIdentifier;
+    private String resourceId;
 
     /**
      * Name of the resource.
@@ -18,19 +18,19 @@ public class ResourceReservation extends Reservation
     private String resourceName;
 
     /**
-     * @return {@link #resourceIdentifier}
+     * @return {@link #resourceId}
      */
-    public String getResourceIdentifier()
+    public String getResourceId()
     {
-        return resourceIdentifier;
+        return resourceId;
     }
 
     /**
-     * @param resourceIdentifier sets the {@link #resourceIdentifier}
+     * @param resourceId sets the {@link #resourceId}
      */
-    public void setResourceIdentifier(String resourceIdentifier)
+    public void setResourceId(String resourceId)
     {
-        this.resourceIdentifier = resourceIdentifier;
+        this.resourceId = resourceId;
     }
 
     /**

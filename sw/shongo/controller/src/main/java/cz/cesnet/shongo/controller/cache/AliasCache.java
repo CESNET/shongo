@@ -19,7 +19,7 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
     private static Logger logger = LoggerFactory.getLogger(AliasCache.class);
 
     /**
-     * Map of {@link AliasProviderCapability}s by resource identifier (used for removing all capabilities
+     * Map of {@link AliasProviderCapability}s by resource id (used for removing all capabilities
      * of a given resource).
      */
     private Map<Long, Set<AliasProviderCapability>> aliasProviderCapabilitiesByResourceId =

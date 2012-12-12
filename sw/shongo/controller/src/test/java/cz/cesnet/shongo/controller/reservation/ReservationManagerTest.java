@@ -20,7 +20,7 @@ import static junit.framework.Assert.assertEquals;
 public class ReservationManagerTest extends AbstractDatabaseTest
 {
     @Test
-    public void testQueryNotInRelationOneIdentifierBug() throws Exception
+    public void testQueryNotInRelationOneIdBug() throws Exception
     {
         EntityManager entityManager = getEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
@@ -69,7 +69,7 @@ public class ReservationManagerTest extends AbstractDatabaseTest
         // Bug, should be 1
         assertEquals(0, reservations.size());
 
-        // So in code we must use entity alias in "NOT IN" clause and not identifiers
+        // So in code we must use entity alias in "NOT IN" clause and not ids
 
         entityManager.close();
     }

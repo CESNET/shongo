@@ -261,7 +261,7 @@ public class DateTimeSlotSpecification extends PersistentObject
     @Transient
     public Interval getEarliest(DateTime referenceDateTime)
     {
-        DateTime dateTime = this.start.getEarliest(referenceDateTime);
+        DateTime dateTime = this.start.getEarliest(referenceDateTime.minus(getDuration()));
         if (dateTime == null) {
             return null;
         }
@@ -359,7 +359,7 @@ public class DateTimeSlotSpecification extends PersistentObject
             throw new TodoImplementException();
         }
         cz.cesnet.shongo.controller.api.DateTimeSlot dateTimeSlot = new cz.cesnet.shongo.controller.api.DateTimeSlot();
-        dateTimeSlot.setIdentifier(getId());
+        dateTimeSlot.setId(getId());
         dateTimeSlot.setStart(start);
         dateTimeSlot.setDuration(getDuration());
         return dateTimeSlot;

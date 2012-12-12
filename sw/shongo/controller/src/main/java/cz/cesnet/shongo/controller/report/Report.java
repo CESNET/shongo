@@ -15,7 +15,7 @@ import java.util.List;
 public abstract class Report
 {
     /**
-     * Persistent object must have an unique identifier.
+     * Persistent object must have an unique id.
      */
     private Long id;
 

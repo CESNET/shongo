@@ -89,21 +89,21 @@ public class Domain
         this.status = status;
     }
 
-    private static final Pattern GLOBAL_IDENTIFIER_PATTERN = Pattern.compile("shongo:.*:(\\d+)");
+    private static final Pattern GLOBAL_ID_PATTERN = Pattern.compile("shongo:.*:(\\d+)");
 
     /**
-     * @param globalIdentifier from which the local identifier should be returned
-     * @return local identifier from given {@code globalIdentifier}
+     * @param globalId from which the local id should be returned
+     * @return local id from given {@code globalId}
      */
-    public static String getLocalIdentifier(String globalIdentifier)
+    public static String getLocalId(String globalId)
     {
-        Matcher matcher = GLOBAL_IDENTIFIER_PATTERN.matcher(globalIdentifier);
+        Matcher matcher = GLOBAL_ID_PATTERN.matcher(globalId);
 
         if (matcher.matches() && matcher.groupCount() == 1) {
-            String identifier = matcher.group(1);
-            return identifier;
+            String id = matcher.group(1);
+            return id;
         }
         throw new IllegalArgumentException(String.format("The identifier '%s' isn't valid global identifier!",
-                globalIdentifier));
+                globalId));
     }
 }

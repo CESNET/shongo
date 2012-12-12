@@ -203,7 +203,7 @@ sub render_page
     }
     $parameters->{'title'} = $title;
     my $content = $self->render_template($file, $parameters);
-    $self->render_page_content($title, $content, $parameters->{'options'});
+    $self->render_page_content($title, $content, $parameters);
 }
 
 #
@@ -215,20 +215,17 @@ sub render_page
 #
 sub render_page_content
 {
-    my ($self, $title, $content, $options) = @_;
+    my ($self, $title, $content, $parameters) = @_;
 
-    my $params = {};
-    var_dump();
-    $params->{'title'} = $title;
-    $params->{'content'} = $content;
-    $params->{'options'} = $options;
-    $params->{'session'} = {};
+    $parameters->{'title'} = $title;
+    $parameters->{'content'} = $content;
+    $parameters->{'session'} = {};
     foreach my $name ($self->{'session'}->param()) {
-        $params->{'session'}->{$name} = $self->{'session'}->param($name);
+        $parameters->{'session'}->{$name} = $self->{'session'}->param($name);
     }
 
     # Render layout with the rendered content
-    print $self->render_template('layout.html', $params);
+    print $self->render_template('layout.html', $parameters);
     print("\n");
 }
 

@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
+import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
@@ -96,13 +97,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new Executable.ResourceRoomEndpoint();
+        return new Executable.ResourceRoom();
     }
 
     @Override
-    public Executable.ResourceRoomEndpoint toApi(Domain domain)
+    public Executable.ResourceRoom toApi(Domain domain)
     {
-        return (Executable.ResourceRoomEndpoint) super.toApi(domain);
+        return (Executable.ResourceRoom) super.toApi(domain);
     }
 
     @Override
@@ -110,12 +111,12 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         super.toApi(executableApi, domain);
 
-        Executable.ResourceRoomEndpoint resourceRoomEndpoint = (Executable.ResourceRoomEndpoint) executableApi;
-        resourceRoomEndpoint.setIdentifier(domain.formatIdentifier(getId()));
+        Executable.ResourceRoom resourceRoomEndpoint = (Executable.ResourceRoom) executableApi;
+        resourceRoomEndpoint.setId(domain.formatId(getId()));
         resourceRoomEndpoint.setSlot(getSlot());
         resourceRoomEndpoint.setState(getState().toApi());
         resourceRoomEndpoint.setLicenseCount(roomConfiguration.getLicenseCount());
-        resourceRoomEndpoint.setResourceIdentifier(domain.formatIdentifier(getDeviceResource().getId()));
+        resourceRoomEndpoint.setResourceId(domain.formatId(getDeviceResource().getId()));
         for (Technology technology : roomConfiguration.getTechnologies()) {
             resourceRoomEndpoint.addTechnology(technology);
         }
@@ -152,6 +153,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         }
         aliases.addAll(super.getAssignedAliases());
         return aliases;
+    }
+
+    @Override
+    public void addAssignedAlias(Alias assignedAlias) throws ReportException
+    {
+        deviceResource.evaluateAlias(assignedAlias);
+        super.addAssignedAlias(assignedAlias);
     }
 
     @Override
