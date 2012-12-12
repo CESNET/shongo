@@ -33,7 +33,7 @@ sub new()
     });
     $self->add_attribute('userId', {
         'title' => 'Owner',
-        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_); },
+        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_, 1); },
         'editable' => 0
     });
     $self->add_attribute('name', {

@@ -14,11 +14,6 @@
 
 * Specify room name in adobe connect reservation request
 
-* Cmd-line client
-  - show user names in list of reservations
-  - show owner names in list of resources
-  - show owner names in list of executables
-
 * Alias allocation - pass target resource in reservation task to be able to match against owner resource
 
 * Web clients - H.323 and Adobe Connect

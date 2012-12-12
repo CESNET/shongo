@@ -32,6 +32,7 @@ sub instance
         $singleInstance = bless $self, $class;
         $singleInstance->{'scripting'} = 0;
         $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
+        $singleInstance->{'user-cache'} = {};
     }
     return $singleInstance;
 }
@@ -123,8 +124,19 @@ sub populate()
 #
 sub format_user
 {
-    my ($self, $user_id) = @_;
-    return $user_id;
+    my ($self, $user_id, $long) = @_;
+
+    my $user_info = $singleInstance->{'user-cache'}->{$user_id};
+    if ( !defined($user_info) ) {
+        $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
+        $singleInstance->{'user-cache'}->{$user_id} = $user_info;
+    }
+    if ( $long ) {
+        return "$user_info->{'name'} (id: $user_id)";
+    }
+    else {
+        return "$user_info->{'name'} ($user_id)";
+    }
 }
 
 #
@@ -144,7 +156,7 @@ sub user_info()
 {
     my ($self) = @_;
     console_print_debug("Retrieving user information for access token '%s'...", $self->{'access_token'});
-    my $user_info = $self->{'authorization'}->user_info($self->{'access_token'});
+    my $user_info = $self->{'authorization'}->get_user_info($self->{'access_token'});
     if (!defined($user_info)) {
         return;
     }

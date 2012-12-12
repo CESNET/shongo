@@ -200,7 +200,7 @@ sub authentication_token
 # @param $access_token
 # @return user information
 #
-sub user_info
+sub get_user_info
 {
     my ($self, $access_token) = @_;
     if (!defined($access_token)) {
@@ -224,6 +224,42 @@ sub user_info
         return undef;
     }
 
+    $response_data->{'name'} = $response_data->{'given_name'} . ' ' . $response_data->{'family_name'};
+    return $response_data;
+}
+
+#
+# Retrieve user information by user-id
+#
+# @param $userId
+# @return user information
+#
+sub get_user_info_by_id
+{
+    my ($self, $user_id) = @_;
+    if (!defined($user_id)) {
+        self->error("User-id must be passed.");
+        return;
+    }
+    if ( $user_id eq "0" ) {
+        return {'name' => 'root'};
+    }
+
+    # Setup request url
+    my $url = URI->new('https://hroch.cesnet.cz/perun-ws/resource/user/' . $user_id);
+
+    # Request user information
+    my $request = HTTP::Request->new(GET => $url);
+    my $user_agent = $self->get_user_agent();
+    my $response = $user_agent->simple_request($request);
+    my $response_data = undef;
+    if ( defined($response) && $response ne '' ) {
+        $response_data = decode_json($response->content);
+    }
+    if (!$response->is_success) {
+        $self->error("Retrieving user information for user-id '$user_id' failed!");
+        return undef;
+    }
     $response_data->{'name'} = $response_data->{'given_name'} . ' ' . $response_data->{'family_name'};
     return $response_data;
 }
