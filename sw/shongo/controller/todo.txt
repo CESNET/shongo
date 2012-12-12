@@ -1,5 +1,3 @@
-* Update API
-
 * Shongo cesnet report
 
 * send info mails about new/deleted reservation requests to:
@@ -20,8 +18,6 @@
   - show user names in list of reservations
   - show owner names in list of resources
   - show owner names in list of executables
-
-* Adobe connect through "control-resource" in cmd-line client (until half of december)
 
 * Alias allocation - pass target resource in reservation task to be able to match against owner resource
 
@@ -47,6 +43,8 @@
 
 FUTURE:
 -------
+* Test cmd-line client in mvn test
+
 * Create tests for Converter (and simplify Converter.convert() method)
 
 * Persons, PersonSpecifications

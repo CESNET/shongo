@@ -250,7 +250,7 @@ sub control_resource()
                 args => '[-duration] [-text]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_show_message($resourceIdentifier, $params->{'options'});
+                    resource_show_message($resourceId, $params->{'options'});
                 }
             }
         });
