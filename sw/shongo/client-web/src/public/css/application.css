@@ -9,11 +9,14 @@ h6 { font-size: 12px; line-height: 20px; }
 /** Descriptions */
 .dl-horizontal dt {
     width: 200px;
-    margin-top: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 .dl-horizontal dd {
-    margin-top: 5px;
+    padding-top: 5px;
+    padding-bottom: 5px;
     margin-left: 210px;
+    margin-right: 5px;
 }
 .popup .dl-horizontal {
     margin: 0px;
