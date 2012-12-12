@@ -101,4 +101,12 @@ public interface EndpointService extends CommonService
      */
     void stopPresentation() throws CommandException, CommandUnsupportedException;
 
+    /**
+     * Shows a message box to the user.
+     *
+     * @param duration for how long (at most) the message should be shown
+     * @param text     message to show
+     */
+    void showMessage(int duration, String text) throws CommandException, CommandUnsupportedException;
+
 }

@@ -153,4 +153,8 @@ public interface ResourceControlService extends Service
     @API
     public void setParticipantPlaybackLevel(SecurityToken token, String deviceResourceIdentifier, String roomId,
             String roomUserId, int level) throws FaultException;
+
+    @API
+    public void showMessage(SecurityToken token, String deviceResourceIdentifier, int duration, String text)
+            throws FaultException;
 }

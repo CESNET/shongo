@@ -18,8 +18,6 @@ import java.util.regex.Pattern;
 /**
  * A common superclass for all connectors using SSH for communication with the device.
  *
- * TODO: test with Codec C90
- *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 abstract public class AbstractSSHConnector extends AbstractConnector
@@ -181,7 +179,7 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         int c;
         while ((c = commandResultStream.read()) != -1) {
             output.append((char) c);
-            output.append((char) c);
+            lastLineBuf.append((char) c);
             if ((char) c == '\n') {
                 // the line got terminated, check whether to stop reading
                 String lastLine = lastLineBuf.toString().trim();

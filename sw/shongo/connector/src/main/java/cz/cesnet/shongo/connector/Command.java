@@ -23,13 +23,28 @@ public class Command
      */
     private Map<String, Object> parameters = new HashMap<String, Object>();
 
+    /**
+     * Separator of parameter names and values.
+     */
+    private final String paramNameValueSeparator;
+
+
     public Command(String command)
+    {
+        this(command, ": ");
+    }
+
+    public Command(String command, String paramNameValueSeparator)
     {
         if (command == null) {
             throw new NullPointerException("command");
         }
+        if (paramNameValueSeparator == null) {
+            throw new NullPointerException("paramNameValueSeparator");
+        }
 
         this.command = command;
+        this.paramNameValueSeparator = paramNameValueSeparator;
     }
 
     public Command addArgument(Object arg)
@@ -77,7 +92,7 @@ public class Command
         for (Map.Entry<String, Object> entry : parameters.entrySet()) {
             sb.append(" ");
             sb.append(entry.getKey());
-            sb.append(": ");
+            sb.append(paramNameValueSeparator);
             sb.append(entry.getValue());
         }
 

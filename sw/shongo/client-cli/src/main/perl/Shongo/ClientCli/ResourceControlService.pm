@@ -242,6 +242,19 @@ sub control_resource()
             }
         });
     }
+    if (grep $_ eq 'showMessage', @supportedMethods) {
+        $shell->add_commands({
+            "show-message" => {
+                desc => "Shows a message on the endpoint display",
+                options => 'duration=s text=s',
+                args => '[-duration] [-text]',
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_show_message($resourceIdentifier, $params->{'options'});
+                }
+            }
+        });
+    }
     if (grep $_ eq 'dialParticipant', @supportedMethods) {
         $shell->add_commands({
             "dial-participant" => {
@@ -651,6 +664,21 @@ sub resource_stop_presentation
     if ( $result->is_fault ) {
         return;
     }
+}
+
+sub resource_show_message
+{
+    my ($resourceIdentifier, $attributes) = @_;
+
+    my $duration = console_read_value('Duration', 1, '^\\d+$', $attributes->{'duration'});
+    my $text     = console_read_value('Text', 1, undef, $attributes->{'text'});
+
+    my $result = Shongo::ClientCli->instance()->secure_request(
+        'ResourceControl.showMessage',
+        RPC::XML::string->new($resourceIdentifier),
+        RPC::XML::int->new($duration),
+        RPC::XML::string->new($text)
+    );
 }
 
 sub resource_dial_participant

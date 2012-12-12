@@ -340,6 +340,14 @@ public class ResourceControlServiceImpl extends Component
         commandDevice(deviceResourceIdentifier, new SetParticipantPlaybackLevel(roomId, roomUserId, level));
     }
 
+    @Override
+    public void showMessage(SecurityToken token, String deviceResourceIdentifier, int duration, String text)
+            throws FaultException
+    {
+        authorization.validate(token);
+        commandDevice(deviceResourceIdentifier, new ShowMessage(duration, text));
+    }
+
     /**
      * Asks the local controller agent to send a command to be performed by a device.
      *

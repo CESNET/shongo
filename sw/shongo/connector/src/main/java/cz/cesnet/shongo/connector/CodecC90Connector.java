@@ -388,10 +388,11 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
     @Override
     public void setMicrophoneLevel(int level) throws CommandException
     {
-        // TODO: test that it really affects the microphones gain
+        level = level * 24 / 100; // device takes the gain in range 0..24 (dB)
+
         for (int i = 1; i <= MICROPHONES_COUNT; i++) {
             Command cmd = new Command("xConfiguration Audio Input Microphone " + i);
-            cmd.setParameter("Level", String.valueOf(level*24/100)); // range for volume is 0 to 24 (dB)
+            cmd.setParameter("Level", String.valueOf(level));
             issueCommand(cmd);
         }
     }
@@ -428,6 +429,21 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
     {
         // TODO: test
         issueCommand(new Command("xCommand Presentation Stop"));
+    }
+
+    @Override
+    public void showMessage(int duration, String text) throws CommandException
+    {
+        Command command = new Command("xCommand Message Alert Display");
+        command.setParameter("Duration", duration);
+
+        // treat special characters
+        text = text.replace('"', '\''); // API does not support double-quote characters
+        text = text.replace("\t", "    "); // API ignores tab characters
+        text = text.replace("\n", "        "); // API does not support multi-line messages
+        command.setParameter("Text", '"' + text + '"');
+
+        issueCommand(command);
     }
 
     @Override
