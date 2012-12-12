@@ -50,7 +50,8 @@ public interface EndpointService extends CommonService
     void standBy() throws CommandException, CommandUnsupportedException;
 
     /**
-     * Resets the device.
+     * Reboots the device.
+     * TODO: rename to reboot (as "reset" means resetting the device configuration on some devices)
      */
     void resetDevice() throws CommandException, CommandUnsupportedException;
 
@@ -99,5 +100,13 @@ public interface EndpointService extends CommonService
      * Stops the presentation mode (turns off the media stream).
      */
     void stopPresentation() throws CommandException, CommandUnsupportedException;
+
+    /**
+     * Shows a message box to the user.
+     *
+     * @param duration for how long (at most) the message should be shown
+     * @param text     message to show
+     */
+    void showMessage(int duration, String text) throws CommandException, CommandUnsupportedException;
 
 }

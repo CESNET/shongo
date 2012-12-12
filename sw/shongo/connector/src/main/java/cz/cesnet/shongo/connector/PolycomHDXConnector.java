@@ -215,6 +215,12 @@ public class PolycomHDXConnector extends AbstractConnector implements EndpointSe
     }
 
     @Override
+    public void showMessage(int duration, String text) throws CommandException, CommandUnsupportedException
+    {
+        // TODO
+    }
+
+    @Override
     public DeviceLoadInfo getDeviceLoadInfo() throws CommandUnsupportedException
     {
         throw new CommandUnsupportedException();
