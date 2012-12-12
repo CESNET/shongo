@@ -404,6 +404,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public void deleteRoom(String roomId) throws CommandException
     {
+        HashMap<String,String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id",roomId);
+
+        this.request("meeting-stop",attributes);
+
         deleteSCO(roomId);
     }
 
@@ -743,15 +748,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             acc.connect(address,"admin","cip9skovi3t2");
 
-            Thread.sleep(300100);
-
             Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
-            room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_NAME,"a6qv")); }});
+            room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_NAME,"testi")); }});
             room.setOption(Room.Option.PARTICIPANTS,new ArrayList<String>() {{ add("pavelka@cesnet.cz"); }});
 
             String scoId = acc.createRoom(room);
 
             System.out.println(scoId);
+            Thread.sleep(15000);
             acc.deleteRoom(scoId);
 
 
@@ -764,7 +768,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
     }
 
-    public static void printInputStream(InputStream inputStream) throws IOException
+    /*public static void printInputStream(InputStream inputStream) throws IOException
     {
         System.out.println();
         System.out.println("-- SOURCE DATA --");
@@ -778,5 +782,5 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         }
         System.out.println("-- SOURCE DATA --");
         System.out.println();
-    }
+    }*/
 }
