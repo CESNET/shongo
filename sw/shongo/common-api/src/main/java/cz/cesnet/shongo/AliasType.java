@@ -17,6 +17,11 @@ public enum AliasType
     H323_IDENTIFIER(Technology.H323, AliasValueType.STRING),
 
     /**
+     * Represents {@link cz.cesnet.shongo.Technology#H323} URI (like an IP address).
+     */
+    H323_URI(Technology.H323, AliasValueType.URI),
+
+    /**
      * @see cz.cesnet.shongo.Technology#SIP
      * @see cz.cesnet.shongo.AliasValueType#URI
      */
