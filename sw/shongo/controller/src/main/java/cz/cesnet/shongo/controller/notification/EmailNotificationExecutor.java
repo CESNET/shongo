@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.controller.Configuration;
+import cz.cesnet.shongo.controller.common.Person;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,14 +17,18 @@ import java.util.Properties;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class MailNotificationExecutor extends NotificationExecutor
+public class EmailNotificationExecutor extends NotificationExecutor
 {
-    private static Logger logger = LoggerFactory.getLogger(MailNotificationExecutor.class);
+    private static Logger logger = LoggerFactory.getLogger(EmailNotificationExecutor.class);
 
+    private static final String EMAIL_HEADER = ""
+            + "==========================================================+\n"
+            + " Automatic notification from the Shongo reservation system \n"
+            + "===========================================================\n\n";
     /**
      * Sender email address.
      */
-    private static final String FROM_SHONGO = "info@shongo.cz";
+    private String emailSender = null;
 
     /**
      * Session for sending emails.
@@ -37,6 +42,7 @@ public class MailNotificationExecutor extends NotificationExecutor
 
         // Skip configuration without host
         if (!configuration.containsKey(Configuration.SMTP_HOST)) {
+            logger.warn("Cannot initialize email notifications because SMTP configuration is empty.");
             return;
         }
 
@@ -46,6 +52,8 @@ public class MailNotificationExecutor extends NotificationExecutor
         properties.setProperty("mail.smtp.starttls.enable", "true");
         properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
         properties.setProperty("mail.smtp.socketFactory.fallback", "false");
+
+        emailSender = configuration.getString(Configuration.SMTP_SENDER);
 
         Authenticator authenticator = null;
         if (configuration.containsKey(Configuration.SMTP_USERNAME)) {
@@ -66,11 +74,20 @@ public class MailNotificationExecutor extends NotificationExecutor
         }
 
         List<String> recipients = new ArrayList<String>();
-        recipients.add("srom.martin@gmail.com");
+        for (Person person : notification.getRecipients()) {
+            String email = person.getEmail();
+            if (email != null) {
+                recipients.add(email);
+            }
+        }
+        if (recipients.size() == 0) {
+            logger.warn("Notification '{}' doesn't have any recipients with email address.", notification.getName());
+            return;
+        }
 
         try {
             MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(FROM_SHONGO));
+            message.setFrom(new InternetAddress(emailSender));
 
             StringBuilder recipientString = new StringBuilder();
             for (String recipient : recipients) {
@@ -82,9 +99,11 @@ public class MailNotificationExecutor extends NotificationExecutor
             }
 
             String subject = notification.getName();
-            String text = getNotificationAsString(notification);
+            StringBuilder text = new StringBuilder();
+            text.append(EMAIL_HEADER);
+            text.append(notification.getContent());
             message.setSubject(subject);
-            message.setText(text);
+            message.setText(text.toString());
             logger.debug("Sending email '{}' to '{}'...\n{}", new Object[]{subject, recipientString, text});
             sendMail(message);
         }

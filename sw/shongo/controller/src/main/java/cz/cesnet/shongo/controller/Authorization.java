@@ -1,8 +1,8 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.SecurityToken;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.fault.SecurityException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -30,6 +30,16 @@ public class Authorization
      * Root user-id.
      */
     public static final String ROOT_USER_ID = "0";
+
+    /**
+     * Root user {@link Person}.
+     */
+    public static final Person ROOT_USER_PERSON = new Person()
+    {{
+            setUserId(ROOT_USER_ID);
+            setName("root");
+            setEmail("srom.martin@gmail.com");
+        }};
 
     /**
      * URL to authorization server.
@@ -83,9 +93,9 @@ public class Authorization
 
         // Validate access token by getting user info
         try {
-            Map<String, Object> userInfo = getUserInfo(securityToken);
+            Person person = getUserPerson(securityToken);
             logger.debug("Access token '{}' is valid for {} <{}>.",
-                    new Object[]{securityToken.getAccessToken(), userInfo.get("name"), userInfo.get("email")});
+                    new Object[]{securityToken.getAccessToken(), person.getName(), person.getEmail()});
         }
         catch (Exception exception) {
             throw new SecurityException("Access token '" + securityToken.getAccessToken()
@@ -99,13 +109,8 @@ public class Authorization
      */
     public String getUserId(SecurityToken securityToken)
     {
-        // Testing security token represents root user
-        if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
-            return ROOT_USER_ID;
-        }
-
         try {
-            return (String) getUserInfo(securityToken).get("id");
+            return getUserPerson(securityToken).getUserId();
         }
         catch (Exception exception) {
             throw new SecurityException("User id cannot be retrieved from the access token '"
@@ -115,40 +120,114 @@ public class Authorization
     }
 
     /**
-     * @param securityToken of an user
-     * @return user info for user with given {@code securityToken}
+     * @param map of user attributes
+     * @return {@link Person}
      */
-    public Map<String, Object> getUserInfo(SecurityToken securityToken) throws Exception
+    private Person getPersonFromMap(Map<String, Object> map)
     {
-        HttpClient httpClient = new DefaultHttpClient();
+        StringBuilder name = new StringBuilder();
+        name.append(map.get("given_name"));
+        name.append(" ");
+        name.append(map.get("family_name"));
 
-        // Build url
-        URIBuilder uriBuilder = new URIBuilder(authorizationServer + "userinfo");
-        uriBuilder.setParameter("schema", "openid");
-        String url = uriBuilder.build().toString();
+        String organization = null;
+        if (map.get("organization") != null) {
+            organization = (String) map.get("organization");
+        }
 
-        // Perform request
-        HttpGet httpGet = new HttpGet(url);
-        httpGet.setHeader("Authorization", "Bearer " + securityToken.getAccessToken());
-        HttpResponse response = httpClient.execute(httpGet);
-        HttpEntity entity = response.getEntity();
+        String email = null;
+        if (map.get("email") != null) {
+            email = (String) map.get("email");
+        }
+
+        Person person = new Person();
+        person.setUserId((String) map.get("id"));
+        person.setName(name.toString());
+        person.setOrganization(organization);
+        person.setEmail(email);
+        return person;
+    }
+
+    /**
+     * @param securityToken of an user
+     * @return {@link Person} for user with given {@code securityToken}
+     */
+    public Person getUserPerson(SecurityToken securityToken) throws IllegalStateException
+    {
+        // Testing security token represents root user
+        if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
+            return ROOT_USER_PERSON;
+        }
+
         Map<String, Object> content = null;
-        if (entity != null) {
-            InputStream inputStream = entity.getContent();
-            ObjectMapper mapper = new ObjectMapper();
-            content = mapper.readValue(inputStream, Map.class);
-            inputStream.close();
-        }
-        if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            String error = "Error";
-            if (content != null) {
-                error = String.format("Error: %s. %s", content.get("error"), content.get("error_description"));
+        try {
+            // Build url
+            URIBuilder uriBuilder = new URIBuilder(authorizationServer + "userinfo");
+            uriBuilder.setParameter("schema", "openid");
+            String url = uriBuilder.build().toString();
+
+            // Perform request
+            HttpGet httpGet = new HttpGet(url);
+            httpGet.setHeader("Authorization", "Bearer " + securityToken.getAccessToken());
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpResponse response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                InputStream inputStream = entity.getContent();
+                ObjectMapper mapper = new ObjectMapper();
+                content = mapper.readValue(inputStream, Map.class);
+                inputStream.close();
             }
-            throw new Exception(error);
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                String error = "Error";
+                if (content != null) {
+                    error = String.format("Error: %s. %s", content.get("error"), content.get("error_description"));
+                }
+                throw new Exception(error);
+            }
         }
-        if (content != null && content.containsKey("given_name") && content.containsKey("family_name")) {
-            content.put("name", (String) content.get("given_name") + " " + content.get("family_name"));
+        catch (Exception exception) {
+            throw new IllegalStateException(exception);
         }
-        return content;
+        return getPersonFromMap(content);
+    }
+
+    /**
+     * @param userId
+     * @return {@link Person} for user with given {@code userId}
+     * @throws Exception
+     */
+    public Person getUserPerson(String userId) throws IllegalStateException
+    {
+        // Root user
+        if (userId.equals(ROOT_USER_ID)) {
+            return ROOT_USER_PERSON;
+        }
+
+        Map<String, Object> content = null;
+        try {
+            // Build url
+            URIBuilder uriBuilder = new URIBuilder("https://hroch.cesnet.cz/perun-ws/resource/user/" + userId);
+            String url = uriBuilder.build().toString();
+
+            // Perform request
+            HttpGet httpGet = new HttpGet(url);
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpResponse response = httpClient.execute(httpGet);
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                InputStream inputStream = entity.getContent();
+                ObjectMapper mapper = new ObjectMapper();
+                content = mapper.readValue(inputStream, Map.class);
+                inputStream.close();
+            }
+            if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+                throw new Exception("Error while retrieving user info by id.");
+            }
+        }
+        catch (Exception exception) {
+            throw new IllegalStateException(exception);
+        }
+        return getPersonFromMap(content);
     }
 }

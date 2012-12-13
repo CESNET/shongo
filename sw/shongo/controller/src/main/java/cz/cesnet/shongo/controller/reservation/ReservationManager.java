@@ -245,23 +245,4 @@ public class ReservationManager extends AbstractManager
         }
         return true;
     }
-
-    /**
-     * @param reservation
-     */
-    public void notifyNewReservation(Reservation reservation, NotificationManager notificationManager, Domain domain)
-    {
-        StringBuilder text = new StringBuilder();
-        text.append("New reservation by\n");
-        text.append("    ");
-        text.append("<TODO: name> - <TODO: organization>\n");
-
-        Notification notification = new Notification();
-        notification.setName("New reservation [" + domain.formatId(reservation.getId()) + "]");
-        notification.setText(text.toString());
-        notification.addChildNotification(reservation.toNotification(domain, entityManager));
-        notificationManager.executeNotification(notification);
-
-        // TODO: notify resource owner about resource reservation, alias reservations, virtual room reservations, etc.
-    }
 }

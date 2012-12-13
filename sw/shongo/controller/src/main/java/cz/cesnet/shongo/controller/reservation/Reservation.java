@@ -7,7 +7,6 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.notification.Notification;
-import cz.cesnet.shongo.controller.notification.ObjectNotification;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
@@ -358,25 +357,6 @@ public class Reservation extends PersistentObject
         for (Reservation childReservation : getChildReservations()) {
             api.addChildReservationId(domain.formatId(childReservation.getId()));
         }
-    }
-
-    /**
-     * @param domain        to format shongo-id
-     * @param entityManager to load corresponding {@link AbstractReservationRequest}
-     * @return {@link Notification} from this {@link AbstractReservationRequest}
-     */
-    public Notification toNotification(Domain domain, EntityManager entityManager)
-    {
-        ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
-        AbstractReservationRequest reservationRequest = reservationRequestManager.getByReservation(getId());
-
-        ObjectNotification notification = new ObjectNotification();
-        notification.setName("Reservation");
-        notification.addProperty("Identifier", domain.formatId(getId()));
-        notification.addProperty("Start date/time", getSlot().getStart());
-        notification.addProperty("Duration", getSlot().toPeriod());
-        notification.addProperty("Based on request", reservationRequest.toNotification(domain));
-        return notification;
     }
 
     /**

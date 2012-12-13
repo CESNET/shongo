@@ -11,9 +11,19 @@ import cz.cesnet.shongo.api.util.IdentifiedObject;
 public class Person extends IdentifiedObject
 {
     /**
+     * User-id of the person.
+     */
+    private String userId;
+
+    /**
      * Name of the person.
      */
     private String name;
+
+    /**
+     * Organization of the person.
+     */
+    private String organization;
 
     /**
      * Email for the person.
@@ -40,6 +50,22 @@ public class Person extends IdentifiedObject
     }
 
     /**
+     * @return {@link #userId}
+     */
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
+
+    /**
      * @return {@link #name}
      */
     public String getName()
@@ -53,6 +79,22 @@ public class Person extends IdentifiedObject
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #organization}
+     */
+    public String getOrganization()
+    {
+        return organization;
+    }
+
+    /**
+     * @param organization sets the {@link #organization}
+     */
+    public void setOrganization(String organization)
+    {
+        this.organization = organization;
     }
 
     /**

@@ -121,12 +121,7 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
 
             // Notify about new reservations
             if (notificationManager != null) {
-                if (newReservations.size() > 0) {
-                    logger.debug("Notifying about new reservations...");
-                    for (Reservation reservation : newReservations) {
-                        reservationManager.notifyNewReservation(reservation, notificationManager, domain);
-                    }
-                }
+                notificationManager.notifyNewReservations(newReservations);
             }
         }
         catch (Exception exception) {

@@ -1,77 +1,244 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.controller.common.Person;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.exception.ResourceNotFoundException;
+import org.apache.velocity.runtime.RuntimeConstants;
+import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Interval;
+import org.joda.time.Period;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.PeriodFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Represents a notification.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class Notification
+public abstract class Notification
 {
-    // TODO: Reference person to who the notification is addressed
+    protected static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
 
     /**
-     * Name of the description.
+     * @see NotificationManager
      */
-    private String name;
+    private NotificationManager notificationManager;
 
     /**
-     * Text of the notification.
+     * Notification recipients.
      */
-    private String text;
+    private List<Person> recipients = new ArrayList<Person>();
 
     /**
-     * List of child {@link Notification}s.
+     * Constructor.
+     *
+     * @param notificationManager sets the {@link #notificationManager}
      */
-    private List<Notification> childNotifications = new ArrayList<Notification>();
-
-    /**
-     * @param name set the {@link #name}
-     */
-    public void setName(String name)
+    public Notification(NotificationManager notificationManager)
     {
-        this.name = name;
+        this.notificationManager = notificationManager;
     }
 
     /**
-     * @return {@link #name}
+     * @return {@link #notificationManager}
      */
-    public String getName()
+    public NotificationManager getNotificationManager()
     {
-        return name;
+        return notificationManager;
     }
 
     /**
-     * @return {@link #text}
+     * @return {@link #recipients}
      */
-    public final String getText()
+    public List<Person> getRecipients()
     {
-        return text;
+        return recipients;
     }
 
     /**
-     * @param text sets the {@link #text}
+     * @param recipient to be added to the {@link #recipients}
      */
-    public final void setText(String text)
+    public void addRecipient(Person recipient)
     {
-        this.text = text;
+        recipients.add(recipient);
     }
 
     /**
-     * @return {@link #childNotifications}
+     * @param userId for user to be added to the {@link #recipients}
      */
-    public final List<Notification> getChildNotifications()
+    public void addUserRecipient(String userId)
     {
-        return childNotifications;
+        Person person = notificationManager.getAuthorization().getUserPerson(userId);
+        addRecipient(person);
     }
 
     /**
-     * @param childNotification to be added to the {@link #childNotifications}
+     * @return string name of the {@link Notification}
      */
-    public final void addChildNotification(Notification childNotification)
+    public abstract String getName();
+
+    /**
+     * @return string content of the {@link Notification}
+     */
+    public abstract String getContent();
+
+    /**
+     * @return instance of {@link TemplateHelper} which will be added as "template" to velocity
+     */
+    public TemplateHelper getTemplateHelper()
     {
-        childNotifications.add(childNotification);
+        return new TemplateHelper();
+    }
+
+    /**
+     * Render given {@code notificationTemplateFileName} with specified {@code parameters}.
+     *
+     * @param notificationTemplateFileName to be rendered
+     * @param parameters to be rendered
+     * @return rendered string
+     */
+    public String renderTemplate(String notificationTemplateFileName, Map<String, Object> parameters)
+    {
+        VelocityEngine velocityEngine = getVelocityEngine();
+        Template template = velocityEngine.getTemplate("notification/" + notificationTemplateFileName);
+        VelocityContext context = new VelocityContext();
+        context.put("template", getTemplateHelper());
+        if (parameters != null) {
+            for (Map.Entry<String, Object> entry : parameters.entrySet()) {
+                context.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        StringWriter stringWriter = new StringWriter();
+        template.merge(context, stringWriter);
+        return stringWriter.toString();
+    }
+
+    /**
+     * Single instance of {@link VelocityEngine}.
+     */
+    private static VelocityEngine velocityEngine;
+
+    /**
+     * @return {@link #velocityEngine}
+     */
+    private static VelocityEngine getVelocityEngine()
+    {
+        if (velocityEngine == null) {
+            Properties properties = new Properties();
+            properties.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
+            properties.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
+            velocityEngine = new VelocityEngine();
+            velocityEngine.init(properties);
+        }
+        return velocityEngine;
+    }
+
+    /**
+     * Helper containing common functions which can be used in templates (by "$template" variable).
+     */
+    public class TemplateHelper
+    {
+        /**
+         * @param dateTime to be formatted
+         * @return {@code dateTime} formatted to string
+         */
+        public String formatDateTime(DateTime dateTime)
+        {
+            return DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime);
+        }
+
+        /**
+         * @param dateTime to be formatted as UTC date/time
+         * @return {@code dateTime} formatted to string
+         */
+        public String formatDateTimeUTC(DateTime dateTime)
+        {
+            return DateTimeFormat.forPattern("d.M.yyyy HH:mm").print(dateTime.withZone(DateTimeZone.UTC));
+        }
+
+        /**
+         * @param interval whose start to be formatted
+         * @return {@code interval} start formatted to string
+         */
+        public String formatDateTime(Interval interval)
+        {
+            return formatDateTime(interval.getStart());
+        }
+
+        /**
+         * @param interval whose start to be formatted as UTC date/time
+         * @return {@code interval} start formatted to string
+         */
+        public String formatDateTimeUTC(Interval interval)
+        {
+            return formatDateTimeUTC(interval.getStart());
+        }
+
+        /**
+         * @param duration to be formatted
+         * @return {@code duration} formatted to string
+         */
+        public String formatDuration(Period duration)
+        {
+            return PeriodFormat.getDefault().print(duration);
+        }
+
+        /**
+         * @param interval whose duration to be formatted
+         * @return {@code interval} duration formatted to string
+         */
+        public String formatDuration(Interval interval)
+        {
+            return formatDuration(interval.toPeriod());
+        }
+
+        /**
+         * @param userId user-id
+         * @return {@link Person} for given {@code userId}
+         */
+        public cz.cesnet.shongo.controller.api.Person getUserPerson(String userId)
+        {
+            return notificationManager.getAuthorization().getUserPerson(userId).toApi();
+        }
+
+        /**
+         * @param person to be formatted
+         * @return {@link Person} formatted to string
+         */
+        public String formatPerson(cz.cesnet.shongo.controller.api.Person person)
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append(person.getName());
+            if (person.getOrganization() != null) {
+                stringBuilder.append(", ");
+                stringBuilder.append(person.getOrganization());
+            }
+            return stringBuilder.toString();
+        }
+
+        /**
+         * @param userId to be formatted by it's {@link Person}
+         * @return {@link Person} formatted to string
+         */
+        public String formatUser(String userId)
+        {
+            return formatPerson(getUserPerson(userId));
+        }
     }
 }
