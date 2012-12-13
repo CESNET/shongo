@@ -20,7 +20,7 @@ public enum AliasType
      * @see cz.cesnet.shongo.Technology#SIP
      * @see cz.cesnet.shongo.AliasValueType#URI
      */
-    SIP_URI(Technology.SIP, AliasValueType.E164.URI),
+    SIP_URI(Technology.SIP, AliasValueType.URI),
 
     /**
      * Represents room name for {@link cz.cesnet.shongo.Technology#ADOBE_CONNECT}.
