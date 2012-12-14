@@ -372,7 +372,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
     }
 
     @Override
-    public void resetDevice() throws CommandException
+    public void rebootDevice() throws CommandException
     {
         Command command = new Command("xCommand Boot");
         command.setParameter("Action", "Restart"); // should be default anyway, but just for sure...

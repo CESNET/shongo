@@ -134,7 +134,7 @@ public class PolycomHDXConnector extends AbstractConnector implements EndpointSe
     }
 
     @Override
-    public void resetDevice() throws CommandException, CommandUnsupportedException
+    public void rebootDevice() throws CommandException, CommandUnsupportedException
     {
         exec(new Command("reboot now")); // TODO: test
     }

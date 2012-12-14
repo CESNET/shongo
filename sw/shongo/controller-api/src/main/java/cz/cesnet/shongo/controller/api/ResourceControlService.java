@@ -52,7 +52,7 @@ public interface ResourceControlService extends Service
     public void hangUpAll(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
-    public void resetDevice(SecurityToken token, String deviceResourceId) throws FaultException;
+    public void rebootDevice(SecurityToken token, String deviceResourceId) throws FaultException;
 
     @API
     public void mute(SecurityToken token, String deviceResourceId) throws FaultException;

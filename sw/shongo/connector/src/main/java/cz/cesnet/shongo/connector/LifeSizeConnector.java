@@ -955,7 +955,7 @@ Reading:
     }
 
     @Override
-    public void resetDevice() throws CommandException
+    public void rebootDevice() throws CommandException
     {
         final int delay = 1; // delay before rebooting the device (just to catch the output)
         issueCommand(createCommand("control reboot").addArgument(delay));
