@@ -41,9 +41,9 @@ public abstract class EndpointSpecification extends ParticipantSpecification
     }
 
     /**
-     * @param id of the {@link Person}
-     * @return {@link Person} with given {@code id}
-     * @throws EntityNotFoundException when the {@link Person} doesn't exist
+     * @param id of the {@link cz.cesnet.shongo.controller.common.Person}
+     * @return {@link cz.cesnet.shongo.controller.common.Person} with given {@code id}
+     * @throws EntityNotFoundException when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
      */
     public Person getPersonById(Long id) throws EntityNotFoundException
     {

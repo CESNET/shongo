@@ -23,7 +23,7 @@ import java.util.Set;
 public abstract class Endpoint extends Executable
 {
     /**
-     * List of {@link Person}s which use the {@link Endpoint} in the {@link Compartment}.
+     * List of {@link cz.cesnet.shongo.controller.common.Person}s which use the {@link Endpoint} in the {@link Compartment}.
      */
     private List<Person> persons = new ArrayList<Person>();
 

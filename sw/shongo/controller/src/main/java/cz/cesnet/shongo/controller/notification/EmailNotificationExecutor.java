@@ -75,7 +75,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
 
         List<String> recipients = new ArrayList<String>();
         for (Person person : notification.getRecipients()) {
-            String email = person.getEmail();
+            String email = person.getInformation().getPrimaryEmail();
             if (email != null) {
                 recipients.add(email);
             }

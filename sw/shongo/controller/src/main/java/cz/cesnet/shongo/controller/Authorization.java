@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.SecurityToken;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.UserPerson;
 import cz.cesnet.shongo.fault.SecurityException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -32,14 +34,28 @@ public class Authorization
     public static final String ROOT_USER_ID = "0";
 
     /**
-     * Root user {@link Person}.
+     * Root user {@link cz.cesnet.shongo.controller.common.Person}.
      */
-    public static final Person ROOT_USER_PERSON = new Person()
-    {{
-            setUserId(ROOT_USER_ID);
-            setName("root");
-            setEmail("srom.martin@gmail.com");
-        }};
+    public static final UserInformation ROOT_USER_PERSON = new UserInformation(null)
+    {
+        @Override
+        public String getUserId()
+        {
+            return ROOT_USER_ID;
+        }
+
+        @Override
+        public String getFullName()
+        {
+            return "root";
+        }
+
+        @Override
+        public String getPrimaryEmail()
+        {
+            return "srom.martin@gmail.com";
+        }
+    };
 
     /**
      * URL to authorization server.
@@ -52,17 +68,58 @@ public class Authorization
     private String testingAccessToken;
 
     /**
+     * Single instance of {@link Authorization} which is used for retrieving {@link UserInformation}.
+     */
+    private static Authorization authorization;
+
+    /**
      * Constructor.
      *
      * @param configuration to load authorization configuration from
      */
-    public Authorization(Configuration configuration)
+    private Authorization(Configuration configuration)
     {
         authorizationServer = configuration.getString(Configuration.SECURITY_AUTHORIZATION_SERVER);
         if (authorizationServer == null) {
             throw new IllegalStateException("Authorization server is not set in the configuration.");
         }
         testingAccessToken = configuration.getString(Configuration.SECURITY_TESTING_ACCESS_TOKEN);
+
+    }
+
+    /**
+     * @return new instance of {@link Authorization}
+     * @throws IllegalStateException when other {@link Authorization} already exists
+     */
+    public static Authorization createInstance(Configuration configuration) throws IllegalStateException
+    {
+        if (authorization != null) {
+            throw new IllegalStateException("Another instance of " + Authorization.class.getSimpleName()
+                    + "has been created and wasn't destroyed.");
+        }
+        authorization = new Authorization(configuration);
+        return authorization;
+    }
+
+    /**
+     * @return {@link #authorization}
+     * @throws IllegalStateException when the no {@link Authorization} has been created
+     */
+    private static Authorization getInstance() throws IllegalStateException
+    {
+        if (authorization == null) {
+            throw new IllegalStateException("No instance of " + Authorization.class.getSimpleName()
+                    + "has been created.");
+        }
+        return authorization;
+    }
+
+    /**
+     * Destroy this {@link Authorization} (and you be able to call {@link #createInstance(Configuration)} again)
+     */
+    public void destroy()
+    {
+        authorization = null;
     }
 
     /**
@@ -93,9 +150,9 @@ public class Authorization
 
         // Validate access token by getting user info
         try {
-            Person person = getUserPerson(securityToken);
+            UserInformation person = getUserInformation(securityToken);
             logger.debug("Access token '{}' is valid for {} <{}>.",
-                    new Object[]{securityToken.getAccessToken(), person.getName(), person.getEmail()});
+                    new Object[]{securityToken.getAccessToken(), person.getFullName(), person.getPrimaryEmail()});
         }
         catch (Exception exception) {
             throw new SecurityException("Access token '" + securityToken.getAccessToken()
@@ -105,54 +162,9 @@ public class Authorization
 
     /**
      * @param securityToken of an user
-     * @return user-id of an user with given {@code securityToken}
+     * @return {@link cz.cesnet.shongo.controller.common.Person} for user with given {@code securityToken}
      */
-    public String getUserId(SecurityToken securityToken)
-    {
-        try {
-            return getUserPerson(securityToken).getUserId();
-        }
-        catch (Exception exception) {
-            throw new SecurityException("User id cannot be retrieved from the access token '"
-                    + securityToken.getAccessToken()
-                    + "'. " + exception.getMessage(), exception);
-        }
-    }
-
-    /**
-     * @param map of user attributes
-     * @return {@link Person}
-     */
-    private Person getPersonFromMap(Map<String, Object> map)
-    {
-        StringBuilder name = new StringBuilder();
-        name.append(map.get("given_name"));
-        name.append(" ");
-        name.append(map.get("family_name"));
-
-        String organization = null;
-        if (map.get("organization") != null) {
-            organization = (String) map.get("organization");
-        }
-
-        String email = null;
-        if (map.get("email") != null) {
-            email = (String) map.get("email");
-        }
-
-        Person person = new Person();
-        person.setUserId((String) map.get("id"));
-        person.setName(name.toString());
-        person.setOrganization(organization);
-        person.setEmail(email);
-        return person;
-    }
-
-    /**
-     * @param securityToken of an user
-     * @return {@link Person} for user with given {@code securityToken}
-     */
-    public Person getUserPerson(SecurityToken securityToken) throws IllegalStateException
+    public UserInformation getUserInformation(SecurityToken securityToken) throws IllegalStateException
     {
         // Testing security token represents root user
         if (testingAccessToken != null && securityToken.getAccessToken().equals(testingAccessToken)) {
@@ -189,15 +201,31 @@ public class Authorization
         catch (Exception exception) {
             throw new IllegalStateException(exception);
         }
-        return getPersonFromMap(content);
+        return new UserInformation(content);
+    }
+
+    /**
+     * @param securityToken of an user
+     * @return user-id of an user with given {@code securityToken}
+     */
+    public String getUserId(SecurityToken securityToken)
+    {
+        try {
+            return getUserInformation(securityToken).getUserId();
+        }
+        catch (Exception exception) {
+            throw new SecurityException("User id cannot be retrieved from the access token '"
+                    + securityToken.getAccessToken()
+                    + "'. " + exception.getMessage(), exception);
+        }
     }
 
     /**
      * @param userId
-     * @return {@link Person} for user with given {@code userId}
+     * @return {@link cz.cesnet.shongo.controller.common.Person} for user with given {@code userId}
      * @throws Exception
      */
-    public Person getUserPerson(String userId) throws IllegalStateException
+    public UserInformation getUserInformation(String userId) throws IllegalStateException
     {
         // Root user
         if (userId.equals(ROOT_USER_ID)) {
@@ -228,6 +256,82 @@ public class Authorization
         catch (Exception exception) {
             throw new IllegalStateException(exception);
         }
-        return getPersonFromMap(content);
+        return new UserInformation(content);
+    }
+
+    /**
+     * @param userId
+     * @return {@link cz.cesnet.shongo.controller.common.Person} for user with given {@code userId}
+     * @throws Exception
+     */
+    public UserPerson getUserPerson(String userId) throws IllegalStateException
+    {
+        return new UserPerson(userId, getUserInformation(userId));
+    }
+
+    /**
+     * Represents an information about user.
+     */
+    public static class UserInformation implements Person.Information
+    {
+        /**
+         * Data returned from the authorization server.
+         */
+        private Map<String, String> data = new HashMap<String, String>();
+
+        /**
+         * Constructor.
+         *
+         * @param data sets the {@link #data}
+         */
+        public UserInformation(Map<String, Object> data)
+        {
+            // Add all not null entries
+            if (data != null) {
+                for (Map.Entry<String, Object> entry : data.entrySet()) {
+                    if (entry.getValue() != null) {
+                        this.data.put(entry.getKey(), (String) entry.getValue());
+                    }
+                }
+            }
+        }
+
+        /**
+         * @return user-id
+         */
+        public String getUserId()
+        {
+            if (!data.containsKey("id")) {
+                throw new IllegalStateException("User information must contains identifier.");
+            }
+            return data.get("id");
+        }
+
+        @Override
+        public String getFullName()
+        {
+            StringBuilder name = new StringBuilder();
+            name.append(data.get("given_name"));
+            name.append(" ");
+            name.append(data.get("family_name"));
+            return name.toString();
+        }
+
+        @Override
+        public String getRootOrganization()
+        {
+            return data.get("organization");
+        }
+
+        @Override
+        public String getPrimaryEmail()
+        {
+            return data.get("email");
+        }
+
+        public static UserInformation getInstance(String userId)
+        {
+            return Authorization.getInstance().getUserInformation(userId);
+        }
     }
 }

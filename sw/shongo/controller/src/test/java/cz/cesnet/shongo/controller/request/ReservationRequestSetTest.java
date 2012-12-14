@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.*;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
@@ -80,8 +81,8 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
             // Request specific persons, the first will use specified H.323 endpoint and
             // the second must select an endpoint then
-            Person person1 = new Person("Martin Srom", "srom@cesnet.cz");
-            Person person2 = new Person("Ondrej Bouda", "bouda@cesnet.cz");
+            Person person1 = new OtherPerson("Martin Srom", "srom@cesnet.cz");
+            Person person2 = new OtherPerson("Ondrej Bouda", "bouda@cesnet.cz");
             compartmentSpecification.addChildSpecification(new PersonSpecification(person1,
                     new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080085"))));
             compartmentSpecification.addChildSpecification(new PersonSpecification(person2));

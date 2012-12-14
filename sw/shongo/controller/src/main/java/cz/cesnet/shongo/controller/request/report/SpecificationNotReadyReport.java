@@ -62,7 +62,7 @@ public class SpecificationNotReadyReport extends Report
             PersonSpecification personSpecification = (PersonSpecification) specification;
             Person person = personSpecification.getPerson();
             return String.format("%s (%s) hasn't accepted/rejected invitation or hasn't selected an endpoint yet.\n",
-                    person.getName(), person.getEmail());
+                    person.getInformation().getFullName(), person.getInformation().getPrimaryEmail());
         }
         else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;

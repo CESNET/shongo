@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.notification;
 
+import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -206,7 +208,7 @@ public abstract class Notification
 
         /**
          * @param userId user-id
-         * @return {@link Person} for given {@code userId}
+         * @return {@link cz.cesnet.shongo.controller.common.Person} for given {@code userId}
          */
         public cz.cesnet.shongo.controller.api.Person getUserPerson(String userId)
         {
@@ -214,27 +216,29 @@ public abstract class Notification
         }
 
         /**
-         * @param person to be formatted
-         * @return {@link Person} formatted to string
+         * @param name
+         * @param organization
+         * @return {@link cz.cesnet.shongo.controller.common.Person} formatted to string
          */
-        public String formatPerson(cz.cesnet.shongo.controller.api.Person person)
+        public String formatPerson(String name, String organization)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append(person.getName());
-            if (person.getOrganization() != null) {
+            stringBuilder.append(name);
+            if (organization != null) {
                 stringBuilder.append(", ");
-                stringBuilder.append(person.getOrganization());
+                stringBuilder.append(organization);
             }
             return stringBuilder.toString();
         }
 
         /**
-         * @param userId to be formatted by it's {@link Person}
-         * @return {@link Person} formatted to string
+         * @param userId to be formatted by it's {@link cz.cesnet.shongo.controller.common.Person}
+         * @return {@link cz.cesnet.shongo.controller.common.Person} formatted to string
          */
         public String formatUser(String userId)
         {
-            return formatPerson(getUserPerson(userId));
+            Authorization.UserInformation userInformation = Authorization.UserInformation.getInstance(userId);
+            return formatPerson(userInformation.getFullName(), userInformation.getRootOrganization());
         }
     }
 }

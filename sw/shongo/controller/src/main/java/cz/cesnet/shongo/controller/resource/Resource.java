@@ -3,8 +3,8 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.DateTimeSpecification;
 import cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityValidationException;
@@ -57,7 +57,8 @@ public class Resource extends PersistentObject
     private List<Resource> childResources = new ArrayList<Resource>();
 
     /**
-     * List of persons that are contacted when are encountered any technical issues.
+     * List of persons that are notified when the {@link Resource} is allocated or when are
+     * encountered any technical issues.
      */
     private List<Person> administrators = new ArrayList<Person>();
 

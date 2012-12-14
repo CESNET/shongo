@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
@@ -14,9 +13,7 @@ import org.joda.time.Interval;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -405,8 +402,8 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param specification {@link Specification} which is searched
-     * @param personId      id for {@link Person} for which the search is performed
-     * @return {@link PersonSpecification} from given {@link Specification} that references {@link Person}
+     * @param personId      id for {@link cz.cesnet.shongo.controller.common.Person} for which the search is performed
+     * @return {@link PersonSpecification} from given {@link Specification} that references {@link cz.cesnet.shongo.controller.common.Person}
      *         with given id if exists, null otherwise
      */
     private PersonSpecification getPersonSpecification(Specification specification, Long personId)
@@ -432,8 +429,8 @@ public class ReservationRequestManager extends AbstractManager
 
     /**
      * @param reservationRequest {@link ReservationRequest} which is searched
-     * @param personId           id for {@link Person} for which the search is performed
-     * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link Person}
+     * @param personId           id for {@link cz.cesnet.shongo.controller.common.Person} for which the search is performed
+     * @return {@link PersonSpecification} from given {@link ReservationRequest} that references {@link cz.cesnet.shongo.controller.common.Person}
      *         with given id
      * @throws IllegalArgumentException when {@link PersonSpecification} isn't found
      */
@@ -451,11 +448,11 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * Accept the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
+     * Accept the invitation for specified {@link cz.cesnet.shongo.controller.common.Person} to participate in the specified {@link ReservationRequest}.
      *
      * @param reservationRequestId id for {@link ReservationRequest}
-     * @param personId             id for {@link Person}
-     * @throws IllegalStateException when {@link Person} hasn't selected resource by he will connect to
+     * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
+     * @throws IllegalStateException when {@link cz.cesnet.shongo.controller.common.Person} hasn't selected resource by he will connect to
      *                               the video conference yet
      */
     public void acceptPersonRequest(Long reservationRequestId, Long personId) throws IllegalStateException
@@ -474,10 +471,10 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * Reject the invitation for specified {@link Person} to participate in the specified {@link ReservationRequest}.
+     * Reject the invitation for specified {@link cz.cesnet.shongo.controller.common.Person} to participate in the specified {@link ReservationRequest}.
      *
      * @param reservationRequestId id for {@link ReservationRequest}
-     * @param personId             id for {@link Person}
+     * @param personId             id for {@link cz.cesnet.shongo.controller.common.Person}
      */
     public void rejectPersonRequest(Long reservationRequestId, Long personId)
     {

@@ -1,10 +1,11 @@
 package cz.cesnet.shongo.controller.common;
 
 import cz.cesnet.shongo.PersistentObject;
+import cz.cesnet.shongo.controller.api.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import java.util.Map;
+import javax.persistence.Transient;
 
 /**
  * Person that can be contacted.
@@ -12,219 +13,36 @@ import java.util.Map;
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
 @Entity
-public class Person extends PersistentObject implements Cloneable
+public abstract class Person extends PersistentObject implements Cloneable
 {
     /**
-     * User-id of the {@link Person}.
+     * @return {@link Information} for the {@link Person}
      */
-    private String userId;
-
-    /**
-     * Full name of the person.
-     */
-    private String name;
-
-    /**
-     * Organization of the person.
-     */
-    private String organization;
-
-    /**
-     * Email to contact the person.
-     */
-    private String email;
-
-    /**
-     * Phone number to contact person (by sms or by call).
-     */
-    private String phoneNumber;
-
-    /**
-     * Constructor.
-     */
-    public Person()
-    {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param name  sets the {@link #name}
-     * @param email sets the {@link #email}
-     */
-    public Person(String name, String email)
-    {
-        setName(name);
-        setEmail(email);
-    }
-
-    /**
-     * @return {@link #userId}
-     */
-    @Column
-    public String getUserId()
-    {
-        return userId;
-    }
-
-    /**
-     * @param userId sets the {@link #userId}
-     */
-    public void setUserId(String userId)
-    {
-        this.userId = userId;
-    }
-
-    /**
-     * @return {@link #name}
-     */
-    @Column
-    public String getName()
-    {
-        return name;
-    }
-
-    /**
-     * @param name sets the {@link #name}
-     */
-    public void setName(String name)
-    {
-        this.name = name;
-    }
-
-    /**
-     * @return {@link #organization}
-     */
-    @Column
-    public String getOrganization()
-    {
-        return organization;
-    }
-
-    /**
-     * @param organization sets the {@link #organization}
-     */
-    public void setOrganization(String organization)
-    {
-        this.organization = organization;
-    }
-
-    /**
-     * @return {@link #email}
-     */
-    @Column
-    public String getEmail()
-    {
-        return email;
-    }
-
-    /**
-     * @param email sets the {@link #email}
-     */
-    public void setEmail(String email)
-    {
-        this.email = email;
-    }
-
-    /**
-     * @return {@link #phoneNumber}
-     */
-    @Column
-    public String getPhoneNumber()
-    {
-        return phoneNumber;
-    }
-
-    /**
-     * @param phoneNumber sets the {@link #phoneNumber}
-     */
-    public void setPhoneNumber(String phoneNumber)
-    {
-        this.phoneNumber = phoneNumber;
-    }
-
-    @Override
-    public Person clone()
-    {
-        Person person = new Person();
-        person.setName(name);
-        person.setEmail(email);
-        person.setPhoneNumber(phoneNumber);
-        return person;
-    }
-
-    @Override
-    public boolean equals(Object object)
-    {
-        if (this == object) {
-            return true;
-        }
-        if (!(object instanceof Person)) {
-            return false;
-        }
-        Person person = (Person) object;
-
-        if (email != null && person.email != null) {
-            return email.equals(person.email);
-        }
-        if (email != null || person.email != null) {
-            return false;
-        }
-
-        if (phoneNumber != null && person.phoneNumber != null) {
-            return phoneNumber.equals(person.phoneNumber);
-        }
-        if (phoneNumber != null || person.phoneNumber != null) {
-            return false;
-        }
-
-        if (name != null && person.name != null) {
-            return name.equals(person.name);
-        }
-        if (name != null || person.name != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode()
-    {
-        int hash = 7;
-        if (email != null) {
-            return 31 * hash + email.hashCode();
-        }
-        if (phoneNumber != null) {
-            return 31 * hash + phoneNumber.hashCode();
-        }
-        if (name != null) {
-            return 31 * hash + name.hashCode();
-        }
-        return hash;
-    }
-
-    @Override
-    protected void fillDescriptionMap(Map<String, Object> map)
-    {
-        super.fillDescriptionMap(map);
-
-        map.put("name", getName());
-        map.put("email", getEmail());
-        map.put("phoneNumber", getPhoneNumber());
-    }
+    @Transient
+    public abstract Information getInformation();
 
     /**
      * @return person converted to API
      */
-    public cz.cesnet.shongo.controller.api.Person toApi()
+    public abstract cz.cesnet.shongo.controller.api.Person toApi();
+
+    /**
+     * @param api from which should be the new {@link Person} created
+     * @return new instance of {@link Person} created from given {@code api}
+     */
+    public static Person createFromApi(cz.cesnet.shongo.controller.api.Person api)
     {
-        cz.cesnet.shongo.controller.api.Person person = new cz.cesnet.shongo.controller.api.Person();
-        person.setId(getId());
-        person.setUserId(getUserId());
-        person.setName(getName());
-        person.setOrganization(getOrganization());
-        person.setEmail(getEmail());
+        Person person;
+        if (api instanceof cz.cesnet.shongo.controller.api.OtherPerson) {
+            person = new OtherPerson();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.UserPerson) {
+            person = new UserPerson();
+        }
+        else {
+            throw new IllegalStateException(api.getClass().getSimpleName());
+        }
+        person.fromApi(api);
         return person;
     }
 
@@ -233,9 +51,29 @@ public class Person extends PersistentObject implements Cloneable
      *
      * @param api
      */
-    public void fromApi(cz.cesnet.shongo.controller.api.Person api)
+    public abstract void fromApi(cz.cesnet.shongo.controller.api.Person api);
+
+    @Override
+    public abstract Person clone();
+
+    /**
+     * Information about {@link Person}.
+     */
+    public static interface Information
     {
-        setName(api.getName());
-        setEmail(api.getEmail());
+        /**
+         * @return full name of the {@link Person}
+         */
+        public String getFullName();
+
+        /**
+         * @return root organization of the {@link Person}
+         */
+        public String getRootOrganization();
+
+        /**
+         * @return primary email of the {@link Person}
+         */
+        public String getPrimaryEmail();
     }
 }

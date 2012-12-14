@@ -354,7 +354,7 @@ public class Controller
         }
 
         // Initialize authorization
-        authorization = new Authorization(configuration);
+        authorization = Authorization.createInstance(configuration);
 
         logger.info("Controller for domain '{}' is starting...", domain.getName());
 
@@ -615,6 +615,8 @@ public class Controller
         for (Component component : components) {
             component.destroy();
         }
+        // Destroy authorization
+        authorization.destroy();
 
         logger.info("Controller exiting...");
     }

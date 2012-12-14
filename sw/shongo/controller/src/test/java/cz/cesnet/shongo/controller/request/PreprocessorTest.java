@@ -6,8 +6,9 @@ import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Preprocessor;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification;
-import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
+import cz.cesnet.shongo.controller.common.OtherPerson;
 import cz.cesnet.shongo.controller.common.Person;
+import cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.LocalDate;
@@ -49,7 +50,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.SIP));
         EndpointSpecification endpointSpecification = new ExternalEndpointSpecification(Technology.H323);
-        endpointSpecification.addPerson(new Person("Martin Srom", "martin.srom@cesnet.cz"));
+        endpointSpecification.addPerson(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
         compartmentSpecification.addChildSpecification(endpointSpecification);
         reservationRequestSet.addSpecification(compartmentSpecification);
         // Second compartment
@@ -120,7 +121,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
-                new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+                new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.addSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
@@ -170,7 +171,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
-                new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+                new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
         reservationRequestSet.addSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
@@ -196,7 +197,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 1, createdCompartmentSpecification.getChildSpecifications().size());
 
         compartmentSpecification.addChildSpecification(
-                new PersonSpecification(new Person("Martin Srom", "srom@cesnet.cz")));
+                new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
         reservationRequestManager.update(reservationRequestSet);
 
         Preprocessor.createAndRun(preprocessorInterval, entityManager);
@@ -208,7 +209,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
                 2, createdCompartmentSpecification.getChildSpecifications().size());
 
         ((PersonSpecification) compartmentSpecification.getSpecifications().get(1)).setPerson(
-                new Person("Ondrej Bouda", "bouda@cesnet.cz"));
+                new OtherPerson("Ondrej Bouda", "bouda@cesnet.cz"));
         reservationRequestManager.update(reservationRequestSet);
 
         Preprocessor.createAndRun(preprocessorInterval, entityManager);
