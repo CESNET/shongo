@@ -125,15 +125,18 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
                 }
             }
 
-            // Delete all compartments which should be deleted
-            executableManager.deleteAllNotReferenced();
 
-            transaction.commit();
 
             // Notify about new reservations
             if (notificationManager != null) {
-                notificationManager.notifyReservations(newReservations, modifiedReservations, deletedReservations);
+                notificationManager.notifyReservations(newReservations, modifiedReservations, deletedReservations,
+                        entityManager);
             }
+
+            // Delete all executables which should be deleted
+            executableManager.deleteAllNotReferenced();
+
+            transaction.commit();
         }
         catch (Exception exception) {
             transaction.rollback();

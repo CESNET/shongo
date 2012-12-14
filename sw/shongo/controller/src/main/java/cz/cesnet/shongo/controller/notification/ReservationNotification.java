@@ -30,16 +30,25 @@ public class ReservationNotification extends Notification
     private Reservation reservation;
 
     /**
+     * @see EntityManager
+     */
+    EntityManager entityManager;
+
+    /**
      * Constructor.
      *
+     * @param type
      * @param reservation
      * @param notificationManager
+     * @param entityManager
      */
-    public ReservationNotification(Type type, Reservation reservation, NotificationManager notificationManager)
+    public ReservationNotification(Type type, Reservation reservation, NotificationManager notificationManager,
+            EntityManager entityManager)
     {
         super(notificationManager);
         this.type = type;
         this.reservation = reservation;
+        this.entityManager = entityManager;
         addUserRecipient(reservation.getUserId());
         addRecipientByReservation(reservation);
     }
@@ -71,7 +80,6 @@ public class ReservationNotification extends Notification
     @Override
     public String getContent()
     {
-        EntityManager entityManager = getNotificationManager().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AbstractReservationRequest reservationRequest =
                 reservationRequestManager.getByReservation(reservation.getId());
@@ -96,7 +104,6 @@ public class ReservationNotification extends Notification
         catch (Exception exception) {
             logger.error("Failed to notify about new reservations.", exception);
         }
-        entityManager.close();
         return content;
     }
 

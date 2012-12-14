@@ -18,15 +18,9 @@ import java.util.List;
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NotificationManager extends Component implements Component.EntityManagerFactoryAware,
-                                                              Component.DomainAware, Component.AuthorizationAware
+public class NotificationManager extends Component implements Component.DomainAware, Component.AuthorizationAware
 {
     private static Logger logger = LoggerFactory.getLogger(NotificationManager.class);
-
-    /**
-     * @see javax.persistence.EntityManagerFactory
-     */
-    private EntityManagerFactory entityManagerFactory;
 
     /**
      * @see cz.cesnet.shongo.controller.Domain
@@ -52,12 +46,6 @@ public class NotificationManager extends Component implements Component.EntityMa
     }
 
     @Override
-    public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
-    {
-        this.entityManagerFactory = entityManagerFactory;
-    }
-
-    @Override
     public void setDomain(cz.cesnet.shongo.controller.Domain domain)
     {
         this.domain = domain;
@@ -72,7 +60,6 @@ public class NotificationManager extends Component implements Component.EntityMa
     @Override
     public void init(Configuration configuration)
     {
-        checkDependency(entityManagerFactory, EntityManagerFactory.class);
         checkDependency(domain, cz.cesnet.shongo.controller.Domain.class);
         checkDependency(authorization, Authorization.class);
         super.init(configuration);
@@ -81,14 +68,6 @@ public class NotificationManager extends Component implements Component.EntityMa
         for (NotificationExecutor notificationExecutor : notificationExecutors) {
             notificationExecutor.init(configuration);
         }
-    }
-
-    /**
-     * @return {@link EntityManager}
-     */
-    public EntityManager createEntityManager()
-    {
-        return entityManagerFactory.createEntityManager();
     }
 
     /**
@@ -130,20 +109,20 @@ public class NotificationManager extends Component implements Component.EntityMa
      * @param deletedReservations
      */
     public void notifyReservations(List<Reservation> newReservations, List<Reservation> modifiedReservations,
-            List<Reservation> deletedReservations)
+            List<Reservation> deletedReservations, EntityManager entityManager)
     {
         if (newReservations.size() == 0 && modifiedReservations.size() == 0 && deletedReservations.size() == 0) {
             return;
         }
         logger.debug("Notifying about changes in reservations...");
         for (Reservation reservation : newReservations) {
-            executeNotification(new ReservationNotification(ReservationNotification.Type.NEW, reservation, this));
+            executeNotification(new ReservationNotification(ReservationNotification.Type.NEW, reservation, this, entityManager));
         }
         for (Reservation reservation : modifiedReservations) {
-            executeNotification(new ReservationNotification(ReservationNotification.Type.MODIFIED, reservation, this));
+            executeNotification(new ReservationNotification(ReservationNotification.Type.MODIFIED, reservation, this, entityManager));
         }
         for (Reservation reservation : deletedReservations) {
-            executeNotification(new ReservationNotification(ReservationNotification.Type.DELETED, reservation, this));
+            executeNotification(new ReservationNotification(ReservationNotification.Type.DELETED, reservation, this, entityManager));
         }
     }
 }
