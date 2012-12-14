@@ -44,8 +44,8 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         Long resourceId = resource.getId();
 
         // Load lazy collections
-        aliasProviderCapability.getAliases().iterator().next();
-        aliasProviderCapability.getPatterns().iterator().next();
+        aliasProviderCapability.getAliases().size();
+        aliasProviderCapability.getPatterns().size();
 
         // Store capability for removing by resource
         Set<AliasProviderCapability> aliasProviderCapabilities = aliasProviderCapabilitiesByResourceId.get(resourceId);

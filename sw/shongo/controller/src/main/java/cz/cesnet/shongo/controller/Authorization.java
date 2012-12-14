@@ -49,12 +49,6 @@ public class Authorization
         {
             return "root";
         }
-
-        @Override
-        public String getPrimaryEmail()
-        {
-            return "srom.martin@gmail.com";
-        }
     };
 
     /**
@@ -171,6 +165,8 @@ public class Authorization
             return ROOT_USER_PERSON;
         }
 
+        logger.debug("Retrieving user information by access token '{}'...", securityToken.getAccessToken());
+
         Map<String, Object> content = null;
         try {
             // Build url
@@ -231,6 +227,8 @@ public class Authorization
         if (userId.equals(ROOT_USER_ID)) {
             return ROOT_USER_PERSON;
         }
+
+        logger.debug("Retrieving user information by user-id '{}'...", userId);
 
         Map<String, Object> content = null;
         try {

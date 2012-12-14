@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.notification;
 
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.common.Person;
-import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -142,6 +141,7 @@ public abstract class Notification
             properties.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
             properties.setProperty("classpath.resource.loader.class", ClasspathResourceLoader.class.getName());
             velocityEngine = new VelocityEngine();
+            velocityEngine.setProperty(velocityEngine.RUNTIME_LOG_LOGSYSTEM, new VelocityLogger());
             velocityEngine.init(properties);
         }
         return velocityEngine;

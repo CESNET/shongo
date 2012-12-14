@@ -74,6 +74,9 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     @Override
     public void addObject(Resource resource, EntityManager entityManager)
     {
+        // Load lazy collections
+        resource.getAdministrators().size();
+
         // If resource is a device
         if (resource instanceof DeviceResource) {
             DeviceResource deviceResource = (DeviceResource) resource;

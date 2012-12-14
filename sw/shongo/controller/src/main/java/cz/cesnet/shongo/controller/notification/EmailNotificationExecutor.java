@@ -7,7 +7,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -22,7 +24,7 @@ public class EmailNotificationExecutor extends NotificationExecutor
     private static Logger logger = LoggerFactory.getLogger(EmailNotificationExecutor.class);
 
     private static final String EMAIL_HEADER = ""
-            + "==========================================================+\n"
+            + "===========================================================\n"
             + " Automatic notification from the Shongo reservation system \n"
             + "===========================================================\n\n";
     /**
@@ -87,7 +89,6 @@ public class EmailNotificationExecutor extends NotificationExecutor
 
         try {
             MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(emailSender));
 
             StringBuilder recipientString = new StringBuilder();
             for (String recipient : recipients) {
@@ -98,13 +99,31 @@ public class EmailNotificationExecutor extends NotificationExecutor
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
             }
 
-            String subject = notification.getName();
+            message.setFrom(new InternetAddress(emailSender));
+            message.setSubject(notification.getName());
+
             StringBuilder text = new StringBuilder();
             text.append(EMAIL_HEADER);
             text.append(notification.getContent());
-            message.setSubject(subject);
-            message.setText(text.toString());
-            logger.debug("Sending email '{}' to '{}'...\n{}", new Object[]{subject, recipientString, text});
+
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setContent(text.toString(), "text/plain; charset=utf-8");
+
+            StringBuilder html = new StringBuilder();
+            html.append("<html><body><pre>");
+            html.append(text);
+            html.append("</pre></body></html>");
+
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(html.toString(), "text/html; charset=utf-8");
+
+            Multipart multipart = new MimeMultipart("alternative");
+            multipart.addBodyPart(textPart);
+            multipart.addBodyPart(htmlPart);
+            message.setContent(multipart);
+
+            logger.debug("Sending email '{}' from '{}' to '{}'...\n",
+                    new Object[]{message.getSubject(), emailSender, recipientString});
             sendMail(message);
         }
         catch (Exception exception) {

@@ -46,6 +46,7 @@ public class NotifyReservationTest extends AbstractControllerTest
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
         mcu.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "950000001@cesnet.cz", true));
         mcu.setAllocatable(true);
+        mcu.addAdministrator(new OtherPerson("Martin Srom", "cheater@seznam.cz"));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -80,7 +81,16 @@ public class NotifyReservationTest extends AbstractControllerTest
         @Override
         public void executeNotification(Notification notification)
         {
-            logger.debug("Notification '{}'...\n{}", new Object[]{notification.getName(), notification.getContent()});
+            StringBuilder recipientString = new StringBuilder();
+            for (cz.cesnet.shongo.controller.common.Person recipient : notification.getRecipients()) {
+                if (recipientString.length() > 0) {
+                    recipientString.append(", ");
+                }
+                recipientString.append(String.format("%s (%s)", recipient.getInformation().getFullName(),
+                        recipient.getInformation().getPrimaryEmail()));
+            }
+            logger.debug("Notification '{}' for {}...\n{}", new Object[]{notification.getName(),
+                    recipientString.toString(), notification.getContent()});
             sentCount++;
         }
     }

@@ -20,6 +20,9 @@ public class UserPerson extends Person
      */
     private String userId;
 
+    /**
+     * @see cz.cesnet.shongo.controller.Authorization.UserInformation
+     */
     private Authorization.UserInformation userInformation;
 
     /**

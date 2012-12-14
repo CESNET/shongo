@@ -2,9 +2,11 @@ package cz.cesnet.shongo.controller.notification;
 
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.common.Person;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 
 import javax.persistence.EntityManager;
 import java.util.HashMap;
@@ -17,13 +19,41 @@ import java.util.Map;
  */
 public class NewReservationNotification extends Notification
 {
+    /**
+     * @see Reservation
+     */
     private Reservation reservation;
 
+    /**
+     * Constructor.
+     *
+     * @param reservation
+     * @param notificationManager
+     */
     public NewReservationNotification(Reservation reservation, NotificationManager notificationManager)
     {
         super(notificationManager);
         this.reservation = reservation;
         addUserRecipient(reservation.getUserId());
+        addRecipientByReservation(reservation);
+    }
+
+    /**
+     * Add recipients by given {@code reservation}.
+     *
+     * @param reservation
+     */
+    public void addRecipientByReservation(Reservation reservation)
+    {
+        if (reservation instanceof ResourceReservation) {
+            ResourceReservation resourceReservation = (ResourceReservation) reservation;
+            for (Person person : resourceReservation.getResource().getAdministrators()) {
+                addRecipient(person);
+            }
+        }
+        for (Reservation childReservation : reservation.getChildReservations()) {
+            addRecipientByReservation(childReservation);
+        }
     }
 
     @Override
@@ -61,6 +91,10 @@ public class NewReservationNotification extends Notification
         return content;
     }
 
+    /**
+     * @param reservationRequestApi
+     * @return specification from given reservation request
+     */
     private cz.cesnet.shongo.controller.api.Specification getSpecification(
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
