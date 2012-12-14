@@ -57,7 +57,7 @@ public class ConnectorInfo
     }
 
     /**
-     * @return the device managed by this connector
+     * @return static info about the device managed by this connector
      */
     public DeviceInfo getDeviceInfo()
     {

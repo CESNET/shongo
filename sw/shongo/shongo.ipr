@@ -218,6 +218,7 @@
     <dictionary name="anode">
       <words>
         <w>cesnet</w>
+        <w>cisco</w>
         <w>codec</w>
         <w>unmute</w>
       </words>

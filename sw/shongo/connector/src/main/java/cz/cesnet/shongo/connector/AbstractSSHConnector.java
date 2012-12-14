@@ -98,7 +98,8 @@ abstract public class AbstractSSHConnector extends AbstractConnector
             info.setDeviceAddress(address);
 
             initSession();
-            info.setDeviceInfo(getDeviceInfo());
+            info.setDeviceInfo(gatherDeviceInfo());
+            initDeviceState();
         }
         catch (JSchException e) {
             throw new CommandException("Error in communication with the device", e);
@@ -117,11 +118,16 @@ abstract public class AbstractSSHConnector extends AbstractConnector
     }
 
     /**
-     * Gets info about the device.
+     * Gets static info about the device (i.e., name, description, ...).
      *
      * @return a <code>DeviceInfo</code> object
      */
-    protected abstract DeviceInfo getDeviceInfo() throws IOException, CommandException;
+    protected abstract DeviceInfo gatherDeviceInfo() throws IOException, CommandException;
+
+    /**
+     * Initializes state info about the device (i.e., mute state, active calls, ...).
+     */
+    protected abstract void initDeviceState() throws IOException, CommandException;
 
 
     /**
