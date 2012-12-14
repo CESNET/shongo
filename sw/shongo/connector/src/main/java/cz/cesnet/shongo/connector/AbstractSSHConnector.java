@@ -68,6 +68,10 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         commandOutputPattern = Pattern.compile(commandOutputPatternStr);
     }
 
+    private Address connectAddress;
+    private String username;
+    private String password;
+
     /**
      * Connects the connector to the managed device.
      *
@@ -81,6 +85,10 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         if (address.getPort() == Address.DEFAULT_PORT) {
             address.setPort(DEFAULT_PORT);
         }
+
+        connectAddress = address;
+        this.username = username;
+        this.password = password;
 
         try {
             JSch jsch = new JSch();
@@ -153,6 +161,12 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         commandResultStream = null;
 
         info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+    }
+
+    public void reconnect() throws CommandException
+    {
+        disconnect();
+        connect(connectAddress, username, password);
     }
 
     protected void sendCommand(Command command) throws IOException

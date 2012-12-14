@@ -571,6 +571,7 @@ Reading:
         }
         catch (IOException e) {
             logger.error("Error issuing command '" + command + "'", e);
+            reconnect();
             throw new CommandException("Command issuing error", e);
         }
         finally {
