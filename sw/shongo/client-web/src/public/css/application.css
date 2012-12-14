@@ -97,3 +97,21 @@ div.aliases-description {
     background-color: #FFFFFF;
     padding: 5px;
 }
+
+/** Not available page */
+div.not-available {
+
+    margin: 30px;
+    padding: 10px;
+    text-align: center;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    border: 1px solid #BBBBBB;
+}
+.not-available h1 {
+    color: red;
+}
+.not-available p {
+    font-weight: bold;
+}
