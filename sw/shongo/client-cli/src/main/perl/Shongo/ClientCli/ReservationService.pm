@@ -230,7 +230,7 @@ sub list_reservation_requests()
         $table->add(
             $reservation_request->{'id'},
             $application->format_user($reservation_request->{'userId'}),
-            format_date($reservation_request->{'created'}),
+            format_datetime($reservation_request->{'created'}),
             $Type->{$reservation_request->{'type'}},
             $reservation_request->{'name'},
             #$Shongo::ClientCli::API::ReservationRequest::Purpose->{$reservation_request->{'purpose'}},

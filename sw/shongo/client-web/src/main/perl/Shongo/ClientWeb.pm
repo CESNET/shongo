@@ -174,7 +174,7 @@ sub run
         my $access_token = $self->{'authorization'}->authentication_token($code);
 
         # Set user to session
-        my $user_info = $self->{'authorization'}->user_info($access_token);
+        my $user_info = $self->{'authorization'}->get_user_info($access_token);
         $self->{'session'}->param('user', {
             'access_token' => $access_token,
             'id' => $user_info->{'id'},

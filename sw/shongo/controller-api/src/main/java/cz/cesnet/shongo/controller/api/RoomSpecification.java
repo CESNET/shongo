@@ -59,6 +59,7 @@ public class RoomSpecification extends Specification
         for (Technology technology : technologies) {
             addTechnology(technology);
         }
+        setWithAlias(true);
     }
 
     /**

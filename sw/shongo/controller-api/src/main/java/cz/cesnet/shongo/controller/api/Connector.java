@@ -8,22 +8,6 @@ package cz.cesnet.shongo.controller.api;
 public class Connector
 {
     /**
-     * Status of a connector.
-     */
-    public static enum Status
-    {
-        /**
-         * Means that a connector is currently available to the controller.
-         */
-        AVAILABLE,
-
-        /**
-         * Means that a connector is currently not available to the controller.
-         */
-        NOT_AVAILABLE
-    }
-
-    /**
      * A unique connector name within the domain (Jade agent name).
      */
     private String name;

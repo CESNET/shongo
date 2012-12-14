@@ -95,7 +95,7 @@ public abstract class Component
     }
 
     /**
-     * {@link Component} which contains reference to current {@link MailSender}.
+     * {@link Component} which contains reference to current {@link NotificationManager}.
      */
     public static interface NotificationManagerAware
     {

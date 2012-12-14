@@ -233,7 +233,7 @@ public class ConverterTest
     private void assertEntityEquals(Object expected, Object object) throws Exception
     {
         Assert.assertEquals(expected.getClass(), object.getClass());
-        Set<String> propertyNames = Property.getClassHierarchyPropertyNames(expected.getClass());
+        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(expected.getClass());
         for (String propertyName : propertyNames) {
             Property property = Property.getProperty(expected.getClass(), propertyName);
             Object expectedValue = property.getValue(expected);

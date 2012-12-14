@@ -15,9 +15,19 @@ import java.util.Map;
 public class Person extends PersistentObject implements Cloneable
 {
     /**
+     * User-id of the {@link Person}.
+     */
+    private String userId;
+
+    /**
      * Full name of the person.
      */
     private String name;
+
+    /**
+     * Organization of the person.
+     */
+    private String organization;
 
     /**
      * Email to contact the person.
@@ -49,6 +59,23 @@ public class Person extends PersistentObject implements Cloneable
     }
 
     /**
+     * @return {@link #userId}
+     */
+    @Column
+    public String getUserId()
+    {
+        return userId;
+    }
+
+    /**
+     * @param userId sets the {@link #userId}
+     */
+    public void setUserId(String userId)
+    {
+        this.userId = userId;
+    }
+
+    /**
      * @return {@link #name}
      */
     @Column
@@ -63,6 +90,23 @@ public class Person extends PersistentObject implements Cloneable
     public void setName(String name)
     {
         this.name = name;
+    }
+
+    /**
+     * @return {@link #organization}
+     */
+    @Column
+    public String getOrganization()
+    {
+        return organization;
+    }
+
+    /**
+     * @param organization sets the {@link #organization}
+     */
+    public void setOrganization(String organization)
+    {
+        this.organization = organization;
     }
 
     /**
@@ -177,7 +221,9 @@ public class Person extends PersistentObject implements Cloneable
     {
         cz.cesnet.shongo.controller.api.Person person = new cz.cesnet.shongo.controller.api.Person();
         person.setId(getId());
+        person.setUserId(getUserId());
         person.setName(getName());
+        person.setOrganization(getOrganization());
         person.setEmail(getEmail());
         return person;
     }

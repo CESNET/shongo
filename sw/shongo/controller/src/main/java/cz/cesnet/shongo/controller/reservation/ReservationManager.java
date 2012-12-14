@@ -2,12 +2,9 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
 import cz.cesnet.shongo.controller.Cache;
-import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.notification.Notification;
-import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
@@ -244,24 +241,5 @@ public class ReservationManager extends AbstractManager
             return false;
         }
         return true;
-    }
-
-    /**
-     * @param reservation
-     */
-    public void notifyNewReservation(Reservation reservation, NotificationManager notificationManager, Domain domain)
-    {
-        StringBuilder text = new StringBuilder();
-        text.append("New reservation by\n");
-        text.append("    ");
-        text.append("<TODO: name> - <TODO: organization>\n");
-
-        Notification notification = new Notification();
-        notification.setName("New reservation [" + domain.formatId(reservation.getId()) + "]");
-        notification.setText(text.toString());
-        notification.addChildNotification(reservation.toNotification(domain, entityManager));
-        notificationManager.executeNotification(notification);
-
-        // TODO: notify resource owner about resource reservation, alias reservations, virtual room reservations, etc.
     }
 }

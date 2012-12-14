@@ -35,7 +35,7 @@ public class Reservation extends IdentifiedObject implements StructType
     private List<String> childReservationIds = new ArrayList<String>();
 
     /**
-     * @see {@link Executable}
+     * @see Executable
      */
     private Executable executable;
 

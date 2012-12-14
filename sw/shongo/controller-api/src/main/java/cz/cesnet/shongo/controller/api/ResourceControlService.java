@@ -26,7 +26,7 @@ public interface ResourceControlService extends Service
      *
      * @param token
      * @param deviceResourceId
-     * @return
+     * @return collection of supported method names
      * @throws FaultException
      */
     @API

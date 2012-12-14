@@ -114,6 +114,13 @@
             <artifactId>mail</artifactId>
             <version>1.4.5</version>
         </dependency>
+
+        <!-- Templating for sent mails -->
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity</artifactId>
+            <version>1.7</version>
+        </dependency>
     </dependencies>
 
     <build>

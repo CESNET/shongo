@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
+import cz.cesnet.shongo.api.annotation.Required;
 import cz.cesnet.shongo.api.xmlrpc.StructType;
 
 /**
@@ -34,6 +35,7 @@ public class ManagedMode implements StructType
     /**
      * @return {@link #connectorAgentName}
      */
+    @Required
     public String getConnectorAgentName()
     {
         return connectorAgentName;
