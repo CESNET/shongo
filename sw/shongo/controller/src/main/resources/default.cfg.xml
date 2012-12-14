@@ -87,7 +87,7 @@
 
     <!-- Configuration for sending emails -->
     <smtp>
-        <sender>info@shongo.cz</sender>
+        <sender>no-reply@shongo.cz</sender>
         <port>25</port>
     </smtp>
 

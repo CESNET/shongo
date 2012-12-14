@@ -48,12 +48,15 @@ public class EmailNotificationExecutor extends NotificationExecutor
             return;
         }
 
+        String port = configuration.getString(Configuration.SMTP_PORT);
         Properties properties = new Properties();
         properties.setProperty("mail.smtp.host", configuration.getString(Configuration.SMTP_HOST));
-        properties.setProperty("mail.smtp.port", configuration.getString(Configuration.SMTP_PORT));
-        properties.setProperty("mail.smtp.starttls.enable", "true");
-        properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        properties.setProperty("mail.smtp.socketFactory.fallback", "false");
+        properties.setProperty("mail.smtp.port", port);
+        if (!port.equals("25")) {
+            properties.setProperty("mail.smtp.starttls.enable", "true");
+            properties.setProperty("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+            properties.setProperty("mail.smtp.socketFactory.fallback", "false");
+        }
 
         emailSender = configuration.getString(Configuration.SMTP_SENDER);
 
