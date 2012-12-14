@@ -39,17 +39,18 @@ $technology.name#if( $foreach.hasNext ), #end
   How to reach:
 ##
 #foreach( $alias in ${reservation.executable.aliases})
-
 #if ( ${alias.type} == "H323_E164" )
+
   * H.323 GDS number: 00420${alias.value}
 
-  * PSTN dial in: +420${alias.value}##
+  * PSTN dial in: +420${alias.value}
 #elseif ( ${alias.type} == "SIP_URI" )
-  * SIP: sip:${alias.value}##
-#elseif ( ${alias.type} == "ADOBE_CONNECT_URI" )
-  * URL: ${alias.value}##
-#end
 
+  * SIP: sip:${alias.value}
+#elseif ( ${alias.type} == "ADOBE_CONNECT_URI" )
+
+  * URL: ${alias.value}
+#end
 #end
 #end
 ##
