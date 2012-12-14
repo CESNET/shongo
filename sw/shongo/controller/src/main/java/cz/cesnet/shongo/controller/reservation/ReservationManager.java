@@ -195,8 +195,9 @@ public class ReservationManager extends AbstractManager
      * Delete {@link Reservation}s which aren't allocated for any {@link ReservationRequest}.
      *
      * @param cache from which the {@link Reservation}s are also deleted
+     * @return list of deleted {@link Reservation}
      */
-    public void deleteAllNotReferenced(Cache cache)
+    public List<Reservation> deleteAllNotReferenced(Cache cache)
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
@@ -213,6 +214,7 @@ public class ReservationManager extends AbstractManager
         for (Reservation reservation : reservations) {
             delete(reservation, cache);
         }
+        return reservations;
     }
 
     /**

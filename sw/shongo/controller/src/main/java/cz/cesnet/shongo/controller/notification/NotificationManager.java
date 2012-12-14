@@ -125,16 +125,25 @@ public class NotificationManager extends Component implements Component.EntityMa
     /**
      * Notify about new reservations.
      *
-     * @param reservations
+     * @param newReservations
+     * @param modifiedReservations
+     * @param deletedReservations
      */
-    public void notifyNewReservations(List<Reservation> reservations)
+    public void notifyReservations(List<Reservation> newReservations, List<Reservation> modifiedReservations,
+            List<Reservation> deletedReservations)
     {
-        if (reservations.size() == 0) {
+        if (newReservations.size() == 0 && modifiedReservations.size() == 0 && deletedReservations.size() == 0) {
             return;
         }
-        logger.debug("Notifying about new reservations...");
-        for (Reservation reservation : reservations) {
-            executeNotification(new NewReservationNotification(reservation, this));
+        logger.debug("Notifying about changes in reservations...");
+        for (Reservation reservation : newReservations) {
+            executeNotification(new ReservationNotification(ReservationNotification.Type.NEW, reservation, this));
+        }
+        for (Reservation reservation : modifiedReservations) {
+            executeNotification(new ReservationNotification(ReservationNotification.Type.MODIFIED, reservation, this));
+        }
+        for (Reservation reservation : deletedReservations) {
+            executeNotification(new ReservationNotification(ReservationNotification.Type.DELETED, reservation, this));
         }
     }
 }

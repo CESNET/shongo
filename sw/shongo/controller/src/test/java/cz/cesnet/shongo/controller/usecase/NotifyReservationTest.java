@@ -55,9 +55,18 @@ public class NotifyReservationTest extends AbstractControllerTest
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(4, new Technology[]{Technology.H323, Technology.SIP}));
 
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
+                reservationRequestId);
+        ((RoomSpecification)reservationRequest.getSpecification()).setParticipantCount(5);
         allocateAndCheck(reservationRequest);
 
-        Assert.assertEquals(notificationExecutor.getSentCount(), 1);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler();
+
+        Assert.assertEquals(notificationExecutor.getSentCount(), 3); // new/modified/deleted
     }
 
     /**

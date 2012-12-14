@@ -94,8 +94,12 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
+            List<Reservation> newReservations = new ArrayList<Reservation>();
+            List<Reservation> modifiedReservations = new ArrayList<Reservation>();
+            List<Reservation> deletedReservations = new ArrayList<Reservation>();
+
             // Delete all reservations which was marked for deletion
-            reservationManager.deleteAllNotReferenced(cache);
+            deletedReservations.addAll(reservationManager.deleteAllNotReferenced(cache));
             // Delete all compartments which should be deleted
             executableManager.deleteAllNotReferenced();
 
@@ -105,12 +109,19 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
 
             // TODO: Apply some other priority to reservation requests
 
-            List<Reservation> newReservations = new ArrayList<Reservation>();
-
             for (ReservationRequest reservationRequest : reservationRequests) {
-                Reservation reservation = allocateReservationRequest(reservationRequest, entityManager);
-                if (reservation != null) {
-                    newReservations.add(reservation);
+                Reservation oldReservation = reservationRequest.getReservation();
+                Reservation newReservation = allocateReservationRequest(reservationRequest, entityManager);
+                if (oldReservation != null) {
+                    if (newReservation != null) {
+                        modifiedReservations.add(newReservation);
+                    }
+                    else {
+                        deletedReservations.add(oldReservation);
+                    }
+                }
+                else if (newReservation != null) {
+                    newReservations.add(newReservation);
                 }
             }
 
@@ -121,7 +132,7 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
 
             // Notify about new reservations
             if (notificationManager != null) {
-                notificationManager.notifyNewReservations(newReservations);
+                notificationManager.notifyReservations(newReservations, modifiedReservations, deletedReservations);
             }
         }
         catch (Exception exception) {
@@ -146,11 +157,12 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         ReservationManager reservationManager = new ReservationManager(entityManager);
 
         // Get existing reservation
-        Reservation reservation = reservationManager.getByReservationRequest(reservationRequest);
+        Reservation reservation = reservationRequest.getReservation();
 
         // TODO: Try to intelligently reallocate and not delete old reservation
         // Delete old reservation
         if (reservation != null) {
+            reservationRequest.setReservation(null);
             reservationManager.delete(reservation, cache);
         }
 

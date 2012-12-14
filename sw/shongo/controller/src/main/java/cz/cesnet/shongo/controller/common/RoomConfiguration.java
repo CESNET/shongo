@@ -39,7 +39,7 @@ public class RoomConfiguration extends PersistentObject
     /**
      * @return {@link #technologies}
      */
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @Access(AccessType.FIELD)
     public Set<Technology> getTechnologies()
@@ -94,7 +94,7 @@ public class RoomConfiguration extends PersistentObject
     /**
      * @return {@link #roomSettings}
      */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Access(AccessType.FIELD)
     public List<RoomSetting> getRoomSettings()
     {
