@@ -291,11 +291,26 @@ public class Resource extends PersistentObject
     /**
      * @return {@link #administrators}
      */
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @Access(AccessType.FIELD)
     public List<Person> getAdministrators()
     {
         return administrators;
+    }
+
+    /**
+     * @param id
+     * @return administrator with given {@code id}
+     * @throws EntityNotFoundException when administrator doesn't exist
+     */
+    public Person getAdministratorById(Long id) throws EntityNotFoundException
+    {
+        for (Person person : administrators) {
+            if (person.getId().equals(id)) {
+                return person;
+            }
+        }
+        throw new EntityNotFoundException(Person.class, id);
     }
 
     /**
@@ -425,6 +440,10 @@ public class Resource extends PersistentObject
             resource.addCapability(capability.toApi());
         }
 
+        for (Person person : getAdministrators()) {
+            resource.addAdministrator(person.toApi());
+        }
+
         for (Resource childResource : getChildResources()) {
             resource.addChildResourceId(domain.formatId(childResource.getId()));
         }
@@ -515,6 +534,23 @@ public class Resource extends PersistentObject
                 api.getPropertyItemsMarkedAsDeleted(api.CAPABILITIES);
         for (cz.cesnet.shongo.controller.api.Capability apiCapability : apiDeletedCapabilities) {
             removeCapability(getCapabilityById(apiCapability.notNullIdAsLong()));
+        }
+
+        // Create/modify administrators
+        for (cz.cesnet.shongo.controller.api.Person personApi : api.getAdministrators()) {
+            if (api.isPropertyItemMarkedAsNew(api.ADMINISTRATORS, personApi)) {
+                addAdministrator(Person.createFromApi(personApi));
+            }
+            else {
+                Person person = getAdministratorById(personApi.notNullIdAsLong());
+                person.fromApi(personApi);
+            }
+        }
+        // Delete administrators
+        Set<cz.cesnet.shongo.controller.api.Person> deletedAdministrators =
+                api.getPropertyItemsMarkedAsDeleted(api.ADMINISTRATORS);
+        for (cz.cesnet.shongo.controller.api.Person personApi : deletedAdministrators) {
+            removeAdministrator(getAdministratorById(personApi.notNullIdAsLong()));
         }
     }
 

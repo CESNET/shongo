@@ -127,16 +127,33 @@ sub format_user
     my ($self, $user_id, $long) = @_;
 
     my $user_info = $singleInstance->{'user-cache'}->{$user_id};
+    my $name = 'not existing user';
     if ( !defined($user_info) ) {
         $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
-        $singleInstance->{'user-cache'}->{$user_id} = $user_info;
+        if ( defined($user_info) ) {
+            $singleInstance->{'user-cache'}->{$user_id} = $user_info;
+        }
+    }
+    if ( defined($user_info) ) {
+        $name = $user_info->{'name'};
     }
     if ( $long ) {
-        return "$user_info->{'name'} (id: $user_id)";
+        return "$name (id: $user_id)";
     }
     else {
-        return "$user_info->{'name'} ($user_id)";
+        return "$name ($user_id)";
     }
+}
+
+#
+# @param $user_id
+# return true if user exists, false otherwise
+#
+sub user_exists
+{
+    my ($self, $user_id) = @_;
+    my $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
+    return defined($user_info);
 }
 
 #
