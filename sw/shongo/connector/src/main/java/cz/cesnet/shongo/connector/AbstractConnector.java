@@ -34,12 +34,18 @@ abstract public class AbstractConnector implements CommonService
     /**
      * Info about the connector and the device.
      */
-    protected ConnectorInfo info = new ConnectorInfo(getClass().getSimpleName());
+    protected volatile ConnectorInfo info = new ConnectorInfo(getClass().getSimpleName());
 
     @Override
     public ConnectorInfo getConnectorInfo()
     {
         return info;
+    }
+
+    public boolean isConnected()
+    {
+        ConnectorInfo.ConnectionState connState = info.getConnectionState();
+        return (connState == ConnectorInfo.ConnectionState.CONNECTED || connState == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED);
     }
 
     @Override
