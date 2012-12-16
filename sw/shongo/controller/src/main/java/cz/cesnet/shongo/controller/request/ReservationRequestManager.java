@@ -167,25 +167,30 @@ public class ReservationRequestManager extends AbstractManager
      */
     public AbstractReservationRequest getByReservation(Long reservationId)
     {
-        AbstractReservationRequest reservationRequest = entityManager.createQuery(
-                "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                        + " WHERE reservationRequest IN("
-                        + "   SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
-                        + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + "   WHERE reservationRequest.reservation.id = :id"
-                        + ") OR reservationRequest IN("
-                        + "   SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                        + "   WHERE reservationRequest.reservation.id = :id AND reservationRequest NOT IN("
-                        + "       SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
-                        + "       LEFT JOIN reservationRequestSet.reservationRequests reservationRequest)"
-                        + ") OR reservationRequest.id IN("
-                        + "   SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
-                        + "   LEFT JOIN reservationRequest.resourceReservations reservation"
-                        + "   WHERE reservation.id = :id"
-                        + ")", AbstractReservationRequest.class)
-                .setParameter("id", reservationId)
-                .getSingleResult();
-        return reservationRequest;
+        try {
+            AbstractReservationRequest reservationRequest = entityManager.createQuery(
+                    "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
+                            + " WHERE reservationRequest IN("
+                            + "   SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
+                            + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                            + "   WHERE reservationRequest.reservation.id = :id"
+                            + ") OR reservationRequest IN("
+                            + "   SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                            + "   WHERE reservationRequest.reservation.id = :id AND reservationRequest NOT IN("
+                            + "       SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
+                            + "       LEFT JOIN reservationRequestSet.reservationRequests reservationRequest)"
+                            + ") OR reservationRequest.id IN("
+                            + "   SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
+                            + "   LEFT JOIN reservationRequest.resourceReservations reservation"
+                            + "   WHERE reservation.id = :id"
+                            + ")", AbstractReservationRequest.class)
+                    .setParameter("id", reservationId)
+                    .getSingleResult();
+            return reservationRequest;
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-New reservation by
+${type.getName()} reservation by
   ${template.formatUser(${reservation.userId})}
 
 Reservation:
@@ -10,8 +10,6 @@ Reservation:
                     ${template.formatDateTimeUTC(${reservation.slot})} (UTC)
 
   Duration:         ${template.formatDuration(${reservation.slot})}
-################################################################
-##
 #if ( ${specification.class.simpleName} == "RoomSpecification" )
 
   Conference type:  ##
@@ -22,8 +20,11 @@ $technology.name#if( $foreach.hasNext ), #end
 
   Participants:     ${specification.participantCount}
 #end
-##
-################################################################
+#if ( ${reservation.class.simpleName} == "RoomReservation" )
+
+  Device:           ${reservation.resourceName} (id: ${reservation.resourceId}, licenses: ${reservation.licenseCount})
+#end
+#if ( ${reservationRequest}  )
 
   Based on request:
 
@@ -32,24 +33,24 @@ $technology.name#if( $foreach.hasNext ), #end
     Identifier:     ${reservationRequest.id}
 
     Name:           ${reservationRequest.name}
-################################################################
-##
+#end
 #if ( ${reservation.class.simpleName} == "RoomReservation" )
 
   How to reach:
 ##
 #foreach( $alias in ${reservation.executable.aliases})
-
 #if ( ${alias.type} == "H323_E164" )
+
   * H.323 GDS number: 00420${alias.value}
 
-  * PSTN dial in: +420${alias.value}##
+  * PSTN dial in: +420${alias.value}
 #elseif ( ${alias.type} == "SIP_URI" )
-  * SIP: sip:${alias.value}##
-#elseif ( ${alias.type} == "ADOBE_CONNECT_URI" )
-  * URL: ${alias.value}##
-#end
 
+  * SIP: sip:${alias.value}
+#elseif ( ${alias.type} == "ADOBE_CONNECT_URI" )
+
+  * URL: ${alias.value}
+#end
 #end
 #end
 ##

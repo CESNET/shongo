@@ -13,27 +13,42 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@link Notification} for a new {@link Reservation}.
+ * {@link Notification} for a {@link Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
-public class NewReservationNotification extends Notification
+public class ReservationNotification extends Notification
 {
+    /**
+     * @see Type
+     */
+    private Type type;
+
     /**
      * @see Reservation
      */
     private Reservation reservation;
 
     /**
+     * @see EntityManager
+     */
+    EntityManager entityManager;
+
+    /**
      * Constructor.
      *
+     * @param type
      * @param reservation
      * @param notificationManager
+     * @param entityManager
      */
-    public NewReservationNotification(Reservation reservation, NotificationManager notificationManager)
+    public ReservationNotification(Type type, Reservation reservation, NotificationManager notificationManager,
+            EntityManager entityManager)
     {
         super(notificationManager);
+        this.type = type;
         this.reservation = reservation;
+        this.entityManager = entityManager;
         addUserRecipient(reservation.getUserId());
         addRecipientByReservation(reservation);
     }
@@ -59,35 +74,36 @@ public class NewReservationNotification extends Notification
     @Override
     public String getName()
     {
-        return "New reservation " + getNotificationManager().getDomain().formatId(reservation.getId());
+        return type.getName() + " reservation " + getNotificationManager().getDomain().formatId(reservation.getId());
     }
 
     @Override
     public String getContent()
     {
-        EntityManager entityManager = getNotificationManager().createEntityManager();
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
         AbstractReservationRequest reservationRequest =
                 reservationRequestManager.getByReservation(reservation.getId());
         String content = null;
         try {
             Domain domain = getNotificationManager().getDomain();
-            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi =
-                    reservationRequest.toApi(domain);
+            cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi = null;
+            if (reservationRequest != null) {
+                reservationRequestApi = reservationRequest.toApi(domain);
+            }
             cz.cesnet.shongo.controller.api.Specification specificationApi = getSpecification(reservationRequestApi);
 
 
             Map<String, Object> parameters = new HashMap<String, Object>();
+            parameters.put("type", type);
             parameters.put("reservation", reservation.toApi(domain));
             parameters.put("reservationRequest", reservationRequestApi);
             parameters.put("specification", specificationApi);
 
-            content = renderTemplate("new-reservation-mail.vm", parameters);
+            content = renderTemplate("reservation-mail.vm", parameters);
         }
         catch (Exception exception) {
             logger.error("Failed to notify about new reservations.", exception);
         }
-        entityManager.close();
         return content;
     }
 
@@ -111,5 +127,49 @@ public class NewReservationNotification extends Notification
             }
         }
         return null;
+    }
+
+    /**
+     * Type of the {@link ReservationNotification}.
+     */
+    public static enum Type
+    {
+        /**
+         * {@link ReservationNotification#reservation} is new.
+         */
+        NEW("New"),
+
+        /**
+         * {@link ReservationNotification#reservation} has been modified.
+         */
+        MODIFIED("Modified"),
+
+        /**
+         * {@link ReservationNotification#reservation} has been deleted.
+         */
+        DELETED("Deleted");
+
+        /**
+         * Name of the {@link Type}.
+         */
+        private String name;
+
+        /**
+         * Constructor.
+         *
+         * @param name sets the {@link #name}
+         */
+        private Type(String name)
+        {
+            this.name = name;
+        }
+
+        /**
+         * @return {@link #name}
+         */
+        public String getName()
+        {
+            return name;
+        }
     }
 }

@@ -1,9 +1,3 @@
-* persons update API
-
-* send info mails about new/deleted reservation requests to:
-    # reservation request owner
-    # resource owner (+ other emails addresses setup in resource definition)
-
 * Aliases
    "zzz:XXXXXX"
 
