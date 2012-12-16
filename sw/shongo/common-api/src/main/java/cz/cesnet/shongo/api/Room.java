@@ -256,8 +256,10 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     private static void validateOption(Option option, Object value)
     {
         if (!option.getValueClass().isInstance(value)) {
-            String message = "Option " + option + " requires value of class " + option.getValueClass().getName();
-            throw new IllegalArgumentException(message);
+            throw new IllegalArgumentException(String.format(
+                    "Option %s requires value of class %s, but %s given",
+                    option, option.getValueClass().getName(), value.getClass().getName()
+            ));
         }
     }
 

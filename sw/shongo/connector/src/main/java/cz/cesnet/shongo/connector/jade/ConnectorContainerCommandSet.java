@@ -30,7 +30,8 @@ public class ConnectorContainerCommandSet extends ContainerCommandSet
                             "The manage command requires five parameters: <CONNECTOR-CLASS> <DEV-ADDRESS> <DEV-PORT> <DEV-USERNAME> <DEV-PASSWORD>.");
                     return;
                 }
-                Command cmd = new ManageCommand(args[1], args[2], Integer.valueOf(args[3]), args[4], args[5]);
+                // NOTE: passing options for the connector is not implemented, use the XML configuration file
+                Command cmd = new ManageCommand(args[1], args[2], Integer.valueOf(args[3]), args[4], args[5], null);
                 container.performCommand(agentName, cmd);
             }
         });

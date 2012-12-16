@@ -5,11 +5,12 @@ import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
+import cz.cesnet.shongo.connector.api.ConnectorOptions;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
+import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
-import cz.cesnet.shongo.jade.Agent;
-import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 import jade.content.AgentAction;
 import jade.core.AID;
 import org.slf4j.Logger;
@@ -57,16 +58,19 @@ public class ConnectorAgent extends Agent
     /**
      * Starts managing a device. Initializes a connector to the device.
      */
-    public void manage(String connectorClass, String address, int port, String username, String password)
+    public void manage(String connectorClass, String address, int port, String username, String password,
+            ConnectorOptions options)
             throws ConnectorInitException, CommandException
     {
         try {
             Constructor co = Class.forName(connectorClass).getConstructor();
             connector = (CommonService) co.newInstance();
             if (connector == null) {
-                throw new ConnectorInitException("Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
+                throw new ConnectorInitException(
+                        "Invalid connector class: " + connectorClass + " (must implement the CommonService interface)");
             }
 
+            connector.setOptions(options);
             connector.connect(new Address(address, port), username, password);
 
             logger.info("Connector ready: {}", connector.getConnectorInfo());

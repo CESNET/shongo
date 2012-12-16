@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.connector.jade.ConnectorContainerCommandSet;
 import cz.cesnet.shongo.connector.jade.command.ManageCommand;
 import cz.cesnet.shongo.jade.Container;
@@ -9,10 +10,7 @@ import cz.cesnet.shongo.shell.CommandHandler;
 import cz.cesnet.shongo.shell.Shell;
 import cz.cesnet.shongo.util.Logging;
 import org.apache.commons.cli.*;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalConfiguration;
-import org.apache.commons.configuration.SystemConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
+import org.apache.commons.configuration.*;
 import org.joda.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents a device connector.
@@ -167,13 +166,23 @@ public class Connector
         for (HierarchicalConfiguration instCfg : configuration.configurationsAt("instances.instance")) {
             String agentName = instCfg.getString("name");
             if (instCfg.getProperty("device.connectorClass") != null) {
-                // manage a device
+                ConnectorOptions connectorOptions = new ConnectorOptions();
+                if (!instCfg.configurationsAt("device.options").isEmpty()) {
+                    SubnodeConfiguration conf = instCfg.configurationAt("device.options");
+                    Map<Object,Object> confMap = ConfigurationConverter.getMap(conf);
+                    for (Map.Entry<Object,Object> entry : confMap.entrySet()) {
+                        connectorOptions.set((String) entry.getKey(), entry.getValue());
+                    }
+                }
+
+                // command the agent to manage a device
                 ManageCommand cmd = new ManageCommand(
                         instCfg.getString("device.connectorClass"),
                         instCfg.getString("device.host"),
                         instCfg.getInt("device.port", Address.DEFAULT_PORT),
                         instCfg.getString("device.auth.username"),
-                        instCfg.getString("device.auth.password")
+                        instCfg.getString("device.auth.password"),
+                        connectorOptions
                 );
                 jadeContainer.performCommand(agentName, cmd);
             }

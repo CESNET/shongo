@@ -3,6 +3,7 @@ package cz.cesnet.shongo.connector;
 import cz.cesnet.shongo.api.CommandUnsupportedException;
 import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ConnectorInfo;
+import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -28,6 +29,8 @@ abstract public class AbstractConnector implements CommonService
 {
     private static Logger logger = LoggerFactory.getLogger(AbstractConnector.class);
 
+    protected ConnectorOptions options = null;
+
     /**
      * Info about the connector and the device.
      */
@@ -37,6 +40,12 @@ abstract public class AbstractConnector implements CommonService
     public ConnectorInfo getConnectorInfo()
     {
         return info;
+    }
+
+    @Override
+    public void setOptions(ConnectorOptions options)
+    {
+        this.options = options;
     }
 
     /**
