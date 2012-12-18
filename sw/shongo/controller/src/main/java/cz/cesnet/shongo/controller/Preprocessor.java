@@ -208,8 +208,7 @@ public class Preprocessor extends Component
                 permanentReservationRequest.removeResourceReservation(resourceReservation);
                 reservationManager.delete(resourceReservation, cache);
             }
-            String userId = permanentReservationRequest.getUserId();
-            ReservationTask.Context context = new ReservationTask.Context(userId, cache, slot);
+            ReservationTask.Context context = new ReservationTask.Context(permanentReservationRequest, cache, slot);
             ResourceReservationTask resourceReservationTask = new ResourceReservationTask(context, resource);
 
             Report report = new AllocatingPermanentReservationReport(slot);

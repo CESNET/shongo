@@ -60,8 +60,7 @@ sub create_action
             }
         });
         if ( !%{$params->{'error'}} ) {
-            # TODO: add 'SIP'
-            my $specification = $self->parse_specification($params, ['H323']);
+            my $specification = $self->parse_specification($params, ['H323', 'SIP']);
 
             # Add PIN
             if ( length($params->{'pin'}) > 0 ) {

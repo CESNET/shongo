@@ -58,6 +58,23 @@ public class ReservationRequest extends NormalReservationRequest
     private Reservation reservation;
 
     /**
+     * Constructor.
+     */
+    public ReservationRequest()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param userId sets the {@link #setUserId(String)}
+     */
+    public ReservationRequest(String userId)
+    {
+        this.setUserId(userId);
+    }
+
+    /**
      * @return {@link #createdBy}
      */
     @Column(nullable = false)
