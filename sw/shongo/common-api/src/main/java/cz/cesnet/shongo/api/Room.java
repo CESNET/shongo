@@ -306,7 +306,7 @@ public class Room extends IdentifiedChangeableObject implements StructType, Conc
     /**
      * @return
      */
-    public Alias getAliase(AliasType aliasType)
+    public Alias getAlias(AliasType aliasType)
     {
         for (Alias alias : this.getAliases()) {
             if (alias.getType() == aliasType)

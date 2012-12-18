@@ -361,8 +361,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
         attributes.put("name", URLEncoder.encode(room.getCode(),"UTF8"));
         attributes.put("type","meeting");
-        if (room.getAliase(AliasType.ADOBE_CONNECT_NAME) != null) {
-            attributes.put("url-path", room.getAliase(AliasType.ADOBE_CONNECT_NAME).getValue());
+        if (room.getAlias(AliasType.ADOBE_CONNECT_NAME) != null) {
+            attributes.put("url-path", room.getAlias(AliasType.ADOBE_CONNECT_NAME).getValue());
         }
         if (room.getName() != null) {
             attributes.put("description", URLEncoder.encode(room.getName(),"UTF8"));
