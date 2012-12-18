@@ -287,6 +287,24 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     private void initDeviceInfo() throws CommandException
     {
         Map<String, Object> device = exec(new Command("device.query"));
+
+        try {
+            Double apiVersion = Double.valueOf((String) device.get("apiVersion"));
+            if (apiVersion < 2.9) {
+                throw new CommandException(String.format(
+                        "Device API %.1f too old. The connector only works with API 2.9 or higher.",
+                        apiVersion
+                        ));
+            }
+        }
+        catch (NullPointerException e) {
+            throw new CommandException("Cannot determine the device API version.", e);
+        }
+        catch (NumberFormatException e) {
+            throw new CommandException("Cannot determine the device API version.", e);
+        }
+
+
         DeviceInfo di = new DeviceInfo();
 
         di.setName((String) device.get("model"));
@@ -494,6 +512,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      */
     private void populateResultsFromCache(List<Map<String, Object>> results, Integer currentRevision,
             Integer lastRevision, Command command, String enumField)
+            throws CommandException
     {
         // we got just the difference since lastRevision (or full set if this is the first issue of the command)
         final String cacheId = getCommandCacheId(command);
@@ -508,12 +527,18 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                     // from the MCU API: "The device will also never return a dead record if listAll is set to true."
                     // unfortunately, the buggy MCU still reports some items as dead even though listAll = true, so we
                     //   must remove them by ourselves (according to the API, a dead item should not have been ever
-                    //   listed when listAll = true
+                    //   listed when listAll = true)
                     iterator.remove();
                 }
                 else if (!hasItemChanged(item)) {
                     ResultsCache cache = resultsCache.get(cacheId);
-                    iterator.set(cache.getItem(item));
+                    Map<String, Object> it = cache.getItem(item);
+                    if (it == null) {
+                        throw new CommandException(
+                                "Item reported as not changed by the device, but was not found in the cache: " + item
+                                );
+                    }
+                    iterator.set(it);
                 }
             }
         }
@@ -600,6 +625,10 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
             public Item(Map<String, Object> contents)
             {
+                if (contents == null) {
+                    throw new NullPointerException("contents");
+                }
+
                 this.contents = contents;
             }
 
@@ -673,7 +702,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         public void store(int revision, List<Map<String, Object>> results)
         {
             this.revision = revision;
-            this.results = new ArrayList<Item>();
+            this.results = new ArrayList<Item>(results.size());
             for (Map<String, Object> res : results) {
                 this.results.add(new Item(res));
             }
