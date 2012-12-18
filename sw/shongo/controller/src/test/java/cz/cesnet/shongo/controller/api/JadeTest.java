@@ -2,7 +2,10 @@ package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.api.*;
+import cz.cesnet.shongo.api.Alias;
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.api.Room;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
@@ -51,10 +54,10 @@ public class JadeTest extends AbstractControllerTest
                 assertEquals("1", roomId);
                 Room room = new Room();
                 room.setId("1");
-                room.setName("Fixed Testing Room (TODO: Remove it)");
+                room.setCode("Fixed Testing Room (TODO: Remove it)");
+                room.setName("room description");
                 room.setLicenseCount(5);
                 room.addAlias(new Alias(AliasType.H323_E164, "9501"));
-                room.setOption(Room.Option.DESCRIPTION, "room description");
                 return room;
             }
         });
@@ -88,9 +91,9 @@ public class JadeTest extends AbstractControllerTest
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         Room room = getResourceControlService().getRoom(SECURITY_TOKEN, mcuId, "1");
-        room.setName("room");
+        room.setCode("room");
+        room.setName(null);
         room.setOption(Room.Option.PIN, "1234");
-        room.removeOption(Room.Option.DESCRIPTION);
         getResourceControlService().modifyRoom(SECURITY_TOKEN, mcuId, room);
     }
 
@@ -115,16 +118,16 @@ public class JadeTest extends AbstractControllerTest
             ModifyRoom modifyRoom = (ModifyRoom) action;
             Room room = modifyRoom.getRoom();
             assertEquals("1", room.getId());
-            assertEquals("room", room.getName());
+            assertEquals("room", room.getCode());
             assertEquals(new HashSet<Room.Option>()
             {{
                     add(Room.Option.PIN);
                 }}, room.getPropertyItemsMarkedAsNew(Room.OPTIONS));
             assertEquals("1234", room.getOption(Room.Option.PIN));
-            assertEquals(new HashSet<Room.Option>()
-            {{
-                    add(Room.Option.DESCRIPTION);
-                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
+//            assertEquals(new HashSet<Room.Option>()
+//            {{
+//                    add(Room.Option.DESCRIPTION);
+//                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
             return null;
         }
     }

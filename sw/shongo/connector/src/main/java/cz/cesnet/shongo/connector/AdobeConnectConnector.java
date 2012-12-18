@@ -210,8 +210,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             RoomSummary roomSummary = new RoomSummary();
 
             roomSummary.setId(room.getAttributeValue("sco-id"));
-            roomSummary.setName(room.getChildText("name"));
-            roomSummary.setDescription(room.getChildText("description"));
+            roomSummary.setCode(room.getChildText("name"));
+            roomSummary.setName(room.getChildText("description"));
 
             //TODO: element URL
 
@@ -331,9 +331,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Room room = new Room();
         room.setId(roomId);
-        room.setName(response.getChild("sco").getChildText("name"));
-
-        room.setOption(Room.Option.DESCRIPTION,response.getChild("sco").getChildText("description"));
+        room.setCode(response.getChild("sco").getChildText("name"));
+        room.setName(response.getChild("sco").getChildText("description"));
 
 
 
@@ -360,13 +359,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         HashMap<String,String> attributes = new HashMap<String, String>();
         attributes.put("folder-id",
                 (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
-        attributes.put("name", URLEncoder.encode(room.getName(),"UTF8"));
+        attributes.put("name", URLEncoder.encode(room.getCode(),"UTF8"));
         attributes.put("type","meeting");
         if (room.getAliase(AliasType.ADOBE_CONNECT_NAME) != null) {
             attributes.put("url-path", room.getAliase(AliasType.ADOBE_CONNECT_NAME).getValue());
         }
-        if (room.getOption(Room.Option.DESCRIPTION) != null) {
-            attributes.put("description", URLEncoder.encode(room.getOption(Room.Option.DESCRIPTION).toString(),"UTF8"));
+        if (room.getName() != null) {
+            attributes.put("description", URLEncoder.encode(room.getName(),"UTF8"));
         }
 
 
@@ -374,7 +373,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         String scoId = respose.getChild("sco").getAttributeValue("sco-id");
 
 //        room.setId(respose.getChild("sco").getAttributeValue("sco-id"));
-//        room.setOption(Room.Option.DESCRIPTION,this.serverUrl + respose.getChild("sco").getChildText("url-path"));
+//        room.setOption(room.getName(),this.serverUrl + respose.getChild("sco").getChildText("url-path"));
 
         for (String eppn : (List<String>) room.getOption(Room.Option.PARTICIPANTS)) {
             String principalId = this.createAdobeConnectUser(eppn);

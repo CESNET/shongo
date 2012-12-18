@@ -53,12 +53,12 @@ public class XmlRpcTypeMapTest
     {
         Room room = getRoomService().getRoom(SECURITY_TOKEN, "1");
         assertEquals("1", room.getId());
-        assertEquals("room", room.getName());
+        assertEquals("room", room.getCode());
         assertEquals(5, room.getLicenseCount());
 
         room.setLicenseCount(10);
         room.setOption(Room.Option.PIN, "100");
-        room.removeOption(Room.Option.DESCRIPTION);
+        room.setName(null);
 
         getRoomService().modifyRoom(SECURITY_TOKEN, room);
     }
@@ -87,10 +87,10 @@ public class XmlRpcTypeMapTest
 
             Room room = new Room();
             room.setId("1");
-            room.setName("room");
+            room.setCode("room");
+            room.setName("room description");
             room.setLicenseCount(5);
             room.addAlias(new Alias(AliasType.H323_E164, "9501"));
-            room.setOption(Room.Option.DESCRIPTION, "room description");
             return room;
         }
 
@@ -103,10 +103,10 @@ public class XmlRpcTypeMapTest
             {{
                     add(Room.Option.PIN);
                 }}, room.getPropertyItemsMarkedAsNew(Room.OPTIONS));
-            assertEquals(new HashSet<Room.Option>()
-            {{
-                    add(Room.Option.DESCRIPTION);
-                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
+//            assertEquals(new HashSet<Room.Option>()
+//            {{
+//                    add(Room.Option.DESCRIPTION);
+//                }}, room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS));
         }
     }
 }

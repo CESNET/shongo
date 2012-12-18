@@ -104,7 +104,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        Collection<RoomInfo> roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
-//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getName(), room.getType(),
+//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
 //                    room.getStartDateTime(), room.getOwner());
 //        }
 
@@ -433,8 +433,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     {
         RoomSummary info = new RoomSummary();
         info.setId((String) conference.get("conferenceName"));
-        info.setName((String) conference.get("conferenceName"));
-        info.setDescription((String) conference.get("description"));
+        info.setCode((String) conference.get("conferenceName"));
+        info.setName((String) conference.get("description"));
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
         info.setStartDateTime(new DateTime(conference.get(timeField)));
         return info;
@@ -765,8 +765,12 @@ ParamsLoop:
 
         Room room = new Room();
         room.setId((String) result.get("conferenceName"));
-        room.setName((String) result.get("conferenceName"));
+        room.setCode((String) result.get("conferenceName"));
         room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+
+        if (!result.get("description").equals("")) {
+            room.setName((String) result.get("description"));
+        }
 
         // aliases
         if (!result.get("numericId").equals("")) {
@@ -775,7 +779,6 @@ ParamsLoop:
         }
 
         // options
-        room.setOption(Room.Option.DESCRIPTION, result.get("description"));
         room.setOption(Room.Option.REGISTER_WITH_H323_GATEKEEPER, result.get("registerWithGatekeeper"));
         room.setOption(Room.Option.REGISTER_WITH_SIP_REGISTRAR, result.get("registerWithSIPRegistrar"));
         room.setOption(Room.Option.LISTED_PUBLICLY, !(Boolean) result.get("private"));
@@ -822,8 +825,8 @@ ParamsLoop:
 
     private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
     {
-        if (room.getName() != null) {
-            cmd.setParameter("conferenceName", truncateString(room.getName()));
+        if (room.getCode() != null) {
+            cmd.setParameter("conferenceName", truncateString(room.getCode()));
         }
 
         if (room.getLicenseCount() >= 0) {
@@ -908,6 +911,8 @@ ParamsLoop:
 
         cmd.setParameter("durationSeconds", 0); // set the room forever
 
+        cmd.setParameter("description", truncateString((room.getName() == null ? "" : room.getName())));
+
         // options
         setCommandRoomOption(cmd, room, "registerWithGatekeeper", Room.Option.REGISTER_WITH_H323_GATEKEEPER);
         setCommandRoomOption(cmd, room, "registerWithSIPRegistrar", Room.Option.REGISTER_WITH_SIP_REGISTRAR);
@@ -918,7 +923,6 @@ ParamsLoop:
         setCommandRoomOption(cmd, room, "joinAudioMuted", Room.Option.JOIN_AUDIO_MUTED);
         setCommandRoomOption(cmd, room, "joinVideoMuted", Room.Option.JOIN_VIDEO_MUTED);
         setCommandRoomOption(cmd, room, "pin", Room.Option.PIN);
-        setCommandRoomOption(cmd, room, "description", Room.Option.DESCRIPTION);
         setCommandRoomOption(cmd, room, "startLocked", Room.Option.START_LOCKED);
         setCommandRoomOption(cmd, room, "conferenceMeEnabled", Room.Option.CONFERENCE_ME_ENABLED);
     }
@@ -942,14 +946,18 @@ ParamsLoop:
         setConferenceParametersByRoom(cmd, room);
         // treat the name and new name of the conference
         cmd.setParameter("conferenceName", truncateString(room.getId()));
-        if (room.isPropertyFilled(Room.NAME)) {
-            cmd.setParameter("newConferenceName", truncateString(room.getName()));
+        if (room.isPropertyFilled(Room.CODE)) {
+            cmd.setParameter("newConferenceName", truncateString(room.getCode()));
         }
         if (room.isPropertyFilled(Room.LICENSE_COUNT)) {
             cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
         }
+        if (room.isPropertyFilled(Room.NAME)) {
+            cmd.setParameter("description", truncateString(room.getName()));
+        }
 
         // NOTE: should have already been done by setConferenceParametersByRoom() method
+        // FIXME: maybe really necessary, as only new/deleted/modified aliases might be passed
         // Create/Update aliases
 //        for (Alias alias : room.getAliases()) {
 //            if (alias.getType() == AliasType.H323_E164) {
@@ -984,8 +992,8 @@ ParamsLoop:
                 logger.debug("Modified option {} = {}", option, room.getOption(option));
             }
 
-            if (option == Room.Option.DESCRIPTION) {
-                cmd.setParameter("description", truncateString((String) room.getOption(Room.Option.DESCRIPTION)));
+            if (option == Room.Option.PIN) {
+                setCommandRoomOption(cmd, room, "pin", Room.Option.PIN);
             }
         }
         // Delete options
@@ -993,16 +1001,16 @@ ParamsLoop:
         for (Room.Option option : optionsToDelete) {
             // TODO: delete option
             logger.debug("Delete option {}", option);
-            if (option == Room.Option.DESCRIPTION) {
-                cmd.setParameter("description", null);
+            if (option == Room.Option.PIN) {
+                cmd.setParameter("pin", null);
             }
         }
 
         exec(cmd);
 
-        if (room.isPropertyFilled(Room.NAME)) {
-            // the room name changed - the room ID must change, too
-            return room.getName();
+        if (room.isPropertyFilled(Room.CODE)) {
+            // the room code changed - the room ID must change, too
+            return room.getCode();
         }
         else {
             return room.getId();
