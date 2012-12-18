@@ -126,6 +126,10 @@ sub format_user
 {
     my ($self, $user_id, $long) = @_;
 
+    if ( !defined($user_id) ) {
+        return undef;
+    }
+
     my $user_info = $singleInstance->{'user-cache'}->{$user_id};
     my $name = 'not existing user';
     if ( !defined($user_info) ) {
