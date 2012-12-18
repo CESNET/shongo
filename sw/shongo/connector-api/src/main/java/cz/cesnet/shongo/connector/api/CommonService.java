@@ -15,6 +15,13 @@ import java.util.List;
 public interface CommonService
 {
     /**
+     * Sets options for managing the device.
+     *
+     * @param options options
+     */
+    void setOptions(ConnectorOptions options);
+
+    /**
      * Connects to the device.
      *
      * @param address  device address to connect to

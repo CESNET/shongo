@@ -206,7 +206,10 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
         public void run()
         {
             while (!quitRequested) {
-                flushAsynchronousMessages();
+                if (isConnected()) {
+                    flushAsynchronousMessages();
+                }
+
                 try {
                     sleep(sleepTime);
                 }
@@ -235,8 +238,13 @@ public class LifeSizeConnector extends AbstractSSHConnector implements EndpointS
 
     private void stopMonitoring()
     {
-        monitoringThread.quit();
-        monitoringThread = null;
+        if (monitoringThread == null) {
+            logger.error("The monitoring thread for {} died unexpectedly.", info.getDeviceAddress());
+        }
+        else {
+            monitoringThread.quit();
+            monitoringThread = null;
+        }
     }
 
     @Override

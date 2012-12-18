@@ -59,6 +59,12 @@ public class Command
         return this;
     }
 
+    public Command unsetParameter(String name)
+    {
+        parameters.remove(name);
+        return this;
+    }
+
     public Object getParameterValue(String name)
     {
         return parameters.get(name);

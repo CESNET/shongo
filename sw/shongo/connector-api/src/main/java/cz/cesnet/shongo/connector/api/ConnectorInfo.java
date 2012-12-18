@@ -26,6 +26,10 @@ public class ConnectorInfo
          * The connection is not established.
          */
         DISCONNECTED,
+        /**
+         * The connection has been lost and the connector is trying to reconnect.
+         */
+        RECONNECTING,
     }
 
     private String name;
