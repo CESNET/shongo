@@ -20,6 +20,11 @@ public abstract class RoomEndpoint extends Endpoint
      */
     private String roomId;
 
+    /**
+     * Name of the room which can be displayed to the user.
+     */
+    private String roomName;
+
     @Override
     @Transient
     public String getName()
@@ -55,5 +60,21 @@ public abstract class RoomEndpoint extends Endpoint
     public void setRoomId(String roomId)
     {
         this.roomId = roomId;
+    }
+
+    /**
+     * @return {@link #roomName}
+     */
+    public String getRoomName()
+    {
+        return roomName;
+    }
+
+    /**
+     * @param roomName sets the {@link #roomName}
+     */
+    public void setRoomName(String roomName)
+    {
+        this.roomName = roomName;
     }
 }

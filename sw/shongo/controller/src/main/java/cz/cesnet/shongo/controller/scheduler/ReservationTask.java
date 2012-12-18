@@ -3,8 +3,11 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Scheduler;
+import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
+import cz.cesnet.shongo.controller.request.ReservationRequest;
 import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -219,9 +222,9 @@ public abstract class ReservationTask
     public static class Context
     {
         /**
-         * {@link Reservation} owner user id.
+         * {@link AbstractReservationRequest} for which the {@link Reservation} should be allocated.
          */
-        private String userId;
+        private AbstractReservationRequest reservationRequest;
 
         /**
          * @see Cache
@@ -244,9 +247,9 @@ public abstract class ReservationTask
          * @param cache    sets the {@link #cache}
          * @param interval sets the {@link cz.cesnet.shongo.controller.Cache.Transaction#interval}
          */
-        public Context(String userId, Cache cache, Interval interval)
+        public Context(AbstractReservationRequest reservationRequest, Cache cache, Interval interval)
         {
-            this.userId = userId;
+            this.reservationRequest = reservationRequest;
             this.cache = cache;
             this.cacheTransaction = new Cache.Transaction(interval);
         }
@@ -259,15 +262,23 @@ public abstract class ReservationTask
          */
         public Context(Cache cache, Interval interval)
         {
-            this(Authorization.ROOT_USER_ID, cache, interval);
+            this(new ReservationRequest(Authorization.ROOT_USER_ID), cache, interval);
         }
 
         /**
-         * @return {@link #userId}
+         * @return {@link #reservationRequest}
+         */
+        public AbstractReservationRequest getReservationRequest()
+        {
+            return reservationRequest;
+        }
+
+        /**
+         * @return {@link #reservationRequest#getUserId()}
          */
         public String getUserId()
         {
-            return userId;
+            return reservationRequest.getUserId();
         }
 
         /**

@@ -211,13 +211,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             String agentName = managedMode.getConnectorAgentName();
             ControllerAgent controllerAgent = executorThread.getControllerAgent();
 
-            String roomName = String.format("Shongo%d [exec:%d]", getId(), executorThread.getExecutableId());
-
-            // TODO: Move this stripping to H323 connector
-            roomName = roomName.substring(0, Math.min(roomName.length(), 28));
-
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
-            room.setCode(roomName);
+            room.setCode(String.format("shongo:%d", getId()));
+            room.setName(getRoomName());
             room.setTechnologies(roomConfiguration.getTechnologies());
             room.setLicenseCount(roomConfiguration.getLicenseCount());
             for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
