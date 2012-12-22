@@ -236,14 +236,14 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public int startRecording(String roomId, ContentType format, RoomLayout layout)
             throws CommandException, CommandUnsupportedException
     {
-        //TODO: AC maybe does not support
+        //TODO: umime
         return 0;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
     public void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException
     {
-        //TODO: AC maybe does not support
+        //TODO: umime
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
