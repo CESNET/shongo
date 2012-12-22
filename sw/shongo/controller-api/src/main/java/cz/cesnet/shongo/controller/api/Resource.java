@@ -53,6 +53,12 @@ public class Resource extends IdentifiedChangeableObject
     public static final String MAXIMUM_FUTURE = "maximumFuture";
 
     /**
+     * List of persons that are notified when the {@link Resource} is allocated or when are
+     * encountered any technical issues.
+     */
+    public static final String ADMINISTRATORS = "administrators";
+
+    /**
      * Child resources shongo-ids.
      */
     private List<String> childResourceIds = new ArrayList<String>();
@@ -186,6 +192,38 @@ public class Resource extends IdentifiedChangeableObject
     public void setMaximumFuture(Object maximumFuture)
     {
         getPropertyStorage().setValue(MAXIMUM_FUTURE, maximumFuture);
+    }
+
+    /**
+     * @return {@link #ADMINISTRATORS}
+     */
+    public List<Person> getAdministrators()
+    {
+        return getPropertyStorage().getCollection(ADMINISTRATORS, List.class);
+    }
+
+    /**
+     * @param administrators sets the {@link #ADMINISTRATORS}
+     */
+    public void setAdministrators(List<Person> administrators)
+    {
+        getPropertyStorage().setCollection(ADMINISTRATORS, administrators);
+    }
+
+    /**
+     * @param person to be added to the {@link #ADMINISTRATORS}
+     */
+    public void addAdministrator(Person person)
+    {
+        getPropertyStorage().addCollectionItem(ADMINISTRATORS, person, List.class);
+    }
+
+    /**
+     * @param person to be removed from the {@link #ADMINISTRATORS}
+     */
+    public void removeAdministrator(Person person)
+    {
+        getPropertyStorage().removeCollectionItem(ADMINISTRATORS, person);
     }
 
     /**

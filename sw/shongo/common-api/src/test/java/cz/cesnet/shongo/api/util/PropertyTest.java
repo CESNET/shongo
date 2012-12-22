@@ -6,8 +6,8 @@ import cz.cesnet.shongo.fault.FaultException;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static junit.framework.Assert.*;
 import static org.junit.Assert.assertArrayEquals;
@@ -77,7 +77,7 @@ public class PropertyTest
         assertFalse(Property.hasProperty(Foo.class, "fieldNot"));
 
         // getClassHierarchyPropertyNames
-        Set<String> propertyNames = Property.getClassHierarchyPropertyNames(Foo.class);
+        Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(Foo.class);
         String[] propertyNameArray = propertyNames.toArray(new String[propertyNames.size()]);
         Arrays.sort(propertyNameArray);
         assertArrayEquals(new String[]{"field1", "field2", "field4", "field5", "field6", "field7"},

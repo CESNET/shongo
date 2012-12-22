@@ -26,6 +26,10 @@ public class ConnectorInfo
          * The connection is not established.
          */
         DISCONNECTED,
+        /**
+         * The connection has been lost and the connector is trying to reconnect.
+         */
+        RECONNECTING,
     }
 
     private String name;
@@ -57,7 +61,7 @@ public class ConnectorInfo
     }
 
     /**
-     * @return the device managed by this connector
+     * @return static info about the device managed by this connector
      */
     public DeviceInfo getDeviceInfo()
     {

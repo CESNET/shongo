@@ -104,7 +104,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 //        Collection<RoomInfo> roomList = conn.getRoomList();
 //        System.out.println("Existing rooms:");
 //        for (RoomInfo room : roomList) {
-//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getName(), room.getType(),
+//            System.out.printf("  - %s (%s, started at %s, owned by %s)\n", room.getCode(), room.getType(),
 //                    room.getStartDateTime(), room.getOwner());
 //        }
 
@@ -230,11 +230,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     private String authUsername;
     private String authPassword;
 
-    /**
-     * H.323 gatekeeper registration prefix - prefix added to room numericIds to get the full number under which the
-     * room is callable.
-     */
-    private String gatekeeperRegistrationPrefix = null;
+    private Pattern roomNumberFromH323Number = null;
+    private Pattern roomNumberFromSIPURI = null;
 
 
     // COMMON SERVICE
@@ -259,6 +256,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
         info.setDeviceAddress(address);
 
+        initOptions();
+
         try {
             XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
             config.setServerURL(getDeviceURL());
@@ -272,7 +271,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
             // FIXME: remove, the production code should not trust any certificate
             HostTrustManager.addTrustedHost(getDeviceURL().getHost());
 
-            initSession();
             initDeviceInfo();
         }
         catch (MalformedURLException e) {
@@ -286,18 +284,27 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
     }
 
-    private void initSession() throws CommandException
-    {
-        Command gkInfoCmd = new Command("gatekeeper.query");
-        Map<String, Object> gkInfo = exec(gkInfoCmd);
-        if (!gkInfo.get("gatekeeperUsage").equals("disabled")) {
-            gatekeeperRegistrationPrefix = (String) gkInfo.get("registrationPrefix");
-        }
-    }
-
     private void initDeviceInfo() throws CommandException
     {
         Map<String, Object> device = exec(new Command("device.query"));
+
+        try {
+            Double apiVersion = Double.valueOf((String) device.get("apiVersion"));
+            if (apiVersion < 2.9) {
+                throw new CommandException(String.format(
+                        "Device API %.1f too old. The connector only works with API 2.9 or higher.",
+                        apiVersion
+                        ));
+            }
+        }
+        catch (NullPointerException e) {
+            throw new CommandException("Cannot determine the device API version.", e);
+        }
+        catch (NumberFormatException e) {
+            throw new CommandException("Cannot determine the device API version.", e);
+        }
+
+
         DeviceInfo di = new DeviceInfo();
 
         di.setName((String) device.get("model"));
@@ -313,6 +320,25 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         info.setDeviceInfo(di);
     }
 
+    private void initOptions()
+    {
+        roomNumberFromH323Number = null;
+        roomNumberFromSIPURI = null;
+
+        if (options == null) {
+            return;
+        }
+
+        String h323Number = options.getString(ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER);
+        if (h323Number != null) {
+            roomNumberFromH323Number = Pattern.compile(h323Number);
+        }
+        String sipNumber = options.getString(ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_SIP_URI);
+        if (sipNumber != null) {
+            roomNumberFromSIPURI = Pattern.compile(sipNumber);
+        }
+    }
+
     @Override
     public void disconnect() throws CommandException
     {
@@ -320,7 +346,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         // no real operation - the communication protocol is stateless
         info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
         client = null; // just for sure the attributes are not used anymore
-        gatekeeperRegistrationPrefix = null;
     }
 
 
@@ -343,6 +368,10 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      */
     private Map<String, Object> exec(Command command) throws CommandException
     {
+        command.unsetParameter("authenticationPassword");
+        logger.debug(String.format("%s issuing command '%s' on %s",
+                CiscoMCUConnector.class, command, info.getDeviceAddress()));
+
         command.setParameter("authenticationUser", authUsername);
         command.setParameter("authenticationPassword", authPassword);
         Object[] params = new Object[]{command.getParameters()};
@@ -422,8 +451,8 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     {
         RoomSummary info = new RoomSummary();
         info.setId((String) conference.get("conferenceName"));
-        info.setName((String) conference.get("conferenceName"));
-        info.setDescription((String) conference.get("description"));
+        info.setCode((String) conference.get("conferenceName"));
+        info.setName((String) conference.get("description"));
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
         info.setStartDateTime(new DateTime(conference.get(timeField)));
         return info;
@@ -483,6 +512,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
      */
     private void populateResultsFromCache(List<Map<String, Object>> results, Integer currentRevision,
             Integer lastRevision, Command command, String enumField)
+            throws CommandException
     {
         // we got just the difference since lastRevision (or full set if this is the first issue of the command)
         final String cacheId = getCommandCacheId(command);
@@ -497,12 +527,18 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
                     // from the MCU API: "The device will also never return a dead record if listAll is set to true."
                     // unfortunately, the buggy MCU still reports some items as dead even though listAll = true, so we
                     //   must remove them by ourselves (according to the API, a dead item should not have been ever
-                    //   listed when listAll = true
+                    //   listed when listAll = true)
                     iterator.remove();
                 }
                 else if (!hasItemChanged(item)) {
                     ResultsCache cache = resultsCache.get(cacheId);
-                    iterator.set(cache.getItem(item));
+                    Map<String, Object> it = cache.getItem(item);
+                    if (it == null) {
+                        throw new CommandException(
+                                "Item reported as not changed by the device, but was not found in the cache: " + item
+                                );
+                    }
+                    iterator.set(it);
                 }
             }
         }
@@ -589,6 +625,10 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
             public Item(Map<String, Object> contents)
             {
+                if (contents == null) {
+                    throw new NullPointerException("contents");
+                }
+
                 this.contents = contents;
             }
 
@@ -662,7 +702,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
         public void store(int revision, List<Map<String, Object>> results)
         {
             this.revision = revision;
-            this.results = new ArrayList<Item>();
+            this.results = new ArrayList<Item>(results.size());
             for (Map<String, Object> res : results) {
                 this.results.add(new Item(res));
             }
@@ -754,8 +794,12 @@ ParamsLoop:
 
         Room room = new Room();
         room.setId((String) result.get("conferenceName"));
-        room.setName((String) result.get("conferenceName"));
+        room.setCode((String) result.get("conferenceName"));
         room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+
+        if (!result.get("description").equals("")) {
+            room.setName((String) result.get("description"));
+        }
 
         // aliases
         if (!result.get("numericId").equals("")) {
@@ -764,7 +808,6 @@ ParamsLoop:
         }
 
         // options
-        room.setOption(Room.Option.DESCRIPTION, result.get("description"));
         room.setOption(Room.Option.REGISTER_WITH_H323_GATEKEEPER, result.get("registerWithGatekeeper"));
         room.setOption(Room.Option.REGISTER_WITH_SIP_REGISTRAR, result.get("registerWithSIPRegistrar"));
         room.setOption(Room.Option.LISTED_PUBLICLY, !(Boolean) result.get("private"));
@@ -806,47 +849,98 @@ ParamsLoop:
 
         exec(cmd);
 
-        return room.getName();
+        return (String) cmd.getParameterValue("conferenceName");
     }
 
     private void setConferenceParametersByRoom(Command cmd, Room room) throws CommandException
     {
-        if (room.getName() != null) {
-            cmd.setParameter("conferenceName", truncateString(room.getName()));
+        if (room.getCode() != null) {
+            cmd.setParameter("conferenceName", truncateString(room.getCode()));
         }
 
         if (room.getLicenseCount() >= 0) {
             cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
         }
 
+        /** Room name might be requested by some name alias. */
+        String requestedRoomCode = null;
+
         if (room.getAliases() != null) {
             cmd.setParameter("numericId", "");
             for (Alias alias : room.getAliases()) {
-                if (alias.getType() == AliasType.H323_E164) {
-                    if (!cmd.getParameterValue("numericId").equals("")) {
-                        // multiple number aliases
-                        final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
-                        throw new CommandException(m);
-                    }
-                    // number of the room
-                    String number = alias.getValue();
-                    if (gatekeeperRegistrationPrefix != null) {
-                        if (!number.startsWith(gatekeeperRegistrationPrefix)) {
-                            throw new CommandException(
-                                    String.format("Assigned numbers should be prefixed with %s, number %s given.",
-                                            gatekeeperRegistrationPrefix, number));
+                // derive number of the room
+                String roomNumber = null;
+                String roomCode = null;
+                Matcher m;
+
+                switch (alias.getType()) {
+                    case H323_E164:
+                        if (roomNumberFromH323Number == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set H.323 E164 number - missing connector device option '%s'",
+                                    ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_H323_NUMBER));
                         }
-                        number = number.substring(gatekeeperRegistrationPrefix.length());
-                    }
-                    cmd.setParameter("numericId", truncateString(number));
+                        m = roomNumberFromH323Number.matcher(alias.getValue());
+                        if (!m.find()) {
+                            throw new CommandException("Invalid E164 number: " + alias.getValue());
+                        }
+                        roomNumber = m.group(1);
+                        break;
+                    case H323_IDENTIFIER:
+                        roomCode = alias.getValue();
+                        break;
+                    case SIP_URI:
+                        if (roomNumberFromSIPURI == null) {
+                            throw new CommandException(String.format(
+                                    "Cannot set SIP URI to room - missing connector device option '%s'",
+                                    ConnectorOptions.ROOM_NUMBER_EXTRACTION_FROM_SIP_URI));
+                        }
+                        m = roomNumberFromSIPURI.matcher(alias.getValue());
+                        if (m.find()) {
+                            // SIP URI contains number
+                            roomNumber = m.group(1);
+                        }
+                        else {
+                            // SIP URI contains name
+                            String value = alias.getValue();
+                            int atSign = value.indexOf('@');
+                            assert atSign > 0;
+                            roomCode = value.substring(0, atSign);
+                        }
+                        break;
+                    default:
+                        throw new CommandException("Unrecognized alias: " + alias.toString());
                 }
-                else {
-                    throw new CommandException("Unrecognized alias: " + alias.toString());
+
+                if (roomNumber != null) {
+                    // check we are not already assigning a different number to the room
+                    final Object oldRoomNumber = cmd.getParameterValue("numericId");
+                    if (!oldRoomNumber.equals("") && !oldRoomNumber.equals(roomNumber)) {
+                        // multiple number aliases
+                        throw new CommandException(String.format(
+                                "The connector supports only one number for a room, requested another: %s", alias));
+                    }
+                    cmd.setParameter("numericId", truncateString(roomNumber));
+                }
+
+                if (roomCode != null) {
+                    // check that more aliases do not request different room code
+                    if (requestedRoomCode != null && !requestedRoomCode.equals(roomCode)) {
+                        throw new CommandException(String.format(
+                                "The connector supports only one room code, requested another: %s", alias));
+                    }
+                    requestedRoomCode = roomCode;
                 }
             }
         }
 
+        if (requestedRoomCode != null) {
+            cmd.setParameter("conferenceName", truncateString(requestedRoomCode));
+        }
+
         cmd.setParameter("durationSeconds", 0); // set the room forever
+
+        cmd.setParameter("description", truncateString((room.getName() == null ? "" : room.getName())));
 
         // options
         setCommandRoomOption(cmd, room, "registerWithGatekeeper", Room.Option.REGISTER_WITH_H323_GATEKEEPER);
@@ -858,7 +952,6 @@ ParamsLoop:
         setCommandRoomOption(cmd, room, "joinAudioMuted", Room.Option.JOIN_AUDIO_MUTED);
         setCommandRoomOption(cmd, room, "joinVideoMuted", Room.Option.JOIN_VIDEO_MUTED);
         setCommandRoomOption(cmd, room, "pin", Room.Option.PIN);
-        setCommandRoomOption(cmd, room, "description", Room.Option.DESCRIPTION);
         setCommandRoomOption(cmd, room, "startLocked", Room.Option.START_LOCKED);
         setCommandRoomOption(cmd, room, "conferenceMeEnabled", Room.Option.CONFERENCE_ME_ENABLED);
     }
@@ -882,35 +975,41 @@ ParamsLoop:
         setConferenceParametersByRoom(cmd, room);
         // treat the name and new name of the conference
         cmd.setParameter("conferenceName", truncateString(room.getId()));
-        if (room.isPropertyFilled(Room.NAME)) {
-            cmd.setParameter("newConferenceName", truncateString(room.getName()));
+        if (room.isPropertyFilled(Room.CODE)) {
+            cmd.setParameter("newConferenceName", truncateString(room.getCode()));
         }
         if (room.isPropertyFilled(Room.LICENSE_COUNT)) {
             cmd.setParameter("maximumVideoPorts", room.getLicenseCount());
         }
+        if (room.isPropertyFilled(Room.NAME)) {
+            cmd.setParameter("description", truncateString(room.getName()));
+        }
+
+        // NOTE: should have already been done by setConferenceParametersByRoom() method
+        // FIXME: maybe really necessary, as only new/deleted/modified aliases might be passed
         // Create/Update aliases
-        for (Alias alias : room.getAliases()) {
-            if (alias.getType() == AliasType.H323_E164) {
-                if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
-                    // MCU only supports a single H323-E164 alias; if another is to be set, throw an exception
-                    Room currentRoom = getRoom(room.getId());
-                    for (Alias curAlias : currentRoom.getAliases()) {
-                        if (curAlias.getType() == AliasType.H323_E164) {
-                            final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
-                            throw new CommandException(m);
-                        }
-                    }
-                }
-                cmd.setParameter("numericId", truncateString(alias.getValue()));
-            }
-        }
-        // Delete aliases
-        Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
-        for (Alias alias : aliasesToDelete) {
-            if (alias.getType() == AliasType.H323_E164) {
-                cmd.setParameter("numericId", "");
-            }
-        }
+//        for (Alias alias : room.getAliases()) {
+//            if (alias.getType() == AliasType.H323_E164) {
+//                if (room.isPropertyItemMarkedAsNew(Room.ALIASES, alias)) {
+//                    // MCU only supports a single H323-E164 alias; if another is to be set, throw an exception
+//                    Room currentRoom = getRoom(room.getId());
+//                    for (Alias curAlias : currentRoom.getAliases()) {
+//                        if (curAlias.getType() == AliasType.H323_E164) {
+//                            final String m = "The connector supports only one numeric H.323 alias, requested another: " + alias;
+//                            throw new CommandException(m);
+//                        }
+//                    }
+//                }
+//                cmd.setParameter("numericId", truncateString(alias.getValue()));
+//            }
+//        }
+//        // Delete aliases
+//        Set<Alias> aliasesToDelete = room.getPropertyItemsMarkedAsDeleted(Room.ALIASES);
+//        for (Alias alias : aliasesToDelete) {
+//            if (alias.getType() == AliasType.H323_E164) {
+//                cmd.setParameter("numericId", "");
+//            }
+//        }
         // Create/Update options
         for (Room.Option option : room.getOptions().keySet()) {
             if (room.isPropertyItemMarkedAsNew(Room.OPTIONS, option)) {
@@ -922,25 +1021,25 @@ ParamsLoop:
                 logger.debug("Modified option {} = {}", option, room.getOption(option));
             }
 
-            if (option == Room.Option.DESCRIPTION) {
-                cmd.setParameter("description", truncateString((String) room.getOption(Room.Option.DESCRIPTION)));
+            if (option == Room.Option.PIN) {
+                setCommandRoomOption(cmd, room, "pin", Room.Option.PIN);
             }
         }
-        // Delete aliases
+        // Delete options
         Set<Room.Option> optionsToDelete = room.getPropertyItemsMarkedAsDeleted(Room.OPTIONS);
         for (Room.Option option : optionsToDelete) {
             // TODO: delete option
             logger.debug("Delete option {}", option);
-            if (option == Room.Option.DESCRIPTION) {
-                cmd.setParameter("description", null);
+            if (option == Room.Option.PIN) {
+                cmd.setParameter("pin", null);
             }
         }
 
         exec(cmd);
 
-        if (room.isPropertyFilled(Room.NAME)) {
-            // the room name changed - the room ID must change, too
-            return room.getName();
+        if (room.isPropertyFilled(Room.CODE)) {
+            // the room code changed - the room ID must change, too
+            return room.getCode();
         }
         else {
             return room.getId();

@@ -121,7 +121,7 @@ public class CommonServiceImpl extends Component
 
             Connector connector = new Connector();
             connector.setName(agentName);
-            connector.setStatus(Connector.Status.AVAILABLE);
+            connector.setStatus(Status.AVAILABLE);
 
             DeviceResource deviceResource = deviceResourceMap.get(agentName);
             if (deviceResource != null) {
@@ -136,7 +136,7 @@ public class CommonServiceImpl extends Component
             Connector connector = new Connector();
             connector.setName(entry.getKey());
             connector.setResourceId(domain.formatId(entry.getValue().getId()));
-            connector.setStatus(Connector.Status.NOT_AVAILABLE);
+            connector.setStatus(Status.NOT_AVAILABLE);
             connectorList.add(connector);
         }
 

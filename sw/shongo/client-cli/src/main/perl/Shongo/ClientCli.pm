@@ -32,6 +32,7 @@ sub instance
         $singleInstance = bless $self, $class;
         $singleInstance->{'scripting'} = 0;
         $singleInstance->{'authorization'} = Shongo::ClientCli::CliAuthorization->new();
+        $singleInstance->{'user-cache'} = {};
     }
     return $singleInstance;
 }
@@ -123,8 +124,40 @@ sub populate()
 #
 sub format_user
 {
+    my ($self, $user_id, $long) = @_;
+
+    if ( !defined($user_id) ) {
+        return undef;
+    }
+
+    my $user_info = $singleInstance->{'user-cache'}->{$user_id};
+    my $name = 'not existing user';
+    if ( !defined($user_info) ) {
+        $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
+        if ( defined($user_info) ) {
+            $singleInstance->{'user-cache'}->{$user_id} = $user_info;
+        }
+    }
+    if ( defined($user_info) ) {
+        $name = $user_info->{'name'};
+    }
+    if ( $long ) {
+        return "$name (id: $user_id)";
+    }
+    else {
+        return "$name ($user_id)";
+    }
+}
+
+#
+# @param $user_id
+# return true if user exists, false otherwise
+#
+sub user_exists
+{
     my ($self, $user_id) = @_;
-    return $user_id;
+    my $user_info = $self->{'authorization'}->get_user_info_by_id($user_id);
+    return defined($user_info);
 }
 
 #
@@ -144,7 +177,7 @@ sub user_info()
 {
     my ($self) = @_;
     console_print_debug("Retrieving user information for access token '%s'...", $self->{'access_token'});
-    my $user_info = $self->{'authorization'}->user_info($self->{'access_token'});
+    my $user_info = $self->{'authorization'}->get_user_info($self->{'access_token'});
     if (!defined($user_info)) {
         return;
     }

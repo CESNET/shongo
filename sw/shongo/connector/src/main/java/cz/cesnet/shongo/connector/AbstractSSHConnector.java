@@ -18,6 +18,9 @@ import java.util.regex.Pattern;
 /**
  * A common superclass for all connectors using SSH for communication with the device.
  *
+ * When the connection gets closed unexpectedly, the connector automatically tries to reconnect until either it gets
+ * connected again or <code>disconnect</code> is called.
+ *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
 abstract public class AbstractSSHConnector extends AbstractConnector
@@ -68,6 +71,10 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         commandOutputPattern = Pattern.compile(commandOutputPatternStr);
     }
 
+    private Address connectAddress;
+    private String username;
+    private String password;
+
     /**
      * Connects the connector to the managed device.
      *
@@ -81,6 +88,10 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         if (address.getPort() == Address.DEFAULT_PORT) {
             address.setPort(DEFAULT_PORT);
         }
+
+        connectAddress = address;
+        this.username = username;
+        this.password = password;
 
         try {
             JSch jsch = new JSch();
@@ -98,7 +109,8 @@ abstract public class AbstractSSHConnector extends AbstractConnector
             info.setDeviceAddress(address);
 
             initSession();
-            info.setDeviceInfo(getDeviceInfo());
+            info.setDeviceInfo(gatherDeviceInfo());
+            initDeviceState();
         }
         catch (JSchException e) {
             throw new CommandException("Error in communication with the device", e);
@@ -117,17 +129,28 @@ abstract public class AbstractSSHConnector extends AbstractConnector
     }
 
     /**
-     * Gets info about the device.
+     * Gets static info about the device (i.e., name, description, ...).
      *
      * @return a <code>DeviceInfo</code> object
      */
-    protected abstract DeviceInfo getDeviceInfo() throws IOException, CommandException;
+    protected abstract DeviceInfo gatherDeviceInfo() throws IOException, CommandException;
+
+    /**
+     * Initializes state info about the device (i.e., mute state, active calls, ...).
+     */
+    protected abstract void initDeviceState() throws IOException, CommandException;
 
 
     /**
      * Disconnects the connector from the managed device.
      */
     public void disconnect() throws CommandException
+    {
+        disconnectImpl();
+        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+    }
+
+    private void disconnectImpl() throws CommandException
     {
         Session session = null;
         if (channel != null) {
@@ -145,18 +168,36 @@ abstract public class AbstractSSHConnector extends AbstractConnector
         }
         commandStreamWriter = null; // just for sure the streams will not be used
         commandResultStream = null;
+    }
 
-        info.setConnectionState(ConnectorInfo.ConnectionState.DISCONNECTED);
+    public void reconnect() throws CommandException
+    {
+        info.setConnectionState(ConnectorInfo.ConnectionState.RECONNECTING);
+        disconnectImpl();
+        connect(connectAddress, username, password);
     }
 
     protected void sendCommand(Command command) throws IOException
     {
-        if (info.getConnectionState() == ConnectorInfo.ConnectionState.DISCONNECTED) {
-            throw new IllegalStateException("The connector is disconnected");
+        switch (info.getConnectionState()) {
+            case DISCONNECTED:
+                throw new IllegalStateException("The connector is disconnected");
+            case RECONNECTING:
+                throw new IllegalStateException("The connector is reconnecting");
         }
 
         commandStreamWriter.write(command.toString() + '\n');
         commandStreamWriter.flush();
+    }
+
+    /**
+     * Returns the matcher for the last line of the last command output.
+     *
+     * May be used to get parts of the last line captured by groups defined by <code>commandOutputPattern</code>.
+     */
+    protected Matcher getLastLineMatcher()
+    {
+        return lastLineMatcher;
     }
 
     /**
@@ -167,9 +208,13 @@ abstract public class AbstractSSHConnector extends AbstractConnector
      */
     protected String readOutput() throws IOException
     {
-        if (info.getConnectionState() == ConnectorInfo.ConnectionState.DISCONNECTED) {
-            throw new IllegalStateException("The connector is disconnected");
+        switch (info.getConnectionState()) {
+            case DISCONNECTED:
+                throw new IllegalStateException("The connector is disconnected");
+            case RECONNECTING:
+                throw new IllegalStateException("The connector is reconnecting");
         }
+
         if (commandResultStream == null) {
             throw new NullPointerException("The result stream is NULL, even though the connector seems connected.");
         }
@@ -194,18 +239,39 @@ abstract public class AbstractSSHConnector extends AbstractConnector
             }
         }
         if (c == -1) {
-            throw new IOException("Unexpected end of stream (was the connection closed?)");
+            runReconnectionThread();
+            throw new IOException("The connection has been closed - the output has been lost. Trying to reconnect.");
         }
         return output.toString();
     }
 
-    /**
-     * Returns the matcher for the last line of the last command output.
-     *
-     * May be used to get parts of the last line captured by groups defined by <code>commandOutputPattern</code>.
-     */
-    protected Matcher getLastLineMatcher()
+    protected void runReconnectionThread()
     {
-        return lastLineMatcher;
+        new ReconnectionThread().start();
     }
+
+    private class ReconnectionThread extends Thread
+    {
+        @Override
+        public void run()
+        {
+            // until someone disconnects the connector by hand, try to reconnect
+            while (info.getConnectionState() != ConnectorInfo.ConnectionState.DISCONNECTED) {
+                try {
+                    reconnect();
+                    return;
+                }
+                catch (CommandException e) {
+                    try {
+                        Thread.sleep(1000); // try again after a while
+                    }
+                    catch (InterruptedException e1) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+        }
+    }
+
+
 }

@@ -1,5 +1,7 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.api.Status;
+
 import java.util.regex.Pattern;
 
 /**
@@ -117,7 +119,7 @@ public class Domain
         cz.cesnet.shongo.controller.api.Domain apiDomain = new cz.cesnet.shongo.controller.api.Domain();
         apiDomain.setName(getName());
         apiDomain.setOrganization(getOrganization());
-        apiDomain.setStatus(cz.cesnet.shongo.controller.api.Domain.Status.AVAILABLE);
+        apiDomain.setStatus(Status.AVAILABLE);
         return apiDomain;
     }
 }

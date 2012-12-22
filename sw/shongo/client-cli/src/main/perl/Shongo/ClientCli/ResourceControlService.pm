@@ -141,13 +141,13 @@ sub control_resource()
             }
         });
     }
-    if (grep $_ eq 'resetDevice', @supportedMethods) {
+    if (grep $_ eq 'rebootDevice', @supportedMethods) {
         $shell->add_commands({
-            "reset-device" => {
-                desc => "Resets the device",
+            "reboot-device" => {
+                desc => "Reboots the device",
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_reset_device($resourceId);
+                    resource_reboot_device($resourceId);
                 }
             }
         });
@@ -250,7 +250,7 @@ sub control_resource()
                 args => '[-duration] [-text]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_show_message($resourceIdentifier, $params->{'options'});
+                    resource_show_message($resourceId, $params->{'options'});
                 }
             }
         });
@@ -547,12 +547,12 @@ sub resource_hang_up_all
     }
 }
 
-sub resource_reset_device
+sub resource_reboot_device
 {
     my ($resourceId) = @_;
 
     my $result = Shongo::ClientCli->instance()->secure_request(
-        'ResourceControl.resetDevice',
+        'ResourceControl.rebootDevice',
         RPC::XML::string->new($resourceId)
     );
     if ( $result->is_fault) {

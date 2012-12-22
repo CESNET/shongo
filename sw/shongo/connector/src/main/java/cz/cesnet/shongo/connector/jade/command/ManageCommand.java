@@ -3,12 +3,13 @@ package cz.cesnet.shongo.connector.jade.command;
 import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.connector.ConnectorAgent;
 import cz.cesnet.shongo.connector.api.ConnectorInitException;
+import cz.cesnet.shongo.connector.api.ConnectorOptions;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.command.Command;
 
 /**
  * A command for starting managing a device by a connector agent.
- *
+ * <p/>
  * Initializes the agent to manage a device and connects to it.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
@@ -40,14 +41,21 @@ public class ManageCommand extends Command
      */
     private String authPassword;
 
+    /**
+     * Options for managing the device.
+     */
+    private ConnectorOptions options;
 
-    public ManageCommand(String connectorClass, String deviceAddress, int devicePort, String authUsername, String authPassword)
+
+    public ManageCommand(String connectorClass, String deviceAddress, int devicePort, String authUsername,
+            String authPassword, ConnectorOptions options)
     {
         this.connectorClass = connectorClass;
         this.deviceAddress = deviceAddress;
         this.devicePort = devicePort;
         this.authUsername = authUsername;
         this.authPassword = authPassword;
+        this.options = options;
     }
 
     public String getAuthPassword()
@@ -100,6 +108,16 @@ public class ManageCommand extends Command
         this.devicePort = devicePort;
     }
 
+    public ConnectorOptions getOptions()
+    {
+        return options;
+    }
+
+    public void setOptions(ConnectorOptions options)
+    {
+        this.options = options;
+    }
+
     @Override
     public void process(Agent agent) throws CommandException
     {
@@ -110,7 +128,7 @@ public class ManageCommand extends Command
         ConnectorAgent connAgent = (ConnectorAgent) agent;
 
         try {
-            connAgent.manage(connectorClass, deviceAddress, devicePort, authUsername, authPassword);
+            connAgent.manage(connectorClass, deviceAddress, devicePort, authUsername, authPassword, options);
         }
         catch (ConnectorInitException e) {
             throw new CommandException("Error initializing the connector", e);

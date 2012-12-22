@@ -38,33 +38,35 @@ public class NotifyReservationTest extends AbstractControllerTest
     @Test
     public void test() throws Exception
     {
-        DeviceResource terminal = new DeviceResource();
-        terminal.setName("terminal");
-        terminal.addTechnology(Technology.H323);
-        terminal.addCapability(new TerminalCapability());
-        terminal.setAllocatable(true);
-        String terminalId = getResourceService().createResource(SECURITY_TOKEN, terminal);
-
         DeviceResource mcu = new DeviceResource();
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
+        mcu.addTechnology(Technology.SIP);
         mcu.addCapability(new RoomProviderCapability(10));
         mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
+        mcu.addCapability(new AliasProviderCapability(AliasType.SIP_URI, "950000001@cesnet.cz", true));
         mcu.setAllocatable(true);
+        mcu.addAdministrator(new OtherPerson("Martin Srom", "cheater@seznam.cz"));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setName("Testing");
-        reservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        reservationRequest.setName("Testing request");
+        reservationRequest.setSlot("2012-06-22T14:00", "PT2H1M");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
-        compartmentSpecification.addSpecification(new ExistingEndpointSpecification(terminalId));
-        compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 1));
-        reservationRequest.setSpecification(compartmentSpecification);
+        reservationRequest.setSpecification(new RoomSpecification(4, new Technology[]{Technology.H323, Technology.SIP}));
 
+        String reservationRequestId = allocate(reservationRequest);
+        checkAllocated(reservationRequestId);
+
+        reservationRequest = (ReservationRequest) getReservationService().getReservationRequest(SECURITY_TOKEN,
+                reservationRequestId);
+        ((RoomSpecification)reservationRequest.getSpecification()).setParticipantCount(5);
         allocateAndCheck(reservationRequest);
 
-        Assert.assertEquals(notificationExecutor.getSentCount(), 1);
+        getReservationService().deleteReservationRequest(SECURITY_TOKEN, reservationRequestId);
+        runScheduler();
+
+        Assert.assertEquals(notificationExecutor.getSentCount(), 3); // new/modified/deleted
     }
 
     /**
@@ -88,9 +90,16 @@ public class NotifyReservationTest extends AbstractControllerTest
         @Override
         public void executeNotification(Notification notification)
         {
-            logger.debug("Notification '{}'...\n{}", new Object[]{notification.getName(),
-                    getNotificationAsString(notification)
-            });
+            StringBuilder recipientString = new StringBuilder();
+            for (cz.cesnet.shongo.controller.common.Person recipient : notification.getRecipients()) {
+                if (recipientString.length() > 0) {
+                    recipientString.append(", ");
+                }
+                recipientString.append(String.format("%s (%s)", recipient.getInformation().getFullName(),
+                        recipient.getInformation().getPrimaryEmail()));
+            }
+            logger.debug("Notification '{}' for {}...\n{}", new Object[]{notification.getName(),
+                    recipientString.toString(), notification.getContent()});
             sentCount++;
         }
     }

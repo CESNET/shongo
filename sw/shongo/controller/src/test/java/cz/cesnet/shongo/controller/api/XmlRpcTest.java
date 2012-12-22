@@ -84,6 +84,7 @@ public class XmlRpcTest extends AbstractControllerTest
                                         put("class", "PersonSpecification");
                                         put("person", new HashMap<String, Object>()
                                         {{
+                                                put("class", "OtherPerson");
                                                 put("name", "Martin Srom");
                                                 put("email", "srom@cesnet.cz");
                                             }});

@@ -114,6 +114,9 @@ sub request()
 
     my $response = $self->{'controller-client'}->send_request($method, @args);
     if ( !ref($response) ) {
+        if ( $response =~ /(Connection refused)/ ) {
+            $self->not_available_action();
+        }
         $self->error_action("Failed to send request to controller!\n" . $response);
         return undef;
     }
@@ -174,7 +177,7 @@ sub run
         my $access_token = $self->{'authorization'}->authentication_token($code);
 
         # Set user to session
-        my $user_info = $self->{'authorization'}->user_info($access_token);
+        my $user_info = $self->{'authorization'}->get_user_info($access_token);
         $self->{'session'}->param('user', {
             'access_token' => $access_token,
             'id' => $user_info->{'id'},
@@ -197,6 +200,18 @@ sub index_action
 {
     my ($self) = @_;
     $self->render_page(undef, 'index.html');
+}
+
+#
+# Controller offline action
+#
+sub not_available_action
+{
+    my ($self) = @_;
+    select STDOUT;
+    $self->render_headers();
+    $self->render_page(undef, 'not-available.html');
+    exit(0);
 }
 
 #

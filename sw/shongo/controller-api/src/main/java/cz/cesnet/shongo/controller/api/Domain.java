@@ -11,22 +11,6 @@ import java.util.regex.Pattern;
 public class Domain
 {
     /**
-     * Status of a domain.
-     */
-    public static enum Status
-    {
-        /**
-         * Means that domain is currently available to the controller.
-         */
-        AVAILABLE,
-
-        /**
-         * Means that domain is currently not available to the controller.
-         */
-        NOT_AVAILABLE
-    }
-
-    /**
      * Represents an unique domain name (e.g., "cz.cesnet")
      */
     private String name;

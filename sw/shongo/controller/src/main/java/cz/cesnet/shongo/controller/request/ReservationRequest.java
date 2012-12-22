@@ -58,6 +58,23 @@ public class ReservationRequest extends NormalReservationRequest
     private Reservation reservation;
 
     /**
+     * Constructor.
+     */
+    public ReservationRequest()
+    {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param userId sets the {@link #setUserId(String)}
+     */
+    public ReservationRequest(String userId)
+    {
+        this.setUserId(userId);
+    }
+
+    /**
      * @return {@link #createdBy}
      */
     @Column(nullable = false)
@@ -183,9 +200,6 @@ public class ReservationRequest extends NormalReservationRequest
     public void clearState()
     {
         this.state = null;
-        // And if allocated reservation exists, we remove reference to it and it will be deleted
-        // at the start of the Scheduler
-        setReservation(null);
     }
 
     /**

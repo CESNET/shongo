@@ -11,15 +11,6 @@
         <!-- Include hibernate typedefs from joda package -->
         <class>cz.cesnet.shongo.joda</class>
 
-        <!-- Include entities from other modules -->
-        <class>cz.cesnet.shongo.controller.common.DateTimeSpecification</class>
-        <class>cz.cesnet.shongo.controller.common.AbsoluteDateTimeSpecification</class>
-        <class>cz.cesnet.shongo.controller.common.RelativeDateTimeSpecification</class>
-        <class>cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification</class>
-        <class>cz.cesnet.shongo.controller.common.PeriodicDateTimeSpecification$Rule</class>
-        <class>cz.cesnet.shongo.controller.request.DateTimeSlotSpecification</class>
-        <class>cz.cesnet.shongo.controller.common.Person</class>
-
         <!-- Hibernate configuration -->
         <properties>
             <property name="hibernate.connection.driver_class" value="org.hsqldb.jdbcDriver"/>

@@ -6,23 +6,23 @@ import cz.cesnet.shongo.connector.api.CommonService;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
 
 /**
- * Command to reset a device.
+ * Command to reboot a device.
  *
  * @author Ondrej Bouda <ondrej.bouda@cesnet.cz>
  */
-public class ResetDevice extends ConnectorAgentAction
+public class RebootDevice extends ConnectorAgentAction
 {
 
     @Override
     public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException
     {
-        logger.info("Resetting the device");
-        getEndpoint(connector).resetDevice();
+        logger.info("Rebooting the device");
+        getEndpoint(connector).rebootDevice();
         return null;
     }
 
     public String toString()
     {
-        return "ResetDevice agent action";
+        return "RebootDevice agent action";
     }
 }

@@ -5,9 +5,9 @@ import cz.cesnet.shongo.api.util.Converter;
 import cz.cesnet.shongo.api.util.Property;
 import cz.cesnet.shongo.api.util.TypeFlags;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -144,7 +144,7 @@ public interface SerializableException
             Content content = new Content();
             content.setMessage(fromException.getMessage());
             try {
-                Set<String> propertyNames = Property.getClassHierarchyPropertyNames(fromException.getClass(),
+                Collection<String> propertyNames = Property.getClassHierarchyPropertyNames(fromException.getClass(),
                         Exception.class);
                 for (String propertyName : propertyNames) {
                     if (propertyName.equals("message") || propertyName.equals("code")) {
@@ -167,7 +167,7 @@ public interface SerializableException
          */
         public void toException(Exception toException)
         {
-            Set<String> propertyNames = Property
+            Collection<String> propertyNames = Property
                     .getClassHierarchyPropertyNames(toException.getClass(), Exception.class);
             try {
                 for (String propertyName : propertyNames) {

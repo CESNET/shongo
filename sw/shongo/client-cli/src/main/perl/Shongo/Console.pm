@@ -28,6 +28,7 @@ BEGIN {
         require Win32::Console::ANSI;
         Win32::Console::ANSI->import();
     }
+    binmode STDOUT, ':utf8';
 }
 use Term::ReadKey;
 use Shongo::Common;

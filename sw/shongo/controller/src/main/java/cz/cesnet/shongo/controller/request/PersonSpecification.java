@@ -191,8 +191,7 @@ public class PersonSpecification extends ParticipantSpecification implements Sta
                 getPerson().fromApi(personApi);
             }
             else {
-                Person person = new Person();
-                person.fromApi(personApi);
+                Person person = Person.createFromApi(personApi);
                 setPerson(person);
             }
         }

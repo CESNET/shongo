@@ -247,6 +247,14 @@ public class Property
     }
 
     /**
+     * @return {@link #field}
+     */
+    public Field getField()
+    {
+        return field;
+    }
+
+    /**
      * Set the property type.
      *
      * @param type        Declared property type

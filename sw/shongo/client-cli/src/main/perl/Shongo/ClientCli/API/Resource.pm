@@ -33,7 +33,7 @@ sub new()
     });
     $self->add_attribute('userId', {
         'title' => 'Owner',
-        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_); },
+        'format' => sub { return Shongo::ClientCli->instance()->format_user(@_, 1); },
         'editable' => 0
     });
     $self->add_attribute('name', {
@@ -66,6 +66,14 @@ sub new()
             return $string;
         },
         'read-only' => 1
+    });
+    $self->add_attribute('administrators', {
+        'type' => 'collection',
+        'item' => {
+            'title' => 'Administrator',
+            'class' => 'Shongo::ClientCli::API::Person'
+        },
+        'display-empty' => 1
     });
     $self->add_attribute('capabilities', {
         'type' => 'collection',

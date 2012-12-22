@@ -135,7 +135,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         sendCommand(new Command("xpreferences outputmode xml"));
     }
 
-    protected DeviceInfo getDeviceInfo() throws IOException, CommandException
+    protected DeviceInfo gatherDeviceInfo() throws IOException, CommandException
     {
         try {
             Document result = exec(new Command("xstatus SystemUnit"));
@@ -171,6 +171,12 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
         }
     }
 
+    @Override
+    protected void initDeviceState() throws IOException, CommandException
+    {
+        // TODO
+    }
+
     /**
      * Send a command to the device.
      * In case of an error, throws a CommandException with a detailed message.
@@ -180,7 +186,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
      */
     private Document issueCommand(Command command) throws CommandException
     {
-        logger.info(String.format("%s issuing command %s on %s", CodecC90Connector.class, command,
+        logger.info(String.format("%s issuing command '%s' on %s", CodecC90Connector.class, command,
                 info.getDeviceAddress()));
 
         try {
@@ -191,7 +197,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
                 throw new CommandException(errMsg);
             }
             else {
-                logger.info(String.format("Command %s succeeded on %s", command, info.getDeviceAddress()));
+                logger.info(String.format("Command '%s' succeeded on %s", command, info.getDeviceAddress()));
                 return result;
             }
         }
@@ -366,7 +372,7 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
     }
 
     @Override
-    public void resetDevice() throws CommandException
+    public void rebootDevice() throws CommandException
     {
         Command command = new Command("xCommand Boot");
         command.setParameter("Action", "Restart"); // should be default anyway, but just for sure...
@@ -456,12 +462,14 @@ public class CodecC90Connector extends AbstractSSHConnector implements EndpointS
 
             // and we also must wait until all calls are really hung up; until then, the standby command has no effect
             final int attemptsLimit = 50;
+            final int attemptDelay = 100;
             for (int i = 0; i < attemptsLimit; i++) {
                 try {
-                    Thread.sleep(100); // wait awhile; who knows for how long to be sure, though :-(
+                    Thread.sleep(attemptDelay); // wait awhile; who knows for how long to be sure, though :-(
                 }
                 catch (InterruptedException e) {
                     // ignore - the calls are checked anyway and possibly sleeping again
+                    Thread.currentThread().interrupt(); // but don't swallow the interrupt information
                 }
                 Document calls = issueCommand(new Command("xStatus Call"));
                 try {

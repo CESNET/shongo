@@ -4,7 +4,7 @@ import cz.cesnet.shongo.api.xmlrpc.Service;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.api.xmlrpc.RpcServer;
 import cz.cesnet.shongo.controller.api.xmlrpc.WebServerXmlLogger;
-import cz.cesnet.shongo.controller.notification.MailNotificationExecutor;
+import cz.cesnet.shongo.controller.notification.EmailNotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationExecutor;
 import cz.cesnet.shongo.controller.notification.NotificationManager;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
@@ -354,7 +354,7 @@ public class Controller
         }
 
         // Initialize authorization
-        authorization = new Authorization(configuration);
+        authorization = Authorization.createInstance(configuration);
 
         logger.info("Controller for domain '{}' is starting...", domain.getName());
 
@@ -378,6 +378,11 @@ public class Controller
             if (component instanceof Component.AuthorizationAware) {
                 Component.AuthorizationAware authorizationAware = (Component.AuthorizationAware) component;
                 authorizationAware.setAuthorization(authorization);
+            }
+            if (component instanceof Component.NotificationManagerAware) {
+                Component.NotificationManagerAware notificationManagerAware =
+                        (Component.NotificationManagerAware) component;
+                notificationManagerAware.setNotificationManager(notificationManager);
             }
             component.init(configuration);
         }
@@ -610,6 +615,8 @@ public class Controller
         for (Component component : components) {
             component.destroy();
         }
+        // Destroy authorization
+        authorization.destroy();
 
         logger.info("Controller exiting...");
     }
@@ -762,7 +769,7 @@ public class Controller
         controller.addComponent(new Executor());
 
         // Add mail notification executor
-        controller.addNotificationExecutor(new MailNotificationExecutor());
+        controller.addNotificationExecutor(new EmailNotificationExecutor());
 
         // Add XML-RPC services
         controller.addService(new CommonServiceImpl());

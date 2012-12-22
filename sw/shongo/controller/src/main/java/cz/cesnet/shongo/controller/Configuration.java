@@ -35,6 +35,7 @@ public class Configuration extends CompositeConfiguration
     /**
      * SMTP configuration.
      */
+    public static final String SMTP_SENDER = "smtp.sender";
     public static final String SMTP_HOST = "smtp.host";
     public static final String SMTP_PORT = "smtp.port";
     public static final String SMTP_USERNAME = "smtp.username";

@@ -144,10 +144,10 @@ public class ResourceControlServiceImpl extends Component
     }
 
     @Override
-    public void resetDevice(SecurityToken token, String deviceResourceId) throws FaultException
+    public void rebootDevice(SecurityToken token, String deviceResourceId) throws FaultException
     {
         authorization.validate(token);
-        commandDevice(deviceResourceId, new ResetDevice());
+        commandDevice(deviceResourceId, new RebootDevice());
     }
 
     @Override

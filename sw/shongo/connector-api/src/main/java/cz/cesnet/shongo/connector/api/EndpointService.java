@@ -51,9 +51,8 @@ public interface EndpointService extends CommonService
 
     /**
      * Reboots the device.
-     * TODO: rename to reboot (as "reset" means resetting the device configuration on some devices)
      */
-    void resetDevice() throws CommandException, CommandUnsupportedException;
+    void rebootDevice() throws CommandException, CommandUnsupportedException;
 
     /**
      * Mutes this endpoint.

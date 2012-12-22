@@ -32,7 +32,8 @@ use Term::ANSIColor;
 use JSON -support_by_pp;
 
 # Regular Expression Patterns
-our $IdPattern = '(^\\d|shongo:.+:\\d$)';
+our $IdPattern = '(^\\d+|shongo:.+:\\d+$)';
+our $UserIdPattern = '(^\\d+$)';
 our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?([\\+-]\\d\\d:\\d\\d)?)?$)';
 our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
 our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
@@ -224,6 +225,10 @@ sub set_collection_item
     my ($collection, $item_index, $item) = @_;
     convert_collection_to_hash($collection);
 
+    #var_dump($collection);
+    #var_dump($item_index);
+    #var_dump($item);
+
     if ( $item_index < scalar(@{${$collection}->{'__array'}}) ) {
         splice(@{${$collection}->{'__array'}}, $item_index, 1);
         if ( !defined(${$collection}->{'modified'}) ) {
@@ -233,13 +238,15 @@ sub set_collection_item
     }
     else {
         $item_index -= scalar(@{${$collection}->{'__array'}});
-        if ( $item_index < scalar(@{${$collection}->{'modified'}}) ) {
-            @{${$collection}->{'modified'}}[$item_index] = $item;
-        }
-        else {
+
+        if ( defined(${$collection}->{'modified'}) ) {
+            if ( $item_index < scalar(@{${$collection}->{'modified'}}) ) {
+                @{${$collection}->{'modified'}}[$item_index] = $item;
+                return;
+            }
             $item_index -= scalar(@{${$collection}->{'modified'}});
-            @{${$collection}->{'new'}}[$item_index] = $item;
         }
+        @{${$collection}->{'new'}}[$item_index] = $item;
     }
 }
 

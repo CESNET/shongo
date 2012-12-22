@@ -24,7 +24,7 @@ public interface CommonService extends Service
     public Collection<Domain> listDomains(SecurityToken token);
 
     /**
-     * @return
+     * @return list of connector
      */
     @API
     public Collection<Connector> listConnectors(SecurityToken token);

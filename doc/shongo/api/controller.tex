@@ -83,7 +83,7 @@ Descriptor of a \gls{g:domain}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiRequired} A unique domain name (e.g., \ApiValue{cz.cesnet}).
 \ApiClassAttribute{organization}{String}{\ApiOptional} Name of organization owning the domain (e.g., \ApiValue{CESNET, z.s.p.o.}).
-\ApiClassAttribute{status}{Status}{\ApiRequired} Status whether the domain controller is available.
+\ApiClassAttribute{status}{Status}{\ApiReadOnly} Status whether the domain controller is available.
 \end{ApiClassAttributes}
 
 \ApiClass{Connector}{}
@@ -91,7 +91,7 @@ Descriptor of a \gls{g:connector-agent} which is managing a \gls{g:resource-devi
 \begin{ApiClassAttributes}
 \ApiClassAttribute{name}{String}{\ApiReadOnly} Unique name of the \gls{g:connector-agent} within the \gls{g:domain} (name of JADE agent).
 \ApiClassAttribute{resourceId}{String}{\ApiReadOnly} Identifier of a \gls{g:resource-device} which is managed by the \gls{g:connector-agent}.
-\ApiClassAttribute{status}{Status}{\ApiRequired} Status whether the \gls{g:connector-agent} is available to the \gls{g:controller}.
+\ApiClassAttribute{status}{Status}{\ApiReadOnly} Status whether the \gls{g:connector-agent} is available to the \gls{g:controller}.
 \end{ApiClassAttributes}
 
 \ApiEnum{Status}
@@ -104,6 +104,7 @@ Status of a \ApiRef{Domain} or \ApiRef{Connector}.
 \ApiClass{DateTimeSlot}{}
 Date/time slot can represent one or more \ApiRef{Interval} values. Definition of date/time slot is a pair of starting date/time and duration, where starting date/time can be periodic and thus can result into multiple absolute date/times.
 \begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{\ApiReadOnly} Identifier of the date/time slot.
 \ApiClassAttribute{start}{DateTime,PeriodicDateTime}{\ApiRequired}
 Defines the start of date/time slot (or multiple starts in case of periodic date/time).
 \ApiClassAttribute{duration}{Period}{\ApiRequired}
@@ -117,6 +118,7 @@ If date/time slot contains \ApiRef{PeriodicDateTime}, all periodic events can be
 \ApiClass{Alias}{}
 Represents an \gls{g:device-alias} for a \gls{g:device}.
 \begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{\ApiReadOnly} Identifier of the \gls{g:device-alias}.
 \ApiClassAttribute{type}{AliasType}{\ApiRequired} Type of the \gls{g:device-alias} (e.g., \ApiValue{H323\_E164}).
 \ApiClassAttribute{value}{String}{\ApiRequired} Value of the \gls{g:device-alias} (e.g., \ApiValue{950087704}).
 \end{ApiClassAttributes}
@@ -141,14 +143,15 @@ Enumeration of preference who should initiate a \gls{g:device-connection}.
 \ApiClass{Resource}{}
 This class represents a complete \gls{g:resource} definition. This class is used for creating and modifying \glspl{g:resource}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{id}{String}{\ApiRequired} \Gls{g:resource} unique identifier as defined in \UCref{res:identification}.
+\ApiClassAttribute{id}{String}{\ApiReadOnly} \Gls{g:resource} unique identifier as defined in \UCref{res:identification}.
 \ApiClassAttribute{userId}{String}{\ApiReadOnly} Identifier of the owner user who created the \gls{g:resource} in the \gls{g:controller}.
-\ApiClassAttribute{parentId}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located (e.g., identifier of a physical room).
+\ApiClassAttribute{parentResourceId}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located (e.g., identifier of a physical room).
 \ApiClassAttribute{name}{String}{\ApiRequired} Short name which describes the \gls{g:resource}.
 \ApiClassAttributeCollection{capabilities}{List}{Capability}{\ApiOptional} List of capabilities which the \gls{g:resource} has.
 \ApiClassAttribute{description}{String}{\ApiOptional} Long description depicting the \gls{g:resource}.
 \ApiClassAttribute{allocatable}{boolean}{\ApiOptionalDefault{false}} Specifies whether the \gls{g:resource} can be allocated to a \gls{g:reservation} by a \gls{g:scheduler}. When creating a new resource, it is useful to set \ApiCode{allocatable} to \ApiValue{false} and restrict the time when the \gls{g:resource} can by used for public scheduling (e.g., setup permanent reservations) and then modify the \ApiCode{allocatable} to \ApiValue{true}.
-\ApiClassAttribute{maxFuture}{DateTime}{\ApiOptional} The maximum future time for \glspl{g:reservation} as defined in \UCref{rsv:max-future}.
+\ApiClassAttribute{maximumFuture}{DateTime}{\ApiOptional} The maximum future time for \glspl{g:reservation} as defined in \UCref{rsv:max-future}.
+\ApiClassAttributeCollection{administrators}{List}{Person}{\ApiOptional} List of \ApiRef{Person}s that are notified when the \gls{g:resource} is allocated or when are encountered any technical issues.
 \ApiClassAttributeCollection{childResourceIds}{List}{String}{\ApiReadOnly} List of child \glspl{g:resource} identifiers (e.g., the \gls{g:resource} can be a physical room and the collection \ApiCode{childResourceIds} contains all \glspl{g:endpoint} in the room).
 \end{ApiClassAttributes}
 
@@ -164,11 +167,14 @@ Set of \glspl{g:technology} which are supported by the \gls{g:resource-device}.
 \ApiClass{ManagedMode}{}
 Represents a descriptor of \gls{g:connector-agent} by which a \gls{g:resource-device} can be managed.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{connectorAgentName}{String}{\ApiOptional} Name of the \gls{g:connector-agent} which is managing the \gls{g:resource-device}.
+\ApiClassAttribute{connectorAgentName}{String}{\ApiRequired} Name of the \gls{g:connector-agent} which is managing the \gls{g:resource-device}.
 \end{ApiClassAttributes}
 
 \ApiClass{Capability}{}
 Base class for all capabilities which a \gls{g:resource} can have. A \gls{g:resource} can have zero, one or multiple capabilities.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{\ApiReadOnly} Identifier of the capability.
+\end{ApiClassAttributes}
 
 \ApiClass{RoomProviderCapability}{Capability} Capability for \glspl{g:device} which provides \glspl{g:device-virtual-room} for interconnecting multiple other \glspl{g:endpoint} (e.g., \gls{g:resource-device} for H.323 MCU will have the \ApiRef{RoomProviderCapability}).
 \begin{ApiClassAttributes}
@@ -176,15 +182,17 @@ Base class for all capabilities which a \gls{g:resource} can have. A \gls{g:reso
 \end{ApiClassAttributes}
 
 \ApiClass{TerminalCapability}{Capability} Capability for \glspl{g:device} which can participate in a \gls{g:compartment}.
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{aliases}{List}{Alias}{\ApiOptional} Collection of aliases of the terminal.
+\end{ApiClassAttributes}
 
 \ApiClass{StandaloneTerminalCapability}{TerminalCapability} Capability for \glspl{g:device} which can participate in a \gls{g:compartment} or which can connect to another \gls{g:device} (even without a \gls{g:device-virtual-room}).
 (e.g., the \gls{g:resource-device} for a H.323 \gls{g:endpoint} will have the \ApiRef{StandaloneTerminalCapability} or the \gls{g:resource-device} for an Adobe Connect client will have the \ApiRef{TerminalCapability}).
 
 \ApiClass{AliasProviderCapability}{Capability} Capability provides that the \gls{g:resource} can be allocated as a \gls{g:device-alias}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{\ApiRequired} \Gls{g:technology} for which the \gls{g:device-alias} will be allocated.
-\ApiClassAttribute{type}{AliasType}{\ApiRequired} Type of \gls{g:device-alias} which will be allocated.
 \ApiClassAttributeCollection{patterns}{List}{String}{\ApiRequired} Collection of patterns specifying which values will be generated as \gls{g:device-alias} (e.g., single \ApiValue{950087[ddd]} pattern for generation of \ApiValue{950087001}, \ApiValue{950087002}, ... \ApiValue{950087999} values). 
+\ApiClassAttributeCollection{aliases}{List}{Alias}{\ApiRequired} Collection of aliases (templates for them) which the generated alias values can represent (e.g., generated value \ApiValue{950087001} can represent a H.323 phone number \ApiValue{950087001} or SIP URI \ApiValue{sip:950087001@cesnet.cz}). Attribute \ApiCode{value} in \ApiRef{Alias} should specify \ApiValue{\{value\}} placeholder where the actual value will be placed (e.g., \ApiValue{"\{value\}"} for H.323 number or \ApiValue{"\{value\}@cesnet.cz"} for SIP URI).
 \ApiClassAttribute{restrictedToOwnerResource}{boolean}{\ApiRequired} Specifies whether \glspl{g:device-alias} can be allocated only for the \gls{g:resource} which has this capability or for all other \glspl{g:resource-device}.
 \end{ApiClassAttributes}
 
@@ -192,6 +200,7 @@ Base class for all capabilities which a \gls{g:resource} can have. A \gls{g:reso
 This class represents a summary of a \gls{g:resource}. The summary of a \gls{g:resource} is lightweight and does not contain all \gls{g:resource}'s attributes. It is suitable when listing a lot of \glspl{g:resource} from a \gls{g:controller} database where the detail information about \gls{g:resource} is not appropriate.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{} \Gls{g:resource} unique identifier.
+\ApiClassAttribute{userId}{String}{\ApiReadOnly} Identifier of the owner user who created the \gls{g:resource} in the \gls{g:controller}.
 \ApiClassAttribute{name}{String}{} \Gls{g:resource} name which can be displayed.
 \ApiClassAttribute{technologies}{String}{} Comma separated list of supported technologies.
 \ApiClassAttribute{parentId}{String}{\ApiOptional} A parent \gls{g:resource} identifier in which is the \gls{g:resource} located.
@@ -203,16 +212,29 @@ This class represents a summary of a \gls{g:resource}. The summary of a \gls{g:r
 \ApiEnumValue{EDUCATION}{} \Gls{g:reservation} is requested for education purposes (e.g., for a lecture).
 \end{ApiEnumValues}
 
+\ApiEnum{ReservationRequestState}
+Enumeration of possible states in which a \gls{g:reservation-request} can be.
+\begin{ApiEnumValues}
+\ApiEnumValue{NOT_COMPLETE}{} A \gls{g:reservation-request} is not ready for allocation by a \gls{g:scheduler} (e.g., some person requested by the \ApiRef{PersonSpecification} hasn't confirmed/rejected the invitation or he hasn't selected an endpoint by which he will connect to a \gls{g:compartment}).
+\ApiEnumValue{NOT_ALLOCATED}{} A \gls{g:reservation-request} is ready for allocation by a \gls{g:scheduler}, but the \gls{g:scheduler} hasn't allocated it yet.
+\ApiEnumValue{ALLOCATED}{} A \gls{g:reservation-request} has been successfully allocated by the \gls{g:scheduler} to a \gls{g:reservation}.
+\ApiEnumValue{ALLOCATION_FAILED}{} The \gls{g:scheduler} has failed to allocate a \gls{g:reservation-request} to a \gls{g:reservation}.
+\ApiEnumValue{STARTED}{} An allocated \gls{g:executable} for the \gls{g:reservation-request} (e.g. \gls{g:device-virtual-room}) has been successfully started by the \gls{g:executor}.
+\ApiEnumValue{STARTING_FAILED}{} An allocated \gls{g:executable} for the \gls{g:reservation-request} (e.g. \gls{g:device-virtual-room}) has failed to start by the \gls{g:executor}.
+\ApiEnumValue{FINISHED}{} An allocated \gls{g:executable} for the \gls{g:reservation-request} (e.g. \gls{g:device-virtual-room}) has been stopped by the \gls{g:executor} (after it was successfully started).
+\end{ApiEnumValues}
+
 \ApiClass{AbstractReservationRequest}{}
 Represents a base class for all possible types \glspl{g:reservation-request}. It contains only common attributes which are same for all types of \glspl{g:reservation-request}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{\ApiReadOnly} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{userId}{String}{\ApiReadOnly} Identifier of the owner user who created the \gls{g:reservation-request} in the \gls{g:controller}.
 \ApiClassAttribute{created}{DateTime}{\ApiReadOnly} Date/time when the \gls{g:reservation-request} was created.
 \ApiClassAttribute{name}{String}{\ApiRequired} Name of the \gls{g:reservation-request}.
 \ApiClassAttribute{description}{String}{\ApiOptional} Detailed \gls{g:reservation-request} description.
 \end{ApiClassAttributes}
 
-\ApiClass{PermanentReservationRequest}{}
+\ApiClass{PermanentReservationRequest}{AbstractReservationRequest}
 Represents a permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
 \begin{ApiClassAttributes}
 \ApiClassAttributeCollection{slots}{List}{DateTimeSlot}{\ApiRequired} List of requested \ApiCode{slots}.
@@ -243,22 +265,16 @@ Only \ApiRef{ReservationRequest}s are processed by the \gls{g:scheduler} and the
 \begin{ApiClassAttributes}
 \ApiClassAttribute{slot}{Interval}{\ApiRequired} Requested date/time \ApiCode{slot}.
 \ApiClassAttribute{specification}{Specification}{\ApiRequired} Requested \ApiCode{specification} for a target which should be allocated.
-\ApiClassAttribute{state}{ReservationRequest.State}{\ApiReadOnly} Current state of the \gls{g:reservation-request}.
+\ApiClassAttribute{state}{ReservationRequestState}{\ApiReadOnly} Current state of the \gls{g:reservation-request}.
 \ApiClassAttribute{stateReport}{String}{\ApiReadOnly} Description for the current state (can contain reason, e.g., why the allocation failed).
 \ApiClassAttribute{reservationId}{String}{\ApiReadOnly} Identifier of allocated \gls{g:reservation} for this \gls{g:reservation-request}.
 \end{ApiClassAttributes}
 
-\ApiEnum{ReservationRequest.State}
-Enumeration of possible states in which a \gls{g:reservation-request} can be.
-\begin{ApiEnumValues}
-\ApiEnumValue{NOT_COMPLETE}{} A specification in the \gls{g:reservation-request} need to be additionally filled.
-\ApiEnumValue{NOT_ALLOCATED}{} The \gls{g:reservation-request} was not processed by the \gls{g:scheduler} yet.
-\ApiEnumValue{ALLOCATED}{} The \gls{g:reservation-request} was successfully allocated to a \gls{g:reservation}.
-\ApiEnumValue{ALLOCATION_FAILED}{} Allocation of the \gls{g:reservation-request} has failed.
-\end{ApiEnumValues}
-
 \ApiClass{Specification}{}
 Represents a base class for all possible specifications. Each specification describes a target which is requested by a \gls{g:reservation-request}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{\ApiReadOnly} Identifier of the specification.
+\end{ApiClassAttributes}
 
 \ApiClass{ResourceSpecification}{Specification}
 Represents a specification for an \gls{g:resource} which is stored in local or foreign \gls{g:domain} \gls{g:controller} and thus it has assigned a \gls{g:resource} identifier.
@@ -277,9 +293,29 @@ Represents a specification for an \gls{g:device-alias}.
 \ApiClass{RoomSpecification}{Specification}
 Represents a specification for a \gls{g:device-virtual-room}.
 \begin{ApiClassAttributes}
+\ApiClassAttribute{resourceId}{String}{\ApiOptional} Identifier of a preferred \gls{g:resource-device} with \ApiCode{RoomProviderCapability} where should be the \gls{g:device-virtual-room} created.
 \ApiClassAttributeCollection{technologies}{Set}{Technology}{\ApiRequired} Set of \glspl{g:technology} which the \gls{g:device-virtual-room} must support.
 \ApiClassAttribute{participantCount}{int}{\ApiRequired} Number of participants which must be able to connect to the \gls{g:device-virtual-room}.
-\ApiClassAttribute{resourceId}{String}{\ApiOptional} Identifier of a preferred \gls{g:resource-device} with \ApiCode{RoomProviderCapability} where should be the \gls{g:device-virtual-room} created.
+\ApiClassAttribute{withAlias}{boolean}{\ApiOptional} Specifies whether \ApiRef{Alias} should be acquired for each \ApiRef{Technology} from \ApiCode{technologies}.
+\ApiClassAttributeCollection{roomSettings}{List}{RoomSetting}{\ApiOptional} List of settings for the \gls{g:device-virtual-room}.
+\end{ApiClassAttributes}
+
+\ApiClass{RoomSetting}{}
+Represents a base class for all settings for a \gls{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{id}{String}{\ApiReadOnly} Identifier of the setting.
+\end{ApiClassAttributes}
+
+\ApiClass{RoomSetting.H323}{RoomSetting}
+Represents settings for a H.323 \gls{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{pin}{String}{\ApiOptional} PIN that must be entered to get to the room.
+\end{ApiClassAttributes}
+
+\ApiClass{RoomSetting.AdobeConnect}{RoomSetting}
+Represents settings for an Adobe Connect \gls{g:device-virtual-room}.
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{participants}{List}{String}{\ApiOptional} List of participants identifiers which are allowed to enter the room. \newline\todo{EPPN or Perun ID?}
 \end{ApiClassAttributes}
 
 \ApiClass{CompartmentSpecification}{Specification}
@@ -330,30 +366,25 @@ Represents a specification for a person that should participate in a \gls{g:comp
 \ApiEnumValue{PERNAMENT}{} Permanent \gls{g:reservation-request} as defined in \UCref{rsv:reservation:permanent}.
 \end{ApiEnumValues}
 
-\ApiEnum{ReservationRequestSummary.State}
-\begin{ApiEnumValues}
-\ApiEnumValue{NOT_ALLOCATED}{} None \gls{g:reservation} has been allocated for the \gls{g:reservation-request}.
-\ApiEnumValue{ALLOCATED}{} At least one \gls{g:reservation} has been allocated for the \gls{g:reservation-request} and none has failed.
-\ApiEnumValue{ALLOCATION_FAILED}{} At least one \gls{g:reservation} has failed to allocate for the \gls{g:reservation-request}.
-\end{ApiEnumValues}
-
 \ApiClass{ReservationRequestSummary}{}
 This class represents a summary of a \gls{g:reservation-request}. The summary is lightweight and does not contain all \gls{g:reservation-request} attributes. It is suitable when listing a lot of \glspl{g:reservation-request} from the \gls{g:controller} database where the detail information about \gls{g:reservation-request} is not appropriate.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{} \Gls{g:reservation-request} unique identifier as defined in \UCref{rsv:identification}.
-\ApiClassAttribute{userId}{int}{} Identifier of \gls{g:reservation-request} owner.
+\ApiClassAttribute{userId}{String}{} Identifier of \gls{g:reservation-request} owner.
+\ApiClassAttribute{created}{DateTime}{} Date/time when the \gls{g:reservation-request} was created.
 \ApiClassAttribute{type}{ReservationRequestSummary.Type}{} Type of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestSummary.Type}.
 \ApiClassAttribute{name}{String}{} Name of the \gls{g:reservation-request}.
 \ApiClassAttribute{purpose}{ReservationRequestPurpose}{} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.
 \ApiClassAttribute{description}{String}{} Description of \gls{g:reservation-request}.
 \ApiClassAttribute{earliestSlot}{Interval}{} Specifies the first future date/time slot for which the \gls{g:reservation} is requested.
-\ApiClassAttribute{state}{ReservationRequestSummary.State}{} Specifies the current state of the \gls{g:reservation-request}. 
+\ApiClassAttribute{state}{ReservationRequestSummaryState}{} Specifies the current state of the \gls{g:reservation-request}. 
 \end{ApiClassAttributes}
 
 \ApiClass{Reservation}{}
 Represents base class for all possible types of successfully allocated \gls{g:reservation}(s) for a \gls{g:reservation-request}. It contains only read only data that are obtained from a \gls{g:scheduler}.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{} \Gls{g:reservation} unique identifier as defined in \UCref{rsv:identification}.
+\ApiClassAttribute{userId}{String}{} Identifier of the \gls{g:reservation} owner.
 \ApiClassAttribute{slot}{Interval}{} Date/time slot for which the \gls{g:reservation} is allocated.
 \ApiClassAttribute{parentReservationId}{String}{} Identifier of parent \gls{g:reservation}.
 \ApiClassAttributeCollection{childReservationIds}{List}{String}{} Identifiers of child \glspl{g:reservation}. Each \gls{g:reservation} can contain multiple child \glspl{g:reservation} which have been allocated to satisfy the parent \gls{g:reservation} needs.
@@ -376,7 +407,8 @@ Represents a successfully allocated \gls{g:resource-device} as a \gls{g:device-v
 \ApiClass{AliasReservation}{ResourceReservation}
 Represents a successfully allocated \gls{g:resource} as a \gls{g:device-alias}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{alias}{Alias}{} Allocated \gls{g:device-alias}.
+\ApiClassAttribute{aliasValue}{String}{} Allocated value for one or multiple \glspl{g:device-alias}.
+\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of \glspl{g:device-alias} which are allocated.
 \end{ApiClassAttributes}
 
 \ApiClass{ExistingReservation}{Reservation}
@@ -389,6 +421,7 @@ Represents a reused \gls{g:reservation} (which was provided to the \gls{g:reserv
 Represents an \gls{g:executor} plan.
 \begin{ApiClassAttributes}
 \ApiClassAttribute{id}{String}{} Unique identifier of the \gls{g:executor} plan.
+\ApiClassAttribute{userId}{String}{} Identifier of the \gls{g:executable} owner.
 \ApiClassAttribute{slot}{Interval}{} Date/time slot when the plan should be executed.
 \ApiClassAttribute{state}{Executable.State}{} Current state of the \gls{g:executor} plan.
 \end{ApiClassAttributes}
@@ -407,7 +440,6 @@ Represents an allocated \gls{g:compartment}.
 \ApiClassAttributeCollection{endpoints}{List}{Executable.Endpoint}{} List of participating \glspl{g:endpoint}.
 \ApiClassAttributeCollection{rooms}{List}{Executable.ResourceRoom}{} List of \glspl{g:device-virtual-room}.
 \ApiClassAttributeCollection{connections}{List}{Executable.Connection}{} List of connection between \glspl{g:endpoint} and \glspl{g:device-virtual-room}.
-\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assigned \glspl{g:device-alias} to the \gls{g:device-virtual-room}.
 \end{ApiClassAttributes}
 
 \ApiClass{Executable.Endpoint}{}
@@ -421,9 +453,11 @@ Represents an \gls{g:endpoint} in allocated \gls{g:compartment}.
 \ApiClass{Executable.ResourceRoom}{Executable}
 Represents an \gls{g:executor} plan for a \gls{g:device-virtual-room}.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{licenseCount}{int}{} Number of available ports in the \gls{g:device-virtual-room}
 \ApiClassAttribute{resourceId}{String}{} Identifier of \gls{g:resource-device} in which the \gls{g:device-virtual-room} will be started.
-\ApiClassAttribute{state}{Executable.State}{} Current state of the \gls{g:executor} plan.
+\ApiClassAttributeCollection{technologies}{List}{Technology}{} Set of technologies which the \gls{g:device-virtual-room} will support.
+\ApiClassAttribute{licenseCount}{int}{} Number of available ports in the \gls{g:device-virtual-room}
+\ApiClassAttributeCollection{aliases}{List}{Alias}{} List of assigned \glspl{g:device-alias} to the \gls{g:device-virtual-room}.
+\ApiClassAttributeCollection{roomSettings}{List}{RoomSetting}{\ApiOptional} List of settings for the \gls{g:device-virtual-room}.
 \end{ApiClassAttributes}
 
 \ApiClass{Executable.Connection}{}
@@ -461,6 +495,7 @@ Represents an information about allocation of \gls{g:resource-device} with \glsp
 \ApiClassAttribute{maximumPortCount}{int}{} Maximum port count which are available in the \Gls{g:resource-device} for all \glspl{g:device-virtual-room} at one moment.
 \ApiClassAttribute{availablePortCount}{int}{} Available port count which are available in the \Gls{g:resource-device} for \ApiCode{interval}.
 \end{ApiClassAttributes}
+
 
 \end{Api}
 
@@ -504,8 +539,13 @@ Delete the resource with specified \ApiCode{resourceId} from Shongo management. 
 
 \begin{ApiCmdCollection}{Collection}{ResourceSummary}{listResources}%
 \ApiCmdParam{SecurityToken}{token}%
+\ApiCmdParamMap{String}{Object}{filter}%
 \end{ApiCmdCollection}
 List of resource summaries managed by Shongo, that a user with given \ApiCode{token} is entitled to see.
+The \ApiCode{filter} map can contain following attributes to filter results:
+\begin{compactitem}
+\item \ApiCode{userId} restricts resource owner by his identifier
+\end{compactitem}
 
 \begin{ApiCmd}{Resource}{getResource}%
 \ApiCmdParam{SecurityToken}{token}%

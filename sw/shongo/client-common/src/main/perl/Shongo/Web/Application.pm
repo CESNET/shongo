@@ -98,7 +98,6 @@ sub error_action
     select STDOUT;
 
     print $self->{'cgi'}->header(type => 'text/html');
-    var_dump();
     print $self->render_template('error.html', {
         error => $error,
         stackTrace => $stack_trace

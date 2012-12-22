@@ -48,25 +48,25 @@ These are only common faults that are independent on specific API section. Other
 
 \begin{Api}
 
-%\ApiClass{UserIdentity}{}
-%Each user that accesses shongo or participates in shongo managed videoconference should be identified by \ApiRef{UserIdentity} definition.
-%\begin{ApiClassAttributes}
-%\ApiClassAttribute{id}{String}{\ApiRequired}
-%Equals to eduID identity. In future there can be unique identifier that associates multiple eduID for the same person.
-%\end{ApiClassAttributes}
-%\todo{Consider usage of Person instead of UserIdentity or vice versa}
-
 \ApiType{SecurityToken}{String}
 Represents an identity and credentials of a user performing a request. \ApiRef{SecurityToken} equals to OpenID \cite{openid} access token (see section \ref{sec:implementation-authorization} for more details).
 
 \ApiClass{Person}{}
-Represents a person that can access a Shongo videoconference.
+Represents a base class for all persons that can be referenced by the Shongo.
+
+\ApiClass{UserPerson}{Person}
+Represents a person that has a user account for the Shongo.
 \begin{ApiClassAttributes}
-\ApiClassAttribute{name}{String}{\ApiRequired} Name to be displayed.
-\ApiClassAttribute{email}{String}{\ApiRequired} Email to which a videoconference invitation should be sent.
+\ApiClassAttribute{userId}{String}{\ApiRequired} User-id of the user in the Shongo which can be used to retrieve user information from authorization server web service.
 \end{ApiClassAttributes}
 
-\todo{Reference user identity in Person class}
+\ApiClass{OtherPerson}{Person}
+Represents a person that doesn't have a user account for the Shongo.
+\begin{ApiClassAttributes}
+\ApiClassAttribute{name}{String}{\ApiRequired} Full name of the user which can be displayed.
+\ApiClassAttribute{organization}{String}{\ApiOptional} Root organization of the person.
+\ApiClassAttribute{email}{String}{\ApiRequired} Email to which a videoconference invitation should be sent.
+\end{ApiClassAttributes}
 
 \end{Api}
 
