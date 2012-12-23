@@ -751,7 +751,7 @@
     </library>
     <library name="Maven: sun.jdk:tools:1.6.0">
       <CLASSES>
-        <root url="jar:///usr/lib/jvm/jdk1.7.0_07/jre/../lib/tools.jar!/" />
+        <root url="jar:///usr/lib/jvm/java-7-oracle/jre/../lib/tools.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
