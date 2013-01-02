@@ -52,7 +52,7 @@ $technology.name#if( $foreach.hasNext ), #end
   * H323 IP: ${alias.value}
 #elseif ( ${alias.type} == "SIP_URI" )
 
-* SIP: sip:${alias.value}
+  * SIP: sip:${alias.value}
 #elseif ( ${alias.type} == "ADOBE_CONNECT_URI" )
 
   * URL: ${alias.value}
