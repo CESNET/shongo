@@ -1,7 +1,3 @@
-
-* Update API
-* Remove reservation from modified request (or do not show aliases when the request is not allocated)
-
 * H.323 room endtime
 
 * Refactorize for mod_perl

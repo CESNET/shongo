@@ -194,26 +194,25 @@ public class ReservationManager extends AbstractManager
     /**
      * Delete {@link Reservation}s which aren't allocated for any {@link ReservationRequest}.
      *
-     * @param cache from which the {@link Reservation}s are also deleted
      * @return list of deleted {@link Reservation}
      */
-    public List<Reservation> deleteAllNotReferenced(Cache cache)
+    public List<Reservation> getReservationsForDeletion()
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL"
                         + " AND reservation NOT IN("
-                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)"
-                        + " AND reservation NOT IN("
+                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
+                        + "   WHERE reservationRequest.state = :state"
+                        + " ) AND reservation NOT IN("
                         + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
-                        + "   INNER JOIN reservationRequest.resourceReservations reservation)",
+                        + "   INNER JOIN reservationRequest.resourceReservations reservation"
+                        + ")",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
+                .setParameter("state", ReservationRequest.State.ALLOCATED)
                 .getResultList();
-        for (Reservation reservation : reservations) {
-            delete(reservation, cache);
-        }
         return reservations;
     }
 

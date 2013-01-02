@@ -78,7 +78,7 @@ public class ReservationRequestManager extends AbstractManager
 
         if (clearPreprocessedState &&
                 (reservationRequest instanceof ReservationRequestSet
-                         || reservationRequest instanceof PermanentReservationRequest)) {
+                        || reservationRequest instanceof PermanentReservationRequest)) {
             PreprocessorStateManager.setState(entityManager, reservationRequest, PreprocessorState.NOT_PREPROCESSED);
         }
 
@@ -114,12 +114,10 @@ public class ReservationRequestManager extends AbstractManager
             }
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
-        }
-        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
+        } else if (abstractReservationRequest instanceof PermanentReservationRequest) {
             // Clear state
             PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
-        }
-        else if (abstractReservationRequest instanceof ReservationRequest) {
+        } else if (abstractReservationRequest instanceof ReservationRequest) {
             // Keep reservation (is deleted by scheduler)
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             Reservation reservation = reservationRequest.getReservation();
@@ -153,9 +151,27 @@ public class ReservationRequestManager extends AbstractManager
                     AbstractReservationRequest.class).setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservationRequest;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             throw new EntityNotFoundException(AbstractReservationRequest.class, reservationRequestId);
+        }
+    }
+
+    /**
+     * @param reservation for which the {@link AbstractReservationRequest} should be returned
+     * @return {@link AbstractReservationRequest} for the given {@link Reservation} or null if doesn't exists
+     */
+    public ReservationRequest getReservationRequestByReservation(Reservation reservation)
+    {
+        try {
+            ReservationRequest reservationRequest = entityManager.createQuery(
+                    "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.reservation.id = :id",
+                    ReservationRequest.class)
+                    .setParameter("id", reservation.getId())
+                    .getSingleResult();
+            return reservationRequest;
+        } catch (NoResultException exception) {
+            return null;
         }
     }
 
@@ -187,8 +203,7 @@ public class ReservationRequestManager extends AbstractManager
                     .setParameter("id", reservationId)
                     .getSingleResult();
             return reservationRequest;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             return null;
         }
     }
@@ -207,8 +222,7 @@ public class ReservationRequestManager extends AbstractManager
                     ReservationRequest.class).setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservationRequest;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             throw new EntityNotFoundException(ReservationRequest.class, reservationRequestId);
         }
     }
@@ -227,8 +241,7 @@ public class ReservationRequestManager extends AbstractManager
                     ReservationRequestSet.class).setParameter("id", reservationRequestSetId)
                     .getSingleResult();
             return reservationRequestSet;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             throw new EntityNotFoundException(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
@@ -315,8 +328,7 @@ public class ReservationRequestManager extends AbstractManager
     {
         try {
             return getReservationRequest(reservationRequestId);
-        }
-        catch (EntityNotFoundException e) {
+        } catch (EntityNotFoundException e) {
             throw new IllegalArgumentException("Reservation request '" + reservationRequestId + "' doesn't exist!");
         }
     }
@@ -356,7 +368,7 @@ public class ReservationRequestManager extends AbstractManager
      *         given {@code interval}
      */
     public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet,
-            Interval interval)
+                                                                 Interval interval)
     {
         return listReservationRequestsBySet(reservationRequestSet.getId(), interval);
     }
@@ -419,8 +431,7 @@ public class ReservationRequestManager extends AbstractManager
             if (personSpecification.getPerson().getId().equals(personId)) {
                 return personSpecification;
             }
-        }
-        else if (specification instanceof CompartmentSpecification) {
+        } else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
             for (Specification childSpecification : compartmentSpecification.getChildSpecifications()) {
                 PersonSpecification personSpecification = getPersonSpecification(childSpecification, personId);
@@ -496,7 +507,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param endpointSpecification
      */
     public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
-            EndpointSpecification endpointSpecification)
+                                                     EndpointSpecification endpointSpecification)
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
