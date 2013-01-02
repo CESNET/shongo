@@ -1,4 +1,6 @@
-* Update architecture script
+
+* Update API
+* Remove reservation from modified request (or do not show aliases when the request is not allocated)
 
 * H.323 room endtime
 
@@ -27,6 +29,11 @@
 
 * Use database migration (change database to some which allows for transaction ddl, e.g., postgresql)
   - Implement multiple dialects
+
+* Make Cache thread safe (Scheduler and ResourceServiceImpl can cause reset() which reloads cache, and while
+  the cache is reloading no one can use it)
+
+* Create expiring user cache in the controller
 
 FUTURE:
 -------

@@ -125,8 +125,6 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
                 }
             }
 
-
-
             // Notify about new reservations
             if (notificationManager != null) {
                 notificationManager.notifyReservations(newReservations, modifiedReservations, deletedReservations,
@@ -140,7 +138,7 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         }
         catch (Exception exception) {
             transaction.rollback();
-            cache.reset(entityManager);
+            cache.reset();
             throw new IllegalStateException("Scheduler failed", exception);
         }
     }

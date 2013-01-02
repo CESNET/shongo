@@ -177,14 +177,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         logger.debug("Starting cache...");
 
-        if (entityManagerFactory != null) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            reset(entityManager);
-            entityManager.close();
-        }
-        else {
-            reset(null);
-        }
+        reset();
     }
 
     @Override
@@ -198,15 +191,16 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     /**
      * Reload cache from given {@code entityManager}.
      *
-     * @param entityManager which will be used for reloading
      */
-    public void reset(EntityManager entityManager)
+    public void reset()
     {
         resourceCache.clear();
         aliasCache.clear();
-        if (entityManager != null) {
+        if (entityManagerFactory != null) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
             resourceCache.loadObjects(entityManager);
             aliasCache.loadObjects(entityManager);
+            entityManager.close();
         }
     }
 

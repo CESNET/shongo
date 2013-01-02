@@ -18,8 +18,7 @@
     ExternalEndpointSpecification, ExternalEndpointSetSpecification,
     ExistingEndpointSpecification, AliasSpecification,
     % Reservations
-    Reservation, Compartment, Endpoint, ResourceRoom, ConnectionByAddress, 
-    ConnectionByAlias, Executable,
+    Reservation, Compartment, Endpoint, ResourceRoom, Connection, Executable,
     % Enums
     H323, SIP, ADOBE_CONNECT, H323_E164, SIP_URI, ADOBE_CONNECT_URI
   }
@@ -382,7 +381,7 @@ executable: Executable.Compartment { // Executor compartment plan
     }
   ],
   connections: [
-    Executable.ConnectionByAlias { // Connection from Tandberg endpoint to virtual room
+    Executable.Connection { // Connection from Tandberg endpoint to virtual room
       endpointFromId: "2", 
       endpointToId: "3",
       alias: Alias { type: H323_E164, value: "950087201" }

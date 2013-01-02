@@ -454,7 +454,7 @@ public class Executable extends IdentifiedObject
         private String endpointToId;
 
         /**
-         * {@link cz.cesnet.shongo.api.Alias} which is used for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias}
+         * {@link cz.cesnet.shongo.api.Alias} which is used for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}
          */
         private Alias alias;
 

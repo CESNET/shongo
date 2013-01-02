@@ -11,14 +11,23 @@ import cz.cesnet.shongo.controller.resource.ResourceManager;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
+import org.hibernate.exception.ConstraintViolationException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.joda.time.Period;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.*;
+import javax.persistence.PersistenceException;
+import javax.persistence.RollbackException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Resource service implementation.
@@ -27,8 +36,10 @@ import java.util.*;
  */
 public class ResourceServiceImpl extends Component
         implements ResourceService, Component.EntityManagerFactoryAware, Component.DomainAware,
-                   Component.AuthorizationAware
+        Component.AuthorizationAware
 {
+    private static Logger logger = LoggerFactory.getLogger(ResourceServiceImpl.class);
+
     /**
      * @see Cache
      */
@@ -117,19 +128,16 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.addResource(resourceImpl, entityManager);
             }
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
             if (exception instanceof FaultException) {
                 throw (FaultException) exception;
-            }
-            else {
+            } else {
                 throw new FaultException(exception);
             }
-        }
-        finally {
+        } finally {
             entityManager.close();
         }
 
@@ -164,19 +172,16 @@ public class ResourceServiceImpl extends Component
             if (cache != null) {
                 cache.updateResource(resourceImpl, entityManager);
             }
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
             if (exception instanceof FaultException) {
                 throw (FaultException) exception;
-            }
-            else {
+            } else {
                 throw new FaultException(exception);
             }
-        }
-        finally {
+        } finally {
             entityManager.close();
         }
     }
@@ -206,19 +211,25 @@ public class ResourceServiceImpl extends Component
             }
 
             entityManager.getTransaction().commit();
-        }
-        catch (Exception exception) {
+        } catch (Exception exception) {
             if (entityManager.getTransaction().isActive()) {
                 entityManager.getTransaction().rollback();
             }
+            cache.reset();
             if (exception instanceof FaultException) {
                 throw (FaultException) exception;
-            }
-            else {
+            } else if (exception instanceof RollbackException) {
+                if (exception.getCause() != null && exception.getCause() instanceof PersistenceException) {
+                    PersistenceException cause = (PersistenceException) exception.getCause();
+                    if (cause.getCause() != null && cause.getCause() instanceof ConstraintViolationException) {
+                        logger.warn("Resource '" + resourceId + "' cannot be deleted because is still referenced.", exception);
+                        throw new EntityToDeleteIsReferencedException(Resource.class, id);
+                    }
+                }
+            } else {
                 throw new FaultException(exception);
             }
-        }
-        finally {
+        } finally {
             entityManager.close();
         }
     }
@@ -309,8 +320,7 @@ public class ResourceServiceImpl extends Component
             allocation.setMaximumLicenseCount(availableRoom.getMaximumLicenseCount());
             allocation.setAvailableLicenseCount(availableRoom.getAvailableLicenseCount());
             resourceAllocation = allocation;
-        }
-        else {
+        } else {
             resourceAllocation = new ResourceAllocation();
         }
         resourceAllocation.setId(domain.formatId(id));
