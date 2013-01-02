@@ -1,6 +1,8 @@
 package cz.cesnet.shongo.controller.usecase;
 
+import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.controller.AbstractControllerTest;
 import cz.cesnet.shongo.controller.ReservationRequestPurpose;
 import cz.cesnet.shongo.controller.api.*;
@@ -23,9 +25,10 @@ public class StandaloneTerminalTest extends AbstractControllerTest
     {
         DeviceResource firstTerminal = new DeviceResource();
         firstTerminal.setName("firstTerminal");
-        firstTerminal.setAddress("127.0.0.1");
         firstTerminal.addTechnology(Technology.H323);
-        firstTerminal.addCapability(new StandaloneTerminalCapability());
+        StandaloneTerminalCapability terminalCapability = new StandaloneTerminalCapability();
+        terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
+        firstTerminal.addCapability(terminalCapability);
         firstTerminal.setAllocatable(true);
         String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
 
@@ -59,10 +62,11 @@ public class StandaloneTerminalTest extends AbstractControllerTest
     {
         DeviceResource firstTerminal = new DeviceResource();
         firstTerminal.setName("firstTerminal");
-        firstTerminal.setAddress("127.0.0.1");
         firstTerminal.addTechnology(Technology.H323);
         firstTerminal.addTechnology(Technology.SIP);
-        firstTerminal.addCapability(new StandaloneTerminalCapability());
+        StandaloneTerminalCapability terminalCapability = new StandaloneTerminalCapability();
+        terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
+        firstTerminal.addCapability(terminalCapability);
         firstTerminal.setAllocatable(true);
         String firstTerminalId = getResourceService().createResource(SECURITY_TOKEN, firstTerminal);
 

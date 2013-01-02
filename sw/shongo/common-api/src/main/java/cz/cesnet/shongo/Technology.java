@@ -12,12 +12,12 @@ public enum Technology
     /**
      * @see <a href="http://en.wikipedia.org/wiki/H.323">H.323</a>
      */
-    H323("H.323", true),
+    H323("H.323"),
 
     /**
      * @see <a href="http://en.wikipedia.org/wiki/Session_Initiation_Protocol">SIP</a>
      */
-    SIP("SIP", true),
+    SIP("SIP"),
 
     /**
      * @see <a href="http://www.adobe.com/products/adobeconnect.html">Adobe Connect</a>
@@ -38,11 +38,6 @@ public enum Technology
     private String name;
 
     /**
-     * Specifies whether connections by IP address or URL are allowed.
-     */
-    private boolean allowedConnectionByAddress = false;
-
-    /**
      * Constructor.
      *
      * @param name sets the {@link #name}
@@ -50,18 +45,6 @@ public enum Technology
     private Technology(String name)
     {
         this.name = name;
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param name                       sets the {@link #name}
-     * @param allowedConnectionByAddress sets the {@link #allowedConnectionByAddress}
-     */
-    private Technology(String name, boolean allowedConnectionByAddress)
-    {
-        this.name = name;
-        this.allowedConnectionByAddress = allowedConnectionByAddress;
     }
 
     /**
@@ -78,14 +61,6 @@ public enum Technology
     public String getName()
     {
         return name;
-    }
-
-    /**
-     * @return {@link #allowedConnectionByAddress}
-     */
-    public boolean isAllowedConnectionByAddress()
-    {
-        return allowedConnectionByAddress;
     }
 
     /**

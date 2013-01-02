@@ -1,3 +1,5 @@
+* Update architecture script
+
 * Aliases
    "zzz:XXXXXX"
 
@@ -13,8 +15,6 @@
    }
 
 * H.323 room endtime
-
-* Room name from request name (create room code which the H.323 can use to create id)
 
 14.12.2012
 ----------------------------------------------------------------------------

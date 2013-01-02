@@ -2,7 +2,6 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -146,34 +145,15 @@ public class Compartment extends Executable
             }
         }
         for (Connection connection : getConnections()) {
-            if (connection instanceof ConnectionByAddress) {
-                ConnectionByAddress connectionByAddress = (ConnectionByAddress) connection;
-                cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress connectionByAddressApi =
-                        new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress();
-                connectionByAddressApi.setEndpointFromId(
-                        domain.formatId(connection.getEndpointFrom().getId()));
-                connectionByAddressApi.setEndpointToId(
-                        domain.formatId(connection.getEndpointTo().getId()));
-                connectionByAddressApi.setAddress(connectionByAddress.getAddress().getValue());
-                connectionByAddressApi.setTechnology(connectionByAddress.getTechnology());
-                connectionByAddressApi.setState(connectionByAddress.getState().toApi());
-                compartmentApi.addConnection(connectionByAddressApi);
-            }
-            else if (connection instanceof ConnectionByAlias) {
-                ConnectionByAlias connectionByAlias = (ConnectionByAlias) connection;
-                cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias connectionByAliasApi =
-                        new cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias();
-                connectionByAliasApi.setEndpointFromId(
-                        domain.formatId(connection.getEndpointFrom().getId()));
-                connectionByAliasApi.setEndpointToId(
-                        domain.formatId(connection.getEndpointTo().getId()));
-                connectionByAliasApi.setAlias(connectionByAlias.getAlias().toApi());
-                connectionByAliasApi.setState(connectionByAlias.getState().toApi());
-                compartmentApi.addConnection(connectionByAliasApi);
-            }
-            else {
-                throw new TodoImplementException(connection.getClass().getCanonicalName());
-            }
+            cz.cesnet.shongo.controller.api.Executable.Compartment.Connection connectionApi =
+                    new cz.cesnet.shongo.controller.api.Executable.Compartment.Connection();
+            connectionApi.setEndpointFromId(
+                    domain.formatId(connection.getEndpointFrom().getId()));
+            connectionApi.setEndpointToId(
+                    domain.formatId(connection.getEndpointTo().getId()));
+            connectionApi.setAlias(connection.getAlias().toApi());
+            connectionApi.setState(connection.getState().toApi());
+            compartmentApi.addConnection(connectionApi);
         }
     }
 

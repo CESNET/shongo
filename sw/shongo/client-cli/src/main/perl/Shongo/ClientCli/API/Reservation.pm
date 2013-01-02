@@ -47,7 +47,7 @@ sub new()
         'display' => 'newline',
         'order' => 2
     });
-    $self->add_attribute('childReservationId', {
+    $self->add_attribute('childReservationIds', {
         'type' => 'collection',
         'title' => 'Child Reservation Identifiers',
         'order' => 2

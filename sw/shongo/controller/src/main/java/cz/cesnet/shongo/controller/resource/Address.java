@@ -12,11 +12,6 @@ import javax.persistence.Embeddable;
 public class Address
 {
     /**
-     * {@link Address} for localhost.
-     */
-    public static Address LOCALHOST = new Address("127.0.0.1");
-
-    /**
      * Address value.
      */
     private String value;

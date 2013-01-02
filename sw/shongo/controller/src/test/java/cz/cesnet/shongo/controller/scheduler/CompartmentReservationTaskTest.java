@@ -78,10 +78,10 @@ public class CompartmentReservationTaskTest
     {
         ReservationTask.Context context = new ReservationTask.Context(new Cache(), Interval.parse("2012/2013"));
         CompartmentReservationTask compartmentReservationTask = new CompartmentReservationTask(context);
+        compartmentReservationTask.addChildReservation(new SimpleEndpointSpecification(
+                new Alias(AliasType.H323_E164, "950000001"), true, new Technology[]{Technology.H323}));
         compartmentReservationTask.addChildReservation(
-                new SimpleEndpointSpecification(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
-        compartmentReservationTask.addChildReservation(
-                new SimpleEndpointSpecification(Address.LOCALHOST, true, new Technology[]{Technology.H323}));
+                new SimpleEndpointSpecification(true, new Technology[]{Technology.H323}));
         Reservation reservation = compartmentReservationTask.perform();
         assertNotNull(reservation);
         assertEquals(2, reservation.getChildReservations().size());
@@ -94,7 +94,6 @@ public class CompartmentReservationTaskTest
         Cache cache = Cache.createTestingCache();
 
         DeviceResource deviceResource = new DeviceResource();
-        deviceResource.setAddress(Address.LOCALHOST);
         deviceResource.setAllocatable(true);
         deviceResource.addTechnology(Technology.H323);
         deviceResource.addTechnology(Technology.SIP);
@@ -226,11 +225,12 @@ public class CompartmentReservationTaskTest
         cache.addResource(room);
 
         DeviceResource terminal1 = new DeviceResource();
-        terminal1.setAddress(Address.LOCALHOST);
         terminal1.setParentResource(room);
         terminal1.setAllocatable(true);
         terminal1.addTechnology(Technology.H323);
-        terminal1.addCapability(new StandaloneTerminalCapability());
+        StandaloneTerminalCapability terminalCapability = new StandaloneTerminalCapability();
+        terminalCapability.addAlias(new Alias(AliasType.H323_E164, "950000001"));
+        terminal1.addCapability(terminalCapability);
         cache.addResource(terminal1);
 
         DeviceResource terminal2 = new DeviceResource();
@@ -264,13 +264,13 @@ public class CompartmentReservationTaskTest
 
     private static class SimpleEndpointSpecification extends Specification implements ReservationTaskProvider
     {
-        private Address address = null;
+        private Alias alias = null;
         private boolean standalone = false;
         private Set<Technology> technologies = new HashSet<Technology>();
 
-        public SimpleEndpointSpecification(Address address, boolean standalone, Technology[] technologies)
+        public SimpleEndpointSpecification(Alias alias, boolean standalone, Technology[] technologies)
         {
-            this.address = address;
+            this.alias = alias;
             this.standalone = standalone;
             for (Technology technology : technologies) {
                 this.technologies.add(technology);
@@ -326,13 +326,11 @@ public class CompartmentReservationTaskTest
                         @Override
                         public List<Alias> getAliases()
                         {
-                            return new ArrayList<Alias>();
-                        }
-
-                        @Override
-                        public Address getAddress()
-                        {
-                            return address;
+                            List<Alias> aliases = new ArrayList<Alias>();
+                            if (alias != null) {
+                                aliases.add(alias);
+                            }
+                            return aliases;
                         }
                     };
 

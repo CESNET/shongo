@@ -289,6 +289,16 @@ sub get_reservation_request
                     $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
                     $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
                 }
+                elsif ( $alias->{'type'} eq 'H323_IDENTIFIER' ) {
+                    $aliases .= $alias->{'value'};
+
+                    $aliases_description .= '<dt>H.323 Identifier:</dt><dd>' . $alias->{'value'} . '</dd>';
+                }
+                elsif ( $alias->{'type'} eq 'H323_URI' ) {
+                    $aliases .= $alias->{'value'};
+
+                    $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $alias->{'value'} . '</dd>';
+                }
                 elsif ( $alias->{'type'} eq 'SIP_URI' ) {
                     $aliases .= 'sip:' . $alias->{'value'};
                     $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
