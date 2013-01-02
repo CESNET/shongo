@@ -44,9 +44,15 @@ $technology.name#if( $foreach.hasNext ), #end
   * H.323 GDS number: 00420${alias.value}
 
   * PSTN dial in: +420${alias.value}
+#elseif ( ${alias.type} == "H323_IDENTIFIER" )
+
+  * H323 identifier: ${alias.value}
+#elseif ( ${alias.type} == "H323_URI" )
+
+  * H323 IP: ${alias.value}
 #elseif ( ${alias.type} == "SIP_URI" )
 
-  * SIP: sip:${alias.value}
+* SIP: sip:${alias.value}
 #elseif ( ${alias.type} == "ADOBE_CONNECT_URI" )
 
   * URL: ${alias.value}

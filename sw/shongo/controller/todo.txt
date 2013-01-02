@@ -1,23 +1,8 @@
 * Update architecture script
 
-* Aliases
-   "zzz:XXXXXX"
-
-* Remove ConnectionByAddress and do:
-
-   class: 'AliasProviderCapability', \
-     patterns: ['[d]'], \
-     aliases: [ \
-       { type: 'H323_E164', value: '95008721{value}' }, \
-       { type: 'H323_URI', value: '{resource.address}#21{value}' } \
-       { type: 'SIP_URI', value: '95008721{value}@cesnet.cz' } \
-    ], \
-   }
-
 * H.323 room endtime
 
-14.12.2012
-----------------------------------------------------------------------------
+* Refactorize for mod_perl
 
 * Specify room name in adobe connect reservation request
 
