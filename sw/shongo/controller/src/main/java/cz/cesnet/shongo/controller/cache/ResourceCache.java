@@ -167,7 +167,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
     }
 
     @Override
-    public void onRemove(Resource object, ResourceReservation reservation)
+    public void onRemoveReservation(Resource object, ResourceReservation reservation)
     {
         if (reservation instanceof RoomReservation) {
             RoomReservation roomReservation = (RoomReservation) reservation;
@@ -176,7 +176,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             objectState.removeReservation(roomReservation);
         }
         else {
-            super.onRemove(object, reservation);
+            super.onRemoveReservation(object, reservation);
         }
     }
 
@@ -337,7 +337,7 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
             return false;
         }
         // Check if resource is not already allocated
-        ObjectState<ResourceReservation> resourceState = getObjectState(resource);
+        ObjectState<ResourceReservation> resourceState = getObjectStateRequired(resource);
         Set<ResourceReservation> resourceReservations = resourceState.getReservations(interval, transaction);
         if (resourceReservations.size() > 0) {
             return false;

@@ -133,7 +133,7 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         }
         // Else use generated alias
         else {
-            ObjectState<AliasReservation> aliasProviderState = getObjectState(aliasProviderCapability);
+            ObjectState<AliasReservation> aliasProviderState = getObjectStateRequired(aliasProviderCapability);
             Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
             AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
             for (AliasReservation allocatedAliasReservation : allocatedAliases) {

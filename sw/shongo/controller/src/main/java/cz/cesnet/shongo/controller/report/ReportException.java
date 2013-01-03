@@ -34,7 +34,7 @@ public class ReportException extends Exception
     public String getMessage()
     {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(report.toString());
+        stringBuilder.append(report.getReport());
         stringBuilder.append("\n");
         return stringBuilder.toString();
     }

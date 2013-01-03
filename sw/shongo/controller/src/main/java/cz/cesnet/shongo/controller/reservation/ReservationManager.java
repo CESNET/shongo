@@ -90,8 +90,7 @@ public class ReservationManager extends AbstractManager
                     Reservation.class).setParameter("id", reservationId)
                     .getSingleResult();
             return reservation;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             throw new EntityNotFoundException(Reservation.class, reservationId);
         }
     }
@@ -119,8 +118,7 @@ public class ReservationManager extends AbstractManager
                     .setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservation;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             return null;
         }
     }
@@ -187,6 +185,37 @@ public class ReservationManager extends AbstractManager
                 reservationType)
                 .setParameter("start", interval.getStart())
                 .setParameter("end", interval.getEnd())
+                .getResultList();
+        return reservations;
+    }
+
+    /**
+     * Get list of reused {@link Reservation}s. Reused {@link Reservation} is a {@link Reservation} which is referenced
+     * by at least one {@link ExistingReservation} in the {@link ExistingReservation#reservation} attribute.
+     *
+     * @return list of reused {@link Reservation}.
+     */
+    public List<Reservation> getReusedReservations()
+    {
+        List<Reservation> reservations = entityManager.createQuery(
+                "SELECT DISTINCT reservation.reservation FROM ExistingReservation reservation", Reservation.class)
+                .getResultList();
+        return reservations;
+    }
+
+    /**
+     * Get list of {@link ExistingReservation} which reuse the given {@code reusedReservation}.
+     *
+     * @param reusedReservation which must be referenced in the {@link ExistingReservation#reservation}
+     * @return list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
+     */
+    public List<ExistingReservation> getExistingReservations(Reservation reusedReservation)
+    {
+        List<ExistingReservation> reservations = entityManager.createQuery(
+                "SELECT reservation FROM ExistingReservation reservation"
+                        + " WHERE reservation.reservation = :reusedReservation",
+                ExistingReservation.class)
+                .setParameter("reusedReservation", reusedReservation)
                 .getResultList();
         return reservations;
     }

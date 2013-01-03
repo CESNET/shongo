@@ -1,5 +1,3 @@
-* Check collisions in provided reservations (for alias reservations)
-
 * Web client - alias reservations:
   - add list of alias reservations above the existing list of reservations
   - create request for alias (you cannot use it, you must first request capacity)

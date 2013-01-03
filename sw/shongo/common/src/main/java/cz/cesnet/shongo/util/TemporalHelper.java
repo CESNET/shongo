@@ -86,4 +86,34 @@ public class TemporalHelper
         }
         return period.toStandardDuration();
     }
+
+    /**
+     * @param dateTimes from which the minimum should be returned
+     * @return minimum date/time from given {@code dateTimes}
+     */
+    public static DateTime min(DateTime... dateTimes)
+    {
+        DateTime minDateTime = null;
+        for (DateTime dateTime : dateTimes) {
+            if (minDateTime == null || dateTime.isBefore(minDateTime)) {
+                minDateTime = dateTime;
+            }
+        }
+        return minDateTime;
+    }
+
+    /**
+     * @param dateTimes from which the maximum should be returned
+     * @return maximum date/time from given {@code dateTimes}
+     */
+    public static DateTime max(DateTime... dateTimes)
+    {
+        DateTime maxDateTime = null;
+        for (DateTime dateTime : dateTimes) {
+            if (maxDateTime == null || dateTime.isAfter(maxDateTime)) {
+                maxDateTime = dateTime;
+            }
+        }
+        return maxDateTime;
+    }
 }

@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -203,6 +204,9 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         try {
             // Fill provided reservations to transaction
             for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
+                if ( !context.getCache().isProvidedReservationAvailable(providedReservation, slot) ) {
+                    throw new ProvidedReservationNotAvailableReport(providedReservation).exception();
+                }
                 context.getCacheTransaction().addProvidedReservation(providedReservation);
             }
 
