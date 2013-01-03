@@ -9,9 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents a {@link Component} for executing {@link Notification}s by multiple {@link NotificationExecutor}s.
@@ -108,8 +108,8 @@ public class NotificationManager extends Component implements Component.DomainAw
      * @param modifiedReservations
      * @param deletedReservations
      */
-    public void notifyReservations(List<Reservation> newReservations, List<Reservation> modifiedReservations,
-            List<Reservation> deletedReservations, EntityManager entityManager)
+    public void notifyReservations(Set<Reservation> newReservations, Set<Reservation> modifiedReservations,
+                                   Set<Reservation> deletedReservations, EntityManager entityManager)
     {
         if (newReservations.size() == 0 && modifiedReservations.size() == 0 && deletedReservations.size() == 0) {
             return;

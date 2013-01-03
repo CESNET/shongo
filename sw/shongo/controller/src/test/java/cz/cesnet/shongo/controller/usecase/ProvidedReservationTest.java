@@ -242,4 +242,34 @@ public class ProvidedReservationTest extends AbstractControllerTest
 
         allocateAndCheck(compartmentReservationRequest);
     }
+
+    @Test
+    public void testCollision() throws Exception
+    {
+        Resource aliasProvider = new Resource();
+        aliasProvider.setName("aliasProvider");
+        aliasProvider.setAllocatable(true);
+        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
+        getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.H323_E164));
+        Reservation aliasReservation = allocateAndCheck(aliasReservationRequest);
+
+        ReservationRequest firstReservationRequest = new ReservationRequest();
+        firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        firstReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
+        firstReservationRequest.addProvidedReservationId(aliasReservation.getId());
+        allocateAndCheck(firstReservationRequest);
+
+        ReservationRequest secondReservationRequest = new ReservationRequest();
+        secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        secondReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
+        secondReservationRequest.addProvidedReservationId(aliasReservation.getId());
+        allocateAndCheckFailed(secondReservationRequest);
+    }
 }

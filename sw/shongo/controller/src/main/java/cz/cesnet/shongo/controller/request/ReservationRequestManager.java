@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.util.Timer;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -160,6 +161,26 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
+     * @param reservation for which the {@link AbstractReservationRequest} should be returned
+     * @return {@link AbstractReservationRequest} for the given {@link Reservation} or null if doesn't exists
+     */
+    public ReservationRequest getReservationRequestByReservation(Reservation reservation)
+    {
+        try {
+            ReservationRequest reservationRequest = entityManager.createQuery(
+                    "SELECT reservationRequest FROM ReservationRequest reservationRequest"
+                            + " WHERE reservationRequest.reservation.id = :id",
+                    ReservationRequest.class)
+                    .setParameter("id", reservation.getId())
+                    .getSingleResult();
+            return reservationRequest;
+        }
+        catch (NoResultException exception) {
+            return null;
+        }
+    }
+
+    /**
      * @param reservationId for {@link Reservation} which is allocated {@link AbstractReservationRequest} which should
      *                      be returned
      * @return {@link AbstractReservationRequest} for which is allocated {@link Reservation} with
@@ -234,11 +255,13 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param userId       requested owner
-     * @param technologies requested technologies
+     * @param userId         requested owner
+     * @param technologies   requested technologies
+     * @param specifications
      * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
-    public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies)
+    public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies,
+            Set<Class<? extends Specification>> specifications)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
         filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
@@ -260,8 +283,27 @@ public class ReservationRequestManager extends AbstractManager
                     + "  LEFT JOIN specification.technologies technology"
                     + "  WHERE (reservationRequest.specification = specification OR"
                     + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + ") OR request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest, AliasSpecification specification"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  WHERE (reservationRequest.specification = specification OR"
+                    + "         reservationRequestSpecification = specification) AND "
+                    + "         specification.technology IN(:technologies)"
                     + ")");
             filter.addFilterParameter("technologies", technologies);
+        }
+        if (specifications != null && specifications.size() > 0) {
+            // List only reservation requests which specifies given specifications
+            filter.addFilter("request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  LEFT JOIN reservationRequest.specification reservationRequestSpecification2"
+                    + "  WHERE TYPE(reservationRequestSpecification2) IN(:specifications) OR"
+                    + "        TYPE(reservationRequestSpecification) IN(:specifications)"
+                    + ")");
+            filter.addFilterParameter("specifications", specifications);
         }
         TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
                 + " FROM AbstractReservationRequest request"

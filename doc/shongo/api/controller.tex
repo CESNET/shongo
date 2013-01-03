@@ -128,6 +128,7 @@ Enumeration of available types of \glspl{g:device-alias}.
 \begin{ApiEnumValues}
 \ApiEnumValue{H323_E164}{} See \url{http://en.wikipedia.org/wiki/E.164}.
 \ApiEnumValue{H323_IDENTIFIER}{} H.323 string identifier.
+\ApiEnumValue{H323_URI}{} H.323 url.
 \ApiEnumValue{SIP_URI}{} e.g., sip:srom@cesnet.cz.
 \ApiEnumValue{ADOBE_CONNECT_NAME}{} Adobe connect room name in url.
 \ApiEnumValue{ADOBE_CONNECT_URI}{} Adobe Connect room url.
@@ -465,19 +466,7 @@ Represents an connection between two \glspl{g:endpoint} in allocated \gls{g:comp
 \begin{ApiClassAttributes}
 \ApiClassAttribute{endpointFromId}{String}{} Identifier of the source \gls{g:endpoint} which initiates the call.
 \ApiClassAttribute{endpointToId}{String}{} Identifier of the target \gls{g:endpoint}.
-\end{ApiClassAttributes}
-
-\ApiClass{Executable.ConnectionByAlias}{Compartment.Connection}
-Represents an connection between two \glspl{g:endpoint} by \gls{g:device-alias} in allocated \gls{g:compartment}.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{alias}{Alias}{} \Gls{g:device-alias} which is used.
-\end{ApiClassAttributes}
-
-\ApiClass{Executable.ConnectionByAddress}{Compartment.Connection}
-Represents an connection between two \glspl{g:endpoint} by address in allocated \gls{g:compartment}.
-\begin{ApiClassAttributes}
-\ApiClassAttribute{technology}{Technology}{} \Gls{g:technology} which is used.
-\ApiClassAttribute{address}{String}{} Address which is used.
+\ApiClassAttribute{alias}{Alias}{} \Gls{g:device-alias} which is used for the connection.
 \end{ApiClassAttributes}
 
 \ApiClass{ResourceAllocation}{}
@@ -593,6 +582,7 @@ List all the reservation requests that a user with given \ApiCode{token} is enti
 \begin{compactitem}
 \item \ApiCode{userId} restricts reservation request owner by his identifier
 \item \ApiCode{technology} set of technologies of virtual room or compartment
+\item \ApiCode{specification} set of specifications which the requests can specify
 \end{compactitem}
 
 \begin{ApiCmd}{AbstractReservationRequest}{getReservationRequest}%

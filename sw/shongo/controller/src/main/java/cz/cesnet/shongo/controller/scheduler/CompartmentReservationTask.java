@@ -295,17 +295,8 @@ public class CompartmentReservationTask extends ReservationTask
         }
         // Create connection by alias
         if (alias != null) {
-            ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-            connectionByAlias.setAlias(alias.clone());
-            connection = connectionByAlias;
-        }
-        // Create connection by address
-        else if (technology.isAllowedConnectionByAddress() && endpointTo.getAddress() != null
-                && !(endpointTo instanceof RoomEndpoint)) {
-            ConnectionByAddress connectionByAddress = new ConnectionByAddress();
-            connectionByAddress.setAddress(endpointTo.getAddress());
-            connectionByAddress.setTechnology(technology);
-            connection = connectionByAddress;
+            connection = new Connection();
+            connection.setAlias(alias.clone());
         }
         else {
             // Allocate alias for the target endpoint
@@ -339,9 +330,8 @@ public class CompartmentReservationTask extends ReservationTask
                 }
 
                 // Create connection by the created alias
-                ConnectionByAlias connectionByAlias = new ConnectionByAlias();
-                connectionByAlias.setAlias(alias.clone());
-                connection = connectionByAlias;
+                connection = new Connection();
+                connection.setAlias(alias.clone());
             }
             catch (ReportException exception) {
                 Report report = new CannotCreateConnectionFromToReport(endpointFrom, endpointTo);

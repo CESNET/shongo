@@ -1,36 +1,20 @@
-* Aliases
-   "zzz:XXXXXX"
+* Web client - alias reservations:
+  - add list of alias reservations above the existing list of reservations
+  - create request for alias (you cannot use it, you must first request capacity)
+  - create request for capacity
+  - add combo to request
 
-* Remove ConnectionByAddress and do:
-
-   class: 'AliasProviderCapability', \
-     patterns: ['[d]'], \
-     aliases: [ \
-       { type: 'H323_E164', value: '95008721{value}' }, \
-       { type: 'H323_URI', value: '{resource.address}#21{value}' } \
-       { type: 'SIP_URI', value: '95008721{value}@cesnet.cz' } \
-    ], \
-   }
-
-* H.323 room endtime
-
-* Room name from request name (create room code which the H.323 can use to create id)
-
-14.12.2012
-----------------------------------------------------------------------------
-
-* Specify room name in adobe connect reservation request
+* Adobe connect
+  - create/delete room by alias reservation
 
 * Alias allocation - pass target resource in reservation task to be able to match against owner resource
 
+* H.323 room endtime
+
+* Refactorize web client to mod_perl
+
 * Web clients - H.323 and Adobe Connect
   - runtime management (room, participants)
-
-* Adobe connect
-  - test connector, create/delete room
-  - create/delete room by alias reservation
-
-* Run cmd-line client test in maven testing
 
 * Soft delete of reservation requests
 
@@ -38,14 +22,22 @@
   - forced maintenance option
   - permanent reservation should try to reallocate all colliding reservations
 
+* Make Cache thread safe (Scheduler and ResourceServiceImpl can cause reset() which reloads cache, and while
+  the cache is reloading no one can use it)
+
+* Create expiring user cache in the controller
+
 * Implement allocation failed state to permanent reservations
 
-* Use database migration (change database to some which allows for transaction ddl, e.g., postgresql)
-  - Implement multiple dialects
+* Implement standalone reservation of alias from AliasProvider with "restrictedToOwnerResource = true"
+  (which then can be used as provided reservation)
 
 FUTURE:
 -------
-* Test cmd-line client in mvn test
+* Test cmd-line client in mvn test (Run cmd-line client test in maven testing)
+
+* Use database migration (change database to some which allows for transaction ddl, e.g., postgresql)
+  - Implement multiple dialects
 
 * Create tests for Converter (and simplify Converter.convert() method)
 

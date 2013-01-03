@@ -352,7 +352,12 @@ public class DeviceResource extends Resource
         while ((start = value.indexOf('{')) != -1 && (end = value.indexOf('}')) != -1) {
             String component = value.substring(start + 1, end);
             if (component.equals("resource.address")) {
-                component = getAddress().getValue();
+                if (getAddress() != null) {
+                    component = getAddress().getValue();
+                }
+                else {
+                    component = "<empty-address>";
+                }
             }
             else {
                 throw new IllegalStateException(String.format("Variable '%s' cannot be evaluated.", component));

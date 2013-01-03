@@ -58,7 +58,7 @@ sub create_action
             }
         });
         if ( !%{$params->{'error'}} ) {
-            my $specification = $self->parse_specification($params, ['ADOBE_CONNECT']);
+            my $specification = $self->parse_room_specification($params, ['ADOBE_CONNECT']);
 
             # Add participant
             my $participant = 'srom@cesnet.cz';#$self->{'application'}->get_user()->{'original_id'};

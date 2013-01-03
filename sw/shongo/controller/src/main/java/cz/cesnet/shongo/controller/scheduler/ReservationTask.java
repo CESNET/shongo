@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a {@link Scheduler} task which receives {@link Specification} and results into {@link Reservation}.
+ * Represents a {@link Scheduler} task which results into {@link Reservation}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -30,7 +30,7 @@ public abstract class ReservationTask
     private Context context;
 
     /**
-     * List of child {@link Reservation}.
+     * List of child {@link Reservation}s.
      */
     private List<Reservation> childReservations = new ArrayList<Reservation>();
 
@@ -159,7 +159,7 @@ public abstract class ReservationTask
         addChildReservation(reservation);
         if (reservation instanceof ExistingReservation) {
             ExistingReservation existingReservation = (ExistingReservation) reservation;
-            reservation = existingReservation.getReservation();
+            reservation = existingReservation.getTargetReservation();
         }
         return reservation;
     }

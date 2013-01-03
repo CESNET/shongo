@@ -441,7 +441,7 @@ public class Executable extends IdentifiedObject
     /**
      * Represents a connection between {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Endpoint}s in the {@link cz.cesnet.shongo.controller.api.Executable.Compartment}.
      */
-    public static abstract class Connection extends Executable
+    public static class Connection extends Executable
     {
         /**
          * Id of endpoint which initiates the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}.
@@ -452,6 +452,11 @@ public class Executable extends IdentifiedObject
          * Id of target endpoint for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}.
          */
         private String endpointToId;
+
+        /**
+         * {@link cz.cesnet.shongo.api.Alias} which is used for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection}
+         */
+        private Alias alias;
 
         /**
          * @return {@link #endpointFromId}
@@ -484,65 +489,6 @@ public class Executable extends IdentifiedObject
         {
             this.endpointToId = endpointToId;
         }
-    }
-
-    /**
-     * Represents a {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection} by physical address.
-     */
-    public static class ConnectionByAddress extends Connection
-    {
-        /**
-         * {@link cz.cesnet.shongo.Technology} for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAddress}.
-         */
-        private Technology technology;
-
-        /**
-         * Target address.
-         */
-        private String address;
-
-        /**
-         * @return {@link #technology}
-         */
-        public Technology getTechnology()
-        {
-            return technology;
-        }
-
-        /**
-         * @param technology sets the {@link #technology}
-         */
-        public void setTechnology(Technology technology)
-        {
-            this.technology = technology;
-        }
-
-        /**
-         * @return {@link #address}
-         */
-        public String getAddress()
-        {
-            return address;
-        }
-
-        /**
-         * @param address sets the {@link #address}
-         */
-        public void setAddress(String address)
-        {
-            this.address = address;
-        }
-    }
-
-    /**
-     * Represents a {@link cz.cesnet.shongo.controller.api.Executable.Compartment.Connection} by an {@link cz.cesnet.shongo.api.Alias}.
-     */
-    public static class ConnectionByAlias extends Connection
-    {
-        /**
-         * {@link cz.cesnet.shongo.api.Alias} which is used for the {@link cz.cesnet.shongo.controller.api.Executable.Compartment.ConnectionByAlias}
-         */
-        private Alias alias;
 
         /**
          * @return {@link #alias}

@@ -139,12 +139,7 @@ sub on_init()
                                 $endpointTo->{'description'} = "virtual room (in " . $endpointTo->{'resourceId'} . ")";
                             }
                             my $string = sprintf("from %s to %s", $endpointFrom->{'description'}, $endpointTo->{'description'});
-                            if ( $connection->{'class'} eq 'Executable.ConnectionByAddress' ) {
-                                $string .= sprintf("\nby address %s in technology %s", $connection->{'address'},
-                                    $Shongo::ClientCli::API::DeviceResource::Technology->{$connection->{'technology'}});
-                            } elsif ( $connection->{'class'} eq 'Executable.ConnectionByAlias' ) {
-                                $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
-                            }
+                            $string .= sprintf("\nby alias %s", trim($connection->{'alias'}->to_string_short()));
                             $string .= "\nstate: " . format_state($connection->{'state'}, $ConnectionState);
                             return $string;
                         }

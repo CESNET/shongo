@@ -75,10 +75,10 @@ public class ExecutorServiceImpl extends Component
     {
         authorization.validate(token);
 
-        Long id = domain.parseId(executableId);
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         entityManager.getTransaction().begin();
+
+        Long id = domain.parseId(executableId);
 
         try {
             ExecutableManager executableManager = new ExecutableManager(entityManager);

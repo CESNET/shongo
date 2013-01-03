@@ -20,6 +20,13 @@ public class ExistingReservation extends Reservation
     private Reservation reservation;
 
     /**
+     * Constructor.
+     */
+    public ExistingReservation()
+    {
+    }
+
+    /**
      * @return {@link #reservation}
      */
     @OneToOne
@@ -41,6 +48,10 @@ public class ExistingReservation extends Reservation
     @Transient
     public Reservation getTargetReservation()
     {
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            return existingReservation.getTargetReservation();
+        }
         return reservation;
     }
 

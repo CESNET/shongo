@@ -12,16 +12,17 @@ import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
+import cz.cesnet.shongo.controller.scheduler.report.ProvidedReservationNotAvailableReport;
 import cz.cesnet.shongo.controller.scheduler.report.SpecificationNotAllocatableReport;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a component of a domain controller that is responsible for allocating {@link ReservationRequest}
@@ -94,23 +95,50 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         TransactionHelper.Transaction transaction = TransactionHelper.beginTransaction(entityManager);
 
         try {
-            List<Reservation> newReservations = new ArrayList<Reservation>();
-            List<Reservation> modifiedReservations = new ArrayList<Reservation>();
-            List<Reservation> deletedReservations = new ArrayList<Reservation>();
+            Set<Reservation> newReservations = new HashSet<Reservation>();
+            Set<Reservation> modifiedReservations = new HashSet<Reservation>();
+            Set<Reservation> deletedReservations = new HashSet<Reservation>();
 
-            // Delete all reservations which was marked for deletion
-            deletedReservations.addAll(reservationManager.deleteAllNotReferenced(cache));
-            // Delete all compartments which should be deleted
-            executableManager.deleteAllNotReferenced();
+            // Get all reservations which should be deleted
+            Set<Reservation> toDeleteReservations = new HashSet<Reservation>();
+            toDeleteReservations.addAll(reservationManager.getReservationsForDeletion());
 
+            // Get all reservation requests which should be allocated
             ReservationRequestManager compartmentRequestManager = new ReservationRequestManager(entityManager);
             List<ReservationRequest> reservationRequests =
                     compartmentRequestManager.listCompletedReservationRequests(interval);
 
             // TODO: Apply some other priority to reservation requests
 
+            // Delete all old reservations from reservation requests
+            ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
+            Map<ReservationRequest, Reservation> oldReservations = new HashMap<ReservationRequest, Reservation>();
             for (ReservationRequest reservationRequest : reservationRequests) {
                 Reservation oldReservation = reservationRequest.getReservation();
+                if (oldReservation != null) {
+                    reservationRequest.setReservation(null);
+                    reservationRequestManager.update(reservationRequest);
+                    reservationManager.delete(oldReservation, cache);
+                    toDeleteReservations.remove(oldReservation);
+                    oldReservations.put(reservationRequest, oldReservation);
+                }
+            }
+
+            // Delete all reservations which have not be deleted yet but should be
+            for (Reservation reservation : toDeleteReservations) {
+                ReservationRequest reservationRequest =
+                        reservationRequestManager.getReservationRequestByReservation(reservation);
+                if (reservationRequest != null) {
+                    reservationRequest.setReservation(null);
+                    reservationRequestManager.update(reservationRequest);
+                }
+                reservationManager.delete(reservation, cache);
+                deletedReservations.add(reservation);
+            }
+
+            // Allocate all reservation requests
+            for (ReservationRequest reservationRequest : reservationRequests) {
+                Reservation oldReservation = oldReservations.get(reservationRequest);
                 Reservation newReservation = allocateReservationRequest(reservationRequest, entityManager);
                 if (oldReservation != null) {
                     if (newReservation != null) {
@@ -125,8 +153,6 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
                 }
             }
 
-
-
             // Notify about new reservations
             if (notificationManager != null) {
                 notificationManager.notifyReservations(newReservations, modifiedReservations, deletedReservations,
@@ -140,7 +166,7 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         }
         catch (Exception exception) {
             transaction.rollback();
-            cache.reset(entityManager);
+            cache.reset();
             throw new IllegalStateException("Scheduler failed", exception);
         }
     }
@@ -162,11 +188,10 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         // Get existing reservation
         Reservation reservation = reservationRequest.getReservation();
 
-        // TODO: Try to intelligently reallocate and not delete old reservation
-        // Delete old reservation
+        // Old reservation exists
         if (reservation != null) {
-            reservationRequest.setReservation(null);
-            reservationManager.delete(reservation, cache);
+            // TODO: Try to intelligently reallocate and not delete old reservation
+            throw new TodoImplementException("Reallocate reservation");
         }
 
         // Get requested slot and check it's maximum duration
@@ -179,6 +204,9 @@ public class Scheduler extends Component implements Component.DomainAware, Compo
         try {
             // Fill provided reservations to transaction
             for (Reservation providedReservation : reservationRequest.getProvidedReservations()) {
+                if ( !context.getCache().isProvidedReservationAvailable(providedReservation, slot) ) {
+                    throw new ProvidedReservationNotAvailableReport(providedReservation).exception();
+                }
                 context.getCacheTransaction().addProvidedReservation(providedReservation);
             }
 

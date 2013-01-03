@@ -114,3 +114,10 @@ div.not-available {
 .not-available p {
     font-weight: bold;
 }
+
+/** empty table */
+td.empty {
+    background-color: transparent !important;
+    text-align: center;
+    color: #AAAAAA;
+}

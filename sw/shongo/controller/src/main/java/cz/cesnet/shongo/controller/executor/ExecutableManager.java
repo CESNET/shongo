@@ -131,7 +131,7 @@ public class ExecutableManager extends AbstractManager
         List<Executable> executables = entityManager
                 .createQuery("SELECT executable FROM Executable executable"
                         + " WHERE executable NOT IN("
-                        + "    SELECT childExecutable FROM Executable executable "
+                        + "   SELECT childExecutable FROM Executable executable "
                         + "   INNER JOIN executable.childExecutables childExecutable"
                         + " ) AND ("
                         + "   (executable.state = :notAllocated AND executable"

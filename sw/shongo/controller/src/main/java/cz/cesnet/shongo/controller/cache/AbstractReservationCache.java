@@ -10,9 +10,9 @@ import javax.persistence.EntityManager;
 import java.util.*;
 
 /**
- * Represents an abstract cache. Cache holds only reservations inside the {@link #workingInterval} If the
- * {@link #workingInterval} isn't set the cache of reservations will be empty (it is not desirable to load all
- * reservations for the entire time span).
+ * Represents an abstract cache of objects with {@link Reservation}s. Cache holds only reservations inside
+ * the {@link #workingInterval} If the {@link #workingInterval} isn't set the cache of reservations will be empty
+ * (it is not desirable to load all reservations for the entire time span).
  *
  * @param <T> type of cached object
  * @param <R> type of reservation for cached object
@@ -110,7 +110,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
     }
 
     @Override
-    public void addObject(T object)
+    public final void addObject(T object)
     {
         addObject(object, null);
     }
@@ -132,16 +132,25 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
 
     /**
      * @param object for which the state should be returned
-     * @return state for given {@code object}
-     * @throws IllegalArgumentException when state cannot be found
+     * @return state for given {@code object} or null if not exists
      */
     protected ObjectState<R> getObjectState(T object)
     {
         Long objectId = object.getId();
-        ObjectState<R> objectState = objectStateById.get(objectId);
+        return objectStateById.get(objectId);
+    }
+
+    /**
+     * @param object for which the state should be returned
+     * @return state for given {@code object}
+     * @throws IllegalArgumentException when state cannot be found
+     */
+    protected ObjectState<R> getObjectStateRequired(T object) throws IllegalArgumentException
+    {
+        ObjectState<R> objectState = getObjectState(object);
         if (objectState == null) {
             throw new IllegalArgumentException(
-                    object.getClass().getSimpleName() + " '" + objectId + "' isn't in the cache!");
+                    object.getClass().getSimpleName() + " '" + object.getId() + "' isn't in the cache!");
         }
         return objectState;
     }
@@ -165,7 +174,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      */
     protected void onAddReservation(T object, R reservation)
     {
-        ObjectState<R> objectState = getObjectState(object);
+        ObjectState<R> objectState = getObjectStateRequired(object);
         objectState.addReservation(reservation);
     }
 
@@ -178,16 +187,16 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         if (workingInterval != null && !reservation.getSlot().overlaps(workingInterval)) {
             return;
         }
-        onRemove(object, reservation);
+        onRemoveReservation(object, reservation);
     }
 
     /**
      * @param object      for which the {@code reservation} is removed
      * @param reservation to be removed from the cache
      */
-    public void onRemove(T object, R reservation)
+    public void onRemoveReservation(T object, R reservation)
     {
-        ObjectState<R> objectState = getObjectState(object);
+        ObjectState<R> objectState = getObjectStateRequired(object);
         objectState.removeReservation(reservation);
     }
 
@@ -199,7 +208,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      */
     private void updateObjectState(T object, EntityManager entityManager)
     {
-        ObjectState<R> objectState = getObjectState(object);
+        ObjectState<R> objectState = getObjectStateRequired(object);
         objectState.clear();
 
         if (workingInterval != null) {
@@ -215,7 +224,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      * @param entityManager   which should be used for accessing database
      */
     protected abstract void updateObjectState(T object, Interval workingInterval,
-            EntityManager entityManager);
+                                              EntityManager entityManager);
 
     /**
      * Represents a cached object state.
@@ -253,6 +262,15 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
         public void setObjectId(Long objectId)
         {
             this.objectId = objectId;
+        }
+
+        /**
+         * @return true whether no reservations are present,
+         *         false otherwise
+         */
+        public boolean isEmpty()
+        {
+            return reservations.size() == 0;
         }
 
         /**

@@ -27,7 +27,9 @@ sub populate()
             args => '[id]',
             method => sub {
                 my ($shell, $params, @args) = @_;
-                delete_executable($args[0]);
+                foreach my $id (split(/,/, $args[0])) {
+                    delete_executable($id);
+                }
             }
         },
         'list-executables' => {

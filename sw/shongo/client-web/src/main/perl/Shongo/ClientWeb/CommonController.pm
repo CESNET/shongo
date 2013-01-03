@@ -9,6 +9,7 @@ use base qw(Shongo::Web::Controller);
 use strict;
 use warnings;
 use Shongo::Common;
+use DateTime::Format::Duration;
 
 our $ReservationRequestPurpose = {
     'SCIENCE' => 'Science',
@@ -96,7 +97,7 @@ sub list_reservation_requests
 # @param $technologies
 # @return parsed specification
 #
-sub parse_specification
+sub parse_room_specification
 {
     my ($self, $params, $technologies) = @_;
     # Specification
@@ -118,24 +119,47 @@ sub parse_reservation_request
 {
     my ($self, $params, $specification) = @_;
     my $request = {};
-    # Duration
     my $duration = undef;
-    if ( $params->{'durationType'} eq 'minute' ) {
-        $duration = 'PT' . $params->{'durationCount'} . 'M';
+
+    # Parse duration from type and count
+    if ( defined($params->{'durationType'}) && defined($params->{'durationCount'}) ) {
+        if ( $params->{'durationType'} eq 'minute' ) {
+            $duration = 'PT' . $params->{'durationCount'} . 'M';
+        }
+        elsif ( $params->{'durationType'} eq 'hour' ) {
+            $duration = 'PT' . $params->{'durationCount'} . 'H';
+        }
+        elsif ( $params->{'durationType'} eq 'day' ) {
+            $duration = 'P' . $params->{'durationCount'} . 'D';
+        }
+        else {
+            die("Unknown duration type '$params->{'durationType'}'.");
+        }
     }
-    elsif ( $params->{'durationType'} eq 'hour' ) {
-        $duration = 'PT' . $params->{'durationCount'} . 'H';
+    # Parse duration from start and end
+    if ( defined($params->{'start'}) && defined($params->{'end'}) ) {
+        my $start = $params->{'start'};
+        my $end = $params->{'end'};
+        if ( $start =~ /^[^T]+$/ ) {
+            $start .= 'T00:00:00';
+        }
+        if ( $end =~ /^[^T]+$/ ) {
+            $end .= 'T23:59:59';
+        }
+        $start = DateTime::Format::ISO8601->parse_datetime($start);
+        $end = DateTime::Format::ISO8601->parse_datetime($end);
+        my $format = DateTime::Format::Duration->new(pattern => 'P%YY%mM%eDT%HH%MM%SS');
+        $duration = $format->format_duration($end->subtract_datetime($start));
     }
-    elsif ( $params->{'durationType'} eq 'day' ) {
-        $duration = 'P' . $params->{'durationCount'} . 'D';
+    # If no duration was specified die
+    if ( !defined($duration) ) {
+        die("Unknown duration.");
     }
-    else {
-        die("Unknown duration type '$params->{'durationType'}'.");
-    }
+
     # Setup request
     $request->{'name'} = $params->{'name'};
     $request->{'purpose'} = $params->{'purpose'};
-    if ( $params->{'periodicity'} eq 'none') {
+    if ( !defined($params->{'periodicity'}) || $params->{'periodicity'} eq 'none') {
         $request->{'class'} = 'ReservationRequest';
         $request->{'slot'} = $params->{'start'} . '/' . $duration;
         $request->{'specification'} = $specification;
@@ -288,6 +312,16 @@ sub get_reservation_request
 
                     $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
                     $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
+                }
+                elsif ( $alias->{'type'} eq 'H323_IDENTIFIER' ) {
+                    $aliases .= $alias->{'value'};
+
+                    $aliases_description .= '<dt>H.323 Identifier:</dt><dd>' . $alias->{'value'} . '</dd>';
+                }
+                elsif ( $alias->{'type'} eq 'H323_URI' ) {
+                    $aliases .= $alias->{'value'};
+
+                    $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $alias->{'value'} . '</dd>';
                 }
                 elsif ( $alias->{'type'} eq 'SIP_URI' ) {
                     $aliases .= 'sip:' . $alias->{'value'};

@@ -3,14 +3,8 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.controller.cache.AliasCache;
-import cz.cesnet.shongo.controller.cache.AvailableAlias;
-import cz.cesnet.shongo.controller.cache.AvailableRoom;
-import cz.cesnet.shongo.controller.cache.ResourceCache;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
-import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.reservation.ReservationManager;
-import cz.cesnet.shongo.controller.reservation.ResourceReservation;
+import cz.cesnet.shongo.controller.cache.*;
+import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
@@ -45,14 +39,19 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     private Period aliasReservationMaximumDuration;
 
     /**
-     * @see {@link ResourceCache}
+     * @see ResourceCache
      */
     private ResourceCache resourceCache = new ResourceCache();
 
     /**
-     * @see {@link AliasCache}
+     * @see AliasCache
      */
     private AliasCache aliasCache = new AliasCache();
+
+    /**
+     * @see ReusedReservationCache
+     */
+    private ReusedReservationCache reusedReservationCache = new ReusedReservationCache();
 
     /**
      * Working interval for which are loaded allocated virtual rooms.
@@ -113,14 +112,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
-     * @return {@link #aliasCache}
-     */
-    public AliasCache getAliasCache()
-    {
-        return aliasCache;
-    }
-
-    /**
      * @return {@link #workingInterval}
      */
     public Interval getWorkingInterval()
@@ -150,6 +141,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     workingInterval.getStart().minus(aliasReservationMaximumDuration),
                     workingInterval.getEnd().plus(aliasReservationMaximumDuration));
             aliasCache.setWorkingInterval(aliasWorkingInterval, referenceDateTime, entityManager);
+
+            Interval maxWorkingInterval = new Interval(
+                    TemporalHelper.min(resourceWorkingInterval.getStart(), aliasWorkingInterval.getStart()),
+                    TemporalHelper.max(resourceWorkingInterval.getEnd(), aliasWorkingInterval.getEnd()));
+            reusedReservationCache.setWorkingInterval(maxWorkingInterval, referenceDateTime, entityManager);
         }
     }
 
@@ -177,14 +173,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
         logger.debug("Starting cache...");
 
-        if (entityManagerFactory != null) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            reset(entityManager);
-            entityManager.close();
-        }
-        else {
-            reset(null);
-        }
+        reset();
     }
 
     @Override
@@ -197,16 +186,16 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
 
     /**
      * Reload cache from given {@code entityManager}.
-     *
-     * @param entityManager which will be used for reloading
      */
-    public void reset(EntityManager entityManager)
+    public void reset()
     {
         resourceCache.clear();
         aliasCache.clear();
-        if (entityManager != null) {
+        if (entityManagerFactory != null) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
             resourceCache.loadObjects(entityManager);
             aliasCache.loadObjects(entityManager);
+            entityManager.close();
         }
     }
 
@@ -277,6 +266,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         }
     }
 
+    /**
+     * Remove resource from the {@link Cache}.
+     *
+     * @param resource to be removed
+     */
     public void removeResource(Resource resource)
     {
         // Remove resource from resource cache
@@ -298,11 +292,15 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         }
 
         checkPersisted(reservation);
-        if (reservation instanceof ResourceReservation) {
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            reusedReservationCache.addReservation(existingReservation.getReservation(), existingReservation);
+        }
+        else if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             resourceCache.addReservation(resourceReservation.getResource(), resourceReservation);
         }
-        if (reservation instanceof AliasReservation) {
+        else if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             aliasCache.addReservation(aliasReservation.getAliasProviderCapability(), aliasReservation);
         }
@@ -321,11 +319,15 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      */
     public void removeReservation(Reservation reservation)
     {
-        if (reservation instanceof ResourceReservation) {
+        if (reservation instanceof ExistingReservation) {
+            ExistingReservation existingReservation = (ExistingReservation) reservation;
+            reusedReservationCache.removeReservation(existingReservation.getReservation(), existingReservation);
+        }
+        else if (reservation instanceof ResourceReservation) {
             ResourceReservation resourceReservation = (ResourceReservation) reservation;
             resourceCache.removeReservation(resourceReservation.getResource(), resourceReservation);
         }
-        if (reservation instanceof AliasReservation) {
+        else if (reservation instanceof AliasReservation) {
             AliasReservation aliasReservation = (AliasReservation) reservation;
             aliasCache.removeReservation(aliasReservation.getAliasProviderCapability(), aliasReservation);
         }
@@ -434,9 +436,8 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             if (aliasProviderCapability.isRestrictedToOwnerResource()) {
                 continue;
             }
-            AvailableAlias availableAlias = getAvailableAlias(aliasProviderCapability, technology, aliasType, interval,
-                    transaction
-            );
+            AvailableAlias availableAlias =
+                    getAvailableAlias(aliasProviderCapability, technology, aliasType, interval, transaction);
             if (availableAlias != null) {
                 return availableAlias;
             }
@@ -463,6 +464,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             return null;
         }
         return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
+    }
+
+    /**
+     * @see {@link ReusedReservationCache#isProvidedReservationAvailable(cz.cesnet.shongo.controller.reservation.Reservation, org.joda.time.Interval)}
+     */
+    public boolean isProvidedReservationAvailable(Reservation providedReservation, Interval interval)
+    {
+        return reusedReservationCache.isProvidedReservationAvailable(providedReservation, interval);
     }
 
     /**
@@ -521,7 +530,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                     resourceCacheTransaction.addAllocatedReservation(resource.getId(), resourceReservation);
                     addReferencedResource(resource);
                 }
-                if (reservation instanceof AliasReservation) {
+                else if (reservation instanceof AliasReservation) {
                     AliasReservation aliasReservation = (AliasReservation) reservation;
                     aliasCacheTransaction.addAllocatedReservation(
                             aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
@@ -536,12 +545,19 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         public void addProvidedReservation(Reservation reservation)
         {
             if (reservation.getSlot().contains(getInterval())) {
+                if (reservation instanceof ExistingReservation) {
+                    throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
+                    // It will be necessary to evaluate existing reservation to target reservation and to keep the
+                    // reference to the existing reservation.
+                    // In the end the existing reservation must be used as child reservation for any newly allocated
+                    // reservations and not the target reservation itself (a collision would occur).
+                }
                 if (reservation instanceof ResourceReservation) {
                     ResourceReservation resourceReservation = (ResourceReservation) reservation;
                     resourceCacheTransaction.addProvidedReservation(
                             resourceReservation.getResource().getId(), resourceReservation);
                 }
-                if (reservation instanceof AliasReservation) {
+                else if (reservation instanceof AliasReservation) {
                     AliasReservation aliasReservation = (AliasReservation) reservation;
                     aliasCacheTransaction.addProvidedReservation(
                             aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
@@ -559,12 +575,15 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
          */
         public void removeProvidedReservation(Reservation reservation)
         {
+            if (reservation instanceof ExistingReservation) {
+                throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
+            }
             if (reservation instanceof ResourceReservation) {
                 ResourceReservation resourceReservation = (ResourceReservation) reservation;
                 resourceCacheTransaction.removeProvidedReservation(
                         resourceReservation.getResource().getId(), resourceReservation);
             }
-            if (reservation instanceof AliasReservation) {
+            else if (reservation instanceof AliasReservation) {
                 AliasReservation aliasReservation = (AliasReservation) reservation;
                 aliasCacheTransaction.removeProvidedReservation(
                         aliasReservation.getAliasProviderCapability().getId(), aliasReservation);

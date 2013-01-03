@@ -211,6 +211,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             roomSummary.setId(room.getAttributeValue("sco-id"));
             roomSummary.setCode(room.getChildText("name"));
+            //TODO: not specified yet
             roomSummary.setName(room.getChildText("description"));
 
             //TODO: element URL
@@ -237,24 +238,46 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
     @java.lang.Override
     public int startRecording(String roomId, ContentType format, RoomLayout layout)
-            throws CommandException, CommandUnsupportedException
+            throws CommandException
     {
-        //TODO: AC maybe does not support
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", roomId);
+        attributes.put("active", "true");
+
+        request("meeting-recorder-activity-update", attributes);
+
+        HashMap<String, String> recAttributes = new HashMap<String, String>();
+        recAttributes.put("sco-id", roomId);
+
+        Element response = request("meeting-recorder-activity-info",recAttributes);
+
+        int recScoId = Integer.valueOf(
+                response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"));
+
+        return recScoId;
     }
 
     @java.lang.Override
-    public void stopRecording(int recordingId) throws CommandException, CommandUnsupportedException
+    public void stopRecording(int recordingId) throws CommandException
     {
-        //TODO: AC maybe does not support
-        //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", Integer.toString(recordingId));
+        attributes.put("active", "false");
+
+        request("meeting-recorder-activity-update", attributes);
     }
 
     @java.lang.Override
-    public String getRecordingDownloadURL(int recordingId) throws CommandException, CommandUnsupportedException
+    public String getRecordingDownloadURL(int recordingId) throws CommandException
     {
-        //TODO: is even possible?
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", Integer.toString(recordingId));
+
+        Element response = request("sco-info", attributes);
+
+        String url = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response.getChild("sco").getChildText("url-path");
+
+        return url;
     }
 
     @java.lang.Override
@@ -276,7 +299,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public void deleteRecording(int recordingId) throws CommandException
     {
         deleteSCO(Integer.toString(recordingId));
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @java.lang.Override
@@ -317,8 +339,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     @java.lang.Override
     public void clearRoomContent(String roomId) throws CommandException, CommandUnsupportedException
     {
-        // TODO: erase and re-create room?
-        //To change body of implemented methods use File | Settings | File Templates.
+        // TODO: erase content and re-create room?
     }
 
     @java.lang.Override
@@ -472,15 +493,42 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public Collection<RoomUser> listParticipants(String roomId) throws CommandException, CommandUnsupportedException
+    public Collection<RoomUser> listParticipants(String roomId) throws CommandException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", roomId);
+
+        Element response =  request("meeting-usermanager-user-list", attributes);
+
+        ArrayList<RoomUser> participantList = new ArrayList<RoomUser>();
+
+        for (Element userDetails : response.getChild("meeting-usermanager-user-list").getChildren()) {
+            System.out.println(userDetails.getChildText("principal-id"));
+
+            RoomUser roomUser = new RoomUser();
+            roomUser.setAudioMuted(Boolean.parseBoolean(userDetails.getChildText("mute")));
+            roomUser.setDisplayName(userDetails.getChildText("username"));
+            roomUser.setRoomId(roomId);
+            roomUser.setUserId(userDetails.getChildText("user-id"));
+            roomUser.setUserIdentity(new UserIdentity("principal-id"));
+
+            participantList.add(roomUser);
+        }
+
+        return Collections.unmodifiableList(participantList);
     }
 
     @java.lang.Override
-    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public RoomUser getParticipant(String roomId, String roomUserId) throws CommandException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        Collection<RoomUser> participants = this.listParticipants(roomId);
+        for (RoomUser roomUser : participants) {
+            if (roomUser.getUserId() == roomUserId) {
+                return roomUser;
+            }
+        }
+
+        return null;
     }
 
     @java.lang.Override
@@ -492,9 +540,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
     @java.lang.Override
     public void disconnectParticipant(String roomId, String roomUserId)
-            throws CommandException, CommandUnsupportedException
+            throws CommandException
     {
-        //To change body of implemented methods use File | Settings | File Templates.
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", roomId);
+        attributes.put("user-id", roomUserId);
+
+        Element response =  request("meeting-usermanager-remove-user", attributes);
     }
 
     @java.lang.Override
@@ -750,7 +802,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             acc.connect(address,"admin","cip9skovi3t2");
 
-            Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
+/*            Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
             room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_NAME,"testi")); }});
             room.setOption(Room.Option.PARTICIPANTS,new ArrayList<String>() {{ add("pavelka@cesnet.cz"); }});
 
@@ -758,7 +810,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
             System.out.println(scoId);
             Thread.sleep(15000);
-            acc.deleteRoom(scoId);
+            acc.deleteRoom(scoId); */
 
 
 

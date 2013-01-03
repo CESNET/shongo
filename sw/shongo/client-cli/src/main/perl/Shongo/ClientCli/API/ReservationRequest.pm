@@ -16,9 +16,12 @@ use Shongo::ClientCli::API::Specification;
 # Enumeration of state
 our $State = ordered_hash(
     'NOT_COMPLETE' => 'Not Complete',
-    'COMPLETE' => 'Not Allocated',
+    'NOT_ALLOCATED' => 'Not Allocated',
     'ALLOCATED' => 'Allocated',
-    'ALLOCATION_FAILED' => 'Allocation Failed'
+    'ALLOCATION_FAILED' => 'Allocation Failed',
+    'STARTED' => 'Started',
+    'STARTING_FAILED' => 'Starting Failed',
+    'FINISHED' => 'Finished'
 );
 
 #

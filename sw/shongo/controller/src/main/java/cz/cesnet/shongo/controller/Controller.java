@@ -23,6 +23,7 @@ import org.apache.log4j.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.io.IOException;
@@ -527,6 +528,9 @@ public class Controller
                 }
                 else if (args[1].equals("sql")) {
                     logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
+                }
+                else if (args[1].equals("sql-param")) {
+                    logger = org.apache.log4j.Logger.getLogger("org.hibernate.type");
                 }
                 if (logger == null) {
                     return;

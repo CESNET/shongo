@@ -90,8 +90,7 @@ public class ReservationManager extends AbstractManager
                     Reservation.class).setParameter("id", reservationId)
                     .getSingleResult();
             return reservation;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             throw new EntityNotFoundException(Reservation.class, reservationId);
         }
     }
@@ -119,8 +118,7 @@ public class ReservationManager extends AbstractManager
                     .setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservation;
-        }
-        catch (NoResultException exception) {
+        } catch (NoResultException exception) {
             return null;
         }
     }
@@ -192,28 +190,58 @@ public class ReservationManager extends AbstractManager
     }
 
     /**
+     * Get list of reused {@link Reservation}s. Reused {@link Reservation} is a {@link Reservation} which is referenced
+     * by at least one {@link ExistingReservation} in the {@link ExistingReservation#reservation} attribute.
+     *
+     * @return list of reused {@link Reservation}.
+     */
+    public List<Reservation> getReusedReservations()
+    {
+        List<Reservation> reservations = entityManager.createQuery(
+                "SELECT DISTINCT reservation.reservation FROM ExistingReservation reservation", Reservation.class)
+                .getResultList();
+        return reservations;
+    }
+
+    /**
+     * Get list of {@link ExistingReservation} which reuse the given {@code reusedReservation}.
+     *
+     * @param reusedReservation which must be referenced in the {@link ExistingReservation#reservation}
+     * @return list of {@link ExistingReservation} which reuse the given {@code reusedReservation}
+     */
+    public List<ExistingReservation> getExistingReservations(Reservation reusedReservation)
+    {
+        List<ExistingReservation> reservations = entityManager.createQuery(
+                "SELECT reservation FROM ExistingReservation reservation"
+                        + " WHERE reservation.reservation = :reusedReservation",
+                ExistingReservation.class)
+                .setParameter("reusedReservation", reusedReservation)
+                .getResultList();
+        return reservations;
+    }
+
+    /**
      * Delete {@link Reservation}s which aren't allocated for any {@link ReservationRequest}.
      *
-     * @param cache from which the {@link Reservation}s are also deleted
      * @return list of deleted {@link Reservation}
      */
-    public List<Reservation> deleteAllNotReferenced(Cache cache)
+    public List<Reservation> getReservationsForDeletion()
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL"
                         + " AND reservation NOT IN("
-                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest)"
-                        + " AND reservation NOT IN("
+                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
+                        + "   WHERE reservationRequest.state = :state"
+                        + " ) AND reservation NOT IN("
                         + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
-                        + "   INNER JOIN reservationRequest.resourceReservations reservation)",
+                        + "   INNER JOIN reservationRequest.resourceReservations reservation"
+                        + ")",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
+                .setParameter("state", ReservationRequest.State.ALLOCATED)
                 .getResultList();
-        for (Reservation reservation : reservations) {
-            delete(reservation, cache);
-        }
         return reservations;
     }
 

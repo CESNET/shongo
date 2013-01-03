@@ -1,4 +1,7 @@
-*.iws
+.idea/libraries/
+.idea/misc.xml
+.idea/tasks.xml
+.idea/workspace.xml
 target/
 data/
 controller.cfg.xml

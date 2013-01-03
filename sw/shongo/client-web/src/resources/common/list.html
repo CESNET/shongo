@@ -23,6 +23,9 @@
         <td><a href="[% location %]/delete?id=[% request.id %]">delete</a></td>
     </tr>
     [%- END %]
+    [% IF !requests.size %]
+    <tr><td colspan="7" class="empty">- - - None - - -</td></tr>
+    [% END %]
     </tbody>
 </table>
 <div class="pull-right">

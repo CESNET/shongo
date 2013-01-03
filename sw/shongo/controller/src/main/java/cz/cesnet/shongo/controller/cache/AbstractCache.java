@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents an abstract cache.
+ * Represents an abstract cache of objects.
  *
  * @param <T> type of cached object
  * @author Martin Srom <martin.srom@cesnet.cz>
