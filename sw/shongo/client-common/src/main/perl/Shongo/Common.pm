@@ -35,7 +35,7 @@ use JSON -support_by_pp;
 our $IdPattern = '(^\\d+|shongo:.+:\\d+$)';
 our $UserIdPattern = '(^\\d+$)';
 our $DateTimePattern = '(^\\d\\d\\d\\d-\\d\\d-\\d\\dT\\d\\d:\\d\\d(:\\d\\d(.\\d+)?([\\+-]\\d\\d:\\d\\d)?)?$)';
-our $PeriodPattern = '(^P(\\d+Y)?(\\d+M)?(\\d+W)?(\\d+D)?(T(\\d+H)?(\\d+M)?(\\d+S)?)?$)';
+our $PeriodPattern = '(^P((\\d+)Y)?((\\d+)M)?((\\d+)W)?((\\d+)D)?(T((\\d+)+H)?((\\d+)M)?((\\d+)S)?)?$)';
 our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\d)?)?$)';
 
 # Represents a "null" constant
@@ -542,7 +542,9 @@ sub format_datetime
 {
     my ($dateTime) = @_;
     if ( defined($dateTime) ) {
-        $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
+        if ( !ref($dateTime) ) {
+            $dateTime = DateTime::Format::ISO8601->parse_datetime($dateTime);
+        }
         return sprintf("%s %02d:%02d", $dateTime->ymd, $dateTime->hour, $dateTime->minute);
     }
     return $dateTime;
@@ -625,9 +627,31 @@ sub format_datetime_partial
 #
 sub format_interval
 {
-    my ($interval) = @_;
+    my ($interval, $force_datetimes) = @_;
     if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
-        return sprintf("%s, %s", format_datetime($1), $2);
+        my $start = $1;
+        my $duration = $2;
+        # Format as "<start>/<end>"
+        if ( $force_datetimes || length($duration) > 5 ) {
+            $start = DateTime::Format::ISO8601->parse_datetime($start);
+            if ( $duration =~ /$PeriodPattern/ ) {
+                $duration = DateTime::Duration->new(
+                    years   => defined($3) ? $3 : 0,
+                    months  => defined($5) ? $5 : 0,
+                    days    => ((defined($7) ? (7 * $7) : 0)) + (defined($9) ? $9 : 0),
+                    hours   => defined($12) ? $12 : 0,
+                    minutes => defined($14) ? $14 : 0,
+                    seconds => defined($16) ? $16 : 0
+                );
+            }
+            my $end = $start->clone();
+            $end->add_duration($duration);
+            return sprintf("%s/%s", format_datetime($start), format_datetime($end));
+        }
+        # Format as "<start>, <duration>"
+        else {
+            return sprintf("%s, %s", format_datetime($start), $duration);
+        }
     } else {
         return "";
     }

@@ -1,0 +1,60 @@
+<script type="text/javascript">
+    $(function() {
+        $("#inputStart").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd'
+        });
+        $("#inputEnd").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            dateFormat: 'yy-mm-dd'
+        });
+    });
+</script>
+<h1>New reservation request for H.323/SIP alias</h1>
+<form class="form-horizontal" action="[% location %]/create-alias?confirmed" method="POST">
+
+    <div class="control-group">
+        <label class="control-label" for="inputName">Name:</label>
+        <div class="controls">
+            <input id="inputName" name="name" type="text" value="[% name %]"/>
+            [% error.name %]
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="selectPurpose">Purpose:</label>
+        <div class="controls">
+            <select id="selectPurpose" name="purpose">
+                <option value="SCIENCE" [% IF purpose == 'SCIENCE' %]selected[% END %]>Science</option>
+                <option value="EDUCATION" [% IF purpose == 'EDUCATION' %]selected[% END %]>Education</option>
+            </select>
+            [% error.purpose %]
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="inputStart">Start:</label>
+        <div class="controls">
+            <input id="inputStart" name="start" type="text" value="[% start %]"/>
+            [% error.start %]
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="inputStart">End:</label>
+        <div class="controls">
+            <input id="inputEnd" name="end" type="text" value="[% end %]"/>
+            [% error.end %]
+        </div>
+    </div>
+
+    <div class="control-group">
+        <div class="controls">
+            <input class="btn btn-primary" type="submit" value="Create"/>
+            <a class="btn" href="[% location %]/list">Cancel</a>
+        </div>
+    </div>
+
+</form>

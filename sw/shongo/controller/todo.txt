@@ -29,6 +29,9 @@
 
 * Implement allocation failed state to permanent reservations
 
+* Implement standalone reservation of alias from AliasProvider with "restrictedToOwnerResource = true"
+  (which then can be used as provided reservation)
+
 FUTURE:
 -------
 * Test cmd-line client in mvn test (Run cmd-line client test in maven testing)

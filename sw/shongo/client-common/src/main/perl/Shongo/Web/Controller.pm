@@ -172,7 +172,19 @@ sub validate_form
     };
     foreach my $field (keys %{$profile->{constraint_methods}}) {
         my $constraint = $profile->{constraint_methods}->{$field};
-        if ( defined($validators->{$constraint}) ) {
+        if ( ref($constraint) eq 'ARRAY' ) {
+            for (my $index = 0; $index < scalar(@{$constraint}); $index++) {
+                if ( defined($validators->{$constraint->[$index]}) ) {
+                    $constraint->[$index] = {
+                        name => $constraint->[$index],
+                        constraint_method => $validators->{$constraint->[$index]}
+                    };
+
+                }
+            }
+        }
+        elsif ( defined($validators->{$constraint}) ) {
+
             $profile->{constraint_methods}->{$field} = {
                 name => $constraint,
                 constraint_method => $validators->{$constraint}
@@ -186,7 +198,8 @@ sub validate_form
             'number' => 'Not a valid number',
             'date' => 'Not a valid date (e.g., 2012-02-25)',
             'time' => 'Not a valid time (e.g., 14:01)',
-            'period' => 'Not a valid period (e.g., PT2H)'
+            'period' => 'Not a valid period (e.g., PT2H)',
+            'interval' => 'Not a valid interval'
         },
     };
 
@@ -194,5 +207,23 @@ sub validate_form
     my $errors = $results->msgs();
     return $errors;
 }
+
+#
+# Interval constraint
+#
+# @param $fields
+#
+sub constraint_interval {
+    my ($fields) = @_;
+    my ($start, $end) = @{$fields} if $fields;
+    return sub {
+        my $dfv = shift;
+        $dfv->name_this('interval');
+        my $data = $dfv->get_filtered_data();
+        my $start_value = DateTime::Format::ISO8601->parse_datetime($data->{$start});
+        my $end_value = DateTime::Format::ISO8601->parse_datetime($data->{$end});
+        return DateTime->compare($start_value, $end_value) <= 0;
+    }
+  }
 
 1;
