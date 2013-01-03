@@ -529,6 +529,9 @@ public class Controller
                 else if (args[1].equals("sql")) {
                     logger = org.apache.log4j.Logger.getLogger("org.hibernate.SQL");
                 }
+                else if (args[1].equals("sql-param")) {
+                    logger = org.apache.log4j.Logger.getLogger("org.hibernate.type");
+                }
                 if (logger == null) {
                     return;
                 }

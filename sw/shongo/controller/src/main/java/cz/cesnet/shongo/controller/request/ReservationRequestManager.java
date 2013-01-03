@@ -8,6 +8,7 @@ import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
+import cz.cesnet.shongo.util.Timer;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -78,7 +79,7 @@ public class ReservationRequestManager extends AbstractManager
 
         if (clearPreprocessedState &&
                 (reservationRequest instanceof ReservationRequestSet
-                        || reservationRequest instanceof PermanentReservationRequest)) {
+                         || reservationRequest instanceof PermanentReservationRequest)) {
             PreprocessorStateManager.setState(entityManager, reservationRequest, PreprocessorState.NOT_PREPROCESSED);
         }
 
@@ -114,10 +115,12 @@ public class ReservationRequestManager extends AbstractManager
             }
             // Clear state
             PreprocessorStateManager.clear(entityManager, reservationRequestSet);
-        } else if (abstractReservationRequest instanceof PermanentReservationRequest) {
+        }
+        else if (abstractReservationRequest instanceof PermanentReservationRequest) {
             // Clear state
             PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
-        } else if (abstractReservationRequest instanceof ReservationRequest) {
+        }
+        else if (abstractReservationRequest instanceof ReservationRequest) {
             // Keep reservation (is deleted by scheduler)
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             Reservation reservation = reservationRequest.getReservation();
@@ -151,7 +154,8 @@ public class ReservationRequestManager extends AbstractManager
                     AbstractReservationRequest.class).setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservationRequest;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             throw new EntityNotFoundException(AbstractReservationRequest.class, reservationRequestId);
         }
     }
@@ -170,7 +174,8 @@ public class ReservationRequestManager extends AbstractManager
                     .setParameter("id", reservation.getId())
                     .getSingleResult();
             return reservationRequest;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             return null;
         }
     }
@@ -203,7 +208,8 @@ public class ReservationRequestManager extends AbstractManager
                     .setParameter("id", reservationId)
                     .getSingleResult();
             return reservationRequest;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             return null;
         }
     }
@@ -222,7 +228,8 @@ public class ReservationRequestManager extends AbstractManager
                     ReservationRequest.class).setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservationRequest;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             throw new EntityNotFoundException(ReservationRequest.class, reservationRequestId);
         }
     }
@@ -241,17 +248,20 @@ public class ReservationRequestManager extends AbstractManager
                     ReservationRequestSet.class).setParameter("id", reservationRequestSetId)
                     .getSingleResult();
             return reservationRequestSet;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             throw new EntityNotFoundException(ReservationRequestSet.class, reservationRequestSetId);
         }
     }
 
     /**
-     * @param userId       requested owner
-     * @param technologies requested technologies
+     * @param userId         requested owner
+     * @param technologies   requested technologies
+     * @param specifications
      * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
-    public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies)
+    public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies,
+            Set<Class<? extends Specification>> specifications)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
         filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
@@ -273,8 +283,27 @@ public class ReservationRequestManager extends AbstractManager
                     + "  LEFT JOIN specification.technologies technology"
                     + "  WHERE (reservationRequest.specification = specification OR"
                     + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + ") OR request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest, AliasSpecification specification"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  WHERE (reservationRequest.specification = specification OR"
+                    + "         reservationRequestSpecification = specification) AND "
+                    + "         specification.technology IN(:technologies)"
                     + ")");
             filter.addFilterParameter("technologies", technologies);
+        }
+        if (specifications != null && specifications.size() > 0) {
+            // List only reservation requests which specifies given specifications
+            filter.addFilter("request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM AbstractReservationRequest reservationRequest"
+                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
+                    + "  LEFT JOIN reservationRequest.specification reservationRequestSpecification2"
+                    + "  WHERE TYPE(reservationRequestSpecification2) IN(:specifications) OR"
+                    + "        TYPE(reservationRequestSpecification) IN(:specifications)"
+                    + ")");
+            filter.addFilterParameter("specifications", specifications);
         }
         TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
                 + " FROM AbstractReservationRequest request"
@@ -328,7 +357,8 @@ public class ReservationRequestManager extends AbstractManager
     {
         try {
             return getReservationRequest(reservationRequestId);
-        } catch (EntityNotFoundException e) {
+        }
+        catch (EntityNotFoundException e) {
             throw new IllegalArgumentException("Reservation request '" + reservationRequestId + "' doesn't exist!");
         }
     }
@@ -368,7 +398,7 @@ public class ReservationRequestManager extends AbstractManager
      *         given {@code interval}
      */
     public List<ReservationRequest> listReservationRequestsBySet(ReservationRequestSet reservationRequestSet,
-                                                                 Interval interval)
+            Interval interval)
     {
         return listReservationRequestsBySet(reservationRequestSet.getId(), interval);
     }
@@ -431,7 +461,8 @@ public class ReservationRequestManager extends AbstractManager
             if (personSpecification.getPerson().getId().equals(personId)) {
                 return personSpecification;
             }
-        } else if (specification instanceof CompartmentSpecification) {
+        }
+        else if (specification instanceof CompartmentSpecification) {
             CompartmentSpecification compartmentSpecification = (CompartmentSpecification) specification;
             for (Specification childSpecification : compartmentSpecification.getChildSpecifications()) {
                 PersonSpecification personSpecification = getPersonSpecification(childSpecification, personId);
@@ -507,7 +538,7 @@ public class ReservationRequestManager extends AbstractManager
      * @param endpointSpecification
      */
     public void selectEndpointForPersonSpecification(Long reservationRequestId, Long personId,
-                                                     EndpointSpecification endpointSpecification)
+            EndpointSpecification endpointSpecification)
     {
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);

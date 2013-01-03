@@ -179,7 +179,6 @@ sub validate_form
                         name => $constraint->[$index],
                         constraint_method => $validators->{$constraint->[$index]}
                     };
-
                 }
             }
         }

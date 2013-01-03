@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.util.Options;
 import cz.cesnet.shongo.api.xmlrpc.*;
 import cz.cesnet.shongo.fault.Fault;
 import cz.cesnet.shongo.fault.SerializableException;
+import cz.cesnet.shongo.util.Timer;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.apache.xmlrpc.XmlRpcRequest;
@@ -278,6 +279,11 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
          */
         public static class Handler implements XmlRpcHandler
         {
+            /**
+             * Timer for handling requests.
+             */
+            private Timer timer = new Timer();
+
             private static class MethodData
             {
                 final Method method;
@@ -363,12 +369,12 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
 
             private Object invoke(Object pInstance, Method pMethod, Object[] pArgs) throws XmlRpcException
             {
+                timer.start();
                 logger.debug("request: ->", pInstance.getClass().getSimpleName(), pMethod.getName());
                 logger.debug("request: invoking '{}.{}'...", pInstance.getClass().getSimpleName(), pMethod.getName());
                 try {
                     pMethod.setAccessible(true);
                     Object result = pMethod.invoke(pInstance, pArgs);
-                    logger.debug("request: <-");
                     return result;
                 }
                 catch (IllegalAccessException e) {
@@ -396,6 +402,9 @@ public class RpcServer extends org.apache.xmlrpc.webserver.WebServer
                             + pMethod.getName() + " in class "
                             + clazz.getName() + ": "
                             + throwable.getMessage(), throwable);
+                }
+                finally {
+                    logger.debug("request: <- ({} ms)", timer.stop());
                 }
             }
         }
