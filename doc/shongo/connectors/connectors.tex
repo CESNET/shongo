@@ -1,0 +1,491 @@
+\input{../preamble}
+
+\begin{document}
+
+\title{Shongo Connectors\\Implementation Notes}
+\author{Ondřej Bouda}
+\maketitle
+\tableofcontents
+
+\chapter{Overview}
+
+
+\section{Introduction}
+
+This document describes the task of implementing a device connector for Shongo.
+
+A connector is a component of Shongo. It runs as a standalone program, connected with the Shongo controller by means of the JADE framework. A single connector may manage one or more devices, using suitable connector drivers.
+
+
+\section{Communication with the Controller}
+
+All the communication between a connector and the controller is implemented using the JADE framework. Speaking in the JADE terminology, the controller serves as the main container for the domain, running the \texttt{Controller} agent, whereas a connector is a common container. In the connector container, there is a JADE agent for each device managed by the connector. The agents communicate only with the controller agent and the device they manage.
+
+Once the connector program gets started, it creates the JADE container, connects to the controller container, and runs agents according to the configuration file \texttt{connector.cfg.xml}. As described in the Appendix \ref{appendix:connector-config-example}, the configuration lists agents to be started upon the connector initialization, and for each agent, the configuration specifies the device the agent should manage:
+\begin{itemize}
+\item the concrete connector driver for the device to be managed (e.g., \\\texttt{cz.cesnet.shongo.connector.CiscoMCUConnector}),
+\item address on which to connect to the device,
+\item authentication credentials,
+\item driver options for the concrete device (reflecting the configuration of the concrete device, such as H.323 E164 number rewriting rules for MCUs).
+\end{itemize}
+
+Once a connector agent gets started, it is passed the \texttt{ManageCommand}, holding the configuration mentioned above. The agent connects to the device using the specified driver and listens to the controller agent for further commands. A command received from the controller is translated to a method call on the driver. The driver executes the method on the device and possibly returns a value, or throws an exception. Either way, the result is packaged and sent back to the controller. For more details regarding the communication, see the Shongo API document.
+
+
+\section{Controlling Devices from the Shongo CLI Client}
+
+Generally, anything beyond the communication between the controller and connectors is out of scope of this document. The only exception is the Shongo CLI client.
+
+The CLI client includes its own shell recognizing, among others, the \texttt{control-resource} client command. Through this client command, a device may be directly controlled. Once the \texttt{control-resource} client command is invoked, the control subshell is run, offering all the commands implemented by the driver for the device being controlled. The command is sent to the controller (using XML-RPC), which in turn sends it to the particular connector (using JADE). The connector then issues the command as described in the previous section. For the CLI client to offer commands for direct control of the device, it is necessary to specify the commands in the client, which is described in section \ref{defining-new-commands}.
+
+
+\section{Implementation Overview}
+
+There are five modules regarding connectors in the Shongo project:
+\begin{itemize}
+\item \texttt{common},
+\item \texttt{common-api},
+\item \texttt{client-cli},
+\item \texttt{connector},
+\item \texttt{connector-api}.
+\end{itemize}
+
+The \texttt{connector-api} module contains the \texttt{cz.cesnet.shongo.connector.api} package. In this package, there are connector interfaces recognized by Shongo and classes referred by the interfaces. In the \texttt{cz.cesnet.shongo.connector.api.ontology} subpackage, there are classes for communication with the Shongo controller using JADE, namely the ontology and all the commands the controller may send to a connector agent. These are described in section \ref{connector-commands}.
+
+The \texttt{connector} module contains the \texttt{cz.cesnet.shongo.connector} package, in which the main \texttt{Connector} class and all the connector driver classes reside.
+
+In the \texttt{client-cli} module, the CLI client is implemented in Perl.
+
+The \texttt{common} and \texttt{common-api} modules contain code used by multiple Shongo parts.
+
+
+
+\chapter{Implementation}
+
+
+\section{Connector Commands} \label{connector-commands}
+
+The \texttt{cz.cesnet.shongo.connector.api.ontology.actions} package from the \texttt{connector-api} module contains all commands the controller may send to a connector agent. Each command is specified by a class extending the \texttt{ConnectorAgentAction} abstract class, where the command parameters are defined as the class attributes (in other words, it is represented as a method object). This is necessary for the JADE communication framework to be able to pass the command to the connector, and for the connector to execute the command. The \texttt{ConnectorAgentAction} specifies an abstract \texttt{exec} method, which is given a connector driver object and should call the corresponding method on it. In other words, the \texttt{exec} method serves as a glue between the controller and the connector driver.
+
+An example in the appendix section \ref{appendix:command-class-example} illustrates representation of \texttt{ListParticipants} command, which should list all participants present in a given virtual room. Comments clarifying some aspects are included.
+
+
+\section{Defining New Commands} \label{defining-new-commands}
+
+When there is a need for a new command implemented by a connector driver, there are several things to be accomplished in order to integrate the command properly:
+\begin{enumerate}
+\item Add the command to the appropriate service interface.
+\item Implement the command in all connector drivers implementing the interface.
+\item Define the class representing the command call.
+\item Define the corresponding method in the \texttt{ResourceControlService} interface.
+\item Implement the method in the \texttt{ResourceControlServiceImpl} class.
+\item Define the command in the CLI client.
+\end{enumerate}
+
+The following subsections describe each step in detail. At the end of each subsection, concrete steps required to add the \texttt{ListParticipants} command are stated.
+
+
+\subsection{Adding the Command to the Service Interface} \label{defining-new-commands-adding-to-service-interface}
+
+The new command needs to be added as a method to the appropriate service interface from the \texttt{cz.cesnet.shongo.connector.api} package in the \texttt{connector-api} module. That might be the \texttt{CommonService} in the (rare) case any driver should offer the command, or the \texttt{EndpointService} for endpoints, or a particular "subinterface" of the \texttt{MultipointService}.
+
+In case there is no interface the command would fit in, a new service interface should be created, extending the \texttt{CommonService} interface, and connector drivers should implement it. All the commands from this \texttt{\textit{New}Service} should be defined in classes under the \\\texttt{cz.cesnet.shongo.connector.api.ontology.actions.\textit{New}} package, and the \texttt{ConnectorOntology} constructor should be modified to include this package in the ontology used by JADE (otherwise, the command call could not be transported by JADE).
+
+The method declared by the interface should declare throwing \texttt{CommandException} and \texttt{CommandUnsupportedException}, one of which may be thrown by the implementing methods. It may accept or return any parameters. The parameter types are restricted, though, to be transportable by JADE. The following types are supported:
+\begin{itemize}
+\item scalar Java types (including \texttt{java.lang.String}) are supported natively;
+\item classes tagged by the \texttt{jade.content.Concept} interface, defining the default constructor (without any arguments) and getters and setters for all attributes;
+\item serializable classes explicitly stated in the \texttt{ConnectorOntology} constructor -- added to the ontology by \texttt{SerializableOntology.getInstance().add(serializableSchema, \textit{class})}.
+\end{itemize}
+These rules apply recursively (i.e., if the class contains some attributes, the attribute types must also meet the criteria above).
+
+\bigskip
+
+As for the \texttt{ListParticipants} command, we add the \texttt{listParticipants} method to the \texttt{cz.cesnet.shongo.connector.api.UserService} interface:
+
+{ \small
+\begin{verbatim}
+package cz.cesnet.shongo.connector.api;
+
+public interface UserService
+{
+    // ...
+
+    /**
+     * Lists all users present in a virtual room.
+     *
+     * @param roomId room identifier
+     * @return array of room users
+     */
+    Collection<RoomUser> listParticipants(String roomId)
+            throws CommandException, CommandUnsupportedException;
+}
+\end{verbatim}
+}
+
+
+\subsection{Implementing the Command in Connector Drivers}
+
+The method from the interface is to be added to all implementing connector drivers, in the \texttt{connector} module. The concrete implementation of the command depends on the device.
+
+In case of an error, the implementing method should throw the \texttt{CommandException} with a reasonable description of the cause, and optionally include the causing exception, too.
+
+If the method cannot be implemented on the concrete device type (e.g., the device API does not allow this, or it is buggy), the method should throw the \texttt{CommandUnsupportedException}.
+
+There is an important note: if the method is implemented by the connector driver, it should \textit{not} declare throwing the \texttt{CommandUnsupportedException}. This is because the \texttt{CommonService} interface declares the \texttt{getSupportedMethods} method, implemented by the \texttt{AbstractConnector} class. This method should return the list of names of all methods really implemented by the connector driver (i.e., these which will not throw the \texttt{CommandUnsupportedException}). As there is (up to the author's knowledge) no other reasonable automatic way of determining which methods are implemented, the decision is based on the fact whether the \texttt{CommandUnsupportedException} is \textit{declared} by the implementing method. If it is, the method is considered not implemented and thus is not available for clients (as clients filter the commands offered to just the supported ones).
+
+\bigskip
+
+As for the \texttt{ListParticipants} command, we would add the following implementation to the \texttt{cz.cesnet.shongo.connector.CiscoMCUConnector} class:
+
+{ \small
+\begin{verbatim}
+package cz.cesnet.shongo.connector;
+
+public class CiscoMCUConnector extends AbstractConnector implements MultipointService
+{
+    // ...
+
+    @Override
+    public Collection<RoomUser> listParticipants(String roomId) throws CommandException
+    {
+        Command cmd = new Command("participant.enumerate");
+        cmd.setParameter("operationScope", new String[]{"currentState"});
+        cmd.setParameter("enumerateFilter", "connected");
+        List<Map<String, Object>> participants = execEnumerate(cmd, "participants");
+
+        List<RoomUser> result = new ArrayList<RoomUser>();
+        for (Map<String, Object> part : participants) {
+            if (!part.get("conferenceName").equals(roomId)) {
+                continue; // not from this room
+            }
+            result.add(extractRoomUser(part));
+        }
+
+        return result;
+    }
+}
+\end{verbatim}
+}
+
+If some other connector implements the \texttt{UserService} interface, but is not capable of listing the participants, it should implement the \texttt{listParticipants} method as follows:
+
+{ \small
+\begin{verbatim}
+package cz.cesnet.shongo.connector;
+
+public class DummyConnector extends AbstractConnector implements MultipointService
+{
+    // ...
+
+    @Override
+    public Collection<RoomUser> listParticipants(String roomId)
+            throws CommandUnsupportedException
+    {
+        throw new CommandUnsupportedException(
+            "The Dummy device does not support listing the participants.");
+    }
+}
+\end{verbatim}
+}
+
+
+\subsection{Defining the Command Call Class}
+
+In order to invoke a command by the controller on a connector driver, it has to be represented by a class in the \texttt{cz.cesnet.shongo.connector.api} package, module \texttt{connector-api}. Objects of this class are created on the controller, transported by JADE to the connector, and issue their function on a concrete connector driver object. Thus, the attributes of a command call class (the command arguments) must meet the same criteria as described in section \ref{defining-new-commands-adding-to-service-interface} to be transportable by JADE\footnote{But that should come by itself as the command class attributes should be the same as arguments of the method the command class represents.}.
+
+The command call class itself has to:
+\begin{itemize}
+\item extend the \texttt{ConnectorAgentAction} class; thus
+\item implement the \texttt{exec} method, which just issues the method on the connector driver (which is already defined in previous steps, see section \ref{defining-new-commands-adding-to-service-interface}), and returns the result, or \texttt{null} if the method returns \texttt{void};
+\item define the default constructor (i.e., without any arguments);
+\item define getters and setters for all attributes.
+\end{itemize}
+
+\bigskip
+
+See appendix \ref{appendix:command-class-example} for the \texttt{ListParticipants} command example.
+
+
+\subsection{Adding the Command to the \texttt{ResourceControlService} Interface}
+
+To make it possible to directly call the command from the client \texttt{control} subshell, it is necessary to add the corresponding method to the \texttt{ResourceControlService} interface of the Controller.
+
+The method should have the same name as defined in the first step (section \ref{defining-new-commands-adding-to-service-interface}) for the service interface.
+
+The method shall be annotated by \texttt{\@API} for the build system to generate proper bindings.
+
+The first two arguments of the method shall be \texttt{SecurityToken token} (the security token of the client calling the method is passed here) and \texttt{String deviceResourceId} (ID of the device on which to invoke the command). The rest of the arguments should copy the arguments of the method defined in the service interface.
+
+\bigskip
+
+The \texttt{ListParticipants} example follows:
+{ \small
+\begin{verbatim}
+package cz.cesnet.shongo.controller.api;
+
+public interface ResourceControlService extends Service
+{
+    // ...
+
+    @API
+    public Collection<RoomUser> listParticipants(
+            SecurityToken token, String deviceResourceId, String roomId)
+            throws FaultException;
+}
+\end{verbatim}
+}
+
+
+\subsection{Implementing the Method in the \texttt{ResourceControlServiceImpl} Class}
+
+The \texttt{ResourceControlService} has its implementation class, \texttt{ResourceControlServiceImpl}. Thus, the method declared in the previous step must be implemented.
+
+The implementation is quite simple -- just the security token must be validated, and, if it is OK, the command object is constructed and passed to the controller agent.
+
+\bigskip
+
+For the \texttt{ListParticipants} command, the implementation would look as follows:
+
+{ \small
+\begin{verbatim}
+package cz.cesnet.shongo.controller.api;
+
+public class ResourceControlServiceImpl extends Component
+        implements ResourceControlService, // ...
+{
+    // ...
+
+    @Override
+    public Collection<RoomUser> listParticipants(
+            SecurityToken token, String deviceResourceId, String roomId)
+            throws FaultException
+    {
+        authorization.validate(token);
+        return (List<RoomUser>) commandDevice(deviceResourceId, new ListParticipants(roomId));
+    }
+}
+\end{verbatim}
+}
+
+
+\subsection{Defining the Command in the CLI Client}
+
+Now, when the command is implemented both on controller, and the connectors, the remaining task is to support the command in the \texttt{control} subshell of the CLI client.
+
+The \texttt{control\_resource} function in the \texttt{Shongo::ClientCli::ResourceControlService} Perl package (script \texttt{ResourceControlService.pm} within the \texttt{client-cli} module) must be modified. The function defines the \texttt{control} subshell and runs it. To define the new command, it is necessary to add it to the subshell using the \texttt{add\_commands} method. The addition operation is to be performed only if the command is supported by the connected device -- hence the test for presence in the supported methods list, as illustrated by the example.
+
+\bigskip
+
+For the \texttt{ListParticipants} example, see Appendix \ref{appendix:cli-client-command-def-example}.
+
+
+\section{Implementing a New Connector Driver}
+
+For Shongo to manage a new type of device, a new connector driver has to be implemented. This section mentions some aspects of such a process.
+
+The driver shall be specified by a single class in the \texttt{cz.cesnet.shongo.connector} package. Let us call the class \texttt{\textit{New}Connector}. The only formal requirement is that it has to implement the \texttt{CommonService} interface. The \texttt{\textit{New}Connector} class is advisable to extend the \texttt{AbstractConnector} class, which implements some methods from the \texttt{CommonService}.
+
+Besides the \texttt{CommonService} interface, to offer its functionality, the \texttt{\textit{NewConnector}} should also implement one or more \texttt{Service} interfaces, depending on the type of the device. There is the \texttt{EndpointService} for endpoint devices and \texttt{MultipointService} for multipoint units. The \texttt{MultipointService} interface is further divided according to groups of functionality to \texttt{RoomService}, \texttt{UserService}, \texttt{IOService}, etc.
+
+Once the corresponding interfaces are implemented, the connector is ready to be used by Shongo. To setup a device using the implemented connector, the \texttt{Connector} configuration may be updated, as illustrated in Appendix \ref{appendix:connector-config-example}. The concrete implementation depends on the target device. There are some common notes, though, contained in the following subsections.
+
+
+\subsection{Connector Information}
+
+The connector driver shall maintain information about itself, the state of the device it manages, and the connection state. Such information are stored in the \texttt{info} attribute of the \texttt{AbstractConnector} (which is recommended as the base class for all connector drivers).
+
+The following attributes are defined in the \texttt{ConnectorInfo} object:
+\begin{itemize}
+\item \texttt{connectionState};
+\item \texttt{deviceAddress};
+\item \texttt{deviceInfo};
+\item \texttt{deviceState};
+\end{itemize}
+each of which are described below. The connection driver should maintain these values to reflect the actual state.
+
+The connection state is held in the \texttt{connectionState} attribute, and can have one of the following values:
+\begin{itemize}
+\item \textit{connected} -- the connection is established;
+\item \textit{loosely connected} -- if the device communicates using a stateless protocol, the connection cannot be established all the time; for these cases, the \textit{loosely connected} value reflects that the device responded recently and there was no explicit change regarding the connection state;
+\item \textit{reconnecting} -- the connection was lost and the connector is trying to reconnect to the device;
+\item \textit{disconnected} -- the connector is neither connected nor it is trying to connect.
+\end{itemize}
+
+The \texttt{deviceAddress} attribute contains address of the device currently being managed by the connector.
+
+The \texttt{deviceInfo} attribute contains static information about the device, such as its name, description, serial number, or software version.
+
+Device runtime information are stored in the \texttt{deviceState} object. Subclasses of the \texttt{DeviceState} class might be used according to the type of the device, such as \texttt{EndpointDeviceState}.
+
+
+\subsection{Communication Protocol}
+
+The protocol used to communicate with the device depends on the device API. Usually, some standard protocol (XML-RPC, SSH, etc.) is utilized by the manufacturer, so there might be common communication codebases for multiple connection drivers. Thus, it is advisable to create common abstract children of the \texttt{AbstractConnector}, which would contain supporting methods for a particular protocol. The \texttt{AbstractSSHConnector} could serve as an example for one such abstract connector class, being used by \texttt{CodecC90Connector} and \texttt{LifeSizeConnector} drivers.
+
+
+\subsection{Device Commands Representation}
+
+Usually, a uniform syntax is used for commands sent to the device. Apart from the protocol used, the connector always sends a command (optionally with some positional arguments or named parameters) to the device and receives the result. A \texttt{cz.cesnet.shongo.connector.Command} class may be used to represent commands to be sent to the device. Implementations of particular Service methods might then just create a device command object and pass it to a single method, which invokes the command according to the communication protocol.
+
+
+
+\appendix
+
+\chapter{Appendix}
+
+\section{Connector Configuration Example} \label{appendix:connector-config-example}
+
+As mentioned in the Communication with the Controller section, the connector application loads an XML configuration file specifying agents to start and devices to manage by them. An example XML follows, including comments for individual fields:
+
+{ \small
+\begin{verbatim}
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <!-- connector instances (agents) to automatically start -->
+    <instances>
+        <instance>
+            <!-- instance (agent) name - as defined by the controller -->
+            <name>c90</name>
+            <device> <!-- device to manage -->
+                <!-- connector driver class used for the device -->
+                <connectorClass>cz.cesnet.shongo.connector.CodecC90Connector</connectorClass>
+                <host>10.10.10.10</host> <!-- address of the device -->
+                <auth> <!-- authentication credentials -->
+                    <username>admin</username>
+                    <password>***</password>
+                </auth>
+            </device>
+        </instance>
+
+        <instance>
+            <name>mcu</name>
+            <device>
+                <connectorClass>cz.cesnet.shongo.connector.CiscoMCUConnector</connectorClass>
+                <host>mcu.example.com</host>
+                <auth>
+                    <username>shongo</username>
+                    <password>***</password>
+                </auth>
+                <!-- options for the connector on this device (optional) -->
+                <options>
+                    <!-- extraction of room number from a H.323 E164 number -->
+                    <roomNumberExtractionFromH323Number>(\d{3})$</roomNumberExtractionFromH323Number>
+                    <!-- extraction of room number from a SIP number URI -->
+                    <roomNumberExtractionFromSIPURI>^[+\d]*(\d{3})@</roomNumberExtractionFromSIPURI>
+                </options>
+            </device>
+        </instance>
+    </instances>
+</configuration>
+\end{verbatim}
+}
+
+
+\section{Command Class Example} \label{appendix:command-class-example}
+{ \small
+\begin{verbatim}
+package cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users;
+
+import cz.cesnet.shongo.api.CommandException;
+import cz.cesnet.shongo.api.CommandUnsupportedException;
+import cz.cesnet.shongo.connector.api.CommonService;
+import cz.cesnet.shongo.connector.api.ontology.ConnectorAgentAction;
+
+public class ListParticipants extends ConnectorAgentAction
+{
+    private String roomId; // parameter of the command - ID of the room to list
+
+    // necessary for JADE to be able to construct the command object
+    public ListParticipants() { }
+
+    public ListParticipants(String roomId) {
+        this.roomId = roomId;
+    }
+
+    // necessary for JADE to be able to read the parameter
+    public String getRoomId() {
+        return roomId;
+    }
+
+    // necessary for JADE to be able to write the parameter
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+
+    // the glue - calls the corresponding method on the connector driver
+    // note that the participants listing is only defined by the MultipointService
+    //   interface, hence the method getMultipoint() trying to cast the driver object properly
+    @Override
+    public Object exec(CommonService connector) throws CommandException, CommandUnsupportedException {
+        return getMultipoint(connector).listParticipants(roomId);
+    }
+
+    // just for logging purposes
+    public String toString() {
+        return String.format("ListParticipants agent action (roomId: %s)", roomId);
+    }
+}
+\end{verbatim}
+}
+
+
+\section{Example of Command Definition in the CLI Client} \label{appendix:cli-client-command-def-example}
+{ \small
+\begin{verbatim}
+package Shongo::ClientCli::ResourceControlService;
+# ...
+sub control_resource()
+{
+    # ...
+    if (grep $_ eq 'listParticipants', @supportedMethods) {
+        $shell->add_commands({
+            "list-participants" => {
+                desc => "List participants in a given room",
+                minargs => 1, args => "[roomId]",
+                method => sub {
+                    my ($shell, $params, @args) = @_;
+                    resource_list_participants($resourceId, $args[0]);
+                }
+            }
+        });
+    }
+
+    if ( defined($command) ) {
+        $shell->command($command);
+    }
+    else {
+        $shell->run();
+    }
+}
+
+# ...
+
+sub resource_list_participants
+{
+    my ($resourceId, $roomId) = @_;
+
+    my $response = Shongo::ClientCli->instance()->secure_request(
+        'ResourceControl.listParticipants',
+        RPC::XML::string->new($resourceId),
+        RPC::XML::string->new($roomId)
+    );
+    if ( $response->is_fault() ) {
+        return;
+    }
+    my $table = Text::Table->new(\'| ', 'Identifier', \' | ', 'Display name', \' | ',
+            'Join time', \' | ');
+    foreach my $roomUser (@{$response->value()}) {
+        $table->add(
+            $roomUser->{'userId'},
+            $roomUser->{'displayName'},
+            format_datetime($roomUser->{'joinTime'})
+        );
+    }
+    console_print_table($table);
+}
+\end{verbatim}
+}
+
+\end{document}
+
