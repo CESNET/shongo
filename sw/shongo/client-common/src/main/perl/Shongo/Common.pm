@@ -16,8 +16,8 @@ our @EXPORT = qw(
     array_value_exists
     get_enum_value
     get_collection_size get_collection_items get_collection_item set_collection_item add_collection_item remove_collection_item
-    get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item
-    format_datetime format_date format_period format_datetime_partial format_interval format_report
+    get_map_size get_map_items get_map_item_key get_map_item_value set_map_item add_map_item remove_map_item get_interval_end
+    format_datetime format_date format_period format_partial_datetime format_interval format_interval_date format_report
     var_dump
     get_home_directory get_term_width
     text_indent_lines
@@ -40,6 +40,13 @@ our $DateTimePartialPattern = '(^\\d\\d\\d\\d(-\\d\\d)?(-\\d\\d)?(T\\d\\d(:\\d\\
 
 # Represents a "null" constant
 use constant NULL => '__null__';
+
+# Enumeration of technologies
+our $Technology = ordered_hash(
+    'H323' => 'H.323',
+    'SIP' => 'SIP',
+    'ADOBE_CONNECT' => 'Adobe Connect'
+);
 
 #
 # Checks whether $value exists in the @array
@@ -585,7 +592,6 @@ sub format_period
                 }
             }
         }
-    #    var_dump($period);
     }
     return $period;
 }
@@ -610,7 +616,7 @@ sub format_date
 #
 # @param $dateTime
 #
-sub format_datetime_partial
+sub format_partial_datetime
 {
     my ($dateTime) = @_;
     if ( defined($dateTime) ) {
@@ -618,6 +624,45 @@ sub format_datetime_partial
     } else {
         return "";
     }
+}
+
+#
+# @param $period
+# @return parsed DateTime::Duration
+#
+sub parse_period
+{
+    my ($period) = @_;
+    if ( $period =~ /$PeriodPattern/ ) {
+        return DateTime::Duration->new(
+            years   => defined($3) ? $3 : 0,
+            months  => defined($5) ? $5 : 0,
+            days    => ((defined($7) ? (7 * $7) : 0)) + (defined($9) ? $9 : 0),
+            hours   => defined($12) ? $12 : 0,
+            minutes => defined($14) ? $14 : 0,
+            seconds => defined($16) ? $16 : 0
+        );
+    }
+    return undef;
+}
+
+#
+# @param $start
+# @param $duration
+# @return interval $end calculated from $start and $duration
+#
+sub get_interval_end
+{
+    my ($start, $duration) = @_;
+    if ( !ref($start) ) {
+        $start = DateTime::Format::ISO8601->parse_datetime($start);
+    }
+    if ( !ref($duration) ) {
+        $duration = parse_period($duration);
+    }
+    my $end = $start->clone();
+    $end->add_duration($duration);
+    return $end;
 }
 
 #
@@ -633,25 +678,34 @@ sub format_interval
         my $duration = $2;
         # Format as "<start>/<end>"
         if ( $force_datetimes || length($duration) > 5 ) {
-            $start = DateTime::Format::ISO8601->parse_datetime($start);
-            if ( $duration =~ /$PeriodPattern/ ) {
-                $duration = DateTime::Duration->new(
-                    years   => defined($3) ? $3 : 0,
-                    months  => defined($5) ? $5 : 0,
-                    days    => ((defined($7) ? (7 * $7) : 0)) + (defined($9) ? $9 : 0),
-                    hours   => defined($12) ? $12 : 0,
-                    minutes => defined($14) ? $14 : 0,
-                    seconds => defined($16) ? $16 : 0
-                );
-            }
-            my $end = $start->clone();
-            $end->add_duration($duration);
+            my $end = get_interval_end($start, $duration);
             return sprintf("%s/%s", format_datetime($start), format_datetime($end));
         }
         # Format as "<start>, <duration>"
         else {
             return sprintf("%s, %s", format_datetime($start), $duration);
         }
+    } else {
+        return "";
+    }
+}
+
+#
+# Format interval only as dates
+#
+# @param $interval
+#
+sub format_interval_date
+{
+    my ($interval) = @_;
+    if ( defined($interval) && $interval =~ m/(.*)\/(.*)/ ) {
+        my $start = $1;
+        my $duration = $2;
+        $start = DateTime::Format::ISO8601->parse_datetime($start);
+        $duration = parse_period($duration);
+        my $end = $start->clone();
+        $end->add_duration($duration);
+        return sprintf("%s/%s", format_date($start), format_date($end));
     } else {
         return "";
     }

@@ -10,6 +10,16 @@ use warnings;
 use Shongo::Common;
 
 #
+# Utility functions for templates
+#
+my $template_util = {
+    'format_datetime' => sub { format_datetime(@_); },
+    'format_partial_datetime' => sub { format_partial_datetime(@_); },
+    'format_date' => sub { format_date(@_); },
+    'format_period' => sub { format_period(@_); },
+};
+
+#
 # Create a new instance of object.
 #
 # @static
@@ -23,6 +33,9 @@ sub new
 
     $self->{'cgi'} = $cgi;
     $self->{'template'} = $template;
+    $self->{'template-parameters'} = {
+        'util' => $template_util
+    };
     $self->{'session'} = $session;
     $self->{'controller'} = {};
 
@@ -239,6 +252,9 @@ sub render_template
 {
     my ($self, $file, $parameters) = @_;
     my $result = undef;
+    foreach my $parameter (keys $self->{'template-parameters'}) {
+        $parameters->{$parameter} = $self->{'template-parameters'}->{$parameter};
+    }
     if ( $self->{template}->process($file, $parameters, \$result) ) {
         return $result;
     }

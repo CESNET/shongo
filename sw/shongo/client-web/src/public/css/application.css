@@ -121,3 +121,7 @@ td.empty {
     text-align: center;
     color: #AAAAAA;
 }
+
+pre {
+    word-break: normal;
+}

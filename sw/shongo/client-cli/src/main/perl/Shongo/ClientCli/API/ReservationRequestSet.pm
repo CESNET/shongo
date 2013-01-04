@@ -57,7 +57,7 @@ sub new()
                 if ( ref($start) ) {
                     my $startString = sprintf("(%s, %s", format_datetime($start->{'start'}), $start->{'period'});
                     if ( defined($start->{'end'}) ) {
-                        $startString .= ", " . format_datetime_partial($start->{'end'});
+                        $startString .= ", " . format_partial_datetime($start->{'end'});
                     }
                     $startString .= ")";
                     $start = $startString;

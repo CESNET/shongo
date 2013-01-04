@@ -429,7 +429,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @param transaction
      * @return available alias for given {@code technology} and {@code interval}
      */
-    public AvailableAlias getAvailableAlias(Technology technology, AliasType aliasType, Interval interval,
+    public AvailableAlias getAvailableAlias(Technology technology, AliasType aliasType, String value, Interval interval,
             Transaction transaction)
     {
         for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
@@ -437,7 +437,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                 continue;
             }
             AvailableAlias availableAlias =
-                    getAvailableAlias(aliasProviderCapability, technology, aliasType, interval, transaction);
+                    getAvailableAlias(aliasProviderCapability, technology, aliasType, value, interval, transaction);
             if (availableAlias != null) {
                 return availableAlias;
             }
@@ -455,7 +455,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
      * @return available alias for given {@code technology} and {@code interval}
      */
     public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Technology technology,
-            AliasType aliasType, Interval interval, Transaction transaction)
+            AliasType aliasType, String value, Interval interval, Transaction transaction)
     {
         if (technology != null && !aliasProviderCapability.providesAliasTechnology(technology)) {
             return null;
@@ -463,7 +463,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         if (aliasType != null && !aliasProviderCapability.providesAliasType(aliasType)) {
             return null;
         }
-        return aliasCache.getAvailableAlias(aliasProviderCapability, interval, transaction.getAliasCacheTransaction());
+        return aliasCache.getAvailableAlias(aliasProviderCapability, value, interval, transaction.getAliasCacheTransaction());
     }
 
     /**

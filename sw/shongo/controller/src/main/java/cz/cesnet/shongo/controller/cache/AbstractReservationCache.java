@@ -224,7 +224,7 @@ public abstract class AbstractReservationCache<T extends PersistentObject, R ext
      * @param entityManager   which should be used for accessing database
      */
     protected abstract void updateObjectState(T object, Interval workingInterval,
-                                              EntityManager entityManager);
+            EntityManager entityManager);
 
     /**
      * Represents a cached object state.

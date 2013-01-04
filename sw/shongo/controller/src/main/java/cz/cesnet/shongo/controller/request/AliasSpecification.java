@@ -43,6 +43,11 @@ public class AliasSpecification extends Specification implements ReservationTask
     private AliasType aliasType;
 
     /**
+     * Requested {@link String} value for the {@link Alias}.
+     */
+    private String value;
+
+    /**
      * Preferred {@link Resource} with {@link AliasProviderCapability}.
      */
     private Resource resource;
@@ -125,6 +130,23 @@ public class AliasSpecification extends Specification implements ReservationTask
     }
 
     /**
+     * @return {@link #value}
+     */
+    @Column
+    public String getValue()
+    {
+        return value;
+    }
+
+    /**
+     * @param value sets the {@link #value}
+     */
+    public void setValue(String value)
+    {
+        this.value = value;
+    }
+
+    /**
      * @return {@link #resource}
      */
     @OneToOne
@@ -175,7 +197,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                             resource.getCapabilities(AliasProviderCapability.class);
                     for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
                         availableAlias = getCache().getAvailableAlias(aliasProviderCapability, getTechnology(),
-                                getAliasType(), getInterval(), cacheTransaction
+                                getAliasType(), getValue(), getInterval(), cacheTransaction
                         );
                         if (availableAlias != null) {
                             break;
@@ -185,7 +207,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                 // Allocate alias from all resources in the cache
                 if (availableAlias == null) {
                     availableAlias = getCache().getAvailableAlias(
-                            getTechnology(), getAliasType(), getInterval(), cacheTransaction);
+                            getTechnology(), getAliasType(), getValue(), getInterval(), cacheTransaction);
                 }
                 if (availableAlias == null) {
                     throw new NoAvailableAliasReport(getTechnology(), getAliasType()).exception();
@@ -224,6 +246,7 @@ public class AliasSpecification extends Specification implements ReservationTask
                 (cz.cesnet.shongo.controller.api.AliasSpecification) specificationApi;
         aliasSpecificationApi.setTechnology(getTechnology());
         aliasSpecificationApi.setAliasType(getAliasType());
+        aliasSpecificationApi.setValue(getValue());
         if (getResource() != null) {
             aliasSpecificationApi.setResourceId(domain.formatId(getResource().getId()));
         }
@@ -242,6 +265,9 @@ public class AliasSpecification extends Specification implements ReservationTask
         }
         if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.ALIAS_TYPE)) {
             setAliasType(aliasSpecificationApi.getAliasType());
+        }
+        if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.VALUE)) {
+            setValue(aliasSpecificationApi.getValue());
         }
         if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.RESOURCE_ID)) {
             if (aliasSpecificationApi.getResourceId() == null) {

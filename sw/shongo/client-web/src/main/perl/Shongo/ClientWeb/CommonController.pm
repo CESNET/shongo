@@ -54,6 +54,47 @@ sub index_action
     $self->redirect('list');
 }
 
+sub list_reservation_requests
+{
+    my ($self, $technologies) = @_;
+
+    # Alias requests
+    my $aliasRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
+        'technology' => $technologies,
+        'specification' => 'AliasSpecification'
+    });
+    foreach my $aliasRequest (@{$aliasRequests}) {
+        my $state_code = lc($aliasRequest->{'state'});
+        $state_code =~ s/_/-/g;
+        $aliasRequest->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$aliasRequest->{'purpose'}};
+        $aliasRequest->{'stateCode'} = $state_code;
+        $aliasRequest->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$aliasRequest->{'state'}};
+        $aliasRequest->{'interval'} = format_interval_date($aliasRequest->{'earliestSlot'}, 1);
+    }
+
+    # Room requests
+    my $roomRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
+        'technology' => $technologies,
+        'specification' => 'RoomSpecification'
+    });
+    foreach my $roomRequest (@{$roomRequests}) {
+        my $state_code = lc($roomRequest->{'state'});
+        $state_code =~ s/_/-/g;
+        $roomRequest->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$roomRequest->{'purpose'}};
+        $roomRequest->{'stateCode'} = $state_code;
+        $roomRequest->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$roomRequest->{'state'}};
+        if ( $roomRequest->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
+            $roomRequest->{'start'} = format_datetime($1);
+            $roomRequest->{'duration'} = format_period($2);
+        }
+    }
+    $self->render_page('List of existing reservation requests', 'common/list.html', {
+        'technologies' => join("/", map($Shongo::Common::Technology->{$_}, @{$technologies})),
+        'roomRequests' => $roomRequests,
+        'aliasRequests' => $aliasRequests
+    });
+}
+
 sub delete_action
 {
     my ($self) = @_;
@@ -68,28 +109,6 @@ sub delete_action
             'id' => $id
         });
     }
-}
-
-sub list_reservation_requests
-{
-    my ($self, $title, $technologies) = @_;
-    my $requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
-        'technology' => $technologies
-    });
-    foreach my $request (@{$requests}) {
-        my $state_code = lc($request->{'state'});
-        $state_code =~ s/_/-/g;
-        $request->{'purpose'} = $ReservationRequestPurpose->{$request->{'purpose'}};
-        $request->{'stateCode'} = $state_code;
-        $request->{'state'} = $ReservationRequestState->{$request->{'state'}};
-        if ( $request->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
-            $request->{'start'} = format_datetime($1);
-            $request->{'duration'} = format_period($2);
-        }
-    }
-    $self->render_page($title, 'common/list.html', {
-        'requests' => $requests
-    });
 }
 
 #
@@ -130,7 +149,7 @@ sub parse_reservation_request
             $duration = 'PT' . $params->{'durationCount'} . 'H';
         }
         elsif ( $params->{'durationType'} eq 'day' ) {
-            $duration = 'P' . $params->{'durationCount'} . 'D';
+            $duration = 'P' . $params->{'durationC  ount'} . 'D';
         }
         else {
             die("Unknown duration type '$params->{'durationType'}'.");
@@ -207,8 +226,9 @@ sub get_reservation_request
     if ( $request->{'class'} eq 'ReservationRequest' ) {
         # Requested slot
         if ( $request->{'slot'} =~ /(.*)\/(.*)/ ) {
-            $request->{'start'} = format_datetime($1);
-            $request->{'duration'} = format_period($2);
+            $request->{'start'} = $1;
+            $request->{'duration'} = $2;
+            $request->{'end'} = get_interval_end($1, $2);
         }
 
         # Requested specification
@@ -223,9 +243,9 @@ sub get_reservation_request
             $self->error("Reservation request should have exactly one requested slot.");
         }
         my $slot = $request->{'slots'}->[0];
-        $request->{'duration'} = format_period($slot->{'duration'});
+        $request->{'duration'} = $slot->{'duration'};
         if ( ref($slot->{'start'}) eq 'HASH' ) {
-            $request->{'start'} = format_datetime($slot->{'start'}->{'start'});
+            $request->{'start'} = $slot->{'start'}->{'start'};
             if ( $slot->{'start'}->{'period'} eq 'P1D' ) {
                 $request->{'periodicity'} = 'daily';
             }
@@ -236,7 +256,7 @@ sub get_reservation_request
                 #$self->error("Unknown reservation request periodicity '$slot->{'start'}->{'period'}'.");
             }
             if ( defined($request->{'periodicity'}) ) {
-                $request->{'periodicityEnd'} = format_datetime_partial($slot->{'start'}->{'end'});
+                $request->{'periodicityEnd'} = $slot->{'start'}->{'end'};
             }
         }
         else {
@@ -253,8 +273,9 @@ sub get_reservation_request
         foreach my $child_request (@{$request->{'reservationRequests'}}) {
             # Requested slot
             if ( $child_request->{'slot'} =~ /(.*)\/(.*)/ ) {
-                $child_request->{'start'} = format_datetime($1);
-                $child_request->{'duration'} = format_period($2);
+                $child_request->{'start'} = $1;
+                $child_request->{'duration'} = $2;
+                $child_request->{'end'} = get_interval_end($1, $2);
             }
             push(@{$child_requests}, $child_request);
         }
@@ -270,14 +291,19 @@ sub get_reservation_request
     if ( !defined($specification) ) {
         $self->error("Reservation request should have specification defined.");
     }
-    if ( !($specification->{'class'} eq 'RoomSpecification') ) {
+    if ( $specification->{'class'} eq 'RoomSpecification' ) {
+        if ( !$specification->{'withAlias'} ) {
+            $self->error("Reservation request should request virtual room with aliases.");
+        }
+        $request->{'participantCount'} = $specification->{'participantCount'};
+    }
+    elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
+        # TODO: fill some attributes
+    }
+    else {
         $self->error("Reservation request should have room specification but '$specification->{'class'}' was present.");
     }
-    if ( !$specification->{'withAlias'} ) {
-        $self->error("Reservation request should request virtual room with aliases.");
-    }
     $request->{'specification'} = $specification;
-    $request->{'participantCount'} = $specification->{'participantCount'};
 
     # Allocated reservations
     $request->{'reservations'} = [];
@@ -295,70 +321,84 @@ sub get_reservation_request
 
         # Allocated reservation
         if ( defined($child_request->{'reservationId'}) ) {
-            my $reservation = $self->{'application'}->secure_request('Reservation.getReservation',
-                    $child_request->{'reservationId'});
-            if ( !($reservation->{'class'} eq 'RoomReservation') ) {
-                $self->error("Allocated reservation should be for room but '$reservation->{'class'}' was present.");
+            my $reservation = $self->{'application'}->secure_request('Reservation.getReservation', $child_request->{'reservationId'});
+            if ( $specification->{'class'} eq 'RoomSpecification' ) {
+                if ( !($reservation->{'class'} eq 'RoomReservation') ) {
+                    $self->error("Allocated reservation should be room but '$reservation->{'class'}' was present.");
+                }
+                $self->format_aliases($child_request, $reservation->{'executable'}->{'aliases'}, $state_code eq 'started');
             }
-
-            my $aliases = '';
-            my $aliases_description = '';
-            foreach my $alias (@{$reservation->{'executable'}->{'aliases'}}) {
-                if ( length($aliases) > 0 ) {
-                    $aliases .= ', ';
-                }
-                if ( $alias->{'type'} eq 'H323_E164' ) {
-                    $aliases .= $alias->{'value'};
-
-                    $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
-                    $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
-                }
-                elsif ( $alias->{'type'} eq 'H323_IDENTIFIER' ) {
-                    $aliases .= $alias->{'value'};
-
-                    $aliases_description .= '<dt>H.323 Identifier:</dt><dd>' . $alias->{'value'} . '</dd>';
-                }
-                elsif ( $alias->{'type'} eq 'H323_URI' ) {
-                    $aliases .= $alias->{'value'};
-
-                    $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $alias->{'value'} . '</dd>';
-                }
-                elsif ( $alias->{'type'} eq 'SIP_URI' ) {
-                    $aliases .= 'sip:' . $alias->{'value'};
-                    $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
-                }
-                elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
-                    my $url = $alias->{'value'};
-                    if ( $state_code eq 'started' ) {
-                        $aliases .= "<a href=\"$url\">$url</a>";
-                    }
-                    else {
-                        $aliases .= "$url";
-                    }
-                }
-                elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
-                    # skip
-                }
-                else {
-                    $self->error("Unknown alias type '$alias->{'type'}'.");
-                }
+            elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
+                $self->format_aliases($child_request, $reservation->{'aliases'}, $state_code eq 'started');
             }
-            if ( $state_code ne 'started' ) {
-                $aliases .= " <span class='muted'>(not available now)</span>";
-            }
-            if ( length($aliases_description) == 0 ){
-                $aliases_description = undef;
-            }
-            else {
-                $aliases_description = '<div class="popup"><dl class="dl-horizontal">' . $aliases_description . '</dl></div>';
-            }
-            $child_request->{'aliases'} = $aliases;
-            $child_request->{'aliasesDescription'} = $aliases_description;
         }
 
         push(@{$request->{'reservations'}}, $child_request);
     }
     return $request;
+}
+
+#
+# @param $reference  reference to hash where the 'aliases' and 'aliasesDescription' keys should be placed
+# @param $aliases    collection of aliases
+# @param $available  specifies whether aliases are available now
+#
+sub format_aliases
+{
+    my ($self, $reference, $aliases, $available) = @_;
+    my $aliases_text = '';
+    my $aliases_description = '';
+    foreach my $alias (@{$aliases}) {
+        if ( length($aliases_text) > 0 ) {
+            $aliases_text .= ', ';
+        }
+        if ( $alias->{'type'} eq 'H323_E164' ) {
+            $aliases_text .= $alias->{'value'};
+
+            $aliases_description .= '<dt>H.323 GDS number:</dt><dd>(00420)' . $alias->{'value'} . '</dd>';
+            $aliases_description .= '<dt>PSTN/phone:</dt><dd>+420' . $alias->{'value'} . '</dd>';
+        }
+        elsif ( $alias->{'type'} eq 'H323_IDENTIFIER' ) {
+            $aliases_text .= $alias->{'value'};
+
+            $aliases_description .= '<dt>H.323 Identifier:</dt><dd>' . $alias->{'value'} . '</dd>';
+        }
+        elsif ( $alias->{'type'} eq 'H323_URI' ) {
+            $aliases_text .= $alias->{'value'};
+
+            $aliases_description .= '<dt>H.323 IP:</dt><dd>' . $alias->{'value'} . '</dd>';
+        }
+        elsif ( $alias->{'type'} eq 'SIP_URI' ) {
+            $aliases_text .= 'sip:' . $alias->{'value'};
+            $aliases_description .= '<dt>SIP:</dt><dd>sip:' . $alias->{'value'} . '</dd>';
+        }
+        elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_URI' ) {
+            my $url = $alias->{'value'};
+            if ( $available ) {
+                $aliases_text .= "<a href=\"$url\">$url</a>";
+            }
+            else {
+                $aliases_text .= "$url";
+            }
+        }
+        elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
+            # skip
+        }
+        else {
+            $self->error("Unknown alias type '$alias->{'type'}'.");
+        }
+    }
+    if ( !$available ) {
+        $aliases_text .= " <span class='muted'>(not available now)</span>";
+    }
+    if ( length($aliases_description) == 0 ){
+        $aliases_description = undef;
+    }
+    else {
+        $aliases_description = '<div class="popup"><dl class="dl-horizontal">' . $aliases_description . '</dl></div>';
+    }
+    $reference->{'aliases'} = $aliases_text;
+    $reference->{'aliasesDescription'} = $aliases_description;
 }
 
 1;

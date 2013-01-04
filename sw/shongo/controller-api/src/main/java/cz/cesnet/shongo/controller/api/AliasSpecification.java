@@ -91,6 +91,22 @@ public class AliasSpecification extends Specification
     }
 
     /**
+     * @return {@link #VALUE}
+     */
+    public String getValue()
+    {
+        return getPropertyStorage().getValue(VALUE);
+    }
+
+    /**
+     * @param value sets the {@link #VALUE}
+     */
+    public void setValue(String value)
+    {
+        getPropertyStorage().setValue(VALUE, value);
+    }
+
+    /**
      * @return {@link #RESOURCE_ID}
      */
     public String getResourceId()

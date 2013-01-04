@@ -15,6 +15,11 @@ use Shongo::ClientWeb::WebAuthorization;
 use Shongo::ClientWeb::H323SipController;
 use Shongo::ClientWeb::AdobeConnectController;
 
+# Get directory
+use File::Spec::Functions;
+use File::Basename;
+my $directory = File::Spec::Functions::rel2abs(File::Basename::dirname($0));
+
 #
 # Single instance of ClientWeb class.
 #
@@ -46,6 +51,34 @@ sub new
     $self->add_action('sign-out', sub { $self->sign_out_action(); });
     $self->add_controller(Shongo::ClientWeb::H323SipController->new($self));
     $self->add_controller(Shongo::ClientWeb::AdobeConnectController->new($self));
+
+    # Load resources
+    my $resources = {};
+    open my $in, $directory . "/../resources/text.properties" or die $!;
+    while(<$in>) {
+        while ( m/(\S+)=(.+)/g ) {
+            my @name_parts = split('\.', $1);
+            my $name_parts_count = scalar(@name_parts) - 1;
+            my $index = 0;
+            my $current_key = 'resources';
+            my $current_ref = $self->{'template-parameters'};
+            foreach my $key (@name_parts) {
+                if ( !defined($current_ref->{$current_key}) ) {
+                    $current_ref->{$current_key} = {};
+                }
+                $current_ref = $current_ref->{$current_key};
+                $current_key = $key;
+            }
+            $current_ref->{$current_key} = $2;
+        }
+    }
+    close $in;
+
+    # Setup template utility functions
+    $self->{'template-parameters'}->{'util'}->{'tooltip'} = sub {
+        my ($id, $text) = @_;
+        return "\$('#$id').tooltip({'title': '$text', 'placement': 'right', 'trigger':'focus'});";
+    };
 
     return $self;
 }

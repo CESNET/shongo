@@ -1,0 +1,39 @@
+<h2>Reservations for room capacity</h2>
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Starting date/time</th>
+        <th>Duration</th>
+        <th>State</th>
+        <th>[% technologies %] alias</th>
+    </tr>
+    </thead>
+    <tbody>
+    [%- FOREACH reservation IN request.reservations %]
+    <tr>
+        <td>[% util.format_datetime(reservation.start) %]</td>
+        <td>[% util.format_period(reservation.duration) %]</td>
+        <td>
+            [%- IF reservation.stateReport -%]
+                [% reservation.stateReport = '<pre>' _ reservation.stateReport _ '</pre>' %]
+            [%- END -%]
+            [%- INCLUDE common/text_with_tooltip.html
+                    class        = 'state-' _ reservation.stateCode
+                    text         = reservation.state
+                    tooltipId    = 'state-report-' _ loop.index
+                    tooltipClass = 'state-report'
+                    tooltipText  = reservation.stateReport
+            -%]
+        </td>
+        <td>
+            [%- INCLUDE common/text_with_tooltip.html
+                    text         = reservation.aliases
+                    tooltipId    = 'aliases-description-' _ loop.index
+                    tooltipClass = 'aliases-description'
+                    tooltipText  = reservation.aliasesDescription
+            -%]
+        </td>
+    </tr>
+    [%- END %]
+    </tbody>
+</table>

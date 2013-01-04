@@ -1,0 +1,17 @@
+[%#
+    @param class         CSS class for the text
+    @param text          Text to be rendered
+    @param tooltipId     Unique ID of the text tooltip
+    @param tooltipClass  CSS class for the tooltip
+    @param tooltipText   Text to be rendered into tooltip
+-%]
+[% IF tooltipText -%]
+<span onmouseover="javascript: window.showNode('[% tooltipId %]', true);"
+      onmouseout="javascript: window.showNode('[% tooltipId %]', false);"
+      class="[% class %]">[% text %]</span>
+<div id='[% tooltipId %]' class="[% tooltipClass %]">
+    [% tooltipText -%]
+</div>
+[%- ELSE -%]
+<span class="[% class %]">[% text %]</span>
+[%- END %]

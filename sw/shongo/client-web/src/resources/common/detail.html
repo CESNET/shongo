@@ -1,0 +1,85 @@
+<h1>Detail of reservation request for [%- technologies -%]
+[% IF request.specification.class == 'RoomSpecification' %]
+    room capacity
+[% ELSIF request.specification.class == 'AliasSpecification' %]
+    alias
+[% END %]
+</h1>
+
+<script type="text/javascript">
+    window.showNode = function(nodeId, show) {
+        var stateReport = document.getElementById(nodeId);
+        if ( show == null ) {
+            show = stateReport.style.display == 'none';
+        }
+        stateReport.style.display = show ? 'block' : 'none';
+    };
+</script>
+
+<dl class="dl-horizontal">
+
+    <dt>Identifier:</dt>
+    <dd>[% request.id %]</dd>
+    <dt>Name:</dt>
+    <dd>[% request.name %]</dd>
+    <dt>Purpose:</dt>
+    <dd>[% request.purpose %]</dd>
+
+[%- IF request.specification.class == 'RoomSpecification' -%]
+    <dt>Start date/time:</dt>
+    <dd>[% util.format_datetime(request.start) %]</dd>
+    <dt>Duration:</dt>
+    <dd>[% util.format_period(request.duration) %]</dd>
+    <dt>Periodicity:</dt>
+    <dd>[% request.periodicity %] [% IF request.periodicityEnd %](end: [% util.format_partial_datetime(request.periodicityEnd) %])[% END %]</dd>
+    <dt>Number of participants:</dt>
+    <dd>[% request.participantCount %]</dd>
+[%- ELSIF request.specification.class == 'AliasSpecification' -%]
+    <dt>Validity:</dt>
+    <dd>[% util.format_date(request.start) %]/[% util.format_date(request.end) %]</dd>
+    <dt>State:</dt>
+    <dd>
+        [%- reservation = request.reservations.0 %]
+        [%- IF reservation.stateReport -%]
+            [% reservation.stateReport = '<pre>' _ reservation.stateReport _ '</pre>' %]
+        [%- END -%]
+        [%- INCLUDE common/text_with_tooltip.html
+                class        = 'state-' _ reservation.stateCode
+                text         = reservation.state
+                tooltipId    = 'state-report-' _ loop.index
+                tooltipClass = 'state-report'
+                tooltipText  = reservation.stateReport
+        -%]
+    </dd>
+    <dt>Allocated Alias:</dt>
+    <dd>
+        [%- INCLUDE common/text_with_tooltip.html
+                text         = reservation.aliases
+                tooltipId    = 'aliases-description-' _ loop.index
+                tooltipClass = 'aliases-description'
+                tooltipText  = reservation.aliasesDescription
+        -%]
+        [% 'None' IF !reservation.aliases %]
+    </dd>
+[%- END -%]
+
+[%- FOREACH attribute IN request.attributes %]
+    <dt>[% attribute.name %]</dt>
+    <dd>[% attribute.value %]</dd>
+[%- END -%]
+
+</dl>
+
+[%- IF request.specification.class == 'RoomSpecification' -%]
+    [% INCLUDE common/detail_room.html %]
+[% END -%]
+
+[%- IF request.specification.class == 'AliasSpecification' -%]
+
+[% END -%]
+
+<div class="pull-right">
+    <a class="btn btn-primary" href="[% location %]/list">Back</a>
+    <a class="btn" href="">Refresh</a>
+    <a class="btn" href="[% location %]/delete?id=[% request.id %]">Delete</a>
+</div>

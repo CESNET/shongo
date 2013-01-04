@@ -28,41 +28,7 @@ sub index_action
 sub list_action
 {
     my ($self) = @_;
-
-    # Alias requests
-    my $aliasRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
-        'technology' => ['H323', 'SIP'],
-        'specification' => 'AliasSpecification'
-    });
-    foreach my $aliasRequest (@{$aliasRequests}) {
-        my $state_code = lc($aliasRequest->{'state'});
-        $state_code =~ s/_/-/g;
-        $aliasRequest->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$aliasRequest->{'purpose'}};
-        $aliasRequest->{'stateCode'} = $state_code;
-        $aliasRequest->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$aliasRequest->{'state'}};
-        $aliasRequest->{'interval'} = format_interval($aliasRequest->{'earliestSlot'}, 1);
-    }
-
-    # Room requests
-    my $roomRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
-        'technology' => ['H323', 'SIP'],
-        'specification' => 'RoomSpecification'
-    });
-    foreach my $roomRequest (@{$roomRequests}) {
-        my $state_code = lc($roomRequest->{'state'});
-        $state_code =~ s/_/-/g;
-        $roomRequest->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$roomRequest->{'purpose'}};
-        $roomRequest->{'stateCode'} = $state_code;
-        $roomRequest->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$roomRequest->{'state'}};
-        if ( $roomRequest->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
-            $roomRequest->{'start'} = format_datetime($1);
-            $roomRequest->{'duration'} = format_period($2);
-        }
-    }
-    $self->render_page('List of existing H323/SIP reservation requests', 'h323-sip/list.html', {
-        'roomRequests' => $roomRequests,
-        'aliasRequests' => $aliasRequests
-    });
+    $self->list_reservation_requests(['H323', 'SIP']);
 }
 
 sub create_action
@@ -146,7 +112,7 @@ sub create_alias_action
     $params->{'options'} = {
         'jquery' => 1
     };
-    $self->render_page('New H323/SIP alias reservation request', 'h323-sip/create-alias.html', $params);
+    $self->render_page('New reservation request', 'h323-sip/create-alias.html', $params);
 }
 
 sub detail_action
@@ -157,19 +123,23 @@ sub detail_action
 
     # Add PIN
     my $specification = $request->{'specification'};
-    if ( defined($specification->{'roomSettings'}) && @{$specification->{'roomSettings'}} > 0 ) {
-        my $roomSetting = $specification->{'roomSettings'}->[0];
-        if ( $roomSetting->{'class'} ne 'RoomSetting.H323' ) {
-            $self->error("Reservation request should contains only room setttings for 'H323' but '$roomSetting->{'class'}' was present.");
+    if ( $specification->{'class'} eq 'RoomSpecification' ) {
+        if ( defined($specification->{'roomSettings'}) && @{$specification->{'roomSettings'}} > 0 ) {
+            my $roomSetting = $specification->{'roomSettings'}->[0];
+            if ( $roomSetting->{'class'} ne 'RoomSetting.H323' ) {
+                $self->error("Reservation request should contains only room setttings for 'H323' but '$roomSetting->{'class'}' was present.");
+            }
+            $request->{'pin'} = $roomSetting->{'pin'};
         }
-        $request->{'pin'} = $roomSetting->{'pin'};
-    }
-    if ( !defined($request->{'pin'}) || $request->{'pin'} eq '' ) {
-        $request->{'pin'} = 'none';
+        if ( !defined($request->{'pin'}) || $request->{'pin'} eq '' ) {
+            $request->{'pin'} = 'none';
+        }
+        push(@{$request->{'attributes'}}, {'name' => 'PIN', 'value' => $request->{'pin'}});
     }
 
-    $self->render_page('Detail of existing H323/SIP reservation request', 'h323-sip/detail.html', {
-        'request' => $request
+    $self->render_page('Detail of reservation request', 'common/detail.html', {
+        'technologies' => 'H.323/SIP',
+        'request' => $request,
     });
 }
 

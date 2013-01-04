@@ -14,7 +14,7 @@ use Shongo::Console;
 use Shongo::ClientCli::API::Capability;
 
 # Enumeration of technologies
-our $Technology = ordered_hash('H323' => 'H.323', 'SIP' => 'SIP', 'ADOBE_CONNECT' => 'Adobe Connect');
+our $Technology = $Shongo::Common::Technology;
 
 #
 # Create a new instance of resource

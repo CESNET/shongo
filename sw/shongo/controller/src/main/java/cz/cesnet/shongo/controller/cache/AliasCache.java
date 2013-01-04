@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.cache;
 
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.resource.*;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -111,13 +112,16 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
      * @param transaction
      * @return available alias for given {@code interval} from given {@code aliasProviderCapability}
      */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Interval interval,
-            Transaction transaction)
+    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, String requestedValue,
+            Interval interval, Transaction transaction)
     {
         // Check if resource can be allocated and if it is available in the future
         Resource resource = aliasProviderCapability.getResource();
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return null;
+        }
+        if (requestedValue != null) {
+            throw new TodoImplementException("Implement get requested available alias");
         }
 
         // Find available alias value
