@@ -59,39 +59,26 @@ sub list_reservation_requests
     my ($self, $technologies) = @_;
 
     # Alias requests
-    my $aliasRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
+    my $alias_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
         'technology' => $technologies,
         'specificationClass' => 'AliasSpecification'
     });
-    foreach my $aliasRequest (@{$aliasRequests}) {
-        my $state_code = lc($aliasRequest->{'state'});
-        $state_code =~ s/_/-/g;
-        $aliasRequest->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$aliasRequest->{'purpose'}};
-        $aliasRequest->{'stateCode'} = $state_code;
-        $aliasRequest->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$aliasRequest->{'state'}};
-        $aliasRequest->{'interval'} = format_interval_date($aliasRequest->{'earliestSlot'}, 1);
+    foreach my $request_alias (@{$alias_requests}) {
+        $self->process_reservation_request_summary($request_alias);
     }
 
     # Room requests
-    my $roomRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
+    my $room_requests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
         'technology' => $technologies,
         'specificationClass' => 'RoomSpecification'
     });
-    foreach my $roomRequest (@{$roomRequests}) {
-        my $state_code = lc($roomRequest->{'state'});
-        $state_code =~ s/_/-/g;
-        $roomRequest->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$roomRequest->{'purpose'}};
-        $roomRequest->{'stateCode'} = $state_code;
-        $roomRequest->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$roomRequest->{'state'}};
-        if ( $roomRequest->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
-            $roomRequest->{'start'} = format_datetime($1);
-            $roomRequest->{'duration'} = format_period($2);
-        }
+    foreach my $request_room (@{$room_requests}) {
+        $self->process_reservation_request_summary($request_room);
     }
     $self->render_page('List of existing reservation requests', 'common/list.html', {
         'technologies' => join("/", map($Shongo::Common::Technology->{$_}, @{$technologies})),
-        'roomRequests' => $roomRequests,
-        'aliasRequests' => $aliasRequests
+        'roomRequests' => $room_requests,
+        'aliasRequests' => $alias_requests
     });
 }
 
@@ -258,7 +245,7 @@ sub get_reservation_request
                 $request->{'periodicity'} = 'weekly';
             }
             else {
-                #$self->error("Unknown reservation request periodicity '$slot->{'start'}->{'period'}'.");
+                $self->error("Unknown reservation request periodicity '$slot->{'start'}->{'period'}'.");
             }
             if ( defined($request->{'periodicity'}) ) {
                 $request->{'periodicityEnd'} = $slot->{'start'}->{'end'};
@@ -334,7 +321,18 @@ sub get_reservation_request
                 $self->format_aliases($child_request, $reservation->{'executable'}->{'aliases'}, $state_code eq 'started');
             }
             elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
+                if ( !($reservation->{'class'} eq 'AliasReservation') ) {
+                    $self->error("Allocated reservation should be alias but '$reservation->{'class'}' was present.");
+                }
                 $self->format_aliases($child_request, $reservation->{'aliases'}, $state_code eq 'started');
+
+                my $aliasUsageRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
+                    'providedReservationId' => $request->{'reservationId'}
+                });
+                foreach my $aliasUsageRequest (@{$aliasUsageRequests}) {
+                    $self->process_reservation_request_summary($aliasUsageRequest);
+                }
+                $child_request->{'aliasUsageRequests'} = $aliasUsageRequests;
             }
         }
 
@@ -358,6 +356,23 @@ sub get_reservations
     }
     my $reservations = $self->{'application'}->secure_request('Reservation.listReservations', $filter);
     return $reservations;
+}
+
+#
+# @param $request_summary to be processed
+#
+sub process_reservation_request_summary
+{
+    my ($self, $request_summary) = @_;
+    my $state_code = lc($request_summary->{'state'});
+    $state_code =~ s/_/-/g;
+    $request_summary->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request_summary->{'purpose'}};
+    $request_summary->{'stateCode'} = $state_code;
+    $request_summary->{'state'} = $Shongo::ClientWeb::CommonController::ReservationRequestState->{$request_summary->{'state'}};
+    if ( $request_summary->{'earliestSlot'} =~ /(.*)\/(.*)/ ) {
+        $request_summary->{'start'} = $1;
+        $request_summary->{'duration'} = $2;
+    }
 }
 
 #

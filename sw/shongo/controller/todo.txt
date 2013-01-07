@@ -1,8 +1,22 @@
+* Allow only single specification in reservationrequestset, create MultipleCompartmentSpecification
+
+* Add reservationRequestReference to specification (remove reference to reservation from requests)
+
+* Update API
+  -list reservation request
+  -list reservations
+  -specifications
+  -reservation reference
+
+* Check whether provided reservation's slot contains current reservation request slot (in scheduler)
+
 * Web client - alias reservations:
   - add list of alias reservations above the existing list of reservations
   - create request for alias (you cannot use it, you must first request capacity)
   - create request for capacity
   - add combo to request
+
+* Implement better web client "back button"
 
 * Adobe connect
   - create/delete room by alias reservation

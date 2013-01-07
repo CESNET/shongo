@@ -242,8 +242,16 @@ public class ReservationServiceImpl extends Component
         Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specificationClasses =
                 DatabaseFilter.getClassesFromFilter(filter, "specificationClass",
                         cz.cesnet.shongo.controller.request.Specification.class);
+        Long providedReservationId = null;
+        if (filter != null) {
+            if (filter.containsKey("providedReservationId")) {
+                providedReservationId = domain.parseId((String) Converter.convert(
+                        filter.get("providedReservationId"), String.class));
+            }
+        }
+
         List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
-                reservationRequestManager.list(userId, technologies, specificationClasses);
+                reservationRequestManager.list(userId, technologies, specificationClasses, providedReservationId);
 
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
         for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {

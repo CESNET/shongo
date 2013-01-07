@@ -8,7 +8,6 @@ import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.EntityToDeleteIsReferencedException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.util.Timer;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
@@ -255,13 +254,14 @@ public class ReservationRequestManager extends AbstractManager
     }
 
     /**
-     * @param userId         requested owner
-     * @param technologies   requested technologies
-     * @param specificationClasses
+     * @param userId                requested owner
+     * @param technologies          requested technologies
+     * @param specificationClasses  set of classes for specifications which are allowed
+     * @param providedReservationId identifier of reservation which must be provided
      * @return list all reservation requests for given {@code owner} and {@code technologies} in the database.
      */
     public List<AbstractReservationRequest> list(String userId, Set<Technology> technologies,
-            Set<Class<? extends Specification>> specificationClasses)
+            Set<Class<? extends Specification>> specificationClasses, Long providedReservationId)
     {
         DatabaseFilter filter = new DatabaseFilter("request");
         filter.addFilter("(TYPE(request) != ReservationRequest OR request.createdBy = :createdBy)");
@@ -304,6 +304,16 @@ public class ReservationRequestManager extends AbstractManager
                     + "        TYPE(reservationRequestSpecification) IN(:classes)"
                     + ")");
             filter.addFilterParameter("classes", specificationClasses);
+        }
+        if (providedReservationId != null) {
+            // List only reservation requests which got provided given reservation
+            filter.addFilter("request IN ("
+                    + "  SELECT reservationRequest"
+                    + "  FROM NormalReservationRequest reservationRequest"
+                    + "  LEFT JOIN reservationRequest.providedReservations providedReservation"
+                    + "  WHERE providedReservation.id = :providedReservationId"
+                    + ")");
+            filter.addFilterParameter("providedReservationId", providedReservationId);
         }
         TypedQuery<AbstractReservationRequest> query = entityManager.createQuery("SELECT request"
                 + " FROM AbstractReservationRequest request"

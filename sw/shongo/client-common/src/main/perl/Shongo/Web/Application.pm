@@ -17,6 +17,7 @@ my $template_util = {
     'format_partial_datetime' => sub { format_partial_datetime(@_); },
     'format_date' => sub { format_date(@_); },
     'format_period' => sub { format_period(@_); },
+    'format_interval_date' => sub { format_interval_date(@_); },
 };
 
 #

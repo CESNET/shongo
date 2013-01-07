@@ -195,6 +195,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             resourceCache.loadObjects(entityManager);
             aliasCache.loadObjects(entityManager);
+            reusedReservationCache.loadObjects(entityManager);
             entityManager.close();
         }
     }
