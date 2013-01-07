@@ -15,6 +15,7 @@ use Shongo::Console;
 use Shongo::ClientCli::API::Alias;
 use Shongo::ClientCli::API::DeviceResource;
 use Shongo::ClientCli::API::Person;
+use Shongo::ClientCli::API::CompartmentSpecification;
 use Shongo::ClientCli::API::ParticipantSpecification;
 
 #
@@ -23,6 +24,7 @@ use Shongo::ClientCli::API::ParticipantSpecification;
 our $RootType = ordered_hash(
     'ResourceSpecification' => 'Resource',
     'CompartmentSpecification' => 'Compartment',
+    'MultiCompartmentSpecification' => 'Multi-Compartment',
     'AliasSpecification' => 'Alias',
     'RoomSpecification' => 'Virtual Room'
 );
@@ -107,7 +109,7 @@ sub on_init()
             $self->add_attribute('specifications', {
                 'type' => 'collection',
                 'item' => {
-                    'title' => 'specification',
+                    'title' => 'compartment',
                     'class' => 'Shongo::ClientCli::API::CompartmentSpecification',
                 },
                 'complex' => 0,

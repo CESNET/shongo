@@ -75,7 +75,10 @@ public abstract class Specification extends PersistentObject
             EntityManager entityManager, Domain domain) throws FaultException
     {
         Specification specification = null;
-        if (api instanceof cz.cesnet.shongo.controller.api.CompartmentSpecification) {
+        if (api instanceof cz.cesnet.shongo.controller.api.MultiCompartmentSpecification) {
+            specification = new MultiCompartmentSpecification();
+        }
+        else if (api instanceof cz.cesnet.shongo.controller.api.CompartmentSpecification) {
             specification = new CompartmentSpecification();
         }
         else if (api instanceof cz.cesnet.shongo.controller.api.ExistingEndpointSpecification) {

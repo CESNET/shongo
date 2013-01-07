@@ -268,7 +268,7 @@ sub get_reservation_for_request()
     }
     my $result = Shongo::ClientCli->instance()->secure_request(
         'Reservation.listReservations',
-        RPC::XML::string->new($id)
+        {'reservationRequestId' => $id}
     );
     if ( $result->is_fault ) {
         return;

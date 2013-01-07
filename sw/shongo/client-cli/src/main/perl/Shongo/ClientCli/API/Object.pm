@@ -256,7 +256,7 @@ sub add_attribute
         if ( defined($attribute->{'item'}->{'class'}) ) {
             # Generate callbacks for given class
             $attribute->{'item'}->{'add'} = sub {
-                my $item = $attribute->{'item'}->{'class'}->create();
+                my $item = get_perl_class($attribute->{'item'}->{'class'})->create();
                 return $item;
             };
             $attribute->{'item'}->{'modify'} = sub {
@@ -1215,13 +1215,16 @@ sub to_xml()
 sub get_perl_class
 {
     my ($class) = @_;
+    if ( $class =~ /^Shongo::ClientCli::API::/ ) {
+        return $class;
+    }
     foreach my $key (keys %{$ClassMapping}) {
         my $value = $ClassMapping->{$key};
         if ( $class =~ /$key/ ) {
             return $value;
         }
     }
-    return undef;
+    return 'Shongo::ClientCli::API::' . $class;
 }
 
 #
@@ -1234,9 +1237,6 @@ sub create_instance
 {
     my ($class, $attribute) = @_;
     my $perl_class = get_perl_class($class);
-    if ( !defined($perl_class) ) {
-        $perl_class = 'Shongo::ClientCli::API::' . $class;
-    }
     my $instance = eval($perl_class . '->new()');
     if ( !defined($instance) && defined($attribute) && ($attribute->{'type'} eq 'collection' || $attribute->{'type'} eq 'map')
          && defined($attribute->{'item'}->{'class'}) )

@@ -1,9 +1,9 @@
 #
-# Participant specification
+# Compartment specification
 #
 # @author Martin Srom <martin.srom@cesnet.cz>
 #
-package Shongo::ClientCli::API::ParticipantSpecification;
+package Shongo::ClientCli::API::CompartmentSpecification;
 use base qw(Shongo::ClientCli::API::Specification);
 
 use strict;
@@ -14,7 +14,7 @@ use Shongo::Common;
 use Shongo::Console;
 
 #
-# Create a new instance of participant specification
+# Create a new instance of compartment specification
 #
 # @static
 #
@@ -34,7 +34,7 @@ sub new()
 sub select_type($)
 {
     my ($type) = @_;
-    return console_edit_enum('Select type of specification', $Shongo::ClientCli::API::Specification::ParticipantType, $type);
+    return 'CompartmentSpecification';
 }
 
 1;
