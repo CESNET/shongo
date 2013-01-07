@@ -165,14 +165,13 @@ sub parse_reservation_request
     # Setup request
     $request->{'name'} = $params->{'name'};
     $request->{'purpose'} = $params->{'purpose'};
+    $request->{'specification'} = $specification;
     if ( !defined($params->{'periodicity'}) || $params->{'periodicity'} eq 'none') {
         $request->{'class'} = 'ReservationRequest';
         $request->{'slot'} = $params->{'start'} . '/' . $duration;
-        $request->{'specification'} = $specification;
     }
     else {
         $request->{'class'} = 'ReservationRequestSet';
-        $request->{'specifications'} = [$specification];
         my $start = {
             'class' => 'PeriodicDateTime',
             'start' => $params->{'start'}
@@ -213,7 +212,6 @@ sub get_reservation_request
     my $request = $self->{'application'}->secure_request('Reservation.getReservationRequest', $id);
     $request->{'purpose'} = $Shongo::ClientWeb::CommonController::ReservationRequestPurpose->{$request->{'purpose'}};
 
-    my $specification = undef;
     my $child_requests = [];
     if ( $request->{'class'} eq 'ReservationRequest' ) {
         # Requested slot
@@ -222,9 +220,6 @@ sub get_reservation_request
             $request->{'duration'} = $2;
             $request->{'end'} = get_interval_end($1, $2);
         }
-
-        # Requested specification
-        $specification = $request->{'specification'};
 
         # Child requests
         push(@{$child_requests}, $request);
@@ -255,12 +250,6 @@ sub get_reservation_request
             $request->{'start'} = format_datetime($slot->{'start'});
         }
 
-        # Requested specification
-        if ( scalar(@{$request->{'specifications'}}) != 1 ) {
-            $self->error("Reservation request should have exactly one specification.");
-        }
-        $specification = $request->{'specifications'}->[0];
-
         # Child requests
         foreach my $child_request (@{$request->{'reservationRequests'}}) {
             # Requested slot
@@ -280,6 +269,7 @@ sub get_reservation_request
     }
 
     # Requested specification
+    my $specification = $request->{'specification'};
     if ( !defined($specification) ) {
         $self->error("Reservation request should have specification defined.");
     }

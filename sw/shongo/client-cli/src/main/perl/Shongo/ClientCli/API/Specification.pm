@@ -103,6 +103,17 @@ sub on_init()
     }
 
     switch ($class) {
+        case 'MultiCompartmentSpecification' {
+            $self->add_attribute('specifications', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'specification',
+                    'class' => 'Shongo::ClientCli::API::CompartmentSpecification',
+                },
+                'complex' => 0,
+                'display' => 'newline'
+            });
+        }
         case 'CompartmentSpecification' {
             $self->add_attribute('callInitiation', {
                 'title' => 'Call Initiation',

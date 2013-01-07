@@ -45,24 +45,6 @@ sub new()
         'complex' => 1,
         'required' => 1
     });
-    $self->add_attribute('specification', {
-        'complex' => 1,
-        'modify' => sub {
-            my ($specification) = @_;
-            my $class = undef;
-            if ( defined($specification) ) {
-                $class = $specification->{'class'};
-            }
-            $class = Shongo::ClientCli::API::Specification::select_type($class);
-            if ( !defined($specification) || !($class eq $specification->get_object_class()) ) {
-                $specification = Shongo::ClientCli::API::Specification->create({'class' => $class});
-            } else {
-                $specification->modify();
-            }
-            return $specification;
-        },
-        'required' => 1
-    });
     $self->add_attribute('state', {
         'title' =>'Current State',
         'format' => sub {

@@ -28,6 +28,11 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     private ReservationRequestPurpose purpose;
 
     /**
+     * {@link Specification} of target which is requested for a reservation.
+     */
+    private Specification specification;
+
+    /**
      * Option that specifies whether inter-domain resource lookup can be performed.
      */
     private boolean interDomain;
@@ -54,6 +59,23 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     public void setPurpose(ReservationRequestPurpose purpose)
     {
         this.purpose = purpose;
+    }
+
+    /**
+     * @return {@link #specification}
+     */
+    @ManyToOne(cascade = CascadeType.ALL)
+    public Specification getSpecification()
+    {
+        return specification;
+    }
+
+    /**
+     * @param specification sets the {@link #specification}
+     */
+    public void setSpecification(Specification specification)
+    {
+        this.specification = specification;
     }
 
     /**
@@ -148,6 +170,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         cz.cesnet.shongo.controller.api.NormalReservationRequest normalReservationRequestApi =
                 (cz.cesnet.shongo.controller.api.NormalReservationRequest) api;
         normalReservationRequestApi.setPurpose(getPurpose());
+        normalReservationRequestApi.setSpecification(getSpecification().toApi(domain));
         normalReservationRequestApi.setInterDomain(isInterDomain());
         for (Reservation providedReservation : getProvidedReservations()) {
             normalReservationRequestApi
@@ -174,6 +197,20 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.NormalReservationRequest.PURPOSE)) {
             setPurpose(normalReservationRequestApi.getPurpose());
         }
+        if (normalReservationRequestApi
+                .isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
+            cz.cesnet.shongo.controller.api.Specification specificationApi =
+                    normalReservationRequestApi.getSpecification();
+            if (specificationApi == null) {
+                setSpecification(null);
+            }
+            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
+                getSpecification().fromApi(specificationApi, entityManager, domain);
+            }
+            else {
+                setSpecification(Specification.createFromApi(specificationApi, entityManager, domain));
+            }
+        }
         if (api.isPropertyFilled(cz.cesnet.shongo.controller.api.NormalReservationRequest.INTER_DOMAIN)) {
             setInterDomain(normalReservationRequestApi.getInterDomain());
         }
@@ -181,8 +218,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         // Create/modify provided reservations
         ReservationManager reservationManager = new ReservationManager(entityManager);
         for (String providedReservationId : normalReservationRequestApi.getProvidedReservationIds()) {
-            if (api.isPropertyItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDS,
-                    providedReservationId)) {
+            if (api.isPropertyItemMarkedAsNew(normalReservationRequestApi.PROVIDED_RESERVATION_IDS, providedReservationId)) {
                 Long id = domain.parseId(providedReservationId);
                 Reservation providedReservation = reservationManager.get(id);
                 addProvidedReservation(providedReservation);
@@ -203,6 +239,7 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
         super.fillDescriptionMap(map);
 
         map.put("purpose", getPurpose());
+        map.put("specification", getSpecification());
         map.put("interDomain", isInterDomain());
     }
 }

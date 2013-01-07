@@ -32,7 +32,7 @@ public class XmlRpcTest extends AbstractControllerTest
         reservationRequestSet.addSlot(DateTime.parse("2012-06-01T15:00"), Period.parse("PT2H"));
         reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
                 Period.parse("PT2H"));
-        CompartmentSpecification compartment = reservationRequestSet.addSpecification(new CompartmentSpecification());
+        CompartmentSpecification compartment = reservationRequestSet.setSpecification(new CompartmentSpecification());
         compartment.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
         compartment.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
 
@@ -63,34 +63,31 @@ public class XmlRpcTest extends AbstractControllerTest
                         put("duration", "PT2H");
                     }});
             }});
-        attributes.put("specifications", new ArrayList<Object>()
+        attributes.put("specification", new HashMap<String, Object>()
         {{
-                add(new HashMap<String, Object>()
+                put("class", "CompartmentSpecification");
+                put("specifications", new ArrayList<Object>()
                 {{
-                        put("class", "CompartmentSpecification");
-                        put("specifications", new ArrayList<Object>()
+                        add(new HashMap<String, Object>()
                         {{
-                                add(new HashMap<String, Object>()
+                                put("class", "ExternalEndpointSetSpecification");
+                                put("technologies", new ArrayList<Object>()
                                 {{
-                                        put("class", "ExternalEndpointSetSpecification");
-                                        put("technologies", new ArrayList<Object>()
-                                        {{
-                                                add("H323");
-                                            }});
-                                        put("count", 2);
+                                        add("H323");
                                     }});
-                                add(new HashMap<String, Object>()
-                                {{
-                                        put("class", "PersonSpecification");
-                                        put("person", new HashMap<String, Object>()
-                                        {{
-                                                put("class", "OtherPerson");
-                                                put("name", "Martin Srom");
-                                                put("email", "srom@cesnet.cz");
-                                            }});
-                                    }});
-
+                                put("count", 2);
                             }});
+                        add(new HashMap<String, Object>()
+                        {{
+                                put("class", "PersonSpecification");
+                                put("person", new HashMap<String, Object>()
+                                {{
+                                        put("class", "OtherPerson");
+                                        put("name", "Martin Srom");
+                                        put("email", "srom@cesnet.cz");
+                                    }});
+                            }});
+
                     }});
             }});
 
@@ -117,7 +114,7 @@ public class XmlRpcTest extends AbstractControllerTest
             reservationRequestSet.addSlot(new PeriodicDateTime(DateTime.parse("2012-07-01T14:00"), Period.parse("P1W")),
                     Period.parse("PT2H"));
             CompartmentSpecification compartmentSpecification =
-                    reservationRequestSet.addSpecification(new CompartmentSpecification());
+                    reservationRequestSet.setSpecification(new CompartmentSpecification());
             compartmentSpecification.addSpecification(new PersonSpecification("Martin Srom", "srom@cesnet.cz"));
 
             id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequestSet);
@@ -128,7 +125,6 @@ public class XmlRpcTest extends AbstractControllerTest
             assertNotNull(reservationRequestSet);
             assertEquals(ReservationRequestPurpose.SCIENCE, reservationRequestSet.getPurpose());
             assertEquals(2, reservationRequestSet.getSlots().size());
-            assertEquals(1, reservationRequestSet.getSpecifications().size());
         }
 
         // ---------------------------
@@ -140,9 +136,6 @@ public class XmlRpcTest extends AbstractControllerTest
                             id);
             reservationRequestSet.setPurpose(null);
             reservationRequestSet.removeSlot(reservationRequestSet.getSlots().iterator().next());
-            CompartmentSpecification compartmentSpecification =
-                    reservationRequestSet.addSpecification(new CompartmentSpecification());
-            reservationRequestSet.removeSpecification(compartmentSpecification);
 
             getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequestSet);
 
@@ -151,7 +144,6 @@ public class XmlRpcTest extends AbstractControllerTest
             assertNotNull(reservationRequestSet);
             assertEquals(null, reservationRequestSet.getPurpose());
             assertEquals(1, reservationRequestSet.getSlots().size());
-            assertEquals(1, reservationRequestSet.getSpecifications().size());
         }
 
         // ---------------------------

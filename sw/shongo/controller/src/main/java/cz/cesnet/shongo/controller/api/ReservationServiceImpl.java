@@ -168,7 +168,7 @@ public class ReservationServiceImpl extends Component
                 // Reservation request was modified, so we must clear it's state
                 singleReservationRequestImpl.clearState();
                 // Update state
-                singleReservationRequestImpl.updateStateBySpecifications();
+                singleReservationRequestImpl.updateStateBySpecification();
             }
 
             reservationRequestManager.update(reservationRequest);

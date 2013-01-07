@@ -53,7 +53,7 @@ public class ReservationRequestManager extends AbstractManager
         if (abstractReservationRequest instanceof ReservationRequest) {
             ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
             if (reservationRequest.getState() == null) {
-                reservationRequest.updateStateBySpecifications();
+                reservationRequest.updateStateBySpecification();
             }
         }
 
@@ -272,23 +272,17 @@ public class ReservationRequestManager extends AbstractManager
             filter.addFilter("request IN ("
                     + "  SELECT reservationRequest"
                     + "  FROM AbstractReservationRequest reservationRequest, RoomSpecification specification"
-                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
                     + "  LEFT JOIN specification.technologies technology"
-                    + "  WHERE (reservationRequest.specification = specification OR"
-                    + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + "  WHERE reservationRequest.specification = specification AND technology IN(:technologies)"
                     + ") OR request IN ("
                     + "  SELECT reservationRequest"
                     + "  FROM AbstractReservationRequest reservationRequest, CompartmentSpecification specification"
-                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
                     + "  LEFT JOIN specification.technologies technology"
-                    + "  WHERE (reservationRequest.specification = specification OR"
-                    + "         reservationRequestSpecification = specification) AND technology IN(:technologies)"
+                    + "  WHERE reservationRequest.specification = specification AND technology IN(:technologies)"
                     + ") OR request IN ("
                     + "  SELECT reservationRequest"
                     + "  FROM AbstractReservationRequest reservationRequest, AliasSpecification specification"
-                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
-                    + "  WHERE (reservationRequest.specification = specification OR"
-                    + "         reservationRequestSpecification = specification) AND "
+                    + "  WHERE reservationRequest.specification = specification AND "
                     + "         specification.technology IN(:technologies)"
                     + ")");
             filter.addFilterParameter("technologies", technologies);
@@ -298,10 +292,8 @@ public class ReservationRequestManager extends AbstractManager
             filter.addFilter("request IN ("
                     + "  SELECT reservationRequest"
                     + "  FROM AbstractReservationRequest reservationRequest"
-                    + "  LEFT JOIN reservationRequest.specifications reservationRequestSpecification"
-                    + "  LEFT JOIN reservationRequest.specification reservationRequestSpecifications"
-                    + "  WHERE TYPE(reservationRequestSpecifications) IN(:classes) OR"
-                    + "        TYPE(reservationRequestSpecification) IN(:classes)"
+                    + "  LEFT JOIN reservationRequest.specification reservationRequestSpecification"
+                    + "  WHERE TYPE(reservationRequestSpecification) IN(:classes)"
                     + ")");
             filter.addFilterParameter("classes", specificationClasses);
         }
@@ -523,7 +515,7 @@ public class ReservationRequestManager extends AbstractManager
                             personId, reservationRequestId));
         }
         personSpecification.setInvitationState(PersonSpecification.InvitationState.ACCEPTED);
-        reservationRequest.updateStateBySpecifications();
+        reservationRequest.updateStateBySpecification();
         update(reservationRequest);
     }
 
@@ -538,7 +530,7 @@ public class ReservationRequestManager extends AbstractManager
         ReservationRequest reservationRequest = getReservationRequestNotNull(reservationRequestId);
         PersonSpecification personSpecification = getPersonSpecification(reservationRequest, personId);
         personSpecification.setInvitationState(PersonSpecification.InvitationState.REJECTED);
-        reservationRequest.updateStateBySpecifications();
+        reservationRequest.updateStateBySpecification();
         update(reservationRequest);
     }
 

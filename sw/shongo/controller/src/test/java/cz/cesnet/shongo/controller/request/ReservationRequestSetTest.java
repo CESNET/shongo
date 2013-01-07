@@ -86,7 +86,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             compartmentSpecification.addChildSpecification(new PersonSpecification(person1,
                     new ExternalEndpointSpecification(Technology.H323, new Alias(AliasType.H323_E164, "950080085"))));
             compartmentSpecification.addChildSpecification(new PersonSpecification(person2));
-            reservationRequestSet.addSpecification(compartmentSpecification);
+            reservationRequestSet.setSpecification(compartmentSpecification);
 
             ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
             reservationRequestManager.create(reservationRequestSet);
@@ -196,7 +196,7 @@ public class ReservationRequestSetTest extends AbstractDatabaseTest
             ReservationRequestSet reservationRequestSet = reservationRequestManager.getReservationRequestSet(
                     reservationRequestSetId);
             CompartmentSpecification compartmentSpecification =
-                    (CompartmentSpecification) reservationRequestSet.getSpecifications().get(0);
+                    (CompartmentSpecification) reservationRequestSet.getSpecification();
             compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 100));
             reservationRequestManager.update(reservationRequestSet);
             entityManager.getTransaction().commit();

@@ -46,18 +46,20 @@ public class PreprocessorTest extends AbstractDatabaseTest
         reservationRequestSet.addSlot(new PeriodicDateTimeSpecification(
                 DateTime.parse("2012-07-01T14:00"), Period.parse("P1W"), LocalDate.parse("2012-07-15")),
                 Period.parse("PT2H"));
+        MultiCompartmentSpecification multiCompartmentSpecification = new MultiCompartmentSpecification();
+        reservationRequestSet.setSpecification(multiCompartmentSpecification);
         // First compartment
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(new ExternalEndpointSpecification(Technology.SIP));
         EndpointSpecification endpointSpecification = new ExternalEndpointSpecification(Technology.H323);
         endpointSpecification.addPerson(new OtherPerson("Martin Srom", "martin.srom@cesnet.cz"));
         compartmentSpecification.addChildSpecification(endpointSpecification);
-        reservationRequestSet.addSpecification(compartmentSpecification);
+        multiCompartmentSpecification.addSpecification(compartmentSpecification);
         // Second compartment
         compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addChildSpecification(
                 new ExternalEndpointSetSpecification(Technology.ADOBE_CONNECT, 2));
-        reservationRequestSet.addSpecification(compartmentSpecification);
+        multiCompartmentSpecification.addSpecification(compartmentSpecification);
 
         // Save it
         reservationRequestManager.create(reservationRequestSet);
@@ -65,29 +67,30 @@ public class PreprocessorTest extends AbstractDatabaseTest
         // Run preprocessor
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-06-01T23:59:59")), entityManager);
-        assertEquals(2, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
+        assertEquals(1, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-07-02T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
-        assertEquals(4, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
+        assertEquals(2, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
         Preprocessor.createAndRun(new Interval(
                 DateTime.parse("2012-06-01T00:00:00"), DateTime.parse("2012-07-08T23:59:59")), entityManager);
-        assertEquals(6, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
+        assertEquals(3, reservationRequestManager.listReservationRequestsBySet(reservationRequestSet).size());
 
         // Check created reservation requests
         List<ReservationRequest> reservationRequests =
                 reservationRequestManager.listReservationRequestsBySet(reservationRequestSet);
-        assertEquals(6, reservationRequests.size());
+        assertEquals(3, reservationRequests.size());
         assertEquals(new Interval(DateTime.parse("2012-06-01T15:00"), Period.parse("PT1H")),
                 reservationRequests.get(0).getSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-01T14:00"), Period.parse("PT2H")),
-                reservationRequests.get(2).getSlot());
+                reservationRequests.get(1).getSlot());
         assertEquals(new Interval(DateTime.parse("2012-07-08T14:00"), Period.parse("PT2H")),
-                reservationRequests.get(4).getSlot());
+                reservationRequests.get(2).getSlot());
 
         // Modify reservation request
         reservationRequestSet.setPurpose(ReservationRequestPurpose.EDUCATION);
         reservationRequestSet.removeSlot(reservationRequestSet.getSlots().get(0));
-        reservationRequestSet.removeSpecification(reservationRequestSet.getSpecifications().get(1));
+        multiCompartmentSpecification = (MultiCompartmentSpecification) reservationRequestSet.getSpecification();
+        multiCompartmentSpecification.removeSpecification(multiCompartmentSpecification.getSpecifications().get(1));
 
         // Update request
         reservationRequestManager.update(reservationRequestSet);
@@ -122,7 +125,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
                 new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
-        reservationRequestSet.addSpecification(compartmentSpecification);
+        reservationRequestSet.setSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
         Preprocessor.createAndRun(new Interval(
@@ -172,7 +175,7 @@ public class PreprocessorTest extends AbstractDatabaseTest
         compartmentSpecification.addChildSpecification(new ExternalEndpointSetSpecification(Technology.H323, 2));
         compartmentSpecification.addChildSpecification(
                 new PersonSpecification(new OtherPerson("Martin Srom", "srom@cesnet.cz")));
-        reservationRequestSet.addSpecification(compartmentSpecification);
+        reservationRequestSet.setSpecification(compartmentSpecification);
         reservationRequestManager.create(reservationRequestSet);
 
         Preprocessor.createAndRun(preprocessorInterval, entityManager);

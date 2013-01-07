@@ -250,6 +250,12 @@ public class CompartmentSpecification extends Specification
     }
 
     @Override
+    public cz.cesnet.shongo.controller.api.CompartmentSpecification toApi(Domain domain)
+    {
+        return (cz.cesnet.shongo.controller.api.CompartmentSpecification)super.toApi(domain);
+    }
+
+    @Override
     public void toApi(cz.cesnet.shongo.controller.api.Specification specificationApi, Domain domain)
     {
         cz.cesnet.shongo.controller.api.CompartmentSpecification compartmentSpecificationApi =

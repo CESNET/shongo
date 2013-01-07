@@ -69,14 +69,6 @@ sub new()
         },
         'display' => 'newline'
     });
-    $self->add_attribute('specifications', {
-        'type' => 'collection',
-        'item' => {
-            'title' => 'specification',
-            'class' => 'Shongo::ClientCli::API::Specification'
-        },
-        'display' => 'newline'
-    });
     $self->add_attribute('reservationRequests', {
         'type' => 'collection',
         'title' => 'Reservation Requests',

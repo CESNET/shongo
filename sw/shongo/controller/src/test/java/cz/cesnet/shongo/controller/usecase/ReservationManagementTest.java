@@ -93,7 +93,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest.setName("request");
         reservationRequest.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.addSpecification(new ResourceSpecification(resourceId));
+        reservationRequest.setSpecification(new ResourceSpecification(resourceId));
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessor();
 
@@ -220,7 +220,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest3.setPurpose(ReservationRequestPurpose.SCIENCE);
         CompartmentSpecification compartmentSpecification3 = new CompartmentSpecification();
         compartmentSpecification3.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 5));
-        reservationRequest3.addSpecification(compartmentSpecification3);
+        reservationRequest3.setSpecification(compartmentSpecification3);
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest3);
 
         ReservationRequest reservationRequest4 = new ReservationRequest();
@@ -235,7 +235,7 @@ public class ReservationManagementTest extends AbstractControllerTest
         reservationRequest5.setName("request");
         reservationRequest5.addSlot("2012-01-01T12:00", "PT2H");
         reservationRequest5.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest5.addSpecification(
+        reservationRequest5.setSpecification(
                 new RoomSpecification(5, new Technology[]{Technology.H323, Technology.SIP}));
         getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest5);
 

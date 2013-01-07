@@ -43,11 +43,6 @@ public class ReservationRequest extends NormalReservationRequest
     private DateTime slotEnd;
 
     /**
-     * {@link Specification} of target which is requested for a reservation.
-     */
-    private Specification specification;
-
-    /**
      * State of the compartment request.
      */
     private State state;
@@ -160,23 +155,6 @@ public class ReservationRequest extends NormalReservationRequest
     }
 
     /**
-     * @return {@link #specification}
-     */
-    @ManyToOne(cascade = CascadeType.ALL)
-    public Specification getSpecification()
-    {
-        return specification;
-    }
-
-    /**
-     * @param specification sets the {@link #specification}
-     */
-    public void setSpecification(Specification specification)
-    {
-        this.specification = specification;
-    }
-
-    /**
      * @return {@link #state}
      */
     @Column
@@ -230,13 +208,14 @@ public class ReservationRequest extends NormalReservationRequest
      *
      * @see State
      */
-    public void updateStateBySpecifications()
+    public void updateStateBySpecification()
     {
         State newState = getState();
         if (newState == null || newState == State.NOT_COMPLETE) {
             newState = State.COMPLETE;
         }
         List<Report> reports = new ArrayList<Report>();
+        Specification specification = getSpecification();
         if (specification instanceof StatefulSpecification) {
             StatefulSpecification statefulSpecification = (StatefulSpecification) specification;
             if (statefulSpecification.getCurrentState().equals(StatefulSpecification.State.NOT_READY)) {
@@ -324,7 +303,6 @@ public class ReservationRequest extends NormalReservationRequest
         cz.cesnet.shongo.controller.api.ReservationRequest reservationRequestApi =
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
         reservationRequestApi.setSlot(getSlot());
-        reservationRequestApi.setSpecification(getSpecification().toApi(domain));
         reservationRequestApi.setState(getStateAsApi());
         reservationRequestApi.setStateReport(getReportText());
         if (getReservation() != null) {
@@ -342,18 +320,6 @@ public class ReservationRequest extends NormalReservationRequest
                 (cz.cesnet.shongo.controller.api.ReservationRequest) api;
         if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SLOT)) {
             setSlot(reservationRequestApi.getSlot());
-        }
-        if (reservationRequestApi.isPropertyFilled(cz.cesnet.shongo.controller.api.ReservationRequest.SPECIFICATION)) {
-            cz.cesnet.shongo.controller.api.Specification specificationApi = reservationRequestApi.getSpecification();
-            if (specificationApi == null) {
-                setSpecification(null);
-            }
-            else if (getSpecification() != null && getSpecification().equalsId(specificationApi.getId())) {
-                getSpecification().fromApi(specificationApi, entityManager, domain);
-            }
-            else {
-                setSpecification(Specification.createFromApi(specificationApi, entityManager, domain));
-            }
         }
         super.fromApi(api, entityManager, domain);
     }

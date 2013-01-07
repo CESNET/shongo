@@ -114,17 +114,10 @@ public class ReservationNotification extends Notification
     private cz.cesnet.shongo.controller.api.Specification getSpecification(
             cz.cesnet.shongo.controller.api.AbstractReservationRequest reservationRequestApi)
     {
-        if (reservationRequestApi instanceof cz.cesnet.shongo.controller.api.ReservationRequest) {
-            cz.cesnet.shongo.controller.api.ReservationRequest singleReservationRequestApi =
-                    (cz.cesnet.shongo.controller.api.ReservationRequest) reservationRequestApi;
-            return singleReservationRequestApi.getSpecification();
-        }
-        else if (reservationRequestApi instanceof cz.cesnet.shongo.controller.api.ReservationRequestSet) {
-            cz.cesnet.shongo.controller.api.ReservationRequestSet reservationRequestSetApi =
-                    (cz.cesnet.shongo.controller.api.ReservationRequestSet) reservationRequestApi;
-            if ( reservationRequestSetApi.getSpecifications().size() > 0) {
-                return reservationRequestSetApi.getSpecifications().get(0);
-            }
+        if (reservationRequestApi instanceof cz.cesnet.shongo.controller.api.NormalReservationRequest) {
+            cz.cesnet.shongo.controller.api.NormalReservationRequest normalReservationRequestApi =
+                    (cz.cesnet.shongo.controller.api.NormalReservationRequest) reservationRequestApi;
+            return normalReservationRequestApi.getSpecification();
         }
         return null;
     }

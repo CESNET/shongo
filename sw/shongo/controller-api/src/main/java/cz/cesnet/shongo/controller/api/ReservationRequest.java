@@ -18,11 +18,6 @@ public class ReservationRequest extends NormalReservationRequest
     public static final String SLOT = "slot";
 
     /**
-     * {@link Specification} which is requested for the reservation.
-     */
-    public static final String SPECIFICATION = "specification";
-
-    /**
      * State of the request.
      */
     private ReservationRequestState state;
@@ -77,23 +72,6 @@ public class ReservationRequest extends NormalReservationRequest
     public void setSlot(String dateTime, String duration)
     {
         setSlot(new Interval(DateTime.parse(dateTime), Period.parse(duration)));
-    }
-
-    /**
-     * @return {@link #SPECIFICATION}
-     */
-    @Required
-    public Specification getSpecification()
-    {
-        return getPropertyStorage().getValue(SPECIFICATION);
-    }
-
-    /**
-     * @param specification sets the {@link #SPECIFICATION}
-     */
-    public void setSpecification(Specification specification)
-    {
-        getPropertyStorage().setValue(SPECIFICATION, specification);
     }
 
     /**

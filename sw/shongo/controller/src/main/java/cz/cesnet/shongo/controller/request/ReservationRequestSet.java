@@ -26,11 +26,6 @@ public class ReservationRequestSet extends NormalReservationRequest
     private List<DateTimeSlotSpecification> slots = new ArrayList<DateTimeSlotSpecification>();
 
     /**
-     * List of {@link Specification}s for targets which are requested for a reservation.
-     */
-    private List<Specification> specifications = new ArrayList<Specification>();
-
-    /**
      * List of created {@link ReservationRequest}s.
      */
     private List<ReservationRequest> reservationRequests = new ArrayList<ReservationRequest>();
@@ -39,7 +34,7 @@ public class ReservationRequestSet extends NormalReservationRequest
      * Map of original instances of the {@link Specification} by the cloned instances.
      * <p/>
      * When a {@link ReservationRequest} is created from the {@link ReservationRequestSet} for a {@link Specification}
-     * from the {@link #specifications} all instances which are {@link StatefulSpecification} are cloned and we must
+     * from the {@link #specification} all instances which are {@link StatefulSpecification} are cloned and we must
      * keep the references from cloned instances to the original instances for synchronizing.
      */
     private Map<Specification, Specification> originalSpecifications = new HashMap<Specification, Specification>();
@@ -110,39 +105,6 @@ public class ReservationRequestSet extends NormalReservationRequest
     }
 
     /**
-     * @return {@link #specifications}
-     */
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @Access(AccessType.FIELD)
-    public List<Specification> getSpecifications()
-    {
-        return Collections.unmodifiableList(specifications);
-    }
-
-    /**
-     * @param id of the requested {@link Specification}
-     * @return {@link Specification} with given {@code id}
-     * @throws EntityNotFoundException when the {@link Specification} doesn't exist
-     */
-    public Specification getSpecificationById(Long id) throws EntityNotFoundException
-    {
-        for (Specification specification : specifications) {
-            if (specification.getId().equals(id)) {
-                return specification;
-            }
-        }
-        throw new EntityNotFoundException(Specification.class, id);
-    }
-
-    /**
-     * @param specification to be added to the {@link #specifications}
-     */
-    public void addSpecification(Specification specification)
-    {
-        specifications.add(specification);
-    }
-
-    /**
      * @param specification which should be removed from the {@link #originalSpecifications}
      */
     private void removeOriginalSpecification(Specification specification)
@@ -160,15 +122,6 @@ public class ReservationRequestSet extends NormalReservationRequest
                 removeOriginalSpecification(childSpecification);
             }
         }
-    }
-
-    /**
-     * @param specification to be removed from the {@link #specifications}
-     */
-    public void removeSpecification(Specification specification)
-    {
-        removeOriginalSpecification(specification);
-        specifications.remove(specification);
     }
 
     /**
@@ -261,7 +214,7 @@ public class ReservationRequestSet extends NormalReservationRequest
     {
         originalSpecifications.remove(clonedSpecification);
         if (clonedSpecification instanceof CompositeSpecification) {
-            CompositeSpecification compositeSpecification = (CompartmentSpecification) clonedSpecification;
+            CompositeSpecification compositeSpecification = (CompositeSpecification) clonedSpecification;
             for (Specification specification : compositeSpecification.getChildSpecifications()) {
                 removedClonedSpecification(specification);
             }
@@ -282,9 +235,6 @@ public class ReservationRequestSet extends NormalReservationRequest
                 (cz.cesnet.shongo.controller.api.ReservationRequestSet) api;
         for (DateTimeSlotSpecification slot : getSlots()) {
             reservationRequestSetApi.addSlot(slot.toApi());
-        }
-        for (Specification specification : getSpecifications()) {
-            reservationRequestSetApi.addSpecification(specification.toApi(domain));
         }
         for (ReservationRequest reservationRequest : getReservationRequests()) {
             reservationRequestSetApi.addReservationRequest(reservationRequest.toApi(domain));
@@ -317,24 +267,6 @@ public class ReservationRequestSet extends NormalReservationRequest
             removeSlot(getSlotById(slotApi.notNullIdAsLong()));
         }
 
-        // Create/modify specifications
-        for (cz.cesnet.shongo.controller.api.Specification specApi : reservationRequestSetApi.getSpecifications()) {
-            if (api.isPropertyItemMarkedAsNew(reservationRequestSetApi.SPECIFICATIONS, specApi)) {
-                addSpecification(Specification.createFromApi(specApi, entityManager, domain));
-            }
-            else {
-                Specification specification = getSpecificationById(specApi.notNullIdAsLong());
-                specification.fromApi(specApi, entityManager, domain);
-            }
-        }
-        // Delete specifications
-        Set<cz.cesnet.shongo.controller.api.Specification> apiDeletedSpecifications =
-                api.getPropertyItemsMarkedAsDeleted(reservationRequestSetApi.SPECIFICATIONS);
-        for (cz.cesnet.shongo.controller.api.Specification specApi : apiDeletedSpecifications) {
-            Specification specification = getSpecificationById(specApi.notNullIdAsLong());
-            removeSpecification(specification);
-        }
-
         super.fromApi(api, entityManager, domain);
     }
 
@@ -344,6 +276,5 @@ public class ReservationRequestSet extends NormalReservationRequest
         super.fillDescriptionMap(map);
 
         map.put("slots", slots);
-        map.put("specifications", specifications);
     }
 }

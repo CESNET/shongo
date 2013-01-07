@@ -278,72 +278,62 @@ public class Preprocessor extends Component
         Set<Long> specifications = new HashSet<Long>();
 
         // Reservation requests are synchronized per specification from the set
-        for (Specification specification : reservationRequestSet.getSpecifications()) {
-            if (specification == null) {
-                throw new IllegalStateException("Specification should not be null!");
-            }
-            // List existing reservation requests for the set in the interval
-            Set<ReservationRequest> reservationRequestsForSpecification =
-                    reservationRequestsByOriginalSpecification.get(specification);
+        Specification specification = reservationRequestSet.getSpecification();
+        if (specification == null) {
+            throw new IllegalStateException("Specification should not be null!");
+        }
+        // List existing reservation requests for the set in the interval
+        Set<ReservationRequest> reservationRequestsForSpecification =
+                reservationRequestsByOriginalSpecification.get(specification);
 
-            // Create map of reservation requests with date/time slot as key
-            // and remove reservation request from list of all reservation request
-            Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
-            if (reservationRequestsForSpecification != null) {
-                for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
-                    map.put(reservationRequest.getSlot(), reservationRequest);
-                    reservationRequests.remove(reservationRequest);
+        // Create map of reservation requests with date/time slot as key
+        // and remove reservation request from list of all reservation request
+        Map<Interval, ReservationRequest> map = new HashMap<Interval, ReservationRequest>();
+        if (reservationRequestsForSpecification != null) {
+            for (ReservationRequest reservationRequest : reservationRequestsForSpecification) {
+                map.put(reservationRequest.getSlot(), reservationRequest);
+                reservationRequests.remove(reservationRequest);
+            }
+        }
+
+        // For each requested slot we must create or modify reservation request.
+        // If we find date/time slot in prepared map we modify the corresponding request
+        // and remove it from map, otherwise we create a new reservation request.
+        for (Interval slot : slots) {
+            ReservationRequest reservationRequest;
+            // Modify existing reservation request
+            if (map.containsKey(slot)) {
+                reservationRequest = map.get(slot);
+                if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
+                    // Reservation request was modified, so we must clear it's state
+                    reservationRequest.clearState();
                 }
+
+                // Remove the slot from the map for the corresponding reservation request to not be deleted
+                map.remove(slot);
             }
-
-            // For each requested slot we must create or modify reservation request.
-            // If we find date/time slot in prepared map we modify the corresponding request
-            // and remove it from map, otherwise we create a new reservation request.
-            for (Interval slot : slots) {
-                ReservationRequest reservationRequest;
-                // Modify existing reservation request
-                if (map.containsKey(slot)) {
-                    reservationRequest = map.get(slot);
-                    if (updateReservationRequest(reservationRequest, reservationRequestSet, specification)) {
-                        // Reservation request was modified, so we must clear it's state
-                        reservationRequest.clearState();
-                    }
-
-                    // Remove the slot from the map for the corresponding reservation request to not be deleted
-                    map.remove(slot);
-                }
-                // Create new reservation request
-                else {
-                    reservationRequest = new ReservationRequest();
-                    reservationRequest.setUserId(reservationRequestSet.getUserId());
-                    reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
-                    reservationRequest.setSlot(slot);
-                    updateReservationRequest(reservationRequest, reservationRequestSet, specification);
-                    reservationRequestSet.addReservationRequest(reservationRequest);
-                }
-                reservationRequest.updateStateBySpecifications();
+            // Create new reservation request
+            else {
+                reservationRequest = new ReservationRequest();
+                reservationRequest.setUserId(reservationRequestSet.getUserId());
+                reservationRequest.setCreatedBy(ReservationRequest.CreatedBy.CONTROLLER);
+                reservationRequest.setSlot(slot);
+                updateReservationRequest(reservationRequest, reservationRequestSet, specification);
+                reservationRequestSet.addReservationRequest(reservationRequest);
             }
+            reservationRequest.updateStateBySpecification();
+        }
 
-            // All reservation requests that remains in map must be deleted
-            for (ReservationRequest reservationRequest : map.values()) {
-                reservationRequestSet.removeReservationRequest(reservationRequest);
-                reservationRequestManager.delete(reservationRequest);
-            }
-
-            specifications.add(specification.getId());
+        // All reservation requests that remains in map must be deleted
+        for (ReservationRequest reservationRequest : map.values()) {
+            reservationRequestSet.removeReservationRequest(reservationRequest);
+            reservationRequestManager.delete(reservationRequest);
         }
 
         // All reservation requests that remains in list of all must be deleted
         for (ReservationRequest reservationRequest : reservationRequests) {
             reservationRequestSet.removeReservationRequest(reservationRequest);
             reservationRequestManager.delete(reservationRequest);
-
-            // If referenced specification isn't in reservation request any more
-            Specification specification = reservationRequest.getSpecification();
-            if (!specifications.contains(specification)) {
-                // Remove the specification too
-                entityManager.remove(specification);
-            }
         }
 
         // Update reservation request

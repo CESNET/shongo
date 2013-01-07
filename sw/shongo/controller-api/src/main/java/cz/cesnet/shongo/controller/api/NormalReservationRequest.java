@@ -18,6 +18,11 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     public static final String PURPOSE = "purpose";
 
     /**
+     * {@link Specification} which is requested for the reservation.
+     */
+    public static final String SPECIFICATION = "specification";
+
+    /**
      * Specifies whether the scheduler should try allocate resources from other domains.
      */
     public static final String INTER_DOMAIN = "interDomain";
@@ -50,6 +55,24 @@ public abstract class NormalReservationRequest extends AbstractReservationReques
     public void setPurpose(ReservationRequestPurpose purpose)
     {
         getPropertyStorage().setValue(PURPOSE, purpose);
+    }
+
+    /**
+     * @return {@link #SPECIFICATION}
+     */
+    @Required
+    public Specification getSpecification()
+    {
+        return getPropertyStorage().getValue(SPECIFICATION);
+    }
+
+    /**
+     * @param specification sets the {@link #SPECIFICATION}
+     */
+    public <T extends Specification> T setSpecification(T specification)
+    {
+        getPropertyStorage().setValue(SPECIFICATION, specification);
+        return specification;
     }
 
     /**

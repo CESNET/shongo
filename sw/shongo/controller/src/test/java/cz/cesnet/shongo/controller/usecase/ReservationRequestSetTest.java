@@ -40,20 +40,18 @@ public class ReservationRequestSetTest extends AbstractControllerTest
                 new PeriodicDateTime("2012-01-01T00:00", "P1W", "2012-01-01"), Period.parse("PT1H")));
         CompartmentSpecification compartmentSpecification = new CompartmentSpecification();
         compartmentSpecification.addSpecification(new ExternalEndpointSetSpecification(Technology.H323, 3));
-        reservationRequest.addSpecification(compartmentSpecification);
+        reservationRequest.setSpecification(compartmentSpecification);
 
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
         runPreprocessor();
         runScheduler();
         checkAllocated(id);
 
-        reservationRequest =
-                (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
-        reservationRequest.removeSpecification(reservationRequest.getSpecifications().get(0));
+        reservationRequest = (ReservationRequestSet) getReservationService().getReservationRequest(SECURITY_TOKEN, id);
         RoomSpecification roomSpecification = new RoomSpecification();
         roomSpecification.addTechnology(Technology.H323);
         roomSpecification.setParticipantCount(5);
-        reservationRequest.addSpecification(roomSpecification);
+        reservationRequest.setSpecification(roomSpecification);
         getReservationService().modifyReservationRequest(SECURITY_TOKEN, reservationRequest);
 
         getReservationService().deleteReservationRequest(SECURITY_TOKEN, id);
