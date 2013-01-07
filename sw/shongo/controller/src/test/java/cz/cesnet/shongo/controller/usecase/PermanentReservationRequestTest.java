@@ -39,21 +39,23 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         reservationRequest.setResourceId(resourceId);
 
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
+        Map<String, Object> reservationFilter = new HashMap<String, Object>();
+        reservationFilter.put("reservationRequestId", id);
 
         runPreprocessor(Interval.parse("2012-01-01T00:00/2012-01-01T08:00"));
-        assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, id).size());
+        assertEquals(4, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessor(Interval.parse("2012-01-01T08:00/2012-01-01T16:00"));
-        assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, id).size());
+        assertEquals(8, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessor(Interval.parse("2012-01-01T16:00/2012-01-01T23:59"));
-        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, id).size());
+        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         runPreprocessor();
-        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, id).size());
+        assertEquals(12, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         List<Reservation> reservations = new ArrayList<Reservation>(
-                getReservationService().listReservations(SECURITY_TOKEN, id));
+                getReservationService().listReservations(SECURITY_TOKEN, reservationFilter));
         Collections.sort(reservations, new Comparator<Reservation>()
         {
             @Override
@@ -71,7 +73,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
     }
 
     /**
-     * Test create, update and delete of {@link ResourceReservation}s.
+     * Test create, update and delete of {@link cz.cesnet.shongo.controller.api.ResourceReservation}s.
      *
      * @throws Exception
      */
@@ -96,9 +98,12 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
         // Create permanent reservation request
         String id = getReservationService().createReservationRequest(SECURITY_TOKEN, reservationRequest);
 
+        Map<String, Object> reservationFilter = new HashMap<String, Object>();
+        reservationFilter.put("reservationRequestId", id);
+
         // Check created reservations
         runPreprocessor();
-        assertEquals(2, getReservationService().listReservations(SECURITY_TOKEN, id).size());
+        assertEquals(2, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         // Remove slot from the request
         reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(
@@ -108,7 +113,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
 
         // Check deleted reservation
         runPreprocessor();
-        assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, id).size());
+        assertEquals(1, getReservationService().listReservations(SECURITY_TOKEN, reservationFilter).size());
 
         // Change resource in the request
         reservationRequest = (PermanentReservationRequest) getReservationService().getReservationRequest(
@@ -118,7 +123,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
 
         // Check modified reservation
         runPreprocessor();
-        Collection<Reservation> reservations = getReservationService().listReservations(SECURITY_TOKEN, id);
+        Collection<Reservation> reservations = getReservationService().listReservations(SECURITY_TOKEN, reservationFilter);
         assertEquals(1, reservations.size());
         ResourceReservation resourceReservation = (ResourceReservation) reservations.iterator().next();
         assertEquals(secondResourceId, resourceReservation.getResourceId());
@@ -128,7 +133,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
 
         // Check deleted reservation
         runScheduler();
-        assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN).size());
+        assertEquals(0, getReservationService().listReservations(SECURITY_TOKEN, null).size());
     }
 
     /**

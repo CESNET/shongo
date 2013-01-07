@@ -54,12 +54,50 @@ sub get_location
 sub get_params
 {
     my ($self) = @_;
-    my $hash = $self->{'application'}->{'cgi'}->Vars;
+    my $params_post = $self->get_params_post();
+    my $params_get = $self->get_params_get();
     my $params = {};
-    foreach my $name (keys %{$hash}) {
-        $params->{$name} = $hash->{$name};
-    }
+    map {$params->{$_} = $params_post->{$_}} keys %{$params_post};
+    map {$params->{$_} = $params_get->{$_}} keys %{$params_get};
     return $params;
+}
+
+#
+# @return hash of POST params
+#
+sub get_params_post
+{
+    my ($self) = @_;
+    if ( $self->{'application'}->{'cgi'}->request_method() eq 'POST') {
+        my $hash = $self->{'application'}->{'cgi'}->Vars;
+        my $params = {};
+        foreach my $name (keys %{$hash}) {
+            $params->{$name} = $hash->{$name};
+        }
+        return $params;
+    }
+    return {};
+}
+
+#
+# @return hash of GET params
+#
+sub get_params_get
+{
+    my ($self) = @_;
+    if ( $self->{'application'}->{'cgi'}->request_method() eq 'GET') {
+        my $hash = $self->{'application'}->{'cgi'}->Vars;
+        my $params = {};
+        foreach my $name (keys %{$hash}) {
+            $params->{$name} = $hash->{$name};
+        }
+        return $params;
+    }
+    my $result = {};
+    foreach my $param ($self->{'application'}->{'cgi'}->url_param()) {
+        $result->{$param} = $self->{'application'}->{'cgi'}->url_param($param);
+    }
+    return $result;
 }
 
 #
@@ -73,8 +111,11 @@ sub get_param
     if ( !defined($value) ) {
         $value = $self->{'application'}->{'cgi'}->url_param($name);
         if ( !defined($value) ) {
-            my $keywords = $self->{'application'}->{'cgi'}->url_param('keywords');
-            if ( defined($keywords) && array_value_exists($name, $keywords) ) {
+            my @keywords = $self->{'application'}->{'cgi'}->url_param('keywords');
+            if ( !defined(@keywords) ) {
+                @keywords = $self->{'application'}->{'cgi'}->url_param();
+            }
+            if ( defined(@keywords) && array_value_exists($name, @keywords) ) {
                 return 1;
             }
         }
@@ -114,6 +155,7 @@ sub pre_dispatch
 sub render_page
 {
     my ($self, $title, $file, $parameters) = @_;
+    $parameters->{'get'} = $self->get_params_get();
     $parameters->{'location'} = $self->get_location();
     $self->{'application'}->render_page($title, $file, $parameters);
 }

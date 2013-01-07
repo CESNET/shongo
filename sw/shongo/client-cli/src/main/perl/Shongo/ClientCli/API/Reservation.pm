@@ -104,7 +104,14 @@ sub on_init
                     sprintf("%s (%s)", $self->{'resourceName'}, $self->{'resourceId'});
                 }
             });
-            $self->add_attribute('alias');
+            $self->add_attribute('aliases', {
+                'type' => 'collection',
+                'item' => {
+                    'title' => 'Alias',
+                    'class' => 'Shongo::ClientCli::API::Alias',
+                    'short' => 1
+                }
+            });
         }
         case 'ExistingReservation' {
             $self->add_attribute('reservation');

@@ -1,10 +1,12 @@
 package cz.cesnet.shongo.controller.util;
 
+import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.api.util.Converter;
+import cz.cesnet.shongo.fault.CommonFault;
+import cz.cesnet.shongo.fault.FaultException;
+
 import javax.persistence.Query;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Utility class for filtering database records.
@@ -102,19 +104,57 @@ public class DatabaseFilter
     public static String getUserIdFromFilter(Map<String, Object> filter, String defaultUserId)
     {
         String userId = defaultUserId;
-        if (filter != null) {
-            if (filter.containsKey("userId")) {
-                Object value = filter.get("userId");
-                // All users
-                if (value.equals("*")) {
-                    userId = null;
-                }
-                // One selected user
-                else {
-                    userId = (value != null ? value.toString() : null);
-                }
+        if (filter != null && filter.containsKey("userId")) {
+            Object value = filter.get("userId");
+            // All users
+            if (value.equals("*")) {
+                userId = null;
+            }
+            // One selected user
+            else {
+                userId = (value != null ? value.toString() : null);
             }
         }
         return userId;
+    }
+
+    public static Set<Technology> getTechnologiesFromFilter(Map<String, Object> filter) throws FaultException
+    {
+        if (filter != null && filter.containsKey("technology")) {
+            @SuppressWarnings("unchecked")
+            Set<Technology> technologies = (Set<Technology>) Converter.convert(filter.get("technology"), Set.class,
+                    new Class[]{Technology.class});
+            return technologies;
+        }
+        return null;
+    }
+
+    public static <T> Set<Class<? extends T>> getClassesFromFilter(Map<String, Object> filter, String key,
+            Class<T> type) throws FaultException
+    {
+        if (filter != null && filter.containsKey(key)) {
+            Object value = filter.get(key);
+            if (value instanceof String) {
+                value = new Object[]{value};
+            }
+            @SuppressWarnings("unchecked")
+            Set<String> classNames = (Set<String>) Converter.convert(value, Set.class, new Class[]{String.class});
+            if (classNames.size() > 0) {
+                Set<Class<? extends T>> classes = new HashSet<Class<? extends T>>();
+                for (String className : classNames) {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        Class<? extends T> specificationType = (Class<? extends T>) Class.forName(
+                                String.format("%s.%s", type.getPackage().getName(), className));
+                        classes.add(specificationType);
+                    }
+                    catch (ClassNotFoundException exception) {
+                        throw new FaultException(exception, CommonFault.CLASS_NOT_DEFINED, className);
+                    }
+                }
+                return classes;
+            }
+        }
+        return null;
     }
 }

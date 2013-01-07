@@ -61,7 +61,7 @@ sub list_reservation_requests
     # Alias requests
     my $aliasRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
         'technology' => $technologies,
-        'specification' => 'AliasSpecification'
+        'specificationClass' => 'AliasSpecification'
     });
     foreach my $aliasRequest (@{$aliasRequests}) {
         my $state_code = lc($aliasRequest->{'state'});
@@ -75,7 +75,7 @@ sub list_reservation_requests
     # Room requests
     my $roomRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
         'technology' => $technologies,
-        'specification' => 'RoomSpecification'
+        'specificationClass' => 'RoomSpecification'
     });
     foreach my $roomRequest (@{$roomRequests}) {
         my $state_code = lc($roomRequest->{'state'});
@@ -207,6 +207,11 @@ sub parse_reservation_request
             'duration' => $duration
         }];
     }
+
+    # Setup provided alias reservation
+    if ( defined($params->{'alias'}) && $params->{'alias'} ne 'none' ) {
+        $request->{'providedReservationIds'} = [$params->{'alias'}];
+    }
     return $request;
 }
 
@@ -336,6 +341,23 @@ sub get_reservation_request
         push(@{$request->{'reservations'}}, $child_request);
     }
     return $request;
+}
+
+#
+# @param $class
+# @param $technology
+# @return list of reservations
+#
+sub get_reservations
+{
+    my ($self, $class, $technology) = @_;
+    my $filter = {};
+    $filter->{'reservationClass'} = $class;
+    if ( defined($technology) ) {
+        $filter->{'technology'} = $technology;
+    }
+    my $reservations = $self->{'application'}->secure_request('Reservation.listReservations', $filter);
+    return $reservations;
 }
 
 #

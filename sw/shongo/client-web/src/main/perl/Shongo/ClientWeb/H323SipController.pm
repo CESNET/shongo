@@ -43,6 +43,7 @@ sub create_action
                 'start',
                 'durationCount',
                 'periodicity',
+                'alias',
                 'participantCount',
             ],
             optional => [
@@ -78,6 +79,16 @@ sub create_action
     $params->{'options'} = {
         'jquery' => 1
     };
+    $params->{'aliasReservations'} = $self->get_reservations('AliasReservation', ['H323', 'SIP']);
+    foreach my $aliasReservation (@{$params->{'aliasReservations'}}) {
+        my $value = $aliasReservation->{'aliasValue'};
+        foreach my $alias (@{$aliasReservation->{'aliases'}}) {
+            if ( $alias->{'type'} eq 'H323_E164' ) {
+                $value = $alias->{'value'};
+            }
+        }
+        $aliasReservation->{'value'} = $value;
+    }
     $self->render_page('New reservation request', 'h323-sip/create.html', $params);
 }
 

@@ -83,6 +83,19 @@
     </div>
 
     <div class="control-group">
+        <label class="control-label" for="selectAlias">H.323/SIP Alias:</label>
+        <div class="controls">
+            <select id="selectAlias" name="alias" [% "disabled" IF get.alias %]>
+                <option value="none">&lt;Ad-Hoc Alias&gt;</option>
+                [%- FOREACH aliasReservation IN aliasReservations %]
+                <option value="[% aliasReservation.id %]" [% "selected" IF aliasReservation.id == get.alias || aliasReservation.id == alias %]>[% aliasReservation.value %] ([% aliasReservation.id %])</option>
+                [% END %]
+            </select>
+            [% IF !get.alias %]<a class="btn" href="[% location %]/create-alias">Create new Alias</a>[% END %]
+        </div>
+    </div>
+
+    <div class="control-group">
         <label class="control-label" for="inputParticipantCount">Number of participants:</label>
         <div class="controls">
             <input id="inputParticipantCount" name="participantCount" type="text" value="[% participantCount %]" size="7"/>

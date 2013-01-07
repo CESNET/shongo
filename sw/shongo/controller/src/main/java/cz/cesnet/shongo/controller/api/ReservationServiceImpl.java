@@ -10,7 +10,6 @@ import cz.cesnet.shongo.controller.request.DateTimeSlotSpecification;
 import cz.cesnet.shongo.controller.request.ReservationRequestManager;
 import cz.cesnet.shongo.controller.reservation.ReservationManager;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
-import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
@@ -239,41 +238,12 @@ public class ReservationServiceImpl extends Component
         ReservationRequestManager reservationRequestManager = new ReservationRequestManager(entityManager);
 
         String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
-        Set<Technology> technologies = null;
-        Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specifications = null;
-        if (filter != null) {
-            if (filter.containsKey("technology")) {
-                @SuppressWarnings("unchecked")
-                Set<Technology> value = (Set<Technology>) Converter.convert(filter.get("technology"), Set.class,
-                        new Class[]{Technology.class});
-                technologies = value;
-            }
-            if (filter.containsKey("specification")) {
-                Object value = filter.get("specification");
-                if (value instanceof String) {
-                    value = new Object[]{value};
-                }
-                @SuppressWarnings("unchecked")
-                Set<String> castedValue = (Set<String>) Converter.convert(value, Set.class, new Class[]{String.class});
-                if (castedValue.size() > 0) {
-                    specifications = new HashSet<Class<? extends cz.cesnet.shongo.controller.request.Specification>>();
-                    for (String specificationName : castedValue) {
-                        try {
-                            @SuppressWarnings("unchecked")
-                            Class<? extends cz.cesnet.shongo.controller.request.Specification> specificationType =
-                                    (Class<? extends cz.cesnet.shongo.controller.request.Specification>)
-                                            Class.forName("cz.cesnet.shongo.controller.request." + specificationName);
-                            specifications.add(specificationType);
-                        }
-                        catch (ClassNotFoundException exception) {
-                            throw new FaultException(exception, CommonFault.CLASS_NOT_DEFINED, specificationName);
-                        }
-                    }
-                }
-            }
-        }
+        Set<Technology> technologies = DatabaseFilter.getTechnologiesFromFilter(filter);
+        Set<Class<? extends cz.cesnet.shongo.controller.request.Specification>> specificationClasses =
+                DatabaseFilter.getClassesFromFilter(filter, "specificationClass",
+                        cz.cesnet.shongo.controller.request.Specification.class);
         List<cz.cesnet.shongo.controller.request.AbstractReservationRequest> reservationRequests =
-                reservationRequestManager.list(userId, technologies, specifications);
+                reservationRequestManager.list(userId, technologies, specificationClasses);
 
         List<ReservationRequestSummary> summaryList = new ArrayList<ReservationRequestSummary>();
         for (cz.cesnet.shongo.controller.request.AbstractReservationRequest abstractReservationRequest : reservationRequests) {
@@ -390,37 +360,29 @@ public class ReservationServiceImpl extends Component
     }
 
     @Override
-    public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestId)
+    public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter)
             throws FaultException
     {
         authorization.validate(token);
 
-        Long id = domain.parseId(reservationRequestId);
-
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ReservationManager reservationManager = new ReservationManager(entityManager);
+
+        String userId = DatabaseFilter.getUserIdFromFilter(filter, authorization.getUserId(token));
+        Long reservationRequestId = null;
+        if (filter != null) {
+            if (filter.containsKey("reservationRequestId")) {
+                reservationRequestId = domain.parseId((String) Converter.convert(
+                        filter.get("reservationRequestId"), String.class));
+            }
+        }
+        Set<Technology> technologies = DatabaseFilter.getTechnologiesFromFilter(filter);
+        Set<Class<? extends cz.cesnet.shongo.controller.reservation.Reservation>> reservationClasses =
+                DatabaseFilter.getClassesFromFilter(filter, "reservationClass",
+                        cz.cesnet.shongo.controller.reservation.Reservation.class);
 
         List<cz.cesnet.shongo.controller.reservation.Reservation> reservations =
-                reservationManager.listByReservationRequest(id);
-        List<Reservation> apiReservations = new ArrayList<Reservation>();
-        for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
-            apiReservations.add(reservation.toApi(domain));
-        }
-
-        entityManager.close();
-
-        return apiReservations;
-    }
-
-    @Override
-    public Collection<Reservation> listReservations(SecurityToken token) throws FaultException
-    {
-        authorization.validate(token);
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        ReservationManager reservationManager = new ReservationManager(entityManager);
-
-        List<cz.cesnet.shongo.controller.reservation.Reservation> reservations = reservationManager.list();
+                reservationManager.list(userId, reservationRequestId, reservationClasses, technologies);
         List<Reservation> apiReservations = new ArrayList<Reservation>();
         for (cz.cesnet.shongo.controller.reservation.Reservation reservation : reservations) {
             apiReservations.add(reservation.toApi(domain));

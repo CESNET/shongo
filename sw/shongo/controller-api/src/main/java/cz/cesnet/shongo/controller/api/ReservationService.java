@@ -52,9 +52,9 @@ public interface ReservationService extends Service
      *
      * @param token  token of the user requesting the operation
      * @param filter attributes for filtering reservation requests (map of name => value pairs)::
-     *               -{@code userId}        restricts reservation request owner by his user-id
-     *               -{@code technology}    set of technologies of virtual room or compartment
-     *               -{@code specification} set of specifications which the requests can specify
+     *               -{@code userId}             restricts reservation request owner by his user-id
+     *               -{@code technology}         set of technologies of virtual room, compartment or alias
+     *               -{@code specificationClass} set of specifications which the requests can specify
      * @return collection of reservation requests
      */
     @API
@@ -82,19 +82,15 @@ public interface ReservationService extends Service
 
     /**
      * @param token
-     * @param reservationRequestId
-     * @return collection of already allocated {@link Reservation}s for given reservation request
-     * @throws FaultException
-     */
-    @API
-    public Collection<Reservation> listReservations(SecurityToken token, String reservationRequestId)
-            throws FaultException;
-
-    /**
-     * @param token
+     * @param filter attributes for filtering reservations (map of name => value pairs)::
+     *               -{@code userId}                restricts reservation owner by his user-id
+     *               -{@code reservationRequestId}  restricts reservation request for which the {@link Reservation} is allocated
+     *               -{@code reservationClass}      set of allowed reservation classes
+     *               -{@code technology}            set of technologies of virtual room or compartment
      * @return collection of already allocated {@link Reservation}s
      * @throws FaultException
      */
     @API
-    public Collection<Reservation> listReservations(SecurityToken token) throws FaultException;
+    public Collection<Reservation> listReservations(SecurityToken token, Map<String, Object> filter)
+            throws FaultException;
 }

@@ -16,7 +16,7 @@
     });
 </script>
 <h1>New reservation request for Adobe Connect conference</h1>
-<form class="form-horizontal" action="[% location %]/create?confirmed" method="POST">
+<form class="form-horizontal" action="[% location %]/create?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
 
     <div class="control-group">
         <label class="control-label" for="inputName">Name:</label>
@@ -79,6 +79,19 @@
                 <input id="inputPeriodicityEnd" name="periodicityEnd" type="text" value="[% periodicityEnd %]"/>
             </div>
             [% error.periodicityEnd %]
+        </div>
+    </div>
+
+    <div class="control-group">
+        <label class="control-label" for="selectAlias">Room Name:</label>
+        <div class="controls">
+            <select id="selectAlias" name="alias" [% "disabled" IF get.alias %]>
+                <option value="none">&lt;Ad-Hoc Room Name&gt;</option>
+                [%- FOREACH aliasReservation IN aliasReservations %]
+                <option value="[% aliasReservation.id %]" [% "selected" IF aliasReservation.id == get.alias || aliasReservation.id == alias %]>[% aliasReservation.value %] ([% aliasReservation.id %])</option>
+                [% END %]
+            </select>
+            [% IF !get.alias %]<a class="btn" href="[% location %]/create-alias">Create new Alias</a>[% END %]
         </div>
     </div>
 

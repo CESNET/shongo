@@ -43,6 +43,7 @@ sub create_action
                 'start',
                 'durationCount',
                 'periodicity',
+                'alias',
                 'participantCount',
             ],
             optional => [
@@ -78,6 +79,16 @@ sub create_action
     $params->{'options'} = {
         'jquery' => 1
     };
+    $params->{'aliasReservations'} = $self->get_reservations('AliasReservation', ['ADOBE_CONNECT']);
+    foreach my $aliasReservation (@{$params->{'aliasReservations'}}) {
+        my $value = $aliasReservation->{'aliasValue'};
+        foreach my $alias (@{$aliasReservation->{'aliases'}}) {
+            if ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
+                $value = $alias->{'value'};
+            }
+        }
+        $aliasReservation->{'value'} = $value;
+    }
     $self->render_page('New reservation request', 'adobe-connect/create.html', $params);
 }
 

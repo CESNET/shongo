@@ -1,20 +1,26 @@
 package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.AbstractManager;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.executor.Compartment;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
+import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.util.DatabaseFilter;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Interval;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Manager for {@link Reservation}.
@@ -90,7 +96,8 @@ public class ReservationManager extends AbstractManager
                     Reservation.class).setParameter("id", reservationId)
                     .getSingleResult();
             return reservation;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             throw new EntityNotFoundException(Reservation.class, reservationId);
         }
     }
@@ -118,57 +125,75 @@ public class ReservationManager extends AbstractManager
                     .setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservation;
-        } catch (NoResultException exception) {
+        }
+        catch (NoResultException exception) {
             return null;
         }
     }
 
     /**
+     * @param userId
+     * @param reservationClasses
+     * @param technologies
      * @return list of {@link Reservation}s
      */
-    public List<Reservation> list()
+    public List<Reservation> list(String userId, Long reservationRequestId,
+            Set<Class<? extends Reservation>> reservationClasses,
+            Set<Technology> technologies)
     {
-        List<Reservation> reservations = entityManager.createQuery(
-                "SELECT reservation FROM Reservation reservation", Reservation.class)
-                .getResultList();
-        return reservations;
-    }
+        DatabaseFilter filter = new DatabaseFilter("reservation");
+        filter.addUserId(userId);
+        if (reservationClasses != null && reservationClasses.size() > 0) {
+            // List only reservations of given classes
+            filter.addFilter("TYPE(reservation) IN(:classes)");
+            filter.addFilterParameter("classes", reservationClasses);
+        }
+        if (reservationRequestId != null) {
+            // List only reservations which are allocated for request with given id
+            filter.addFilter("reservation IN ("
+                    + "   SELECT reservationRequest.reservation FROM ReservationRequestSet reservationRequestSet"
+                    + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                    + "   WHERE reservationRequestSet.id = :reservationRequestId"
+                    + " ) OR reservation IN ("
+                    + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
+                    + "   WHERE reservationRequest.id = :reservationRequestId"
+                    + " ) OR reservation IN ("
+                    + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
+                    + "   LEFT JOIN reservationRequest.resourceReservations reservation"
+                    + "   WHERE reservationRequest.id = :reservationRequestId"
+                    + " ) ");
+            filter.addFilterParameter("reservationRequestId", reservationRequestId);
+        }
 
-    /**
-     * @param reservationRequest from which the {@link Reservation}s should be
-     *                           returned.
-     * @return list of {@link Reservation}s from given {@code reservationRequest}
-     */
-    public List<Reservation> listByReservationRequest(AbstractReservationRequest reservationRequest)
-    {
-        return listByReservationRequest(reservationRequest.getId());
-    }
-
-    /**
-     * @param reservationRequestId for {@link AbstractReservationRequest} from which the {@link Reservation}s should be
-     *                             returned.
-     * @return list of {@link Reservation}s from {@link AbstractReservationRequest} with
-     *         given {@code reservationRequestId}
-     */
-    public List<Reservation> listByReservationRequest(Long reservationRequestId)
-    {
-        List<Reservation> reservations = entityManager.createQuery(
+        TypedQuery<Reservation> query = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
-                        + " WHERE reservation IN ("
-                        + "   SELECT reservationRequest.reservation FROM ReservationRequestSet reservationRequestSet"
-                        + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                        + "   WHERE reservationRequestSet.id = :id"
-                        + " ) OR reservation IN ("
-                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
-                        + "   WHERE reservationRequest.id = :id"
-                        + " ) OR reservation IN ("
-                        + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
-                        + "   LEFT JOIN reservationRequest.resourceReservations reservation"
-                        + "   WHERE reservationRequest.id = :id"
-                        + " ) ",
-                Reservation.class)
-                .setParameter("id", reservationRequestId)
-                .getResultList();
+                        + " WHERE reservation.parentReservation IS NULL AND " + filter.toQueryWhere(),
+                Reservation.class);
+        filter.fillQueryParameters(query);
+        List<Reservation> reservations = query.getResultList();
+
+        if (technologies != null && technologies.size() > 0) {
+            Iterator<Reservation> iterator = reservations.iterator();
+            while (iterator.hasNext()) {
+                Reservation reservation = iterator.next();
+                if (reservation instanceof AliasReservation) {
+                    AliasReservation aliasReservation = (AliasReservation) reservation;
+                    boolean technologyFound = false;
+                    for (Alias alias : aliasReservation.getAliases()) {
+                        if (technologies.contains(alias.getTechnology())) {
+                            technologyFound = true;
+                            break;
+                        }
+                    }
+                    if (!technologyFound) {
+                        iterator.remove();
+                    }
+                }
+                else {
+                    throw new TodoImplementException();
+                }
+            }
+        }
         return reservations;
     }
 
