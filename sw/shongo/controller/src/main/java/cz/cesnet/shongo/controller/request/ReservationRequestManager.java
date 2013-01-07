@@ -106,6 +106,19 @@ public class ReservationRequestManager extends AbstractManager
     {
         Transaction transaction = beginTransaction();
 
+        // Keep reservation (it is deleted by scheduler)
+        while (abstractReservationRequest.getReservations().size() > 0) {
+            Reservation reservation = abstractReservationRequest.getReservations().get(0);
+            // Check if reservation can be deleted
+            ReservationManager reservationManager = new ReservationManager(entityManager);
+            if (!reservationManager.isProvided(reservation)) {
+                throw new EntityToDeleteIsReferencedException(abstractReservationRequest.getClass(),
+                        abstractReservationRequest.getId());
+            }
+            reservation.setReservationRequest(null);
+            reservationManager.update(reservation);
+        }
+
         if (abstractReservationRequest instanceof ReservationRequestSet) {
             // Delete all reservation requests from set
             ReservationRequestSet reservationRequestSet = (ReservationRequestSet) abstractReservationRequest;
@@ -118,20 +131,6 @@ public class ReservationRequestManager extends AbstractManager
         else if (abstractReservationRequest instanceof PermanentReservationRequest) {
             // Clear state
             PreprocessorStateManager.clear(entityManager, abstractReservationRequest);
-        }
-        else if (abstractReservationRequest instanceof ReservationRequest) {
-            // Keep reservation (is deleted by scheduler)
-            ReservationRequest reservationRequest = (ReservationRequest) abstractReservationRequest;
-            Reservation reservation = reservationRequest.getReservation();
-            if (reservation != null) {
-                reservationRequest.setReservation(null);
-                update(reservationRequest);
-                // Check if reservation can be deleted
-                ReservationManager reservationManager = new ReservationManager(entityManager);
-                if (!reservationManager.isProvided(reservation)) {
-                    throw new EntityToDeleteIsReferencedException(ReservationRequest.class, reservationRequest.getId());
-                }
-            }
         }
 
         super.delete(abstractReservationRequest);
@@ -168,7 +167,8 @@ public class ReservationRequestManager extends AbstractManager
         try {
             ReservationRequest reservationRequest = entityManager.createQuery(
                     "SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                            + " WHERE reservationRequest.reservation.id = :id",
+                            + " LEFT JOIN reservationRequest.reservations reservation"
+                            + " WHERE reservation.id = :id",
                     ReservationRequest.class)
                     .setParameter("id", reservation.getId())
                     .getSingleResult();
@@ -190,20 +190,11 @@ public class ReservationRequestManager extends AbstractManager
         try {
             AbstractReservationRequest reservationRequest = entityManager.createQuery(
                     "SELECT reservationRequest FROM AbstractReservationRequest reservationRequest"
-                            + " WHERE reservationRequest IN("
-                            + "   SELECT reservationRequestSet FROM ReservationRequestSet reservationRequestSet"
-                            + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
-                            + "   WHERE reservationRequest.reservation.id = :id"
-                            + ") OR reservationRequest IN("
-                            + "   SELECT reservationRequest FROM ReservationRequest reservationRequest"
-                            + "   WHERE reservationRequest.reservation.id = :id AND reservationRequest NOT IN("
-                            + "       SELECT reservationRequest FROM ReservationRequestSet reservationRequestSet"
-                            + "       LEFT JOIN reservationRequestSet.reservationRequests reservationRequest)"
-                            + ") OR reservationRequest.id IN("
-                            + "   SELECT reservationRequest FROM PermanentReservationRequest reservationRequest"
-                            + "   LEFT JOIN reservationRequest.resourceReservations reservation"
-                            + "   WHERE reservation.id = :id"
-                            + ")", AbstractReservationRequest.class)
+                            + " LEFT JOIN reservationRequest.reservations reservation"
+                            + " LEFT JOIN reservationRequest.reservationRequests childReservationRequest"
+                            + " LEFT JOIN childReservationRequest.reservations childReservation"
+                            + " WHERE reservation.id = :id OR childReservation.id = :id)",
+                    AbstractReservationRequest.class)
                     .setParameter("id", reservationId)
                     .getSingleResult();
             return reservationRequest;

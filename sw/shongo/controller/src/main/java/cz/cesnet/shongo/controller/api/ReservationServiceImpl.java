@@ -296,7 +296,7 @@ public class ReservationServiceImpl extends Component
                     }
                 }
 
-                if (permanentReservationRequest.getResourceReservations().size() > 0) {
+                if (permanentReservationRequest.getReservations().size() > 0) {
                     summary.setState(ReservationRequestState.ALLOCATED);
                 }
                 else {

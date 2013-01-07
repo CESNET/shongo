@@ -1,5 +1,3 @@
-* Allow only single specification in reservationrequestset, create MultipleCompartmentSpecification
-
 * Add reservationRequestReference to specification (remove reference to reservation from requests)
 
 * Update API

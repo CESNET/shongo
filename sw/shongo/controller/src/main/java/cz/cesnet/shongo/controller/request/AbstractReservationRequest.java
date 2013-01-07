@@ -2,6 +2,8 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportablePersistentObject;
+import cz.cesnet.shongo.controller.reservation.Reservation;
+import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.fault.FaultException;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.ObjectUtils;
@@ -9,6 +11,9 @@ import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,6 +44,11 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
      * Description of the reservation that is shown to users.
      */
     private String description;
+
+    /**
+     * List of allocated {@link cz.cesnet.shongo.controller.reservation.Reservation}s.
+     */
+    protected List<Reservation> reservations = new ArrayList<Reservation>();
 
     /**
      * @return {@link #userId}
@@ -100,6 +110,57 @@ public abstract class AbstractReservationRequest extends ReportablePersistentObj
     public void setDescription(String description)
     {
         this.description = description;
+    }
+
+    /**
+     * @return {@link #reservations}
+     */
+    @OneToMany(mappedBy = "reservationRequest", targetEntity = Reservation.class)
+    @Access(AccessType.FIELD)
+    public List<Reservation> getReservations()
+    {
+        return Collections.unmodifiableList(reservations);
+    }
+
+    /**
+     * @param id of the {@link Reservation}
+     * @return {@link Reservation} with given {@code id}
+     * @throws cz.cesnet.shongo.fault.EntityNotFoundException
+     *          when the {@link Reservation} doesn't exist
+     */
+    @Transient
+    protected Reservation getReservationById(Long id) throws cz.cesnet.shongo.fault.EntityNotFoundException
+    {
+        for (Reservation reservation : reservations) {
+            if (reservation.getId().equals(id)) {
+                return reservation;
+            }
+        }
+        throw new cz.cesnet.shongo.fault.EntityNotFoundException(ResourceReservation.class, id);
+    }
+
+    /**
+     * @param reservation to be added to the {@link #reservations}
+     */
+    public void addReservation(Reservation reservation)
+    {
+        // Manage bidirectional association
+        if (reservations.contains(reservation) == false) {
+            reservations.add(reservation);
+            reservation.setReservationRequest(this);
+        }
+    }
+
+    /**
+     * @param reservation to be removed from the {@link #reservations}
+     */
+    public void removeReservation(Reservation reservation)
+    {
+        // Manage bidirectional association
+        if (reservations.contains(reservation)) {
+            reservations.remove(reservation);
+            reservation.setReservationRequest(null);
+        }
     }
 
     /**

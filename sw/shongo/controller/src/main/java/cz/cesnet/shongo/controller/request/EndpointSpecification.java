@@ -45,7 +45,8 @@ public abstract class EndpointSpecification extends ParticipantSpecification
      * @return {@link cz.cesnet.shongo.controller.common.Person} with given {@code id}
      * @throws EntityNotFoundException when the {@link cz.cesnet.shongo.controller.common.Person} doesn't exist
      */
-    public Person getPersonById(Long id) throws EntityNotFoundException
+    @Transient
+    private Person getPersonById(Long id) throws EntityNotFoundException
     {
         for (Person person : persons) {
             if (person.getId().equals(id)) {

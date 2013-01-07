@@ -163,6 +163,7 @@ public class RoomSpecification extends Specification implements ReservationTaskP
      * @return {@link RoomSetting} with given {@code id}
      * @throws EntityNotFoundException when the {@link RoomSetting} doesn't exist
      */
+    @Transient
     private RoomSetting getRoomSettingById(Long id) throws EntityNotFoundException
     {
         for (RoomSetting roomSetting : roomSettings) {

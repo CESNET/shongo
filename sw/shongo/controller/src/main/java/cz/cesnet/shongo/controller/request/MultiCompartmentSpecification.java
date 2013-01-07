@@ -62,6 +62,7 @@ public class MultiCompartmentSpecification extends Specification
      * @return {@link cz.cesnet.shongo.controller.request.CompartmentSpecification} with given {@code id}
      * @throws cz.cesnet.shongo.fault.EntityNotFoundException when the {@link cz.cesnet.shongo.controller.request.Specification} doesn't exist
      */
+    @Transient
     private CompartmentSpecification getSpecificationById(Long id) throws EntityNotFoundException
     {
         for (CompartmentSpecification compartmentSpecification : specifications) {

@@ -137,7 +137,7 @@ public class PermanentReservationRequestTest extends AbstractControllerTest
     }
 
     /**
-     * Test disabling whole MCU by reservation request of the MCU resource directly (not though virtual room).
+     * Test disabling whole MCU by reservation request of the MCU resource directly (not through virtual room).
      *
      * @throws Exception
      */

@@ -2,9 +2,11 @@ package cz.cesnet.shongo.controller.request;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.common.DateTimeSpecification;
+import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.ResourceReservation;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.fault.CommonFault;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 import org.joda.time.DateTime;
@@ -33,11 +35,6 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     private Resource resource;
 
     /**
-     * List of allocated {@link ResourceReservation}s.
-     */
-    private List<ResourceReservation> resourceReservations = new ArrayList<ResourceReservation>();
-
-    /**
      * @return {@link #slots}
      */
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -53,7 +50,8 @@ public class PermanentReservationRequest extends AbstractReservationRequest
      * @throws cz.cesnet.shongo.fault.EntityNotFoundException
      *          when the {@link DateTimeSlotSpecification} doesn't exist
      */
-    public DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
+    @Transient
+    private DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
     {
         for (DateTimeSlotSpecification dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
@@ -151,45 +149,40 @@ public class PermanentReservationRequest extends AbstractReservationRequest
     }
 
     /**
-     * @return {@link #resourceReservations}
+     * @return {@link #reservations}
      */
-    @OneToMany
-    @Access(AccessType.FIELD)
+    @Transient
     public List<ResourceReservation> getResourceReservations()
     {
-        return Collections.unmodifiableList(resourceReservations);
-    }
-
-    /**
-     * @param id of the {@link ResourceReservation}
-     * @return {@link ResourceReservation} with given {@code id}
-     * @throws cz.cesnet.shongo.fault.EntityNotFoundException
-     *          when the {@link ResourceReservation} doesn't exist
-     */
-    public ResourceReservation getResourceReservationById(Long id) throws EntityNotFoundException
-    {
-        for (ResourceReservation resourceReservation : resourceReservations) {
-            if (resourceReservation.getId().equals(id)) {
-                return resourceReservation;
-            }
+        ArrayList<ResourceReservation> resourceReservations = new ArrayList<ResourceReservation>();
+        for (Reservation reservation : super.getReservations()) {
+            resourceReservations.add((ResourceReservation) reservation);
         }
-        throw new EntityNotFoundException(ResourceReservation.class, id);
+        return resourceReservations;
     }
 
-    /**
-     * @param resourceReservation to be added to the {@link #resourceReservations}
-     */
-    public void addResourceReservation(ResourceReservation resourceReservation)
+    @Override
+    protected ResourceReservation getReservationById(Long id) throws EntityNotFoundException
     {
-        resourceReservations.add(resourceReservation);
+        return (ResourceReservation) super.getReservationById(id);
     }
 
-    /**
-     * @param resourceReservation to be removed from the {@link #resourceReservations}
-     */
-    public void removeResourceReservation(ResourceReservation resourceReservation)
+    @Override
+    public void addReservation(Reservation reservation)
     {
-        resourceReservations.remove(resourceReservation);
+        if (!(reservation instanceof ResourceReservation)) {
+            throw new IllegalArgumentException(ResourceReservation.class.getSimpleName() + " is required.");
+        }
+        super.addReservation(reservation);
+    }
+
+    @Override
+    public void removeReservation(Reservation reservation)
+    {
+        if (!(reservation instanceof ResourceReservation)) {
+            throw new IllegalArgumentException(ResourceReservation.class.getSimpleName() + " is required.");
+        }
+        super.removeReservation(reservation);
     }
 
     @Override
@@ -262,6 +255,6 @@ public class PermanentReservationRequest extends AbstractReservationRequest
 
         map.put("slots", slots);
         map.put("resource", resource);
-        map.put("resourceReservations", resourceReservations);
+        map.put("resourceReservations", getReservations());
     }
 }

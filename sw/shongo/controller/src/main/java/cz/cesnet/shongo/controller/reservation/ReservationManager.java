@@ -119,9 +119,8 @@ public class ReservationManager extends AbstractManager
     {
         try {
             Reservation reservation = entityManager.createQuery(
-                    "SELECT reservation FROM Reservation reservation WHERE reservation.id IN("
-                            + " SELECT reservationRequest.reservation.id FROM ReservationRequest reservationRequest"
-                            + " WHERE reservationRequest.id = :id)", Reservation.class)
+                    "SELECT reservation FROM Reservation reservation WHERE reservation.reservationRequest.id = :id",
+                    Reservation.class)
                     .setParameter("id", reservationRequestId)
                     .getSingleResult();
             return reservation;
@@ -138,8 +137,7 @@ public class ReservationManager extends AbstractManager
      * @return list of {@link Reservation}s
      */
     public List<Reservation> list(String userId, Long reservationRequestId,
-            Set<Class<? extends Reservation>> reservationClasses,
-            Set<Technology> technologies)
+            Set<Class<? extends Reservation>> reservationClasses, Set<Technology> technologies)
     {
         DatabaseFilter filter = new DatabaseFilter("reservation");
         filter.addUserId(userId);
@@ -151,17 +149,15 @@ public class ReservationManager extends AbstractManager
         if (reservationRequestId != null) {
             // List only reservations which are allocated for request with given id
             filter.addFilter("reservation IN ("
-                    + "   SELECT reservationRequest.reservation FROM ReservationRequestSet reservationRequestSet"
+                    + "   SELECT reservation FROM ReservationRequestSet reservationRequestSet"
                     + "   LEFT JOIN reservationRequestSet.reservationRequests reservationRequest"
+                    + "   LEFT JOIN reservationRequest.reservations reservation"
                     + "   WHERE reservationRequestSet.id = :reservationRequestId"
                     + " ) OR reservation IN ("
-                    + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
+                    + "   SELECT reservation FROM AbstractReservationRequest reservationRequest"
+                    + "   LEFT JOIN reservationRequest.reservations reservation"
                     + "   WHERE reservationRequest.id = :reservationRequestId"
-                    + " ) OR reservation IN ("
-                    + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
-                    + "   LEFT JOIN reservationRequest.resourceReservations reservation"
-                    + "   WHERE reservationRequest.id = :reservationRequestId"
-                    + " ) ");
+                    + " )");
             filter.addFilterParameter("reservationRequestId", reservationRequestId);
         }
 
@@ -254,15 +250,10 @@ public class ReservationManager extends AbstractManager
     {
         List<Reservation> reservations = entityManager.createQuery(
                 "SELECT reservation FROM Reservation reservation"
+                + " LEFT JOIN reservation.reservationRequest reservationRequest"
                         + " WHERE reservation.createdBy = :createdBy"
                         + " AND reservation.parentReservation IS NULL"
-                        + " AND reservation NOT IN("
-                        + "   SELECT reservationRequest.reservation FROM ReservationRequest reservationRequest"
-                        + "   WHERE reservationRequest.state = :state"
-                        + " ) AND reservation NOT IN("
-                        + "   SELECT reservation FROM PermanentReservationRequest reservationRequest"
-                        + "   INNER JOIN reservationRequest.resourceReservations reservation"
-                        + ")",
+                        + " AND (reservationRequest IS NULL OR reservationRequest.state != :state)",
                 Reservation.class)
                 .setParameter("createdBy", Reservation.CreatedBy.CONTROLLER)
                 .setParameter("state", ReservationRequest.State.ALLOCATED)

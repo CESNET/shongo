@@ -17,5 +17,8 @@
         <td><a href="[% location %]/detail?id=[% aliasUsageRequest.id %]" class="state-[% aliasUsageRequest.stateCode %]">[% aliasUsageRequest.state %]</a></td>
     </tr>
     [%- END %]
+    [% IF !reservation.aliasUsageRequests.size %]
+    <tr><td colspan="4" class="empty">- - - None - - -</td></tr>
+    [% END %]
     </tbody>
 </table>

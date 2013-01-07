@@ -171,7 +171,7 @@ public class Preprocessor extends Component
         // Remove all reservations which remains in map
         for (Interval slot : slotsToDelete) {
             ResourceReservation resourceReservation = resourceReservationBySlot.get(slot);
-            permanentReservationRequest.removeResourceReservation(resourceReservation);
+            permanentReservationRequest.removeReservation(resourceReservation);
             reservationManager.delete(resourceReservation, cache);
         }
 
@@ -205,7 +205,7 @@ public class Preprocessor extends Component
                     // Resource reservation is up-to-date
                     continue;
                 }
-                permanentReservationRequest.removeResourceReservation(resourceReservation);
+                permanentReservationRequest.removeReservation(resourceReservation);
                 reservationManager.delete(resourceReservation, cache);
             }
             ReservationTask.Context context = new ReservationTask.Context(permanentReservationRequest, cache, slot);
@@ -218,7 +218,7 @@ public class Preprocessor extends Component
 
                 // Update cache and reservation request
                 cache.addReservation(resourceReservation, entityManager);
-                permanentReservationRequest.addResourceReservation(resourceReservation);
+                permanentReservationRequest.addReservation(resourceReservation);
             }
             catch (ReportException exception) {
                 report.addChildReport(exception.getReport());

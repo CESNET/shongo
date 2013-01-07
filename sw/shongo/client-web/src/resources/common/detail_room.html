@@ -35,5 +35,8 @@
         </td>
     </tr>
     [%- END %]
+    [% IF !request.reservations.size %]
+    <tr><td colspan="4" class="empty">- - - None - - -</td></tr>
+    [% END %]
     </tbody>
 </table>

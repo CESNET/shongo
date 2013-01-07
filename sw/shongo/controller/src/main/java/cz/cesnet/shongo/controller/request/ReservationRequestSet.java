@@ -54,7 +54,8 @@ public class ReservationRequestSet extends NormalReservationRequest
      * @return {@link DateTimeSlotSpecification} with given {@code id}
      * @throws EntityNotFoundException when the {@link DateTimeSlotSpecification} doesn't exist
      */
-    public DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
+    @Transient
+    private DateTimeSlotSpecification getSlotById(Long id) throws EntityNotFoundException
     {
         for (DateTimeSlotSpecification dateTimeSlot : slots) {
             if (dateTimeSlot.getId().equals(id)) {
@@ -170,7 +171,8 @@ public class ReservationRequestSet extends NormalReservationRequest
      * @return {@link ReservationRequest} with given {@code id}
      * @throws EntityNotFoundException when the {@link ReservationRequest} doesn't exist
      */
-    public ReservationRequest getReservationRequestById(Long id) throws EntityNotFoundException
+    @Transient
+    private ReservationRequest getReservationRequestById(Long id) throws EntityNotFoundException
     {
         for (ReservationRequest reservationRequest : reservationRequests) {
             if (reservationRequest.getId().equals(id)) {

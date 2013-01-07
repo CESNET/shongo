@@ -7,6 +7,7 @@ import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Scheduler;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.report.ReportException;
+import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import org.hibernate.annotations.Type;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -33,6 +34,11 @@ public class Reservation extends PersistentObject
      * @see {@link CreatedBy}.
      */
     private CreatedBy createdBy;
+
+    /**
+     * {@link AbstractReservationRequest} for which the {@link Reservation} is allocated.
+     */
+    private AbstractReservationRequest reservationRequest;
 
     /**
      * Interval start date/time.
@@ -92,6 +98,35 @@ public class Reservation extends PersistentObject
     public void setCreatedBy(CreatedBy createdBy)
     {
         this.createdBy = createdBy;
+    }
+
+    /**
+     * @return {@link #reservationRequest}
+     */
+    @OneToOne
+    @Access(AccessType.FIELD)
+    public AbstractReservationRequest getReservationRequest()
+    {
+        return reservationRequest;
+    }
+
+    /**
+     * @param reservationRequest sets the {@link #reservationRequest}
+     */
+    public void setReservationRequest(AbstractReservationRequest reservationRequest)
+    {
+        // Manage bidirectional association
+        if (reservationRequest != this.reservationRequest) {
+            if (this.reservationRequest != null) {
+                AbstractReservationRequest oldReservationRequest = this.reservationRequest;
+                this.reservationRequest = null;
+                oldReservationRequest.removeReservation(this);
+            }
+            if (reservationRequest != null) {
+                this.reservationRequest = reservationRequest;
+                this.reservationRequest.addReservation(this);
+            }
+        }
     }
 
     /**

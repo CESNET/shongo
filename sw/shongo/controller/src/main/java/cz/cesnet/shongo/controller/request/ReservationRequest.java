@@ -183,19 +183,45 @@ public class ReservationRequest extends NormalReservationRequest
     /**
      * @return {@link #reservation}
      */
-    @OneToOne(cascade = CascadeType.ALL)
-    @Access(AccessType.FIELD)
+    @Transient
     public Reservation getReservation()
     {
-        return reservation;
+        if (reservations.size() == 0) {
+            return null;
+        }
+        else if (reservations.size() == 1) {
+            return reservations.get(0);
+        }
+        else {
+            throw new IllegalStateException("Only one reservation is allowed.");
+        }
     }
 
     /**
      * @param reservation sets the {@link #reservation}
      */
+    @Transient
     public void setReservation(Reservation reservation)
     {
-        this.reservation = reservation;
+        if (reservations.size() > 1) {
+            throw new IllegalStateException("Only one reservation is allowed.");
+        }
+        if (reservation == null) {
+            reservations.clear();
+        }
+        else {
+            super.addReservation(reservation);
+        }
+    }
+
+    @Override
+    public void addReservation(Reservation reservation)
+    {
+        if (reservations.size() > 1) {
+            throw new IllegalStateException("Only one reservation is allowed.");
+        }
+        reservations.clear();
+        super.addReservation(reservation);
     }
 
     /**

@@ -113,6 +113,7 @@ public class CompartmentSpecification extends Specification
      * @return {@link Specification} with given {@code id}
      * @throws EntityNotFoundException when the {@link Specification} doesn't exist
      */
+    @Transient
     private ParticipantSpecification getSpecificationById(Long id) throws EntityNotFoundException
     {
         for (ParticipantSpecification specification : specifications) {
