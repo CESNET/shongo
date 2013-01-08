@@ -112,6 +112,14 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
     }
 
     /**
+     * @return {@link #aliasCache}
+     */
+    public AliasCache getAliasCache()
+    {
+        return aliasCache;
+    }
+
+    /**
      * @return {@link #workingInterval}
      */
     public Interval getWorkingInterval()
@@ -419,52 +427,6 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             Transaction transaction)
     {
         return findAvailableRooms(interval, requiredLicenseCount, (Set<Technology>) null, transaction);
-    }
-
-    /**
-     * Find available alias in all resources in the database.
-     *
-     * @param technology
-     * @param aliasType
-     * @param interval
-     * @param transaction
-     * @return available alias for given {@code technology} and {@code interval}
-     */
-    public AvailableAlias getAvailableAlias(Technology technology, AliasType aliasType, String value, Interval interval,
-            Transaction transaction)
-    {
-        for (AliasProviderCapability aliasProviderCapability : aliasCache.getObjects()) {
-            if (aliasProviderCapability.isRestrictedToOwnerResource()) {
-                continue;
-            }
-            AvailableAlias availableAlias =
-                    getAvailableAlias(aliasProviderCapability, technology, aliasType, value, interval, transaction);
-            if (availableAlias != null) {
-                return availableAlias;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Find available alias in all resources in the database.
-     *
-     * @param technology
-     * @param aliasType
-     * @param interval
-     * @param transaction
-     * @return available alias for given {@code technology} and {@code interval}
-     */
-    public AvailableAlias getAvailableAlias(AliasProviderCapability aliasProviderCapability, Technology technology,
-            AliasType aliasType, String value, Interval interval, Transaction transaction)
-    {
-        if (technology != null && !aliasProviderCapability.providesAliasTechnology(technology)) {
-            return null;
-        }
-        if (aliasType != null && !aliasProviderCapability.providesAliasType(aliasType)) {
-            return null;
-        }
-        return aliasCache.getAvailableAlias(aliasProviderCapability, value, interval, transaction.getAliasCacheTransaction());
     }
 
     /**

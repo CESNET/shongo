@@ -6,6 +6,8 @@ import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -15,9 +17,9 @@ import javax.persistence.*;
 public class NoAvailableAliasReport extends Report
 {
     /**
-     * {@link Technology} for the {@link Alias}.
+     * {@link Technology}s for the {@link Alias}.
      */
-    private Technology technology;
+    private Set<Technology> technologies = new HashSet<Technology>();
 
     /**
      * {@link AliasType} for the {@link Alias}.
@@ -34,30 +36,33 @@ public class NoAvailableAliasReport extends Report
     /**
      * Constructor.
      *
-     * @param technology
+     * @param technologies
+     * @param aliasType
      */
-    public NoAvailableAliasReport(Technology technology, AliasType aliasType)
+    public NoAvailableAliasReport(Set<Technology> technologies, AliasType aliasType)
     {
-        setTechnology(technology);
+        setTechnologies(technologies);
         setAliasType(aliasType);
     }
 
     /**
-     * @return {@link #technology}
+     * @return {@link #technologies}
      */
-    @Column
+    @ElementCollection
     @Enumerated(EnumType.STRING)
-    public Technology getTechnology()
+    @Access(AccessType.FIELD)
+    public Set<Technology> getTechnologies()
     {
-        return technology;
+        return technologies;
     }
 
     /**
-     * @param technology sets the {@link #technology}
+     * @param technologies sets the {@link #technologies}
      */
-    public void setTechnology(Technology technology)
+    public void setTechnologies(Set<Technology> technologies)
     {
-        this.technology = technology;
+        this.technologies.clear();
+        this.technologies.addAll(technologies);
     }
 
     /**
@@ -84,6 +89,7 @@ public class NoAvailableAliasReport extends Report
     {
         return String.format("No available alias was found for the following specification:\n"
                 + " Technology: %s\n"
-                + " Alias Type: %s", technology.getName(), (aliasType != null ? aliasType.toString() : "Any"));
+                + " Alias Type: %s",
+                Technology.formatTechnologies(technologies), (aliasType != null ? aliasType.toString() : "Any"));
     }
 }

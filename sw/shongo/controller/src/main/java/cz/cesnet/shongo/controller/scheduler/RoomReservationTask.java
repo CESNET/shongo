@@ -129,8 +129,7 @@ public class RoomReservationTask extends ReservationTask
             for (Long deviceResourceId : deviceResourceIds) {
                 RoomVariant newRoomVariant = new RoomVariant(deviceResourceId, participantCount, technologies);
                 RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
-                if (roomVariant == null
-                        || roomVariant.getLicenseCount() > newRoomVariant.getLicenseCount()) {
+                if (roomVariant == null || roomVariant.getLicenseCount() > newRoomVariant.getLicenseCount()) {
                     roomVariant = newRoomVariant;
                 }
                 roomVariantByDeviceResourceId.put(deviceResourceId, roomVariant);
@@ -215,8 +214,10 @@ public class RoomReservationTask extends ReservationTask
             while ( missingAliasTechnologies.size() > 0 ) {
                 // Allocate missing alias
                 Technology technology = missingAliasTechnologies.iterator().next();
-                AliasSpecification aliasSpecification = new AliasSpecification(technology, deviceResource);
-                AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
+                AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
+                aliasReservationTask.addTechnology(technology);
+                aliasReservationTask.setTargetResource(deviceResource);
+                AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
                 // Assign allocated aliases to the room
                 for (Alias alias : aliasReservation.getAliases()) {
                     // Assign only aliases which can be assigned to the room (according to technology)

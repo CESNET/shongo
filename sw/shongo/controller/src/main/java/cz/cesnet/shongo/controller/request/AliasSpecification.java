@@ -14,6 +14,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.resource.ResourceManager;
+import cz.cesnet.shongo.controller.scheduler.AliasReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTask;
 import cz.cesnet.shongo.controller.scheduler.ReservationTaskProvider;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
@@ -48,9 +49,9 @@ public class AliasSpecification extends Specification implements ReservationTask
     private String value;
 
     /**
-     * Preferred {@link Resource} with {@link AliasProviderCapability}.
+     * {@link AliasProviderCapability} from which the {@link Alias} should be allocated.
      */
-    private Resource resource;
+    private AliasProviderCapability aliasProviderCapability;
 
     /**
      * Constructor.
@@ -75,12 +76,12 @@ public class AliasSpecification extends Specification implements ReservationTask
      * Constructor.
      *
      * @param technology sets the {@link #technology}
-     * @param resource   sets the {@link #resource}
+     * @param aliasProviderCapability   sets the {@link #aliasProviderCapability}
      */
-    public AliasSpecification(Technology technology, Resource resource)
+    public AliasSpecification(Technology technology, AliasProviderCapability aliasProviderCapability)
     {
         this.setTechnology(technology);
-        this.setResource(resource);
+        this.setAliasProviderCapability(aliasProviderCapability);
     }
 
     /**
@@ -147,20 +148,20 @@ public class AliasSpecification extends Specification implements ReservationTask
     }
 
     /**
-     * @return {@link #resource}
+     * @return {@link #aliasProviderCapability}
      */
     @OneToOne
-    public Resource getResource()
+    public AliasProviderCapability getAliasProviderCapability()
     {
-        return resource;
+        return aliasProviderCapability;
     }
 
     /**
-     * @param resource sets the {@link #resource}
+     * @param aliasProviderCapability sets the {@link #aliasProviderCapability}
      */
-    public void setResource(Resource resource)
+    public void setAliasProviderCapability(AliasProviderCapability aliasProviderCapability)
     {
-        this.resource = resource;
+        this.aliasProviderCapability = aliasProviderCapability;
     }
 
     @Override
@@ -171,11 +172,11 @@ public class AliasSpecification extends Specification implements ReservationTask
         boolean modified = false;
         modified |= !ObjectUtils.equals(getTechnology(), aliasSpecification.getTechnology())
                 || !ObjectUtils.equals(getAliasType(), aliasSpecification.getAliasType())
-                || !ObjectUtils.equals(getResource(), aliasSpecification.getResource());
+                || !ObjectUtils.equals(getAliasProviderCapability(), aliasSpecification.getAliasProviderCapability());
 
         setTechnology(aliasSpecification.getTechnology());
         setAliasType(aliasSpecification.getAliasType());
-        setResource(aliasSpecification.getResource());
+        setAliasProviderCapability(aliasSpecification.getAliasProviderCapability());
 
         return modified;
     }
@@ -183,54 +184,16 @@ public class AliasSpecification extends Specification implements ReservationTask
     @Override
     public ReservationTask createReservationTask(ReservationTask.Context context)
     {
-        return new ReservationTask(context)
-        {
-            @Override
-            protected Reservation createReservation() throws ReportException
-            {
-                Cache.Transaction cacheTransaction = getCacheTransaction();
-                AvailableAlias availableAlias = null;
-                // First try to allocate alias from a resource capabilities
-                Resource resource = getResource();
-                if (resource != null) {
-                    List<AliasProviderCapability> aliasProviderCapabilities =
-                            resource.getCapabilities(AliasProviderCapability.class);
-                    for (AliasProviderCapability aliasProviderCapability : aliasProviderCapabilities) {
-                        availableAlias = getCache().getAvailableAlias(aliasProviderCapability, getTechnology(),
-                                getAliasType(), getValue(), getInterval(), cacheTransaction
-                        );
-                        if (availableAlias != null) {
-                            break;
-                        }
-                    }
-                }
-                // Allocate alias from all resources in the cache
-                if (availableAlias == null) {
-                    availableAlias = getCache().getAvailableAlias(
-                            getTechnology(), getAliasType(), getValue(), getInterval(), cacheTransaction);
-                }
-                if (availableAlias == null) {
-                    throw new NoAvailableAliasReport(getTechnology(), getAliasType()).exception();
-                }
-
-                // Reuse existing reservation
-                AliasReservation providedAliasReservation = availableAlias.getAliasReservation();
-                if (providedAliasReservation != null) {
-                    ExistingReservation existingReservation = new ExistingReservation();
-                    existingReservation.setSlot(getInterval());
-                    existingReservation.setReservation(providedAliasReservation);
-                    cacheTransaction.removeProvidedReservation(providedAliasReservation);
-                    return existingReservation;
-                }
-
-                // Create new reservation
-                AliasReservation aliasReservation = new AliasReservation();
-                aliasReservation.setSlot(getInterval());
-                aliasReservation.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
-                aliasReservation.setAliasValue(availableAlias.getAliasValue());
-                return aliasReservation;
-            }
-        };
+        AliasReservationTask aliasReservationTask = new AliasReservationTask(context);
+        if (technology != null) {
+            aliasReservationTask.addTechnology(technology);
+        }
+        aliasReservationTask.setAliasType(aliasType);
+        aliasReservationTask.setValue(value);
+        if (aliasProviderCapability != null) {
+            aliasReservationTask.addAliasProviderCapability(aliasProviderCapability);
+        }
+        return aliasReservationTask;
     }
 
     @Override
@@ -247,8 +210,8 @@ public class AliasSpecification extends Specification implements ReservationTask
         aliasSpecificationApi.setTechnology(getTechnology());
         aliasSpecificationApi.setAliasType(getAliasType());
         aliasSpecificationApi.setValue(getValue());
-        if (getResource() != null) {
-            aliasSpecificationApi.setResourceId(domain.formatId(getResource().getId()));
+        if (getAliasProviderCapability() != null) {
+            aliasSpecificationApi.setResourceId(domain.formatId(getAliasProviderCapability().getResource().getId()));
         }
         super.toApi(specificationApi, domain);
     }
@@ -271,12 +234,18 @@ public class AliasSpecification extends Specification implements ReservationTask
         }
         if (aliasSpecificationApi.isPropertyFilled(aliasSpecificationApi.RESOURCE_ID)) {
             if (aliasSpecificationApi.getResourceId() == null) {
-                setResource(null);
+                setAliasProviderCapability(null);
             }
             else {
                 Long resourceId = domain.parseId(aliasSpecificationApi.getResourceId());
                 ResourceManager resourceManager = new ResourceManager(entityManager);
-                setResource(resourceManager.get(resourceId));
+                Resource resource = resourceManager.get(resourceId);
+                AliasProviderCapability aliasProviderCapability = resource.getCapability(AliasProviderCapability.class);
+                if (aliasProviderCapability == null) {
+                    throw new FaultException("Resource '%s' doesn't have %s.",
+                            AliasProviderCapability.class.getSimpleName(), aliasSpecificationApi.getResourceId());
+                }
+                setAliasProviderCapability(aliasProviderCapability);
             }
         }
         super.fromApi(specificationApi, entityManager, domain);

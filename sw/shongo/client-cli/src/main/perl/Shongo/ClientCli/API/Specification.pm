@@ -222,7 +222,7 @@ sub on_init()
                 'enum' => $AliasType
             });
             $self->add_attribute('resourceId', {
-                'title' => 'Preferred Resource Identifier',
+                'title' => 'Alias Provider Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern
             });
         }

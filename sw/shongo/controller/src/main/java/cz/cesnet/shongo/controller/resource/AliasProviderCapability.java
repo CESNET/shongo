@@ -175,11 +175,11 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @param technology to be checked
+     * @param technologies to be checked
      * @return true if the {@link AliasProviderCapability} is able to provide an {@link Alias}
      *         for given {@code technology}, false otherwise
      */
-    public boolean providesAliasTechnology(Technology technology)
+    public boolean providesAliasTechnologies(Set<Technology> technologies)
     {
         if (cachedProvidedTechnologies == null) {
             cachedProvidedTechnologies = new HashSet<Technology>();
@@ -187,7 +187,7 @@ public class AliasProviderCapability extends Capability
                 cachedProvidedTechnologies.add(alias.getTechnology());
             }
         }
-        return cachedProvidedTechnologies.contains(technology);
+        return cachedProvidedTechnologies.containsAll(technologies);
     }
 
     /**

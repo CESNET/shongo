@@ -12,6 +12,7 @@ import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.Resource;
 import cz.cesnet.shongo.controller.scheduler.report.*;
 import org.jgraph.JGraph;
@@ -301,17 +302,19 @@ public class CompartmentReservationTask extends ReservationTask
         else {
             // Allocate alias for the target endpoint
             try {
-                Resource resource = null;
+                DeviceResource deviceResource = null;
                 if (endpointTo instanceof ResourceEndpoint) {
                     ResourceEndpoint resourceEndpoint = (ResourceEndpoint) endpointTo;
-                    resource = resourceEndpoint.getDeviceResource();
+                    deviceResource = resourceEndpoint.getDeviceResource();
                 }
                 else if (endpointTo instanceof ResourceRoomEndpoint) {
                     ResourceRoomEndpoint resourceRoomEndpoint = (ResourceRoomEndpoint) endpointTo;
-                    resource = resourceRoomEndpoint.getDeviceResource();
+                    deviceResource = resourceRoomEndpoint.getDeviceResource();
                 }
-                AliasSpecification aliasSpecification = new AliasSpecification(technology, resource);
-                AliasReservation aliasReservation = addChildReservation(aliasSpecification, AliasReservation.class);
+                AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
+                aliasReservationTask.addTechnology(technology);
+                aliasReservationTask.setTargetResource(deviceResource);
+                AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
 
                 // Assign all usable aliases to endpoint, and find the one which will be used for the connection
                 alias = null;

@@ -168,7 +168,7 @@ public class Resource extends PersistentObject
 
     /**
      * @param capabilityType
-     * @return capability of given {@code capabilityType} if exits, null otherwise
+     * @return capability of given {@code capabilityType} if exists, null otherwise
      * @throws IllegalStateException when multiple capabilities of given {@code capabilityType} exists
      */
     public <T extends Capability> T getCapability(Class<T> capabilityType)

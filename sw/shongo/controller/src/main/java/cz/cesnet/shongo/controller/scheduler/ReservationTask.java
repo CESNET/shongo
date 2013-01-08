@@ -3,16 +3,13 @@ package cz.cesnet.shongo.controller.scheduler;
 import cz.cesnet.shongo.controller.Authorization;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.Scheduler;
-import cz.cesnet.shongo.controller.api.ReservationRequestState;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AbstractReservationRequest;
 import cz.cesnet.shongo.controller.request.ReservationRequest;
-import cz.cesnet.shongo.controller.request.Specification;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import org.joda.time.Interval;
-import sun.security.util.AuthResources;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -146,15 +143,13 @@ public abstract class ReservationTask
     }
 
     /**
-     * Add child {@link Reservation} to the task allocated from a {@link ReservationTask} created from given
-     * {@code reservationTaskProvider}.
+     * Add child {@link Reservation} to the task allocated by given {@code reservationTask}.
      *
-     * @param reservationTaskProvider used for creating {@link ReservationTask}
+     * @param reservationTask used for allocation of {@link Reservation}
      */
-    public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
+    public final Reservation addChildReservation(ReservationTask reservationTask)
             throws ReportException
     {
-        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getContext());
         Reservation reservation = reservationTask.perform();
         addChildReservation(reservation);
         if (reservation instanceof ExistingReservation) {
@@ -165,14 +160,38 @@ public abstract class ReservationTask
     }
 
     /**
+     * Add child {@link Reservation} to the task allocated by given {@code reservationTask}.
+     *
+     * @param reservationTask used for allocation of {@link Reservation}
+     */
+    public final <R extends Reservation> R addChildReservation(ReservationTask reservationTask,
+            Class<R> reservationClass) throws ReportException
+    {
+        Reservation reservation = addChildReservation(reservationTask);
+        return reservationClass.cast(reservation);
+    }
+
+    /**
+     * Add child {@link Reservation} to the task allocated from a {@link ReservationTask} created from given
+     * {@code reservationTaskProvider}.
+     *
+     * @param reservationTaskProvider used for creating {@link ReservationTask}
+     */
+    public final Reservation addChildReservation(ReservationTaskProvider reservationTaskProvider)
+            throws ReportException
+    {
+        ReservationTask reservationTask = reservationTaskProvider.createReservationTask(getContext());
+        return addChildReservation(reservationTask);
+    }
+
+    /**
      * Add child {@link Reservation} to the task allocated from a {@link ReservationTask} created from given
      * {@code reservationTaskProvider}.
      *
      * @param reservationTaskProvider used for creating {@link ReservationTask}
      */
     public final <R extends Reservation> R addChildReservation(ReservationTaskProvider reservationTaskProvider,
-            Class<R> reservationClass)
-            throws ReportException
+            Class<R> reservationClass) throws ReportException
     {
         Reservation reservation = addChildReservation(reservationTaskProvider);
         return reservationClass.cast(reservation);

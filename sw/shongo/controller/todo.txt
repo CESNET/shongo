@@ -8,8 +8,6 @@
 
 * Alias specification - request H323 and SIP too
 
-* Alias allocation - pass target resource in reservation task to be able to match against owner resource
-
 * H.323 room endtime
 
 * Refactorize web client to mod_perl

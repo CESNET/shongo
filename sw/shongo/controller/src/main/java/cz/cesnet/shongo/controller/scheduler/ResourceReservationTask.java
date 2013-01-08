@@ -102,8 +102,7 @@ public class ResourceReservationTask extends ReservationTask
         Resource parentResource = resource.getParentResource();
         if (parentResource != null && !cacheTransaction.containsResource(parentResource)) {
             ResourceReservationTask resourceReservationTask = new ResourceReservationTask(getContext(), parentResource);
-            Reservation parentResourceReservation = resourceReservationTask.perform();
-            addChildReservation(parentResourceReservation);
+            addChildReservation(resourceReservationTask);
         }
 
         return resourceReservation;

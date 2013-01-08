@@ -27,7 +27,7 @@ public class AliasSpecification extends Specification
     public static final String VALUE = "value";
 
     /**
-     * {@link Resource} with {@link AliasProviderCapability}.
+     * {@link Resource} with {@link AliasProviderCapability} from which the {@link Alias} should be allocated.
      */
     public static final String RESOURCE_ID = "resourceId";
 
