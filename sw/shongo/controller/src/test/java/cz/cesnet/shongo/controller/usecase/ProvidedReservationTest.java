@@ -218,7 +218,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001", true));
+        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
         mcu.setAllocatable(true);
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
@@ -271,5 +271,60 @@ public class ProvidedReservationTest extends AbstractControllerTest
         secondReservationRequest.setSpecification(new AliasSpecification(Technology.H323));
         secondReservationRequest.addProvidedReservationId(aliasReservation.getId());
         allocateAndCheckFailed(secondReservationRequest);
+    }
+
+    /**
+     * Test allocating {@link AliasReservation} from {@link AliasProviderCapability}
+     * with {@link AliasProviderCapability#RESTRICTED_TO_OWNER_RESOURCE} set to {@code true}.
+     * <p/>
+     * Then the allocated {@link AliasReservation} is provided to two {@link ReservationRequest} where the first
+     * specify different {@link AliasProviderCapability} and it fails and the second specify proper
+     * {@link AliasProviderCapability} and it succeeds.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRestrictedAlias() throws Exception
+    {
+        DeviceResource connectServerFirst = new DeviceResource();
+        connectServerFirst.setName("connectServerFirst");
+        connectServerFirst.setAllocatable(true);
+        connectServerFirst.setAddress("127.0.0.1");
+        connectServerFirst.addTechnology(Technology.ADOBE_CONNECT);
+        connectServerFirst.addCapability(new RoomProviderCapability(10));
+        // Generates only single "test" alias for this connect server
+        connectServerFirst.addCapability(
+                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{resource.address}/{value}", true));
+        String connectServerFirstId = getResourceService().createResource(SECURITY_TOKEN, connectServerFirst);
+
+        DeviceResource connectServerSecond = new DeviceResource();
+        connectServerSecond.setName("connectServerSecond");
+        connectServerSecond.setAllocatable(true);
+        connectServerSecond.addTechnology(Technology.ADOBE_CONNECT);
+        connectServerSecond.addCapability(new RoomProviderCapability(10));
+        String connectServerSecondId = getResourceService().createResource(SECURITY_TOKEN, connectServerSecond);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot("2012-01-01T00:00", "P1Y");
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(new AliasSpecification(AliasType.ADOBE_CONNECT_URI));
+        Reservation aliasReservation = allocateAndCheck(aliasReservationRequest);
+
+        ReservationRequest firstReservationRequest = new ReservationRequest();
+        firstReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        firstReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        firstReservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT,
+                connectServerSecondId));
+        firstReservationRequest.addProvidedReservationId(aliasReservation.getId());
+        // Should not be allocated because the provided alias is restricted to the first server
+        allocateAndCheckFailed(firstReservationRequest);
+
+        ReservationRequest secondReservationRequest = new ReservationRequest();
+        secondReservationRequest.setSlot("2012-06-22T14:00", "PT2H");
+        secondReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        secondReservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT,
+                connectServerFirstId));
+        secondReservationRequest.addProvidedReservationId(aliasReservation.getId());
+        allocateAndCheck(secondReservationRequest);
     }
 }

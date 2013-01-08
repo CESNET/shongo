@@ -1,6 +1,3 @@
-* Implement standalone reservation of alias from AliasProvider with "restrictedToOwnerResource = true"
-  (which then can be used as provided reservation)
-
 * Adobe connect
   - create/delete room by alias reservation
 
@@ -27,6 +24,9 @@
 * Create expiring user cache in the controller
 
 * Implement allocation failed state to permanent reservations
+
+* Add deviceResource attribute to Alias and fill it when the alias is evaluated on the DeviceResource and check
+  assignment of this alias to proper DeviceResource
 
 FUTURE:
 -------

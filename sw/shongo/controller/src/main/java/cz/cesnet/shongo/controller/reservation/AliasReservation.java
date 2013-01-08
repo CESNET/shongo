@@ -2,8 +2,7 @@ package cz.cesnet.shongo.controller.reservation;
 
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
+import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.DurationLongerThanMaximumReport;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.Period;
@@ -74,6 +73,23 @@ public class AliasReservation extends Reservation
     }
 
     /**
+     * @param alias to be evaluated by the {@link #aliasValue} and {@link #aliasProviderCapability}
+     */
+    private void evaluateAlias(Alias alias)
+    {
+        String aliasValue = alias.getValue();
+        aliasValue = aliasValue.replace("{value}", this.aliasValue);
+        alias.setValue(aliasValue);
+        if (aliasProviderCapability.isRestrictedToOwnerResource()) {
+            Resource resource = aliasProviderCapability.getResource();
+            if (resource instanceof DeviceResource) {
+                DeviceResource deviceResource = (DeviceResource) resource;
+                deviceResource.evaluateAlias(alias);
+            }
+        }
+    }
+
+    /**
      * @return collection of {@link Alias}es which are allocated by the {@link #aliasValue}
      */
     @Transient
@@ -83,7 +99,8 @@ public class AliasReservation extends Reservation
         for ( Alias aliasTemplate : aliasProviderCapability.getAliases() ) {
             Alias alias = new Alias();
             alias.setType(aliasTemplate.getType());
-            alias.setValue(aliasTemplate.getValue().replace("{value}", aliasValue));
+            alias.setValue(aliasTemplate.getValue());
+            evaluateAlias(alias);
             aliases.add(alias);
         }
         return aliases;

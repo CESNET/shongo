@@ -15,10 +15,7 @@ import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
 import org.joda.time.Interval;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Represents {@link ReservationTask} for a {@link AliasReservation}.
@@ -129,42 +126,58 @@ public class AliasReservationTask extends ReservationTask
         Interval interval = getInterval();
         AliasCache aliasCache = getCache().getAliasCache();
         AliasCache.Transaction aliasCacheTransaction = getCacheTransaction().getAliasCacheTransaction();
+
+        // Get alias providers
+        Collection<AliasProviderCapability> aliasProviders;
         if (aliasProviderCapabilities.size() > 0) {
-            // Allocate alias from one specified aliasProviderCapability
-            for (AliasProviderCapability aliasProvider : aliasProviderCapabilities) {
-                if (technologies.size() > 0 && !aliasProvider.providesAliasTechnologies(technologies)) {
-                    continue;
-                }
-                if (aliasType != null && !aliasProvider.providesAliasType(aliasType)) {
-                    continue;
-                }
-                availableAlias = aliasCache.getAvailableAlias(aliasProvider, value, interval, aliasCacheTransaction);
-                if (availableAlias != null) {
-                    break;
-                }
-            }
+            // Use only specified alias providers
+            aliasProviders = aliasProviderCapabilities;
         }
         else {
-            // Allocate alias from all resources in the cache
-            for (AliasProviderCapability aliasProvider : aliasCache.getObjects()) {
-                if (aliasProvider.isRestrictedToOwnerResource()) {
-                    if (targetResource == null) {
-                        continue;
+            // Use all alias providers from the cache
+            aliasProviders = aliasCache.getObjects();
+        }
+
+        // If target resource for which the alias will be used is not specified,
+        // we should prefer alias providers which doesn't restrict target resource
+        if (targetResource == null) {
+            // Sort the alias providers in the way that the ones which restricts target resource are at the end
+            List<AliasProviderCapability> aliasProviderList =
+                    new ArrayList<AliasProviderCapability>(aliasProviders);
+            Collections.sort(aliasProviderList, new Comparator<AliasProviderCapability>()
+            {
+                @Override
+                public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
+                {
+                    if (!provider1.isRestrictedToOwnerResource() && provider2.isRestrictedToOwnerResource()) {
+                        return -1;
                     }
-                    if(!aliasProvider.getResource().getId().equals(targetResource.getId())) {
-                        continue;
+                    if (provider1.isRestrictedToOwnerResource() && !provider2.isRestrictedToOwnerResource()) {
+                        return 1;
                     }
+                    return 0;
                 }
-                if (technologies.size() > 0 && !aliasProvider.providesAliasTechnologies(technologies)) {
+            });
+            aliasProviders = aliasProviderList;
+        }
+
+        // Find available alias in the alias providers
+        for (AliasProviderCapability aliasProvider : aliasProviders) {
+            if (aliasProvider.isRestrictedToOwnerResource() && targetResource != null) {
+                // Skip alias providers which cannot be used for specified target resource
+                if (!aliasProvider.getResource().getId().equals(targetResource.getId())) {
                     continue;
                 }
-                if (aliasType != null && !aliasProvider.providesAliasType(aliasType)) {
-                    continue;
-                }
-                availableAlias = aliasCache.getAvailableAlias(aliasProvider, value, interval, aliasCacheTransaction);
-                if (availableAlias != null) {
-                    break;
-                }
+            }
+            if (technologies.size() > 0 && !aliasProvider.providesAliasTechnologies(technologies)) {
+                continue;
+            }
+            if (aliasType != null && !aliasProvider.providesAliasType(aliasType)) {
+                continue;
+            }
+            availableAlias = aliasCache.getAvailableAlias(aliasProvider, value, interval, aliasCacheTransaction);
+            if (availableAlias != null) {
+                break;
             }
         }
         if (availableAlias == null) {

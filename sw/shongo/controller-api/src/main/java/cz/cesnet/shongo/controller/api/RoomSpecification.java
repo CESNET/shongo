@@ -51,7 +51,35 @@ public class RoomSpecification extends Specification
      * Constructor.
      *
      * @param participantCount sets the {@link #PARTICIPANT_COUNT}
-     * @param technologies to be added to the {@link #TECHNOLOGIES}
+     * @param technology       to be added to the {@link #TECHNOLOGIES}
+     */
+    public RoomSpecification(int participantCount, Technology technology)
+    {
+        setParticipantCount(participantCount);
+        addTechnology(technology);
+        setWithAlias(true);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
+     * @param technology       to be added to the {@link #TECHNOLOGIES}
+     * @param resourceId       sets the {@link #RESOURCE_ID}
+     */
+    public RoomSpecification(int participantCount, Technology technology, String resourceId)
+    {
+        setParticipantCount(participantCount);
+        addTechnology(technology);
+        setResourceId(resourceId);
+        setWithAlias(true);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param participantCount sets the {@link #PARTICIPANT_COUNT}
+     * @param technologies     to be added to the {@link #TECHNOLOGIES}
      */
     public RoomSpecification(int participantCount, Technology[] technologies)
     {

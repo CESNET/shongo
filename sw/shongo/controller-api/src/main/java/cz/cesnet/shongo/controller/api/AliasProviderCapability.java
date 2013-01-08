@@ -1,7 +1,6 @@
 package cz.cesnet.shongo.controller.api;
 
 import cz.cesnet.shongo.AliasType;
-import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.Alias;
 import cz.cesnet.shongo.api.annotation.Required;
 
@@ -44,8 +43,8 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param type       to be added as {@link Alias} to {@link #ALIASES}
-     * @param pattern    to be added to the {@link #PATTERNS}
+     * @param type    to be added as {@link Alias} to {@link #ALIASES}
+     * @param pattern to be added to the {@link #PATTERNS}
      */
     public AliasProviderCapability(AliasType type, String pattern)
     {
@@ -56,14 +55,27 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param type       to be added as {@link Alias} to {@link #ALIASES}
+     * @param pattern                   to be added to the {@link #PATTERNS}
+     * @param type                      to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #ALIASES}
+     * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
+     */
+    public AliasProviderCapability(String pattern, AliasType type, boolean restrictedToOwnerResource)
+    {
+        addAlias(new Alias(type, "{value}"));
+        addPattern(pattern);
+        setRestrictedToOwnerResource(restrictedToOwnerResource);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param type                      to be added as {@link Alias} to {@link #ALIASES}
      * @param pattern                   to be added to the {@link #PATTERNS}
      * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
      */
-    public AliasProviderCapability(AliasType type, String pattern,
-            boolean restrictedToOwnerResource)
+    public AliasProviderCapability(String pattern, AliasType type, String value, boolean restrictedToOwnerResource)
     {
-        addAlias(new Alias(type, "{value}"));
+        addAlias(new Alias(type, value));
         addPattern(pattern);
         setRestrictedToOwnerResource(restrictedToOwnerResource);
     }
