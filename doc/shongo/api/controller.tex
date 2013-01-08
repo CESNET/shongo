@@ -248,15 +248,15 @@ Represents a permanent \gls{g:reservation-request} as defined in \UCref{rsv:rese
 Represents an one time or periodic \gls{g:reservation-request} as defined in \UCref{rsv:reservation:one} and \UCref{rsv:reservation:periodic} (one time \gls{g:reservation-request} is a special case of periodic \gls{g:reservation-request}).
 \begin{ApiClassAttributes}
 \ApiClassAttribute{purpose}{ReservationRequestPurpose}{\ApiRequired} Purpose of the \gls{g:reservation-request}, see \ApiRef{ReservationRequestPurpose}.
+\ApiClassAttribute{specification}{Specification}{\ApiRequired} Requested \ApiCode{specification} for a target which should be allocated.
 \ApiClassAttribute{interDomain}{boolean}{\ApiOptionalDefault{false}} Specify whether the \gls{g:scheduler} should try allocate also \glspl{g:resource} from other \glspl{g:domain}.
 \ApiClassAttributeCollection{providedReservationIds}{List}{String}{\ApiOptional} List of identifiers for \glspl{g:reservation} which are provided to the \gls{g:reservation-request} and the \gls{g:scheduler} can use all allocated \glspl{g:resource} from these \glspl{g:reservation} when allocating the \gls{g:reservation-request}.
 \end{ApiClassAttributes}
 
 \ApiClass{ReservationRequestSet}{NormalReservationRequest}
-Represents a \gls{g:reservation-request} for one or multiple \glspl{g:reservation}. It specifies one or multiple date/time slots and one or multiple specifications and for each combination (slots x specifications) will be created one \ApiCode{ReservationRequest}.
+Represents a \gls{g:reservation-request} for one or multiple \glspl{g:reservation}. It specifies one or multiple date/time slots and one specification and for each slot will be created one \ApiCode{ReservationRequest}.
 \begin{ApiClassAttributes}
 \ApiClassAttributeCollection{slots}{List}{DateTimeSlot}{\ApiRequired} List of requested \ApiCode{slots}.
-\ApiClassAttributeCollection{specifications}{List}{Specification}{\ApiRequired} List of requested \ApiCode{specifications}.
 \ApiClassAttributeCollection{reservationRequests}{List}{ReservationRequest}{\ApiRequired} List of already created \ApiRef{ReservationRequest}s.
 \end{ApiClassAttributes}
 
@@ -265,7 +265,6 @@ Represents a \gls{g:reservation-request} for single specification at one specifi
 Only \ApiRef{ReservationRequest}s are processed by the \gls{g:scheduler} and the \gls{g:scheduler} allocates them to \glspl{g:reservation}. 
 \begin{ApiClassAttributes}
 \ApiClassAttribute{slot}{Interval}{\ApiRequired} Requested date/time \ApiCode{slot}.
-\ApiClassAttribute{specification}{Specification}{\ApiRequired} Requested \ApiCode{specification} for a target which should be allocated.
 \ApiClassAttribute{state}{ReservationRequestState}{\ApiReadOnly} Current state of the \gls{g:reservation-request}.
 \ApiClassAttribute{stateReport}{String}{\ApiReadOnly} Description for the current state (can contain reason, e.g., why the allocation failed).
 \ApiClassAttribute{reservationId}{String}{\ApiReadOnly} Identifier of allocated \gls{g:reservation} for this \gls{g:reservation-request}.
@@ -325,6 +324,14 @@ Represents a specification for a group of participants which should participate 
 \begin{ApiClassAttributes}
 \ApiClassAttributeCollection{specifications}{List}{ParticipantSpecification}{\ApiRequired} List of specifications for participants which should participate in a \gls{g:compartment}.
 \ApiClassAttribute{callInitiation}{CallInitiation}{\ApiOptional} Default \ApiCode{CallInitiation} in the \gls{g:compartment}.
+\end{ApiClassAttributes}
+
+\ApiClass{MultiCompartmentSpecification}{Specification}
+Represents a specification for a group of compartments. Each can be for different technology 
+and compartments will not be interconnected (e.g., one compartment in H.323 technology for 
+videoconference and other compartment for web conferencing technology to share content).
+\begin{ApiClassAttributes}
+\ApiClassAttributeCollection{specifications}{List}{CompartmentSpecification}{\ApiRequired} List of compartment specifications.
 \end{ApiClassAttributes}
 
 \ApiClass{ParticipantSpecification}{Specification}
@@ -581,9 +588,11 @@ Release the reservation with specified \ApiCode{reservationId}. The child reserv
 \end{ApiCmdCollection}
 List all the reservation requests that a user with given \ApiCode{token} is entitled to see. Only the lightweight definitions of reservation requests are returned, see \ApiRef{ReservationRequestSummary} for details. The \ApiCode{filter} map can contain following attributes to filter results:
 \begin{compactitem}
-\item \ApiCode{userId} restricts reservation request owner by his identifier
-\item \ApiCode{technology} set of technologies of virtual room or compartment
-\item \ApiCode{specification} set of specifications which the requests can specify
+\item \ApiCode{userId} -- restricts reservation request owner by his identifier
+\item \ApiCode{technology} -- set of technologies of virtual room or compartment
+\item \ApiCode{specification} -- set of specifications which the requests can specify
+\item \ApiCode{specificationClass} -- set of specification classes which the requests can specify
+\item \ApiCode{providedReservationId} -- restricts reservation requests to which must be provided reservation with given identifier
 \end{compactitem}
 
 \begin{ApiCmd}{AbstractReservationRequest}{getReservationRequest}%
@@ -594,9 +603,16 @@ Get the reservation request for specified \ApiCode{reservationId} that a user wi
 
 \begin{ApiCmdCollection}{Collection}{Reservation}{listReservations}%
 \ApiCmdParam{SecurityToken}{token}%
-\ApiCmdParam{String}{reservationRequestId}%
+\ApiCmdParamMap{String}{Object}{filter}%
 \end{ApiCmdCollection}
-List allocated reservations for reservation request with given \ApiCode{reservationRequestId} that a user with given \ApiCode{token} is entitled to see.
+List allocated reservations that a user with given \ApiCode{token} is entitled to see.
+The \ApiCode{filter} map can contain following attributes to filter results:
+\begin{compactitem}
+\item \ApiCode{userId} -- restricts reservation owner by his identifier
+\item \ApiCode{reservationRequestId} -- restricts reservation request for which the reservation is allocated
+\item \ApiCode{reservationClass} -- set of allowed reservation classes
+\item \ApiCode{technology} -- set of technologies of virtual room or compartment
+\end{compactitem}
 
 \begin{ApiCmd}{Reservation}{getReservation}%
 \ApiCmdParam{SecurityToken}{token}%

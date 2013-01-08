@@ -136,7 +136,7 @@ sub parse_reservation_request
             $duration = 'PT' . $params->{'durationCount'} . 'H';
         }
         elsif ( $params->{'durationType'} eq 'day' ) {
-            $duration = 'P' . $params->{'durationC  ount'} . 'D';
+            $duration = 'P' . $params->{'durationCount'} . 'D';
         }
         else {
             die("Unknown duration type '$params->{'durationType'}'.");
@@ -287,8 +287,18 @@ sub get_reservation_request
     }
     $request->{'specification'} = $specification;
 
+    # Provided reservations
+    $request->{'providedReservations'} = [];
+    foreach my $provided_reservation_id (@{$request->{'providedReservationIds'}}) {
+        my $provided_reservation = $self->{'application'}->secure_request('Reservation.getReservation', $provided_reservation_id);
+        if ( $provided_reservation->{'class'} eq 'AliasReservation') {
+            $self->process_reservation_alias($provided_reservation);
+        }
+        push(@{$request->{'providedReservations'}}, $provided_reservation);
+    }
+
     # Allocated reservations
-    $request->{'reservations'} = [];
+    $request->{'childRequests'} = [];
     foreach my $child_request (@{$child_requests}) {
         # State report
         if ( !($child_request->{'state'} eq 'ALLOCATION_FAILED') ) {
@@ -308,13 +318,13 @@ sub get_reservation_request
                 if ( !($reservation->{'class'} eq 'RoomReservation') ) {
                     $self->error("Allocated reservation should be room but '$reservation->{'class'}' was present.");
                 }
-                $self->format_aliases($child_request, $reservation->{'executable'}->{'aliases'}, $state_code eq 'started');
+                $self->format_aliases($reservation, $reservation->{'executable'}->{'aliases'}, $state_code eq 'started');
             }
             elsif ( $specification->{'class'} eq 'AliasSpecification' ) {
                 if ( !($reservation->{'class'} eq 'AliasReservation') ) {
                     $self->error("Allocated reservation should be alias but '$reservation->{'class'}' was present.");
                 }
-                $self->format_aliases($child_request, $reservation->{'aliases'}, $state_code eq 'started');
+                $self->process_reservation_alias($reservation, $state_code eq 'started');
 
                 my $aliasUsageRequests = $self->{'application'}->secure_request('Reservation.listReservationRequests', {
                     'providedReservationId' => $request->{'reservationId'}
@@ -324,9 +334,10 @@ sub get_reservation_request
                 }
                 $child_request->{'aliasUsageRequests'} = $aliasUsageRequests;
             }
+            $child_request->{'reservation'} = $reservation;
         }
 
-        push(@{$request->{'reservations'}}, $child_request);
+        push(@{$request->{'childRequests'}}, $child_request);
     }
     return $request;
 }
@@ -363,6 +374,15 @@ sub process_reservation_request_summary
         $request_summary->{'start'} = $1;
         $request_summary->{'duration'} = $2;
     }
+}
+
+#
+# @param $reservation_alias to be processed
+#
+sub process_reservation_alias
+{
+    my ($self, $reservation_alias, $available) = @_;
+    $self->format_aliases($reservation_alias, $reservation_alias->{'aliases'}, $available);
 }
 
 #
@@ -407,6 +427,7 @@ sub format_aliases
             else {
                 $aliases_text .= "$url";
             }
+            $aliases_description .= '<dt>Room URL:</dt><dd>' . $alias->{'value'} . '</dd>';
         }
         elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
             # skip

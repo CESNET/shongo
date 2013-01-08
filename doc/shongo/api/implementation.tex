@@ -158,15 +158,11 @@ Each controller runs a service component which processes incoming \glspl{g:reser
 
 There are 3 types of \glspl{g:reservation-request}:
 \begin{enumerate}
-\item \ApiRef{ReservationRequestSet} represents a compound request which can result into multiple \ApiRef{ReservationRequest}s. It must specify one or multiple date/time \code{slots} and one or multiple \code{specifications} for targets which the user wants to get allocated. A single date/time slot can be specified as periodic (e.g., each Tuesday from 14:00 to 16:00 from September to June). 
+\item \ApiRef{ReservationRequestSet} represents a compound request which can result into multiple \ApiRef{ReservationRequest}s. It must specify one or multiple date/time \code{slots} and one \code{specification} for target which the user wants to get allocated. A single date/time slot can be specified as periodic (e.g., each Tuesday from 14:00 to 16:00 from September to June). 
 
 Multiple date/time slots allows us to specify multiple specific date/times (e.g., today and tomorrow from 13:00 to 15:00) or even multiple periodic date/times (e.g., each Tuesday from 14:00 to 16:00 and Thursday from 16:00 to 18:00 from September to June).
 
-Multiple specifications allows us to request multiple \glspl{g:compartment} or \glspl{g:resource} (e.g., we specify one compartment of H.323 and SIP participants for audio and video and another compartment in web conferencing technology to share content and these two compartments won't be interconnected but will be present at the same date/time slot or slots).
-
-Periodic date/time slots must be enumerated to absolute date/time slots and for each absolute date/time slot and each specification is created one \ApiRef{ReservationRequest} (a Cartesian product of enumerated \code{slots} and \code{specifications}).
-
-\todo{ReservationRequests created for the same date/time slot should be dependent to each other (allocation succeeds for all or none). [not implemented yet]}
+Periodic date/time slots must be enumerated to absolute date/time slots and for each absolute date/time slot is created one \ApiRef{ReservationRequest}.
 
 \item \ApiRef{ReservationRequest} represents a minimum processable unit for a \gls{g:scheduler} which can be allocated to a \gls{g:reservation}. It must specify exactly one absolute date/time \code{slot} (periodic date/time cannot be used here) and one \code{specification} for a target which should be allocated.
 
@@ -183,6 +179,8 @@ There are several types of specifications for targets which can be requested for
 \item \ApiRef{RoomSpecification} allows us to get allocated a \gls{g:device-virtual-room}. When we receive a \gls{g:device-virtual-room} \gls{g:reservation} we can use it for our purposes (e.g., connect to it by a terminal and take a conference there) or we can use it when creating another \gls{g:reservation-request} and pass the \gls{g:device-virtual-room} \gls{g:reservation} to the request. A \gls{g:scheduler} then can use the \gls{g:device-virtual-room} as available room when it is allocating a \gls{g:reservation} for the \gls{g:reservation-request}.
 
 \item \ApiRef{CompartmentSpecification} allows us to get allocated a whole \gls{g:compartment}. We specify one or multiple \code{participants} and the scheduler allocates for us all specified \glspl{g:endpoint} and finds available \glspl{g:device-virtual-room} and \glspl{g:device-alias} which are needed to establish the \gls{g:compartment} and allocates them too. As part of the \ApiRef{CompartmentSpecification} we can also specify \code{callInitiation} -- who should initiate the \gls{g:device-connection} whether a \gls{g:device-virtual-room} or an \gls{g:endpoint} (see \ApiRef{CallInitiation} for more details).
+
+\item \ApiRef{MultiCompartmentSpecification} allows us to get allocated a group of \gls{g:compartment}s. Each compartment can be for different technology and compartments will not be interconnected (e.g., one compartment in H.323 technology for videoconference and other compartment for web conferencing technology to share content).
 
 \item \ApiRef{ExistingEndpointSpecification} allows us to get allocated a specific \gls{g:endpoint} \gls{g:resource-device}. Then we can use it in the requested date/time slot for our purposes (e.g., we request an H.323 \gls{g:endpoint} in a lecture room and we get allocated reservation for the \gls{g:endpoint} and also for the lecture room, we can go to the lecture room and use the \gls{g:endpoint} to connect to a conference).
 
@@ -272,16 +270,14 @@ slots: [
     duration: Period(PT2H)
   }
 ],
-specifications: [
-  CompartmentSpecification {
-    specifications: [
-      ExternalEndpointSetSpecification {
-        count: 3,
-        technologies: [H323]
-      }
-    ]
-  }
-]
+specification: CompartmentSpecification {
+  specifications: [
+    ExternalEndpointSetSpecification {
+      count: 3,
+      technologies: [H323]
+    }
+  ]
+}
 \end{ObjectCode}
 
 \item \Gls{g:reservation-request} for a H.323 phone number from 1.1.2012 to 31.12.2012.

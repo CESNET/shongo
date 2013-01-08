@@ -5,6 +5,7 @@ h3 { font-size: 20px; line-height: 30px; }
 h4 { font-size: 16px; line-height: 20px; }
 h5 { font-size: 14px; line-height: 20px; }
 h6 { font-size: 12px; line-height: 20px; }
+p { font-size: 16px;}
 
 /** Descriptions */
 .dl-horizontal dt {

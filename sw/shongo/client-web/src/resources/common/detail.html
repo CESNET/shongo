@@ -1,9 +1,7 @@
 <h1>Detail of reservation request for [%- technologies -%]
-[% IF request.specification.class == 'RoomSpecification' %]
-    room capacity
-[% ELSIF request.specification.class == 'AliasSpecification' %]
-    alias
-[% END %]
+[%- IF request.specification.class == 'RoomSpecification' %] room capacity
+[%- ELSIF request.specification.class == 'AliasSpecification' %] alias
+[%- END -%]
 </h1>
 
 <script type="text/javascript">
@@ -20,68 +18,91 @@
 
     <dt>Identifier:</dt>
     <dd>[% request.id %]</dd>
+
     <dt>Name:</dt>
     <dd>[% request.name %]</dd>
+
     <dt>Purpose:</dt>
     <dd>[% request.purpose %]</dd>
 
 [%- IF request.specification.class == 'RoomSpecification' -%]
+
     <dt>Start date/time:</dt>
     <dd>[% util.format_datetime(request.start) %]</dd>
+
     <dt>Duration:</dt>
     <dd>[% util.format_period(request.duration) %]</dd>
+
     <dt>Periodicity:</dt>
     <dd>[% request.periodicity %] [% IF request.periodicityEnd %](end: [% util.format_partial_datetime(request.periodicityEnd) %])[% END %]</dd>
+    [%- aliasReservation = request.providedReservations.0 %]
+    [%- IF aliasReservation %]
+
+    <dt>Room Alias:</dt>
+    <dd><a href="[% location %]/detail?id=[% aliasReservation.id %]">[% aliasReservation.value %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
+    [% END %]
+
     <dt>Number of participants:</dt>
     <dd>[% request.participantCount %]</dd>
+
 [%- ELSIF request.specification.class == 'AliasSpecification' -%]
+
     <dt>Validity:</dt>
     <dd>[% util.format_date(request.start) %]/[% util.format_date(request.end) %]</dd>
+
     <dt>State:</dt>
     <dd>
-        [%- reservation = request.reservations.0 %]
-        [%- IF reservation.stateReport -%]
-            [% reservation.stateReport = '<pre>' _ reservation.stateReport _ '</pre>' %]
+        [%- childRequest = request.childRequests.0 %]
+        [%- IF childRequest.stateReport -%]
+            [% childRequest.stateReport = '<pre>' _ childRequest.stateReport _ '</pre>' %]
         [%- END -%]
         [%- INCLUDE common/text_with_tooltip.html
-                class        = 'state-' _ reservation.stateCode
-                text         = reservation.state
+                class        = 'state-' _ childRequest.stateCode
+                text         = childRequest.state
                 tooltipId    = 'state-report-' _ loop.index
                 tooltipClass = 'state-report'
-                tooltipText  = reservation.stateReport
+                tooltipText  = childRequest.stateReport
         -%]
     </dd>
+
     <dt>Allocated Alias:</dt>
     <dd>
-        [%- INCLUDE common/text_with_tooltip.html
-                text         = reservation.aliases
+        [% INCLUDE common/text_with_tooltip.html
+                text         = childRequest.reservation.value
                 tooltipId    = 'aliases-description-' _ loop.index
                 tooltipClass = 'aliases-description'
-                tooltipText  = reservation.aliasesDescription
+                tooltipText  = childRequest.reservation.aliasesDescription
         -%]
-        [% 'None' IF !reservation.aliases %]
+        [% 'None' IF !childRequest.reservation.aliases %]
     </dd>
+
 [%- END -%]
 
 [%- FOREACH attribute IN request.attributes %]
+
     <dt>[% attribute.name %]</dt>
     <dd>[% attribute.value %]</dd>
+
 [%- END -%]
 
 </dl>
 
-[%- IF request.specification.class == 'RoomSpecification' -%]
-    [% INCLUDE common/detail_room.html %]
+[% IF request.specification.class == 'RoomSpecification' -%]
+[% INCLUDE common/detail_room.html %]
 [% END -%]
 
 [%- IF request.specification.class == 'AliasSpecification' -%]
-    [% INCLUDE common/detail_alias.html %]
+[% INCLUDE common/detail_alias.html %]
 [% END -%]
 
 <div class="pull-right">
     <a class="btn btn-primary" href="[% location %]/list">Back</a>
+    [%- IF request.specification.class == 'AliasSpecification' -%]
     [% IF reservation.reservationId %]
-    <a class="btn" href="[% location %]/create?alias=[% reservation.reservationId %]">Reserve Room Capacity</a>
+    <a class="btn" href="[% location %]/create?alias=[% reservation.reservationId %]">Request Room Capacity</a>
+    [% ELSE %]
+    <span class="btn disabled">Request Room Capacity</span>
+    [% END %]
     [% END %]
     <a class="btn" href="">Refresh</a>
     <a class="btn" href="[% location %]/delete?id=[% request.id %]">Delete</a>

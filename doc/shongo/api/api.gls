@@ -34,7 +34,8 @@
 \glsXpageXglsnumberformat{}{5}\delimN 
 \glsXpageXglsnumberformat{}{15}\delimN 
 \glsXpageXglsnumberformat{}{34}\delimN 
-\glsXpageXglsnumberformat{}{40}\delimR 
+\glsXpageXglsnumberformat{}{40}\delimN 
+\glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{59}\delimN 
 \glsXpageXglsnumberformat{}{61}}}\relax\glsresetentrylist
@@ -46,13 +47,12 @@
 \glsXpageXglsnumberformat{}{17}\delimN 
 \glsXpageXglsnumberformat{}{20}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 
-\glsXpageXglsnumberformat{}{23}\delimN 
 \glsXpageXglsnumberformat{}{27}\delimN 
 \glsXpageXglsnumberformat{}{34}\delimR 
 \glsXpageXglsnumberformat{}{36}\delimN 
-\glsXpageXglsnumberformat{}{38}\delimN 
-\glsXpageXglsnumberformat{}{39}\delimN 
-\glsXpageXglsnumberformat{}{41}\delimR 
+\glsXpageXglsnumberformat{}{38}\delimR 
+\glsXpageXglsnumberformat{}{40}\delimN 
+\glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{59}\delimR 
 \glsXpageXglsnumberformat{}{61}\delimN 
@@ -62,7 +62,7 @@
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{3}\delimN 
 \glsXpageXglsnumberformat{}{17}\delimN 
-\glsXpageXglsnumberformat{}{23}\delimN 
+\glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{27}\delimN 
 \glsXpageXglsnumberformat{}{59}}}\relax\glsresetentrylist
 \glossaryentryfield{g:resource}{\glsnamefont{resource}}{An entity that can be requested for a reservation and allocated by a \gls {g:scheduler}.}{\relax }{\glossaryentrynumbers{\relax 
@@ -72,7 +72,6 @@
 \glsXpageXglsnumberformat{}{14}\delimR 
 \glsXpageXglsnumberformat{}{16}\delimN 
 \glsXpageXglsnumberformat{}{18}\delimR 
-\glsXpageXglsnumberformat{}{20}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimR 
 \glsXpageXglsnumberformat{}{42}\delimN 
@@ -98,10 +97,9 @@
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{38}\delimN 
 \glsXpageXglsnumberformat{}{41}\delimN 
-\glsXpageXglsnumberformat{}{42}\delimN 
+\glsXpageXglsnumberformat{}{43}\delimN 
 \glsXpageXglsnumberformat{}{44}\delimN 
-\glsXpageXglsnumberformat{}{46}\delimN 
-\glsXpageXglsnumberformat{}{47}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{46}}}\relax\glsresetentrylist
 \glossaryentryfield{g:reservation-request}{\glsnamefont{reservation request}}{A request that is made by an \gls {g:user} to book \gls {g:resource}(s) for a specific date/time slot(s). Reservation request can be \emph {incomplete} or \emph {complete}. Incomplete requests must be filled in by additional information to become complete. \Gls {g:scheduler} processes only complete reservation requests.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimR 
 \glsXpageXglsnumberformat{}{5}\delimN 
@@ -120,13 +118,14 @@
 \glsXpageXglsnumberformat{}{5}\delimN 
 \glsXpageXglsnumberformat{}{14}\delimN 
 \glsXpageXglsnumberformat{}{15}\delimN 
-\glsXpageXglsnumberformat{}{18}\delimR 
+\glsXpageXglsnumberformat{}{18}\delimN 
+\glsXpageXglsnumberformat{}{19}\delimN 
+\glsXpageXglsnumberformat{}{21}\delimR 
 \glsXpageXglsnumberformat{}{26}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{38}\delimR 
 \glsXpageXglsnumberformat{}{40}\delimN 
-\glsXpageXglsnumberformat{}{43}\delimN 
-\glsXpageXglsnumberformat{}{44}\delimN 
+\glsXpageXglsnumberformat{}{44}\delimR 
 \glsXpageXglsnumberformat{}{46}\delimN 
 \glsXpageXglsnumberformat{}{61}\delimN 
 \glsXpageXglsnumberformat{}{67}}}\relax\glsresetentrylist
@@ -137,8 +136,9 @@
 \glossaryentryfield{g:scheduler}{\glsnamefont{scheduler}}{Scheduler is a component of a \gls {g:controller} which processes complete \glspl {g:reservation-request} and allocates them to \glspl {g:reservation}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimR 
 \glsXpageXglsnumberformat{}{4}\delimN 
-\glsXpageXglsnumberformat{}{18}\delimR 
-\glsXpageXglsnumberformat{}{20}\delimN 
+\glsXpageXglsnumberformat{}{18}\delimN 
+\glsXpageXglsnumberformat{}{19}\delimN 
+\glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{23}\delimN 
 \glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{38}\delimR 
@@ -163,8 +163,7 @@
 \glsXpageXglsnumberformat{}{19}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{41}\delimR 
-\glsXpageXglsnumberformat{}{43}\delimN 
-\glsXpageXglsnumberformat{}{46}}}\relax\glsresetentrylist
+\glsXpageXglsnumberformat{}{43}}}\relax\glsresetentrylist
 \glossaryentryfield{g:compartment}{\glsnamefont{compartment}}{Represents a group of \glspl {g:endpoint} and/or persons which participates in a single video/web conference and the conference can spread out through multiple virtual rooms and even through multiple \glspl {g:technology} (when a gateway device is used).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{4}\delimN 
@@ -188,7 +187,6 @@
 \glsXpageXglsnumberformat{}{20}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{25}\delimN 
-\glsXpageXglsnumberformat{}{36}\delimN 
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{43}\delimN 
@@ -205,9 +203,8 @@
 \glsXpageXglsnumberformat{}{37}\delimN 
 \glsXpageXglsnumberformat{}{39}\delimN 
 \glsXpageXglsnumberformat{}{41}\delimN 
-\glsXpageXglsnumberformat{}{42}\delimN 
 \glsXpageXglsnumberformat{}{44}\delimR 
-\glsXpageXglsnumberformat{}{47}\delimN 
+\glsXpageXglsnumberformat{}{46}\delimN 
 \glsXpageXglsnumberformat{}{62}}}\relax\glsresetentrylist
 \glossaryentryfield{g:device-alias}{\glsnamefont{alias}}{Represents an identifier that can be assigned to a \gls {g:device} and which can be used to connect to the \gls {g:device} in a specific \gls {g:technology} (e.g., E.164 number in H.323 or URI in SIP).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
@@ -225,7 +222,7 @@
 \glossaryentryfield{g:device-connection}{\glsnamefont{video conference call}}{Represents a connection or call which is initiated by a \gls {g:device} to another \gls {g:device}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
 \glsXpageXglsnumberformat{}{4}\delimN 
-\glsXpageXglsnumberformat{}{19}\delimN 
+\glsXpageXglsnumberformat{}{18}\delimN 
 \glsXpageXglsnumberformat{}{36}}}\relax\glsresetentrylist
 \glossaryentryfield{g:executor}{\glsnamefont{executor}}{Executor is a component of a \gls {g:controller} which executes allocated \glspl {g:executable} (e.g., \glspl {g:compartment} or \glspl {g:device-virtual-room}) from \glspl {g:reservation}. It creates all \glspl {g:device-virtual-room} on managed \glspl {g:resource-device} and establishes all \glspl {g:device-connection} between created \glspl {g:device-virtual-room} and managed \gls {g:endpoint} \glspl {g:resource-device}.}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 
@@ -233,8 +230,8 @@
 \glsXpageXglsnumberformat{}{19}\delimN 
 \glsXpageXglsnumberformat{}{22}\delimN 
 \glsXpageXglsnumberformat{}{39}\delimN 
-\glsXpageXglsnumberformat{}{44}\delimN 
-\glsXpageXglsnumberformat{}{45}\delimN 
+\glsXpageXglsnumberformat{}{44}\delimR 
+\glsXpageXglsnumberformat{}{46}\delimN 
 \glsXpageXglsnumberformat{}{62}}}\relax\glsresetentrylist
 \glossaryentryfield{g:executable}{\glsnamefont{executable}}{Executable is an entity which can be executed by an \gls {g:executor} (e.g., \glspl {g:compartment} or \glspl {g:device-virtual-room}).}{\relax }{\glossaryentrynumbers{\relax 
 \glsXpageXglsnumberformat{}{2}\delimN 

@@ -55,7 +55,7 @@ public interface ReservationService extends Service
      *               -{@code userId}                restricts reservation request owner by his user-id
      *               -{@code technology}            set of technologies of virtual room, compartment or alias
      *               -{@code specificationClass}    set of specifications which the requests can specify
-     *               -{@code providedReservationId} to reservation request must be provided reservation with given identifier
+     *               -{@code providedReservationId} restricts reservation requests to which must be provided reservation with given identifier
      * @return collection of reservation requests
      */
     @API

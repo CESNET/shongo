@@ -1,11 +1,8 @@
 package cz.cesnet.shongo.controller.scheduler.report;
 
-import cz.cesnet.shongo.controller.report.Report;
-import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 
 import javax.persistence.Entity;
-import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 
 /**
@@ -13,12 +10,12 @@ import javax.persistence.Transient;
  * @see {@link #getText()}
  */
 @Entity
-public class ProvidedReservationNotAvailableReport extends AbstractReservationReport
+public class ProvidedReservationNotUsableReport extends AbstractReservationReport
 {
     /**
      * Constructor.
      */
-    public ProvidedReservationNotAvailableReport()
+    public ProvidedReservationNotUsableReport()
     {
     }
 
@@ -27,7 +24,7 @@ public class ProvidedReservationNotAvailableReport extends AbstractReservationRe
      *
      * @param reservation
      */
-    public ProvidedReservationNotAvailableReport(Reservation reservation)
+    public ProvidedReservationNotUsableReport(Reservation reservation)
     {
         setReservation(reservation);
     }
@@ -36,6 +33,7 @@ public class ProvidedReservationNotAvailableReport extends AbstractReservationRe
     @Transient
     public String getText()
     {
-        return String.format("%s is not available.", getReservationDescription());
+        return String.format("%s is not usable because provided date/time slot doesn't contain the requested.",
+                getReservationDescription());
     }
 }

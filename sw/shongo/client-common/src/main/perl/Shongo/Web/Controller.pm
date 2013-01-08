@@ -112,10 +112,10 @@ sub get_param
         $value = $self->{'application'}->{'cgi'}->url_param($name);
         if ( !defined($value) ) {
             my @keywords = $self->{'application'}->{'cgi'}->url_param('keywords');
-            if ( !defined(@keywords) ) {
+            if ( scalar(@keywords) == 0 ) {
                 @keywords = $self->{'application'}->{'cgi'}->url_param();
             }
-            if ( defined(@keywords) && array_value_exists($name, @keywords) ) {
+            if ( scalar(@keywords) > 0 && array_value_exists($name, @keywords) ) {
                 return 1;
             }
         }

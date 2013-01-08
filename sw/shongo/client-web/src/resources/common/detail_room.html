@@ -9,33 +9,33 @@
     </tr>
     </thead>
     <tbody>
-    [%- FOREACH reservation IN request.reservations %]
+    [%- FOREACH childRequest IN request.childRequests %]
     <tr>
-        <td>[% util.format_datetime(reservation.start) %]</td>
-        <td>[% util.format_period(reservation.duration) %]</td>
+        <td>[% util.format_datetime(childRequest.start) %]</td>
+        <td>[% util.format_period(childRequest.duration) %]</td>
         <td>
-            [%- IF reservation.stateReport -%]
-                [% reservation.stateReport = '<pre>' _ reservation.stateReport _ '</pre>' %]
+            [% IF childRequest.stateReport -%]
+                [% childRequest.stateReport = '<pre>' _ childRequest.stateReport _ '</pre>' %]
             [%- END -%]
             [%- INCLUDE common/text_with_tooltip.html
-                    class        = 'state-' _ reservation.stateCode
-                    text         = reservation.state
+                    class        = 'state-' _ childRequest.stateCode
+                    text         = childRequest.state
                     tooltipId    = 'state-report-' _ loop.index
                     tooltipClass = 'state-report'
-                    tooltipText  = reservation.stateReport
-            -%]
+                    tooltipText  = childRequest.stateReport
+            %]
         </td>
         <td>
-            [%- INCLUDE common/text_with_tooltip.html
-                    text         = reservation.aliases
+            [% INCLUDE common/text_with_tooltip.html
+                    text         = childRequest.reservation.aliases
                     tooltipId    = 'aliases-description-' _ loop.index
                     tooltipClass = 'aliases-description'
-                    tooltipText  = reservation.aliasesDescription
-            -%]
+                    tooltipText  = childRequest.reservation.aliasesDescription
+            %]
         </td>
     </tr>
     [%- END %]
-    [% IF !request.reservations.size %]
+    [%- IF !request.childRequests.size %]
     <tr><td colspan="4" class="empty">- - - None - - -</td></tr>
     [% END %]
     </tbody>
