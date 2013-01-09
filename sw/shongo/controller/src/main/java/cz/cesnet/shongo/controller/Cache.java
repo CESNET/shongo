@@ -4,6 +4,7 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.*;
+import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.reservation.*;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.fault.FaultException;
@@ -458,6 +459,11 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         private AliasCache.Transaction aliasCacheTransaction = new AliasCache.Transaction();
 
         /**
+         * Map of provided {@link Executable}s by {@link Reservation} which allocates them.
+         */
+        private Map<Executable, Reservation> providedExecutableByReservation = new HashMap<Executable, Reservation>();
+
+        /**
          * Constructor.
          */
         public Transaction(Interval interval)
@@ -508,6 +514,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         public void addProvidedReservation(Reservation reservation)
         {
             if (reservation.getSlot().contains(getInterval())) {
+                Executable executable = reservation.getExecutable();
+                if (executable != null) {
+                    providedExecutableByReservation.put(executable, reservation);
+                }
                 if (reservation instanceof ExistingReservation) {
                     throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
                     // It will be necessary to evaluate existing reservation to target reservation and to keep the
@@ -538,6 +548,10 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
          */
         public void removeProvidedReservation(Reservation reservation)
         {
+            Executable executable = reservation.getExecutable();
+            if (executable != null) {
+                providedExecutableByReservation.remove(executable);
+            }
             if (reservation instanceof ExistingReservation) {
                 throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
             }
@@ -551,6 +565,21 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
                 aliasCacheTransaction.removeProvidedReservation(
                         aliasReservation.getAliasProviderCapability().getId(), aliasReservation);
             }
+        }
+
+        /**
+         * @param executableType
+         * @return collection of provided {@link Executable}s of given {@code executableType}
+         */
+        public Collection<Executable> getProvidedExecutables(Class<? extends Executable> executableType)
+        {
+            Set<Executable> providedExecutables = new HashSet<Executable>();
+            for (Executable providedExecutable : providedExecutableByReservation.keySet()) {
+                if (executableType.isInstance(providedExecutable)) {
+                    providedExecutables.add(providedExecutable);
+                }
+            }
+            return providedExecutables;
         }
 
         /**

@@ -96,7 +96,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95000000[d]"));
+        aliasProvider.addCapability(new AliasProviderCapability("95000000[d]", AliasType.H323_E164));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
@@ -130,7 +130,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
+        aliasProvider.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
@@ -218,7 +218,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
+        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
@@ -249,7 +249,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
+        aliasProvider.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
@@ -275,7 +275,7 @@ public class ProvidedReservationTest extends AbstractControllerTest
 
     /**
      * Test allocating {@link AliasReservation} from {@link AliasProviderCapability}
-     * with {@link AliasProviderCapability#RESTRICTED_TO_OWNER_RESOURCE} set to {@code true}.
+     * with {@link AliasProviderCapability#RESTRICTED_TO_RESOURCE} set to {@code true}.
      * <p/>
      * Then the allocated {@link AliasReservation} is provided to two {@link ReservationRequest} where the first
      * specify different {@link AliasProviderCapability} and it fails and the second specify proper
@@ -294,7 +294,8 @@ public class ProvidedReservationTest extends AbstractControllerTest
         connectServerFirst.addCapability(new RoomProviderCapability(10));
         // Generates only single "test" alias for this connect server
         connectServerFirst.addCapability(
-                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{resource.address}/{value}", true));
+                new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_URI, "{resource.address}/{value}")
+                        .withRestrictedToResource());
         String connectServerFirstId = getResourceService().createResource(SECURITY_TOKEN, connectServerFirst);
 
         DeviceResource connectServerSecond = new DeviceResource();

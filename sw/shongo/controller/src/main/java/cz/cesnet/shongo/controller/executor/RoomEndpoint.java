@@ -1,13 +1,12 @@
 package cz.cesnet.shongo.controller.executor;
 
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import javax.persistence.*;
 
 /**
- * Represents an {@link Endpoint} which represents a {@link cz.cesnet.shongo.controller.common.RoomConfiguration} (is able to
+ * Represents an {@link Endpoint} which represents a {@link RoomConfiguration} (is able to
  * interconnect multiple other {@link Endpoint}s).
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
@@ -16,50 +15,30 @@ import javax.persistence.Transient;
 public abstract class RoomEndpoint extends Endpoint
 {
     /**
-     * {@link cz.cesnet.shongo.Technology} specific id of the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}.
+     * @see RoomConfiguration
      */
-    private String roomId;
+    private RoomConfiguration roomConfiguration = new RoomConfiguration();
 
     /**
      * Name of the room which can be displayed to the user.
      */
     private String roomName;
 
-    @Override
-    @Transient
-    public String getName()
+    /**
+     * @return {@link #roomConfiguration}
+     */
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    public RoomConfiguration getRoomConfiguration()
     {
-        return String.format("virtual room '%d'", getId());
-    }
-
-    @Override
-    @Transient
-    public int getCount()
-    {
-        return 0;
+        return roomConfiguration;
     }
 
     /**
-     * @return {@link cz.cesnet.shongo.controller.common.RoomConfiguration}
+     * @param roomConfiguration sets the {@link #roomConfiguration}
      */
-    @Transient
-    public abstract RoomConfiguration getRoomConfiguration();
-
-    /**
-     * @return {@link #roomId}
-     */
-    @Column
-    public String getRoomId()
+    public void setRoomConfiguration(RoomConfiguration roomConfiguration)
     {
-        return roomId;
-    }
-
-    /**
-     * @param roomId sets the {@link #roomId}
-     */
-    public void setRoomId(String roomId)
-    {
-        this.roomId = roomId;
+        this.roomConfiguration = roomConfiguration;
     }
 
     /**
@@ -77,4 +56,24 @@ public abstract class RoomEndpoint extends Endpoint
     {
         this.roomName = roomName;
     }
+
+    @Override
+    @Transient
+    public String getName()
+    {
+        return String.format("virtual room '%d'", getId());
+    }
+
+    @Override
+    @Transient
+    public int getCount()
+    {
+        return 0;
+    }
+
+    /**
+     * @return {@link Technology} specific id of the {@link RoomConfiguration}.
+     */
+    @Transient
+    public abstract String getRoomId();
 }

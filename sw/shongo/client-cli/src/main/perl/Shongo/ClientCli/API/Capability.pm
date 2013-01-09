@@ -104,7 +104,7 @@ sub on_init()
                 }
             );
             $self->add_attribute(
-                'restrictedToOwnerResource', {
+                'restrictedToResource', {
                     'title' => 'Restricted to Owner',
                     'type' => 'bool'
                 }

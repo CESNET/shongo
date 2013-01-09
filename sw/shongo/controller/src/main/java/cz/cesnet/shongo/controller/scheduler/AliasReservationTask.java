@@ -5,13 +5,12 @@ import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AliasCache;
 import cz.cesnet.shongo.controller.cache.AvailableAlias;
+import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
-import cz.cesnet.shongo.controller.resource.Alias;
-import cz.cesnet.shongo.controller.resource.AliasProviderCapability;
-import cz.cesnet.shongo.controller.resource.DeviceResource;
+import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableAliasReport;
 import org.joda.time.Interval;
 
@@ -149,10 +148,10 @@ public class AliasReservationTask extends ReservationTask
                 @Override
                 public int compare(AliasProviderCapability provider1, AliasProviderCapability provider2)
                 {
-                    if (!provider1.isRestrictedToOwnerResource() && provider2.isRestrictedToOwnerResource()) {
+                    if (!provider1.isRestrictedToResource() && provider2.isRestrictedToResource()) {
                         return -1;
                     }
-                    if (provider1.isRestrictedToOwnerResource() && !provider2.isRestrictedToOwnerResource()) {
+                    if (provider1.isRestrictedToResource() && !provider2.isRestrictedToResource()) {
                         return 1;
                     }
                     return 0;
@@ -163,7 +162,7 @@ public class AliasReservationTask extends ReservationTask
 
         // Find available alias in the alias providers
         for (AliasProviderCapability aliasProvider : aliasProviders) {
-            if (aliasProvider.isRestrictedToOwnerResource() && targetResource != null) {
+            if (aliasProvider.isRestrictedToResource() && targetResource != null) {
                 // Skip alias providers which cannot be used for specified target resource
                 if (!aliasProvider.getResource().getId().equals(targetResource.getId())) {
                     continue;
@@ -194,11 +193,36 @@ public class AliasReservationTask extends ReservationTask
             return existingReservation;
         }
 
+        AliasProviderCapability aliasProviderCapability = availableAlias.getAliasProviderCapability();
+
         // Create new reservation
         AliasReservation aliasReservation = new AliasReservation();
         aliasReservation.setSlot(getInterval());
-        aliasReservation.setAliasProviderCapability(availableAlias.getAliasProviderCapability());
+        aliasReservation.setAliasProviderCapability(aliasProviderCapability);
         aliasReservation.setAliasValue(availableAlias.getAliasValue());
+
+        // If alias should be allocated as permanent room, create room endpoint with zero licenses
+        // (so we don't need reservation for the room)
+        if (aliasProviderCapability.isPermanentRoom()) {
+            Resource resource = aliasProviderCapability.getResource();
+            if (!resource.hasCapability(RoomProviderCapability.class)) {
+                throw new IllegalStateException("Permanent room should be enabled only for device resource"
+                        + " with room provider capability.");
+            }
+            ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
+            roomEndpoint.setUserId(getContext().getUserId());
+            roomEndpoint.setDeviceResource((DeviceResource) resource);
+            roomEndpoint.setRoomName(getContext().getReservationRequest().getName());
+            roomEndpoint.setSlot(getInterval());
+            roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+            Set<Technology> technologies = roomEndpoint.getTechnologies();
+            for (Alias alias : aliasReservation.getAliases()) {
+                if (technologies.contains(alias.getTechnology())) {
+                    roomEndpoint.addAssignedAlias(alias);
+                }
+            }
+            aliasReservation.setExecutable(roomEndpoint);
+        }
         return aliasReservation;
     }
 }

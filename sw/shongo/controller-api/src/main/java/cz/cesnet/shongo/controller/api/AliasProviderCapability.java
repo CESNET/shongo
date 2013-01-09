@@ -28,10 +28,16 @@ public class AliasProviderCapability extends Capability
     public static final String PATTERNS = "patterns";
 
     /**
-     * Specifies whether alias provider is restricted only to the owner resource or all resources can use the provider
-     * for alias allocation.
+     * Specifies whether the {@link AliasProviderCapability} can allocate {@link Alias}es only for
+     * the owner resource or for all {@link Resource}s in the resource database.
      */
-    public static final String RESTRICTED_TO_OWNER_RESOURCE = "restrictedToOwnerResource";
+    public static final String RESTRICTED_TO_RESOURCE = "restrictedToResource";
+
+    /**
+     * Specifies whether the {@link Alias}es allocated by the {@link AliasProviderCapability} should represent
+     * permanent rooms (should get allocated {@link Executable.ResourceRoom}).
+     */
+    public static final String PERMANENT_ROOM = "permanentRoom";
 
     /**
      * Constructor.
@@ -43,27 +49,13 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param type    to be added as {@link Alias} to {@link #ALIASES}
      * @param pattern to be added to the {@link #PATTERNS}
+     * @param type    to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #ALIASES}
      */
-    public AliasProviderCapability(AliasType type, String pattern)
+    public AliasProviderCapability(String pattern, AliasType type)
     {
         addAlias(new Alias(type, "{value}"));
         addPattern(pattern);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param pattern                   to be added to the {@link #PATTERNS}
-     * @param type                      to be added as {@link cz.cesnet.shongo.api.Alias} to {@link #ALIASES}
-     * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
-     */
-    public AliasProviderCapability(String pattern, AliasType type, boolean restrictedToOwnerResource)
-    {
-        addAlias(new Alias(type, "{value}"));
-        addPattern(pattern);
-        setRestrictedToOwnerResource(restrictedToOwnerResource);
     }
 
     /**
@@ -71,13 +63,29 @@ public class AliasProviderCapability extends Capability
      *
      * @param type                      to be added as {@link Alias} to {@link #ALIASES}
      * @param pattern                   to be added to the {@link #PATTERNS}
-     * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
      */
-    public AliasProviderCapability(String pattern, AliasType type, String value, boolean restrictedToOwnerResource)
+    public AliasProviderCapability(String pattern, AliasType type, String value)
     {
         addAlias(new Alias(type, value));
         addPattern(pattern);
-        setRestrictedToOwnerResource(restrictedToOwnerResource);
+    }
+
+    /**
+     * @return this {@link AliasProviderCapability} with {@link #RESTRICTED_TO_RESOURCE} set to {@code true}
+     */
+    public AliasProviderCapability withRestrictedToResource()
+    {
+        setRestrictedToResource(true);
+        return this;
+    }
+
+    /**
+     * @return this {@link AliasProviderCapability} with {@link #PERMANENT_ROOM} set to {@code true}
+     */
+    public AliasProviderCapability withPermanentRoom()
+    {
+        setPermanentRoom(true);
+        return this;
     }
 
     /**
@@ -147,22 +155,34 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #RESTRICTED_TO_OWNER_RESOURCE}
+     * @return {@link #RESTRICTED_TO_RESOURCE}
      */
-    public Boolean getRestrictedToOwnerResource()
+    public Boolean getRestrictedToResource()
     {
-        Object restrictedToOwnerResource = getPropertyStorage().getValue(RESTRICTED_TO_OWNER_RESOURCE);
-        if (restrictedToOwnerResource == null) {
-            return false;
-        }
-        return (Boolean) restrictedToOwnerResource;
+        return getPropertyStorage().getValueAsBoolean(RESTRICTED_TO_RESOURCE);
     }
 
     /**
-     * @param restrictedToOwnerResource sets the {@link #RESTRICTED_TO_OWNER_RESOURCE}
+     * @param restrictedToResource sets the {@link #RESTRICTED_TO_RESOURCE}
      */
-    public void setRestrictedToOwnerResource(Boolean restrictedToOwnerResource)
+    public void setRestrictedToResource(Boolean restrictedToResource)
     {
-        getPropertyStorage().setValue(RESTRICTED_TO_OWNER_RESOURCE, restrictedToOwnerResource);
+        getPropertyStorage().setValue(RESTRICTED_TO_RESOURCE, restrictedToResource);
+    }
+
+    /**
+     * @return {@link #PERMANENT_ROOM}
+     */
+    public Boolean getPermanentRoom()
+    {
+        return getPropertyStorage().getValueAsBoolean(PERMANENT_ROOM);
+    }
+
+    /**
+     * @param permanentRoom sets the {@link #PERMANENT_ROOM}
+     */
+    public void setPermanentRoom(Boolean permanentRoom)
+    {
+        getPropertyStorage().setValue(PERMANENT_ROOM, permanentRoom);
     }
 }

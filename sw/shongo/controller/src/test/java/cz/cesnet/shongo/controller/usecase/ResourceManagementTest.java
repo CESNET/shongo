@@ -141,14 +141,13 @@ public class ResourceManagementTest extends AbstractControllerTest
         mcu.setAllocatable(true);
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(100));
-        mcu.addCapability(new AliasProviderCapability("95008721[d]", AliasType.H323_E164, true));
         getResourceService().createResource(SECURITY_TOKEN, mcu);
 
         // Create alias provider
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability("95008722[d]", AliasType.H323_E164, true));
+        aliasProvider.addCapability(new AliasProviderCapability("[d]", AliasType.H323_E164));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
     }
 }

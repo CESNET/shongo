@@ -9,8 +9,9 @@ import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.ExecutorThread;
+import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
@@ -91,7 +92,7 @@ public class ExecutorTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability(AliasType.H323_E164, "9500872[dd]"));
+        aliasProvider.addCapability(new AliasProviderCapability("9500872[dd]", AliasType.H323_E164));
         String aliasProviderId = getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         DeviceResource terminal = new DeviceResource();
@@ -143,7 +144,7 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} and execute it.
+     * Allocate {@link RoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -193,7 +194,7 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} and execute it.
+     * Allocate {@link RoomEndpoint} and execute it.
      *
      * @throws Exception
      */
@@ -248,8 +249,115 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both of them separately (first {@link cz.cesnet.shongo.controller.executor.RoomEndpoint} and then
+     * Allocate {@link RoomEndpoint} and execute it.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testAlias() throws Exception
+    {
+        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connectServer");
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10));
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME,
+                "{resource.address}/{value}").withPermanentRoom());
+        connectServer.setAllocatable(true);
+        connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
+
+        // Allocate reservation request
+        allocateAndCheck(reservationRequest);
+
+        // Execute virtual room
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute virtual room.",
+                ResourceRoomEndpoint.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, connectServerAgent.getPerformedActionClasses());
+    }
+
+    /**
+     * Allocate {@link RoomEndpoint} through {@link AliasReservation} and use it by {@link RoomReservation}.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testProvidedPermanentAlias() throws Exception
+    {
+        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connectServer");
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10));
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME,
+                "{resource.address}/{value}").withPermanentRoom());
+        connectServer.setAllocatable(true);
+        connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
+
+        ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setSlot(dateTime, duration);
+        aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
+        AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));
+        reservationRequest.addProvidedReservationId(aliasReservation.getId());
+        allocateAndCheck(reservationRequest);
+
+        // Execute virtual room
+        List<ExecutorThread> executorThreads = executor.execute(dateTime);
+        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Thread should execute virtual room.",
+                ResourceRoomEndpoint.class,
+                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+
+        // Wait for executor threads to end
+        executor.waitForThreads();
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, connectServerAgent.getPerformedActionClasses());
+    }
+
+    /**
+     * Allocate {@link RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both of them separately (first {@link RoomEndpoint} and then
      * {@link cz.cesnet.shongo.controller.executor.Compartment}).
      *
      * @throws Exception
@@ -266,7 +374,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
+        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -319,8 +427,8 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
-     * Allocate {@link cz.cesnet.shongo.controller.executor.RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
-     * both at once ({@link cz.cesnet.shongo.controller.executor.RoomEndpoint} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
+     * Allocate {@link RoomEndpoint}, provide it to {@link cz.cesnet.shongo.controller.executor.Compartment} and execute
+     * both at once ({@link RoomEndpoint} through the {@link cz.cesnet.shongo.controller.executor.Compartment}).
      *
      * @throws Exception
      */
@@ -336,7 +444,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164, true));
+        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
@@ -380,6 +488,7 @@ public class ExecutorTest extends AbstractControllerTest
 
     /**
      * Test delete {@link ReservationRequest} with started {@link ResourceRoomEndpoint}.
+     *
      * @throws Exception
      */
     @Test
@@ -394,7 +503,7 @@ public class ExecutorTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "950000001"));
+        mcu.addCapability(new AliasProviderCapability("950000001", AliasType.H323_E164));
         mcu.setAllocatable(true);
         mcu.setMode(new ManagedMode(mcuAgent.getName()));
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);

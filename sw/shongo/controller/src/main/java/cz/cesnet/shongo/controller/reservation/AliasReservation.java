@@ -80,7 +80,7 @@ public class AliasReservation extends Reservation
         String aliasValue = alias.getValue();
         aliasValue = aliasValue.replace("{value}", this.aliasValue);
         alias.setValue(aliasValue);
-        if (aliasProviderCapability.isRestrictedToOwnerResource()) {
+        if (aliasProviderCapability.isRestrictedToResource()) {
             Resource resource = aliasProviderCapability.getResource();
             if (resource instanceof DeviceResource) {
                 DeviceResource deviceResource = (DeviceResource) resource;

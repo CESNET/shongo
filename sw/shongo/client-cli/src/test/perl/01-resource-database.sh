@@ -21,7 +21,7 @@
                 { type: 'SIP_URI', value: '{value}@cesnet.cz' } \
             ], \
             patterns: ['95008721[d]'], \
-            restrictedToOwnerResource: 1 \
+            restrictedToResource: 1 \
         }] \
     }" \
 --cmd "\
@@ -44,7 +44,7 @@
                 { type: 'SIP_URI', value: '{value}@cesnet.cz' } \
             ], \
             patterns: ['95008722[d]'], \
-            restrictedToOwnerResource: 1 \
+            restrictedToResource: 1 \
         }] \
     }" \
 --cmd "\
@@ -67,7 +67,7 @@
                 { type: 'ADOBE_CONNECT_URI', value: '{resource.address}/{value}' }, \
             ], \
             patterns: ['[s]'], \
-            restrictedToOwnerResource: 1 \
+            restrictedToResource: 1 \
         }] \
     }" \
 --cmd "\

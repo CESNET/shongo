@@ -2,9 +2,9 @@ package cz.cesnet.shongo.controller.resource;
 
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.*;
@@ -43,10 +43,16 @@ public class AliasProviderCapability extends Capability
     private List<String> patterns = new ArrayList<String>();
 
     /**
-     * Specifies whether alias provider is restricted only to the owner resource or all resources can use the provider
-     * for alias allocation.
+     * Specifies whether the {@link AliasProviderCapability} can allocate {@link Alias}es only for
+     * the owner {@link #resource} or for all {@link Resource}s in the resource database.
      */
-    private boolean restrictedToOwnerResource;
+    private boolean restrictedToResource;
+
+    /**
+     * Specifies whether the {@link Alias}es allocated by the {@link AliasProviderCapability} should represent
+     * permanent rooms (should get allocated {@link RoomEndpoint}).
+     */
+    private boolean permanentRoom;
 
     /**
      * Constructor.
@@ -70,16 +76,16 @@ public class AliasProviderCapability extends Capability
     /**
      * Constructor.
      *
-     * @param type                      to be added as {@link Alias} to {@link #aliases}
-     * @param pattern                   to be added to the {@link #patterns}
-     * @param restrictedToOwnerResource sets the {@link #restrictedToOwnerResource}
+     * @param type                 to be added as {@link Alias} to {@link #aliases}
+     * @param pattern              to be added to the {@link #patterns}
+     * @param restrictedToResource sets the {@link #restrictedToResource}
      */
     public AliasProviderCapability(AliasType type, String pattern,
-            boolean restrictedToOwnerResource)
+            boolean restrictedToResource)
     {
         addAlias(new Alias(type, "{value}"));
         this.addPattern(pattern);
-        this.restrictedToOwnerResource = restrictedToOwnerResource;
+        this.restrictedToResource = restrictedToResource;
     }
 
     /**
@@ -158,20 +164,37 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     * @return {@link #restrictedToOwnerResource}
+     * @return {@link #restrictedToResource}
      */
     @Column(nullable = false, columnDefinition = "boolean default false")
-    public boolean isRestrictedToOwnerResource()
+    public boolean isRestrictedToResource()
     {
-        return restrictedToOwnerResource;
+        return restrictedToResource;
     }
 
     /**
-     * @param restrictedToOwnerResource sets the {@link #restrictedToOwnerResource}
+     * @param restrictedToResource sets the {@link #restrictedToResource}
      */
-    public void setRestrictedToOwnerResource(boolean restrictedToOwnerResource)
+    public void setRestrictedToResource(boolean restrictedToResource)
     {
-        this.restrictedToOwnerResource = restrictedToOwnerResource;
+        this.restrictedToResource = restrictedToResource;
+    }
+
+    /**
+     * @return {@link #permanentRoom}
+     */
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    public boolean isPermanentRoom()
+    {
+        return permanentRoom;
+    }
+
+    /**
+     * @param permanentRoom sets the {@link #permanentRoom}
+     */
+    public void setPermanentRoom(boolean permanentRoom)
+    {
+        this.permanentRoom = permanentRoom;
     }
 
     /**
@@ -191,7 +214,6 @@ public class AliasProviderCapability extends Capability
     }
 
     /**
-     *
      * @param aliasType to be checked
      * @return true if the {@link AliasProviderCapability} is able to provide an {@link Alias}
      *         of given {@code aliasType}, false otherwise
@@ -205,6 +227,33 @@ public class AliasProviderCapability extends Capability
             }
         }
         return cachedProvidedAliasTypes.contains(aliasType);
+    }
+
+    /**
+     * @see PreUpdate
+     */
+    @PreUpdate
+    @PrePersist
+    protected void onUpdate()
+    {
+        // When for alias should be allocated permanent room, it should be also restricted to the owner resource
+        // (room must be allocated on a concrete resource)
+        if (isPermanentRoom() && !isRestrictedToResource()) {
+            setRestrictedToResource(true);
+        }
+        if (isRestrictedToResource() && !(getResource() instanceof DeviceResource)) {
+            throw new IllegalStateException("Restricted to resource option can be enabled only in a device resource.");
+        }
+        if (isPermanentRoom()) {
+            Resource resource = getResource();
+            if (!(resource instanceof DeviceResource)) {
+                throw new IllegalStateException("Permanent room option can be enabled only in a device resource.");
+            }
+            if (!resource.hasCapability(RoomProviderCapability.class)) {
+                throw new IllegalStateException("Permanent room option can be enabled only in a device resource"
+                        + " with alias provider capability.");
+            }
+        }
     }
 
     @Override
@@ -224,7 +273,8 @@ public class AliasProviderCapability extends Capability
         for (String pattern : patterns) {
             apiAliasProvider.addPattern(pattern);
         }
-        apiAliasProvider.setRestrictedToOwnerResource(isRestrictedToOwnerResource());
+        apiAliasProvider.setRestrictedToResource(isRestrictedToResource());
+        apiAliasProvider.setPermanentRoom(isPermanentRoom());
         super.toApi(api);
     }
 
@@ -234,8 +284,11 @@ public class AliasProviderCapability extends Capability
     {
         cz.cesnet.shongo.controller.api.AliasProviderCapability apiAliasProvider =
                 (cz.cesnet.shongo.controller.api.AliasProviderCapability) api;
-        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.RESTRICTED_TO_OWNER_RESOURCE)) {
-            setRestrictedToOwnerResource(apiAliasProvider.getRestrictedToOwnerResource());
+        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.RESTRICTED_TO_RESOURCE)) {
+            setRestrictedToResource(apiAliasProvider.getRestrictedToResource());
+        }
+        if (apiAliasProvider.isPropertyFilled(apiAliasProvider.PERMANENT_ROOM)) {
+            setPermanentRoom(apiAliasProvider.getPermanentRoom());
         }
 
         // Create/modify aliases

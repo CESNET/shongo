@@ -17,6 +17,7 @@ import cz.cesnet.shongo.jade.command.Command;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -34,26 +35,15 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     private DeviceResource deviceResource;
 
     /**
-     * @see RoomConfiguration
+     * {@link cz.cesnet.shongo.Technology} specific id of the {@link cz.cesnet.shongo.controller.common.RoomConfiguration}.
      */
-    private RoomConfiguration roomConfiguration = new RoomConfiguration();
+    private String roomId;
 
     /**
      * Constructor.
      */
     public ResourceRoomEndpoint()
     {
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param roomReservation to initialize from
-     */
-    public ResourceRoomEndpoint(RoomReservation roomReservation)
-    {
-        this.setDeviceResource(roomReservation.getDeviceResource());
-        this.setRoomConfiguration(roomReservation.getRoomConfiguration());
     }
 
     /**
@@ -74,21 +64,21 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     /**
-     * @return {@link #roomConfiguration}
+     * @return {@link #roomId}
      */
     @Override
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    public RoomConfiguration getRoomConfiguration()
+    @Column
+    public String getRoomId()
     {
-        return roomConfiguration;
+        return roomId;
     }
 
     /**
-     * @param roomConfiguration sets the {@link #roomConfiguration}
+     * @param roomId sets the {@link #roomId}
      */
-    public void setRoomConfiguration(RoomConfiguration roomConfiguration)
+    public void setRoomId(String roomId)
     {
-        this.roomConfiguration = roomConfiguration;
+        this.roomId = roomId;
     }
 
     @Override
@@ -108,20 +98,20 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         super.toApi(executableApi, domain);
 
-        Executable.ResourceRoom resourceRoomEndpoint = (Executable.ResourceRoom) executableApi;
-        resourceRoomEndpoint.setId(domain.formatId(getId()));
-        resourceRoomEndpoint.setSlot(getSlot());
-        resourceRoomEndpoint.setState(getState().toApi());
-        resourceRoomEndpoint.setLicenseCount(roomConfiguration.getLicenseCount());
-        resourceRoomEndpoint.setResourceId(domain.formatId(getDeviceResource().getId()));
-        for (Technology technology : roomConfiguration.getTechnologies()) {
-            resourceRoomEndpoint.addTechnology(technology);
+        Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
+        resourceRoomEndpointApi.setId(domain.formatId(getId()));
+        resourceRoomEndpointApi.setSlot(getSlot());
+        resourceRoomEndpointApi.setState(getState().toApi());
+        resourceRoomEndpointApi.setLicenseCount(getLicenseCount());
+        resourceRoomEndpointApi.setResourceId(domain.formatId(getDeviceResource().getId()));
+        for (Technology technology : getTechnologies()) {
+            resourceRoomEndpointApi.addTechnology(technology);
         }
         for (Alias alias : getAssignedAliases()) {
-            resourceRoomEndpoint.addAlias(alias.toApi());
+            resourceRoomEndpointApi.addAlias(alias.toApi());
         }
-        for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
-            resourceRoomEndpoint.addRoomSetting(roomSetting.toApi());
+        for (RoomSetting roomSetting : getRoomSettings()) {
+            resourceRoomEndpointApi.addRoomSetting(roomSetting.toApi());
         }
     }
 
@@ -129,7 +119,43 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public Set<Technology> getTechnologies()
     {
-        return roomConfiguration.getTechnologies();
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        if (roomConfiguration != null) {
+            return roomConfiguration.getTechnologies();
+        }
+        else {
+            return deviceResource.getTechnologies();
+        }
+    }
+
+    /**
+     * @return {@link RoomConfiguration#licenseCount} or 0 if {@link #roomConfiguration} is null
+     */
+    @Transient
+    private int getLicenseCount()
+    {
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        if (roomConfiguration != null) {
+            return roomConfiguration.getLicenseCount();
+        }
+        else {
+            return 0;
+        }
+    }
+
+    /**
+     * @return {@link RoomConfiguration#roomSettings} or empty collection if {@link #roomConfiguration} is null
+     */
+    @Transient
+    private Collection<RoomSetting> getRoomSettings()
+    {
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        if (roomConfiguration != null) {
+            return roomConfiguration.getRoomSettings();
+        }
+        else {
+            return new ArrayList<RoomSetting>();
+        }
     }
 
     @Override
@@ -193,7 +219,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Starting %s for %d licenses.", getReportDescription(), roomConfiguration.getLicenseCount()));
+        message.append(String.format("Starting %s for %d licenses.", getReportDescription(), getLicenseCount()));
         if (deviceResource.hasIpAddress()) {
             message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
         }
@@ -201,8 +227,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         List<Alias> aliases = getAliases();
         for (Alias alias : aliases) {
             StringBuilder aliasMessage = new StringBuilder();
-            aliasMessage
-                    .append(String.format("%s has allocated alias '%s'.", getReportDescription(), alias.getValue()));
+            aliasMessage.append(String.format("%s has allocated alias '%s'.",
+                    getReportDescription(), alias.getValue()));
             executorThread.getLogger().debug(aliasMessage.toString());
         }
 
@@ -214,9 +240,9 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
             room.setCode(String.format("shongo-%d", getId()));
             room.setName(getRoomName());
-            room.setTechnologies(roomConfiguration.getTechnologies());
-            room.setLicenseCount(roomConfiguration.getLicenseCount());
-            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+            room.setTechnologies(getTechnologies());
+            room.setLicenseCount(getLicenseCount());
+            for (RoomSetting roomSetting : getRoomSettings()) {
                 room.fillOptions(roomSetting.toApi());
             }
             for (Alias alias : getAliases()) {
@@ -236,7 +262,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
-        message.append(String.format("Stopping %s for %d ports.", getReportDescription(), roomConfiguration.getLicenseCount()));
+        message.append(String.format("Stopping %s for %d licenses.", getReportDescription(), getLicenseCount()));
         executorThread.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {

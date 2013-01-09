@@ -29,7 +29,7 @@ public class ReservationRequestSetTest extends AbstractControllerTest
         mcu.setName("firstMcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability(AliasType.H323_E164, "95[d]"));
+        mcu.addCapability(new AliasProviderCapability("95[d]", AliasType.H323_E164));
         mcu.setAllocatable(true);
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 

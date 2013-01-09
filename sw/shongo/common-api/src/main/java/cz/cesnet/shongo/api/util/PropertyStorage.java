@@ -68,6 +68,19 @@ public class PropertyStorage
      * @param property
      * @return value of given property as int
      */
+    public boolean getValueAsBoolean(String property)
+    {
+        Object value = getValue(property);
+        if (value == null) {
+            return false;
+        }
+        return (Boolean) value;
+    }
+
+    /**
+     * @param property
+     * @return value of given property as int
+     */
     public int getValueAsInt(String property)
     {
         Object value = getValue(property);
