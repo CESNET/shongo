@@ -1,23 +1,16 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
-import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
-import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.reservation.RoomReservation;
-import cz.cesnet.shongo.controller.resource.*;
-import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
+import cz.cesnet.shongo.controller.resource.Address;
+import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.fault.TodoImplementException;
-import cz.cesnet.shongo.jade.command.AgentActionCommand;
-import cz.cesnet.shongo.jade.command.Command;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -43,19 +36,10 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     /**
-     * Constructor.
-     *
-     * @param roomReservation to initialize from
-     */
-    public UsedRoomEndpoint(RoomReservation roomReservation)
-    {
-        this.setRoomConfiguration(roomReservation.getRoomConfiguration());
-    }
-
-    /**
      * @return {@link #roomEndpoint}
      */
     @OneToOne
+    @Access(AccessType.FIELD)
     public RoomEndpoint getRoomEndpoint()
     {
         return roomEndpoint;
@@ -67,6 +51,25 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     public void setRoomEndpoint(RoomEndpoint roomEndpoint)
     {
         this.roomEndpoint = roomEndpoint;
+    }
+
+    /**
+     * @return merged {@link RoomConfiguration} of {@link #roomConfiguration} and {@link #roomEndpoint#roomConfiguration}
+     */
+    @Transient
+    private RoomConfiguration getMergedRoomConfiguration()
+    {
+        RoomConfiguration roomConfiguration = getRoomConfiguration();
+        RoomConfiguration roomEndpointConfiguration = roomEndpoint.getRoomConfiguration();
+        RoomConfiguration mergedRoomConfiguration = new RoomConfiguration();
+        mergedRoomConfiguration.setLicenseCount(
+                roomConfiguration.getLicenseCount() + roomEndpointConfiguration.getLicenseCount());
+        mergedRoomConfiguration.setTechnologies(roomConfiguration.getTechnologies());
+        mergedRoomConfiguration.setRoomSettings(roomConfiguration.getRoomSettings());
+        if (roomEndpointConfiguration.getRoomSettings().size() > 0) {
+            throw new TodoImplementException("Merging room settings.");
+        }
+        return mergedRoomConfiguration;
     }
 
     @Override
@@ -89,13 +92,12 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         roomEndpoint.toApi(executableApi, domain);
 
         if (executableApi instanceof Executable.ResourceRoom) {
-            RoomConfiguration roomConfiguration = getRoomConfiguration();
+            RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
             Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
             resourceRoomEndpointApi.setId(domain.formatId(getId()));
             resourceRoomEndpointApi.setSlot(getSlot());
             resourceRoomEndpointApi.setState(getState().toApi());
             resourceRoomEndpointApi.setLicenseCount(roomConfiguration.getLicenseCount());
-            // TODO: use merge configuration
             for (Technology technology : roomConfiguration.getTechnologies()) {
                 resourceRoomEndpointApi.addTechnology(technology);
             }
@@ -106,6 +108,13 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
                 resourceRoomEndpointApi.addRoomSetting(roomSetting.toApi());
             }
         }
+    }
+
+    @Override
+    @Transient
+    public String getName()
+    {
+        return String.format("usage of virtual room '%d'", roomEndpoint.getId());
     }
 
     @Override
@@ -172,8 +181,9 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException();
+        if (!roomEndpoint.modifyRoom(getMergedRoomConfiguration(), executorThread, entityManager)) {
+            executorThread.getLogger().error("Starting of used room endpoint '{}' failed.", getId());
+            return State.STARTING_FAILED;
         }
         return super.onStart(executorThread, entityManager);
     }
@@ -181,8 +191,8 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
     {
-        if (true) {
-            throw new TodoImplementException();
+        if (!roomEndpoint.modifyRoom(roomEndpoint.getRoomConfiguration(), executorThread, entityManager)) {
+            throw new IllegalStateException("Modifying to original configuration failed and it should always succeed.");
         }
         return super.onStop(executorThread, entityManager);
     }

@@ -324,7 +324,7 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
-     * Start given {@code executable}.
+     * Start this {@link Executable}.
      *
      * @param executorThread thread which is executing
      * @param entityManager  which can be used for starting
@@ -336,7 +336,7 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
-     * Resume given {@code executable}.
+     * Resume this {@link Executable}.
      *
      * @param executorThread thread which is executing
      * @param entityManager  which can be used for resuming
@@ -348,7 +348,7 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
-     * Stop given {@code executable}.
+     * Stop this {@link Executable}.
      *
      * @param executorThread thread which is executing
      * @param entityManager  which can be used for stopping

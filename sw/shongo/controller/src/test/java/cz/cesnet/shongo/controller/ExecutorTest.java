@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -300,6 +302,7 @@ public class ExecutorTest extends AbstractControllerTest
 
     /**
      * Allocate {@link RoomEndpoint} through {@link AliasReservation} and use it by {@link RoomReservation}.
+     * The preference of provided room is also tested by presence of fake connect server (which should not be used).
      *
      * @throws Exception
      */
@@ -311,6 +314,16 @@ public class ExecutorTest extends AbstractControllerTest
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
 
+        DeviceResource connectServerFake = new DeviceResource();
+        connectServerFake.setName("connectServerFake");
+        connectServerFake.addTechnology(Technology.ADOBE_CONNECT);
+        connectServerFake.addCapability(new RoomProviderCapability(10));
+        connectServerFake.addCapability(new AliasProviderCapability("fake", AliasType.ADOBE_CONNECT_NAME,
+                "{resource.address}/{value}").withPermanentRoom());
+        connectServerFake.setAllocatable(true);
+        connectServerFake.setMode(new ManagedMode(connectServerAgent.getName()));
+        getResourceService().createResource(SECURITY_TOKEN, connectServerFake);
+
         DeviceResource connectServer = new DeviceResource();
         connectServer.setName("connectServer");
         connectServer.setAddress("127.0.0.1");
@@ -320,13 +333,16 @@ public class ExecutorTest extends AbstractControllerTest
                 "{resource.address}/{value}").withPermanentRoom());
         connectServer.setAllocatable(true);
         connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
+        String connectServerId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
         aliasReservationRequest.setSlot(dateTime, duration);
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        aliasReservationRequest.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
+        aliasReservationRequest.setSpecification(
+                new AliasSpecification(Technology.ADOBE_CONNECT).withResourceId(connectServerId));
         AliasReservation aliasReservation = (AliasReservation) allocateAndCheck(aliasReservationRequest);
+        assertEquals("Alias should not be allocated from the fake connect server.",
+                "test", aliasReservation.getAliasValue());
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
@@ -337,7 +353,7 @@ public class ExecutorTest extends AbstractControllerTest
 
         // Execute virtual room
         List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
+        assertEquals("Two threads should be executed.", 2, executorThreads.size());
         assertEquals("Thread should execute virtual room.",
                 ResourceRoomEndpoint.class,
                 executorThreads.get(0).getExecutable(getEntityManager()).getClass());
@@ -346,13 +362,23 @@ public class ExecutorTest extends AbstractControllerTest
         executor.waitForThreads();
 
         // Check performed actions on connector agents
+        List<Class<? extends AgentAction>> performedActionClasses = connectServerAgent.getPerformedActionClasses();
+        Collections.sort(performedActionClasses, new Comparator<Class<? extends AgentAction>>()
+        {
+            @Override
+            public int compare(Class<? extends AgentAction> o1, Class<? extends AgentAction> o2)
+            {
+                return o1.getSimpleName().compareTo(o2.getSimpleName());
+            }
+        });
+        // TODO: Executor should run in only one thread to be deterministic for the DeleteRoom action to be in the end
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, connectServerAgent.getPerformedActionClasses());
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
+            }}, performedActionClasses);
     }
 
     /**

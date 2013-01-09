@@ -28,6 +28,7 @@ public abstract class RoomEndpoint extends Endpoint
      * @return {@link #roomConfiguration}
      */
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public RoomConfiguration getRoomConfiguration()
     {
         return roomConfiguration;
@@ -76,4 +77,17 @@ public abstract class RoomEndpoint extends Endpoint
      */
     @Transient
     public abstract String getRoomId();
+
+    /**
+     * Modify this {@link RoomEndpoint}.
+     *
+     * @param executorThread thread which is executing
+     * @param entityManager  which can be used for starting
+     * @return new {@link State}
+     */
+    public boolean modifyRoom(RoomConfiguration roomConfiguration, ExecutorThread executorThread,
+            EntityManager entityManager)
+    {
+        return true;
+    }
 }

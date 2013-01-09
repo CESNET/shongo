@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom;
+import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.api.Executable;
@@ -120,7 +121,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     public Set<Technology> getTechnologies()
     {
         RoomConfiguration roomConfiguration = getRoomConfiguration();
-        if (roomConfiguration != null) {
+        if (roomConfiguration.getTechnologies().size() > 0) {
             return roomConfiguration.getTechnologies();
         }
         else {
@@ -134,13 +135,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public int getLicenseCount()
     {
-        RoomConfiguration roomConfiguration = getRoomConfiguration();
-        if (roomConfiguration != null) {
-            return roomConfiguration.getLicenseCount();
-        }
-        else {
-            return 0;
-        }
+        return getRoomConfiguration().getLicenseCount();
     }
 
     /**
@@ -149,13 +144,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     private Collection<RoomSetting> getRoomSettings()
     {
-        RoomConfiguration roomConfiguration = getRoomConfiguration();
-        if (roomConfiguration != null) {
-            return roomConfiguration.getRoomSettings();
-        }
-        else {
-            return new ArrayList<RoomSetting>();
-        }
+        return getRoomConfiguration().getRoomSettings();
     }
 
     @Override
@@ -256,6 +245,43 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             setRoomId((String) command.getResult());
         }
         return super.onStart(executorThread, entityManager);
+    }
+
+    @Override
+    public boolean modifyRoom(RoomConfiguration roomConfiguration, ExecutorThread executorThread,
+            EntityManager entityManager)
+    {
+        DeviceResource deviceResource = getDeviceResource();
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("Modifying %s for %d licenses.", getReportDescription(),
+                roomConfiguration.getLicenseCount()));
+        executorThread.getLogger().debug(message.toString());
+
+        if (getDeviceResource().isManaged()) {
+            ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
+            String agentName = managedMode.getConnectorAgentName();
+            ControllerAgent controllerAgent = executorThread.getControllerAgent();
+
+            cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
+            room.setId(roomId);
+            // TODO: modify name
+            room.setName(getRoomName());
+            room.setTechnologies(roomConfiguration.getTechnologies());
+            room.setLicenseCount(roomConfiguration.getLicenseCount());
+            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+                room.fillOptions(roomSetting.toApi());
+            }
+            // TODO: assign more aliases
+            for (Alias alias : getAliases()) {
+                room.addAlias(alias.toApi());
+            }
+            Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName,
+                    new ModifyRoom(room)));
+            if (command.getState() != Command.State.SUCCESSFUL) {
+                return false;
+            }
+        }
+        return super.modifyRoom(roomConfiguration, executorThread, entityManager);
     }
 
     @Override

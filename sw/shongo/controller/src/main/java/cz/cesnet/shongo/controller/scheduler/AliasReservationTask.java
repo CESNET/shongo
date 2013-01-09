@@ -39,7 +39,8 @@ public class AliasReservationTask extends ReservationTask
     private String value;
 
     /**
-     * {@link DeviceResource} for which the {@link AliasReservation} is being allocated.
+     * {@link DeviceResource} for which the {@link AliasReservation} is being allocated and to which it
+     * will be assigned.
      */
     private DeviceResource targetResource;
 
@@ -202,8 +203,9 @@ public class AliasReservationTask extends ReservationTask
         aliasReservation.setAliasValue(availableAlias.getAliasValue());
 
         // If alias should be allocated as permanent room, create room endpoint with zero licenses
-        // (so we don't need reservation for the room)
-        if (aliasProviderCapability.isPermanentRoom()) {
+        // (so we don't need reservation for the room).
+        // The permanent room should not be created if the alias will used for any specified target resource.
+        if (aliasProviderCapability.isPermanentRoom() && targetResource == null) {
             Resource resource = aliasProviderCapability.getResource();
             if (!resource.hasCapability(RoomProviderCapability.class)) {
                 throw new IllegalStateException("Permanent room should be enabled only for device resource"

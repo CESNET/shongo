@@ -1,7 +1,10 @@
 * 2 paragraphs of shongo features
 
+* Executor should run only in one thread
+
 * Adobe connect
-  - create/delete room by alias reservation
+  - finish create/delete room by alias reservation (test it in web client)
+  - modify also room name and aliases
 
 * Implement better web client "back button"
 

@@ -8,8 +8,8 @@ import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.executor.UsedRoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.controller.reservation.ExistingReservation;
 import cz.cesnet.shongo.controller.reservation.Reservation;
@@ -18,7 +18,6 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableRoomReport;
-import cz.cesnet.shongo.fault.TodoImplementException;
 
 import java.util.*;
 
@@ -141,27 +140,34 @@ public class RoomReservationTask extends ReservationTask
         }
 
         // Get provided room endpoints
-        Collection<ResourceRoomEndpoint> providedRoomEndpoints =
+        Collection<ResourceRoomEndpoint> providedRooms =
                 cacheTransaction.getProvidedExecutables(ResourceRoomEndpoint.class);
-        Map<Long, RoomEndpoint> providedRoomEndpointByDeviceResourceId = new HashMap<Long, RoomEndpoint>();
-        for (ResourceRoomEndpoint providedRoomEndpoint : providedRoomEndpoints) {
-            //providedRoomEndpointByDeviceResourceId.put(roomEndpoint.getDeviceResource().getId(), roomEndpoint);
+        // Map of available provided rooms which doesn't have enough capacity
+        final Map<Long, ResourceRoomEndpoint> availableProvidedRooms = new HashMap<Long, ResourceRoomEndpoint>();
+        // Find provided room with enough capacity to be reused or suitable room to which will be allocated more capacity
+        for (ResourceRoomEndpoint providedRoomEndpoint : providedRooms) {
             Long providedRoomDeviceResourceId = providedRoomEndpoint.getDeviceResource().getId();
-            if (roomVariantByDeviceResourceId.containsKey(providedRoomDeviceResourceId)) {
-                RoomVariant roomVariant = roomVariantByDeviceResourceId.get(providedRoomDeviceResourceId);
-                if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
-                    // Reuse provided reservation
-                    Reservation providedReservation =
-                            cacheTransaction.getProvidedReservationByExecutable(providedRoomEndpoint);
-                    ExistingReservation existingReservation = new ExistingReservation();
-                    existingReservation.setSlot(getInterval());
-                    existingReservation.setReservation(providedReservation);
-                    getCacheTransaction().removeProvidedReservation(providedReservation);
-                    return existingReservation;
-                }
-                else if (providedRoomEndpoint.getLicenseCount() == 0) {
-                    providedRoomEndpointByDeviceResourceId.put(providedRoomDeviceResourceId, providedRoomEndpoint);
-                }
+            // Skip not suitable endpoints (by technology)
+            if (!roomVariantByDeviceResourceId.containsKey(providedRoomDeviceResourceId)) {
+                continue;
+            }
+            // Get room variant with the least requested capacity
+            RoomVariant roomVariant = roomVariantByDeviceResourceId.get(providedRoomDeviceResourceId);
+            // If provided room has enough allocated capacity
+            if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
+                // Reuse provided reservation which allocates the provided room
+                Reservation providedReservation =
+                        cacheTransaction.getProvidedReservationByExecutable(providedRoomEndpoint);
+                ExistingReservation existingReservation = new ExistingReservation();
+                existingReservation.setSlot(getInterval());
+                existingReservation.setReservation(providedReservation);
+                getCacheTransaction().removeProvidedReservation(providedReservation);
+                return existingReservation;
+            }
+            // Else provided room doesn't have enough capacity
+            else {
+                // Append it to map of provided room
+                availableProvidedRooms.put(providedRoomDeviceResourceId, providedRoomEndpoint);
             }
         }
 
@@ -192,37 +198,68 @@ public class RoomReservationTask extends ReservationTask
             @Override
             public int compare(AvailableRoom first, AvailableRoom second)
             {
+                boolean firstHasProvidedRoom = availableProvidedRooms.containsKey(first.getDeviceResource().getId());
+                boolean secondHasProvidedRoom = availableProvidedRooms.containsKey(second.getDeviceResource().getId());
+                if (firstHasProvidedRoom && !secondHasProvidedRoom) {
+                    return -1;
+                }
+                if (!firstHasProvidedRoom && secondHasProvidedRoom) {
+                    return 1;
+                }
                 return -Double.valueOf(first.getFullnessRatio()).compareTo(second.getFullnessRatio());
             }
         });
         // Get the first available room
         AvailableRoom availableRoom = availableRooms.get(0);
-        RoomVariant roomVariant = roomVariantByDeviceResourceId.get(availableRoom.getDeviceResource().getId());
+        DeviceResource deviceResource = availableRoom.getDeviceResource();
+        RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResource.getId());
 
         // Room configuration
         RoomConfiguration roomConfiguration = new RoomConfiguration();
-        roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
         roomConfiguration.setTechnologies(roomVariant.getTechnologies());
         for (RoomSetting roomSetting : roomSettings) {
             roomConfiguration.addRoomSetting(roomSetting.clone());
         }
 
-        // Create room endpoint executable
-        ResourceRoomEndpoint roomEndpoint = new ResourceRoomEndpoint();
-        roomEndpoint.setUserId(getContext().getUserId());
-        roomEndpoint.setDeviceResource(availableRoom.getDeviceResource());
-        roomEndpoint.setRoomName(getContext().getReservationRequest().getName());
-        roomEndpoint.setRoomConfiguration(roomConfiguration);
-        roomEndpoint.setSlot(getInterval());
-        roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+        // Allocated room endpoint
+        RoomEndpoint roomEndpoint;
 
-        // Allocate aliases for each technology
+        // If provided room is available
+        ResourceRoomEndpoint availableProvidedRoom = availableProvidedRooms.get(deviceResource.getId());
+        if (availableProvidedRoom == null) {
+            // Reserve full capacity
+            roomConfiguration.setLicenseCount(roomVariant.getLicenseCount());
+
+            // Create new room endpoint
+            ResourceRoomEndpoint resourceRoomEndpoint = new ResourceRoomEndpoint();
+            resourceRoomEndpoint.setDeviceResource(deviceResource);
+            roomEndpoint = resourceRoomEndpoint;
+        }
+        else {
+            // Reserve only the remaining capacity
+            roomConfiguration.setLicenseCount(roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
+
+            // Create new used room endpoint
+            UsedRoomEndpoint usedRoomEndpoint = new UsedRoomEndpoint();
+            usedRoomEndpoint.setRoomEndpoint(availableProvidedRoom);
+            roomEndpoint = usedRoomEndpoint;
+        }
+
+        // Allocate at least one alias for each room technology
         if (withAlias) {
-            DeviceResource deviceResource = roomEndpoint.getDeviceResource();
+            // Set of technologies which are supported in the room
             Set<Technology> roomTechnologies = roomConfiguration.getTechnologies();
+
+            // Build set of technologies which are missing (by adding all room technologies and removing all
+            // technologies for which the room already has an alias)
             Set<Technology> missingAliasTechnologies = new HashSet<Technology>();
             missingAliasTechnologies.addAll(roomTechnologies);
-            while ( missingAliasTechnologies.size() > 0 ) {
+            for (Alias alias : roomEndpoint.getAliases()) {
+                missingAliasTechnologies.remove(alias.getTechnology());
+            }
+
+            // Allocate aliases for technologies which are missing
+            while (missingAliasTechnologies.size() > 0) {
                 // Allocate missing alias
                 Technology technology = missingAliasTechnologies.iterator().next();
                 AliasReservationTask aliasReservationTask = new AliasReservationTask(getContext());
@@ -231,7 +268,7 @@ public class RoomReservationTask extends ReservationTask
                 AliasReservation aliasReservation = addChildReservation(aliasReservationTask, AliasReservation.class);
                 // Assign allocated aliases to the room
                 for (Alias alias : aliasReservation.getAliases()) {
-                    // Assign only aliases which can be assigned to the room (according to technology)
+                    // Assign only aliases which can be assigned to the room (according to room technologies)
                     Technology aliasTechnology = alias.getTechnology();
                     if (roomTechnologies.contains(aliasTechnology)) {
                         roomEndpoint.addAssignedAlias(alias);
@@ -241,10 +278,17 @@ public class RoomReservationTask extends ReservationTask
             }
         }
 
+        // Setup abstract room endpoint
+        roomEndpoint.setUserId(getContext().getUserId());
+        roomEndpoint.setRoomName(getContext().getReservationRequest().getName());
+        roomEndpoint.setRoomConfiguration(roomConfiguration);
+        roomEndpoint.setSlot(getInterval());
+        roomEndpoint.setState(ResourceRoomEndpoint.State.NOT_STARTED);
+
         // Create room reservation
         RoomReservation roomReservation = new RoomReservation();
         roomReservation.setSlot(getInterval());
-        roomReservation.setResource(availableRoom.getDeviceResource());
+        roomReservation.setResource(deviceResource);
         roomReservation.setRoomConfiguration(roomConfiguration);
         roomReservation.setExecutable(roomEndpoint);
         return roomReservation;

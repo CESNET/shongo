@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.resource;
 import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.reservation.AliasReservation;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
 import cz.cesnet.shongo.fault.FaultException;
 
@@ -43,14 +44,14 @@ public class AliasProviderCapability extends Capability
     private List<String> patterns = new ArrayList<String>();
 
     /**
-     * Specifies whether the {@link AliasProviderCapability} can allocate {@link Alias}es only for
+     * Specifies whether the {@link AliasProviderCapability} can be allocated as {@link Alias}es only for
      * the owner {@link #resource} or for all {@link Resource}s in the resource database.
      */
     private boolean restrictedToResource;
 
     /**
-     * Specifies whether the {@link Alias}es allocated by the {@link AliasProviderCapability} should represent
-     * permanent rooms (should get allocated {@link RoomEndpoint}).
+     * Specifies whether the {@link Alias}es allocated for the {@link AliasProviderCapability}
+     * should represent permanent rooms (should get allocated {@link RoomEndpoint}).
      */
     private boolean permanentRoom;
 
