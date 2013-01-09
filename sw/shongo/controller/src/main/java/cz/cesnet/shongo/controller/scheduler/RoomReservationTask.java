@@ -1,11 +1,13 @@
 package cz.cesnet.shongo.controller.scheduler;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Cache;
 import cz.cesnet.shongo.controller.cache.AvailableRoom;
 import cz.cesnet.shongo.controller.cache.ResourceCache;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
+import cz.cesnet.shongo.controller.executor.RoomEndpoint;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.request.AliasSpecification;
 import cz.cesnet.shongo.controller.reservation.AliasReservation;
@@ -16,6 +18,7 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.controller.resource.DeviceResource;
 import cz.cesnet.shongo.controller.resource.RoomProviderCapability;
 import cz.cesnet.shongo.controller.scheduler.report.NoAvailableRoomReport;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import java.util.*;
 
@@ -107,8 +110,9 @@ public class RoomReservationTask extends ReservationTask
     @Override
     protected Reservation createReservation() throws ReportException
     {
+        Cache.Transaction cacheTransaction = getCacheTransaction();
         ResourceCache resourceCache = getCache().getResourceCache();
-        ResourceCache.Transaction resourceCacheTransaction = getCacheTransaction().getResourceCacheTransaction();
+        ResourceCache.Transaction resourceCacheTransaction = cacheTransaction.getResourceCacheTransaction();
 
         Set<Long> specifiedDeviceResourceIds = null;
         if (deviceResource != null) {
@@ -136,22 +140,27 @@ public class RoomReservationTask extends ReservationTask
             }
         }
 
-        // Reuse existing reservation
-        Collection<RoomReservation> roomReservations =
-                resourceCacheTransaction.getProvidedRoomReservations();
-        if (roomReservations.size() > 0) {
-            for (RoomReservation roomReservation : roomReservations) {
-                Long deviceResourceId = roomReservation.getDeviceResource().getId();
-                if (roomVariantByDeviceResourceId.containsKey(deviceResourceId)) {
-                    RoomVariant roomVariant = roomVariantByDeviceResourceId.get(deviceResourceId);
-                    if (roomReservation.getRoomConfiguration().getLicenseCount() >= roomVariant.getLicenseCount()) {
-                        // Reuse provided reservation
-                        ExistingReservation existingReservation = new ExistingReservation();
-                        existingReservation.setSlot(getInterval());
-                        existingReservation.setReservation(roomReservation);
-                        getCacheTransaction().removeProvidedReservation(roomReservation);
-                        return existingReservation;
-                    }
+        // Get provided room endpoints
+        Collection<ResourceRoomEndpoint> providedRoomEndpoints =
+                cacheTransaction.getProvidedExecutables(ResourceRoomEndpoint.class);
+        Map<Long, RoomEndpoint> providedRoomEndpointByDeviceResourceId = new HashMap<Long, RoomEndpoint>();
+        for (ResourceRoomEndpoint providedRoomEndpoint : providedRoomEndpoints) {
+            //providedRoomEndpointByDeviceResourceId.put(roomEndpoint.getDeviceResource().getId(), roomEndpoint);
+            Long providedRoomDeviceResourceId = providedRoomEndpoint.getDeviceResource().getId();
+            if (roomVariantByDeviceResourceId.containsKey(providedRoomDeviceResourceId)) {
+                RoomVariant roomVariant = roomVariantByDeviceResourceId.get(providedRoomDeviceResourceId);
+                if (providedRoomEndpoint.getLicenseCount() >= roomVariant.getLicenseCount()) {
+                    // Reuse provided reservation
+                    Reservation providedReservation =
+                            cacheTransaction.getProvidedReservationByExecutable(providedRoomEndpoint);
+                    ExistingReservation existingReservation = new ExistingReservation();
+                    existingReservation.setSlot(getInterval());
+                    existingReservation.setReservation(providedReservation);
+                    getCacheTransaction().removeProvidedReservation(providedReservation);
+                    return existingReservation;
+                }
+                else if (providedRoomEndpoint.getLicenseCount() == 0) {
+                    providedRoomEndpointByDeviceResourceId.put(providedRoomDeviceResourceId, providedRoomEndpoint);
                 }
             }
         }
@@ -175,6 +184,8 @@ public class RoomReservationTask extends ReservationTask
             }
             throw noAvailableRoomReport.exception();
         }
+
+        // TODO: prefer provided room endpoints
         // Sort available rooms from the most filled to the least filled
         Collections.sort(availableRooms, new Comparator<AvailableRoom>()
         {

@@ -1,3 +1,5 @@
+* 2 paragraphs of shongo features
+
 * Adobe connect
   - create/delete room by alias reservation
 

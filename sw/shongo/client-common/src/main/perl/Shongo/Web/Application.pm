@@ -253,7 +253,7 @@ sub render_template
 {
     my ($self, $file, $parameters) = @_;
     my $result = undef;
-    foreach my $parameter (keys $self->{'template-parameters'}) {
+    foreach my $parameter (keys %{$self->{'template-parameters'}}) {
         $parameters->{$parameter} = $self->{'template-parameters'}->{$parameter};
     }
     if ( $self->{template}->process($file, $parameters, \$result) ) {

@@ -453,11 +453,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         private Set<Resource> referencedResources = new HashSet<Resource>();
 
         /**
-         * Provided {@link cz.cesnet.shongo.controller.reservation.RoomReservation}s in the {@link Transaction}.
-         */
-        private List<RoomReservation> providedRoomReservations = new ArrayList<RoomReservation>();
-
-        /**
          * @param resource to be added to the {@link #referencedResources}
          */
         public void addReferencedResource(Resource resource)
@@ -473,38 +468,6 @@ public class ResourceCache extends AbstractReservationCache<Resource, ResourceRe
         public boolean containsResource(Resource resource)
         {
             return referencedResources.contains(resource);
-        }
-
-        @Override
-        public void addProvidedReservation(Long objectId, ResourceReservation reservation)
-        {
-            if (reservation instanceof RoomReservation) {
-                RoomReservation roomReservation = (RoomReservation) reservation;
-                providedRoomReservations.add(roomReservation);
-            }
-            else {
-                super.addProvidedReservation(objectId, reservation);
-            }
-        }
-
-        @Override
-        public void removeProvidedReservation(Long objectId, ResourceReservation reservation)
-        {
-            if (reservation instanceof RoomReservation) {
-                RoomReservation roomReservation = (RoomReservation) reservation;
-                providedRoomReservations.remove(roomReservation);
-            }
-            else {
-                super.removeProvidedReservation(objectId, reservation);
-            }
-        }
-
-        /**
-         * @return collection of provided {@link cz.cesnet.shongo.controller.reservation.RoomReservation}
-         */
-        public Collection<RoomReservation> getProvidedRoomReservations()
-        {
-            return providedRoomReservations;
         }
     }
 }

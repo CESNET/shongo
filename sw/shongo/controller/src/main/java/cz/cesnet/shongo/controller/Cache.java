@@ -1,6 +1,5 @@
 package cz.cesnet.shongo.controller;
 
-import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.cache.*;
@@ -461,7 +460,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         /**
          * Map of provided {@link Executable}s by {@link Reservation} which allocates them.
          */
-        private Map<Executable, Reservation> providedExecutableByReservation = new HashMap<Executable, Reservation>();
+        private Map<Executable, Reservation> providedReservationByExecutable = new HashMap<Executable, Reservation>();
 
         /**
          * Constructor.
@@ -516,7 +515,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
             if (reservation.getSlot().contains(getInterval())) {
                 Executable executable = reservation.getExecutable();
                 if (executable != null) {
-                    providedExecutableByReservation.put(executable, reservation);
+                    providedReservationByExecutable.put(executable, reservation);
                 }
                 if (reservation instanceof ExistingReservation) {
                     throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
@@ -550,7 +549,7 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
         {
             Executable executable = reservation.getExecutable();
             if (executable != null) {
-                providedExecutableByReservation.remove(executable);
+                providedReservationByExecutable.remove(executable);
             }
             if (reservation instanceof ExistingReservation) {
                 throw new TodoImplementException("Providing already provided reservation is not implemented yet.");
@@ -571,15 +570,28 @@ public class Cache extends Component implements Component.EntityManagerFactoryAw
          * @param executableType
          * @return collection of provided {@link Executable}s of given {@code executableType}
          */
-        public Collection<Executable> getProvidedExecutables(Class<? extends Executable> executableType)
+        public <T extends Executable> Collection<T> getProvidedExecutables(Class<T> executableType)
         {
-            Set<Executable> providedExecutables = new HashSet<Executable>();
-            for (Executable providedExecutable : providedExecutableByReservation.keySet()) {
+            Set<T> providedExecutables = new HashSet<T>();
+            for (Executable providedExecutable : providedReservationByExecutable.keySet()) {
                 if (executableType.isInstance(providedExecutable)) {
-                    providedExecutables.add(providedExecutable);
+                    providedExecutables.add(executableType.cast(providedExecutable));
                 }
             }
             return providedExecutables;
+        }
+
+        /**
+         * @param executable
+         * @return provided {@link Reservation} for given {@code executable}
+         */
+        public Reservation getProvidedReservationByExecutable(Executable executable)
+        {
+            Reservation providedReservation = providedReservationByExecutable.get(executable);
+            if (providedReservation == null) {
+                throw new IllegalArgumentException("Provided reservation doesn't exists for given executable!");
+            }
+            return providedReservation;
         }
 
         /**

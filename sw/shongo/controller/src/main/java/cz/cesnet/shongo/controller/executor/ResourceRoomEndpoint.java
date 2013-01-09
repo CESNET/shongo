@@ -132,7 +132,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
      * @return {@link RoomConfiguration#licenseCount} or 0 if {@link #roomConfiguration} is null
      */
     @Transient
-    private int getLicenseCount()
+    public int getLicenseCount()
     {
         RoomConfiguration roomConfiguration = getRoomConfiguration();
         if (roomConfiguration != null) {
