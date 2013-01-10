@@ -111,7 +111,6 @@ public abstract class Command
      */
     public void setResult(Object result)
     {
-        LoggerFactory.getLogger("test").debug("set result");
         this.result = result;
     }
 

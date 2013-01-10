@@ -247,13 +247,8 @@ public abstract class Executable extends PersistentObject
         if (getState() != State.NOT_STARTED) {
             throw new IllegalStateException(getName() + " can be started only if it is not started yet.");
         }
-
         State state = onStart(executor);
-        synchronized (entityManager){
-            entityManager.getTransaction().begin();
-            setState(state);
-            entityManager.getTransaction().commit();
-        }
+        setState(state);
     }
 
     /**
@@ -267,11 +262,7 @@ public abstract class Executable extends PersistentObject
             throw new IllegalStateException(getName() + " can be stopped only if it is started.");
         }
         State state = onStop(executor);
-        synchronized (entityManager){
-            entityManager.getTransaction().begin();
-            setState(state);
-            entityManager.getTransaction().commit();
-        }
+        setState(state);
     }
 
     /**
@@ -293,14 +284,14 @@ public abstract class Executable extends PersistentObject
      */
     protected State onStop(Executor executor)
     {
-        return getDefaultState();
+        return State.SKIPPED;
     }
 
     /**
      * @return {@link State} by children or {@link State#SKIPPED}
      */
     @Transient
-    private State getDefaultState()
+    public State getDefaultState()
     {
         State state = State.SKIPPED;
         for (Executable childExecutable : childExecutables) {

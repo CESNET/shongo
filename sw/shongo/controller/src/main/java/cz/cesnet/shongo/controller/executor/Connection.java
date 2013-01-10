@@ -182,7 +182,6 @@ public class Connection extends Executable
 
                 command = controllerAgent.performCommand(new AgentActionCommand(agentName, new HangUpAll()));
             }
-            executor.getLogger().debug("connection performed");
             if (command.getState() == Command.State.SUCCESSFUL) {
                 return State.STOPPED;
             }

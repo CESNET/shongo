@@ -227,11 +227,13 @@ public class Executor extends Component
         DateTime startDateTime = referenceDateTime.minus(executableStart);
         ExecutionPlan startingExecutionPlan =
                 new ExecutionPlan(executableManager.listTakingPlace(STATES_FOR_STARTING, startDateTime));
+        Collection<Executable> startingExecutables = new ArrayList<Executable>();
         while (!startingExecutionPlan.isEmpty()) {
             Collection<Executable> executables = startingExecutionPlan.popExecutables();
             for (Executable executable : executables) {
+                startingExecutables.add(executable);
                 ExecutorThread executorThread = new ExecutorThread(ExecutorThread.Type.START, executable, this,
-                        startingExecutionPlan, executionResult, entityManager);
+                        startingExecutionPlan);
                 executorThread.start();
             }
             try {
@@ -239,6 +241,12 @@ public class Executor extends Component
             }
             catch (InterruptedException exception) {
                 logger.error("Execution interrupted.", exception);
+            }
+        }
+        for (Executable executable : startingExecutables) {
+            entityManager.refresh(executable);
+            if (executable.getState().equals(Executable.State.STARTED)) {
+                executionResult.addStartedExecutable(executable);
             }
         }
 
@@ -246,11 +254,13 @@ public class Executor extends Component
         DateTime stopDateTime = referenceDateTime.minus(executableEnd);
         ExecutionPlan stoppingExecutionPlan =
                 new ReverseExecutionPlan(executableManager.listNotTakingPlace(STATES_FOR_STOPPING, stopDateTime));
+        Collection<Executable> stoppingExecutables = new ArrayList<Executable>();
         while (!stoppingExecutionPlan.isEmpty()) {
             Collection<Executable> executables = stoppingExecutionPlan.popExecutables();
             for (Executable executable : executables) {
+                stoppingExecutables.add(executable);
                 ExecutorThread executorThread = new ExecutorThread(ExecutorThread.Type.STOP, executable, this,
-                        stoppingExecutionPlan, executionResult, entityManager);
+                        stoppingExecutionPlan);
                 executorThread.start();
             }
             try {
@@ -260,6 +270,17 @@ public class Executor extends Component
                 logger.error("Execution interrupted.", exception);
             }
         }
+        entityManager.getTransaction().begin();
+        for (Executable executable : stoppingExecutables) {
+            entityManager.refresh(executable);
+            if (executable.getState().equals(Executable.State.SKIPPED)) {
+                executable.setState(executable.getDefaultState());
+            }
+            if (executable.getState().equals(Executable.State.STOPPED)) {
+                executionResult.addStoppedExecutable(executable);
+            }
+        }
+        entityManager.getTransaction().commit();
 
         entityManager.close();
 

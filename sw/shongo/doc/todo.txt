@@ -1,6 +1,7 @@
 * 2 paragraphs of shongo features
 
 * Executor should wait after it creates a virtual room
+* Use HangUp instead of HangUpAll
 
 * Adobe connect
   - finish create/delete room by alias reservation (test it in web client)

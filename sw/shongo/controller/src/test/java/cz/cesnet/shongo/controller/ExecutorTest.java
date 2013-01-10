@@ -548,8 +548,9 @@ public class ExecutorTest extends AbstractControllerTest
         // Run scheduler to modify room ending date/time
         runScheduler();
 
-        // Wait for executor threads to end
-        executor.waitForExecutablesStopped();
+        // Stop compartment
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()

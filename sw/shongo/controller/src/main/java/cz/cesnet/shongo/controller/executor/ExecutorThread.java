@@ -21,19 +21,12 @@ public class ExecutorThread extends Thread
 
     private ExecutionPlan executionPlan;
 
-    private ExecutionResult executionResult;
-
-    private EntityManager entityManager;
-
-    public ExecutorThread(Type type, Executable executable, Executor executor, ExecutionPlan executionPlan,
-            ExecutionResult executionResult, EntityManager entityManager)
+    public ExecutorThread(Type type, Executable executable, Executor executor, ExecutionPlan executionPlan)
     {
         this.type = type;
         this.executable = executable;
         this.executor = executor;
         this.executionPlan = executionPlan;
-        this.executionResult = executionResult;
-        this.entityManager = entityManager;
     }
 
     @Override
@@ -41,16 +34,30 @@ public class ExecutorThread extends Thread
     {
         switch (type) {
             case START:
-                executable.start(executor, entityManager);
-                if (executable.getState().equals(Executable.State.STARTED)) {
-                    executionResult.addStartedExecutable(executable);
+                try {
+                    EntityManager entityManager = executor.getEntityManager();
+                    ExecutableManager executableManager = new ExecutableManager(entityManager);
+                    Executable executable = executableManager.get(this.executable.getId());
+                    entityManager.getTransaction().begin();
+                    executable.start(executor, entityManager);
+                    entityManager.getTransaction().commit();
+                    entityManager.close();
+                } catch (FaultException exception) {
+                    executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);
                 break;
             case STOP:
-                executable.stop(executor, entityManager);
-                if (executable.getState().equals(Executable.State.STOPPED)) {
-                    executionResult.addStoppedExecutable(executable);
+                try {
+                    EntityManager entityManager = executor.getEntityManager();
+                    ExecutableManager executableManager = new ExecutableManager(entityManager);
+                    Executable executable = executableManager.get(this.executable.getId());
+                    entityManager.getTransaction().begin();
+                    executable.stop(executor, entityManager);
+                    entityManager.getTransaction().commit();
+                    entityManager.close();
+                } catch (FaultException exception) {
+                    executor.getLogger().error("Failed to load executable", exception);
                 }
                 executionPlan.removeExecutable(executable);
                 break;
