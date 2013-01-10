@@ -1,9 +1,8 @@
 package cz.cesnet.shongo.controller.resource;
 
+import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.RandomStringUtils;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.*;
 
 /**
@@ -33,7 +32,7 @@ public class AliasPatternGenerator extends AliasGenerator
     /**
      * Constructor.
      *
-     * @param pattern    pattern for aliases.
+     * @param pattern pattern for aliases.
      */
     public AliasPatternGenerator(String pattern)
     {
@@ -43,7 +42,7 @@ public class AliasPatternGenerator extends AliasGenerator
     /**
      * Constructor.
      *
-     * @param patterns   patterns for aliases.
+     * @param patterns patterns for aliases.
      */
     public AliasPatternGenerator(Collection<String> patterns)
     {
@@ -91,6 +90,31 @@ public class AliasPatternGenerator extends AliasGenerator
         addAliasValue(value);
 
         return value;
+    }
+
+    @Override
+    public boolean isValueAvailable(String value)
+    {
+        for (Pattern pattern : patterns) {
+            if (pattern.size() == 1) {
+                PatternComponent patternComponent = pattern.get(0);
+                if (patternComponent instanceof StringPatternComponent) {
+                    if (StringPatternComponent.VALUE_PATTERN.matcher(value).matches()) {
+                        if (!usedValues.contains(value)) {
+                            return true;
+                        }
+                    }
+                }
+                else {
+                    throw new TodoImplementException("AliasPatternGenerator.isValueAvailable for %s.",
+                            patternComponent.getClass().getSimpleName());
+                }
+            }
+            else {
+                throw new TodoImplementException("AliasPatternGenerator.isValueAvailable for multiple components.");
+            }
+        }
+        return false;
     }
 
     /**
@@ -329,6 +353,12 @@ public class AliasPatternGenerator extends AliasGenerator
     private static class StringPatternComponent implements GeneratedPatternComponent
     {
         /**
+         * Pattern for matching correct values.
+         */
+        private static final java.util.regex.Pattern VALUE_PATTERN =
+                java.util.regex.Pattern.compile("^\\p{Alpha}[\\p{Alnum}_]*$");
+
+        /**
          * Current number.
          */
         private String currentValue;
@@ -345,7 +375,7 @@ public class AliasPatternGenerator extends AliasGenerator
         public void nextComponent()
         {
             currentValue = RandomStringUtils.randomAlphabetic(1).toLowerCase();
-            currentValue += RandomStringUtils.randomAlphanumeric(Pattern.STRING_PATTERN_LENGTH -1).toLowerCase();
+            currentValue += RandomStringUtils.randomAlphanumeric(Pattern.STRING_PATTERN_LENGTH - 1).toLowerCase();
         }
 
         @Override

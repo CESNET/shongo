@@ -109,6 +109,12 @@ sub on_init()
                     'type' => 'bool'
                 }
             );
+            $self->add_attribute(
+                'permanentRoom', {
+                    'title' => 'Permanent Room',
+                    'type' => 'bool'
+                }
+            );
         }
     }
 }

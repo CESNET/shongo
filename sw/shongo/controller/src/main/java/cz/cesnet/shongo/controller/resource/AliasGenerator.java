@@ -28,4 +28,10 @@ public abstract class AliasGenerator
      * @return new generated {@link Alias}
      */
     public abstract String generateValue();
+
+    /**
+     * @param value to be checked for availability
+     * @return true if given {@code value} is available, false otherwise
+     */
+    public abstract boolean isValueAvailable(String value);
 }

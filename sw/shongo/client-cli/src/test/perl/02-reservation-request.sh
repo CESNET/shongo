@@ -1,6 +1,6 @@
 #!/usr/bin/sh
 
-./client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
+bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "\
     create-reservation-request { \
         class: 'ReservationRequest', \
@@ -32,7 +32,7 @@
 echo "Waiting for allocation..."
 sleep 2
 
-./client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
+bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
 --cmd "list-reservation-requests" \
 --cmd "get-reservation-request 1" \
 --cmd "get-reservation-for-request 1" \

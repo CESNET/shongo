@@ -181,7 +181,7 @@ public class AliasReservationTask extends ReservationTask
             }
         }
         if (availableAlias == null) {
-            throw new NoAvailableAliasReport(technologies, aliasType).exception();
+            throw new NoAvailableAliasReport(technologies, aliasType, value).exception();
         }
 
         // Reuse existing reservation

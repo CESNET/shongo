@@ -103,6 +103,12 @@ sub create_alias_action
                 'purpose' => qr/^SCIENCE|EDUCATION$/,
                 'start' => 'datetime',
                 'end' => ['datetime', Shongo::Web::Controller::constraint_interval(['start', 'end'])],
+                'value' => {'name' => 'value', 'constraint_method' => qr/^[[:alpha:]][[:alnum:]_]*$/},
+            },
+            msgs => {
+                constraints => {
+                    'value' => 'Invalid value (must be alphabetic followed by alphanumeric or _)'
+                }
             }
         });
         if ( !%{$params->{'error'}} ) {

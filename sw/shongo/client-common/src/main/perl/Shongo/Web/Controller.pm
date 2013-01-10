@@ -225,7 +225,6 @@ sub validate_form
             }
         }
         elsif ( defined($validators->{$constraint}) ) {
-
             $profile->{constraint_methods}->{$field} = {
                 name => $constraint,
                 constraint_method => $validators->{$constraint}
@@ -233,16 +232,18 @@ sub validate_form
         }
     }
 
-    $profile->{'msgs'} = {
-        format => '<div class="error">* %s</div>',
-        constraints => {
-            'number' => 'Not a valid number',
-            'date' => 'Not a valid date (e.g., 2012-02-25)',
-            'time' => 'Not a valid time (e.g., 14:01)',
-            'period' => 'Not a valid period (e.g., PT2H)',
-            'interval' => 'Not a valid interval'
-        },
-    };
+    if (!defined($profile->{'msgs'})) {
+        $profile->{'msgs'} = {};
+    }
+    if (!defined($profile->{'msgs'}->{'constraints'})) {
+        $profile->{'msgs'}->{'constraints'} = {};
+    }
+    $profile->{'msgs'}->{'format'} = '<div class="error">* %s</div>';
+    $profile->{'msgs'}->{'constraints'}->{'number'} = 'Not a valid number';
+    $profile->{'msgs'}->{'constraints'}->{'date'} = 'Not a valid date (e.g., 2012-02-25)';
+    $profile->{'msgs'}->{'constraints'}->{'time'} = 'Not a valid time (e.g., 14:01)';
+    $profile->{'msgs'}->{'constraints'}->{'period'} = 'Not a valid period (e.g., PT2H)';
+    $profile->{'msgs'}->{'constraints'}->{'interval'} = 'Not a valid interval';
 
     my $results = Data::FormValidator->check($data, $profile);
     my $errors = $results->msgs();

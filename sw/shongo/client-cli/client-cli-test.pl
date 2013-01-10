@@ -40,7 +40,7 @@ if ( scalar(@scripts) == 0 ) {
 my $prefix = ">>";
 my $started = 0;
 print("$prefix Starting controller...\n");
-my $pid = open2(\*CONTROLLER_READER, \*CONTROLLER_WRITER, "./controller.sh --config client-cli/src/test/resources/controller-test.cfg.xml");
+my $pid = open2(\*CONTROLLER_READER, \*CONTROLLER_WRITER, "bin/controller.sh --config client-cli/src/test/resources/controller-test.cfg.xml");
 while ( $started == 0 && defined(my $line = <CONTROLLER_READER>)  ) {
     if ( $line =~ /Controller successfully started/ ) {
         $started = 1;

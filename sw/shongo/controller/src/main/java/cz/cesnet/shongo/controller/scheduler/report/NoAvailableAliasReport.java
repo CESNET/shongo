@@ -27,6 +27,11 @@ public class NoAvailableAliasReport extends Report
     private AliasType aliasType;
 
     /**
+     * Value for the {@link Alias}.
+     */
+    private String value;
+
+    /**
      * Constructor.
      */
     public NoAvailableAliasReport()
@@ -39,10 +44,11 @@ public class NoAvailableAliasReport extends Report
      * @param technologies
      * @param aliasType
      */
-    public NoAvailableAliasReport(Set<Technology> technologies, AliasType aliasType)
+    public NoAvailableAliasReport(Set<Technology> technologies, AliasType aliasType, String value)
     {
         setTechnologies(technologies);
         setAliasType(aliasType);
+        setValue(value);
     }
 
     /**
@@ -83,13 +89,33 @@ public class NoAvailableAliasReport extends Report
         this.aliasType = aliasType;
     }
 
+    /**
+     * @return {@link #value}
+     */
+    @Column
+    public String getValue()
+    {
+        return value;
+    }
+
+    /**
+     * @param value {@link #value}
+     */
+    public void setValue(String value)
+    {
+        this.value = value;
+    }
+
     @Override
     @Transient
     public String getText()
     {
         return String.format("No available alias was found for the following specification:\n"
                 + " Technology: %s\n"
-                + " Alias Type: %s",
-                Technology.formatTechnologies(technologies), (aliasType != null ? aliasType.toString() : "Any"));
+                + " Alias Type: %s\n"
+                + " Value: %s",
+                (technologies.size() > 0 ? Technology.formatTechnologies(technologies) : "Any"),
+                (aliasType != null ? aliasType.toString() : "Any"),
+                (value != null ? value : "Any"));
     }
 }

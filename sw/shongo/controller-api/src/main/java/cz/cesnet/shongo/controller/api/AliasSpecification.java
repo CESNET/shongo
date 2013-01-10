@@ -59,13 +59,22 @@ public class AliasSpecification extends Specification
     }
 
     /**
-     *
      * @param resourceId sets the {@link #RESOURCE_ID}
      * @return this {@link AliasSpecification} with {@link #RESOURCE_ID} set to {@code resourceId}
      */
     public AliasSpecification withResourceId(String resourceId)
     {
         setResourceId(resourceId);
+        return this;
+    }
+
+    /**
+     * @param value sets the {@link #VALUE}
+     * @return this {@link AliasSpecification} with {@link #VALUE} set to {@code value}
+     */
+    public AliasSpecification withValue(String value)
+    {
+        setValue(value);
         return this;
     }
 

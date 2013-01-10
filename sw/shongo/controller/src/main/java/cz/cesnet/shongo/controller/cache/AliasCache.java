@@ -120,30 +120,45 @@ public class AliasCache extends AbstractReservationCache<AliasProviderCapability
         if (!resource.isAllocatable() || !resource.isAvailableInFuture(interval.getEnd(), getReferenceDateTime())) {
             return null;
         }
-        if (requestedValue != null) {
-            throw new TodoImplementException("Implement get requested available alias");
-        }
 
         // Find available alias value
-        String aliasValue;
+        String aliasValue = null;
         // Provided alias reservation by which the alias value is already allocated
         AliasReservation aliasReservation = null;
 
         // Preferably use  provided alias
         Set<AliasReservation> aliasReservations = transaction.getProvidedReservations(aliasProviderCapability.getId());
         if (aliasReservations.size() > 0) {
-            aliasReservation = aliasReservations.iterator().next();
-            aliasValue = aliasReservation.getAliasValue();
+            if (requestedValue != null) {
+                for (AliasReservation possibleAliasReservation : aliasReservations) {
+                    if (possibleAliasReservation.getAliasValue().equals(requestedValue)) {
+                        aliasReservation = possibleAliasReservation;
+                        aliasValue = aliasReservation.getAliasValue();
+                        break;
+                    }
+                }
+            }
+            else {
+                aliasReservation = aliasReservations.iterator().next();
+                aliasValue = aliasReservation.getAliasValue();
+            }
         }
         // Else use generated alias
-        else {
+        if (aliasValue == null) {
             ObjectState<AliasReservation> aliasProviderState = getObjectStateRequired(aliasProviderCapability);
             Set<AliasReservation> allocatedAliases = aliasProviderState.getReservations(interval, transaction);
             AliasGenerator aliasGenerator = aliasProviderCapability.getAliasGenerator();
             for (AliasReservation allocatedAliasReservation : allocatedAliases) {
                 aliasGenerator.addAliasValue(allocatedAliasReservation.getAliasValue());
             }
-            aliasValue = aliasGenerator.generateValue();
+            if (requestedValue != null) {
+                if (aliasGenerator.isValueAvailable(requestedValue)) {
+                    aliasValue = requestedValue;
+                }
+            }
+            else {
+                aliasValue = aliasGenerator.generateValue();
+            }
         }
         if (aliasValue == null) {
             return null;

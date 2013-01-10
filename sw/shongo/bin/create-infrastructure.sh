@@ -1,6 +1,6 @@
-#!/usr/bin/sh
-
-bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
+CONTROLLER=127.0.0.1
+cd `dirname $0`
+./client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
 --cmd "\
     create-resource { \
         class: 'Resource', \
@@ -106,13 +106,3 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
             }] \
         }] \
     }"
-
-bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
---cmd "list-resources" \
---cmd "get-resource 1" \
---cmd "get-resource 2" \
---cmd "get-resource 3" \
---cmd "get-resource 4" \
---cmd "get-resource 5" \
---cmd "get-resource-allocation 2" \
---cmd "get-resource-allocation 5" \
