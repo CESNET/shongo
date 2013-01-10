@@ -29,7 +29,7 @@ public class AliasTest extends AbstractControllerTest
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
         aliasProvider.addCapability(
-                new AliasProviderCapability("[s]", AliasType.ADOBE_CONNECT_NAME));
+                new AliasProviderCapability("{string}", AliasType.ADOBE_CONNECT_NAME));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
 
         ReservationRequest reservationRequest = new ReservationRequest();

@@ -1,7 +1,5 @@
 * 2 paragraphs of shongo features
 
-* Change [ddd] to {digit:5} and [s] to {string}
-
 * Executor should run only in one thread
 
 * Adobe connect

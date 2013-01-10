@@ -15,7 +15,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
                 { type: 'H323_URI', value: '{resource.address}#9500872{value}' }, \
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
-            patterns: ['[dd]'], \
+            patterns: ['[digit:2]'], \
         }] \
     }" \
 --cmd "\
@@ -80,7 +80,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
                 { type: 'ADOBE_CONNECT_NAME', value: '{value}' }, \
                 { type: 'ADOBE_CONNECT_URI', value: '{resource.address}/{value}' }, \
             ], \
-            patterns: ['[s]'], \
+            patterns: ['{string}'], \
             permanentRoom: 1 \
         }], \
         administrators: [ \

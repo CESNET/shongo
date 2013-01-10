@@ -22,7 +22,7 @@ public class AliasPatternGeneratorTest
         assertEquals("950", generator.generateValue());
         assertEquals(null, generator.generateValue());
 
-        generator = new AliasPatternGenerator("950[ddd]");
+        generator = new AliasPatternGenerator("950{digit:3}");
         generator.addAliasValue("950001");
         generator.addAliasValue("950003");
         generator.addAliasValue("950004");
@@ -33,7 +33,7 @@ public class AliasPatternGeneratorTest
         }
         assertEquals(null, generator.generateValue());
 
-        generator = new AliasPatternGenerator("950[d]00[d]");
+        generator = new AliasPatternGenerator("950{digit:1}00{digit:1}");
         generator.addAliasValue("9500001");
         generator.addAliasValue("9500003");
         generator.addAliasValue("9500004");
@@ -58,8 +58,8 @@ public class AliasPatternGeneratorTest
         assertEquals(null, generator.generateValue());
 
         generator = new AliasPatternGenerator();
-        generator.addPattern("9501[d]");
-        generator.addPattern("9502[d]");
+        generator.addPattern("9501{digit:1}");
+        generator.addPattern("9502{digit:1}");
         for (int index = 1; index <= 9; index++) {
             assertEquals(String.format("9501%d", index), generator.generateValue());
         }
@@ -72,7 +72,7 @@ public class AliasPatternGeneratorTest
     @Test
     public void testStringPattern() throws Exception
     {
-        AliasPatternGenerator generator = new AliasPatternGenerator("[s]");
+        AliasPatternGenerator generator = new AliasPatternGenerator("{string}");
         assertEquals(AliasPatternGenerator.Pattern.STRING_PATTERN_LENGTH, generator.generateValue().length());
     }
 }

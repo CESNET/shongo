@@ -4,6 +4,7 @@ import cz.cesnet.shongo.fault.TodoImplementException;
 import org.apache.commons.lang.RandomStringUtils;
 
 import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * {@link AliasGenerator} based on pattern.
@@ -123,19 +124,19 @@ public class AliasPatternGenerator extends AliasGenerator
     public static class Pattern extends ArrayList<PatternComponent>
     {
         /**
-         * Length of automatic generated strings by "[s]" pattern.
+         * Length of automatic generated strings by "{string}" pattern.
          */
         public static final int STRING_PATTERN_LENGTH = 8;
 
         /**
          * Regex for {@link NumberPatternComponent}.
          */
-        private static final java.util.regex.Pattern NUMBER_PATTERN = java.util.regex.Pattern.compile("d+");
+        private static final java.util.regex.Pattern NUMBER_PATTERN = java.util.regex.Pattern.compile("digit:(\\d+)");
 
         /**
          * Regex for {@link StringPatternComponent}
          */
-        private static final java.util.regex.Pattern STRING_PATTERN = java.util.regex.Pattern.compile("s");
+        private static final java.util.regex.Pattern STRING_PATTERN = java.util.regex.Pattern.compile("string");
 
         /**
          * Single value pattern.
@@ -156,19 +157,20 @@ public class AliasPatternGenerator extends AliasGenerator
         {
             int start = -1;
             int end = -1;
-            while ((start = pattern.indexOf('[')) != -1 && (end = pattern.indexOf(']')) != -1) {
+            while ((start = pattern.indexOf('{')) != -1 && (end = pattern.indexOf('}')) != -1) {
                 if (start > 0) {
                     add(new ConstantPatternComponent(pattern.substring(0, start)));
                 }
                 String component = pattern.substring(start + 1, end);
-                if (NUMBER_PATTERN.matcher(component).matches()) {
-                    add(new NumberPatternComponent(component.length()));
+                Matcher numberMatcher = NUMBER_PATTERN.matcher(component);
+                if (numberMatcher.matches()) {
+                    add(new NumberPatternComponent(Integer.valueOf(numberMatcher.group(1))));
                 }
                 else if (STRING_PATTERN.matcher(component).matches()) {
                     add(new StringPatternComponent());
                 }
                 else {
-                    throw new IllegalArgumentException("Component '[" + component + "]' is in wrong format.");
+                    throw new IllegalArgumentException("Component '{" + component + "}' is in wrong format.");
                 }
                 pattern = pattern.substring(end + 1);
             }

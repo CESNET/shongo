@@ -147,7 +147,7 @@ public class ResourceManagementTest extends AbstractControllerTest
         Resource aliasProvider = new Resource();
         aliasProvider.setName("aliasProvider");
         aliasProvider.setAllocatable(true);
-        aliasProvider.addCapability(new AliasProviderCapability("[d]", AliasType.H323_E164));
+        aliasProvider.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164));
         getResourceService().createResource(SECURITY_TOKEN, aliasProvider);
     }
 }

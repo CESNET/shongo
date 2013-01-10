@@ -33,7 +33,7 @@ public class CompartmentSingleRoomTest extends AbstractControllerTest
         mcu.setName("mcu");
         mcu.addTechnology(Technology.H323);
         mcu.addCapability(new RoomProviderCapability(10));
-        mcu.addCapability(new AliasProviderCapability("95000000[d]", AliasType.H323_E164).withRestrictedToResource());
+        mcu.addCapability(new AliasProviderCapability("95{digit:1}", AliasType.H323_E164).withRestrictedToResource());
         mcu.setAllocatable(true);
         String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
 
