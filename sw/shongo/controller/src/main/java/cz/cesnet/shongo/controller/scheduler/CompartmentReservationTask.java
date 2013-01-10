@@ -428,7 +428,7 @@ public class CompartmentReservationTask extends ReservationTask
             }
         }
         else {
-            // Only allocated resource is allowed
+            // Only allocated resource ies allowed
             Endpoint allocatedEndpoint = endpoints.get(0);
             if (!(allocatedEndpoint instanceof ResourceEndpoint)) {
                 return false;

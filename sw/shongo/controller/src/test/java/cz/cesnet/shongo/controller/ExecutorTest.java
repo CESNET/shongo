@@ -9,7 +9,6 @@ import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
@@ -108,7 +107,7 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Start virtual room
-        Executor.ExecutionResult result = executor.execute(dateTime);
+        ExecutionResult result = executor.execute(dateTime);
         assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         assertEquals("The started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
@@ -171,13 +170,17 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Start compartment
-        Executor.ExecutionResult result = executor.execute(dateTime);
-        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
-        assertEquals("The started executable should be compartment.",
-                Compartment.class, result.getStartedExecutables().get(0).getClass());
+        ExecutionResult result = executor.execute(dateTime);
+        assertEquals("Three executables should be started.", 3, result.getStartedExecutables().size());
+        assertEquals("The first started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        assertEquals("The second started executable should be connection.",
+                Connection.class, result.getStartedExecutables().get(1).getClass());
+        assertEquals("The third started executable should be compartment.",
+                Compartment.class, result.getStartedExecutables().get(2).getClass());
         // Stop compartment
         result = executor.execute(dateTime.plus(duration));
-        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
+        assertEquals("Three executables should be stopped.", 3, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
@@ -225,7 +228,7 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Start virtual room
-        Executor.ExecutionResult result = executor.execute(dateTime);
+        ExecutionResult result = executor.execute(dateTime);
         assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         assertEquals("The started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
@@ -275,7 +278,7 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Start virtual room
-        Executor.ExecutionResult result = executor.execute(dateTime);
+        ExecutionResult result = executor.execute(dateTime);
         assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         assertEquals("The started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
@@ -347,7 +350,7 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Start virtual rooms
-        Executor.ExecutionResult result = executor.execute(dateTime);
+        ExecutionResult result = executor.execute(dateTime);
         assertEquals("Two executables should be started.", 2, result.getStartedExecutables().size());
         assertEquals("The first started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
@@ -403,7 +406,7 @@ public class ExecutorTest extends AbstractControllerTest
         String roomReservationId = allocateAndCheck(roomReservationRequest).getId();
 
         // Start virtual room
-        Executor.ExecutionResult result = executor.execute(dateTime);
+        ExecutionResult result = executor.execute(dateTime);
         assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         assertEquals("The started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
@@ -480,14 +483,16 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
-        Executor.ExecutionResult result = executor.execute(dateTime);
-        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
-        assertEquals("The started executable should be copartment.",
-                Compartment.class, result.getStartedExecutables().get(0).getClass());
+        ExecutionResult result = executor.execute(dateTime);
+        assertEquals("Two executables should be started.", 2, result.getStartedExecutables().size());
+        assertEquals("The first started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        assertEquals("The second started executable should be copartment.",
+                Compartment.class, result.getStartedExecutables().get(1).getClass());
 
         // Stop compartment
         result = executor.execute(dateTime.plus(duration));
-        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
+        assertEquals("Two executables should be stopped.", 2, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
@@ -531,7 +536,7 @@ public class ExecutorTest extends AbstractControllerTest
         String roomReservationRequestId = allocateAndCheck(roomReservationRequest).getId();
 
         // Execute compartment
-        Executor.ExecutionResult result = executor.execute(dateTime);
+        ExecutionResult result = executor.execute(dateTime);
         assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
         assertEquals("The started executable should be virtual room.",
                 ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());

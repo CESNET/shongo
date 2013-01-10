@@ -83,11 +83,9 @@ public abstract class RoomEndpoint extends Endpoint
      * Modify this {@link RoomEndpoint}.
      *
      * @param executor thread which is executing
-     * @param entityManager  which can be used for starting
      * @return new {@link State}
      */
-    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor,
-            EntityManager entityManager)
+    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor)
     {
         return true;
     }

@@ -1,9 +1,7 @@
 package cz.cesnet.shongo.controller;
 
 import cz.cesnet.shongo.controller.api.Reservation;
-import cz.cesnet.shongo.controller.executor.Executable;
-import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.executor.ExecutionPlan;
+import cz.cesnet.shongo.controller.executor.*;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -129,6 +127,14 @@ public class Executor extends Component
         return thread;
     }
 
+    /**
+     * @return new {@link EntityManager}
+     */
+    public EntityManager getEntityManager()
+    {
+        return entityManagerFactory.createEntityManager();
+    }
+
     @Override
     public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory)
     {
@@ -199,13 +205,14 @@ public class Executor extends Component
     {{
             add(Executable.State.STARTED);
             add(Executable.State.PARTIALLY_STARTED);
+            add(Executable.State.STOPPING_FAILED);
         }};
 
     /**
      * Execute {@link Reservation}s which should be executed for given {@code interval}.
      *
      * @param referenceDateTime specifies date/time which should be used as "now" executing {@link Reservation}s
-     * @return {@link ExecutionResult}
+     * @return {@link cz.cesnet.shongo.controller.executor.ExecutionResult}
      */
     public ExecutionResult execute(DateTime referenceDateTime)
     {
@@ -223,8 +230,9 @@ public class Executor extends Component
         while (!startingExecutionPlan.isEmpty()) {
             Collection<Executable> executables = startingExecutionPlan.popExecutables();
             for (Executable executable : executables) {
-                startExecutable(executable, entityManager);
-                executionResult.addStartedExecutable(executable);
+                ExecutorThread executorThread = new ExecutorThread(ExecutorThread.Type.START, executable, this,
+                        startingExecutionPlan, executionResult, entityManager);
+                executorThread.start();
             }
             try {
                 Thread.sleep(100);
@@ -236,32 +244,26 @@ public class Executor extends Component
 
         // List executables which should be stopped
         DateTime stopDateTime = referenceDateTime.minus(executableEnd);
-        List<Executable> stoppedExecutables = executableManager.listNotTakingPlace(STATES_FOR_STOPPING, stopDateTime);
-        for (Executable executable : stoppedExecutables) {
-            stopExecutable(executable, entityManager);
-            executionResult.addStoppedExecutable(executable);
+        ExecutionPlan stoppingExecutionPlan =
+                new ReverseExecutionPlan(executableManager.listNotTakingPlace(STATES_FOR_STOPPING, stopDateTime));
+        while (!stoppingExecutionPlan.isEmpty()) {
+            Collection<Executable> executables = stoppingExecutionPlan.popExecutables();
+            for (Executable executable : executables) {
+                ExecutorThread executorThread = new ExecutorThread(ExecutorThread.Type.STOP, executable, this,
+                        stoppingExecutionPlan, executionResult, entityManager);
+                executorThread.start();
+            }
+            try {
+                Thread.sleep(100);
+            }
+            catch (InterruptedException exception) {
+                logger.error("Execution interrupted.", exception);
+            }
         }
 
         entityManager.close();
 
         return executionResult;
-    }
-
-    /**
-     * @param executable    to be started
-     * @param entityManager
-     */
-    public void startExecutable(Executable executable, EntityManager entityManager)
-    {
-        executable.start(this, entityManager);
-    }
-
-    /**
-     * @param executable to be stopped
-     */
-    public void stopExecutable(Executable executable, EntityManager entityManager)
-    {
-        executable.stop(this, entityManager);
     }
 
     /**
@@ -288,48 +290,4 @@ public class Executor extends Component
         }
     }
 
-    public static class ExecutionResult
-    {
-        /**
-         * List of {@link Executable} which were started.
-         */
-        private List<Executable> startedExecutables = new ArrayList<Executable>();
-
-        /**
-         * List of {@link Executable} which were stopped.
-         */
-        private List<Executable> stoppedExecutables = new ArrayList<Executable>();
-
-        /**
-         * @param startedExecutable to be added to the {@link #startedExecutables}
-         */
-        public void addStartedExecutable(Executable startedExecutable)
-        {
-            startedExecutables.add(startedExecutable);
-        }
-
-        /**
-         * @param stoppedExecutable to be added to the {@link #stoppedExecutables}
-         */
-        public void addStoppedExecutable(Executable stoppedExecutable)
-        {
-            stoppedExecutables.add(stoppedExecutable);
-        }
-
-        /**
-         * @return {@link #startedExecutables}
-         */
-        public List<Executable> getStartedExecutables()
-        {
-            return startedExecutables;
-        }
-
-        /**
-         * @return {@link #stoppedExecutables}
-         */
-        public List<Executable> getStoppedExecutables()
-        {
-            return stoppedExecutables;
-        }
-    }
 }

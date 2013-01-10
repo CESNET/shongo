@@ -9,8 +9,12 @@ import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
+import org.slf4j.LoggerFactory;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Represents a connection (e.g., audio channel, video channel, etc.) between two {@link Endpoint}s
@@ -113,7 +117,17 @@ public class Connection extends Executable
     }
 
     @Override
-    protected State onStart(Executor executor, EntityManager entityManager)
+    @Transient
+    public Collection<Executable> getExecutionDependencies()
+    {
+        List<Executable> dependencies = new ArrayList<Executable>();
+        dependencies.add(endpointFrom);
+        dependencies.add(endpointTo);
+        return dependencies;
+    }
+
+    @Override
+    protected State onStart(Executor executor)
     {
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
@@ -135,19 +149,19 @@ public class Connection extends Executable
                 command = controllerAgent.performCommandAndWait(new AgentActionCommand(
                         agentName, new Dial(getAlias().toApi())));
             }
-            if (command.getState() != Command.State.SUCCESSFUL) {
+            if (command.getState() == Command.State.SUCCESSFUL) {
+                setConnectionId((String) command.getResult());
+                return State.STARTED;
+            }
+            else {
                 return State.STARTING_FAILED;
             }
-            setConnectionId((String) command.getResult());
-            return super.onStart(executor, entityManager);
         }
-        else {
-            return State.NOT_STARTED;
-        }
+        return super.onStart(executor);
     }
 
     @Override
-    protected State onStop(Executor executor, EntityManager entityManager)
+    protected State onStop(Executor executor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
@@ -168,10 +182,14 @@ public class Connection extends Executable
 
                 command = controllerAgent.performCommand(new AgentActionCommand(agentName, new HangUpAll()));
             }
-            if (command.getState() != Command.State.SUCCESSFUL) {
-                return State.STARTED;
+            executor.getLogger().debug("connection performed");
+            if (command.getState() == Command.State.SUCCESSFUL) {
+                return State.STOPPED;
+            }
+            else {
+                return State.STOPPING_FAILED;
             }
         }
-        return super.onStop(executor, entityManager);
+        return super.onStop(executor);
     }
 }

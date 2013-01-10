@@ -11,6 +11,7 @@ import org.joda.time.Interval;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -179,6 +180,15 @@ public abstract class Executable extends PersistentObject
         childExecutables.add(executable);
     }
 
+    /**
+     * @return collection of execution dependencies
+     */
+    @Transient
+    public Collection<Executable> getExecutionDependencies()
+    {
+        return childExecutables;
+    }
+
     @PrePersist
     protected void onCreate()
     {
@@ -230,105 +240,118 @@ public abstract class Executable extends PersistentObject
     /**
      * Start given {@code executable}.
      *
-     * @param executor      which is executing
-     * @param entityManager which can be used for starting
+     * @param executor which is executing
      */
     public final void start(Executor executor, EntityManager entityManager)
     {
         if (getState() != State.NOT_STARTED) {
             throw new IllegalStateException(getName() + " can be started only if it is not started yet.");
         }
-        State state = onStart(executor, entityManager);
-        entityManager.getTransaction().begin();
-        setState(state);
-        entityManager.getTransaction().commit();
+
+        State state = onStart(executor);
+        synchronized (entityManager){
+            entityManager.getTransaction().begin();
+            setState(state);
+            entityManager.getTransaction().commit();
+        }
     }
 
     /**
      * Start given {@code executable}.
      *
-     * @param executor      which is executing
-     * @param entityManager which can be used for starting
+     * @param executor which is executing
      */
     public final void stop(Executor executor, EntityManager entityManager)
     {
         if (getState() != State.STARTED) {
             throw new IllegalStateException(getName() + " can be stopped only if it is started.");
         }
-        State state = onStop(executor, entityManager);
-        entityManager.getTransaction().begin();
-        setState(state);
-        entityManager.getTransaction().commit();
-    }
-
-    /**
-     * Start all {@link #childExecutables} which are instance of {@code childrenType}.
-     *
-     * @param childrenType
-     * @param executor
-     * @param entityManager
-     * @return number of child {@link Executable}s which were started by the method invocation
-     */
-    protected final int startChildren(Class<? extends Executable> childrenType, Executor executor,
-            EntityManager entityManager)
-    {
-        int count = 0;
-        for (Executable childExecutable : childExecutables) {
-            if (!childrenType.isInstance(childExecutable)) {
-                continue;
-            }
-            if (childExecutable.getState() == State.NOT_STARTED) {
-                childExecutable.start(executor, entityManager);
-            }
+        State state = onStop(executor);
+        synchronized (entityManager){
+            entityManager.getTransaction().begin();
+            setState(state);
+            entityManager.getTransaction().commit();
         }
-        return count;
-    }
-
-    /**
-     * Stop all {@link #childExecutables} which are instance of {@code childrenType}.
-     *
-     * @param childrenType
-     * @param executor
-     * @param entityManager
-     * @return number of child {@link Executable}s which were started by the method invocation
-     */
-    protected final int stopChildren(Class<? extends Executable> childrenType, Executor executor,
-            EntityManager entityManager)
-    {
-        int count = 0;
-        for (Executable childExecutable : childExecutables) {
-            if (!childrenType.isInstance(childExecutable)) {
-                continue;
-            }
-            if (childExecutable.getState() == State.STARTED) {
-                childExecutable.stop(executor, entityManager);
-            }
-        }
-        return count;
     }
 
     /**
      * Start this {@link Executable}.
      *
-     * @param executor      which is executing
-     * @param entityManager which can be used for starting
+     * @param executor which is executing
      * @return new {@link State}
      */
-    protected State onStart(Executor executor, EntityManager entityManager)
+    protected State onStart(Executor executor)
     {
-        return State.STARTED;
+        return getDefaultState();
     }
 
     /**
      * Stop this {@link Executable}.
      *
-     * @param executor      which is executing
-     * @param entityManager which can be used for stopping
+     * @param executor which is executing
      * @return new {@link State}
      */
-    protected State onStop(Executor executor, EntityManager entityManager)
+    protected State onStop(Executor executor)
     {
-        return State.STOPPED;
+        return getDefaultState();
+    }
+
+    /**
+     * @return {@link State} by children or {@link State#SKIPPED}
+     */
+    @Transient
+    private State getDefaultState()
+    {
+        State state = State.SKIPPED;
+        for (Executable childExecutable : childExecutables) {
+            State childExecutableState = childExecutable.getState();
+            switch (state) {
+                case SKIPPED:
+                    switch (childExecutableState) {
+                        case STARTED:
+                            state = State.STARTED;
+                            break;
+                        case STARTING_FAILED:
+                            state = State.STARTING_FAILED;
+                            break;
+                        case STOPPED:
+                            state = State.STOPPED;
+                            break;
+                        case STOPPING_FAILED:
+                            state = State.STOPPING_FAILED;
+                            break;
+                    }
+                    break;
+                case STARTED:
+                    switch (childExecutableState) {
+                        case STARTING_FAILED:
+                        case STOPPED:
+                            state = State.PARTIALLY_STARTED;
+                            break;
+                    }
+                    break;
+                case STARTING_FAILED:
+                    switch (childExecutableState) {
+                        case STARTED:
+                        case STOPPING_FAILED:
+                            state = State.PARTIALLY_STARTED;
+                            break;
+                        case STOPPED:
+                            state = State.STOPPED;
+                            break;
+                    }
+                    break;
+                case STOPPED:
+                    switch (childExecutableState) {
+                        case STARTED:
+                        case STOPPING_FAILED:
+                            state = State.PARTIALLY_STARTED;
+                            break;
+                    }
+                    break;
+            }
+        }
+        return state;
     }
 
     /**
@@ -348,6 +371,11 @@ public abstract class Executable extends PersistentObject
         NOT_STARTED,
 
         /**
+         * {@link Executable} starting/stopping was skipped (starting/stopping doesn't make sense).
+         */
+        SKIPPED,
+
+        /**
          * {@link Executable} is already started.
          */
         STARTED,
@@ -365,7 +393,12 @@ public abstract class Executable extends PersistentObject
         /**
          * {@link Executable} has been already stopped.
          */
-        STOPPED;
+        STOPPED,
+
+        /**
+         * {@link Executable} failed to stop.
+         */
+        STOPPING_FAILED;
 
         /**
          * @return converted to {@link cz.cesnet.shongo.controller.api.Executable.State}
@@ -376,6 +409,8 @@ public abstract class Executable extends PersistentObject
                 case NOT_ALLOCATED:
                     throw new IllegalStateException(this.toString() + " should not be converted to API.");
                 case NOT_STARTED:
+                    return cz.cesnet.shongo.controller.api.Executable.State.NOT_STARTED;
+                case SKIPPED:
                     return cz.cesnet.shongo.controller.api.Executable.State.NOT_STARTED;
                 case STARTED:
                     return cz.cesnet.shongo.controller.api.Executable.State.STARTED;

@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Tests for {@link ExecutionPlan}.
@@ -48,20 +49,56 @@ public class ExecutionPlanTest
                     add(executable4);
                     add(executable5);
                 }});
-            Assert.assertEquals(1, executionPlan.popExecutables().size());
-            Assert.assertEquals(executable2, executionPlan.popExecutables().iterator().next());
+            Collection<Executable> executables;
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable2, executables.iterator().next());
 
             executionPlan.removeExecutable(executable2);
-            Assert.assertEquals(1, executionPlan.popExecutables().size());
-            Assert.assertEquals(executable3, executionPlan.popExecutables().iterator().next());
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable3, executables.iterator().next());
 
             executionPlan.removeExecutable(executable3);
-            Assert.assertEquals(1, executionPlan.popExecutables().size());
-            Assert.assertEquals(executable4, executionPlan.popExecutables().iterator().next());
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable4, executables.iterator().next());
 
             executionPlan.removeExecutable(executable4);
-            Assert.assertEquals(1, executionPlan.popExecutables().size());
-            Assert.assertEquals(executable5, executionPlan.popExecutables().iterator().next());
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable5, executables.iterator().next());
+        } catch (IllegalStateException exception) {
+            Assert.fail("Exception should not be thrown (doesn't contain cycle).");
+        }
+
+        try {
+            ExecutionPlan executionPlan = new ReverseExecutionPlan(new ArrayList<Executable>()
+            {{
+                    add(executable2);
+                    add(executable3);
+                    add(executable4);
+                    add(executable5);
+                }});
+            Collection<Executable> executables;
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable5, executables.iterator().next());
+
+            executionPlan.removeExecutable(executable5);
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable4, executables.iterator().next());
+
+            executionPlan.removeExecutable(executable4);
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable3, executables.iterator().next());
+
+            executionPlan.removeExecutable(executable3);
+            executables = executionPlan.popExecutables();
+            Assert.assertEquals(1, executables.size());
+            Assert.assertEquals(executable2, executables.iterator().next());
         } catch (IllegalStateException exception) {
             Assert.fail("Exception should not be thrown (doesn't contain cycle).");
         }
@@ -69,5 +106,9 @@ public class ExecutionPlanTest
 
     public static class SimpleExecutable extends Executable
     {
+        public SimpleExecutable()
+        {
+            generateTestingId();
+        }
     }
 }

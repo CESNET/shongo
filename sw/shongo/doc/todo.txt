@@ -1,6 +1,6 @@
 * 2 paragraphs of shongo features
 
-* Executor should run only in one thread
+* Executor should wait after it creates a virtual room
 
 * Adobe connect
   - finish create/delete room by alias reservation (test it in web client)

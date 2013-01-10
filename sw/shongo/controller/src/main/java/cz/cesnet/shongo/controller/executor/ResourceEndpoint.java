@@ -123,26 +123,32 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
     }
 
     @Override
-    protected State onStart(Executor executor, EntityManager entityManager)
+    protected State onStart(Executor executor)
     {
         List<Alias> aliases = getAssignedAliases();
-        for (Alias alias : aliases) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
-            executor.getLogger().debug(message.toString());
+        if (aliases.size() > 0) {
+            for (Alias alias : aliases) {
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
+                executor.getLogger().debug(message.toString());
+            }
+            return State.STARTED;
         }
-        return super.onStart(executor, entityManager);
+        return super.onStart(executor);
     }
 
     @Override
-    protected State onStop(Executor executor, EntityManager entityManager)
+    protected State onStop(Executor executor)
     {
         List<Alias> aliases = getAssignedAliases();
-        for (Alias alias : aliases) {
-            StringBuilder message = new StringBuilder();
-            message.append(String.format("Removing alias '%s' from %s .", alias.getValue(), getReportDescription()));
-            executor.getLogger().debug(message.toString());
+        if (aliases.size() > 0) {
+            for (Alias alias : aliases) {
+                StringBuilder message = new StringBuilder();
+                message.append(String.format("Removing alias '%s' from %s .", alias.getValue(), getReportDescription()));
+                executor.getLogger().debug(message.toString());
+            }
+            return State.STOPPED;
         }
-        return super.onStop(executor, entityManager);
+        return super.onStop(executor);
     }
 }

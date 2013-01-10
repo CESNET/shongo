@@ -3,7 +3,6 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
-import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.report.ReportException;
@@ -12,6 +11,8 @@ import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -74,27 +75,37 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    protected Executable createApi()
+    @Transient
+    public Collection<Executable> getExecutionDependencies()
     {
-        return new Executable.ResourceRoom();
+        List<Executable> dependencies = new ArrayList<Executable>();
+        dependencies.add(roomEndpoint);
+        return dependencies;
     }
 
     @Override
-    public Executable.ResourceRoom toApi(Domain domain)
+    protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return (Executable.ResourceRoom) super.toApi(domain);
+        return new cz.cesnet.shongo.controller.api.Executable.ResourceRoom();
     }
 
     @Override
-    public void toApi(Executable executableApi, Domain domain)
+    public cz.cesnet.shongo.controller.api.Executable.ResourceRoom toApi(Domain domain)
+    {
+        return (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) super.toApi(domain);
+    }
+
+    @Override
+    public void toApi(cz.cesnet.shongo.controller.api.Executable executableApi, Domain domain)
     {
         super.toApi(executableApi, domain);
 
         roomEndpoint.toApi(executableApi, domain);
 
-        if (executableApi instanceof Executable.ResourceRoom) {
+        if (executableApi instanceof cz.cesnet.shongo.controller.api.Executable.ResourceRoom) {
             RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
-            Executable.ResourceRoom resourceRoomEndpointApi = (Executable.ResourceRoom) executableApi;
+            cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
+                    (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
             resourceRoomEndpointApi.setId(domain.formatId(getId()));
             resourceRoomEndpointApi.setSlot(getSlot());
             resourceRoomEndpointApi.setState(getState().toApi());
@@ -180,21 +191,26 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    protected State onStart(Executor executor, EntityManager entityManager)
+    protected State onStart(Executor executor)
     {
-        if (!roomEndpoint.modifyRoom(getMergedRoomConfiguration(), executor, entityManager)) {
+        if (roomEndpoint.modifyRoom(getMergedRoomConfiguration(), executor)) {
+            return State.STARTED;
+        }
+        else {
             executor.getLogger().error("Starting of used room endpoint '{}' failed.", getId());
             return State.STARTING_FAILED;
         }
-        return super.onStart(executor, entityManager);
     }
 
     @Override
-    protected State onStop(Executor executor, EntityManager entityManager)
+    protected State onStop(Executor executor)
     {
-        if (!roomEndpoint.modifyRoom(roomEndpoint.getRoomConfiguration(), executor, entityManager)) {
-            throw new IllegalStateException("Modifying to original configuration failed and it should always succeed.");
+        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomConfiguration(), executor)) {
+            return State.STOPPED;
         }
-        return super.onStop(executor, entityManager);
+        else {
+            executor.getLogger().error("Stopping of used room endpoint '{}' failed (should always succeed).", getId());
+            return State.STOPPING_FAILED;
+        }
     }
 }

@@ -204,7 +204,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    protected State onStart(Executor executor, EntityManager entityManager)
+    protected State onStart(Executor executor)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -239,16 +239,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             }
             Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName,
                     new CreateRoom(room)));
-            if (command.getState() != Command.State.SUCCESSFUL) {
+            if (command.getState() == Command.State.SUCCESSFUL) {
+                setRoomId((String) command.getResult());
+                return State.STARTED;
+            }
+            else {
                 return State.STARTING_FAILED;
             }
-            setRoomId((String) command.getResult());
         }
-        return super.onStart(executor, entityManager);
+        return super.onStart(executor);
     }
 
     @Override
-    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor, EntityManager entityManager)
+    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -280,11 +283,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return false;
             }
         }
-        return super.modifyRoom(roomConfiguration, executor, entityManager);
+        return super.modifyRoom(roomConfiguration, executor);
     }
 
     @Override
-    protected State onStop(Executor executor, EntityManager entityManager)
+    protected State onStop(Executor executor)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d licenses.", getReportDescription(), getLicenseCount()));
@@ -300,10 +303,13 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             }
             Command command = controllerAgent
                     .performCommandAndWait(new AgentActionCommand(agentName, new DeleteRoom(roomId)));
-            if (command.getState() != Command.State.SUCCESSFUL) {
-                return State.STARTED;
+            if (command.getState() == Command.State.SUCCESSFUL) {
+                return State.STOPPED;
+            }
+            else {
+                return State.STOPPING_FAILED;
             }
         }
-        return super.onStop(executor, entityManager);
+        return super.onStop(executor);
     }
 }

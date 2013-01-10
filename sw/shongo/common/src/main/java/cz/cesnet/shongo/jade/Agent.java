@@ -58,8 +58,11 @@ public class Agent extends jade.core.Agent
             return command;
         }
         try {
-            this.putO2AObject(command,
-                    AgentController.SYNC); // FIXME: should not be used by application code (according to Jade docs)
+            // FIXME: should not be used by application code (according to Jade docs)
+            // this.putO2AObject(command, ,AgentController.SYNC);
+            // This works (it will pass tests)
+            this.putO2AObject(command, false);
+            command.waitForProcessed();
         }
         catch (InterruptedException exception) {
             logger.error("Failed to put command object to agent queue.", exception);

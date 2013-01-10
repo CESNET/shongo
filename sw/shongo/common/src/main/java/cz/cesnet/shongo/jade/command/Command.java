@@ -4,6 +4,7 @@ import cz.cesnet.shongo.api.CommandException;
 import cz.cesnet.shongo.fault.jade.CommandFailureException;
 import cz.cesnet.shongo.fault.jade.CommandTimeoutException;
 import cz.cesnet.shongo.jade.Agent;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a command which can be processed on a JADE agent.
@@ -110,6 +111,7 @@ public abstract class Command
      */
     public void setResult(Object result)
     {
+        LoggerFactory.getLogger("test").debug("set result");
         this.result = result;
     }
 

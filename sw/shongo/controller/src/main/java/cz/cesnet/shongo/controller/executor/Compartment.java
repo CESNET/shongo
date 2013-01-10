@@ -3,6 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.controller.Domain;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.resource.Alias;
+import cz.cesnet.shongo.fault.TodoImplementException;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -158,48 +159,19 @@ public class Compartment extends Executable
         }
     }
 
-    private State startImplementation(Executor executor, EntityManager entityManager)
+    @Override
+    public State onStart(Executor executor)
     {
         executor.getLogger().debug("Starting compartment...");
 
-        // Create virtual rooms
-        boolean roomStarted = (startChildren(RoomEndpoint.class, executor, entityManager) > 0);
-        if (roomStarted) {
-            executor.getLogger().info("Waiting for virtual rooms to be created...");
-            try {
-                Thread.sleep(executor.getCompartmentWaitingRoom().getMillis());
-            }
-            catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-        }
-
-        // Start other endpoints (e.g., assign aliases to them)
-        startChildren(Endpoint.class, executor, entityManager);
-
-        // Start connections
-        startChildren(Connection.class, executor, entityManager);
-
-        return super.onStart(executor, entityManager);
+        return super.onStart(executor);
     }
 
     @Override
-    public State onStart(Executor executor, EntityManager entityManager)
-    {
-        return startImplementation(executor, entityManager);
-    }
-
-    @Override
-    public State onStop(Executor executor, EntityManager entityManager)
+    public State onStop(Executor executor)
     {
         executor.getLogger().debug("Stopping compartment...");
 
-        // Stop connections
-        stopChildren(Connection.class, executor, entityManager);
-
-        // Stop endpoints (virtual rooms too)
-        stopChildren(Endpoint.class, executor, entityManager);
-
-        return super.onStop(executor, entityManager);
+        return super.onStop(executor);
     }
 }

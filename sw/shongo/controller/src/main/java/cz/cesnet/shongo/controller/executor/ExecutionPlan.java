@@ -14,12 +14,12 @@ public class ExecutionPlan
     /**
      * Map of {@link ExecutablePlan}s by {@link Executable}s.
      */
-    private final Map<Executable, ExecutablePlan> executablePlans = new HashMap<Executable, ExecutablePlan>();
+    protected final Map<Executable, ExecutablePlan> executablePlans = new HashMap<Executable, ExecutablePlan>();
 
     /**
      * Set of {@link Executable}s with satisfied dependencies (with empty {@link ExecutablePlan#dependencies}).
      */
-    private final Set<Executable> satisfiedExecutables = new HashSet<Executable>();
+    protected final Set<Executable> satisfiedExecutables = new HashSet<Executable>();
 
     /**
      * Constructor.
@@ -29,18 +29,49 @@ public class ExecutionPlan
      */
     public ExecutionPlan(Collection<Executable> executables) throws IllegalStateException
     {
+        // Execution plan is empty
+        if (executables.size() == 0) {
+            return;
+        }
+
         // Initialize executable plans and set of satisfied
         for (Executable executable : executables) {
             executablePlans.put(executable, new ExecutablePlan(executable));
-            satisfiedExecutables.add(executable);
+
         }
+
         // Setup dependencies
-        for (Executable parentExecutable : executables) {
+        buildDependencies();
+
+        // Compute initial satisfied executables
+        for (Executable executable : executablePlans.keySet()) {
+            ExecutablePlan executablePlan = executablePlans.get(executable);
+            if (executablePlan.dependencies.size() == 0) {
+                // Executable is satisfied (because it is not dependent on any other executable)
+                satisfiedExecutables.add(executable);
+            }
+            else {
+                // Executable is not satisfied (because it is dependent to at least one other executable)
+            }
+        }
+
+        // Check for cycles
+        if (satisfiedExecutables.size() == 0) {
+            throw new IllegalStateException("Execution plan cannot be constructed (contains a cycle).");
+        }
+    }
+
+    /**
+     * Setup dependencies.
+     */
+    protected void buildDependencies()
+    {
+        for (Executable parentExecutable : executablePlans.keySet()) {
             ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutable);
             Collection<Executable> childExecutables = parentExecutable.getChildExecutables();
 
             // Setup dependencies in parent plan and parents in child plans
-            for (Executable childExecutable : parentExecutable.getChildExecutables()) {
+            for (Executable childExecutable : parentExecutable.getExecutionDependencies()) {
                 ExecutablePlan childExecutablePlan = executablePlans.get(childExecutable);
 
                 // Child executable doesn't exists in the plan, so it is automatically satisfied
@@ -54,17 +85,6 @@ public class ExecutionPlan
                 // Child executable has new parent (is required by him)
                 childExecutablePlan.parents.add(parentExecutable);
             }
-
-            if (parentExecutablePlan.dependencies.size() > 0) {
-                // Parent executable is not satisfied (because it is dependent to at least one child executable)
-                satisfiedExecutables.remove(parentExecutable);
-            }
-            else {
-                // Parent executable remains satisfied (because it is not dependent on any child executable)
-            }
-        }
-        if (satisfiedExecutables.size() == 0) {
-            throw new IllegalStateException("Execution plan cannot be constructed (contains a cycle).");
         }
     }
 
@@ -77,7 +97,7 @@ public class ExecutionPlan
         Set<Executable> currentExecutables = new HashSet<Executable>();
         currentExecutables.addAll(satisfiedExecutables);
         satisfiedExecutables.clear();
-        return satisfiedExecutables;
+        return currentExecutables;
     }
 
     /**
@@ -113,7 +133,7 @@ public class ExecutionPlan
     /**
      * Represents an {@link Executor} plan for a single {@link Executable}.
      */
-    private static class ExecutablePlan
+    protected static class ExecutablePlan
     {
         /**
          * {@link Executable} to which the plan belongs.
@@ -124,13 +144,13 @@ public class ExecutionPlan
          * Set of {@link Executable}s which are required by this {@link #executable}
          * (e.g., must be started before this {@link #executable} is started).
          */
-        private Set<Executable> dependencies = new HashSet<Executable>();
+        protected Set<Executable> dependencies = new HashSet<Executable>();
 
         /**
          * Set of {@link Executable}s which requires this {@link #executable}
          * (e.g., must be started after this {@link #executable} is started).
          */
-        private Set<Executable> parents = new HashSet<Executable>();
+        protected Set<Executable> parents = new HashSet<Executable>();
 
         /**
          * Constructor.
