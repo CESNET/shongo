@@ -15,7 +15,7 @@ bin/client-cli.sh --connect 127.0.0.1:8686 --testing-access-token --scripting \
                 { type: 'H323_URI', value: '{resource.address}#9500872{value}' }, \
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
-            patterns: ['[digit:2]'], \
+            patterns: ['{digit:2}'], \
         }] \
     }" \
 --cmd "\

@@ -164,6 +164,7 @@ public class CompartmentReservationTask extends ReservationTask
     private void addEndpoint(Endpoint endpoint)
     {
         endpoint.setUserId(getContext().getUserId());
+        endpoint.setSlot(getContext().getInterval());
         compartment.addChildExecutable(endpoint);
 
         if (!(endpoint instanceof RoomEndpoint)) {
@@ -348,6 +349,7 @@ public class CompartmentReservationTask extends ReservationTask
         }
 
         connection.setUserId(getContext().getUserId());
+        connection.setSlot(getContext().getInterval());
         connection.setEndpointFrom(endpointFrom);
         connection.setEndpointTo(endpointTo);
         compartment.addChildExecutable(connection);

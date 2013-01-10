@@ -1,16 +1,17 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.AbstractManager;
-import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.reservation.Reservation;
 import cz.cesnet.shongo.controller.scheduler.report.AllocatingCompartmentReport;
 import cz.cesnet.shongo.controller.util.DatabaseFilter;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.fault.EntityNotFoundException;
-import org.joda.time.Interval;
+import org.joda.time.DateTime;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -76,31 +77,6 @@ public class ExecutableManager extends AbstractManager
     }
 
     /**
-     * @param interval
-     * @return list of {@link Executable}s which should be executed by an {@link Executor} in given {@code interval}
-     */
-    public List<Executable> listExecutablesForExecution(Interval interval)
-    {
-        List<Executable> executables = entityManager.createQuery(
-                "SELECT executable FROM Executable executable"
-                        + " WHERE executable NOT IN("
-                        + "    SELECT childExecutable FROM Executable executable "
-                        + "   INNER JOIN executable.childExecutables childExecutable"
-                        + " ) AND ("
-                        + "   (executable.state = :notStarted AND "
-                        + "        executable.slotStart < :end AND executable.slotEnd > :start)"
-                        + "   OR (executable.state = :started)"
-                        + " )",
-                Executable.class)
-                .setParameter("start", interval.getStart())
-                .setParameter("end", interval.getEnd())
-                .setParameter("notStarted", Executable.State.NOT_STARTED)
-                .setParameter("started", Executable.State.STARTED)
-                .getResultList();
-        return executables;
-    }
-
-    /**
      * @return list of all allocated {@link Executable}s
      */
     public List<Executable> list(String userId)
@@ -118,6 +94,62 @@ public class ExecutableManager extends AbstractManager
         query.setParameter("notAllocated", Executable.State.NOT_ALLOCATED);
         filter.fillQueryParameters(query);
         List<Executable> executables = query.getResultList();
+        return executables;
+    }
+
+    /**
+     * @param states in which the {@link Executable}s must be
+     * @return list of {@link Executable}s which are in one of given {@code states}
+     */
+    public List<Executable> list(Collection<Executable.State> states)
+    {
+        List<Executable> executables = entityManager.createQuery(
+                "SELECT executable FROM Executable executable"
+                        + " WHERE executable NOT IN("
+                        + "   SELECT childExecutable FROM Executable executable "
+                        + "   INNER JOIN executable.childExecutables childExecutable"
+                        + " ) AND executable.state IN(:states)",
+                Executable.class)
+                .setParameter("states", states)
+                .getResultList();
+        return executables;
+    }
+
+    /**
+     * @param states   in which the {@link Executable}s must be
+     * @param dateTime in which the {@link Executable}s must take place
+     * @return list of {@link Executable}s which are in one of given {@code states}
+     *         and take place at given {@code dateTime}
+     */
+    public List<Executable> listTakingPlace(Collection<Executable.State> states, DateTime dateTime)
+    {
+        List<Executable> executables = entityManager.createQuery(
+                "SELECT executable FROM Executable executable"
+                        + " WHERE executable.state IN(:states)"
+                        + "   AND executable.slotStart <= :dateTime AND executable.slotEnd >= :dateTime",
+                Executable.class)
+                .setParameter("states", states)
+                .setParameter("dateTime", dateTime)
+                .getResultList();
+        return executables;
+    }
+
+    /**
+     * @param states   in which the {@link Executable}s must be
+     * @param dateTime in which the {@link Executable}s must not take place
+     * @return list of {@link Executable}s which are in one of given {@code states}
+     *         and don't take place at given {@code dateTime}
+     */
+    public List<Executable> listNotTakingPlace(Collection<Executable.State> states, DateTime dateTime)
+    {
+        List<Executable> executables = entityManager.createQuery(
+                "SELECT executable FROM Executable executable"
+                        + " WHERE executable.state IN(:states)"
+                        + "   AND (executable.slotStart > :dateTime OR executable.slotEnd <= :dateTime)",
+                Executable.class)
+                .setParameter("states", states)
+                .setParameter("dateTime", dateTime)
+                .getResultList();
         return executables;
     }
 

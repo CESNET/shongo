@@ -6,11 +6,11 @@ import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRo
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom;
 import cz.cesnet.shongo.controller.ControllerAgent;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.report.ReportException;
-import cz.cesnet.shongo.controller.reservation.RoomReservation;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
@@ -204,7 +204,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     }
 
     @Override
-    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStart(Executor executor, EntityManager entityManager)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
@@ -212,19 +212,19 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
         if (deviceResource.hasIpAddress()) {
             message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
         }
-        executorThread.getLogger().debug(message.toString());
+        executor.getLogger().debug(message.toString());
         List<Alias> aliases = getAliases();
         for (Alias alias : aliases) {
             StringBuilder aliasMessage = new StringBuilder();
             aliasMessage.append(String.format("%s has allocated alias '%s'.",
                     getReportDescription(), alias.getValue()));
-            executorThread.getLogger().debug(aliasMessage.toString());
+            executor.getLogger().debug(aliasMessage.toString());
         }
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executorThread.getControllerAgent();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
             room.setCode(String.format("shongo-%d", getId()));
@@ -244,23 +244,22 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
             }
             setRoomId((String) command.getResult());
         }
-        return super.onStart(executorThread, entityManager);
+        return super.onStart(executor, entityManager);
     }
 
     @Override
-    public boolean modifyRoom(RoomConfiguration roomConfiguration, ExecutorThread executorThread,
-            EntityManager entityManager)
+    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor, EntityManager entityManager)
     {
         DeviceResource deviceResource = getDeviceResource();
         StringBuilder message = new StringBuilder();
         message.append(String.format("Modifying %s for %d licenses.", getReportDescription(),
                 roomConfiguration.getLicenseCount()));
-        executorThread.getLogger().debug(message.toString());
+        executor.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executorThread.getControllerAgent();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
             room.setId(roomId);
@@ -281,20 +280,20 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return false;
             }
         }
-        return super.modifyRoom(roomConfiguration, executorThread, entityManager);
+        return super.modifyRoom(roomConfiguration, executor, entityManager);
     }
 
     @Override
-    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStop(Executor executor, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Stopping %s for %d licenses.", getReportDescription(), getLicenseCount()));
-        executorThread.getLogger().debug(message.toString());
+        executor.getLogger().debug(message.toString());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
             String agentName = managedMode.getConnectorAgentName();
-            ControllerAgent controllerAgent = executorThread.getControllerAgent();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
             String roomId = getRoomId();
             if (roomId == null) {
                 throw new IllegalStateException("Cannot delete virtual room because it's identifier is null.");
@@ -305,6 +304,6 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTED;
             }
         }
-        return super.onStop(executorThread, entityManager);
+        return super.onStop(executor, entityManager);
     }
 }

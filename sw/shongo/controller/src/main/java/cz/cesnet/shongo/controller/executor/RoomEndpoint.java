@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 
 import javax.persistence.*;
@@ -81,11 +82,11 @@ public abstract class RoomEndpoint extends Endpoint
     /**
      * Modify this {@link RoomEndpoint}.
      *
-     * @param executorThread thread which is executing
+     * @param executor thread which is executing
      * @param entityManager  which can be used for starting
      * @return new {@link State}
      */
-    public boolean modifyRoom(RoomConfiguration roomConfiguration, ExecutorThread executorThread,
+    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor,
             EntityManager entityManager)
     {
         return true;

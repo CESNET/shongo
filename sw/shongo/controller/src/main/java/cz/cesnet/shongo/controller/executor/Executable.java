@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.PersistentObject;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.report.Report;
 import cz.cesnet.shongo.fault.TodoImplementException;
 import org.hibernate.annotations.Type;
@@ -229,32 +230,15 @@ public abstract class Executable extends PersistentObject
     /**
      * Start given {@code executable}.
      *
-     * @param executorThread thread which is executing
-     * @param entityManager  which can be used for starting
+     * @param executor      which is executing
+     * @param entityManager which can be used for starting
      */
-    public final void start(ExecutorThread executorThread, EntityManager entityManager)
+    public final void start(Executor executor, EntityManager entityManager)
     {
         if (getState() != State.NOT_STARTED) {
             throw new IllegalStateException(getName() + " can be started only if it is not started yet.");
         }
-        State state = onStart(executorThread, entityManager);
-        entityManager.getTransaction().begin();
-        setState(state);
-        entityManager.getTransaction().commit();
-    }
-
-    /**
-     * Resume given {@code executable}.
-     *
-     * @param executorThread thread which is executing
-     * @param entityManager  which can be used for resuming
-     */
-    public final void resume(ExecutorThread executorThread, EntityManager entityManager)
-    {
-        if (getState() != State.STARTED) {
-            throw new IllegalStateException(getName() + " can be resumed only if it is started.");
-        }
-        State state = onResume(executorThread, entityManager);
+        State state = onStart(executor, entityManager);
         entityManager.getTransaction().begin();
         setState(state);
         entityManager.getTransaction().commit();
@@ -263,15 +247,15 @@ public abstract class Executable extends PersistentObject
     /**
      * Start given {@code executable}.
      *
-     * @param executorThread thread which is executing
-     * @param entityManager  which can be used for starting
+     * @param executor      which is executing
+     * @param entityManager which can be used for starting
      */
-    public final void stop(ExecutorThread executorThread, EntityManager entityManager)
+    public final void stop(Executor executor, EntityManager entityManager)
     {
         if (getState() != State.STARTED) {
             throw new IllegalStateException(getName() + " can be stopped only if it is started.");
         }
-        State state = onStop(executorThread, entityManager);
+        State state = onStop(executor, entityManager);
         entityManager.getTransaction().begin();
         setState(state);
         entityManager.getTransaction().commit();
@@ -281,11 +265,11 @@ public abstract class Executable extends PersistentObject
      * Start all {@link #childExecutables} which are instance of {@code childrenType}.
      *
      * @param childrenType
-     * @param executorThread
+     * @param executor
      * @param entityManager
      * @return number of child {@link Executable}s which were started by the method invocation
      */
-    protected final int startChildren(Class<? extends Executable> childrenType, ExecutorThread executorThread,
+    protected final int startChildren(Class<? extends Executable> childrenType, Executor executor,
             EntityManager entityManager)
     {
         int count = 0;
@@ -294,7 +278,7 @@ public abstract class Executable extends PersistentObject
                 continue;
             }
             if (childExecutable.getState() == State.NOT_STARTED) {
-                childExecutable.start(executorThread, entityManager);
+                childExecutable.start(executor, entityManager);
             }
         }
         return count;
@@ -304,11 +288,11 @@ public abstract class Executable extends PersistentObject
      * Stop all {@link #childExecutables} which are instance of {@code childrenType}.
      *
      * @param childrenType
-     * @param executorThread
+     * @param executor
      * @param entityManager
      * @return number of child {@link Executable}s which were started by the method invocation
      */
-    protected final int stopChildren(Class<? extends Executable> childrenType, ExecutorThread executorThread,
+    protected final int stopChildren(Class<? extends Executable> childrenType, Executor executor,
             EntityManager entityManager)
     {
         int count = 0;
@@ -317,7 +301,7 @@ public abstract class Executable extends PersistentObject
                 continue;
             }
             if (childExecutable.getState() == State.STARTED) {
-                childExecutable.stop(executorThread, entityManager);
+                childExecutable.stop(executor, entityManager);
             }
         }
         return count;
@@ -326,23 +310,11 @@ public abstract class Executable extends PersistentObject
     /**
      * Start this {@link Executable}.
      *
-     * @param executorThread thread which is executing
-     * @param entityManager  which can be used for starting
+     * @param executor      which is executing
+     * @param entityManager which can be used for starting
      * @return new {@link State}
      */
-    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
-    {
-        return State.STARTED;
-    }
-
-    /**
-     * Resume this {@link Executable}.
-     *
-     * @param executorThread thread which is executing
-     * @param entityManager  which can be used for resuming
-     * @return new {@link State}
-     */
-    protected State onResume(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStart(Executor executor, EntityManager entityManager)
     {
         return State.STARTED;
     }
@@ -350,11 +322,11 @@ public abstract class Executable extends PersistentObject
     /**
      * Stop this {@link Executable}.
      *
-     * @param executorThread thread which is executing
-     * @param entityManager  which can be used for stopping
+     * @param executor      which is executing
+     * @param entityManager which can be used for stopping
      * @return new {@link State}
      */
-    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStop(Executor executor, EntityManager entityManager)
     {
         return State.STOPPED;
     }
@@ -379,6 +351,11 @@ public abstract class Executable extends PersistentObject
          * {@link Executable} is already started.
          */
         STARTED,
+
+        /**
+         * {@link Executable} is started partially (some child executables failed to start).
+         */
+        PARTIALLY_STARTED,
 
         /**
          * {@link Executable} failed to start.

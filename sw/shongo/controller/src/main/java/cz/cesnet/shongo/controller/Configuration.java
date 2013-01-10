@@ -1,5 +1,6 @@
 package cz.cesnet.shongo.controller;
 
+import cz.cesnet.shongo.controller.executor.Executable;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.joda.time.Duration;
 import org.joda.time.Period;
@@ -52,27 +53,27 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_LOOKUP_AHEAD = "executor.lookup-ahead";
 
     /**
-     * Duration to modify compartment starting date/time.
+     * Duration to modify {@link Executable} starting date/time.
      */
     public static final String EXECUTOR_EXECUTABLE_START = "executor.executable.start";
 
     /**
-     * Duration to modify compartment ending date/time.
+     * Duration to modify {@link Executable} ending date/time.
      */
     public static final String EXECUTOR_EXECUTABLE_END = "executor.executable.end";
 
     /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be started.
+     * Period in which {@link cz.cesnet.shongo.controller.executor.Executor} checks whether the compartment should be started.
      */
     public static final String EXECUTOR_EXECUTABLE_WAITING_START = "executor.executable.waiting-start";
 
     /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} checks whether the compartment should be stopped.
+     * Period in which {@link cz.cesnet.shongo.controller.executor.Executor} checks whether the compartment should be stopped.
      */
     public static final String EXECUTOR_EXECUTABLE_WAITING_END = "executor.executable.waiting-end";
 
     /**
-     * Duration which {@link cz.cesnet.shongo.controller.executor.ExecutorThread} waits for virtual rooms to be created.
+     * Duration which {@link cz.cesnet.shongo.controller.executor.Executor} waits for virtual rooms to be created.
      */
     public static final String EXECUTOR_COMPARTMENT_WAITING_ROOM = "executor.compartment.waiting-room";
 

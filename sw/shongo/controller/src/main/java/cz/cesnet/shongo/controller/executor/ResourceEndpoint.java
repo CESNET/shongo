@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.reservation.EndpointReservation;
 import cz.cesnet.shongo.controller.resource.*;
@@ -122,26 +123,26 @@ public class ResourceEndpoint extends Endpoint implements ManagedEndpoint
     }
 
     @Override
-    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStart(Executor executor, EntityManager entityManager)
     {
         List<Alias> aliases = getAssignedAliases();
         for (Alias alias : aliases) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Assigning alias '%s' to %s .", alias.getValue(), getReportDescription()));
-            executorThread.getLogger().debug(message.toString());
+            executor.getLogger().debug(message.toString());
         }
-        return super.onStart(executorThread, entityManager);
+        return super.onStart(executor, entityManager);
     }
 
     @Override
-    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStop(Executor executor, EntityManager entityManager)
     {
         List<Alias> aliases = getAssignedAliases();
         for (Alias alias : aliases) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Removing alias '%s' from %s .", alias.getValue(), getReportDescription()));
-            executorThread.getLogger().debug(message.toString());
+            executor.getLogger().debug(message.toString());
         }
-        return super.onStop(executorThread, entityManager);
+        return super.onStop(executor, entityManager);
     }
 }

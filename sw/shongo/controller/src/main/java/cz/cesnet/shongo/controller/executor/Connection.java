@@ -5,6 +5,7 @@ import cz.cesnet.shongo.connector.api.ontology.actions.endpoint.HangUpAll;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DialParticipant;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.users.DisconnectParticipant;
 import cz.cesnet.shongo.controller.ControllerAgent;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.resource.Alias;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
@@ -112,18 +113,18 @@ public class Connection extends Executable
     }
 
     @Override
-    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStart(Executor executor, EntityManager entityManager)
     {
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             StringBuilder message = new StringBuilder();
             message.append(String.format("Dialing from %s to alias '%s' in technology '%s'.",
                     getEndpointFrom().getReportDescription(), getAlias().getValue(),
                     getAlias().getTechnology().getName()));
-            executorThread.getLogger().debug(message.toString());
+            executor.getLogger().debug(message.toString());
 
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
-            ControllerAgent controllerAgent = executorThread.getControllerAgent();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
             Command command = null;
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
@@ -138,7 +139,7 @@ public class Connection extends Executable
                 return State.STARTING_FAILED;
             }
             setConnectionId((String) command.getResult());
-            return super.onStart(executorThread, entityManager);
+            return super.onStart(executor, entityManager);
         }
         else {
             return State.NOT_STARTED;
@@ -146,16 +147,16 @@ public class Connection extends Executable
     }
 
     @Override
-    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStop(Executor executor, EntityManager entityManager)
     {
         StringBuilder message = new StringBuilder();
         message.append(String.format("Hanging up the %s.", getEndpointFrom().getReportDescription()));
-        executorThread.getLogger().debug(message.toString());
+        executor.getLogger().debug(message.toString());
 
         if (getEndpointFrom() instanceof ManagedEndpoint) {
             ManagedEndpoint managedEndpointFrom = (ManagedEndpoint) getEndpointFrom();
             String agentName = managedEndpointFrom.getConnectorAgentName();
-            ControllerAgent controllerAgent = executorThread.getControllerAgent();
+            ControllerAgent controllerAgent = executor.getControllerAgent();
             Command command = null;
             if (getEndpointFrom() instanceof RoomEndpoint) {
                 RoomEndpoint roomEndpoint = (RoomEndpoint) getEndpointFrom();
@@ -171,6 +172,6 @@ public class Connection extends Executable
                 return State.STARTED;
             }
         }
-        return super.onStop(executorThread, entityManager);
+        return super.onStop(executor, entityManager);
     }
 }

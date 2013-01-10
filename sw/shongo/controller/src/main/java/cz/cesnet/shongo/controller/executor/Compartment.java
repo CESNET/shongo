@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
@@ -157,14 +158,16 @@ public class Compartment extends Executable
         }
     }
 
-    private State startImplementation(ExecutorThread executorThread, EntityManager entityManager)
+    private State startImplementation(Executor executor, EntityManager entityManager)
     {
+        executor.getLogger().debug("Starting compartment...");
+
         // Create virtual rooms
-        boolean roomStarted = (startChildren(RoomEndpoint.class, executorThread, entityManager) > 0);
+        boolean roomStarted = (startChildren(RoomEndpoint.class, executor, entityManager) > 0);
         if (roomStarted) {
-            executorThread.getLogger().info("Waiting for virtual rooms to be created...");
+            executor.getLogger().info("Waiting for virtual rooms to be created...");
             try {
-                Thread.sleep(executorThread.getExecutor().getCompartmentWaitingRoom().getMillis());
+                Thread.sleep(executor.getCompartmentWaitingRoom().getMillis());
             }
             catch (InterruptedException exception) {
                 exception.printStackTrace();
@@ -172,35 +175,31 @@ public class Compartment extends Executable
         }
 
         // Start other endpoints (e.g., assign aliases to them)
-        startChildren(Endpoint.class, executorThread, entityManager);
+        startChildren(Endpoint.class, executor, entityManager);
 
         // Start connections
-        startChildren(Connection.class, executorThread, entityManager);
+        startChildren(Connection.class, executor, entityManager);
 
-        return super.onStart(executorThread, entityManager);
+        return super.onStart(executor, entityManager);
     }
 
     @Override
-    public State onStart(ExecutorThread executorThread, EntityManager entityManager)
+    public State onStart(Executor executor, EntityManager entityManager)
     {
-        return startImplementation(executorThread, entityManager);
+        return startImplementation(executor, entityManager);
     }
 
     @Override
-    public State onResume(ExecutorThread executorThread, EntityManager entityManager)
+    public State onStop(Executor executor, EntityManager entityManager)
     {
-        return startImplementation(executorThread, entityManager);
-    }
+        executor.getLogger().debug("Stopping compartment...");
 
-    @Override
-    public State onStop(ExecutorThread executorThread, EntityManager entityManager)
-    {
         // Stop connections
-        stopChildren(Connection.class, executorThread, entityManager);
+        stopChildren(Connection.class, executor, entityManager);
 
         // Stop endpoints (virtual rooms too)
-        stopChildren(Endpoint.class, executorThread, entityManager);
+        stopChildren(Endpoint.class, executor, entityManager);
 
-        return super.onStop(executorThread, entityManager);
+        return super.onStop(executor, entityManager);
     }
 }

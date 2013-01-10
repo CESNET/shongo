@@ -9,9 +9,9 @@ import cz.cesnet.shongo.api.RoomSetting;
 import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
-import cz.cesnet.shongo.controller.executor.ExecutorThread;
-import cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint;
-import cz.cesnet.shongo.controller.executor.RoomEndpoint;
+import cz.cesnet.shongo.controller.api.Executable;
+import cz.cesnet.shongo.controller.executor.*;
+import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
@@ -24,8 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
@@ -78,6 +76,55 @@ public class ExecutorTest extends AbstractControllerTest
     }
 
     /**
+     * Allocate {@link RoomEndpoint} and execute it.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testRoom() throws Exception
+    {
+        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+
+        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
+        Period duration = Period.parse("PT2M");
+
+        DeviceResource mcu = new DeviceResource();
+        mcu.setName("mcu");
+        mcu.addTechnology(Technology.H323);
+        mcu.addCapability(new RoomProviderCapability(10));
+        mcu.setAllocatable(true);
+        mcu.setMode(new ManagedMode(mcuAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+
+        ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setSlot(dateTime, duration);
+        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
+        RoomSpecification roomSpecification = new RoomSpecification();
+        roomSpecification.addTechnology(Technology.H323);
+        roomSpecification.setParticipantCount(5);
+        reservationRequest.setSpecification(roomSpecification);
+
+        // Allocate reservation request
+        allocateAndCheck(reservationRequest);
+
+        // Start virtual room
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        // Stop virtual room
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
+
+        // Check performed actions on connector agents
+        assertEquals(new ArrayList<Object>()
+        {{
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
+            }}, mcuAgent.getPerformedActionClasses());
+    }
+
+    /**
      * Allocate {@link cz.cesnet.shongo.controller.api.Executable.Compartment} and execute it.
      *
      * @throws Exception
@@ -123,14 +170,14 @@ public class ExecutorTest extends AbstractControllerTest
         reservationRequest.setSpecification(compartmentSpecification);
         allocateAndCheck(reservationRequest);
 
-        // Execute compartment
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
-
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Start compartment
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be compartment.",
+                Compartment.class, result.getStartedExecutables().get(0).getClass());
+        // Stop compartment
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
@@ -151,48 +198,47 @@ public class ExecutorTest extends AbstractControllerTest
      * @throws Exception
      */
     @Test
-    public void testRoom() throws Exception
+    public void testAlias() throws Exception
     {
-        ConnectorAgent mcuAgent = getController().addJadeAgent("mcu", new ConnectorAgent());
+        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
 
         DateTime dateTime = DateTime.parse("2012-01-01T12:00");
         Period duration = Period.parse("PT2M");
 
-        DeviceResource mcu = new DeviceResource();
-        mcu.setName("mcu");
-        mcu.addTechnology(Technology.H323);
-        mcu.addCapability(new RoomProviderCapability(10));
-        mcu.setAllocatable(true);
-        mcu.setMode(new ManagedMode(mcuAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, mcu);
+        DeviceResource connectServer = new DeviceResource();
+        connectServer.setName("connectServer");
+        connectServer.setAddress("127.0.0.1");
+        connectServer.addTechnology(Technology.ADOBE_CONNECT);
+        connectServer.addCapability(new RoomProviderCapability(10));
+        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME,
+                "{resource.address}/{value}").withPermanentRoom());
+        connectServer.setAllocatable(true);
+        connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
+        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         ReservationRequest reservationRequest = new ReservationRequest();
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        RoomSpecification roomSpecification = new RoomSpecification();
-        roomSpecification.addTechnology(Technology.H323);
-        roomSpecification.setParticipantCount(5);
-        reservationRequest.setSpecification(roomSpecification);
+        reservationRequest.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
 
         // Allocate reservation request
         allocateAndCheck(reservationRequest);
 
-        // Execute virtual room
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute virtual room.",
-                ResourceRoomEndpoint.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
-
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Start virtual room
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        // Stop virtual room
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, mcuAgent.getPerformedActionClasses());
+            }}, connectServerAgent.getPerformedActionClasses());
     }
 
     /**
@@ -228,15 +274,14 @@ public class ExecutorTest extends AbstractControllerTest
         // Allocate reservation request
         allocateAndCheck(reservationRequest);
 
-        // Execute virtual room
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute virtual room.",
-                ResourceRoomEndpoint.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
-
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Start virtual room
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        // Stop virtual room
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
@@ -248,56 +293,6 @@ public class ExecutorTest extends AbstractControllerTest
                 mcuAgent.getPerformedActionByClass(
                         cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
         assertEquals("1234", createRoomAction.getRoom().getOption(Room.Option.PIN));
-    }
-
-    /**
-     * Allocate {@link RoomEndpoint} and execute it.
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testAlias() throws Exception
-    {
-        ConnectorAgent connectServerAgent = getController().addJadeAgent("connectServer", new ConnectorAgent());
-
-        DateTime dateTime = DateTime.parse("2012-01-01T12:00");
-        Period duration = Period.parse("PT2M");
-
-        DeviceResource connectServer = new DeviceResource();
-        connectServer.setName("connectServer");
-        connectServer.setAddress("127.0.0.1");
-        connectServer.addTechnology(Technology.ADOBE_CONNECT);
-        connectServer.addCapability(new RoomProviderCapability(10));
-        connectServer.addCapability(new AliasProviderCapability("test", AliasType.ADOBE_CONNECT_NAME,
-                "{resource.address}/{value}").withPermanentRoom());
-        connectServer.setAllocatable(true);
-        connectServer.setMode(new ManagedMode(connectServerAgent.getName()));
-        String mcuId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
-
-        ReservationRequest reservationRequest = new ReservationRequest();
-        reservationRequest.setSlot(dateTime, duration);
-        reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
-        reservationRequest.setSpecification(new AliasSpecification(Technology.ADOBE_CONNECT));
-
-        // Allocate reservation request
-        allocateAndCheck(reservationRequest);
-
-        // Execute virtual room
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute virtual room.",
-                ResourceRoomEndpoint.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
-
-        // Wait for executor threads to end
-        executor.waitForThreads();
-
-        // Check performed actions on connector agents
-        assertEquals(new ArrayList<Object>()
-        {{
-                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
-                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-            }}, connectServerAgent.getPerformedActionClasses());
     }
 
     /**
@@ -351,33 +346,25 @@ public class ExecutorTest extends AbstractControllerTest
         reservationRequest.addProvidedReservationId(aliasReservation.getId());
         allocateAndCheck(reservationRequest);
 
-        // Execute virtual room
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("Two threads should be executed.", 2, executorThreads.size());
-        assertEquals("Thread should execute virtual room.",
-                ResourceRoomEndpoint.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
-
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Start virtual rooms
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("Two executables should be started.", 2, result.getStartedExecutables().size());
+        assertEquals("The first started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
+        assertEquals("The second started executable should be used virtual room.",
+                UsedRoomEndpoint.class, result.getStartedExecutables().get(1).getClass());
+        // Stop virtual rooms
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("Two executables should be stopped.", 2, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         List<Class<? extends AgentAction>> performedActionClasses = connectServerAgent.getPerformedActionClasses();
-        Collections.sort(performedActionClasses, new Comparator<Class<? extends AgentAction>>()
-        {
-            @Override
-            public int compare(Class<? extends AgentAction> o1, Class<? extends AgentAction> o2)
-            {
-                return o1.getSimpleName().compareTo(o2.getSimpleName());
-            }
-        });
-        // TODO: Executor should run in only one thread to be deterministic for the DeleteRoom action to be in the end
         assertEquals(new ArrayList<Object>()
         {{
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
+                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
                 add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.DeleteRoom.class);
-                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
-                add(cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.ModifyRoom.class);
             }}, performedActionClasses);
     }
 
@@ -415,15 +402,11 @@ public class ExecutorTest extends AbstractControllerTest
         roomReservationRequest.setSpecification(roomSpecification);
         String roomReservationId = allocateAndCheck(roomReservationRequest).getId();
 
-        // Execute virtual room
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute virtual room.",
-                ResourceRoomEndpoint.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
-
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Start virtual room
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
 
         // Create compartment reservation
         ReservationRequest reservationRequest = new ReservationRequest();
@@ -435,14 +418,15 @@ public class ExecutorTest extends AbstractControllerTest
         reservationRequest.addProvidedReservationId(roomReservationId);
         allocateAndCheck(reservationRequest);
 
-        // Execute compartment
-        executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+        // Start compartment
+        result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                Compartment.class, result.getStartedExecutables().get(0).getClass());
 
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Stop virtual room and compartment
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("Two executables should be stopped.", 2, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
@@ -496,13 +480,14 @@ public class ExecutorTest extends AbstractControllerTest
         allocateAndCheck(reservationRequest);
 
         // Execute compartment
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute compartment.", cz.cesnet.shongo.controller.executor.Compartment.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be copartment.",
+                Compartment.class, result.getStartedExecutables().get(0).getClass());
 
-        // Wait for executor threads to end
-        executor.waitForThreads();
+        // Stop compartment
+        result = executor.execute(dateTime.plus(duration));
+        assertEquals("One executable should be stopped.", 1, result.getStoppedExecutables().size());
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()
@@ -546,11 +531,10 @@ public class ExecutorTest extends AbstractControllerTest
         String roomReservationRequestId = allocateAndCheck(roomReservationRequest).getId();
 
         // Execute compartment
-        List<ExecutorThread> executorThreads = executor.execute(dateTime);
-        assertEquals("One thread should be executed.", 1, executorThreads.size());
-        assertEquals("Thread should execute room.",
-                cz.cesnet.shongo.controller.executor.ResourceRoomEndpoint.class,
-                executorThreads.get(0).getExecutable(getEntityManager()).getClass());
+        Executor.ExecutionResult result = executor.execute(dateTime);
+        assertEquals("One executable should be started.", 1, result.getStartedExecutables().size());
+        assertEquals("The started executable should be virtual room.",
+                ResourceRoomEndpoint.class, result.getStartedExecutables().get(0).getClass());
 
         Thread.sleep(1000);
 
@@ -560,7 +544,7 @@ public class ExecutorTest extends AbstractControllerTest
         runScheduler();
 
         // Wait for executor threads to end
-        executor.waitForThreads();
+        executor.waitForExecutablesStopped();
 
         // Check performed actions on connector agents
         assertEquals(new ArrayList<Object>()

@@ -2,6 +2,7 @@ package cz.cesnet.shongo.controller.executor;
 
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Domain;
+import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.api.Executable;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
 import cz.cesnet.shongo.controller.common.RoomSetting;
@@ -179,21 +180,21 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     }
 
     @Override
-    protected State onStart(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStart(Executor executor, EntityManager entityManager)
     {
-        if (!roomEndpoint.modifyRoom(getMergedRoomConfiguration(), executorThread, entityManager)) {
-            executorThread.getLogger().error("Starting of used room endpoint '{}' failed.", getId());
+        if (!roomEndpoint.modifyRoom(getMergedRoomConfiguration(), executor, entityManager)) {
+            executor.getLogger().error("Starting of used room endpoint '{}' failed.", getId());
             return State.STARTING_FAILED;
         }
-        return super.onStart(executorThread, entityManager);
+        return super.onStart(executor, entityManager);
     }
 
     @Override
-    protected State onStop(ExecutorThread executorThread, EntityManager entityManager)
+    protected State onStop(Executor executor, EntityManager entityManager)
     {
-        if (!roomEndpoint.modifyRoom(roomEndpoint.getRoomConfiguration(), executorThread, entityManager)) {
+        if (!roomEndpoint.modifyRoom(roomEndpoint.getRoomConfiguration(), executor, entityManager)) {
             throw new IllegalStateException("Modifying to original configuration failed and it should always succeed.");
         }
-        return super.onStop(executorThread, entityManager);
+        return super.onStop(executor, entityManager);
     }
 }

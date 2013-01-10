@@ -3,20 +3,16 @@ package cz.cesnet.shongo.controller;
 import cz.cesnet.shongo.controller.api.Reservation;
 import cz.cesnet.shongo.controller.executor.Executable;
 import cz.cesnet.shongo.controller.executor.ExecutableManager;
-import cz.cesnet.shongo.controller.executor.ExecutorThread;
+import cz.cesnet.shongo.controller.executor.ExecutionPlan;
 import cz.cesnet.shongo.util.TemporalHelper;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Component of a domain controller which executes actions according to allocation plan which was created
@@ -27,10 +23,13 @@ import java.util.Map;
 public class Executor extends Component
         implements Component.WithThread, Component.EntityManagerFactoryAware, Component.ControllerAgentAware, Runnable
 {
+    /**
+     * {@link Logger} for {@link Executor}
+     */
     private static Logger logger = LoggerFactory.getLogger(Executor.class);
 
     /**
-     * {@link EntityManagerFactory} used for loading {@link cz.cesnet.shongo.controller.executor.Compartment}s for execution.
+     * {@link EntityManagerFactory} used for loading {@link Executable}s for execution.
      */
     private EntityManagerFactory entityManagerFactory;
 
@@ -75,10 +74,12 @@ public class Executor extends Component
     private Duration executableWaitingEnd;
 
     /**
-     * Map of executed {@link ExecutorThread}s by {@link cz.cesnet.shongo.controller.executor.Compartment} shongo-ids.
+     * @return {@link #logger}
      */
-    private Map<Long, ExecutorThread> executorThreadById = new HashMap<Long, ExecutorThread>();
-
+    public Logger getLogger()
+    {
+        return logger;
+    }
 
     /**
      * @return {@link #executableStart}
@@ -134,6 +135,14 @@ public class Executor extends Component
         this.entityManagerFactory = entityManagerFactory;
     }
 
+    /**
+     * @return {@link #controllerAgent}
+     */
+    public ControllerAgent getControllerAgent()
+    {
+        return controllerAgent;
+    }
+
     @Override
     public void setControllerAgent(ControllerAgent controllerAgent)
     {
@@ -161,15 +170,7 @@ public class Executor extends Component
     {
         logger.info("Executor started!");
 
-        try {
-            Thread.sleep(period.getMillis());
-        }
-        catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
         while (!Thread.interrupted()) {
-            execute(DateTime.now());
             try {
                 Thread.sleep(period.getMillis());
             }
@@ -177,66 +178,158 @@ public class Executor extends Component
                 Thread.currentThread().interrupt();
                 continue;
             }
-        }
-
-        for (ExecutorThread executorThread : executorThreadById.values()) {
-            if (executorThread.isAlive()) {
-                logger.debug("Killing '{}'...", executorThread.getName());
-                executorThread.stop();
-            }
+            execute(DateTime.now());
         }
 
         logger.info("Executor stopped!");
     }
 
     /**
+     * Collection of {@link Executable.State}s for {@link Executable}s which should be started.
+     */
+    private static Set<Executable.State> STATES_FOR_STARTING = new HashSet<Executable.State>()
+    {{
+            add(Executable.State.NOT_STARTED);
+        }};
+
+    /**
+     * Collection of {@link Executable.State}s for {@link Executable}s which should be stopped.
+     */
+    private static Set<Executable.State> STATES_FOR_STOPPING = new HashSet<Executable.State>()
+    {{
+            add(Executable.State.STARTED);
+            add(Executable.State.PARTIALLY_STARTED);
+        }};
+
+    /**
      * Execute {@link Reservation}s which should be executed for given {@code interval}.
      *
      * @param referenceDateTime specifies date/time which should be used as "now" executing {@link Reservation}s
-     * @return list of executed {@link ExecutorThread}s
+     * @return {@link ExecutionResult}
      */
-    public List<ExecutorThread> execute(DateTime referenceDateTime)
+    public ExecutionResult execute(DateTime referenceDateTime)
     {
-        List<ExecutorThread> executorThreads = new ArrayList<ExecutorThread>();
-        Interval interval = new Interval(referenceDateTime, referenceDateTime.plus(lookupAhead));
-        logger.info("Checking compartments for execution in '{}'...", TemporalHelper.formatInterval(interval));
+        logger.info("Checking executables for execution at '{}'...", TemporalHelper.formatDateTime(referenceDateTime));
+
         EntityManager entityManager = entityManagerFactory.createEntityManager();
         ExecutableManager executableManager = new ExecutableManager(entityManager);
-        List<Executable> executableList = executableManager.listExecutablesForExecution(interval);
-        for (Executable executable : executableList) {
-            Long compartmentId = executable.getId();
-            if (executorThreadById.containsKey(compartmentId)) {
-                continue;
-            }
-            ExecutorThread executorThread = new ExecutorThread(executable);
-            executorThread.start(this, controllerAgent, entityManagerFactory);
-            executorThreadById.put(compartmentId, executorThread);
-            executorThreads.add(executorThread);
-        }
-        entityManager.close();
-        return executorThreads;
-    }
 
-    /**
-     * Wait for all {@link ExecutorThread}s from {@link #executorThreadById} to exit.
-     */
-    public void waitForThreads()
-    {
-        boolean active;
-        do {
-            active = false;
-            for (ExecutorThread executorThread : executorThreadById.values()) {
-                if (executorThread.isAlive()) {
-                    active = true;
-                }
+        ExecutionResult executionResult = new ExecutionResult();
+
+        // List executables which should be started
+        DateTime startDateTime = referenceDateTime.minus(executableStart);
+        ExecutionPlan startingExecutionPlan =
+                new ExecutionPlan(executableManager.listTakingPlace(STATES_FOR_STARTING, startDateTime));
+        while (!startingExecutionPlan.isEmpty()) {
+            Collection<Executable> executables = startingExecutionPlan.popExecutables();
+            for (Executable executable : executables) {
+                startExecutable(executable, entityManager);
+                executionResult.addStartedExecutable(executable);
             }
             try {
                 Thread.sleep(100);
             }
             catch (InterruptedException exception) {
-                throw new IllegalStateException(exception);
+                logger.error("Execution interrupted.", exception);
             }
-        } while (active);
+        }
 
+        // List executables which should be stopped
+        DateTime stopDateTime = referenceDateTime.minus(executableEnd);
+        List<Executable> stoppedExecutables = executableManager.listNotTakingPlace(STATES_FOR_STOPPING, stopDateTime);
+        for (Executable executable : stoppedExecutables) {
+            stopExecutable(executable, entityManager);
+            executionResult.addStoppedExecutable(executable);
+        }
+
+        entityManager.close();
+
+        return executionResult;
+    }
+
+    /**
+     * @param executable    to be started
+     * @param entityManager
+     */
+    public void startExecutable(Executable executable, EntityManager entityManager)
+    {
+        executable.start(this, entityManager);
+    }
+
+    /**
+     * @param executable to be stopped
+     */
+    public void stopExecutable(Executable executable, EntityManager entityManager)
+    {
+        executable.stop(this, entityManager);
+    }
+
+    /**
+     * Wait for all {@link cz.cesnet.shongo.controller.executor.Executable}s to be stopped.
+     */
+    public void waitForExecutablesStopped()
+    {
+        while (true) {
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            ExecutableManager executableManager = new ExecutableManager(entityManager);
+            Collection<Executable> executables = executableManager.list(STATES_FOR_STOPPING);
+            if (executables.size() == 0) {
+                break;
+            }
+            logger.debug("Waiting for {} executable(s) to end...", executables.size());
+            entityManager.close();
+
+            try {
+                Thread.sleep(100);
+            }
+            catch (InterruptedException exception) {
+                logger.error("Waiting for executables interrupted.", exception);
+            }
+        }
+    }
+
+    public static class ExecutionResult
+    {
+        /**
+         * List of {@link Executable} which were started.
+         */
+        private List<Executable> startedExecutables = new ArrayList<Executable>();
+
+        /**
+         * List of {@link Executable} which were stopped.
+         */
+        private List<Executable> stoppedExecutables = new ArrayList<Executable>();
+
+        /**
+         * @param startedExecutable to be added to the {@link #startedExecutables}
+         */
+        public void addStartedExecutable(Executable startedExecutable)
+        {
+            startedExecutables.add(startedExecutable);
+        }
+
+        /**
+         * @param stoppedExecutable to be added to the {@link #stoppedExecutables}
+         */
+        public void addStoppedExecutable(Executable stoppedExecutable)
+        {
+            stoppedExecutables.add(stoppedExecutable);
+        }
+
+        /**
+         * @return {@link #startedExecutables}
+         */
+        public List<Executable> getStartedExecutables()
+        {
+            return startedExecutables;
+        }
+
+        /**
+         * @return {@link #stoppedExecutables}
+         */
+        public List<Executable> getStoppedExecutables()
+        {
+            return stoppedExecutables;
+        }
     }
 }
