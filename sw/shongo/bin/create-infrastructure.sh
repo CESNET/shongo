@@ -16,7 +16,11 @@ cd `dirname $0`
                 { type: 'SIP_URI', value: '9500872{value}@cesnet.cz' } \
             ], \
             patterns: ['{digit:2}'], \
-        }] \
+        }], \
+        administrators: [ \
+            { class: 'OtherPerson', name: 'Martin Srom', email: 'srom.martin@gmail.com'}, \
+            { class: 'OtherPerson', name: 'Jan Ruzicka', email: 'janru@cesnet.cz'} \
+        ] \
     }" \
 --cmd "\
     create-resource { \
