@@ -18,6 +18,13 @@ use Shongo::Common;
 use Shongo::ClientCli;
 use Shongo::ClientCli::Shell;
 
+# Check readline version
+if ( defined(Term::ReadLine->Features->{'setHistory'}) ) {
+    console_print_error('Term::ReadLine doesn\'t support setHistory!');
+    console_print_error('Please install Term::ReadLine::Gnu (e.g., by \'sudo apt-get install libterm-readline-gnu-perl\'!');
+    exit(0);
+}
+
 #
 # Print usage
 #

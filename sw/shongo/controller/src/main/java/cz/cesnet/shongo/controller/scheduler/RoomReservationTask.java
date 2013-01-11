@@ -236,6 +236,16 @@ public class RoomReservationTask extends ReservationTask
             roomEndpoint = resourceRoomEndpoint;
         }
         else {
+            // Reuse provided reservation which allocates the provided room
+            Reservation providedReservation =
+                    cacheTransaction.getProvidedReservationByExecutable(availableProvidedRoom);
+            ExistingReservation existingReservation = new ExistingReservation();
+            existingReservation.setUserId(getContext().getUserId());
+            existingReservation.setSlot(getInterval());
+            existingReservation.setReservation(providedReservation);
+            addChildReservation(existingReservation);
+            getCacheTransaction().removeProvidedReservation(providedReservation);
+
             // Reserve only the remaining capacity
             roomConfiguration.setLicenseCount(roomVariant.getLicenseCount() - availableProvidedRoom.getLicenseCount());
 

@@ -337,7 +337,7 @@ sub control_resource()
                 args => '[-roomId]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
-                    resource_delete_room($resourceId, $params->{'options'});
+                    resource_delete_room($resourceId, $args[0], $params->{'options'});
                 }
             }
         });

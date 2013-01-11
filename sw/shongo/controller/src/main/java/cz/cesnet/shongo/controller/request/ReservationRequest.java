@@ -268,7 +268,11 @@ public class ReservationRequest extends NormalReservationRequest
             case COMPLETE:
                 return ReservationRequestState.NOT_ALLOCATED;
             case ALLOCATED:
-                Executable executable = getReservation().getExecutable();
+                Reservation reservation = getReservation();
+                if (reservation == null) {
+                    throw new IllegalStateException("Allocated reservation request should have a reservation.");
+                }
+                Executable executable = reservation.getExecutable();
                 if ( executable != null) {
                     switch (executable.getState()) {
                         case STARTED:
