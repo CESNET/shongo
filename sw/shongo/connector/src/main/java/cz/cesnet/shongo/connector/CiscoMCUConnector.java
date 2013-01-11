@@ -795,15 +795,17 @@ ParamsLoop:
         Room room = new Room();
         room.setId((String) result.get("conferenceName"));
         room.setCode((String) result.get("conferenceName"));
-        room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+        if (result.containsKey("maximumVideoPorts")) {
+            room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+        }
         room.addTechnology(Technology.H323);
 
-        if (!result.get("description").equals("")) {
+        if (result.containsKey("description") && !result.get("description").equals("")) {
             room.setName((String) result.get("description"));
         }
 
         // aliases
-        if (!result.get("numericId").equals("")) {
+        if (result.containsKey("numericId") && !result.get("numericId").equals("")) {
             Alias numAlias = new Alias(AliasType.H323_E164, (String) result.get("numericId"));
             room.addAlias(numAlias);
         }
