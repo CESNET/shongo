@@ -909,6 +909,9 @@ ParamsLoop:
                             roomCode = value.substring(0, atSign);
                         }
                         break;
+                    case H323_URI:
+                        // TODO: Check the alias value
+                        break;
                     default:
                         throw new CommandException("Unrecognized alias: " + alias.toString());
                 }

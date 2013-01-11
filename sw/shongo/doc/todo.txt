@@ -1,5 +1,7 @@
 * 2 paragraphs of shongo features
 
+* connector for connect thread safety
+
 * info mails alias/room capacity
 
 * log all connector actions
