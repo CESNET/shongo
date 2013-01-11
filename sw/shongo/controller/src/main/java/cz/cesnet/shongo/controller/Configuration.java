@@ -63,19 +63,9 @@ public class Configuration extends CompositeConfiguration
     public static final String EXECUTOR_EXECUTABLE_END = "executor.executable.end";
 
     /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.Executor} checks whether the compartment should be started.
-     */
-    public static final String EXECUTOR_EXECUTABLE_WAITING_START = "executor.executable.waiting-start";
-
-    /**
-     * Period in which {@link cz.cesnet.shongo.controller.executor.Executor} checks whether the compartment should be stopped.
-     */
-    public static final String EXECUTOR_EXECUTABLE_WAITING_END = "executor.executable.waiting-end";
-
-    /**
      * Duration which {@link cz.cesnet.shongo.controller.executor.Executor} waits for virtual rooms to be created.
      */
-    public static final String EXECUTOR_COMPARTMENT_WAITING_ROOM = "executor.compartment.waiting-room";
+    public static final String EXECUTOR_STARTINT_DURATION_ROOM = "executor.starting-duration.room";
 
     /**
      * Authorization server.

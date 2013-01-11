@@ -229,15 +229,6 @@ public abstract class Executable extends PersistentObject
     }
 
     /**
-     * @return printable name of this {@link Executable}
-     */
-    @Transient
-    public String getName()
-    {
-        return String.format("executable '%d'", getId());
-    }
-
-    /**
      * Start given {@code executable}.
      *
      * @param executor which is executing
@@ -245,7 +236,8 @@ public abstract class Executable extends PersistentObject
     public final void start(Executor executor, EntityManager entityManager)
     {
         if (getState() != State.NOT_STARTED) {
-            throw new IllegalStateException(getName() + " can be started only if it is not started yet.");
+            throw new IllegalStateException(
+                    String.format("Executable '%d' can be started only if it is not started yet.", getId()));
         }
         State state = onStart(executor);
         setState(state);
@@ -259,7 +251,8 @@ public abstract class Executable extends PersistentObject
     public final void stop(Executor executor, EntityManager entityManager)
     {
         if (getState() != State.STARTED) {
-            throw new IllegalStateException(getName() + " can be stopped only if it is started.");
+            throw new IllegalStateException(
+                    String.format("Executable '%d' can be stopped only if it is started.", getId()));
         }
         State state = onStop(executor);
         setState(state);
@@ -409,6 +402,8 @@ public abstract class Executable extends PersistentObject
                     return cz.cesnet.shongo.controller.api.Executable.State.STARTING_FAILED;
                 case STOPPED:
                     return cz.cesnet.shongo.controller.api.Executable.State.STOPPED;
+                case STOPPING_FAILED:
+                    return cz.cesnet.shongo.controller.api.Executable.State.STOPPING_FAILED;
                 default:
                     throw new IllegalStateException("Cannot convert " + this.toString() + " to API.");
             }

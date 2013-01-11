@@ -358,7 +358,7 @@ public class AliasPatternGenerator extends AliasGenerator
          * Pattern for matching correct values.
          */
         private static final java.util.regex.Pattern VALUE_PATTERN =
-                java.util.regex.Pattern.compile("^\\p{Alpha}[\\p{Alnum}_]*$");
+                java.util.regex.Pattern.compile("^\\p{Alpha}[\\p{Alnum}_-]*$");
 
         /**
          * Current number.

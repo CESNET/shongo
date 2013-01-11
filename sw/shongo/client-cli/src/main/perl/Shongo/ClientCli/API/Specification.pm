@@ -225,6 +225,10 @@ sub on_init()
                 'title' => 'Alias Provider Resource Identifier',
                 'string-pattern' => $Shongo::Common::IdPattern
             });
+            $self->add_attribute('value', {
+                'title' => 'Requested Value',
+                'string-pattern' => '^[[:alpha:]][[:alnum:]_-]*$'
+            });
         }
         case 'RoomSpecification' {
             $self->add_attribute('technologies', {

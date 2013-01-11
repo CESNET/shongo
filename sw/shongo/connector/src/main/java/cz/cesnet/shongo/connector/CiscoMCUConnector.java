@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
@@ -451,7 +452,6 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     {
         RoomSummary info = new RoomSummary();
         info.setId((String) conference.get("conferenceName"));
-        info.setCode((String) conference.get("conferenceName"));
         info.setName((String) conference.get("description"));
         String timeField = (conference.containsKey("startTime") ? "startTime" : "activeStartTime");
         info.setStartDateTime(new DateTime(conference.get(timeField)));
@@ -796,6 +796,7 @@ ParamsLoop:
         room.setId((String) result.get("conferenceName"));
         room.setCode((String) result.get("conferenceName"));
         room.setLicenseCount((Integer) result.get("maximumVideoPorts"));
+        room.addTechnology(Technology.H323);
 
         if (!result.get("description").equals("")) {
             room.setName((String) result.get("description"));

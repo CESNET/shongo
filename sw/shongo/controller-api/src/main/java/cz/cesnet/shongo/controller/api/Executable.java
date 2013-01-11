@@ -104,7 +104,12 @@ public class Executable extends IdentifiedObject
         /**
          * {@link cz.cesnet.shongo.controller.api.Executable} has been already stopped.
          */
-        STOPPED
+        STOPPED,
+
+        /**
+         * {@link cz.cesnet.shongo.controller.api.Executable} failed to stop.
+         */
+        STOPPING_FAILED
     }
 
     /**
@@ -366,6 +371,14 @@ public class Executable extends IdentifiedObject
         }
 
         /**
+         * Clear {@link #technologies}.
+         */
+        public void clearTechnologies()
+        {
+            technologies.clear();
+        }
+
+        /**
          * @param technology technology to be added to the set of technologies that the device support.
          */
         public void addTechnology(Technology technology)
@@ -406,6 +419,14 @@ public class Executable extends IdentifiedObject
         }
 
         /**
+         * Clear {@link #aliases}.
+         */
+        public void clearAliases()
+        {
+            aliases.clear();
+        }
+
+        /**
          * @param alias to be added to the {@link #aliases}
          */
         public void addAlias(Alias alias)
@@ -427,6 +448,14 @@ public class Executable extends IdentifiedObject
         public void setRoomSettings(List<RoomSetting> roomSettings)
         {
             this.roomSettings = roomSettings;
+        }
+
+        /**
+         * Clear {@link #roomSettings}.
+         */
+        public void clearRoomSettings()
+        {
+            roomSettings.clear();
         }
 
         /**

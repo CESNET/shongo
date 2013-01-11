@@ -66,7 +66,8 @@ cd `dirname $0`
         name: 'connect-cesnet', \
         description: 'Adobe Connect server at CESNET', \
         allocatable: 1, \
-        address: 'https://connect.cesnet.cz', \
+        maximumFuture: 'P4M', \
+        address: 'https://actest-w3.cesnet.cz', \
         technologies: ['ADOBE_CONNECT'], \
         mode: { \
             connectorAgentName: 'connect-cesnet' \

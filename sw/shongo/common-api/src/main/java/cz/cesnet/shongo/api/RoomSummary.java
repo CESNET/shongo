@@ -15,11 +15,6 @@ import org.joda.time.DateTime;
 public class RoomSummary extends IdentifiedObject implements StructType, Concept
 {
     /**
-     * The code of the room (unique identifier for devices).
-     */
-    private String code;
-
-    /**
      * User readable name of the room.
      */
     private String name;
@@ -30,19 +25,10 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     private DateTime startDateTime;
 
     /**
-     * @return {@link #code}
+     * Constructor.
      */
-    public String getCode()
+    public RoomSummary()
     {
-        return code;
-    }
-
-    /**
-     * @param code sets the {@link #code}
-     */
-    public void setCode(String code)
-    {
-        this.code = code;
     }
 
     /**
@@ -80,7 +66,6 @@ public class RoomSummary extends IdentifiedObject implements StructType, Concept
     @Override
     public String toString()
     {
-        return String.format("Room %s (code: %s, name: %s, startDateTime: %s)",
-                getId(), getCode(), getName(), getStartDateTime());
+        return String.format("Room %s (name: %s, startDateTime: %s)", getId(), getName(), getStartDateTime());
     }
 }

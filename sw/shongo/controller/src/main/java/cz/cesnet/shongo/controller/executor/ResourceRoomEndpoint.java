@@ -13,6 +13,7 @@ import cz.cesnet.shongo.controller.common.RoomSetting;
 import cz.cesnet.shongo.controller.report.ReportException;
 import cz.cesnet.shongo.controller.resource.*;
 import cz.cesnet.shongo.controller.scheduler.report.AbstractResourceReport;
+import cz.cesnet.shongo.fault.TodoImplementException;
 import cz.cesnet.shongo.jade.command.AgentActionCommand;
 import cz.cesnet.shongo.jade.command.Command;
 
@@ -185,7 +186,7 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Transient
     public String getReportDescription()
     {
-        return String.format("virtual room in %s",
+        return String.format("room in %s",
                 AbstractResourceReport.formatResource(getDeviceResource()));
     }
 
@@ -206,19 +207,11 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
     @Override
     protected State onStart(Executor executor)
     {
-        DeviceResource deviceResource = getDeviceResource();
-        StringBuilder message = new StringBuilder();
-        message.append(String.format("Starting %s for %d licenses.", getReportDescription(), getLicenseCount()));
-        if (deviceResource.hasIpAddress()) {
-            message.append(String.format(" Device has address '%s'.", deviceResource.getAddress().getValue()));
-        }
-        executor.getLogger().debug(message.toString());
+        executor.getLogger().debug("Starting room '{}' (named '{}') for {} licenses.",
+                new Object[]{getId(), getRoomName(), getLicenseCount()});
         List<Alias> aliases = getAliases();
         for (Alias alias : aliases) {
-            StringBuilder aliasMessage = new StringBuilder();
-            aliasMessage.append(String.format("%s has allocated alias '%s'.",
-                    getReportDescription(), alias.getValue()));
-            executor.getLogger().debug(aliasMessage.toString());
+            executor.getLogger().debug("Room '{}' has allocated alias '{}'.", getId(), alias.getValue());
         }
 
         if (getDeviceResource().isManaged()) {
@@ -247,17 +240,17 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STARTING_FAILED;
             }
         }
-        return super.onStart(executor);
+        else {
+            throw new TodoImplementException("TODO: Implement creating room in not managed device resource.");
+        }
     }
 
     @Override
-    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor)
+    public boolean modifyRoom(String roomName, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
+            Executor executor)
     {
-        DeviceResource deviceResource = getDeviceResource();
-        StringBuilder message = new StringBuilder();
-        message.append(String.format("Modifying %s for %d licenses.", getReportDescription(),
-                roomConfiguration.getLicenseCount()));
-        executor.getLogger().debug(message.toString());
+        executor.getLogger().debug("Modifying room '{}' (named '{}') for {} licenses.",
+                new Object[]{getId(), roomName, roomConfiguration.getLicenseCount()});
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
@@ -266,32 +259,28 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
 
             cz.cesnet.shongo.api.Room room = new cz.cesnet.shongo.api.Room();
             room.setId(roomId);
-            // TODO: modify name
-            room.setName(getRoomName());
+            room.setName(roomName);
             room.setTechnologies(roomConfiguration.getTechnologies());
             room.setLicenseCount(roomConfiguration.getLicenseCount());
             for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
                 room.fillOptions(roomSetting.toApi());
             }
-            // TODO: assign more aliases
-            for (Alias alias : getAliases()) {
+            for (Alias alias : roomAliases) {
                 room.addAlias(alias.toApi());
             }
-            Command command = controllerAgent.performCommandAndWait(new AgentActionCommand(agentName,
-                    new ModifyRoom(room)));
-            if (command.getState() != Command.State.SUCCESSFUL) {
-                return false;
-            }
+            Command command = controllerAgent.performCommandAndWait(
+                    new AgentActionCommand(agentName, new ModifyRoom(room)));
+            return command.getState() == Command.State.SUCCESSFUL;
         }
-        return super.modifyRoom(roomConfiguration, executor);
+        else {
+            throw new TodoImplementException("TODO: Implement modifying room in not managed device resource.");
+        }
     }
 
     @Override
     protected State onStop(Executor executor)
     {
-        StringBuilder message = new StringBuilder();
-        message.append(String.format("Stopping %s for %d licenses.", getReportDescription(), getLicenseCount()));
-        executor.getLogger().debug(message.toString());
+        executor.getLogger().debug("Stopping room '{}' for {} licenses.", getId(), getLicenseCount());
 
         if (getDeviceResource().isManaged()) {
             ManagedMode managedMode = (ManagedMode) getDeviceResource().getMode();
@@ -310,6 +299,8 @@ public class ResourceRoomEndpoint extends RoomEndpoint implements ManagedEndpoin
                 return State.STOPPING_FAILED;
             }
         }
-        return super.onStop(executor);
+        else {
+            throw new TodoImplementException("TODO: Implement stopping room in not managed device resource.");
+        }
     }
 }

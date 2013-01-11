@@ -20,6 +20,11 @@ public class Reservation extends IdentifiedObject implements StructType
     private String userId;
 
     /**
+     * Reservation request for which is {@link Reservation} allocated.
+     */
+    private String reservationRequestId;
+
+    /**
      * Slot fot which the {@link Reservation} is allocated.
      */
     private Interval slot;
@@ -53,6 +58,22 @@ public class Reservation extends IdentifiedObject implements StructType
     public void setUserId(String userId)
     {
         this.userId = userId;
+    }
+
+    /**
+     * @return {@link #reservationRequestId}
+     */
+    public String getReservationRequestId()
+    {
+        return reservationRequestId;
+    }
+
+    /**
+     * @param reservationRequestId sets the {@link #reservationRequestId}
+     */
+    public void setReservationRequestId(String reservationRequestId)
+    {
+        this.reservationRequestId = reservationRequestId;
     }
 
     /**

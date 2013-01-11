@@ -86,13 +86,7 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
-        return new cz.cesnet.shongo.controller.api.Executable.ResourceRoom();
-    }
-
-    @Override
-    public cz.cesnet.shongo.controller.api.Executable.ResourceRoom toApi(Domain domain)
-    {
-        return (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) super.toApi(domain);
+        return roomEndpoint.createApi();
     }
 
     @Override
@@ -103,30 +97,34 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
         roomEndpoint.toApi(executableApi, domain);
 
         if (executableApi instanceof cz.cesnet.shongo.controller.api.Executable.ResourceRoom) {
-            RoomConfiguration roomConfiguration = getMergedRoomConfiguration();
+            RoomConfiguration mergedRoomConfiguration = getMergedRoomConfiguration();
             cz.cesnet.shongo.controller.api.Executable.ResourceRoom resourceRoomEndpointApi =
                     (cz.cesnet.shongo.controller.api.Executable.ResourceRoom) executableApi;
-            resourceRoomEndpointApi.setId(domain.formatId(getId()));
-            resourceRoomEndpointApi.setSlot(getSlot());
-            resourceRoomEndpointApi.setState(getState().toApi());
-            resourceRoomEndpointApi.setLicenseCount(roomConfiguration.getLicenseCount());
-            for (Technology technology : roomConfiguration.getTechnologies()) {
+
+            // Set merged license count
+            resourceRoomEndpointApi.setLicenseCount(mergedRoomConfiguration.getLicenseCount());
+
+            // Set merged technologies
+            resourceRoomEndpointApi.clearTechnologies();
+            for (Technology technology : mergedRoomConfiguration.getTechnologies()) {
                 resourceRoomEndpointApi.addTechnology(technology);
             }
+
+            // Set merged aliases
+            resourceRoomEndpointApi.clearAliases();
             for (Alias alias : getAliases()) {
                 resourceRoomEndpointApi.addAlias(alias.toApi());
             }
-            for (RoomSetting roomSetting : roomConfiguration.getRoomSettings()) {
+
+            // Set merged room settings
+            resourceRoomEndpointApi.clearRoomSettings();
+            for (RoomSetting roomSetting : mergedRoomConfiguration.getRoomSettings()) {
                 resourceRoomEndpointApi.addRoomSetting(roomSetting.toApi());
             }
         }
-    }
-
-    @Override
-    @Transient
-    public String getName()
-    {
-        return String.format("usage of virtual room '%d'", roomEndpoint.getId());
+        else {
+            throw new TodoImplementException(executableApi.getClass().getName());
+        }
     }
 
     @Override
@@ -154,7 +152,8 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Transient
     public List<Alias> getAliases()
     {
-        List<Alias> aliases = roomEndpoint.getAliases();
+        List<Alias> aliases = new ArrayList<Alias>();
+        aliases.addAll(roomEndpoint.getAliases());
         aliases.addAll(super.getAssignedAliases());
         return aliases;
     }
@@ -193,11 +192,11 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStart(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(getMergedRoomConfiguration(), executor)) {
+        if (roomEndpoint.modifyRoom(getRoomName(), getMergedRoomConfiguration(), getAliases(), executor)) {
             return State.STARTED;
         }
         else {
-            executor.getLogger().error("Starting of used room endpoint '{}' failed.", getId());
+            executor.getLogger().error("Starting used room '{}' failed.", getId());
             return State.STARTING_FAILED;
         }
     }
@@ -205,11 +204,12 @@ public class UsedRoomEndpoint extends RoomEndpoint implements ManagedEndpoint
     @Override
     protected State onStop(Executor executor)
     {
-        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomConfiguration(), executor)) {
+        if (roomEndpoint.modifyRoom(roomEndpoint.getRoomName(), roomEndpoint.getRoomConfiguration(),
+                roomEndpoint.getAliases(), executor)) {
             return State.STOPPED;
         }
         else {
-            executor.getLogger().error("Stopping of used room endpoint '{}' failed (should always succeed).", getId());
+            executor.getLogger().error("Stopping used room '{}' failed (should always succeed).", getId());
             return State.STOPPING_FAILED;
         }
     }

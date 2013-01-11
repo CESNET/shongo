@@ -14,7 +14,12 @@ public class ExecutionPlan
     /**
      * Map of {@link ExecutablePlan}s by {@link Executable}s.
      */
-    protected final Map<Executable, ExecutablePlan> executablePlans = new HashMap<Executable, ExecutablePlan>();
+    protected final Map<Long, ExecutablePlan> executablePlans = new HashMap<Long, ExecutablePlan>();
+
+    /**
+     * Set of {@link Executable}s which still are in the plan (and should be processed).
+     */
+    protected final Set<Long> remainingExecutableIds = new HashSet<Long>();
 
     /**
      * Set of {@link Executable}s with satisfied dependencies (with empty {@link ExecutablePlan#dependencies}).
@@ -36,16 +41,16 @@ public class ExecutionPlan
 
         // Initialize executable plans and set of satisfied
         for (Executable executable : executables) {
-            executablePlans.put(executable, new ExecutablePlan(executable));
-
+            executablePlans.put(executable.getId(), new ExecutablePlan(executable));
+            remainingExecutableIds.add(executable.getId());
         }
 
         // Setup dependencies
         buildDependencies();
 
         // Compute initial satisfied executables
-        for (Executable executable : executablePlans.keySet()) {
-            ExecutablePlan executablePlan = executablePlans.get(executable);
+        for (Executable executable : executables) {
+            ExecutablePlan executablePlan = executablePlans.get(executable.getId());
             if (executablePlan.dependencies.size() == 0) {
                 // Executable is satisfied (because it is not dependent on any other executable)
                 satisfiedExecutables.add(executable);
@@ -66,13 +71,14 @@ public class ExecutionPlan
      */
     protected void buildDependencies()
     {
-        for (Executable parentExecutable : executablePlans.keySet()) {
-            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutable);
+        for (Long parentExecutableId : remainingExecutableIds) {
+            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutableId);
+            Executable parentExecutable = parentExecutablePlan.getExecutable();
             Collection<Executable> childExecutables = parentExecutable.getChildExecutables();
 
             // Setup dependencies in parent plan and parents in child plans
             for (Executable childExecutable : parentExecutable.getExecutionDependencies()) {
-                ExecutablePlan childExecutablePlan = executablePlans.get(childExecutable);
+                ExecutablePlan childExecutablePlan = executablePlans.get(childExecutable.getId());
 
                 // Child executable doesn't exists in the plan, so it is automatically satisfied
                 if (childExecutablePlan == null) {
@@ -106,14 +112,15 @@ public class ExecutionPlan
      */
     public synchronized void removeExecutable(Executable executable)
     {
-        ExecutablePlan executablePlan = executablePlans.get(executable);
+        Long executableId = executable.getId();
+        ExecutablePlan executablePlan = executablePlans.get(executableId);
         if (executablePlan == null) {
             throw new IllegalArgumentException("Given executable isn't in the plan.");
         }
-        executablePlans.remove(executable);
+        remainingExecutableIds.remove(executableId);
         satisfiedExecutables.remove(executable);
         for (Executable parentExecutable : executablePlan.parents) {
-            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutable);
+            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutable.getId());
             parentExecutablePlan.dependencies.remove(executable);
             if (parentExecutablePlan.dependencies.size() == 0) {
                 satisfiedExecutables.add(parentExecutable);
@@ -127,7 +134,21 @@ public class ExecutionPlan
      */
     public synchronized boolean isEmpty()
     {
-        return executablePlans.size() == 0;
+        return remainingExecutableIds.size() == 0;
+    }
+
+    /**
+     * @param executable to be checked for parents
+     * @return true if some executables are dependent to given {@code executable} (should be started after it),
+     *         false otherwise
+     */
+    public boolean hasParents(Executable executable)
+    {
+        ExecutablePlan executablePlan = executablePlans.get(executable.getId());
+        if (executablePlan == null) {
+            throw new IllegalArgumentException("Given executable isn't in the plan.");
+        }
+        return executablePlan.parents.size() > 0;
     }
 
     /**
@@ -160,6 +181,14 @@ public class ExecutionPlan
         public ExecutablePlan(Executable executable)
         {
             this.executable = executable;
+        }
+
+        /**
+         * @return {@link #executable}
+         */
+        public Executable getExecutable()
+        {
+            return executable;
         }
     }
 }

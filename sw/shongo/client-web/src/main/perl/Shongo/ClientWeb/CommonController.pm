@@ -396,6 +396,9 @@ sub format_aliases
     my $aliases_text = '';
     my $aliases_description = '';
     foreach my $alias (@{$aliases}) {
+        if ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
+            next;
+        }
         if ( length($aliases_text) > 0 ) {
             $aliases_text .= ', ';
         }
@@ -428,9 +431,6 @@ sub format_aliases
                 $aliases_text .= "$url";
             }
             $aliases_description .= '<dt>Room URL:</dt><dd>' . $alias->{'value'} . '</dd>';
-        }
-        elsif ( $alias->{'type'} eq 'ADOBE_CONNECT_NAME' ) {
-            # skip
         }
         else {
             $self->error("Unknown alias type '$alias->{'type'}'.");

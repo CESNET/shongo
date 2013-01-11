@@ -42,11 +42,6 @@ public class Executor extends Component
     private Duration period;
 
     /**
-     * @see {@link Configuration#EXECUTOR_LOOKUP_AHEAD}
-     */
-    private Duration lookupAhead;
-
-    /**
      * @see {@link Configuration#EXECUTOR_EXECUTABLE_START}
      */
     private Duration executableStart;
@@ -57,19 +52,9 @@ public class Executor extends Component
     private Duration executableEnd;
 
     /**
-     * @see {@link Configuration#EXECUTOR_COMPARTMENT_WAITING_ROOM}
+     * @see {@link Configuration#EXECUTOR_STARTINT_DURATION_ROOM}
      */
-    private Duration compartmentWaitingRoom;
-
-    /**
-     * @see {@link Configuration#EXECUTOR_EXECUTABLE_WAITING_START}
-     */
-    private Duration executableWaitingStart;
-
-    /**
-     * @see {@link Configuration#EXECUTOR_EXECUTABLE_WAITING_END}
-     */
-    private Duration executableWaitingEnd;
+    private Duration startingDurationRoom;
 
     /**
      * @return {@link #logger}
@@ -80,43 +65,11 @@ public class Executor extends Component
     }
 
     /**
-     * @return {@link #executableStart}
+     * @return {@link #startingDurationRoom}
      */
-    public Duration getExecutableStart()
+    public Duration getStartingDurationRoom()
     {
-        return executableStart;
-    }
-
-    /**
-     * @return {@link #executableEnd}
-     */
-    public Duration getExecutableEnd()
-    {
-        return executableEnd;
-    }
-
-    /**
-     * @return {@link #executableWaitingStart}
-     */
-    public Duration getExecutableWaitingStart()
-    {
-        return executableWaitingStart;
-    }
-
-    /**
-     * @return {@link #executableWaitingEnd}
-     */
-    public Duration getExecutableWaitingEnd()
-    {
-        return executableWaitingEnd;
-    }
-
-    /**
-     * @return {@link #compartmentWaitingRoom}
-     */
-    public Duration getCompartmentWaitingRoom()
-    {
-        return compartmentWaitingRoom;
+        return startingDurationRoom;
     }
 
     @Override
@@ -162,13 +115,10 @@ public class Executor extends Component
         super.init(configuration);
 
         period = configuration.getDuration(Configuration.EXECUTOR_PERIOD);
-        lookupAhead = configuration.getDuration(Configuration.EXECUTOR_LOOKUP_AHEAD);
         executableStart = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_START);
         executableEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_END);
-        executableWaitingStart = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_WAITING_START);
-        executableWaitingEnd = configuration.getDuration(Configuration.EXECUTOR_EXECUTABLE_WAITING_END);
-        compartmentWaitingRoom = configuration.getDuration(
-                Configuration.EXECUTOR_COMPARTMENT_WAITING_ROOM);
+        startingDurationRoom = configuration.getDuration(
+                Configuration.EXECUTOR_STARTINT_DURATION_ROOM);
     }
 
     @Override
@@ -286,29 +236,4 @@ public class Executor extends Component
 
         return executionResult;
     }
-
-    /**
-     * Wait for all {@link cz.cesnet.shongo.controller.executor.Executable}s to be stopped.
-     */
-    public void waitForExecutablesStopped()
-    {
-        while (true) {
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            ExecutableManager executableManager = new ExecutableManager(entityManager);
-            Collection<Executable> executables = executableManager.list(STATES_FOR_STOPPING);
-            if (executables.size() == 0) {
-                break;
-            }
-            logger.debug("Waiting for {} executable(s) to end...", executables.size());
-            entityManager.close();
-
-            try {
-                Thread.sleep(100);
-            }
-            catch (InterruptedException exception) {
-                logger.error("Waiting for executables interrupted.", exception);
-            }
-        }
-    }
-
 }

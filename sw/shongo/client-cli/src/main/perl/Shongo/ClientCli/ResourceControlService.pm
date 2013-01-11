@@ -320,6 +320,7 @@ sub control_resource()
         $shell->add_commands({
             "modify-room" => {
                 desc => "Modify virtual room",
+                options => 'roomId=s',
                 args => '[<ROOM-ID>] [-roomId <ROOM-ID>]',
                 method => sub {
                     my ($shell, $params, @args) = @_;
@@ -836,9 +837,11 @@ sub resource_modify_room
 
 sub resource_delete_room
 {
-    my ($resourceId, $attributes) = @_;
-
-    my $roomId = console_read_value('Room ID', 1, undef, $attributes->{'roomId'});
+    my ($resourceId, $roomId, $attributes) = @_;
+    $roomId = select_room($roomId, $attributes);
+    if ( !defined($resourceId) || !defined($roomId) ) {
+        return;
+    }
 
     my $result = Shongo::ClientCli->instance()->secure_request(
         'ResourceControl.deleteRoom',

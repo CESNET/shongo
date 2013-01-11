@@ -19,19 +19,22 @@ our $State = {
     'NOT_STARTED' => {'title' => 'Not-Started', 'color' => 'yellow'},
     'STARTED' => {'title' => 'Started', 'color' => 'green'},
     'STARTING_FAILED' => {'title' => 'Failed', 'color' => 'red'},
-    'STOPPED' => {'title' => 'Finished', 'color' => 'blue'}
+    'STOPPED' => {'title' => 'Finished', 'color' => 'blue'},
+    'STOPPING_FAILED' => {'title' => 'Stopping Failed', 'color' => 'red'},
 };
 our $RoomState = {
     'NOT_STARTED' => {'title' => 'Not-Created', 'color' => 'yellow'},
     'STARTED' => {'title' => 'Created', 'color' => 'green'},
     'STARTING_FAILED' => {'title' => 'Failed', 'color' => 'red'},
-    'STOPPED' => {'title' => 'Deleted', 'color' => 'blue'}
+    'STOPPED' => {'title' => 'Deleted', 'color' => 'blue'},
+    'STOPPING_FAILED' => {'title' => 'Deleting Failed', 'color' => 'red'},
 };
 our $ConnectionState = {
     'NOT_STARTED' => {'title' => 'Not-Established', 'color' => 'yellow'},
     'STARTED' => {'title' => 'Established', 'color' => 'green'},
     'STARTING_FAILED' => {'title' => 'Failed', 'color' => 'red'},
-    'STOPPED' => {'title' => 'Closed', 'color' => 'blue'}
+    'STOPPED' => {'title' => 'Closed', 'color' => 'blue'},
+    'STOPPING_FAILED' => {'title' => 'Closing Failed', 'color' => 'red'},
 };
 
 #

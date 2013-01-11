@@ -40,6 +40,19 @@ public class ExecutorThread extends Thread
                     Executable executable = executableManager.get(this.executable.getId());
                     entityManager.getTransaction().begin();
                     executable.start(executor, entityManager);
+                    if (executable.getState().equals(Executable.State.STARTED)) {
+                        if (executable instanceof RoomEndpoint && executionPlan.hasParents(executable)) {
+                            executor.getStartingDurationRoom();
+                            executor.getLogger().info("Waiting for room '{}' to be created...", executable.getId());
+                            try {
+                                Thread.sleep(executor.getStartingDurationRoom().getMillis());
+                            }
+                            catch (InterruptedException exception) {
+                                executor.getLogger().error("Waiting for room was interrupted...");
+                                exception.printStackTrace();
+                            }
+                        }
+                    }
                     entityManager.getTransaction().commit();
                     entityManager.close();
                 } catch (FaultException exception) {

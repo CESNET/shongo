@@ -1,6 +1,7 @@
 package cz.cesnet.shongo.connector;
 
 import cz.cesnet.shongo.AliasType;
+import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
 import cz.cesnet.shongo.connector.api.*;
@@ -13,6 +14,7 @@ import org.jdom2.input.JDOMParseException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,19 +100,20 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         this.logout();
     }
 
-     /**
-      *  Creates Adobe Connect user.
-      *
-      @return user identification (principal-id)
-      */
+    /**
+     * Creates Adobe Connect user.
+     *
+     * @return user identification (principal-id)
+     */
     protected String createAdobeConnectUser(String eppn) throws CommandException
     {
         HashMap<String, String> userSearchAttributes = new HashMap<String, String>();
-        userSearchAttributes.put("filter-login",eppn);
+        userSearchAttributes.put("filter-login", eppn);
         Element principalList = request("principal-list", userSearchAttributes);
 
         if (principalList.getChild("principal-list").getChild("principal") != null) {
-            String principalId = principalList.getChild("principal-list").getChild("principal").getAttributeValue("principal-id");
+            String principalId = principalList.getChild("principal-list").getChild("principal")
+                    .getAttributeValue("principal-id");
             return principalId;
         }
 
@@ -142,7 +145,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
      * This method is not supported, cause the AC XML API (secret one) is not working
      *
      * @throws CommandUnsupportedException
-     */    @java.lang.Override
+     */
+    @java.lang.Override
     public void unmuteParticipant(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
@@ -165,14 +169,16 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
-    public void enableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void enableParticipantVideo(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
                 "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
     }
 
     @java.lang.Override
-    public void disableParticipantVideo(String roomId, String roomUserId) throws CommandException, CommandUnsupportedException
+    public void disableParticipantVideo(String roomId, String roomUserId)
+            throws CommandException, CommandUnsupportedException
     {
         throw new CommandUnsupportedException(
                 "Adobe Connect does not support this function. This setting is accessible in Adobe Connect virtual room.");
@@ -190,36 +196,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         //report-bulk-consolidated-transactions
         //report-meeting....
         return null;  //TODO
-    }
-
-    @java.lang.Override
-    public Collection<RoomSummary> getRoomList() throws CommandException
-    {
-        HashMap<String, String> attributes = new HashMap<String, String>();
-        attributes.put("filter-type", "meeting");
-
-        Element response = request("report-bulk-objects", attributes);
-
-        List<RoomSummary> meetings = new ArrayList<RoomSummary>();
-
-        for (Element room : response.getChild("report-bulk-objects").getChildren("row")) {
-            if (room.getChildText("name").matches("(?i).*Template")) {
-                continue;
-            }
-
-            RoomSummary roomSummary = new RoomSummary();
-
-            roomSummary.setId(room.getAttributeValue("sco-id"));
-            roomSummary.setCode(room.getChildText("name"));
-            //TODO: not specified yet
-            roomSummary.setName(room.getChildText("description"));
-
-            //TODO: element URL
-
-            meetings.add(roomSummary);
-        }
-
-        return Collections.unmodifiableList(meetings);
     }
 
     @java.lang.Override
@@ -249,7 +225,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         HashMap<String, String> recAttributes = new HashMap<String, String>();
         recAttributes.put("sco-id", roomId);
 
-        Element response = request("meeting-recorder-activity-info",recAttributes);
+        Element response = request("meeting-recorder-activity-info", recAttributes);
 
         int recScoId = Integer.valueOf(
                 response.getChild("meeting-recorder-activity-info").getChildText("recording-sco-id"));
@@ -275,7 +251,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Element response = request("sco-info", attributes);
 
-        String url = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response.getChild("sco").getChildText("url-path");
+        String url = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+                .getChild("sco").getChildText("url-path");
 
         return url;
     }
@@ -343,6 +320,38 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     @java.lang.Override
+    public Collection<RoomSummary> getRoomList() throws CommandException
+    {
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("filter-type", "meeting");
+
+        Element response = request("report-bulk-objects", attributes);
+
+        List<RoomSummary> meetings = new ArrayList<RoomSummary>();
+
+        for (Element room : response.getChild("report-bulk-objects").getChildren("row")) {
+            if (room.getChildText("name").matches("(?i).*Template")) {
+                continue;
+            }
+
+            RoomSummary roomSummary = new RoomSummary();
+            roomSummary.setId(room.getAttributeValue("sco-id"));
+            roomSummary.setName(room.getChildText("name"));
+
+            String dateCreated = room.getChildText("date-created");
+            if (dateCreated != null) {
+                roomSummary.setStartDateTime(DateTime.parse(dateCreated));
+            }
+
+            //TODO: element URL
+
+            meetings.add(roomSummary);
+        }
+
+        return Collections.unmodifiableList(meetings);
+    }
+
+    @java.lang.Override
     public Room getRoom(String roomId) throws CommandException
     {
         HashMap<String, String> attributes = new HashMap<String, String>();
@@ -352,14 +361,13 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
 
         Room room = new Room();
         room.setId(roomId);
-        room.setCode(response.getChild("sco").getChildText("name"));
-        room.setName(response.getChild("sco").getChildText("description"));
-
-
-
+        room.setName(response.getChild("sco").getChildText("name"));
+        room.setDescription(response.getChild("sco").getChildText("description"));
+        room.addTechnology(Technology.ADOBE_CONNECT);
 
         List<Alias> aliasList = new ArrayList<Alias>();
-        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response.getChild("sco").getChildText("url-path");
+        String uri = "https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + response
+                .getChild("sco").getChildText("url-path");
         aliasList.add(new Alias(AliasType.ADOBE_CONNECT_URI, uri));
 
         room.setAliases(aliasList);
@@ -377,60 +385,76 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     public String createRoom(Room room) throws CommandException
     {
         try {
-        HashMap<String,String> attributes = new HashMap<String, String>();
-        attributes.put("folder-id",
-                (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
-        attributes.put("name", URLEncoder.encode(room.getCode(),"UTF8"));
-        attributes.put("type","meeting");
-        if (room.getAlias(AliasType.ADOBE_CONNECT_NAME) != null) {
-            attributes.put("url-path", room.getAlias(AliasType.ADOBE_CONNECT_NAME).getValue());
-        }
-        if (room.getName() != null) {
-            attributes.put("description", URLEncoder.encode(room.getName(),"UTF8"));
-        }
+            HashMap<String, String> attributes = new HashMap<String, String>();
+            attributes.put("folder-id",
+                    (this.meetingsFolderID != null ? this.meetingsFolderID : this.getMeetingsFolderID()));
+            attributes.put("type", "meeting");
+            attributes.put("date-begin", URLEncoder
+                    .encode(DateTime.now().toString(), "UTF8"));//DateTime.now().toString());"2013-01-11T10:44:03+01:00"
+            attributes.put("name", URLEncoder.encode(room.getCode(), "UTF8"));
+            if (room.getName() != null) {
+                attributes.put("description", URLEncoder.encode(room.getName(), "UTF8"));
+            }
+            if (room.getAlias(AliasType.ADOBE_CONNECT_NAME) != null) {
+                attributes.put("url-path", room.getAlias(AliasType.ADOBE_CONNECT_NAME).getValue());
+            }
 
 
-        Element respose = request("sco-update", attributes);
-        String scoId = respose.getChild("sco").getAttributeValue("sco-id");
+            Element respose = request("sco-update", attributes);
+            String scoId = respose.getChild("sco").getAttributeValue("sco-id");
 
-//        room.setId(respose.getChild("sco").getAttributeValue("sco-id"));
-//        room.setOption(room.getName(),this.serverUrl + respose.getChild("sco").getChildText("url-path"));
+            // room.setId(respose.getChild("sco").getAttributeValue("sco-id"));
+            // room.setOption(room.getName(),this.serverUrl + respose.getChild("sco").getChildText("url-path"));
 
-        for (String eppn : (List<String>) room.getOption(Room.Option.PARTICIPANTS)) {
-            String principalId = this.createAdobeConnectUser(eppn);
+            List<String> participants = (List<String>) room.getOption(Room.Option.PARTICIPANTS);
+            if (participants != null) {
+                for (String eppn : participants) {
+                    String principalId = this.createAdobeConnectUser(eppn);
 
-//            String principalId = roomUser.getUserIdentity().getId();
-            HashMap<String,String> userAttributes = new HashMap<String, String>();
-            userAttributes.put("acl-id", scoId);
-            userAttributes.put("principal-id",principalId);
-            userAttributes.put("permission-id","host");
+                    //String principalId = roomUser.getUserIdentity().getId();
+                    HashMap<String, String> userAttributes = new HashMap<String, String>();
+                    userAttributes.put("acl-id", scoId);
+                    userAttributes.put("principal-id", principalId);
+                    userAttributes.put("permission-id", "host");
 
-            request("permissions-update", userAttributes);
-        }
+                    request("permissions-update", userAttributes);
+                }
 
+            }
 //        importRoomSettings(respose.getChild("sco").getAttributeValue("sco-id"),room.getConfiguration());
 
-        return scoId;
+            return scoId;
 
-        } catch (UnsupportedEncodingException ex) {
-            throw new CommandException("Error while URL encoding.",ex);
+        }
+        catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while URL encoding.", ex);
         }
     }
 
     @java.lang.Override
-    public String modifyRoom(Room room)
-            throws CommandException, CommandUnsupportedException
+    public String modifyRoom(Room room) throws CommandException
     {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        try {
+            HashMap<String, String> attributes = new HashMap<String, String>();
+            attributes.put("sco-id", room.getId());
+            if (room.isPropertyFilled(Room.NAME)) {
+                attributes.put("description", URLEncoder.encode(room.getName(), "UTF8"));
+            }
+            request("sco-update", attributes);
+            return room.getId();
+        }
+        catch (UnsupportedEncodingException ex) {
+            throw new CommandException("Error while URL encoding.", ex);
+        }
     }
 
     @java.lang.Override
     public void deleteRoom(String roomId) throws CommandException
     {
-        HashMap<String,String> attributes = new HashMap<String, String>();
-        attributes.put("sco-id",roomId);
+        HashMap<String, String> attributes = new HashMap<String, String>();
+        attributes.put("sco-id", roomId);
 
-        this.request("meeting-stop",attributes);
+        this.request("meeting-stop", attributes);
 
         deleteSCO(roomId);
     }
@@ -498,7 +522,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put("sco-id", roomId);
 
-        Element response =  request("meeting-usermanager-user-list", attributes);
+        Element response = request("meeting-usermanager-user-list", attributes);
 
         ArrayList<RoomUser> participantList = new ArrayList<RoomUser>();
 
@@ -546,7 +570,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
         attributes.put("sco-id", roomId);
         attributes.put("user-id", roomUserId);
 
-        Element response =  request("meeting-usermanager-remove-user", attributes);
+        Element response = request("meeting-usermanager-remove-user", attributes);
     }
 
     @java.lang.Override
@@ -592,7 +616,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             }
         }
 
-        return new URL("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress().getPort() + "/api/xml?" + "action=" + action
+        return new URL("https://" + info.getDeviceAddress().getHost() + ":" + info.getDeviceAddress()
+                .getPort() + "/api/xml?" + "action=" + action
                 + queryString);
     }
 
@@ -614,7 +639,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     protected String getMeetingsFolderID() throws CommandException
     {
         if (meetingsFolderID == null) {
-            Element response = request("sco-shortcuts",null);
+            Element response = request("sco-shortcuts", null);
             for (Element sco : response.getChild("shortcuts").getChildren("sco")) {
                 if (sco.getAttributeValue("type").equals("meetings")) {
                     meetingsFolderID = sco.getAttributeValue("sco-id");
@@ -655,7 +680,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 logger.info(String.format("Login to server %s failed", info.getDeviceAddress()));
 
                 throw new RuntimeException("Login to server " + info.getDeviceAddress() + " failed");
-            } else {
+            }
+            else {
                 logger.info(String.format("Login to server %s succeeded", info.getDeviceAddress()));
             }
         }
@@ -702,7 +728,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     /**
      * Execute command on Adobe Connect server and returns XML response. Throws CommandException when some error on Adobe Connect server occured or some parser error occured.
      *
-     * @param action name of Adobe Connect action
+     * @param action     name of Adobe Connect action
      * @param attributes atrtributes of action
      * @return XML action response
      * @throws CommandException
@@ -717,7 +743,8 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                 else {
                     login();
                 }
-            } else {
+            }
+            else {
                 if (!action.equals("common-info")) {
                     this.reconnect();
                 }
@@ -749,10 +776,11 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
                     }
                 }
 
-                logger.info(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(),errorMsg));
+                logger.info(String.format("Command %s failed on %s: %s", action, info.getDeviceAddress(), errorMsg));
 
                 throw new RuntimeException(errorMsg + ". URL: " + url);
-            } else {
+            }
+            else {
                 logger.info(String.format("Command %s succeeded on %s", action, info.getDeviceAddress()));
             }
             return doc.getRootElement();
@@ -772,21 +800,23 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
     }
 
     /**
-     *  If login, password and address is present check if connector is still connected. If necessary reconnects.
+     * If login, password and address is present check if connector is still connected. If necessary reconnects.
      */
     private void reconnect() throws CommandException
     {
         if (this.getConnectorInfo().getConnectionState() == ConnectorInfo.ConnectionState.LOOSELY_CONNECTED) {
-            Element response = this.request("common-info",null);
+            Element response = this.request("common-info", null);
 
-            if (response.getChild("common").getChild("user") == null)
+            if (response.getChild("common").getChild("user") == null) {
                 logger.info(String.format("Reconnecting to server %s", info.getDeviceAddress()));
-                this.breezesession = null;
-                this.login();
+            }
+            this.breezesession = null;
+            this.login();
         }
     }
 
-    private boolean isError(Document result) {
+    private boolean isError(Document result)
+    {
         Element status = result.getRootElement().getChild("status");
 
         return !status.getAttributeValue("code").equals("ok");
@@ -800,7 +830,7 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             AdobeConnectConnector acc = new AdobeConnectConnector();
             Address address = new Address(server, 443);
 
-            acc.connect(address,"admin","cip9skovi3t2");
+            acc.connect(address, "admin", "cip9skovi3t2");
 
 /*            Room room = new Room(String.format("Shongo%d [exec:%d]",123,456),5);
             room.setAliases(new ArrayList<Alias>() {{ add(new Alias(AliasType.ADOBE_CONNECT_NAME,"testi")); }});
@@ -811,7 +841,6 @@ public class AdobeConnectConnector extends AbstractConnector implements Multipoi
             System.out.println(scoId);
             Thread.sleep(15000);
             acc.deleteRoom(scoId); */
-
 
 
             acc.disconnect();

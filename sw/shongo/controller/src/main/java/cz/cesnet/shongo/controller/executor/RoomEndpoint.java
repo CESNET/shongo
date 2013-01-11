@@ -3,8 +3,10 @@ package cz.cesnet.shongo.controller.executor;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.controller.Executor;
 import cz.cesnet.shongo.controller.common.RoomConfiguration;
+import cz.cesnet.shongo.controller.resource.Alias;
 
 import javax.persistence.*;
+import java.util.List;
 
 /**
  * Represents an {@link Endpoint} which represents a {@link RoomConfiguration} (is able to
@@ -61,13 +63,6 @@ public abstract class RoomEndpoint extends Endpoint
 
     @Override
     @Transient
-    public String getName()
-    {
-        return String.format("virtual room '%d'", getId());
-    }
-
-    @Override
-    @Transient
     public int getCount()
     {
         return 0;
@@ -85,7 +80,8 @@ public abstract class RoomEndpoint extends Endpoint
      * @param executor thread which is executing
      * @return new {@link State}
      */
-    public boolean modifyRoom(RoomConfiguration roomConfiguration, Executor executor)
+    public boolean modifyRoom(String roomName, RoomConfiguration roomConfiguration, List<Alias> roomAliases,
+            Executor executor)
     {
         return true;
     }

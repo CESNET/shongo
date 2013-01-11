@@ -379,6 +379,9 @@ public class Reservation extends PersistentObject
     {
         api.setId(domain.formatId(getId()));
         api.setUserId(getUserId());
+        if (getReservationRequest() != null) {
+            api.setReservationRequestId(domain.formatId(getReservationRequest().getId()));
+        }
         api.setSlot(getSlot());
         if (getExecutable() != null) {
             api.setExecutable(getExecutable().toApi(domain));

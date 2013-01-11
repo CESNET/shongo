@@ -4,6 +4,7 @@
     <thead>
     <tr>
         <th>Identifier</th>
+        <th>Name</th>
         <th>Starting date/time</th>
         <th>Duration</th>
         <th>State</th>
@@ -13,6 +14,7 @@
     [%- FOREACH aliasUsageRequest IN childRequest.aliasUsageRequests %]
     <tr>
         <td><a href="[% location%]/detail?id=[% aliasUsageRequest.id %]">[% aliasUsageRequest.id %]</a></td>
+        <td>[% aliasUsageRequest.name %]</td>
         <td>[% util.format_datetime(aliasUsageRequest.start) %]</td>
         <td>[% util.format_period(aliasUsageRequest.duration) %]</td>
         <td><a href="[% location %]/detail?id=[% aliasUsageRequest.id %]" class="state-[% aliasUsageRequest.stateCode %]">[% aliasUsageRequest.state %]</a></td>

@@ -10,7 +10,6 @@ import cz.cesnet.shongo.connector.api.ontology.ConnectorOntology;
 import cz.cesnet.shongo.connector.api.ontology.actions.multipoint.rooms.CreateRoom;
 import cz.cesnet.shongo.controller.api.*;
 import cz.cesnet.shongo.controller.executor.*;
-import cz.cesnet.shongo.controller.util.DatabaseHelper;
 import cz.cesnet.shongo.jade.Agent;
 import cz.cesnet.shongo.jade.UnknownAgentActionException;
 import cz.cesnet.shongo.jade.command.AgentActionResponderBehaviour;
@@ -49,9 +48,7 @@ public class ExecutorTest extends AbstractControllerTest
         // Executor configuration
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_START, "PT0S");
         System.setProperty(Configuration.EXECUTOR_EXECUTABLE_END, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_COMPARTMENT_WAITING_ROOM, "PT0S");
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_WAITING_START, "PT1S");
-        System.setProperty(Configuration.EXECUTOR_EXECUTABLE_WAITING_END, "PT1S");
+        System.setProperty(Configuration.EXECUTOR_STARTINT_DURATION_ROOM, "PT0S");
     }
 
     @Override
@@ -334,6 +331,7 @@ public class ExecutorTest extends AbstractControllerTest
         String connectServerId = getResourceService().createResource(SECURITY_TOKEN, connectServer);
 
         ReservationRequest aliasReservationRequest = new ReservationRequest();
+        aliasReservationRequest.setName("aliasReservation");
         aliasReservationRequest.setSlot(dateTime, duration);
         aliasReservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         aliasReservationRequest.setSpecification(
@@ -343,6 +341,7 @@ public class ExecutorTest extends AbstractControllerTest
                 "test", aliasReservation.getAliasValue());
 
         ReservationRequest reservationRequest = new ReservationRequest();
+        reservationRequest.setName("roomReservation");
         reservationRequest.setSlot(dateTime, duration);
         reservationRequest.setPurpose(ReservationRequestPurpose.SCIENCE);
         reservationRequest.setSpecification(new RoomSpecification(10, Technology.ADOBE_CONNECT));

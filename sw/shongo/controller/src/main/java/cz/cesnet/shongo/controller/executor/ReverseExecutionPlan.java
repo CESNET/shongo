@@ -3,7 +3,7 @@ package cz.cesnet.shongo.controller.executor;
 import java.util.*;
 
 /**
- * Represents an {@link cz.cesnet.shongo.controller.Executor} for collection of {@link cz.cesnet.shongo.controller.executor.Executable}s.
+ * Represents an reverse {@link cz.cesnet.shongo.controller.executor.ExecutionPlan}.
  *
  * @author Martin Srom <martin.srom@cesnet.cz>
  */
@@ -24,13 +24,14 @@ public class ReverseExecutionPlan extends ExecutionPlan
     protected void buildDependencies()
     {
         // Setup dependencies
-        for (Executable parentExecutable : executablePlans.keySet()) {
-            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutable);
+        for (Long parentExecutableId : remainingExecutableIds) {
+            ExecutablePlan parentExecutablePlan = executablePlans.get(parentExecutableId);
+            Executable parentExecutable = parentExecutablePlan.getExecutable();
             Collection<Executable> childExecutables = parentExecutable.getChildExecutables();
 
             // Setup parents in parent plan and dependencies in child plans
             for (Executable childExecutable : parentExecutable.getExecutionDependencies()) {
-                ExecutablePlan childExecutablePlan = executablePlans.get(childExecutable);
+                ExecutablePlan childExecutablePlan = executablePlans.get(childExecutable.getId());
                 if (childExecutablePlan == null) {
                     continue;
                 }

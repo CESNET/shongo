@@ -39,7 +39,7 @@
     [%- IF aliasReservation %]
 
     <dt>Room Alias:</dt>
-    <dd><a href="[% location %]/detail?id=[% aliasReservation.id %]">[% aliasReservation.value %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
+    <dd><a href="[% location %]/detail?id=[% aliasReservation.reservationRequestId %]">[% aliasReservation.value %]</a> (valid in [% util.format_interval_date(aliasReservation.slot) %])</dd>
     [% END %]
 
     <dt>Number of participants:</dt>
@@ -98,7 +98,7 @@
 <div class="pull-right">
     <a class="btn btn-primary" href="[% location %]/list">Back</a>
     [%- IF request.specification.class == 'AliasSpecification' -%]
-    [% IF reservation.reservationId %]
+    [% IF request.reservationId %]
     <a class="btn" href="[% location %]/create?alias=[% reservation.reservationId %]">Request Room Capacity</a>
     [% ELSE %]
     <span class="btn disabled">Request Room Capacity</span>

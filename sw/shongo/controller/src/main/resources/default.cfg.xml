@@ -50,24 +50,18 @@
     <executor>
         <!-- Period in which the executor is periodically checking compartments -->
         <period>PT15S</period>
-        <!-- Configuration of lookup ahead for compartments to be executed -->
-        <lookup-ahead>PT3M</lookup-ahead>
         <!-- Configuration for each executable -->
         <executable>
             <!-- Period modifying compartment starting date/time -->
             <start>PT-30S</start>
             <!-- Period modifying compartment ending date/time -->
             <end>PT-30S</end>
-            <!-- Period for checking starting date/time -->
-            <waiting-start>PT10S</waiting-start>
-            <!-- Period for checking ending date/time -->
-            <waiting-end>PT30S</waiting-end>
         </executable>
-        <!-- Configuration for compartment executable -->
-        <compartment>
-            <!-- Duration of waiting for virtual rooms to be created -->
-            <waiting-room>PT5S</waiting-room>
-        </compartment>
+        <!-- Configuration of durations which should be reserved for starting executables -->
+        <starting-duration>
+            <!-- Duration for which the executor waits when a room is being to started -->
+            <room>PT5S</room>
+        </starting-duration>
     </executor>
 
     <!-- Reservation configuration -->

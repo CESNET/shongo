@@ -1,11 +1,9 @@
 * 2 paragraphs of shongo features
 
-* Executor should wait after it creates a virtual room
-* Use HangUp instead of HangUpAll
+* Update API reservation->reservationRequestId
+* Update API controller configuration
 
-* Adobe connect
-  - finish create/delete room by alias reservation (test it in web client)
-  - modify also room name and aliases
+* Use HangUp instead of HangUpAll
 
 * Implement better web client "back button"
 

@@ -102,13 +102,6 @@ public class Compartment extends Executable
     }
 
     @Override
-    @Transient
-    public String getName()
-    {
-        return String.format("compartment '%d'", getId());
-    }
-
-    @Override
     protected cz.cesnet.shongo.controller.api.Executable createApi()
     {
         return new cz.cesnet.shongo.controller.api.Executable.Compartment();
@@ -162,7 +155,7 @@ public class Compartment extends Executable
     @Override
     public State onStart(Executor executor)
     {
-        executor.getLogger().debug("Starting compartment...");
+        executor.getLogger().debug("Starting compartment '{}'...", getId());
 
         return super.onStart(executor);
     }
@@ -170,7 +163,7 @@ public class Compartment extends Executable
     @Override
     public State onStop(Executor executor)
     {
-        executor.getLogger().debug("Stopping compartment...");
+        executor.getLogger().debug("Stopping compartment '{}'...", getId());
 
         return super.onStop(executor);
     }
