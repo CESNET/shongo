@@ -9,6 +9,8 @@
 * Update API reservation->reservationRequestId
 * Update API controller configuration
 
+* check H.323 prefix for shongo (01 doesn't work)
+
 * Use HangUp instead of HangUpAll
 
 * Implement better web client "back button"

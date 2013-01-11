@@ -99,7 +99,7 @@
     <a class="btn btn-primary" href="[% location %]/list">Back</a>
     [%- IF request.specification.class == 'AliasSpecification' -%]
     [% IF request.reservationId %]
-    <a class="btn" href="[% location %]/create?alias=[% reservation.reservationId %]">Request Room Capacity</a>
+    <a class="btn" href="[% location %]/create?alias=[% request.reservationId %]">Request Room Capacity</a>
     [% ELSE %]
     <span class="btn disabled">Request Room Capacity</span>
     [% END %]
