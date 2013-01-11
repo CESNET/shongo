@@ -16,7 +16,7 @@
     });
 </script>
 <h1>New reservation request for H.323/SIP room capacity</h1>
-<form class="form-horizontal" action="[% location %]/create?confirmed" method="POST">
+<form class="form-horizontal" action="[% location %]/create?[% "alias=" _ get.alias _ "&" IF get.alias %]confirmed" method="POST">
 
     <div class="control-group">
         <label class="control-label" for="inputName">Name:</label>
