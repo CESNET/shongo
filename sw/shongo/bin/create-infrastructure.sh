@@ -1,4 +1,4 @@
-CONTROLLER=127.0.0.1
+CONTROLLER=shongo-test1
 cd `dirname $0`
 ./client-cli.sh --connect $CONTROLLER --testing-access-token --scripting \
 --cmd "\
