@@ -1,5 +1,7 @@
 * 2 paragraphs of shongo features
 
+* info mails alias/room capacity
+
 * log all connector actions
 
 * Update API reservation->reservationRequestId
