@@ -1,6 +1,22 @@
 * 2 paragraphs of shongo features
 
-* info mails alias/room capacity
+* String aliases
+  -ValueProviderCapability - patterns
+  -AliasProvideCapability - reference to ValueProviderCapability (in API it can be also resourceId)
+  -ROOM_IDENTIFIER (null technology)
+
+* Max future - different for resource reservations/alias reservations (add maxFuture to AliasProviderCapability)
+
+* info mails
+  -implement for aliases
+  -hide identifiers (move to end)
+
+* Web client
+  -now button in date picker
+  -sort week days in date/time pickers (Mo Thu ...)
+
+* Improve allocation failed reports
+  -Max-future
 
 * log all connector actions
 

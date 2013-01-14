@@ -7,7 +7,7 @@ cd `dirname $0`
         name: 'gatekeeper', \
         description: 'Alias provider for H.323/SIP MCUs', \
         allocatable: 1, \
-        maximumFuture: 'P4M', \
+        maximumFuture: 'P1Y', \
         capabilities: [{ \
             class: 'AliasProviderCapability', \
             aliases: [ \
