@@ -42,8 +42,22 @@
             <version>1.8</version>
         </dependency>
 
+        <!-- Apache XML-RPC is used as implementation of remote procedure calls -->
+        <dependency>
+            <groupId>org.apache.xmlrpc</groupId>
+            <artifactId>xmlrpc-server</artifactId>
+            <version>3.1.3</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!-- A complete, Java-based solution for accessing, manipulating, and outputting XML data
-             which is used by Adobe Connect connector -->
+ which is used by Adobe Connect connector -->
         <dependency>
             <groupId>org.jdom</groupId>
             <artifactId>jdom2</artifactId>

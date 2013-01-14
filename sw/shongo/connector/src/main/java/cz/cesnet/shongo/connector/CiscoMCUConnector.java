@@ -4,12 +4,14 @@ import cz.cesnet.shongo.AliasType;
 import cz.cesnet.shongo.Technology;
 import cz.cesnet.shongo.api.*;
 import cz.cesnet.shongo.api.util.Address;
+import cz.cesnet.shongo.api.xmlrpc.KeepAliveTransportFactory;
 import cz.cesnet.shongo.connector.api.*;
 import cz.cesnet.shongo.util.HostTrustManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.client.XmlRpcCommonsTransportFactory;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -268,6 +270,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
 
             client = new XmlRpcClient();
             client.setConfig(config);
+            client.setTransportFactory(new KeepAliveTransportFactory(client));
 
             // FIXME: remove, the production code should not trust any certificate
             HostTrustManager.addTrustedHost(getDeviceURL().getHost());
@@ -358,7 +361,7 @@ public class CiscoMCUConnector extends AbstractConnector implements MultipointSe
     private URL getDeviceURL() throws MalformedURLException
     {
         // RPC2 is a fixed path given by Cisco, see the API docs
-        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "RPC2");
+        return new URL("https", info.getDeviceAddress().getHost(), info.getDeviceAddress().getPort(), "/RPC2");
     }
 
     /**

@@ -141,24 +141,6 @@ public class Executor extends Component
     }
 
     /**
-     * Collection of {@link Executable.State}s for {@link Executable}s which should be started.
-     */
-    private static Set<Executable.State> STATES_FOR_STARTING = new HashSet<Executable.State>()
-    {{
-            add(Executable.State.NOT_STARTED);
-        }};
-
-    /**
-     * Collection of {@link Executable.State}s for {@link Executable}s which should be stopped.
-     */
-    private static Set<Executable.State> STATES_FOR_STOPPING = new HashSet<Executable.State>()
-    {{
-            add(Executable.State.STARTED);
-            add(Executable.State.PARTIALLY_STARTED);
-            add(Executable.State.STOPPING_FAILED);
-        }};
-
-    /**
      * Execute {@link Reservation}s which should be executed for given {@code interval}.
      *
      * @param referenceDateTime specifies date/time which should be used as "now" executing {@link Reservation}s
@@ -176,7 +158,7 @@ public class Executor extends Component
         // List executables which should be started
         DateTime startDateTime = referenceDateTime.minus(executableStart);
         ExecutionPlan startingExecutionPlan =
-                new ExecutionPlan(executableManager.listTakingPlace(STATES_FOR_STARTING, startDateTime));
+                new ExecutionPlan(executableManager.listTakingPlace(Executable.STATES_FOR_STARTING, startDateTime));
         Collection<Executable> startingExecutables = new ArrayList<Executable>();
         while (!startingExecutionPlan.isEmpty()) {
             Collection<Executable> executables = startingExecutionPlan.popExecutables();
@@ -203,7 +185,7 @@ public class Executor extends Component
         // List executables which should be stopped
         DateTime stopDateTime = referenceDateTime.minus(executableEnd);
         ExecutionPlan stoppingExecutionPlan =
-                new ReverseExecutionPlan(executableManager.listNotTakingPlace(STATES_FOR_STOPPING, stopDateTime));
+                new ReverseExecutionPlan(executableManager.listNotTakingPlace(Executable.STATES_FOR_STOPPING, stopDateTime));
         Collection<Executable> stoppingExecutables = new ArrayList<Executable>();
         while (!stoppingExecutionPlan.isEmpty()) {
             Collection<Executable> executables = stoppingExecutionPlan.popExecutables();

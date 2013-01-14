@@ -10,9 +10,7 @@ import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents an object which can be executed by an {@link cz.cesnet.shongo.controller.Executor}.
@@ -235,7 +233,7 @@ public abstract class Executable extends PersistentObject
      */
     public final void start(Executor executor, EntityManager entityManager)
     {
-        if (getState() != State.NOT_STARTED) {
+        if (!STATES_FOR_STARTING.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be started only if it is not started yet.", getId()));
         }
@@ -250,7 +248,7 @@ public abstract class Executable extends PersistentObject
      */
     public final void stop(Executor executor, EntityManager entityManager)
     {
-        if (getState() != State.STARTED) {
+        if (!STATES_FOR_STOPPING.contains(getState())) {
             throw new IllegalStateException(
                     String.format("Executable '%d' can be stopped only if it is started.", getId()));
         }
@@ -409,4 +407,22 @@ public abstract class Executable extends PersistentObject
             }
         }
     }
+
+    /**
+     * Collection of {@link Executable.State}s for {@link Executable}s which should be started.
+     */
+    public static Set<State> STATES_FOR_STARTING = new HashSet<State>()
+    {{
+            add(Executable.State.NOT_STARTED);
+        }};
+
+    /**
+     * Collection of {@link Executable.State}s for {@link Executable}s which should be stopped.
+     */
+    public static Set<Executable.State> STATES_FOR_STOPPING = new HashSet<Executable.State>()
+    {{
+            add(Executable.State.STARTED);
+            add(Executable.State.PARTIALLY_STARTED);
+            add(Executable.State.STOPPING_FAILED);
+        }};
 }
