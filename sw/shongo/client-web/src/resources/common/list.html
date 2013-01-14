@@ -27,6 +27,10 @@
     [% END %]
     </tbody>
 </table>
+<div class="pull-right">
+    <a class="btn btn-primary" href="[% location %]/create-alias">Create new request for Alias</a>
+</div>
+        &nbsp;
 <h2>Room Capacity</h2>
 <table class="table table-striped table-hover">
     <thead>
@@ -59,16 +63,5 @@
 </table>
 <div class="pull-right">
     <a class="btn" href="[% location %]/list">Refresh</a>
-    <div class="btn-group">
-        <a class="btn dropdown-toggle btn-primary" data-toggle="dropdown" href="#">
-            Create new reservation request
-            <span class="caret"></span>
-        </a>
-        <ul class="dropdown-menu">
-            <li><a href="[% location %]/create-alias">for Alias</a></li>
-            <li><a href="[% location %]/create">for Room Capacity</a></li>
-        </ul>
-    </div>
-
-
+    <a class="btn btn-primary" href="[% location %]/create">Create new request for Room Capacity</a>
 </div>

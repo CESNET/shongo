@@ -1,7 +1,5 @@
 * 2 paragraphs of shongo features
 
-* connector for connect thread safety
-
 * info mails alias/room capacity
 
 * log all connector actions
@@ -9,7 +7,11 @@
 * Update API reservation->reservationRequestId
 * Update API controller configuration
 
-* check H.323 prefix for shongo (01 doesn't work)
+* check H.323 prefix for shongo (01 doesn't work, "shongo-test" has it assigned)
+
+* Adobe Connector
+ - single connection
+ - thread safety
 
 * Use HangUp instead of HangUpAll
 
@@ -37,11 +39,16 @@
 
 * Implement allocation failed state to permanent reservations
 
+* Refactorize Room.Options
+
 * Add deviceResource attribute to Alias and fill it when the alias is evaluated on the DeviceResource and check
   assignment of this alias to proper DeviceResource
 
 FUTURE:
 -------
+* Controller should check RoomProvider devices if theirs configured capacity doesn't exceed the real one and
+  warning should be displayed if so (we don't have to force error message)
+
 * Test cmd-line client in mvn test (Run cmd-line client test in maven testing)
 
 * Use database migration (change database to some which allows for transaction ddl, e.g., postgresql)
